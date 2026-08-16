@@ -57,3 +57,19 @@ The existing input comment `EntryMode: 1=ReEntryOnly, 2=AllSignals` is semantica
 - `2 = ALL_VALIDATED_BBMA_ENTRIES`
 
 No raw-signal execution path may remain when the blueprint is promoted to LOCKED status.
+
+## Step 6 implementation status
+P0 Step 6 implements this contract in M15/M27.
+
+Current eligible execution-candidate set:
+- Mode 1: confirmed H1 Re-Entry only;
+- Mode 2: confirmed H1 Re-Entry plus validated REM/RRE/REE.
+
+Raw Extreme, MLV, CSD, eCSD and CSM remain non-executable by themselves.
+
+Standalone Extreme is intentionally not yet included in Mode 2 because its source-required reversal-candle confirmation/retest entry lifecycle has not been deterministically locked. Mode 2 may expand only when another source-valid standalone entry contract is completed.
+
+M15 now sees BUY and SELL candidates in one atomic pair-level pool. If validated opposite-direction candidates coexist, no winner is invented and no final trade decision is created for that cycle.
+
+Detailed implementation contract:
+`blueprint/contracts/M15_FINAL_SIGNAL_AUTHORITY_CONTRACT.md`.

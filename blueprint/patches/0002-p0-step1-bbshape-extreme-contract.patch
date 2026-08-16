@@ -1,0 +1,131 @@
+--- a/MASTER_BLUEPRINT_2.0_WORKING.txt
++++ b/MASTER_BLUEPRINT_2.0_WORKING.txt
+@@ -1659,6 +1659,32 @@
+    return BB_FLAT;
+ }
+ 
++bool BuildBBShapeState(string pair, TimeframeData &data,
++                       BollingerBand &current, BollingerBand &previous)
++{
++   ZeroMemory(current);
++   ZeroMemory(previous);
++   
++   if(!data.is_valid || !data.is_closed || data.barIndex < 1) return false;
++   
++   current.TOP_BB = data.bollinger[0];
++   current.MID_BB = data.bollinger[1];
++   current.LOW_BB = data.bollinger[2];
++   current.Width = current.TOP_BB - current.LOW_BB;
++   
++   CalculateBollinger(pair, data.timeframe, data.barIndex + 1, previous);
++   
++   if(current.MID_BB <= 0 || current.Width <= 0 ||
++      previous.MID_BB <= 0 || previous.Width <= 0)
++   {
++      current.State = BB_NONE;
++      return false;
++   }
++   
++   current.State = DetectBBState(current, previous);
++   return (current.State != BB_NONE);
++}
++
+ double[] CalculateBollingerArray(string pair, int timeframe, int period, int count)
+ {
+    double result[];
+@@ -2187,17 +2213,10 @@
+ 
+ void CollectAllSignals(string pair, ENUM_DIRECTION direction, TimeframeData &d1, 
+                        TimeframeData &h4, TimeframeData &h1, TimeframeData &m15,
+-                       Signal &extreme, Signal &mhv, MLVData &mlv, Signal &csd,
++                       BollingerBand &h1Band, Signal &extreme, Signal &mhv, MLVData &mlv, Signal &csd,
+                        Signal &ecsd, Signal &csm, ReEntryData &reEntry)
+ {
+-   BollingerBand band;
+-   band.TOP_BB = h1.bollinger[0];
+-   band.MID_BB = h1.bollinger[1];
+-   band.LOW_BB = h1.bollinger[2];
+-   band.Width = band.TOP_BB - band.LOW_BB;
+-   band.State = BB_NONE;
+-   
+-   if(DetectExtreme(pair, direction, h1, band))
++   if(DetectExtreme(pair, direction, h1, h1Band))
+    {
+       extreme.Type = SIGNAL_EXTREME;
+       extreme.Direction = direction;
+@@ -2224,11 +2243,14 @@
+    ma.MA10_Low = m15.ma[3];
+    ma.EMA50 = m15.ma[4];
+    
+-   band.TOP_BB = m15.bollinger[0];
+-   band.MID_BB = m15.bollinger[1];
+-   band.LOW_BB = m15.bollinger[2];
+-   
+-   if(DetectCSD(pair, PERIOD_M15, direction, 1, ma, band))
++   BollingerBand m15Band;
++   ZeroMemory(m15Band);
++   m15Band.TOP_BB = m15.bollinger[0];
++   m15Band.MID_BB = m15.bollinger[1];
++   m15Band.LOW_BB = m15.bollinger[2];
++   m15Band.Width = m15Band.TOP_BB - m15Band.LOW_BB;
++   
++   if(DetectCSD(pair, PERIOD_M15, direction, 1, ma, m15Band))
+    {
+       csd.Type = SIGNAL_CSD;
+       csd.Direction = direction;
+@@ -3910,20 +3932,20 @@
+    GetDataForTimeframe(actual, PERIOD_M15, g_pair_states[pairIndex].tf_snapshot.M15_CandleTime,
+                        g_pair_states[pairIndex].m15_data);
+    
++   BollingerBand h1Band, h1PrevBand, h4Band, h4PrevBand;
++   ZeroMemory(h1Band); ZeroMemory(h1PrevBand);
++   ZeroMemory(h4Band); ZeroMemory(h4PrevBand);
++   
+    if(EnableBBShapeEngine)
+    {
+-      // FIX 1: Proper BollingerBand assignment from double[3]
+-      g_pair_states[pairIndex].current_bollinger.TOP_BB = g_pair_states[pairIndex].h1_data.bollinger[0];
+-      g_pair_states[pairIndex].current_bollinger.MID_BB = g_pair_states[pairIndex].h1_data.bollinger[1];
+-      g_pair_states[pairIndex].current_bollinger.LOW_BB = g_pair_states[pairIndex].h1_data.bollinger[2];
+-      g_pair_states[pairIndex].current_bollinger.Width = 
+-         g_pair_states[pairIndex].current_bollinger.TOP_BB - 
+-         g_pair_states[pairIndex].current_bollinger.LOW_BB;
+-      g_pair_states[pairIndex].current_bollinger.State = DetectBBState(
+-         g_pair_states[pairIndex].current_bollinger,
+-         g_pair_states[pairIndex].prev_bollinger
+-      );
+-   }
++      BuildBBShapeState(actual, g_pair_states[pairIndex].h1_data, h1Band, h1PrevBand);
++      BuildBBShapeState(actual, g_pair_states[pairIndex].h4_data, h4Band, h4PrevBand);
++   }
++   
++   // PairState stores the H1 BB shape snapshot for dashboard/state consumers.
++   // M07 remains the sole owner of BB state classification.
++   g_pair_states[pairIndex].current_bollinger = h1Band;
++   g_pair_states[pairIndex].prev_bollinger = h1PrevBand;
+    
+    for(int dirIdx = 0; dirIdx < 2; dirIdx++)
+    {
+@@ -3937,7 +3959,7 @@
+       
+       CollectAllSignals(actual, direction, g_pair_states[pairIndex].d1_data,
+                         g_pair_states[pairIndex].h4_data, g_pair_states[pairIndex].h1_data,
+-                        g_pair_states[pairIndex].m15_data, extreme, mhv, mlv, csd,
++                        g_pair_states[pairIndex].m15_data, h1Band, extreme, mhv, mlv, csd,
+                         ecsd, csm, reEntry);
+       
+       Signal h4_reEntry, d1_reEntry, h4_extreme;
+@@ -3960,13 +3982,6 @@
+          d1_reEntry.CandleTime = g_pair_states[pairIndex].d1_data.candle_time;
+          d1_reEntry.Type = d1ReType;
+       }
+-      
+-      BollingerBand h4Band;
+-      h4Band.TOP_BB = g_pair_states[pairIndex].h4_data.bollinger[0];
+-      h4Band.MID_BB = g_pair_states[pairIndex].h4_data.bollinger[1];
+-      h4Band.LOW_BB = g_pair_states[pairIndex].h4_data.bollinger[2];
+-      h4Band.Width = h4Band.TOP_BB - h4Band.LOW_BB;
+-      h4Band.State = BB_NONE;
+       
+       if(DetectExtreme(actual, direction, g_pair_states[pairIndex].h4_data, h4Band))
+       {

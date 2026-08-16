@@ -1,0 +1,163 @@
+--- a/MASTER_BLUEPRINT_2.0_WORKING.txt
++++ b/MASTER_BLUEPRINT_2.0_WORKING.txt
+@@ -2320,10 +2320,12 @@
+ //| LEVEL: EXPERT-RESTRICTED                                         |
+ //+------------------------------------------------------------------+
+ 
+-bool ValidateSequence_Atomic(ComponentSet set)
+-{
+-   if(set.Comp1.CandleTime >= set.Comp2.CandleTime) return false;
+-   if(set.Comp2.CandleTime >= set.Comp3.CandleTime) return false;
++bool IsValidCombinationComponent(ComponentIdentity component)
++{
++   if(component.ComponentType == SIGNAL_NONE) return false;
++   if(component.Direction == DIR_NONE) return false;
++   if(component.Timeframe <= 0) return false;
++   if(component.CandleTime <= 0) return false;
+    return true;
+ }
+ 
+@@ -2334,69 +2336,87 @@
+    return set.Comp1.Direction != DIR_NONE;
+ }
+ 
+-void ValidateReversalSequence(ComponentSet set, ValidatedSequenceCandidate &candidate)
+-{
+-   if(set.Comp1.ComponentType == SIGNAL_EXTREME &&
+-      (set.Comp2.ComponentType == SIGNAL_MLV || set.Comp2.ComponentType == SIGNAL_MHV) &&
+-      set.Comp3.ComponentType == SIGNAL_CSD)
+-   {
+-      candidate.SequenceType = SIGNAL_REVERSAL;
+-      candidate.PriorityTier = TIER_A_PLUS;
+-      candidate.Valid = true;
+-      candidate.RequirementCompleteness = 3;
+-      candidate.SequenceCompleteness = 3;
+-   }
+-}
+-
+-void ValidateContinuationSequence(ComponentSet set, ValidatedSequenceCandidate &candidate)
+-{
+-   if(set.Comp1.ComponentType == SIGNAL_CSD &&
+-      set.Comp2.ComponentType == SIGNAL_RE_ENTRY &&
+-      set.Comp3.ComponentType == SIGNAL_REM)
+-   {
+-      candidate.SequenceType = SIGNAL_CONTINUATION;
+-      candidate.PriorityTier = TIER_A;
+-      candidate.Valid = true;
+-      candidate.RequirementCompleteness = 3;
+-      candidate.SequenceCompleteness = 3;
+-   }
+-}
+-
+-void ValidateMajorReversalSequence(ComponentSet set, ValidatedSequenceCandidate &candidate)
+-{
+-   if((set.Comp1.ComponentType == SIGNAL_REE || set.Comp1.ComponentType == SIGNAL_RRE) &&
+-      set.Comp2.ComponentType == SIGNAL_CSD &&
+-      set.Comp3.ComponentType == SIGNAL_RE_ENTRY)
+-   {
+-      candidate.SequenceType = SIGNAL_MAJOR_REVERSAL;
+-      candidate.PriorityTier = TIER_A;
+-      candidate.Valid = true;
+-      candidate.RequirementCompleteness = 3;
+-      candidate.SequenceCompleteness = 3;
+-   }
+-}
+-
+-void ValidateSequence(ComponentSet set, ValidatedSequenceCandidate &candidate)
+-{
+-   ZeroMemory(candidate);
++bool ValidateCombinationSignature(ComponentSet set)
++{
++   if(set.ComponentCount != 3) return false;
++   if(!IsValidCombinationComponent(set.Comp1) ||
++      !IsValidCombinationComponent(set.Comp2) ||
++      !IsValidCombinationComponent(set.Comp3))
++      return false;
++
++   // Source-locked project rows from the REM/RRE/REE BBMA table.
++   if(set.CombinationType == SIGNAL_REM)
++   {
++      return (set.Comp1.ComponentType == SIGNAL_RE_ENTRY &&
++              set.Comp1.Timeframe == PERIOD_H4 &&
++              set.Comp2.ComponentType == SIGNAL_EXTREME &&
++              set.Comp2.Timeframe == PERIOD_H1 &&
++              set.Comp3.ComponentType == SIGNAL_MLV &&
++              set.Comp3.Timeframe == PERIOD_M15);
++   }
++
++   if(set.CombinationType == SIGNAL_RRE)
++   {
++      return (set.Comp1.ComponentType == SIGNAL_RE_ENTRY &&
++              set.Comp1.Timeframe == PERIOD_D1 &&
++              set.Comp2.ComponentType == SIGNAL_RE_ENTRY &&
++              set.Comp2.Timeframe == PERIOD_H4 &&
++              set.Comp3.ComponentType == SIGNAL_EXTREME &&
++              set.Comp3.Timeframe == PERIOD_H1);
++   }
++
++   if(set.CombinationType == SIGNAL_REE)
++   {
++      return (set.Comp1.ComponentType == SIGNAL_RE_ENTRY &&
++              set.Comp1.Timeframe == PERIOD_D1 &&
++              set.Comp2.ComponentType == SIGNAL_EXTREME &&
++              set.Comp2.Timeframe == PERIOD_H4 &&
++              set.Comp3.ComponentType == SIGNAL_EXTREME &&
++              set.Comp3.Timeframe == PERIOD_H1);
++   }
++
++   return false;
++}
++
++void PopulateValidatedCombination(ComponentSet set,
++                                  ValidatedSequenceCandidate &candidate)
++{
++   candidate.SequenceType = set.CombinationType;
+    candidate.Direction = set.Comp1.Direction;
++   candidate.Components[0] = set.Comp1;
++   candidate.Components[1] = set.Comp2;
++   candidate.Components[2] = set.Comp3;
+    candidate.SequenceStartTime = set.SequenceStartTime;
+    candidate.SequenceHash = GenerateSequenceHash(set);
+-   candidate.SLTPSource = set.SLTPSource;
+-   
+-   if(!ValidateSequence_Atomic(set) || !ValidateDirectionConsistency(set))
++
++   // M14 validates only. M13 does not own SL/TP and the supplied source does
++   // not define a priority tier among REM/RRE/REE. Those policies remain
++   // downstream responsibilities and must not be invented here.
++   candidate.SLTPSource = SIGNAL_NONE;
++   candidate.PriorityTier = TIER_NONE;
++   candidate.RequirementCompleteness = 3;
++   candidate.SequenceCompleteness = 3;
++   candidate.PatternStrength = 0;
++   candidate.Valid = true;
++}
++
++void ValidateSequence(ComponentSet set, ValidatedSequenceCandidate &candidate)
++{
++   ZeroMemory(candidate);
++
++   // REM/RRE/REE are multi-timeframe combinations, not a universal
++   // Comp1 < Comp2 < Comp3 chronological sequence. M13 supplies components
++   // that coexist as valid owner snapshots in the current processing cycle.
++   // M14 validates identity, exact TF signature and direction consistency only.
++   // Expiry/freshness policy remains downstream and must use owner-aware data.
++   if(!ValidateCombinationSignature(set) ||
++      !ValidateDirectionConsistency(set))
+    {
+       candidate.Valid = false;
+       return;
+    }
+-   
+-   ValidateReversalSequence(set, candidate);
+-   if(candidate.Valid) return;
+-   
+-   ValidateContinuationSequence(set, candidate);
+-   if(candidate.Valid) return;
+-   
+-   ValidateMajorReversalSequence(set, candidate);
++
++   PopulateValidatedCombination(set, candidate);
+ }
+ 
+ datetime CheckEffectiveExpiry(datetime individual, datetime combined, datetime global)

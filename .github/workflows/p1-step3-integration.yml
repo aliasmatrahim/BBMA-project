@@ -1,0 +1,130 @@
+name: P1 Step3 Integration
+
+on:
+  push:
+    branches: [ blueprint-dev ]
+    paths:
+      - '.github/workflows/p1-step3-integration.yml'
+  workflow_dispatch:
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reconstruct and apply ordered patch chain
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part01a \
+              blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part01b \
+              blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part02 \
+              blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part03 \
+              blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part04 \
+              blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part05 > /tmp/b64
+          base64 -d /tmp/b64 | gzip -dc > MASTER_BLUEPRINT_2.0_BASELINE.txt
+          test "$(sha256sum MASTER_BLUEPRINT_2.0_BASELINE.txt | awk '{print $1}')" = "e217816e95126857c1e7fa3fde1ac10ecc28f196a82eb51cb2f3625a6901aa00"
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,re,sys
+
+          ps=sorted(Path('blueprint/patches').glob('*.patch'))
+          assert len(ps)==25
+
+          def parse(p):
+              ls=p.read_text().splitlines(keepends=True); old=new=None; hs=[]; i=0
+              while i<len(ls):
+                  if ls[i].startswith('--- '):
+                      old=ls[i][4:].strip().removeprefix('a/'); i+=1
+                      new=ls[i][4:].strip().removeprefix('b/'); i+=1; continue
+                  if ls[i].startswith('@@'):
+                      i+=1; h=[]
+                      while i<len(ls) and not ls[i].startswith('@@') and not ls[i].startswith('--- '): h.append(ls[i]); i+=1
+                      hs.append(h); continue
+                  i+=1
+              return old,new,hs
+
+          def blocks(h):
+              o=[]; n=[]
+              for x in h:
+                  if x.startswith('\\ No newline'): continue
+                  if x.startswith('+'): n.append(x[1:])
+                  elif x.startswith('-'): o.append(x[1:])
+                  elif x.startswith(' '): o.append(x[1:]); n.append(x[1:])
+                  else: o.append(x); n.append(x)
+              return ''.join(o),''.join(n)
+
+          def replace_function(text,name,replacement):
+              s=text.find(name)
+              if s<0:return None
+              b=text.find('{',s)
+              if b<0:return None
+              d=0; e=None
+              for i in range(b,len(text)):
+                  if text[i]=='{': d+=1
+                  elif text[i]=='}':
+                      d-=1
+                      if d==0: e=i+1; break
+              if e is None:return None
+              return text[:s]+replacement+text[e:]
+
+          def repair(p,hidx,text,new):
+              if p.startswith('0014-') and hidx==8:
+                  nm=re.search(r'bool IsExtremeStateExpired\(Signal extreme, datetime currentTime\).*?decision\.RejectionReason = REJ_NONE;\n\}',new,re.S)
+                  om=re.search(r'void InvalidationEngine_Atomic\(BBMA_Decision &decision, OppositeConflictPackage &conflict\)\n\{.*?bool IsExpired_ReEntry\(ReEntryData reEntry, datetime currentTime\)\n\{.*?\n\}',text,re.S)
+                  if nm and om:return text[:om.start()]+nm.group()+text[om.end():],'0014_M16_REBASE'
+              if p.startswith('0016-') and hidx==2:
+                  fn=re.search(r'bool ResolveSelectedSLTPSourceComponent\(ValidatedSequenceCandidate selected,.*?\n\}',new,re.S)
+                  a=text.find('int CompareCanonicalCandidates(ValidatedSequenceCandidate &a,\n')
+                  if fn and a>=0:return text[:a]+fn.group()+'\n\n'+text[a:],'0016_M17_RESOLVER'
+              if p.startswith('0018-') and hidx==5:
+                  s=text.find('void ProcessPair(int pairIndex)'); old='decision.RejectionReason = REJ_TOTAL_RISK;'
+                  i=text.find(old,s)
+                  if s>=0 and i>=0:
+                      r='decision.RejectionReason = (riskStatus.rejection_reason != REJ_NONE) ?\n                                          riskStatus.rejection_reason : REJ_TOTAL_RISK;'
+                      return text[:i]+r+text[i+len(old):],'0018_M19_REASON'
+              if p.startswith('0021-') and hidx==8:
+                  marker='         MarkDecisionExecuted(decision.DecisionID, ticket);\n'; q=new.find(marker)
+                  if q>=0:
+                      desired=new[q:].rstrip('\n')
+                      s=text.find('void ProcessEntry(BBMA_Decision &decision, string pair, RiskValidationSnapshot snapshot)')
+                      if s>=0:
+                          # replace only tail from marker through ProcessEntry closing brace
+                          m=text.find(marker,s)
+                          if m>=0:
+                              f=text.find('{',s); d=0;e=None
+                              for i in range(f,len(text)):
+                                  if text[i]=='{':d+=1
+                                  elif text[i]=='}':
+                                      d-=1
+                                      if d==0:e=i+1;break
+                              if e:return text[:m]+desired+'\n'+text[e:],'0021_M22_RESULT'
+              if p.startswith('0022-') and hidx==1:
+                  fn=re.search(r'void ManagePositions\(\)\n\{.*?\n\}',new,re.S)
+                  if fn:
+                      out=replace_function(text,'void ManagePositions()',fn.group())
+                      if out:return out,'0022_M23_FUNCTION_REBASE'
+              return None,None
+
+          for k,p in enumerate(ps,1):
+              if p.name.split('-',1)[0] != f'{k:04d}': sys.exit(21)
+              old,new,hs=parse(p); src=Path(old); tgt=Path(new)
+              if not src.exists(): print('MISSING',p.name,old);sys.exit(22)
+              text=src.read_text()
+              for j,h in enumerate(hs,1):
+                  o,n=blocks(h); c=text.count(o)
+                  if c==1: text=text.replace(o,n,1); continue
+                  out,label=repair(p.name,j,text,n)
+                  if out is None:
+                      print(f'P1_STEP3_NEXT_CONFLICT={p.name} HUNK={j} MATCH_COUNT={c}')
+                      print('PREVIEW='+o[:500].replace('\n','\\n'));sys.exit(22)
+                  text=out; print('P1_STEP3_INTEGRATION_REPAIR='+label)
+              tgt.write_text(text); print('APPLIED='+p.name)
+          w=Path('MASTER_BLUEPRINT_2.0_WORKING.txt')
+          print('P1_STEP3_PATCHES_APPLIED=25')
+          print('P1_STEP3_WORKING_SHA='+hashlib.sha256(w.read_bytes()).hexdigest())
+          print('P1_STEP3_PATCH_CHAIN=PASS')
+          PY
+          test -s MASTER_BLUEPRINT_2.0_WORKING.txt
+          grep -q 'MODULE 27' MASTER_BLUEPRINT_2.0_WORKING.txt
+          echo P1_STEP3_SANITY=PASS

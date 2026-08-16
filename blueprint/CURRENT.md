@@ -36,6 +36,7 @@ The exact baseline is stored as deterministic gzip+base64 chunks under `blueprin
 19. `blueprint/patches/0019-p0-step11-m20-portfolio-gate-protection-ownership.patch`
 20. `blueprint/patches/0020-p0-step12-m21-deterministic-money-management.patch`
 21. `blueprint/patches/0021-p0-step13-m22-dumb-executor-idempotent-order-send.patch`
+22. `blueprint/patches/0022-p0-step14-m23-position-lifecycle-exit-ownership.patch`
 
 ## Full-source SHA verification status
 The previously recorded SHA-256 `274b3d380463f5cd9a477ce0c37b6da0db6c4cc6721013fdef4e984326b291bf` remains withdrawn because it was calculated from a partial reconstruction.
@@ -43,7 +44,7 @@ The previously recorded SHA-256 `274b3d380463f5cd9a477ce0c37b6da0db6c4cc6721013f
 Last exact verified full-chain working-source SHA through patches 0001–0005:
 `9ccbfd77032e3e9acdbf4b343ceaf98f632162d932cbb3fcad04a58539c1e3d8`
 
-Patches 0006–0021 currently have focused patch/contract verification only. A new full-chain SHA must only be claimed after exact materialization and compilation of the complete ordered patch chain.
+Patches 0006–0022 currently have focused patch/contract verification only. A new full-chain SHA must only be claimed after exact materialization and compilation of the complete ordered patch chain.
 
 ## Locked supporting contracts
 - `blueprint/ENTRY_MODE_CONTRACT.md`
@@ -62,6 +63,7 @@ Patches 0006–0021 currently have focused patch/contract verification only. A n
 - `blueprint/contracts/M20_PORTFOLIO_PROTECTION_CONTRACT.md`
 - `blueprint/contracts/M21_MONEY_MANAGEMENT_CONTRACT.md`
 - `blueprint/contracts/M22_ORDER_EXECUTION_CONTRACT.md`
+- `blueprint/contracts/M23_POSITION_LIFECYCLE_CONTRACT.md`
 - `docs/references/SOURCE_INDEX.md`
 - `docs/references/BBMA_OMA_ALLY_RULE_INDEX.md`
 
@@ -72,7 +74,7 @@ M01 BEGINNER; M02 BEGINNER; M03 INTERMEDIATE; M04 INTERMEDIATE; M05 INTERMEDIATE
 
 # P0 Architecture Repair
 
-## Steps 1–12
+## Steps 1–13
 Status: **COMPLETED AT THEIR LOCKED PATCH/CONTRACT LEVELS**
 
 Core locked outcomes remain:
@@ -84,53 +86,50 @@ Core locked outcomes remain:
 - M18 observability-only with no trading score authority;
 - M19 risk-filter-only with unit-correct EA-wide accounting;
 - M20 prospective portfolio gate and protection-state ownership;
-- M21 deterministic frozen-snapshot money management.
+- M21 deterministic frozen-snapshot money management;
+- M22 dumb/idempotent order execution.
 
-## Step 13 — M22 Order Execution Engine
-Status: **COMPLETED AT DUMB-EXECUTOR / IDEMPOTENT-SEND CONTRACT LEVEL**
+## Step 14 — M23 Position Management / lifecycle exit policy
+Status: **COMPLETED AT POSITION-LIFECYCLE / EXIT-OWNERSHIP CONTRACT LEVEL**
 
 Baseline defects repaired:
-- M22 could mutate immutable payload by filling `decision.Pair` and regenerating `DecisionID`;
-- retry loop used `retry <= MaxRetry`, permitting one extra send attempt;
-- ambiguous broker outcomes were allowed to re-enter the retry loop, creating duplicate-order risk;
-- ambiguous reconciliation searched for the entire long generated comment, which may fail because MT4/brokers can truncate order comments;
-- duplicate detection and trade-lock checks were not consistently constrained to live EA-owned execution identity;
-- execution deviation and generic broker failure were not cleanly distinguished in the send return path.
+- automatic 50% partial close at 1R changed the approved trade profile without a locked BBMA source rule;
+- automatic breakeven migration replaced the M17 structural hard SL after entry;
+- explicit manual `OrderClose()` at `initial_take_profit` duplicated the broker-side TP already supplied by M17->M22;
+- normal-position lifecycle management mixed strategy exit policy with broker execution mechanics.
 
 Implemented by:
-`blueprint/patches/0021-p0-step13-m22-dumb-executor-idempotent-order-send.patch`
+`blueprint/patches/0022-p0-step14-m23-position-lifecycle-exit-ownership.patch`
 
 Patch commit:
-`2aefae1f7cf422b936dccd2f353a1519b6e4ea64`
+`47ae3c91440667148df63fffc72f4081d54b1e21`
 
 Contract:
-`blueprint/contracts/M22_ORDER_EXECUTION_CONTRACT.md`
+`blueprint/contracts/M23_POSITION_LIFECYCLE_CONTRACT.md`
 
 Contract commit:
-`fa46a2105f21df5f275525dd98f4b07a15c5c58f`
+`e1eaf7f49a5f7987551f98977cc54c2ae7fdfd44`
 
-Locked M22 behavior:
-- M22 executes only; it cannot recreate `DecisionID`, direction, Entry, SL, TP or lot;
-- missing/mismatched immutable payload fails closed;
-- BUY uses live ASK and SELL uses live BID, bounded by the frozen execution deviation;
-- only definite retryable broker errors can retry;
-- before every send M22 checks for an already-open order using symbol + exact EA magic + order type + stable `BBMA|H:<SHORT_HASH(DecisionID)>` comment prefix;
-- after an ambiguous broker result M22 reconciles once and then stops: if the order is not observable it returns `REJ_AMBIGUOUS_RESULT` and never automatically resends;
-- this allows M24 recovery to reconcile any order that becomes visible later without duplicate creation;
-- trade-lock checks consider live EA-owned positions only;
-- `MaxRetry <= 0`, negative slippage or negative execution-deviation minimum fail initialization.
+Locked M23 behavior:
+- normal positions retain broker-side M17-approved SL/TP unchanged;
+- no 1R partial close, automatic breakeven, trailing stop, TP2/TP3 or synthetic manual TP close;
+- M23 synchronizes monitored state with live broker state and revalidates EA ownership before lifecycle action;
+- M20 basket-loss emergency protection remains the sole active M23-initiated close policy;
+- emergency liquidation is full-lot only and retries on later ticks while the M20 latch remains active;
+- dynamic opposite-CSM + BB-expansion close remains `FORUM_SUPPORTED` but disabled until a separate explicit lifecycle mapping is approved;
+- M23 does not consume M18 score/level or recreate M15 strategy decisions.
 
 ### Verification boundary
-The baseline M22 send loop, ambiguous-error reconciliation, duplicate checks, execution-deviation path, order-comment identity scheme, and `ProcessEntry()` payload mutation were inspected. Patch 0021 and the M22 contract are stored on `blueprint-dev`. No new full-chain compile/SHA is claimed yet.
+The previously inspected M23 baseline block showed the 1R partial close, breakeven migration and manual TP close paths. Step 14 removes those unsupported normal-position actions and preserves only the M20 emergency protection route. Patch 0022 and the M23 contract are stored on `blueprint-dev`. No new full-chain compile/SHA is claimed yet.
 
 ## Next P0 action
-**Step 14 — audit M23 Position Management / lifecycle exit policy.**
+**Step 15 — audit M24 Recovery Engine.**
 
 Required focus:
-1. remove or justify the current automatic 50% partial close at 1R because it is not part of the locked BBMA exit policy;
-2. remove or justify automatic breakeven SL migration because M17 owns the structural hard SL and no trailing/extra exit management is part of BBMA Core;
-3. verify TP handling preserves the original M17-approved BBMA destination and does not create a second synthetic TP path;
-4. retain M20 emergency basket-loss liquidation as a protection action, but make close/retry ownership deterministic and EA-owned only;
-5. audit all M23 `OrderClose()`/`OrderModify()` paths for ambiguous/failure handling and M24 recovery consistency.
+1. recovery must rebuild only live EA-owned orders with exact pair/magic identity;
+2. recovered positions must preserve broker Entry/SL/TP/lot state rather than reconstructing strategy levels from current market data;
+3. reconcile ambiguous M22 send results without creating duplicate trades;
+4. ensure missing/corrupt order comments or DecisionID mapping fail safe and cannot invent signal identity;
+5. verify restart recovery is compatible with the simplified M23 lifecycle contract and M20 emergency-close latch.
 
 Do not merge into `main` until the full blueprint audit is clean and explicitly approved as MASTER BLUEPRINT LOCKED.

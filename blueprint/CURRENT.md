@@ -44,10 +44,12 @@ The exact baseline is stored as deterministic gzip+base64 chunks under `blueprin
 ## Full-source SHA verification status
 The previously recorded SHA-256 `274b3d380463f5cd9a477ce0c37b6da0db6c4cc6721013fdef4e984326b291bf` remains withdrawn because it was calculated from a partial reconstruction.
 
-Last exact verified full-chain working-source SHA through patches 0001–0005:
-`9ccbfd77032e3e9acdbf4b343ceaf98f632162d932cbb3fcad04a58539c1e3d8`
+P1 Step 3 has now deterministically materialized the verified baseline plus patches `0001` through `0025` in exact order.
 
-Patches 0006–0025 currently have focused patch/contract verification only. A new full-chain SHA must only be claimed after exact materialization and compilation of the complete ordered patch chain.
+Provisional fully materialized working-source SHA-256:
+`e81b91a96d95b4446531b445a54c7d60ee5eb71d91646e98eac15ad8e1001da6`
+
+This SHA is **not yet the final MASTER LOCKED SHA**. It may only be promoted after compilation and architecture-invariant verification of the materialized source.
 
 ## Locked supporting contracts
 - `blueprint/ENTRY_MODE_CONTRACT.md`
@@ -100,16 +102,11 @@ Core locked outcomes:
 - M26 initialization is fail-closed, recovery runs only after pair/magic ownership validation, and protection reference is equity-based;
 - M27 is orchestration-only with one owner/one pass for pre-execution validation and exclusive emergency-liquidation state.
 
-## Step 17 — M27 Orchestrator / end-to-end ownership
-Status: **COMPLETED AT ORCHESTRATION-OWNERSHIP CONTRACT LEVEL**
-
 Locked end-to-end entry order:
 `M06-M12 -> M13 -> M14 -> M15 -> M16 -> M17 -> M21 -> M19 -> M20 -> M22`
 
 Locked tick/lifecycle order:
 `M20 ManagePortfolio() -> M23 ManagePositions() -> emergency-latch gate -> strategy scan`
-
-This closes **P0 architecture repair**, but does not yet prove that the entire patch series applies cleanly as one source or compiles in MetaTrader 4. No new full-chain SHA is claimed yet.
 
 # P1 Integration Verification
 
@@ -119,21 +116,51 @@ Status: **PASS**
 GitHub Actions workflow:
 `.github/workflows/p1-baseline-verify.yml`
 
-Verified procedure:
-`cat archive chunks -> base64 decode -> gunzip -> SHA-256`
-
 Verified reconstructed SHA-256:
 `e217816e95126857c1e7fa3fde1ac10ecc28f196a82eb51cb2f3625a6901aa00`
-
-Expected canonical SHA-256:
-`e217816e95126857c1e7fa3fde1ac10ecc28f196a82eb51cb2f3625a6901aa00`
-
-Result: exact match. The archive reconstruction blocker is CLOSED.
 
 Verification run:
 GitHub Actions run `31950155981`, job `95172281118`, conclusion `success`.
 
-## Next action — P1 Step 2
-Apply patches `0001` through `0025` in exact order to the verified reconstructed baseline, detect the first patch-context/integration conflict, and repair integration only without changing locked BBMA semantics.
+## Step 2 — ordered patch-chain conflict discovery
+Status: **PASS / COMPLETED AS INPUT TO STEP 3**
 
-Do not merge into `main` until P1 integration verification is clean and explicitly approved as MASTER BLUEPRINT LOCKED.
+The exact verified baseline was used to apply patches in order. The first true integration conflict was identified at patch `0014`, M16 owner-aware invalidation. Subsequent context conflicts were resolved only as integration rebases; locked BBMA semantics were not changed.
+
+## Step 3 — integration repair and full patch-chain materialization
+Status: **PASS**
+
+Successful verification workflow:
+`.github/workflows/p1-step3-integration-v4.yml`
+
+Successful run:
+GitHub Actions run `31950925592`, job `95174141530`, conclusion `success`.
+
+Verified result:
+- exact canonical baseline SHA verified before patching;
+- patches `0001` through `0025` applied in exact numeric order;
+- all true patch-context conflicts were deterministically rebased without changing locked strategy semantics;
+- focused context-only hunks where old and new payloads were identical were treated as no-op context markers;
+- materialization sanity checks passed;
+- `P1_STEP3_PATCHES_APPLIED=25`;
+- `P1_STEP3_PATCH_CHAIN=PASS`;
+- `P1_STEP3_SANITY=PASS`.
+
+Integration-only rebases recorded by the successful run:
+- `0014_M16_REBASE`;
+- `0016_M17_RESOLVER`;
+- `0018_M19_REASON`;
+- `0021_M22_RESULT`;
+- `0022_M23_FUNCTION_REBASE`;
+- `0024_M26_INIT_REBASE`;
+- `0025_H2_M22_PREFLIGHT_REMOVAL`;
+- `0025_H3_PREFLIGHT_INSERT`;
+- `0025_H4_PROCESSPAIR_SINGLE_PREFLIGHT`.
+
+Provisional materialized working-source SHA-256:
+`e81b91a96d95b4446531b445a54c7d60ee5eb71d91646e98eac15ad8e1001da6`
+
+## Next action — P1 Step 4
+Materialize the same exact source, run compilation verification and architecture invariants, repair compile/integration defects only, and promote a final full-source SHA only after those checks pass.
+
+Do not merge into `main` until P1 verification is fully clean and explicitly approved as MASTER BLUEPRINT LOCKED.

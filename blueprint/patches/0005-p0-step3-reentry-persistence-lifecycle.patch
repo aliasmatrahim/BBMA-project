@@ -1,0 +1,330 @@
+--- a/MASTER_BLUEPRINT_2.0_WORKING.txt
++++ b/MASTER_BLUEPRINT_2.0_WORKING.txt
+@@ -313,6 +313,7 @@
+    ENUM_RE_TYPE         Type;
+    ENUM_RE_STATE        State;
+    ENUM_DIRECTION       Direction;
++   int                  Timeframe;
+    double               EntryPrice;
+    double               StopLoss;
+    double               TakeProfit;
+@@ -325,8 +326,11 @@
+    datetime             ConfirmationCandle;
+    int                  StartBar;
+    datetime             StartCandleTime;
++   int                  LastUpdateBar;
++   datetime             LastUpdateCandleTime;
+    int                  ConfirmationBar;
+    int                  ExpiryBar;
++   datetime             ExpiryCandleTime;
+    int                  MinCandlesRequired;
+    bool                 IsValid;
+    double               StrengthScore;
+@@ -503,6 +507,12 @@
+    BollingerBand        current_bollinger;
+    MLVData              mlv_buy_state;
+    MLVData              mlv_sell_state;
++   ReEntryData          re_h1_buy_state;
++   ReEntryData          re_h1_sell_state;
++   ReEntryData          re_h4_buy_state;
++   ReEntryData          re_h4_sell_state;
++   ReEntryData          re_d1_buy_state;
++   ReEntryData          re_d1_sell_state;
+    double               prev_ema50;
+    double               current_ema50;
+    double               prev_daily_ema50;
+@@ -1034,6 +1044,30 @@
+    state.mlv_buy_state.Direction = DIR_BUY;
+    state.mlv_sell_state.State = MLV_NONE;
+    state.mlv_sell_state.Direction = DIR_SELL;
++   ZeroMemory(state.re_h1_buy_state);
++   ZeroMemory(state.re_h1_sell_state);
++   ZeroMemory(state.re_h4_buy_state);
++   ZeroMemory(state.re_h4_sell_state);
++   ZeroMemory(state.re_d1_buy_state);
++   ZeroMemory(state.re_d1_sell_state);
++   state.re_h1_buy_state.State = RE_STATE_NONE;
++   state.re_h1_buy_state.Direction = DIR_BUY;
++   state.re_h1_buy_state.Timeframe = PERIOD_H1;
++   state.re_h1_sell_state.State = RE_STATE_NONE;
++   state.re_h1_sell_state.Direction = DIR_SELL;
++   state.re_h1_sell_state.Timeframe = PERIOD_H1;
++   state.re_h4_buy_state.State = RE_STATE_NONE;
++   state.re_h4_buy_state.Direction = DIR_BUY;
++   state.re_h4_buy_state.Timeframe = PERIOD_H4;
++   state.re_h4_sell_state.State = RE_STATE_NONE;
++   state.re_h4_sell_state.Direction = DIR_SELL;
++   state.re_h4_sell_state.Timeframe = PERIOD_H4;
++   state.re_d1_buy_state.State = RE_STATE_NONE;
++   state.re_d1_buy_state.Direction = DIR_BUY;
++   state.re_d1_buy_state.Timeframe = PERIOD_D1;
++   state.re_d1_sell_state.State = RE_STATE_NONE;
++   state.re_d1_sell_state.Direction = DIR_SELL;
++   state.re_d1_sell_state.Timeframe = PERIOD_D1;
+    state.trade_count = 0;
+    state.magic_number = 0;
+    state.broker_retry_count = 0;
+@@ -2265,6 +2299,155 @@
+    return RE_NONE;
+ }
+ 
++void ResetReEntryState(ReEntryData &reEntry, ENUM_DIRECTION direction, int timeframe)
++{
++   ZeroMemory(reEntry);
++   reEntry.Type = RE_NONE;
++   reEntry.State = RE_STATE_NONE;
++   reEntry.Direction = direction;
++   reEntry.Timeframe = timeframe;
++}
++
++bool IsReEntryIntrinsicExpired(ReEntryData &reEntry, datetime currentCandleTime)
++{
++   if(reEntry.StartCandleTime <= 0 || reEntry.ExpiryCandleTime <= 0) return false;
++   return (currentCandleTime > reEntry.ExpiryCandleTime);
++}
++
++bool ConfirmReEntryByType(ReEntryData &reEntry, string pair, TimeframeData &data)
++{
++   if(reEntry.Type == RE_TYPE_1)
++      return ConfirmReEntry_Type1(pair, data.timeframe, reEntry.Direction, data.barIndex);
++
++   // Source blueprint defines no confirmation contract for Type 2-4.
++   // They remain non-valid candidates until that contract is explicitly specified.
++   return false;
++}
++
++ENUM_RE_STATE UpdateReEntryState(ReEntryData &reEntry, string pair,
++                                 ENUM_DIRECTION direction, TimeframeData &data)
++{
++   if(direction != DIR_BUY && direction != DIR_SELL) return RE_STATE_NONE;
++   if(!data.is_valid || !data.is_closed || data.candle_time <= 0) return reEntry.State;
++
++   // EXPIRED is retained for one completed timeframe candle before reuse.
++   if(reEntry.State == RE_STATE_EXPIRED &&
++      reEntry.LastUpdateCandleTime > 0 &&
++      data.candle_time > reEntry.LastUpdateCandleTime)
++   {
++      ResetReEntryState(reEntry, direction, data.timeframe);
++   }
++
++   // One slot is owned by one timeframe + direction.
++   if(reEntry.State != RE_STATE_NONE &&
++      (reEntry.Direction != direction || reEntry.Timeframe != data.timeframe))
++      return reEntry.State;
++
++   if((reEntry.State == RE_STATE_CANDIDATE || reEntry.State == RE_STATE_CONFIRMED) &&
++      IsReEntryIntrinsicExpired(reEntry, data.candle_time))
++   {
++      reEntry.State = RE_STATE_EXPIRED;
++      reEntry.IsValid = false;
++      reEntry.Reason = "MaxWaitBars_ReEntry expired";
++      reEntry.LastUpdateBar = data.barIndex;
++      reEntry.LastUpdateCandleTime = data.candle_time;
++      return RE_STATE_EXPIRED;
++   }
++
++   if(reEntry.State == RE_STATE_NONE)
++   {
++      ENUM_RE_TYPE detectedType =
++         DetectReEntry_Master(pair, data.timeframe, direction, data.barIndex);
++      if(detectedType == RE_NONE) return RE_STATE_NONE;
++
++      // Only Type 1 currently has an explicit confirmation contract in the
++      // active Master Blueprint. Type 2-4 are quarantined from authoritative
++      // lifecycle/output until their BBMA confirmation contract is reconciled.
++      if(detectedType != RE_TYPE_1) return RE_STATE_NONE;
++
++      reEntry.Type = detectedType;
++      reEntry.State = RE_STATE_CANDIDATE;
++      reEntry.Direction = direction;
++      reEntry.Timeframe = data.timeframe;
++      reEntry.EntryPrice = 0;
++      reEntry.EntryCandle = 0;
++      reEntry.MA5_Level = (direction == DIR_BUY) ? data.ma[0] : data.ma[2];
++      reEntry.MA10_Level = (direction == DIR_BUY) ? data.ma[1] : data.ma[3];
++      reEntry.MA50_Level = data.ma[4];
++      reEntry.MID_BB = data.bollinger[1];
++      reEntry.StartBar = data.barIndex;
++      reEntry.StartCandleTime = data.candle_time;
++      reEntry.LastUpdateBar = data.barIndex;
++      reEntry.LastUpdateCandleTime = data.candle_time;
++      reEntry.ConfirmationBar = 0;
++      reEntry.ConfirmationCandle = 0;
++      reEntry.ExpiryBar = MaxWaitBars_ReEntry;
++      reEntry.ExpiryCandleTime =
++         reEntry.StartCandleTime + MaxWaitBars_ReEntry * data.timeframe * 60;
++      reEntry.MinCandlesRequired = 1;
++      reEntry.IsValid = false;
++
++      reEntry.Reason = "Type1 candidate awaiting EMA50 confirmation";
++      return RE_STATE_CANDIDATE;
++   }
++
++   if(reEntry.State == RE_STATE_CANDIDATE)
++   {
++      // Confirmation must occur on a later closed candle.
++      if(data.candle_time <= reEntry.StartCandleTime) return RE_STATE_CANDIDATE;
++
++      reEntry.LastUpdateBar = data.barIndex;
++      reEntry.LastUpdateCandleTime = data.candle_time;
++
++      if(ConfirmReEntryByType(reEntry, pair, data))
++      {
++         reEntry.State = RE_STATE_CONFIRMED;
++         reEntry.ConfirmationBar = data.barIndex;
++         reEntry.ConfirmationCandle = data.candle_time;
++         reEntry.EntryCandle = data.candle_time;
++         reEntry.EntryPrice = data.close;
++         reEntry.IsValid = true;
++         reEntry.Reason = "Confirmed";
++         return RE_STATE_CONFIRMED;
++      }
++
++      return RE_STATE_CANDIDATE;
++   }
++
++   if(reEntry.State == RE_STATE_CONFIRMED)
++   {
++      reEntry.IsValid = true;
++      reEntry.LastUpdateBar = data.barIndex;
++      reEntry.LastUpdateCandleTime = data.candle_time;
++   }
++
++   return reEntry.State;
++}
++
++bool ExportConfirmedReEntrySignal(ReEntryData reEntry, Signal &signal)
++{
++   ZeroMemory(signal);
++   if(reEntry.State != RE_STATE_CONFIRMED || !reEntry.IsValid) return false;
++   if(reEntry.ConfirmationCandle <= 0 || reEntry.EntryPrice <= 0) return false;
++
++   signal.Type = SIGNAL_RE_ENTRY;
++   signal.Direction = reEntry.Direction;
++   signal.Valid = true;
++   signal.Timeframe = reEntry.Timeframe;
++   signal.Reason = reEntry.Reason;
++   signal.BarIndex = reEntry.ConfirmationBar;
++   signal.ExpiryBar = reEntry.ExpiryBar;
++   signal.EntryPrice = reEntry.EntryPrice;
++   signal.MA5_Level = reEntry.MA5_Level;
++   signal.MA10_Level = reEntry.MA10_Level;
++   signal.MA50_Level = reEntry.MA50_Level;
++   signal.MID_BB = reEntry.MID_BB;
++   signal.Timestamp = reEntry.ConfirmationCandle;
++   signal.CandleTime = reEntry.ConfirmationCandle;
++   signal.Close = reEntry.EntryPrice;
++   return true;
++}
++
+ void BuildReEntrySignal(ENUM_RE_TYPE type, ENUM_DIRECTION direction, double entryPrice,
+                         double &sl, double &tp, double &slPoints)
+ {
+@@ -2356,14 +2539,8 @@
+       csm.Close = m15.close;
+    }
+    
+-   ENUM_RE_TYPE reType = DetectReEntry_Master(pair, PERIOD_H1, direction, 1);
+-   if(reType != RE_NONE)
+-   {
+-      reEntry.Type = reType;
+-      reEntry.Direction = direction;
+-      reEntry.IsValid = true;
+-      reEntry.StartCandleTime = h1.candle_time;
+-   }
++   // Re-Entry lifecycle is owned and updated by M12 before collection.
++   // M13 receives an immutable H1 ReEntryData snapshot for this processing cycle.
+ }
+ 
+ void BuildPossibleCombinations(ComponentSet &rem, ComponentSet &rre, ComponentSet &ree,
+@@ -2687,7 +2864,9 @@
+ 
+ bool IsExpired_ReEntry(ReEntryData reEntry, datetime currentTime)
+ {
+-   return reEntry.StartCandleTime + MaxWaitBars_ReEntry * 3600 < currentTime;
++   if(reEntry.State == RE_STATE_EXPIRED) return true;
++   if(reEntry.ExpiryCandleTime <= 0) return false;
++   return currentTime > reEntry.ExpiryCandleTime;
+ }
+ 
+ //+------------------------------------------------------------------+
+@@ -4036,10 +4215,10 @@
+       
+       Signal extreme, mhv, csd, ecsd, csm;
+       MLVData mlv;
+-      ReEntryData reEntry;
++      ReEntryData reEntry, h4ReEntryState, d1ReEntryState;
+       ZeroMemory(extreme); ZeroMemory(mhv); ZeroMemory(csd);
+-      ZeroMemory(ecsd); ZeroMemory(csm); ZeroMemory(reEntry);
+-      
++      ZeroMemory(ecsd); ZeroMemory(csm);
++
+       // M09 owns persistent MLV state. M27 only selects the pair+direction slot,
+       // invokes one state update on the frozen closed M15 candle, then copies a
+       // cycle snapshot downstream.
+@@ -4048,39 +4227,44 @@
+          DetectMLV_State(g_pair_states[pairIndex].mlv_buy_state, actual, direction,
+                          g_pair_states[pairIndex].m15_data);
+          mlv = g_pair_states[pairIndex].mlv_buy_state;
++
++         // M12 owns persistent Re-Entry lifecycle for each higher timeframe.
++         UpdateReEntryState(g_pair_states[pairIndex].re_h1_buy_state, actual, direction,
++                            g_pair_states[pairIndex].h1_data);
++         UpdateReEntryState(g_pair_states[pairIndex].re_h4_buy_state, actual, direction,
++                            g_pair_states[pairIndex].h4_data);
++         UpdateReEntryState(g_pair_states[pairIndex].re_d1_buy_state, actual, direction,
++                            g_pair_states[pairIndex].d1_data);
++         reEntry = g_pair_states[pairIndex].re_h1_buy_state;
++         h4ReEntryState = g_pair_states[pairIndex].re_h4_buy_state;
++         d1ReEntryState = g_pair_states[pairIndex].re_d1_buy_state;
+       }
+       else
+       {
+          DetectMLV_State(g_pair_states[pairIndex].mlv_sell_state, actual, direction,
+                          g_pair_states[pairIndex].m15_data);
+          mlv = g_pair_states[pairIndex].mlv_sell_state;
+-      }
+-      
++
++         UpdateReEntryState(g_pair_states[pairIndex].re_h1_sell_state, actual, direction,
++                            g_pair_states[pairIndex].h1_data);
++         UpdateReEntryState(g_pair_states[pairIndex].re_h4_sell_state, actual, direction,
++                            g_pair_states[pairIndex].h4_data);
++         UpdateReEntryState(g_pair_states[pairIndex].re_d1_sell_state, actual, direction,
++                            g_pair_states[pairIndex].d1_data);
++         reEntry = g_pair_states[pairIndex].re_h1_sell_state;
++         h4ReEntryState = g_pair_states[pairIndex].re_h4_sell_state;
++         d1ReEntryState = g_pair_states[pairIndex].re_d1_sell_state;
++      }
++
+       CollectAllSignals(actual, direction, g_pair_states[pairIndex].d1_data,
+                         g_pair_states[pairIndex].h4_data, g_pair_states[pairIndex].h1_data,
+                         g_pair_states[pairIndex].m15_data, h1Band, extreme, mhv, mlv, csd,
+                         ecsd, csm, reEntry);
+-      
++
+       Signal h4_reEntry, d1_reEntry, h4_extreme;
+       ZeroMemory(h4_reEntry); ZeroMemory(d1_reEntry); ZeroMemory(h4_extreme);
+-      
+-      ENUM_RE_TYPE h4ReType = DetectReEntry_Master(actual, PERIOD_H4, direction, 1);
+-      if(h4ReType != RE_NONE)
+-      {
+-         h4_reEntry.Valid = true;
+-         h4_reEntry.Direction = direction;
+-         h4_reEntry.CandleTime = g_pair_states[pairIndex].h4_data.candle_time;
+-         h4_reEntry.Type = h4ReType;
+-      }
+-      
+-      ENUM_RE_TYPE d1ReType = DetectReEntry_Master(actual, PERIOD_D1, direction, 1);
+-      if(d1ReType != RE_NONE)
+-      {
+-         d1_reEntry.Valid = true;
+-         d1_reEntry.Direction = direction;
+-         d1_reEntry.CandleTime = g_pair_states[pairIndex].d1_data.candle_time;
+-         d1_reEntry.Type = d1ReType;
+-      }
++      ExportConfirmedReEntrySignal(h4ReEntryState, h4_reEntry);
++      ExportConfirmedReEntrySignal(d1ReEntryState, d1_reEntry);
+       
+       if(DetectExtreme(actual, direction, g_pair_states[pairIndex].h4_data, h4Band))
+       {

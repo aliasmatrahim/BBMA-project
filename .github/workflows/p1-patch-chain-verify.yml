@@ -105,26 +105,18 @@ jobs:
           def repair_0014_hunk8(text: str, new_block: str):
               new_match = re.search(
                   r'bool IsExtremeStateExpired\(Signal extreme, datetime currentTime\).*?'
-                  r'decision\.RejectionReason = REJ_NONE;\n\}',
-                  new_block, re.S)
+                  r'decision\.RejectionReason = REJ_NONE;\n\}', new_block, re.S)
               if not new_match:
                   return None
-              replacement = new_match.group(0)
               old_match = re.search(
                   r'void InvalidationEngine_Atomic\(BBMA_Decision &decision, OppositeConflictPackage &conflict\)\n'
-                  r'\{.*?'
-                  r'bool IsExpired_ReEntry\(ReEntryData reEntry, datetime currentTime\)\n'
-                  r'\{.*?\n\}',
+                  r'\{.*?bool IsExpired_ReEntry\(ReEntryData reEntry, datetime currentTime\)\n\{.*?\n\}',
                   text, re.S)
               if not old_match:
                   return None
-              return text[:old_match.start()] + replacement + text[old_match.end():]
+              return text[:old_match.start()] + new_match.group(0) + text[old_match.end():]
 
           def repair_0016_hunk2(text: str, new_block: str):
-              # Patch 0014 inserted M16 code between the old preceding context and
-              # M15 CompareCanonicalCandidates. Preserve patch 0016 semantics by
-              # inserting only its exact resolver function immediately before the
-              # canonical comparator anchor.
               fn = re.search(
                   r'bool ResolveSelectedSLTPSourceComponent\(ValidatedSequenceCandidate selected,.*?\n\}',
                   new_block, re.S)
@@ -137,6 +129,22 @@ jobs:
               if 'ResolveSelectedSLTPSourceComponent(' in text:
                   return text
               return text[:pos] + fn.group(0) + '\n\n' + text[pos:]
+
+          def repair_0018_hunk5(text: str, new_block: str):
+              # Earlier orchestration edits changed the focused hunk context in
+              # ProcessPair. Apply only M19's intended rejection-reason propagation.
+              start = text.find('void ProcessPair(int pairIndex)')
+              if start < 0:
+                  return None
+              tail = text[start:]
+              old = 'decision.RejectionReason = REJ_TOTAL_RISK;'
+              idx = tail.find(old)
+              if idx < 0:
+                  return None
+              replacement = ('decision.RejectionReason = (riskStatus.rejection_reason != REJ_NONE) ?\n'
+                             '                                          riskStatus.rejection_reason : REJ_TOTAL_RISK;')
+              absolute = start + idx
+              return text[:absolute] + replacement + text[absolute + len(old):]
 
           for p in patches:
               print(f'=== APPLY {p.name} ===')
@@ -159,18 +167,21 @@ jobs:
                   old_block, new_block = hunk_blocks(h)
                   count = text.count(old_block)
                   if count != 1:
+                      repaired = None
+                      label = None
                       if p.name.startswith('0014-') and hidx == 8 and count == 0:
                           repaired = repair_0014_hunk8(text, new_block)
-                          if repaired is not None:
-                              text = repaired
-                              print('P1_STEP3_INTEGRATION_REPAIR=0014_HUNK8_M16_CONTEXT_REBASE')
-                              continue
-                      if p.name.startswith('0016-') and hidx == 2 and count == 0:
+                          label = '0014_HUNK8_M16_CONTEXT_REBASE'
+                      elif p.name.startswith('0016-') and hidx == 2 and count == 0:
                           repaired = repair_0016_hunk2(text, new_block)
-                          if repaired is not None:
-                              text = repaired
-                              print('P1_STEP3_INTEGRATION_REPAIR=0016_HUNK2_M17_RESOLVER_INSERT')
-                              continue
+                          label = '0016_HUNK2_M17_RESOLVER_INSERT'
+                      elif p.name.startswith('0018-') and hidx == 5 and count == 0:
+                          repaired = repair_0018_hunk5(text, new_block)
+                          label = '0018_HUNK5_M19_REJECTION_PROPAGATION'
+                      if repaired is not None:
+                          text = repaired
+                          print(f'P1_STEP3_INTEGRATION_REPAIR={label}')
+                          continue
                       print(f'P1_STEP2_FIRST_CONFLICT={p.name}')
                       print(f'HUNK={hidx}')
                       print(f'MATCH_COUNT={count}')

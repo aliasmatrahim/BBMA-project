@@ -1,0 +1,175 @@
+--- a/MASTER_BLUEPRINT_2.0_WORKING.txt
++++ b/MASTER_BLUEPRINT_2.0_WORKING.txt
+@@ -1961,82 +1961,105 @@
+ 
+ bool DetectCSM(string pair, int timeframe, ENUM_DIRECTION direction, int shift)
+ {
+-   double close1 = iClose(pair, timeframe, shift);
+-   double close2 = iClose(pair, timeframe, shift + 1);
+-   double close3 = iClose(pair, timeframe, shift + 2);
+-   double open1 = iOpen(pair, timeframe, shift);
+-   double open2 = iOpen(pair, timeframe, shift + 1);
+-   double open3 = iOpen(pair, timeframe, shift + 2);
+-   
+-   if(close1 <= 0 || close2 <= 0 || close3 <= 0) return false;
+-   if(open1 <= 0 || open2 <= 0 || open3 <= 0) return false;
+-   
++   if(direction != DIR_BUY && direction != DIR_SELL) return false;
++   if(shift < 1) return false;
++
++   double close = iClose(pair, timeframe, shift);
++   if(close <= 0) return false;
++
++   BollingerBand currentBand, previousBand;
++   ZeroMemory(currentBand);
++   ZeroMemory(previousBand);
++   CalculateBollinger(pair, timeframe, shift, currentBand);
++   CalculateBollinger(pair, timeframe, shift + 1, previousBand);
++
++   if(currentBand.TOP_BB <= 0 || currentBand.MID_BB <= 0 ||
++      currentBand.LOW_BB <= 0 || currentBand.Width <= 0 ||
++      previousBand.TOP_BB <= 0 || previousBand.MID_BB <= 0 ||
++      previousBand.LOW_BB <= 0 || previousBand.Width <= 0)
++      return false;
++
++   // Source: a candle close outside TOP/LOW BB while BB is vertical marks
++   // directional MOMENTUM. The reference also describes expanding BB as
++   // momentum getting stronger.
++   //
++   // Operational encoding of "BB vertical":
++   // - BB width is increasing versus the previous closed candle; and
++   // - MID BB is moving in the same direction as the momentum.
++   // No arbitrary percentage threshold is added.
++   bool bbExpanding = (currentBand.Width > previousBand.Width);
++
+    if(direction == DIR_BUY)
+    {
+-      if(close1 > open1 && close2 > open2 && close3 > open3)
+-      {
+-         double body1 = close1 - open1;
+-         double body2 = close2 - open2;
+-         double body3 = close3 - open3;
+-         double avgBody = (body1 + body2 + body3) / 3;
+-         double point = GetPointSize(pair);
+-         if(body1 > avgBody * 0.7 && body2 > avgBody * 0.7 && body3 > avgBody * 0.7)
+-            return true;
+-      }
+-   }
+-   else if(direction == DIR_SELL)
+-   {
+-      if(close1 < open1 && close2 < open2 && close3 < open3)
+-      {
+-         double body1 = open1 - close1;
+-         double body2 = open2 - close2;
+-         double body3 = open3 - close3;
+-         double avgBody = (body1 + body2 + body3) / 3;
+-         double point = GetPointSize(pair);
+-         if(body1 > avgBody * 0.7 && body2 > avgBody * 0.7 && body3 > avgBody * 0.7)
+-            return true;
+-      }
++      bool bbDirectional = (currentBand.MID_BB > previousBand.MID_BB &&
++                            currentBand.TOP_BB > previousBand.TOP_BB);
++      return (bbExpanding && bbDirectional && close > currentBand.TOP_BB);
+    }
++
++   bool bbDirectional = (currentBand.MID_BB < previousBand.MID_BB &&
++                         currentBand.LOW_BB < previousBand.LOW_BB);
++   return (bbExpanding && bbDirectional && close < currentBand.LOW_BB);
++}
++
++bool CandleBodyCrossesLevel(double open, double close, double level,
++                            ENUM_DIRECTION direction)
++{
++   if(open <= 0 || close <= 0 || level <= 0) return false;
++
++   if(direction == DIR_BUY)
++      return (open <= level && close > level);
++
++   if(direction == DIR_SELL)
++      return (open >= level && close < level);
++
+    return false;
+ }
+ 
+ bool DetectCSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
+                MovingAverage ma, BollingerBand band)
+ {
++   double open = iOpen(pair, timeframe, shift);
+    double close = iClose(pair, timeframe, shift);
+-   if(close <= 0 || ma.MA5_Low <= 0 || ma.MA10_Low <= 0) return false;
+-   if(band.MID_BB <= 0) return false;
+-   
+-   if(direction == DIR_SELL)
+-   {
+-      if(close < ma.MA5_Low && close < ma.MA10_Low && close < band.MID_BB)
+-         return true;
+-   }
+-   else if(direction == DIR_BUY)
++   if(open <= 0 || close <= 0 || band.MID_BB <= 0) return false;
++   if(direction != DIR_BUY && direction != DIR_SELL) return false;
++
++   // Source: eCSD crosses MA5/10; CSD crosses MA5/10 AND MID BB.
++   // Operational encoding: "crosses" means the CLOSED candle body spans
++   // each required line from open to close. Wick-only touches do not count.
++   if(direction == DIR_BUY)
+    {
+-      if(close > ma.MA5_High && close > ma.MA10_High && close > band.MID_BB)
+-         return true;
++      if(ma.MA5_High <= 0 || ma.MA10_High <= 0) return false;
++      return CandleBodyCrossesLevel(open, close, ma.MA5_High, direction) &&
++             CandleBodyCrossesLevel(open, close, ma.MA10_High, direction) &&
++             CandleBodyCrossesLevel(open, close, band.MID_BB, direction);
+    }
+-   return false;
++
++   if(ma.MA5_Low <= 0 || ma.MA10_Low <= 0) return false;
++   return CandleBodyCrossesLevel(open, close, ma.MA5_Low, direction) &&
++          CandleBodyCrossesLevel(open, close, ma.MA10_Low, direction) &&
++          CandleBodyCrossesLevel(open, close, band.MID_BB, direction);
+ }
+ 
+ bool DetectECSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
+                 MovingAverage ma)
+ {
++   double open = iOpen(pair, timeframe, shift);
+    double close = iClose(pair, timeframe, shift);
+-   if(close <= 0 || ma.MA5_Low <= 0 || ma.MA10_Low <= 0) return false;
+-   
+-   if(direction == DIR_SELL)
+-   {
+-      if(close < ma.MA5_Low && close < ma.MA10_Low)
+-         return true;
+-   }
+-   else if(direction == DIR_BUY)
++   if(open <= 0 || close <= 0) return false;
++   if(direction != DIR_BUY && direction != DIR_SELL) return false;
++
++   // Source: eCSD is the early direction candle that crosses MA5/10,
++   // without requiring the MID BB cross that distinguishes a full CSD.
++   if(direction == DIR_BUY)
+    {
+-      if(close > ma.MA5_High && close > ma.MA10_High)
+-         return true;
++      if(ma.MA5_High <= 0 || ma.MA10_High <= 0) return false;
++      return CandleBodyCrossesLevel(open, close, ma.MA5_High, direction) &&
++             CandleBodyCrossesLevel(open, close, ma.MA10_High, direction);
+    }
+-   return false;
++
++   if(ma.MA5_Low <= 0 || ma.MA10_Low <= 0) return false;
++   return CandleBodyCrossesLevel(open, close, ma.MA5_Low, direction) &&
++          CandleBodyCrossesLevel(open, close, ma.MA10_Low, direction);
+ }
+ 
+ void BuildSLTP_CSD(ENUM_DIRECTION direction, double entryPrice,
+@@ -2179,8 +2202,8 @@
+    if(!EnableRE_Type3) return false;
+    if(!data.is_valid || !data.is_closed) return false;
+ 
+-   // Type 3 candidate begins only after a CSM has formed. The later retrace
+-   // to MA5 or MA50 is handled by the persistent lifecycle below.
++   // Type 3 candidate begins only after a source-valid CSM has formed.
++   // The later retrace to MA5 or MA50 is handled by the persistent lifecycle.
+    return DetectCSM(pair, data.timeframe, direction, data.barIndex);
+ }
+ 

@@ -1,0 +1,39 @@
+name: P2 Step8 Fix A Apply V2
+on:
+  push:
+    branches:
+      - blueprint-dev
+    paths:
+      - .github/workflows/p2-step8-fixa-apply-v2.yml
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply fix
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          p=Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
+          s=p.read_text()
+          old="""void AddToMonitoredTrades(TradeInfo &info)\n{\n   for(int i = 0; i < g_monitored_count; i++)\n   {\n      if(g_monitored_trades[i].ticket == info.ticket)\n      {\n         g_monitored_trades[i] = info;\n         return;\n      }\n   }\n   \n   if(g_monitored_count < MAX_MONITORED)\n   {\n      g_monitored_trades[g_monitored_count] = info;\n      g_monitored_count++;\n   }\n}\n"""
+          new="""void CompactMonitoredTrades()\n{\n   int write = 0;\n   for(int i = 0; i < g_monitored_count; i++)\n   {\n      bool removeClosed = false;\n      if(OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))\n         removeClosed = (OrderCloseTime() != 0);\n      if(removeClosed) continue;\n      if(write != i) g_monitored_trades[write] = g_monitored_trades[i];\n      write++;\n   }\n   g_monitored_count = write;\n}\n\nvoid AddToMonitoredTrades(TradeInfo &info)\n{\n   for(int i = 0; i < g_monitored_count; i++)\n   {\n      if(g_monitored_trades[i].ticket == info.ticket)\n      {\n         g_monitored_trades[i] = info;\n         return;\n      }\n   }\n   CompactMonitoredTrades();\n   if(g_monitored_count < MAX_MONITORED)\n   {\n      g_monitored_trades[g_monitored_count] = info;\n      g_monitored_count++;\n      return;\n   }\n   Log(DBG_ERROR, \"Monitored registry full; unable to register ticket=\" + IntegerToString(info.ticket));\n}\n"""
+          if s.count(old)!=1: raise SystemExit('anchor mismatch')
+          s=s.replace(old,new,1)
+          p.write_text(s)
+          d=hashlib.sha256(s.encode()).hexdigest()
+          Path('blueprint/P2_STEP8_FIXA_MONITORED_COMPACTION.md').write_text('# P2 Step 8 Fix A — Monitored Trade Compaction\n\nStatus: **APPLIED — REQUIRES NATIVE METAEDITOR 0E/0W VERIFICATION**\n\nCanonical source SHA-256 after fix:\n`'+d+'`\n\nClosed broker-confirmed monitored records are compacted before new tickets are appended. Failed OrderSelect records are preserved fail-closed. No BBMA strategy semantics changed.\n')
+          print(d)
+          PY
+      - name: Commit
+        shell: bash
+        run: |
+          git config user.name github-actions-bot
+          git config user.email github-actions-bot@users.noreply.github.com
+          git add blueprint/source/BBMA_PROFESSIONAL_EA.mq4 blueprint/P2_STEP8_FIXA_MONITORED_COMPACTION.md
+          git commit -m 'P2 step8 fix A: compact monitored registry'
+          git push origin blueprint-dev

@@ -16,6 +16,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          echo 'Starting P1 baseline reconstruction'
           cat \
             blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part01a \
             blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part01b \

@@ -33,6 +33,8 @@ The exact baseline is stored as deterministic gzip+base64 chunks under `blueprin
 14. `blueprint/patches/0014-p0-step7-m16-owner-aware-invalidation.patch`
 15. `blueprint/patches/0015-p0-step8-m17-sltp-source-guard-direction-validation.patch`
 
+Step 8B is currently represented by architecture contracts only; no `0016` active-blueprint implementation patch has been claimed yet.
+
 ## Full-source SHA verification status
 The previously recorded SHA-256 `274b3d380463f5cd9a477ce0c37b6da0db6c4cc6721013fdef4e984326b291bf` was discovered during Step 3D to have been calculated from a partial reconstruction and remains withdrawn.
 
@@ -52,6 +54,7 @@ Patches 0006–0015 have focused verification records in their contracts. A new 
 - `blueprint/contracts/M15_FINAL_SIGNAL_AUTHORITY_CONTRACT.md`
 - `blueprint/contracts/M16_CONFLICT_INVALIDATION_CONTRACT.md`
 - `blueprint/contracts/M17_ENTRY_SLTP_CONTRACT.md`
+- `blueprint/contracts/M17_SLTP_EXIT_RESOLUTION_CONTRACT.md`
 - `docs/references/SOURCE_INDEX.md`
 - `docs/references/BBMA_OMA_ALLY_RULE_INDEX.md`
 
@@ -105,29 +108,16 @@ Status: **COMPLETED AT CONFLICT / INVALIDATION CONTRACT LEVEL**
 - later same-timeframe source-valid CSM invalidates stored Extreme;
 - M16 remains invalidation-only.
 
-## Step 8 — M17 Entry / SL / TP
-Status: **PARTIALLY COMPLETED / SAFE SOURCE GUARD ACTIVE**
+## Step 8 — M17 Entry / SL / TP engineering guard
+Status: **COMPLETED AT ENGINEERING GUARD LEVEL**
 
-### Source finding
-The primary BBMA reference explicitly states for Extreme that reversal confirmation is required, retest is the point of entry, and SL may be placed a few pips beyond the highest shadow/wick. However, the supplied source does **not** define a deterministic TP formula.
-
-For the currently executable confirmed Re-Entry / REM / RRE / REE paths, the supplied pages define setup/entry-location concepts but do not define a complete deterministic SL + TP pair suitable for autonomous execution.
-
-Therefore the old blueprint formulas that manufactured SL from `MaxSLPips` and TP from `MinRRRatio` are **not accepted as BBMA source rules**.
-
-### Safe guard
-M17 now fails closed with `REJ_SLTP_UNRESOLVED` unless a future approved source resolver supplies a complete SL/TP pair and a non-`SIGNAL_NONE` source identity.
-
-This means upstream BBMA setups may still be detected and validated, but they are not execution-ready until the SL/TP source gap is resolved.
-
-### Engineering fixes completed
 - BUY execution reference uses ASK; SELL uses BID.
 - direction-aware geometry enforced: BUY `SL < Entry < TP`, SELL `TP < Entry < SL`.
-- MaxSL conversion corrected using the project pip-price helper; `MaxSLPips` is a rejection cap only.
+- MaxSL conversion uses the project pip-price helper; `MaxSLPips` is a rejection cap only.
 - `MinRRRatio` is a rejection filter only and no longer manufactures TP.
-- StopLevel/FreezeLevel are direction-aware: BUY uses BID close/trigger side, SELL uses ASK.
-- M23 compatibility call updated to pass explicit direction.
-- `StopLossPoints` is normalized to actual broker points after valid resolution.
+- StopLevel/FreezeLevel are direction-aware.
+- M23 compatibility call passes explicit direction.
+- unresolved source payload remains fail-closed with `REJ_SLTP_UNRESOLVED`.
 
 Patch:
 `blueprint/patches/0015-p0-step8-m17-sltp-source-guard-direction-validation.patch`
@@ -135,27 +125,47 @@ Patch:
 Contract:
 `blueprint/contracts/M17_ENTRY_SLTP_CONTRACT.md`
 
-Focused patch SHA-256:
-`8aeeb013aaa76182f222b31eb0b0dfeb67a2765090cc8dad7dc9a488188e0b8c`
+## Step 8B — BBMA SL / TP / Exit source resolution
+Status: **APPROVED AT ARCHITECTURE CONTRACT LEVEL**
 
-### Focused verification
-- dry-run/apply clean and exact generated target match;
-- braces 521/521;
-- parentheses 1583/1583;
-- brackets 355/355;
-- old M17 `MaxSLPips * Point / 10` formula absent;
-- BID-only StopLevel/FreezeLevel behavior absent;
-- source-resolution fail-closed guard present.
+The project now separates provenance into:
+- `PDF_CORE`;
+- `FORUM_SUPPORTED`;
+- `EA_SAFETY`.
 
-No new full-chain working-source SHA is claimed from this focused verification.
+Approved TP destination mapping for current executable decisions:
+- H1 Re-Entry BUY -> H1 TOP BB; SELL -> H1 LOW BB;
+- REM BUY -> H4 TOP BB; SELL -> H4 LOW BB;
+- RRE BUY -> D1 TOP BB; SELL -> D1 LOW BB;
+- REE BUY -> D1 TOP BB; SELL -> D1 LOW BB.
+
+Protective hard SL is a structurally anchored `EA_SAFETY` rule informed by BBMA practice:
+- BUY -> below source-owned relevant swing-low / lowest wick;
+- SELL -> above source-owned relevant swing-high / highest wick;
+- closed-candle source only;
+- missing/ambiguous anchor -> fail closed.
+
+Opposite confirmed CSM/momentum + BB expansion is retained as a possible `FORUM_SUPPORTED` lifecycle invalidation, but it is **not enabled as a broker close rule yet**. M23/M24 lifecycle ownership must be audited first.
+
+No universal fixed-pip TP/SL is accepted as BBMA Core.
+
+Contract:
+`blueprint/contracts/M17_SLTP_EXIT_RESOLUTION_CONTRACT.md`
+
+Architecture contract commit:
+`451f98c251f7fb92c23ea45cd122d76561b41c13`
+
+M17 contract update commit:
+`8b804ccb5ce952357c67245cde671112b9ea0213`
 
 ## Next P0 action
-**Step 8B — resolve the BBMA SL/TP source gap before execution can be certified.**
+**Step 8C — implement the approved Step 8B resolver in the active blueprint.**
 
-Acceptable routes:
-1. add another authoritative BBMA/Oma Ally source that explicitly defines deterministic SL/TP/exit rules; or
-2. explicitly approve a separate non-BBMA trade-management SL/TP rule, clearly labelled as project management logic rather than BBMA strategy semantics.
-
-Until Step 8B is resolved, later modules may still be audited, but the EA must remain fail-closed before execution.
+Required scope:
+1. extend executable decision payload so the exact destination-producing source component/timeframe survives M14 -> M15 -> M16 -> M17;
+2. provide an unambiguous source-owned structural SL anchor from closed candles;
+3. patch M17 to resolve TP from the approved mapping rather than fixed-pip/RR manufacture;
+4. retain `REJ_SLTP_UNRESOLVED` for stale, missing or ambiguous payload;
+5. do not enable dynamic opposite-CSM lifecycle closure until M23/M24 ownership is separately audited.
 
 Do not merge into `main` until the full blueprint audit is clean and explicitly approved as MASTER BLUEPRINT LOCKED.

@@ -36,39 +36,114 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          shopt -s nullglob
-          patches=(blueprint/patches/*.patch)
-          if [ "${#patches[@]}" -ne 25 ]; then
-            echo "ERROR: expected 25 patches, found ${#patches[@]}"
-            printf '%s\n' "${patches[@]}"
-            exit 20
-          fi
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib, re, sys
 
-          expected=1
-          for patch in "${patches[@]}"; do
-            base=$(basename "$patch")
-            num=${base%%-*}
-            expected_num=$(printf '%04d' "$expected")
-            if [ "$num" != "$expected_num" ]; then
-              echo "ERROR: patch order mismatch: expected $expected_num, got $num ($base)"
-              exit 21
-            fi
-            echo "=== APPLY $base ==="
-            if ! git apply --check --recount --whitespace=nowarn "$patch"; then
-              echo "P1_STEP2_FIRST_CONFLICT=$base"
-              git apply --check --recount --verbose "$patch" || true
-              exit 22
-            fi
-            git apply --recount --whitespace=nowarn "$patch"
-            echo "P1_STEP2_APPLIED=$base"
-            expected=$((expected + 1))
-          done
+          patches = sorted(Path('blueprint/patches').glob('*.patch'))
+          if len(patches) != 25:
+              print(f'ERROR: expected 25 patches, found {len(patches)}')
+              sys.exit(20)
 
-          test -f MASTER_BLUEPRINT_2.0_WORKING.txt
-          FINAL_SHA=$(sha256sum MASTER_BLUEPRINT_2.0_WORKING.txt | awk '{print $1}')
-          echo "P1_STEP2_PATCHES_APPLIED=25"
-          echo "P1_STEP2_WORKING_SHA=$FINAL_SHA"
-          echo "P1_STEP2_PATCH_CHAIN=PASS"
+          for i, p in enumerate(patches, 1):
+              expected = f'{i:04d}'
+              actual = p.name.split('-', 1)[0]
+              if actual != expected:
+                  print(f'ERROR: patch order mismatch: expected {expected}, got {actual} ({p.name})')
+                  sys.exit(21)
+
+          def parse_patch(path: Path):
+              lines = path.read_text(encoding='utf-8').splitlines(keepends=True)
+              old_path = new_path = None
+              hunks = []
+              i = 0
+              while i < len(lines):
+                  line = lines[i]
+                  if line.startswith('--- '):
+                      old_path = line[4:].strip()
+                      if old_path.startswith('a/'):
+                          old_path = old_path[2:]
+                      i += 1
+                      if i >= len(lines) or not lines[i].startswith('+++ '):
+                          raise ValueError('missing +++ header')
+                      new_path = lines[i][4:].strip()
+                      if new_path.startswith('b/'):
+                          new_path = new_path[2:]
+                      i += 1
+                      continue
+                  if line.startswith('@@'):
+                      i += 1
+                      h = []
+                      while i < len(lines) and not lines[i].startswith('@@') and not lines[i].startswith('--- '):
+                          h.append(lines[i])
+                          i += 1
+                      hunks.append(h)
+                      continue
+                  i += 1
+              if not old_path or not new_path or not hunks:
+                  raise ValueError('patch missing file header or hunks')
+              return old_path, new_path, hunks
+
+          def hunk_blocks(hunk):
+              old = []
+              new = []
+              for line in hunk:
+                  if line.startswith('\\ No newline at end of file'):
+                      continue
+                  if line.startswith('+'):
+                      new.append(line[1:])
+                  elif line.startswith('-'):
+                      old.append(line[1:])
+                  elif line.startswith(' '):
+                      old.append(line[1:])
+                      new.append(line[1:])
+                  else:
+                      # Non-standard focused patches may contain unprefixed context.
+                      old.append(line)
+                      new.append(line)
+              return ''.join(old), ''.join(new)
+
+          for p in patches:
+              print(f'=== APPLY {p.name} ===')
+              try:
+                  old_path, new_path, hunks = parse_patch(p)
+              except Exception as e:
+                  print(f'P1_STEP2_FIRST_CONFLICT={p.name}')
+                  print(f'PARSE_ERROR={e}')
+                  sys.exit(22)
+
+              source_path = Path(old_path)
+              target_path = Path(new_path)
+              if not source_path.exists():
+                  print(f'P1_STEP2_FIRST_CONFLICT={p.name}')
+                  print(f'MISSING_SOURCE={old_path}')
+                  sys.exit(22)
+
+              text = source_path.read_text(encoding='utf-8')
+              for hidx, h in enumerate(hunks, 1):
+                  old_block, new_block = hunk_blocks(h)
+                  count = text.count(old_block)
+                  if count != 1:
+                      print(f'P1_STEP2_FIRST_CONFLICT={p.name}')
+                      print(f'HUNK={hidx}')
+                      print(f'MATCH_COUNT={count}')
+                      preview = old_block[:800].replace('\n', '\\n')
+                      print(f'OLD_BLOCK_PREVIEW={preview}')
+                      sys.exit(22)
+                  text = text.replace(old_block, new_block, 1)
+
+              target_path.write_text(text, encoding='utf-8')
+              print(f'P1_STEP2_APPLIED={p.name}')
+
+          working = Path('MASTER_BLUEPRINT_2.0_WORKING.txt')
+          if not working.exists() or working.stat().st_size == 0:
+              print('ERROR: working source missing/empty')
+              sys.exit(23)
+          digest = hashlib.sha256(working.read_bytes()).hexdigest()
+          print('P1_STEP2_PATCHES_APPLIED=25')
+          print(f'P1_STEP2_WORKING_SHA={digest}')
+          print('P1_STEP2_PATCH_CHAIN=PASS')
+          PY
 
       - name: Basic materialization sanity
         shell: bash

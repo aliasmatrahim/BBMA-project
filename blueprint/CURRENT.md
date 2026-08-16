@@ -41,15 +41,17 @@ The exact baseline is stored as deterministic gzip+base64 chunks under `blueprin
 24. `blueprint/patches/0024-p0-step16-m25-m26-dashboard-init-cleanup.patch`
 25. `blueprint/patches/0025-p0-step17-m27-end-to-end-orchestration-ownership.patch`
 
-## Full-source SHA verification status
-The previously recorded SHA-256 `274b3d380463f5cd9a477ce0c37b6da0db6c4cc6721013fdef4e984326b291bf` remains withdrawn because it was calculated from a partial reconstruction.
+## Canonical compile-clean source
+Path:
+`blueprint/source/BBMA_PROFESSIONAL_EA.mq4`
 
-P1 Step 3 has now deterministically materialized the verified baseline plus patches `0001` through `0025` in exact order.
+SHA-256:
+`30363d08437b85f253e6baf3e9c82af0d59d70727639ac0e6420a7677f975bc9`
 
-Provisional fully materialized working-source SHA-256:
-`e81b91a96d95b4446531b445a54c7d60ee5eb71d91646e98eac15ad8e1001da6`
+Native MetaEditor result reported and verified from the user compile session:
+**0 errors, 0 warnings**.
 
-This SHA is **not yet the final MASTER LOCKED SHA**. It may only be promoted after compilation and architecture-invariant verification of the materialized source.
+The pre-compile-repair Step 3 materialized SHA `e81b91a96d95b4446531b445a54c7d60ee5eb71d91646e98eac15ad8e1001da6` remains retained only as the deterministic input to the compile-repair layer. It is not the canonical current source SHA.
 
 ## Locked supporting contracts
 - `blueprint/ENTRY_MODE_CONTRACT.md`
@@ -113,54 +115,57 @@ Locked tick/lifecycle order:
 ## Step 1 — immutable baseline reconstruction and SHA verification
 Status: **PASS**
 
-GitHub Actions workflow:
-`.github/workflows/p1-baseline-verify.yml`
-
 Verified reconstructed SHA-256:
 `e217816e95126857c1e7fa3fde1ac10ecc28f196a82eb51cb2f3625a6901aa00`
 
-Verification run:
-GitHub Actions run `31950155981`, job `95172281118`, conclusion `success`.
+Verification run: GitHub Actions `31950155981`, conclusion `success`.
 
 ## Step 2 — ordered patch-chain conflict discovery
-Status: **PASS / COMPLETED AS INPUT TO STEP 3**
-
-The exact verified baseline was used to apply patches in order. The first true integration conflict was identified at patch `0014`, M16 owner-aware invalidation. Subsequent context conflicts were resolved only as integration rebases; locked BBMA semantics were not changed.
+Status: **PASS**
 
 ## Step 3 — integration repair and full patch-chain materialization
 Status: **PASS**
 
-Successful verification workflow:
-`.github/workflows/p1-step3-integration-v4.yml`
+Verification run: GitHub Actions `31950925592`, conclusion `success`.
 
-Successful run:
-GitHub Actions run `31950925592`, job `95174141530`, conclusion `success`.
-
-Verified result:
-- exact canonical baseline SHA verified before patching;
-- patches `0001` through `0025` applied in exact numeric order;
-- all true patch-context conflicts were deterministically rebased without changing locked strategy semantics;
-- focused context-only hunks where old and new payloads were identical were treated as no-op context markers;
-- materialization sanity checks passed;
-- `P1_STEP3_PATCHES_APPLIED=25`;
-- `P1_STEP3_PATCH_CHAIN=PASS`;
-- `P1_STEP3_SANITY=PASS`.
-
-Integration-only rebases recorded by the successful run:
-- `0014_M16_REBASE`;
-- `0016_M17_RESOLVER`;
-- `0018_M19_REASON`;
-- `0021_M22_RESULT`;
-- `0022_M23_FUNCTION_REBASE`;
-- `0024_M26_INIT_REBASE`;
-- `0025_H2_M22_PREFLIGHT_REMOVAL`;
-- `0025_H3_PREFLIGHT_INSERT`;
-- `0025_H4_PROCESSPAIR_SINGLE_PREFLIGHT`.
-
-Provisional materialized working-source SHA-256:
+Pre-compile-repair source SHA-256:
 `e81b91a96d95b4446531b445a54c7d60ee5eb71d91646e98eac15ad8e1001da6`
 
-## Next action — P1 Step 4
-Materialize the same exact source, run compilation verification and architecture invariants, repair compile/integration defects only, and promote a final full-source SHA only after those checks pass.
+## Step 4 — architecture ownership / structural invariants
+Status: **PASS**
 
-Do not merge into `main` until P1 verification is fully clean and explicitly approved as MASTER BLUEPRINT LOCKED.
+Verification run: GitHub Actions `31951148538`, conclusion `success`.
+
+## Compile repair passes 1–5
+Status: **PASS — NATIVE METAEDITOR 0 ERRORS, 0 WARNINGS**
+
+Evidence record:
+`blueprint/P1_COMPILE_REPAIR_RECORD.md`
+
+Compile repairs are restricted to MQL4 compatibility, cross-module signature alignment, deterministic snapshot field completion, and warning cleanup; no intentional BBMA strategy-semantic modification.
+
+# P1 Finalization
+
+## Step 1 — canonicalize compile-clean source
+Status: **PASS**
+
+Successful workflow:
+`.github/workflows/p1-finalization-step1.yml`
+
+Successful GitHub Actions run:
+`31953336281`, conclusion `success`.
+
+Canonical source:
+`blueprint/source/BBMA_PROFESSIONAL_EA.mq4`
+
+Canonical source SHA-256:
+`30363d08437b85f253e6baf3e9c82af0d59d70727639ac0e6420a7677f975bc9`
+
+Exact compile-repair transformation is reproducibly stored as:
+- `blueprint/finalization/compile_repair.patch.gz.b64.part00`
+- `blueprint/finalization/compile_repair.patch.gz.b64.part01`
+
+## Next action — P1 Finalization Step 2
+Run architecture-invariant verification directly against the canonical compile-clean source, verify its SHA and required Module 01–27 ownership invariants, then determine whether it can be promoted to the P1 release-candidate lock.
+
+Do not merge into `main` until the canonical source passes this post-compile-repair invariant audit and the release candidate is explicitly approved.

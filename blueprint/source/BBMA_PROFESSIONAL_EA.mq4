@@ -4094,15 +4094,37 @@ int CountLiveEAOwnedPortfolioTrades()
    return count;
 }
 
+bool BrokerConfirmsNoLiveEAOwnedOrders()
+{
+   // Emergency protection may be released only from broker truth. Any uncertainty
+   // in terminal connectivity or order enumeration is fail-closed: keep the latch.
+   if(!IsTerminalConnected()) return false;
+
+   int total = OrdersTotal();
+   for(int i = 0; i < total; i++)
+   {
+      ResetLastError();
+      if(!OrderSelect(i, SELECT_BY_POS, MODE_TRADES))
+         return false;
+
+      if(OrderCloseTime() != 0) continue;
+
+      int pairIdx = -1;
+      if(IsExactEAOwnedSelectedOrder(pairIdx))
+         return false;
+   }
+
+   return true;
+}
+
 void ManagePortfolio()
 {
    // M20 owns portfolio protection state, not broker close execution.
-   // Once basket-loss protection trips, latch the request until all EA-owned
-   // monitored positions are actually closed by M23. This prevents partial-close
-   // failures from silently clearing protection on a later tick.
+   // Once basket-loss protection trips, release is allowed only when a direct
+   // broker-side scan definitively confirms that no exact EA-owned live order remains.
    if(g_portfolio_emergency_close_requested)
    {
-      if(CountLiveEAOwnedPortfolioTrades() == 0)
+      if(BrokerConfirmsNoLiveEAOwnedOrders())
          g_portfolio_emergency_close_requested = false;
       return;
    }

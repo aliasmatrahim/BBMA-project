@@ -1,0 +1,117 @@
+name: P2 Step8 Fix C Apply
+
+on:
+  push:
+    branches: [ blueprint-dev ]
+    paths:
+      - '.github/workflows/p2-step8-fixc-apply.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply emergency liquidation precedence fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+
+          p = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
+          text = p.read_text(encoding='utf-8')
+
+          old = '''      if(g_monitored_trades[i].recovery_state == REC_CORRUPTED ||
+         g_monitored_trades[i].recovery_state == REC_RECOVERY_INVALID)
+      {
+         Log(DBG_ERROR, "Trade " + IntegerToString(g_monitored_trades[i].ticket) + 
+             " corrupted, frozen: " + EnumToString(g_monitored_trades[i].recovery_state));
+         continue;
+      }
+
+      // M20 emergency basket-loss protection is the only active M23 broker-side
+      // lifecycle close policy at this stage. Keep the request latched in M20 so
+      // a failed close is retried on a later tick. No partial close is allowed.
+      if(g_portfolio_emergency_close_requested)
+      {
+         double closePrice = (g_monitored_trades[i].direction == DIR_BUY) ? bid : ask;
+         if(closePrice <= 0) continue;
+
+         ResetLastError();
+         if(!OrderClose(OrderTicket(), OrderLots(), closePrice, Slippage))
+         {
+            int error = GetLastError();
+            Log(DBG_ERROR, "Emergency close failed ticket=" + IntegerToString(OrderTicket()) +
+                " error=" + IntegerToString(error));
+         }
+         continue;
+      }
+'''
+
+          new = '''      // Emergency liquidation has precedence over recovery-state freezing.
+      // Ownership/magic were already revalidated above, so even a corrupted or
+      // recovery-invalid EA-owned position must remain closable when M20 latches
+      // basket-loss protection. Otherwise one bad recovery record can trap the
+      // emergency latch forever and leave broker risk open.
+      if(g_portfolio_emergency_close_requested)
+      {
+         double closePrice = (g_monitored_trades[i].direction == DIR_BUY) ? bid : ask;
+         if(closePrice <= 0) continue;
+
+         ResetLastError();
+         if(!OrderClose(OrderTicket(), OrderLots(), closePrice, Slippage))
+         {
+            int error = GetLastError();
+            Log(DBG_ERROR, "Emergency close failed ticket=" + IntegerToString(OrderTicket()) +
+                " error=" + IntegerToString(error));
+         }
+         continue;
+      }
+
+      if(g_monitored_trades[i].recovery_state == REC_CORRUPTED ||
+         g_monitored_trades[i].recovery_state == REC_RECOVERY_INVALID)
+      {
+         Log(DBG_ERROR, "Trade " + IntegerToString(g_monitored_trades[i].ticket) + 
+             " corrupted, frozen: " + EnumToString(g_monitored_trades[i].recovery_state));
+         continue;
+      }
+'''
+
+          if text.count(old) != 1:
+              raise SystemExit(f'M23 anchor count={text.count(old)}')
+
+          text = text.replace(old, new, 1)
+          p.write_text(text, encoding='utf-8')
+          digest = hashlib.sha256(text.encode('utf-8')).hexdigest()
+          print('P2_STEP8_FIXC_NEW_SHA=' + digest)
+
+          Path('blueprint/P2_STEP8_FIXC_EMERGENCY_PRECEDENCE.md').write_text(f'''# P2 Step 8 Fix C — Emergency Liquidation Precedence\n\nStatus: **APPLIED — REQUIRES NATIVE METAEDITOR 0E/0W VERIFICATION**\n\nCanonical source SHA-256 after fix:\n`{digest}`\n\n## Defect fixed\nM23 previously froze `REC_CORRUPTED` / `REC_RECOVERY_INVALID` positions before the emergency basket-loss close block. That could leave an exactly-owned live broker position open and keep the M20 emergency latch stuck indefinitely.\n\n## Fix\n- Exact ownership/magic revalidation remains first.\n- M20 emergency liquidation is now processed before recovery-state freezing.\n- Corrupted/recovery-invalid positions remain frozen for normal lifecycle behavior, but they are still eligible for full emergency close.\n- No partial close, breakeven, trailing, TP2/TP3, or BBMA strategy logic was introduced.\n''', encoding='utf-8')
+          PY
+
+      - name: Static guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          t = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4').read_text(encoding='utf-8')
+          a = t.index('if(g_portfolio_emergency_close_requested)', t.index('void ManagePositions()'))
+          b = t.index('if(g_monitored_trades[i].recovery_state == REC_CORRUPTED', t.index('void ManagePositions()'))
+          assert a < b, 'emergency block must precede recovery freeze'
+          PY
+
+      - name: Commit fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add blueprint/source/BBMA_PROFESSIONAL_EA.mq4 blueprint/P2_STEP8_FIXC_EMERGENCY_PRECEDENCE.md
+          git commit -m 'P2 step8 fix C: emergency liquidation overrides recovery freeze'
+          git push origin blueprint-dev

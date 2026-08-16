@@ -1,0 +1,95 @@
+--- a/MASTER_BLUEPRINT_2.0_WORKING.txt
++++ b/MASTER_BLUEPRINT_2.0_WORKING.txt
+@@
+ void BuildDashboardSnapshot()
+ {
+@@
+       if(g_pair_states[i].last_decision.Valid)
+       {
+          g_dashboard_snapshot += EnumToString(g_pair_states[i].last_decision.SignalType) + " ";
+          g_dashboard_snapshot += EnumToString(g_pair_states[i].last_decision.Direction) + " ";
+-         g_dashboard_snapshot += "Tier:" + IntegerToString(g_pair_states[i].last_decision.PriorityTier) + " ";
+          g_dashboard_snapshot += "State:" + EnumToString(g_pair_states[i].last_decision.DecisionState);
+          if(g_pair_states[i].last_decision.RejectionReason != REJ_NONE)
+             g_dashboard_snapshot += " (" + EnumToString(g_pair_states[i].last_decision.RejectionReason) + ")";
+@@
+ void UpdateDashboard()
+ {
+    if(!ShowDashboard) return;
++   // M25 is display-only. It may render already-owned state but must never mutate
++   // strategy, risk, recovery, order or lifecycle state.
+    Comment(g_dashboard_snapshot);
+ }
+@@
+ int InitializeEA()
+ {
++   // Explicitly enter a non-operational state until ALL ownership, recovery and
++   // protection initialization has completed successfully.
++   g_is_initialized = false;
++   g_is_scanning = false;
++   g_is_managing_trade = false;
++   g_terminal_connected = IsTerminalConnected();
++   g_portfolio_emergency_close_requested = false;
++   g_processing_time = GetProcessingTime();
++
+    InitBrokerInfo();
+    LoadPairs();
+@@
+    ArrayResize(g_global_signal_history, 0);
+    g_global_signal_count = 0;
+    g_monitored_count = 0;
+-   
+-   g_protection_reference_equity = AccountBalance();
++
++   // M19 drawdown contract is explicitly equity-based. Using balance here would
++   // create a false restart drawdown baseline whenever recovered positions are
++   // already floating in profit/loss.
++   g_protection_reference_equity = AccountEquity();
++   if(g_protection_reference_equity <= 0)
++   {
++      Log(DBG_ERROR, "Invalid protection reference equity during initialization");
++      return INIT_FAILED;
++   }
+    g_last_reset_date = GetTodayStart();
+    g_last_daily_profit = 0;
+    g_cumulative_profit = 0;
+    g_dashboard_needs_update = true;
+-   
++
++   // Pair/symbol/magic ownership is already validated above. Only now may M24
++   // rebuild execution tombstones and monitored live-order state.
+    RebuildExecutionHistory();
+    RecoverExistingOrders();
+-   
++
++   // Recovery must not implicitly re-arm an old in-memory emergency latch. The
++   // live M20 protection engine will evaluate the recovered portfolio from current
++   // broker state and latch again deterministically when required.
++   g_portfolio_emergency_close_requested = false;
++
+    g_is_initialized = true;
+@@
+ void OnDeinit(const int reason)
+ {
++   // Stop all local orchestration first. Do NOT erase execution-hash/tombstone
++   // semantics here; restart recovery reconstructs them from broker history.
+    g_is_initialized = false;
++   g_is_scanning = false;
++   g_is_managing_trade = false;
++   g_dashboard_needs_update = false;
++   if(ShowDashboard)
++      Comment("");
+    Log(DBG_FULL, "EA deinitialized, reason: " + IntegerToString(reason));
+ }
+@@
+    if(todayStart > g_last_reset_date)
+    {
+-      g_protection_reference_equity = AccountBalance();
++      // Keep daily reset consistent with the M19 equity-drawdown contract.
++      double resetEquity = AccountEquity();
++      if(resetEquity > 0)
++         g_protection_reference_equity = resetEquity;
+       g_last_reset_date = todayStart;
+       g_last_daily_profit = 0;
+       Log(DBG_FULL, "Daily reset: protection reference = " + DoubleToString(g_protection_reference_equity, 2));
+    }

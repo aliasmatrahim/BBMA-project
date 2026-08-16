@@ -1,0 +1,483 @@
+--- a/MASTER_BLUEPRINT_2.0_WORKING.txt
++++ b/MASTER_BLUEPRINT_2.0_WORKING.txt
+@@ -394,6 +394,9 @@
+    ENUM_DIRECTION       Direction;
+    ENUM_SIGNAL_TYPE     SignalType;
+    ENUM_PRIORITY_TIER   PriorityTier;
++   int                  ComponentCount;
++   ComponentIdentity    Components[3];
++   datetime             CandidateExpiry;
+    bool                 PatternValid;
+    bool                 SequenceValid;
+    int                  ExpiryBar;
+@@ -458,6 +461,7 @@
+ {
+    ENUM_SIGNAL_TYPE     SequenceType;
+    ENUM_DIRECTION       Direction;
++   int                  ComponentCount;
+    ComponentIdentity    Components[3];
+    datetime             SequenceStartTime;
+    string               SequenceHash;
+@@ -507,6 +511,12 @@
+    double               current_daily_ema50;
+    SignalMemory         buy_signal_memory;
+    SignalMemory         sell_signal_memory;
++   // M16 persistent validity overlay for source-detected Extremes.
++   // M08 remains the detector; M16 owns temporal invalidation/expiry only.
++   Signal               extreme_h1_buy_state;
++   Signal               extreme_h1_sell_state;
++   Signal               extreme_h4_buy_state;
++   Signal               extreme_h4_sell_state;
+    Signal               last_signal;
+    BBMA_Decision        last_decision;
+    int                  last_trade_bar;
+@@ -1030,6 +1040,10 @@
+    state.magic_number = 0;
+    state.broker_retry_count = 0;
+    state.broker_spec_valid = false;
++   ZeroMemory(state.extreme_h1_buy_state);
++   ZeroMemory(state.extreme_h1_sell_state);
++   ZeroMemory(state.extreme_h4_buy_state);
++   ZeroMemory(state.extreme_h4_sell_state);
+ }
+ 
+ void CopyPairState(PairState &dest, PairState &src)
+@@ -2381,6 +2395,7 @@
+ {
+    candidate.SequenceType = set.CombinationType;
+    candidate.Direction = set.Comp1.Direction;
++   candidate.ComponentCount = 3;
+    candidate.Components[0] = set.Comp1;
+    candidate.Components[1] = set.Comp2;
+    candidate.Components[2] = set.Comp3;
+@@ -2471,6 +2486,7 @@
+ 
+    candidate.SequenceType = SIGNAL_RE_ENTRY;
+    candidate.Direction = reEntry.Direction;
++   candidate.ComponentCount = 1;
+    candidate.Components[0].ComponentType = SIGNAL_RE_ENTRY;
+    candidate.Components[0].Direction = reEntry.Direction;
+    candidate.Components[0].Timeframe = reEntry.Timeframe;
+@@ -2580,6 +2596,10 @@
+    decision.Direction = selected.Direction;
+    decision.SignalType = selected.SequenceType;
+    decision.PriorityTier = TIER_NONE;
++   decision.ComponentCount = selected.ComponentCount;
++   for(int c = 0; c < 3; c++)
++      decision.Components[c] = selected.Components[c];
++   decision.CandidateExpiry = selected.Expiry;
+    decision.SequenceHash = selected.SequenceHash;
+    decision.SequenceValid = true;
+    decision.PatternValid = true;
+@@ -2599,61 +2619,220 @@
+ //| LEVEL: EXPERT-RESTRICTED                                         |
+ //+------------------------------------------------------------------+
+ 
+-void InvalidationEngine_Atomic(BBMA_Decision &decision, OppositeConflictPackage &conflict)
++bool IsExtremeStateExpired(Signal extreme, datetime currentTime)
++{
++   // Expiry and invalidation are different states. Invalid/VOID-by-CSM must not
++   // be mislabeled as time expiry.
++   if(extreme.CandleTime <= 0 || extreme.Timeframe <= 0)
++      return false;
++
++   datetime expiry = extreme.CandleTime +
++                     (MaxWaitBars_Extreme * extreme.Timeframe * 60);
++   return (currentTime > expiry);
++}
++
++void UpdatePersistentExtremeState(Signal detectedExtreme, Signal csmSnapshot,
++                                  Signal &state)
++{
++   // M08 remains the detector. M16 only stores validity identity and applies
++   // temporal invalidation/expiry to that already-detected Extreme.
++   if(detectedExtreme.Valid)
++   {
++      if(!state.Valid || detectedExtreme.CandleTime >= state.CandleTime)
++         state = detectedExtreme;
++   }
++
++   if(state.Valid && IsExtremeStateExpired(state, g_processing_time))
++   {
++      state.Valid = false;
++      state.Reason = "Extreme expired by timeframe-aware project window";
++   }
++
++   // Source rule: an Extreme is no longer valid in the presence of CSM.
++   // Operational encoding: a later CLOSED CSM on the same timeframe invalidates
++   // the stored Extreme. Direction is deliberately not used as an extra source rule.
++   if(state.Valid && csmSnapshot.Valid &&
++      csmSnapshot.Type == SIGNAL_CSM &&
++      csmSnapshot.Timeframe == state.Timeframe &&
++      csmSnapshot.CandleTime > state.CandleTime)
++   {
++      state.Valid = false;
++      state.Reason = "Extreme invalidated by later same-TF CSM";
++   }
++}
++
++bool IsPersistentExtremeComponentValid(PairState &pairState,
++                                       ComponentIdentity component,
++                                       bool &expired)
++{
++   expired = false;
++   Signal state;
++   ZeroMemory(state);
++
++   if(component.Timeframe == PERIOD_H1 && component.Direction == DIR_BUY)
++      state = pairState.extreme_h1_buy_state;
++   else if(component.Timeframe == PERIOD_H1 && component.Direction == DIR_SELL)
++      state = pairState.extreme_h1_sell_state;
++   else if(component.Timeframe == PERIOD_H4 && component.Direction == DIR_BUY)
++      state = pairState.extreme_h4_buy_state;
++   else if(component.Timeframe == PERIOD_H4 && component.Direction == DIR_SELL)
++      state = pairState.extreme_h4_sell_state;
++   else
++      return false;
++
++   if(IsExtremeStateExpired(state, g_processing_time))
++   {
++      expired = true;
++      return false;
++   }
++
++   return (state.Valid &&
++           state.Type == SIGNAL_EXTREME &&
++           state.Direction == component.Direction &&
++           state.Timeframe == component.Timeframe &&
++           state.CandleTime == component.CandleTime);
++}
++
++bool IsPersistentMLVComponentValid(PairState &pairState,
++                                   ComponentIdentity component,
++                                   bool &expired)
++{
++   expired = false;
++   if(component.Timeframe != PERIOD_M15) return false;
++
++   MLVData mlv;
++   ZeroMemory(mlv);
++   if(component.Direction == DIR_BUY) mlv = pairState.mlv_buy_state;
++   else if(component.Direction == DIR_SELL) mlv = pairState.mlv_sell_state;
++   else return false;
++
++   if(mlv.ExpiryCandleTime > 0 && g_processing_time > mlv.ExpiryCandleTime)
++   {
++      expired = true;
++      return false;
++   }
++
++   return (mlv.State == MLV_CONFIRMED &&
++           mlv.IsValid &&
++           mlv.Direction == component.Direction &&
++           mlv.ConfirmationCandleTime == component.CandleTime);
++}
++
++bool IsPersistentReEntryComponentValid(PairState &pairState,
++                                       ComponentIdentity component,
++                                       bool &expired)
++{
++   expired = false;
++   ReEntryData reEntry;
++   ZeroMemory(reEntry);
++
++   if(component.Timeframe == PERIOD_H1 && component.Direction == DIR_BUY)
++      reEntry = pairState.re_h1_buy_state;
++   else if(component.Timeframe == PERIOD_H1 && component.Direction == DIR_SELL)
++      reEntry = pairState.re_h1_sell_state;
++   else if(component.Timeframe == PERIOD_H4 && component.Direction == DIR_BUY)
++      reEntry = pairState.re_h4_buy_state;
++   else if(component.Timeframe == PERIOD_H4 && component.Direction == DIR_SELL)
++      reEntry = pairState.re_h4_sell_state;
++   else if(component.Timeframe == PERIOD_D1 && component.Direction == DIR_BUY)
++      reEntry = pairState.re_d1_buy_state;
++   else if(component.Timeframe == PERIOD_D1 && component.Direction == DIR_SELL)
++      reEntry = pairState.re_d1_sell_state;
++   else
++      return false;
++
++   if(reEntry.ExpiryCandleTime > 0 && g_processing_time > reEntry.ExpiryCandleTime)
++   {
++      expired = true;
++      return false;
++   }
++
++   return (reEntry.State == RE_STATE_CONFIRMED &&
++           reEntry.IsValid &&
++           reEntry.Direction == component.Direction &&
++           reEntry.Timeframe == component.Timeframe &&
++           reEntry.ConfirmationCandle == component.CandleTime);
++}
++
++bool IsDecisionComponentOwnerValid(PairState &pairState,
++                                   ComponentIdentity component,
++                                   bool &expired)
++{
++   expired = false;
++   if(component.ComponentType == SIGNAL_RE_ENTRY)
++      return IsPersistentReEntryComponentValid(pairState, component, expired);
++   if(component.ComponentType == SIGNAL_MLV)
++      return IsPersistentMLVComponentValid(pairState, component, expired);
++   if(component.ComponentType == SIGNAL_EXTREME)
++      return IsPersistentExtremeComponentValid(pairState, component, expired);
++   return false;
++}
++
++bool ValidateDecisionOwnerSnapshot(int pairIndex, BBMA_Decision &decision,
++                                   bool &expired)
++{
++   expired = false;
++   if(pairIndex < 0 || pairIndex >= g_pair_count) return false;
++   if(decision.ComponentCount < 1 || decision.ComponentCount > 3) return false;
++
++   for(int i = 0; i < decision.ComponentCount; i++)
++   {
++      bool componentExpired = false;
++      if(!IsDecisionComponentOwnerValid(g_pair_states[pairIndex],
++                                        decision.Components[i],
++                                        componentExpired))
++      {
++         if(componentExpired) expired = true;
++         return false;
++      }
++   }
++   return true;
++}
++
++void InvalidationEngine_Atomic(int pairIndex, BBMA_Decision &decision,
++                               OppositeConflictPackage &conflict)
+ {
+    if(decision.DecisionState != DEC_CREATED) return;
+-   
+-   if(!g_broker_initialized)
+-   {
+-      decision.DecisionState = DEC_REJECTED;
+-      decision.RejectionReason = REJ_NO_DATA;
++
++   // Step 6 normally produces no DEC_CREATED decision when opposite validated
++   // BUY and SELL coexist. Keep this guard for any future conflict package that
++   // reaches M16 together with a created decision.
++   if(conflict.Exists &&
++      (conflict.ConflictType == CONFLICT_DIRECTION_VIOLATION ||
++       conflict.BreaksSequence))
++   {
++      decision.DecisionState = DEC_INVALIDATED;
++      decision.RejectionReason = REJ_OPPOSITE_SIGNAL;
+       return;
+    }
+-   
+-   datetime expiry = decision.CandleTime + MaxWaitBars_Global * 900;
+-   if(expiry < g_processing_time)
++
++   bool ownerExpired = false;
++   if(!ValidateDecisionOwnerSnapshot(pairIndex, decision, ownerExpired))
++   {
++      if(ownerExpired)
++      {
++         decision.DecisionState = DEC_EXPIRED;
++         decision.RejectionReason = REJ_EXPIRED;
++      }
++      else
++      {
++         decision.DecisionState = DEC_INVALIDATED;
++         decision.RejectionReason = REJ_SEQUENCE_BREAK;
++      }
++      return;
++   }
++
++   // Explicit candidate expiry is carried only when an owner supplies one
++   // (currently standalone confirmed Re-Entry). No generic M15 multiplier here.
++   if(decision.CandidateExpiry > 0 && g_processing_time > decision.CandidateExpiry)
+    {
+       decision.DecisionState = DEC_EXPIRED;
+       decision.RejectionReason = REJ_EXPIRED;
+       return;
+    }
+-   
+-   if(conflict.Exists)
+-   {
+-      if(conflict.ConflictType == CONFLICT_DIRECTION_VIOLATION ||
+-         conflict.ConflictType == CONFLICT_HIGHER_PRIORITY_BREAK ||
+-         conflict.BreaksSequence)
+-      {
+-         decision.DecisionState = DEC_INVALIDATED;
+-         decision.RejectionReason = REJ_OPPOSITE_SIGNAL;
+-         return;
+-      }
+-   }
+-   
+-   if(decision.CycleStartTime + MaxWaitBars_Global * 900 < g_processing_time)
+-   {
+-      decision.DecisionState = DEC_EXPIRED;
+-      decision.RejectionReason = REJ_EXPIRED;
+-      return;
+-   }
+-   
++
+    decision.DecisionState = DEC_VALIDATED;
+    decision.RejectionReason = REJ_NONE;
+-}
+-
+-bool IsExpired_Signal(Signal signal, datetime currentTime)
+-{
+-   return signal.CandleTime + MaxWaitBars_Global * 900 < currentTime;
+-}
+-
+-bool IsExpired_MLV(MLVData mlv, datetime currentTime)
+-{
+-   return mlv.StartCandleTime + MaxWaitBars_MLV * 900 < currentTime;
+-}
+-
+-bool IsExpired_ReEntry(ReEntryData reEntry, datetime currentTime)
+-{
+-   return reEntry.StartCandleTime + MaxWaitBars_ReEntry * 3600 < currentTime;
+ }
+ 
+ //+------------------------------------------------------------------+
+@@ -4010,6 +4189,38 @@
+    g_pair_states[pairIndex].current_bollinger = h1Band;
+    g_pair_states[pairIndex].prev_bollinger = h1PrevBand;
+ 
++   // M16 temporal Extreme invalidation needs the presence of a later CSM on the
++   // same timeframe. The source does not qualify that invalidation by CSM direction,
++   // so build one H1/H4 CSM presence snapshot before the BUY/SELL candidate loop.
++   Signal h1AnyCSMSnapshot, h4AnyCSMSnapshot;
++   ZeroMemory(h1AnyCSMSnapshot); ZeroMemory(h4AnyCSMSnapshot);
++
++   int h1ShiftForCSM = g_pair_states[pairIndex].h1_data.barIndex;
++   if(DetectCSM(actual, PERIOD_H1, DIR_BUY, h1ShiftForCSM) ||
++      DetectCSM(actual, PERIOD_H1, DIR_SELL, h1ShiftForCSM))
++   {
++      h1AnyCSMSnapshot.Type = SIGNAL_CSM;
++      h1AnyCSMSnapshot.Valid = true;
++      h1AnyCSMSnapshot.Timeframe = PERIOD_H1;
++      h1AnyCSMSnapshot.BarIndex = h1ShiftForCSM;
++      h1AnyCSMSnapshot.CandleTime = g_pair_states[pairIndex].h1_data.candle_time;
++      h1AnyCSMSnapshot.Timestamp = h1AnyCSMSnapshot.CandleTime;
++      h1AnyCSMSnapshot.Close = g_pair_states[pairIndex].h1_data.close;
++   }
++
++   int h4ShiftForCSM = g_pair_states[pairIndex].h4_data.barIndex;
++   if(DetectCSM(actual, PERIOD_H4, DIR_BUY, h4ShiftForCSM) ||
++      DetectCSM(actual, PERIOD_H4, DIR_SELL, h4ShiftForCSM))
++   {
++      h4AnyCSMSnapshot.Type = SIGNAL_CSM;
++      h4AnyCSMSnapshot.Valid = true;
++      h4AnyCSMSnapshot.Timeframe = PERIOD_H4;
++      h4AnyCSMSnapshot.BarIndex = h4ShiftForCSM;
++      h4AnyCSMSnapshot.CandleTime = g_pair_states[pairIndex].h4_data.candle_time;
++      h4AnyCSMSnapshot.Timestamp = h4AnyCSMSnapshot.CandleTime;
++      h4AnyCSMSnapshot.Close = g_pair_states[pairIndex].h4_data.close;
++   }
++
+    // Both directions are collected first. M15 receives one atomic pair-level pool
+    // and is called exactly once after BUY and SELL owner snapshots are complete.
+    ValidatedSequenceCandidate allCandidates[];
+@@ -4021,22 +4232,25 @@
+ 
+       // Signal-owner outputs. M27 orchestrates detector/state-engine calls once;
+       // M13 receives only immutable copies of these cycle snapshots.
+-      Signal h1ExtremeSnapshot, m15MHVSnapshot, m15CSDSnapshot;
++      Signal h1ExtremeSnapshot, h4ExtremeSnapshot, m15MHVSnapshot, m15CSDSnapshot;
+       Signal m15ECSDSnapshot, m15CSMSnapshot;
+-      ZeroMemory(h1ExtremeSnapshot); ZeroMemory(m15MHVSnapshot);
+-      ZeroMemory(m15CSDSnapshot); ZeroMemory(m15ECSDSnapshot);
+-      ZeroMemory(m15CSMSnapshot);
++      ZeroMemory(h1ExtremeSnapshot); ZeroMemory(h4ExtremeSnapshot);
++      ZeroMemory(m15MHVSnapshot); ZeroMemory(m15CSDSnapshot);
++      ZeroMemory(m15ECSDSnapshot); ZeroMemory(m15CSMSnapshot);
++
++      Signal detectedH1Extreme, detectedH4Extreme;
++      ZeroMemory(detectedH1Extreme); ZeroMemory(detectedH4Extreme);
+ 
+       if(DetectExtreme(actual, direction, g_pair_states[pairIndex].h1_data, h1Band))
+       {
+-         h1ExtremeSnapshot.Type = SIGNAL_EXTREME;
+-         h1ExtremeSnapshot.Direction = direction;
+-         h1ExtremeSnapshot.Valid = true;
+-         h1ExtremeSnapshot.Timeframe = PERIOD_H1;
+-         h1ExtremeSnapshot.BarIndex = g_pair_states[pairIndex].h1_data.barIndex;
+-         h1ExtremeSnapshot.CandleTime = g_pair_states[pairIndex].h1_data.candle_time;
+-         h1ExtremeSnapshot.Timestamp = h1ExtremeSnapshot.CandleTime;
+-         h1ExtremeSnapshot.Close = g_pair_states[pairIndex].h1_data.close;
++         detectedH1Extreme.Type = SIGNAL_EXTREME;
++         detectedH1Extreme.Direction = direction;
++         detectedH1Extreme.Valid = true;
++         detectedH1Extreme.Timeframe = PERIOD_H1;
++         detectedH1Extreme.BarIndex = g_pair_states[pairIndex].h1_data.barIndex;
++         detectedH1Extreme.CandleTime = g_pair_states[pairIndex].h1_data.candle_time;
++         detectedH1Extreme.Timestamp = detectedH1Extreme.CandleTime;
++         detectedH1Extreme.Close = g_pair_states[pairIndex].h1_data.close;
+       }
+ 
+       if(DetectMHV(actual, direction, g_pair_states[pairIndex].m15_data))
+@@ -4133,6 +4347,21 @@
+          d1ReEntryState = g_pair_states[pairIndex].re_d1_sell_state;
+       }
+ 
++      // M16 applies temporal validity over M08's raw Extreme detector output.
++      // CSM invalidation is evaluated on the same timeframe as the stored Extreme.
++      if(direction == DIR_BUY)
++      {
++         UpdatePersistentExtremeState(detectedH1Extreme, h1AnyCSMSnapshot,
++                                      g_pair_states[pairIndex].extreme_h1_buy_state);
++         h1ExtremeSnapshot = g_pair_states[pairIndex].extreme_h1_buy_state;
++      }
++      else
++      {
++         UpdatePersistentExtremeState(detectedH1Extreme, h1AnyCSMSnapshot,
++                                      g_pair_states[pairIndex].extreme_h1_sell_state);
++         h1ExtremeSnapshot = g_pair_states[pairIndex].extreme_h1_sell_state;
++      }
++
+       Signal extreme, mhv, csd, ecsd, csm;
+       MLVData mlv;
+       ReEntryData reEntry;
+@@ -4150,15 +4379,29 @@
+ 
+       if(DetectExtreme(actual, direction, g_pair_states[pairIndex].h4_data, h4Band))
+       {
+-         h4_extreme.Type = SIGNAL_EXTREME;
+-         h4_extreme.Direction = direction;
+-         h4_extreme.Valid = true;
+-         h4_extreme.Timeframe = PERIOD_H4;
+-         h4_extreme.BarIndex = g_pair_states[pairIndex].h4_data.barIndex;
+-         h4_extreme.CandleTime = g_pair_states[pairIndex].h4_data.candle_time;
+-         h4_extreme.Timestamp = h4_extreme.CandleTime;
+-         h4_extreme.Close = g_pair_states[pairIndex].h4_data.close;
+-      }
++         detectedH4Extreme.Type = SIGNAL_EXTREME;
++         detectedH4Extreme.Direction = direction;
++         detectedH4Extreme.Valid = true;
++         detectedH4Extreme.Timeframe = PERIOD_H4;
++         detectedH4Extreme.BarIndex = g_pair_states[pairIndex].h4_data.barIndex;
++         detectedH4Extreme.CandleTime = g_pair_states[pairIndex].h4_data.candle_time;
++         detectedH4Extreme.Timestamp = detectedH4Extreme.CandleTime;
++         detectedH4Extreme.Close = g_pair_states[pairIndex].h4_data.close;
++      }
++
++      if(direction == DIR_BUY)
++      {
++         UpdatePersistentExtremeState(detectedH4Extreme, h4AnyCSMSnapshot,
++                                      g_pair_states[pairIndex].extreme_h4_buy_state);
++         h4ExtremeSnapshot = g_pair_states[pairIndex].extreme_h4_buy_state;
++      }
++      else
++      {
++         UpdatePersistentExtremeState(detectedH4Extreme, h4AnyCSMSnapshot,
++                                      g_pair_states[pairIndex].extreme_h4_sell_state);
++         h4ExtremeSnapshot = g_pair_states[pairIndex].extreme_h4_sell_state;
++      }
++      h4_extreme = h4ExtremeSnapshot;
+ 
+       ComponentSet rem, rre, ree;
+       BuildPossibleCombinations(rem, rre, ree, h4_reEntry, extreme, mlv,
+@@ -4192,7 +4435,7 @@
+ 
+    if(decision.DecisionState == DEC_CREATED)
+    {
+-      InvalidationEngine_Atomic(decision, conflict);
++      InvalidationEngine_Atomic(pairIndex, decision, conflict);
+    }
+ 
+    if(decision.DecisionState == DEC_VALIDATED)

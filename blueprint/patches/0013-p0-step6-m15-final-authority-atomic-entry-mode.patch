@@ -1,0 +1,467 @@
+--- a/MASTER_BLUEPRINT_2.0_WORKING.txt
++++ b/MASTER_BLUEPRINT_2.0_WORKING.txt
+@@ -40,7 +40,7 @@
+ //+------------------------------------------------------------------+
+ 
+ //--- INPUTS
+-input int      EntryMode                          = 2;          // EntryMode: 1=ReEntryOnly, 2=AllSignals
++input int      EntryMode                          = 2;          // EntryMode: 1=RE_ENTRY_ONLY, 2=ALL_VALIDATED_BBMA_ENTRIES
+ input int      TradeLockMode                      = 0;          // TradeLockMode: 0=OFF, 1=SAME_DIRECTION, 2=ONE_POSITION
+ input int      MaxWaitBars_Extreme                = 5;          // MaxWaitBars_Extreme
+ input int      MaxWaitBars_MLV                    = 5;          // MaxWaitBars_MLV
+@@ -58,7 +58,7 @@
+ input double   MaxTotalRiskPercent                = 5.0;        // MaxTotalRiskPercent
+ input double   MinRRRatio                         = 1.5;        // MinRRRatio
+ input double   MaxSLPips                          = 100.0;      // MaxSLPips
+-input int      SignalMode                         = 1;          // SignalMode: 1=SAFE, 2=NORMAL, 3=AGGRESSIVE, 4=MANUAL
++input int      SignalMode                         = 1;          // Deprecated for M15 entry authority; retained for compatibility/display only
+ input int      ScoreDisplayThresholdManual        = 60;         // ScoreDisplayThresholdManual
+ input bool     EnableBBShapeEngine                = true;       // EnableBBShapeEngine
+ input bool     EnableExtremeClassifier            = true;       // EnableExtremeClassifier
+@@ -2427,118 +2427,171 @@
+ //| LEVEL: EXPERT-RESTRICTED                                         |
+ //+------------------------------------------------------------------+
+ 
++bool IsEntryModeCandidateAllowed(ValidatedSequenceCandidate candidate)
++{
++   if(EntryMode == 1) // RE_ENTRY_ONLY
++      return (candidate.SequenceType == SIGNAL_RE_ENTRY);
++
++   if(EntryMode == 2) // ALL_VALIDATED_BBMA_ENTRIES
++   {
++      return (candidate.SequenceType == SIGNAL_RE_ENTRY ||
++              candidate.SequenceType == SIGNAL_REM ||
++              candidate.SequenceType == SIGNAL_RRE ||
++              candidate.SequenceType == SIGNAL_REE);
++   }
++
++   return false;
++}
++
+ bool IsCandidateEligible(ValidatedSequenceCandidate candidate)
+ {
+    if(!candidate.Valid) return false;
+-   if(candidate.Expiry < g_processing_time) return false;
+-   if(candidate.SequenceStartTime + MaxWaitBars_Global * 900 < g_processing_time) return false;
++   if(candidate.Direction != DIR_BUY && candidate.Direction != DIR_SELL) return false;
++   if(!IsEntryModeCandidateAllowed(candidate)) return false;
++
++   // Candidates are rebuilt atomically on every closed M15 processing cycle.
++   // Persistent validity belongs to the owner module. A non-zero Expiry here is
++   // used only when the owner exported an explicit expiry (e.g. Re-Entry).
++   if(candidate.Expiry > 0 && candidate.Expiry < g_processing_time) return false;
+    return true;
+ }
+ 
+-bool IsTierAllowed(ENUM_PRIORITY_TIER tier)
++void BuildConfirmedReEntryCandidate(ReEntryData reEntry,
++                                    ValidatedSequenceCandidate &candidate)
+ {
+-   switch(SignalMode)
++   ZeroMemory(candidate);
++
++   // M12 is the sole Re-Entry lifecycle owner. M15 only normalizes an already
++   // confirmed snapshot into the common final-authority candidate format.
++   if(reEntry.State != RE_STATE_CONFIRMED || !reEntry.IsValid) return;
++   if(reEntry.Direction != DIR_BUY && reEntry.Direction != DIR_SELL) return;
++   if(reEntry.Timeframe != PERIOD_H1) return;
++   if(reEntry.ConfirmationCandle <= 0) return;
++   if(reEntry.ExpiryCandleTime > 0 && reEntry.ExpiryCandleTime < g_processing_time) return;
++
++   candidate.SequenceType = SIGNAL_RE_ENTRY;
++   candidate.Direction = reEntry.Direction;
++   candidate.Components[0].ComponentType = SIGNAL_RE_ENTRY;
++   candidate.Components[0].Direction = reEntry.Direction;
++   candidate.Components[0].Timeframe = reEntry.Timeframe;
++   candidate.Components[0].CandleTime = reEntry.ConfirmationCandle;
++   candidate.SequenceStartTime = reEntry.ConfirmationCandle;
++
++   string hashInput = "RE_ENTRY|" + IntegerToString(reEntry.Direction) + "|" +
++                      IntegerToString(reEntry.Timeframe) + "|" +
++                      TimeToString(reEntry.ConfirmationCandle);
++   candidate.SequenceHash = SHORT_HASH(hashInput, 16);
++   candidate.Expiry = reEntry.ExpiryCandleTime;
++   candidate.SLTPSource = SIGNAL_NONE;
++   candidate.PriorityTier = TIER_NONE;
++   candidate.RequirementCompleteness = 1;
++   candidate.SequenceCompleteness = 1;
++   candidate.PatternStrength = 0;
++   candidate.Valid = true;
++}
++
++void AppendValidatedCandidate(ValidatedSequenceCandidate candidate,
++                              ValidatedSequenceCandidate &candidates[], int &count)
++{
++   if(!candidate.Valid) return;
++   ArrayResize(candidates, count + 1);
++   candidates[count] = candidate;
++   count++;
++}
++
++datetime GetCandidateAnchorTime(ValidatedSequenceCandidate candidate)
++{
++   datetime anchor = candidate.Components[0].CandleTime;
++   for(int i = 1; i < 3; i++)
+    {
+-      case MODE_SAFE:
+-         return (tier == TIER_A_PLUS || tier == TIER_A);
+-      case MODE_NORMAL:
+-         return (tier == TIER_A_PLUS || tier == TIER_A || tier == TIER_B);
+-      case MODE_AGGRESSIVE:
+-         return (tier == TIER_A_PLUS || tier == TIER_A || tier == TIER_B || tier == TIER_C);
+-      case MODE_MANUAL:
+-         for(int i = 0; i < ArraySize(g_manual_priority_tiers); i++)
+-         {
+-            if(g_manual_priority_tiers[i] == tier)
+-               return true;
+-         }
+-         return false;
+-      default:
+-         return false;
++      if(candidate.Components[i].CandleTime > anchor)
++         anchor = candidate.Components[i].CandleTime;
+    }
++   return anchor;
+ }
+ 
+-int CompareCandidates(ValidatedSequenceCandidate &a, ValidatedSequenceCandidate &b)
++int CompareCanonicalCandidates(ValidatedSequenceCandidate &a,
++                               ValidatedSequenceCandidate &b)
+ {
+-   if(a.PriorityTier > b.PriorityTier) return 1;
+-   if(a.PriorityTier < b.PriorityTier) return -1;
+-   
+-   if(a.RequirementCompleteness > b.RequirementCompleteness) return 1;
+-   if(a.RequirementCompleteness < b.RequirementCompleteness) return -1;
+-   
+-   if(a.SequenceCompleteness > b.SequenceCompleteness) return 1;
+-   if(a.SequenceCompleteness < b.SequenceCompleteness) return -1;
+-   
++   // This is deterministic bookkeeping, NOT a BBMA quality ranking.
++   // When several same-direction entries are simultaneously valid, use the
++   // freshest current-cycle representation. No REM/RRE/REE superiority is invented.
++   datetime aAnchor = GetCandidateAnchorTime(a);
++   datetime bAnchor = GetCandidateAnchorTime(b);
++   if(aAnchor > bAnchor) return 1;
++   if(aAnchor < bAnchor) return -1;
++
+    if(a.SequenceStartTime > b.SequenceStartTime) return 1;
+    if(a.SequenceStartTime < b.SequenceStartTime) return -1;
+-   
+-   if(a.PatternStrength > b.PatternStrength) return 1;
+-   if(a.PatternStrength < b.PatternStrength) return -1;
+-   
++
+    if(a.SequenceHash > b.SequenceHash) return 1;
+    if(a.SequenceHash < b.SequenceHash) return -1;
+-   
+    return 0;
+ }
+ 
+-void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count, 
++void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
+                            BBMA_Decision &decision, OppositeConflictPackage &conflict)
+ {
+-   ENUM_PRIORITY_TIER bestTier = TIER_NONE;
+-   int bestIdx = -1;
+-   
++   int buyCount = 0;
++   int sellCount = 0;
++
+    for(int i = 0; i < count; i++)
+    {
+       if(!IsCandidateEligible(candidates[i])) continue;
+-      if(!IsTierAllowed(candidates[i].PriorityTier)) continue;
+-      
+-      if(bestIdx < 0)
+-      {
+-         bestIdx = i;
+-         bestTier = candidates[i].PriorityTier;
+-      }
+-      else if(CompareCandidates(candidates[i], candidates[bestIdx]) > 0)
+-      {
+-         bestIdx = i;
+-         bestTier = candidates[i].PriorityTier;
+-      }
++      if(candidates[i].Direction == DIR_BUY) buyCount++;
++      else if(candidates[i].Direction == DIR_SELL) sellCount++;
+    }
+-   
+-   if(bestIdx >= 0)
++
++   // M15 is the final direction authority. Opposite validated opportunities are
++   // resolved atomically. The supplied BBMA source does not define a universal
++   // tie-break rule between simultaneous BUY and SELL setups, so no trade is
++   // preferred by invention.
++   if(buyCount > 0 && sellCount > 0)
++   {
++      conflict.Exists = true;
++      conflict.ConflictType = CONFLICT_DIRECTION_VIOLATION;
++      conflict.ConflictReason = "Opposite validated BBMA entries coexist";
++      conflict.FrozenSnapshotTime = g_processing_time;
++      return;
++   }
++
++   ENUM_DIRECTION targetDirection = DIR_NONE;
++   if(buyCount > 0) targetDirection = DIR_BUY;
++   else if(sellCount > 0) targetDirection = DIR_SELL;
++   else return;
++
++   int canonicalIdx = -1;
++   for(int i = 0; i < count; i++)
+    {
+-      decision.Valid = true;
+-      decision.Direction = candidates[bestIdx].Direction;
+-      decision.SignalType = candidates[bestIdx].SequenceType;
+-      decision.PriorityTier = candidates[bestIdx].PriorityTier;
+-      decision.SequenceHash = candidates[bestIdx].SequenceHash;
+-      decision.SequenceValid = true;
+-      decision.PatternValid = true;
+-      decision.CandleTime = candidates[bestIdx].Components[0].CandleTime;
+-      decision.CycleStartTime = candidates[bestIdx].SequenceStartTime;
+-      decision.SLTPSource = candidates[bestIdx].SLTPSource;
+-      decision.DecisionState = DEC_CREATED;
+-      
+-      decision.DecisionID = GenerateDecisionID(decision.Pair, decision.CandleTime, 
+-                                                decision.Direction, 
+-                                                decision.SignalType, 
+-                                                decision.SequenceHash);
+-      
+-      for(int i = 0; i < count; i++)
++      if(!IsCandidateEligible(candidates[i])) continue;
++      if(candidates[i].Direction != targetDirection) continue;
++
++      if(canonicalIdx < 0 ||
++         CompareCanonicalCandidates(candidates[i], candidates[canonicalIdx]) > 0)
+       {
+-         if(i == bestIdx) continue;
+-         if(!IsCandidateEligible(candidates[i])) continue;
+-         if(candidates[i].Direction != decision.Direction)
+-         {
+-            conflict.Exists = true;
+-            conflict.ConflictType = CONFLICT_DIRECTION_VIOLATION;
+-            conflict.LosingCandidateDirection = candidates[i].Direction;
+-            conflict.LosingCandidatePriorityTier = candidates[i].PriorityTier;
+-            conflict.LosingCandidateCandleTime = candidates[i].SequenceStartTime;
+-            conflict.LosingCandidateSignalType = candidates[i].SequenceType;
+-            conflict.FrozenSnapshotTime = g_processing_time;
+-            break;
+-         }
++         canonicalIdx = i;
+       }
+    }
++
++   if(canonicalIdx < 0) return;
++
++   ValidatedSequenceCandidate selected = candidates[canonicalIdx];
++   decision.Valid = true;
++   decision.Direction = selected.Direction;
++   decision.SignalType = selected.SequenceType;
++   decision.PriorityTier = TIER_NONE;
++   decision.SequenceHash = selected.SequenceHash;
++   decision.SequenceValid = true;
++   decision.PatternValid = true;
++   decision.CandleTime = GetCandidateAnchorTime(selected);
++   decision.CycleStartTime = selected.SequenceStartTime;
++   decision.SLTPSource = SIGNAL_NONE;
++   decision.DecisionState = DEC_CREATED;
++
++   decision.DecisionID = GenerateDecisionID(decision.Pair, decision.CandleTime,
++                                             decision.Direction,
++                                             decision.SignalType,
++                                             decision.SequenceHash);
+ }
+ 
+ //+------------------------------------------------------------------+
+@@ -3729,16 +3782,12 @@
+    
+    string pairs[] = SplitString(PairList, ",");
+    if(ArraySize(pairs) > MAX_PAIRS) return false;
+-   
+-   if(SignalMode == MODE_MANUAL)
+-   {
+-      if(ArraySize(g_manual_priority_tiers) == 0)
+-      {
+-         Log(DBG_ERROR, "Manual mode requires non-empty ManualPriorityTiers");
+-         return false;
+-      }
+-   }
+-   
++
++   // Locked Entry Mode contract: only the two source-governed meanings are valid.
++   if(EntryMode < 1 || EntryMode > 2) return false;
++
++   // SignalMode no longer gates M15 entry authority. Arbitrary SAFE/NORMAL/
++   // AGGRESSIVE tier ranking is not part of the supplied BBMA source.
+    return true;
+ }
+ 
+@@ -3961,6 +4010,11 @@
+    g_pair_states[pairIndex].current_bollinger = h1Band;
+    g_pair_states[pairIndex].prev_bollinger = h1PrevBand;
+ 
++   // Both directions are collected first. M15 receives one atomic pair-level pool
++   // and is called exactly once after BUY and SELL owner snapshots are complete.
++   ValidatedSequenceCandidate allCandidates[];
++   int allCandidateCount = 0;
++
+    for(int dirIdx = 0; dirIdx < 2; dirIdx++)
+    {
+       ENUM_DIRECTION direction = (dirIdx == 0) ? DIR_BUY : DIR_SELL;
+@@ -4110,101 +4164,87 @@
+       BuildPossibleCombinations(rem, rre, ree, h4_reEntry, extreme, mlv,
+                                 d1_reEntry, h4_extreme);
+       
+-      ValidatedSequenceCandidate candidates[];
+-      int candidateCount = 0;
+-      
++      // Standalone Re-Entry eligibility is normalized from the authoritative H1
++      // M12 lifecycle snapshot. H4/D1 Re-Entry remain higher-TF combination context.
++      ValidatedSequenceCandidate reEntryCandidate;
++      BuildConfirmedReEntryCandidate(reEntry, reEntryCandidate);
++      AppendValidatedCandidate(reEntryCandidate, allCandidates, allCandidateCount);
++
++      // M14 validates only the three source-defined REM/RRE/REE rows.
+       ComponentSet allSets[3] = {rem, rre, ree};
+       for(int s = 0; s < 3; s++)
+       {
+          ValidatedSequenceCandidate cand;
+          ZeroMemory(cand);
+          ValidateSequence(allSets[s], cand);
+-         if(cand.Valid)
+-         {
+-            cand.Expiry = GetEffectiveExpiry(
+-               allSets[s].Comp1.CandleTime + MaxWaitBars_Global * 900,
+-               allSets[s].Comp1.CandleTime + MaxWaitBars_Combined * 900,
+-               allSets[s].Comp1.CandleTime + MaxWaitBars_Global * 900
+-            );
+-            ArrayResize(candidates, candidateCount + 1);
+-            candidates[candidateCount] = cand;
+-            candidateCount++;
+-         }
++         AppendValidatedCandidate(cand, allCandidates, allCandidateCount);
+       }
+-      
+-      BBMA_Decision decision;
+-      OppositeConflictPackage conflict;
+-      ZeroMemory(decision);
+-      ZeroMemory(conflict);
+-      
+-      decision.Pair = actual;
+-      
+-      PriorityEngine_Atomic(candidates, candidateCount, decision, conflict);
+-      
+-      if(decision.DecisionState == DEC_CREATED)
+-      {
+-         InvalidationEngine_Atomic(decision, conflict);
+-      }
+-      
+-      SignalScoreResult scoreResult;
+-      if(EnableSignalScoring && decision.Valid)
++   }
++
++   // FINAL pair-level authority: exactly one M15 pass after both directions exist.
++   BBMA_Decision decision;
++   OppositeConflictPackage conflict;
++   ZeroMemory(decision);
++   ZeroMemory(conflict);
++   decision.Pair = actual;
++
++   PriorityEngine_Atomic(allCandidates, allCandidateCount, decision, conflict);
++
++   if(decision.DecisionState == DEC_CREATED)
++   {
++      InvalidationEngine_Atomic(decision, conflict);
++   }
++
++   if(decision.DecisionState == DEC_VALIDATED)
++   {
++      RiskValidationSnapshot riskSnapshot;
++      BuildRiskValidationSnapshot(actual, decision, riskSnapshot);
++      if(!ValidateSLTP(decision, riskSnapshot))
+       {
+-         scoreResult = CalculateSignalScore(extreme, mlv, reEntry);
++         decision.DecisionState = DEC_REJECTED;
++         decision.RejectionReason = REJ_INVALID_SL;
+       }
+-      
+-      if(decision.DecisionState == DEC_VALIDATED)
++   }
++
++   if(decision.DecisionState == DEC_VALIDATED)
++   {
++      RiskValidationSnapshot riskSnapshot;
++      BuildRiskValidationSnapshot(actual, decision, riskSnapshot);
++
++      bool lotValid = true;
++      double lot = CalculateLotSize(decision, riskSnapshot, lotValid);
++      if(!lotValid)
+       {
+-         RiskValidationSnapshot riskSnapshot;
+-         BuildRiskValidationSnapshot(actual, decision, riskSnapshot);
+-         if(!ValidateSLTP(decision, riskSnapshot))
+-         {
+-            decision.DecisionState = DEC_REJECTED;
+-            decision.RejectionReason = REJ_INVALID_SL;
+-         }
++         decision.DecisionState = DEC_REJECTED;
++         decision.RejectionReason = REJ_INVALID_LOT;
+       }
+-      
+-      if(decision.DecisionState == DEC_VALIDATED)
++      else
+       {
+-         RiskValidationSnapshot riskSnapshot;
+-         BuildRiskValidationSnapshot(actual, decision, riskSnapshot);
+-         
+-         bool lotValid = true;
+-         double lot = CalculateLotSize(decision, riskSnapshot, lotValid);
+-         if(!lotValid)
++         RiskStatus riskStatus = CheckRiskBeforeTrade(decision, riskSnapshot, lot);
++         if(!riskStatus.allowed)
+          {
+             decision.DecisionState = DEC_REJECTED;
+-            decision.RejectionReason = REJ_INVALID_LOT;
++            decision.RejectionReason = REJ_TOTAL_RISK;
+          }
+          else
+          {
+-            RiskStatus riskStatus = CheckRiskBeforeTrade(decision, riskSnapshot, lot);
+-            if(!riskStatus.allowed)
++            PortfolioStatus portfolioStatus = CheckPortfolioLimits();
++            if(!portfolioStatus.allowed)
+             {
+                decision.DecisionState = DEC_REJECTED;
+-               decision.RejectionReason = REJ_TOTAL_RISK;
++               decision.RejectionReason = REJ_PORTFOLIO_LIMIT;
+             }
+             else
+             {
+-               PortfolioStatus portfolioStatus = CheckPortfolioLimits();
+-               if(!portfolioStatus.allowed)
+-               {
+-                  decision.DecisionState = DEC_REJECTED;
+-                  decision.RejectionReason = REJ_PORTFOLIO_LIMIT;
+-               }
+-               else
+-               {
+-                  ProcessEntry(decision, actual, riskSnapshot);
+-               }
++               ProcessEntry(decision, actual, riskSnapshot);
+             }
+          }
+       }
+-      
+-      if(decision.Valid && decision.Direction == direction)
+-      {
+-         g_pair_states[pairIndex].last_decision = decision;
+-      }
+    }
+-   
++
++   if(decision.Valid)
++      g_pair_states[pairIndex].last_decision = decision;
++
+    datetime m15Closed = GetLatestClosedCandleTime(actual, PERIOD_M15);
+    if(m15Closed > 0)
+       g_processed_candle_time[pairIndex] = m15Closed;

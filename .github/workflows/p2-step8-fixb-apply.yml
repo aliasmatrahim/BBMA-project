@@ -1,0 +1,72 @@
+name: P2 Step8 Fix B Apply
+
+on:
+  push:
+    branches: [ blueprint-dev ]
+    paths:
+      - '.github/workflows/p2-step8-fixb-apply.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply pre-send registry capacity gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+
+          p = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
+          text = p.read_text(encoding='utf-8')
+
+          expected = '5dcd2f93bfe72b5dc5c210671f511d8ebcccef3d30e2a64bfb40dcdb9eee8e59'
+          actual = hashlib.sha256(text.encode('utf-8')).hexdigest()
+          if actual != expected:
+              raise SystemExit(f'unexpected canonical source sha: {actual}')
+
+          anchor = '''void AddToMonitoredTrades(TradeInfo &info)\n{'''
+          helper = '''bool EnsureMonitoredRegistryCapacity()\n{\n   // Capacity is verified before broker execution. Compact only tickets that the\n   // broker definitively reports as closed; transient selection failures remain\n   // reserved fail-closed so a possibly live owned order is never forgotten.\n   CompactMonitoredTrades();\n   return (g_monitored_count < MAX_MONITORED);\n}\n\nvoid AddToMonitoredTrades(TradeInfo &info)\n{'''
+          if text.count(anchor) != 1:
+              raise SystemExit(f'AddToMonitoredTrades anchor count={text.count(anchor)}')
+          text = text.replace(anchor, helper, 1)
+
+          process_anchor = '''   int existingTicket = FindExistingExecutionTicket(pair,\n                           (decision.Direction == DIR_BUY) ? OP_BUY : OP_SELL,\n                           magic, decision.DecisionID);\n   if(existingTicket > 0)\n   {\n      decision.DecisionState = DEC_REJECTED;\n      decision.RejectionReason = REJ_DUPLICATE;\n      return;\n   }\n   \n   RefreshRates();'''
+
+          process_new = '''   int existingTicket = FindExistingExecutionTicket(pair,\n                           (decision.Direction == DIR_BUY) ? OP_BUY : OP_SELL,\n                           magic, decision.DecisionID);\n   if(existingTicket > 0)\n   {\n      decision.DecisionState = DEC_REJECTED;\n      decision.RejectionReason = REJ_DUPLICATE;\n      return;\n   }\n\n   // Fail BEFORE OrderSend if lifecycle ownership cannot be registered safely.\n   // This guarantees that any broker order opened by M22 has a monitored slot\n   // available for M19/M20/M23 ownership and emergency management.\n   if(!EnsureMonitoredRegistryCapacity())\n   {\n      decision.DecisionState = DEC_REJECTED;\n      decision.RejectionReason = REJ_PORTFOLIO_LIMIT_ATOMIC;\n      Log(DBG_ERROR, "Pre-send monitored registry capacity exhausted for " + pair);\n      return;\n   }\n   \n   RefreshRates();'''
+
+          if text.count(process_anchor) != 1:
+              raise SystemExit(f'ProcessEntry anchor count={text.count(process_anchor)}')
+          text = text.replace(process_anchor, process_new, 1)
+
+          p.write_text(text, encoding='utf-8')
+          digest = hashlib.sha256(text.encode('utf-8')).hexdigest()
+          print('P2_STEP8_FIXB_NEW_SHA=' + digest)
+
+          Path('blueprint/P2_STEP8_FIXB_PRE_SEND_CAPACITY_GATE.md').write_text(f'''# P2 Step 8 Fix B — Pre-Send Monitored Registry Capacity Gate\n\nStatus: **APPLIED — REQUIRES NATIVE METAEDITOR 0E/0W VERIFICATION**\n\nCanonical source SHA-256 after fix:\n`{digest}`\n\n## Fix\n- Added `EnsureMonitoredRegistryCapacity()` using the existing fail-closed compaction path.\n- `ProcessEntry()` now checks monitored-registry capacity before `OrderSend`.\n- If no safe slot exists, the decision is rejected before any broker order can be created.\n- Existing duplicate/idempotency checks remain before the capacity gate.\n\n## Strategy semantics\nNo BBMA signal, EntryMode, SL/TP, money-management, risk or portfolio strategy semantics changed. This is lifecycle ownership integrity only.\n''', encoding='utf-8')
+          PY
+
+      - name: Static guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'bool EnsureMonitoredRegistryCapacity()' blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          grep -q 'if(!EnsureMonitoredRegistryCapacity())' blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          grep -q 'Pre-send monitored registry capacity exhausted' blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+
+      - name: Commit fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add blueprint/source/BBMA_PROFESSIONAL_EA.mq4 blueprint/P2_STEP8_FIXB_PRE_SEND_CAPACITY_GATE.md
+          git commit -m 'P2 step8 fix B: gate registry capacity before OrderSend'
+          git push origin blueprint-dev

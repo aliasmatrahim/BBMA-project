@@ -165,7 +165,33 @@ Exact compile-repair transformation is reproducibly stored as:
 - `blueprint/finalization/compile_repair.patch.gz.b64.part00`
 - `blueprint/finalization/compile_repair.patch.gz.b64.part01`
 
-## Next action — P1 Finalization Step 2
-Run architecture-invariant verification directly against the canonical compile-clean source, verify its SHA and required Module 01–27 ownership invariants, then determine whether it can be promoted to the P1 release-candidate lock.
+## Step 2 — canonical post-compile architecture/invariant audit
+Status: **PASS**
 
-Do not merge into `main` until the canonical source passes this post-compile-repair invariant audit and the release candidate is explicitly approved.
+Successful workflow:
+`.github/workflows/p1-finalization-step2-canonical-invariants.yml`
+
+Successful GitHub Actions run:
+`31953540304`, conclusion `success`.
+
+Verified directly against canonical compile-clean source:
+- SHA-256 exactly matches `30363d08437b85f253e6baf3e9c82af0d59d70727639ac0e6420a7677f975bc9`;
+- M22 remains executor-only and consumes frozen lot;
+- M27 retains single preflight ownership/order and one delegate from `ProcessPair`;
+- tick lifecycle remains `M20 -> M23 -> emergency gate -> scan`;
+- M25 remains display-only with no PriorityTier authority;
+- M26 remains equity-reference based;
+- M17 StopLevel snapshot and rejection propagation added during compile repair are present without breaking ownership;
+- unsupported MQL4 array returns/reserved `input` parameter/struct aggregate initialization do not remain;
+- all Module 01–27 markers remain present;
+- structural brace/string/comment sanity passed.
+
+## Current P1 status
+**P1 RELEASE CANDIDATE ELIGIBLE**
+
+The canonical source has now passed deterministic reconstruction, ordered patch integration, architecture-invariant verification, native MetaEditor compilation at **0 errors / 0 warnings**, canonicalization, and a second architecture/invariant audit directly against that compile-clean canonical source.
+
+## Next action — P1 Finalization Step 3
+Create the formal P1 release-candidate lock record for canonical SHA `30363d08437b85f253e6baf3e9c82af0d59d70727639ac0e6420a7677f975bc9`, then transition to P2 functional/Strategy Tester verification. Do not treat the EA as production-ready until P2 functional tests pass.
+
+Do not merge into `main` until the release-candidate lock is explicitly recorded and approved.

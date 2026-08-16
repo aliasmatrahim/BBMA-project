@@ -1,0 +1,83 @@
+name: P2 Step8 Fix C Apply V2
+
+on:
+  push:
+    branches: [ blueprint-dev ]
+    paths:
+      - '.github/workflows/p2-step8-fixc-apply-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply emergency precedence fix robustly
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+
+          p = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
+          text = p.read_text(encoding='utf-8')
+          start = text.index('void ManagePositions()')
+          end = text.index('//+------------------------------------------------------------------+\n//| MODULE 24:', start)
+          block = text[start:end]
+
+          freeze_start = block.index('      if(g_monitored_trades[i].recovery_state == REC_CORRUPTED ||')
+          emergency_start = block.index('      // M20 emergency basket-loss protection is the only active M23 broker-side')
+          normal_start = block.index('      // Normal exit is broker-side SL/TP already supplied by M17->M22.')
+
+          if not (freeze_start < emergency_start < normal_start):
+              raise SystemExit('unexpected ManagePositions ordering')
+
+          freeze = block[freeze_start:emergency_start]
+          emergency = block[emergency_start:normal_start]
+
+          emergency = emergency.replace(
+              '      // M20 emergency basket-loss protection is the only active M23 broker-side\n'
+              '      // lifecycle close policy at this stage. Keep the request latched in M20 so\n'
+              '      // a failed close is retried on a later tick. No partial close is allowed.\n',
+              '      // Emergency liquidation has precedence over recovery-state freezing.\n'
+              '      // Exact symbol/magic ownership was already revalidated above. Therefore an\n'
+              '      // EA-owned position flagged corrupted/recovery-invalid must still be closable\n'
+              '      // when M20 latches basket-loss protection; otherwise the latch can be trapped.\n'
+          )
+
+          new_block = block[:freeze_start] + emergency + freeze + block[normal_start:]
+          text = text[:start] + new_block + text[end:]
+          p.write_text(text, encoding='utf-8')
+
+          digest = hashlib.sha256(text.encode('utf-8')).hexdigest()
+          print('P2_STEP8_FIXC_NEW_SHA=' + digest)
+          Path('blueprint/P2_STEP8_FIXC_EMERGENCY_PRECEDENCE.md').write_text(f'''# P2 Step 8 Fix C — Emergency Liquidation Precedence\n\nStatus: **APPLIED — REQUIRES NATIVE METAEDITOR 0E/0W VERIFICATION**\n\nCanonical source SHA-256 after fix:\n`{digest}`\n\n## Fix\n- Exact ownership/magic revalidation remains before any lifecycle action.\n- M20 emergency full-close now executes before recovery-state freezing.\n- `REC_CORRUPTED` and `REC_RECOVERY_INVALID` positions remain frozen for normal lifecycle behavior, but cannot block emergency liquidation.\n- No BBMA entry, SL/TP, trailing, breakeven, partial close, TP2 or TP3 semantics were added.\n''', encoding='utf-8')
+          PY
+
+      - name: Static guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          t = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4').read_text(encoding='utf-8')
+          s = t.index('void ManagePositions()')
+          e = t.index('//+------------------------------------------------------------------+\n//| MODULE 24:', s)
+          b = t[s:e]
+          assert b.index('if(g_portfolio_emergency_close_requested)') < b.index('if(g_monitored_trades[i].recovery_state == REC_CORRUPTED')
+          PY
+
+      - name: Commit fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add blueprint/source/BBMA_PROFESSIONAL_EA.mq4 blueprint/P2_STEP8_FIXC_EMERGENCY_PRECEDENCE.md
+          git commit -m 'P2 step8 fix C: emergency liquidation precedes recovery freeze'
+          git push origin blueprint-dev

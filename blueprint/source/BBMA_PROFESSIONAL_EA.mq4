@@ -4409,6 +4409,21 @@ int SendOrderWithRetry(string pair, int direction, double lot,
    return -1;
 }
 
+void CompactMonitoredTrades()
+{
+   int write = 0;
+   for(int i = 0; i < g_monitored_count; i++)
+   {
+      bool removeClosed = false;
+      if(OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))
+         removeClosed = (OrderCloseTime() != 0);
+      if(removeClosed) continue;
+      if(write != i) g_monitored_trades[write] = g_monitored_trades[i];
+      write++;
+   }
+   g_monitored_count = write;
+}
+
 void AddToMonitoredTrades(TradeInfo &info)
 {
    for(int i = 0; i < g_monitored_count; i++)
@@ -4419,12 +4434,14 @@ void AddToMonitoredTrades(TradeInfo &info)
          return;
       }
    }
-   
+   CompactMonitoredTrades();
    if(g_monitored_count < MAX_MONITORED)
    {
       g_monitored_trades[g_monitored_count] = info;
       g_monitored_count++;
+      return;
    }
+   Log(DBG_ERROR, "Monitored registry full; unable to register ticket=" + IntegerToString(info.ticket));
 }
 
 void ProcessEntry(BBMA_Decision &decision, string pair,

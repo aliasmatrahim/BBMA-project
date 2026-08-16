@@ -1054,38 +1054,23 @@ void StorePairState(PairState &state)
 
 void InitPairState(PairState &state)
 {
-   state.base_symbol = "";
-   state.actual_symbol = "";
-   state.pair_id = 0;
-   state.point = 0;
-   state.tick_value = 0;
-   state.tick_size_price = 0;
-   state.min_lot = 0;
-   state.max_lot = 0;
-   state.lot_step = 0;
+   // Deterministic reset boundary: clear every PairState member first,
+   // then restore semantic defaults required by state engines.
+   ZeroMemory(state);
    state.lot_digits = 2;
    state.cent_factor = 1;
    state.digits = 5;
-   state.stop_level = 0;
-   state.freeze_level = 0;
-   state.is_cent_account = false;
-   state.pair_enabled = false;
-   state.is_processing = false;
-   state.last_3_count = 0;
-   state.last_5_count = 0;
-   state.last_20_count = 0;
-   ZeroMemory(state.mlv_buy_state);
-   ZeroMemory(state.mlv_sell_state);
+
+   InitTimeframeData(state.d1_data);
+   InitTimeframeData(state.h4_data);
+   InitTimeframeData(state.h1_data);
+   InitTimeframeData(state.m15_data);
+
    state.mlv_buy_state.State = MLV_NONE;
    state.mlv_buy_state.Direction = DIR_BUY;
    state.mlv_sell_state.State = MLV_NONE;
    state.mlv_sell_state.Direction = DIR_SELL;
-   ZeroMemory(state.re_h1_buy_state);
-   ZeroMemory(state.re_h1_sell_state);
-   ZeroMemory(state.re_h4_buy_state);
-   ZeroMemory(state.re_h4_sell_state);
-   ZeroMemory(state.re_d1_buy_state);
-   ZeroMemory(state.re_d1_sell_state);
+
    state.re_h1_buy_state.State = RE_STATE_NONE;
    state.re_h1_buy_state.Direction = DIR_BUY;
    state.re_h1_buy_state.Timeframe = PERIOD_H1;
@@ -1104,14 +1089,6 @@ void InitPairState(PairState &state)
    state.re_d1_sell_state.State = RE_STATE_NONE;
    state.re_d1_sell_state.Direction = DIR_SELL;
    state.re_d1_sell_state.Timeframe = PERIOD_D1;
-   state.trade_count = 0;
-   state.magic_number = 0;
-   state.broker_retry_count = 0;
-   state.broker_spec_valid = false;
-   ZeroMemory(state.extreme_h1_buy_state);
-   ZeroMemory(state.extreme_h1_sell_state);
-   ZeroMemory(state.extreme_h4_buy_state);
-   ZeroMemory(state.extreme_h4_sell_state);
 }
 
 void CopyPairState(PairState &dest, PairState &src)
@@ -5112,6 +5089,12 @@ int InitializeEA()
    g_terminal_connected = IsTerminalConnected();
    g_portfolio_emergency_close_requested = false;
    g_processing_time = GetProcessingTime();
+
+   // Reset transient risk-cache state explicitly on every initialization.
+   g_last_risk_check_time = 0;
+   g_cached_risk_allowed = false;
+   g_cached_risk_reason = "";
+   g_cached_balance = 0.0;
 
    InitBrokerInfo();
    LoadPairs();

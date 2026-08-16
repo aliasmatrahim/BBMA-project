@@ -32,8 +32,7 @@ The exact baseline is stored as deterministic gzip+base64 chunks under `blueprin
 13. `blueprint/patches/0013-p0-step6-m15-final-authority-atomic-entry-mode.patch`
 14. `blueprint/patches/0014-p0-step7-m16-owner-aware-invalidation.patch`
 15. `blueprint/patches/0015-p0-step8-m17-sltp-source-guard-direction-validation.patch`
-
-Step 8B is currently represented by architecture contracts only; no `0016` active-blueprint implementation patch has been claimed yet.
+16. `blueprint/patches/0016-p0-step8c-m17-approved-sltp-resolver.patch`
 
 ## Full-source SHA verification status
 The previously recorded SHA-256 `274b3d380463f5cd9a477ce0c37b6da0db6c4cc6721013fdef4e984326b291bf` was discovered during Step 3D to have been calculated from a partial reconstruction and remains withdrawn.
@@ -41,7 +40,7 @@ The previously recorded SHA-256 `274b3d380463f5cd9a477ce0c37b6da0db6c4cc6721013f
 Last exact verified full-chain working-source SHA through patches 0001–0005:
 `9ccbfd77032e3e9acdbf4b343ceaf98f632162d932cbb3fcad04a58539c1e3d8`
 
-Patches 0006–0015 have focused verification records in their contracts. A new full-chain SHA must only be claimed after exact materialization of the complete ordered patch chain.
+Patches 0006–0016 currently have focused patch/contract verification only. A new full-chain SHA must only be claimed after exact materialization of the complete ordered patch chain.
 
 ## Locked supporting contracts
 - `blueprint/ENTRY_MODE_CONTRACT.md`
@@ -114,58 +113,60 @@ Status: **COMPLETED AT ENGINEERING GUARD LEVEL**
 - BUY execution reference uses ASK; SELL uses BID.
 - direction-aware geometry enforced: BUY `SL < Entry < TP`, SELL `TP < Entry < SL`.
 - MaxSL conversion uses the project pip-price helper; `MaxSLPips` is a rejection cap only.
-- `MinRRRatio` is a rejection filter only and no longer manufactures TP.
+- `MinRRRatio` is a rejection filter only and does not manufacture TP.
 - StopLevel/FreezeLevel are direction-aware.
-- M23 compatibility call passes explicit direction.
-- unresolved source payload remains fail-closed with `REJ_SLTP_UNRESOLVED`.
+- unresolved source payload fails closed with `REJ_SLTP_UNRESOLVED`.
 
 Patch:
 `blueprint/patches/0015-p0-step8-m17-sltp-source-guard-direction-validation.patch`
 
-Contract:
-`blueprint/contracts/M17_ENTRY_SLTP_CONTRACT.md`
-
 ## Step 8B — BBMA SL / TP / Exit source resolution
 Status: **APPROVED AT ARCHITECTURE CONTRACT LEVEL**
 
-The project now separates provenance into:
+Provenance remains separated into:
 - `PDF_CORE`;
 - `FORUM_SUPPORTED`;
 - `EA_SAFETY`.
 
-Approved TP destination mapping for current executable decisions:
+Approved TP mapping:
 - H1 Re-Entry BUY -> H1 TOP BB; SELL -> H1 LOW BB;
 - REM BUY -> H4 TOP BB; SELL -> H4 LOW BB;
 - RRE BUY -> D1 TOP BB; SELL -> D1 LOW BB;
 - REE BUY -> D1 TOP BB; SELL -> D1 LOW BB.
 
-Protective hard SL is a structurally anchored `EA_SAFETY` rule informed by BBMA practice:
-- BUY -> below source-owned relevant swing-low / lowest wick;
-- SELL -> above source-owned relevant swing-high / highest wick;
-- closed-candle source only;
-- missing/ambiguous anchor -> fail closed.
-
-Opposite confirmed CSM/momentum + BB expansion is retained as a possible `FORUM_SUPPORTED` lifecycle invalidation, but it is **not enabled as a broker close rule yet**. M23/M24 lifecycle ownership must be audited first.
-
 No universal fixed-pip TP/SL is accepted as BBMA Core.
 
-Contract:
-`blueprint/contracts/M17_SLTP_EXIT_RESOLUTION_CONTRACT.md`
+## Step 8C — approved M17 source resolver
+Status: **COMPLETED AT ACTIVE-BLUEPRINT PATCH LEVEL**
 
-Architecture contract commit:
-`451f98c251f7fb92c23ea45cd122d76561b41c13`
+Implemented by:
+`blueprint/patches/0016-p0-step8c-m17-approved-sltp-resolver.patch`
 
-M17 contract update commit:
-`8b804ccb5ce952357c67245cde671112b9ea0213`
+Patch commit:
+`2afeee76806f4b1c4e56f829fd7c8d42403a1450`
+
+Contract updates:
+- `blueprint/contracts/M17_ENTRY_SLTP_CONTRACT.md` — commit `ce785c942eddcd3f6c3b131b6e961411ddde60e7`;
+- `blueprint/contracts/M17_SLTP_EXIT_RESOLUTION_CONTRACT.md` — commit `89e56feede6a8f268ce9cbb65e09fa9a492fd533`.
+
+Step 8C behavior:
+- final decision now preserves the exact destination-producing Re-Entry component;
+- H1/H4/D1 mapping is enforced for RE_ENTRY/REM/RRE/REE respectively;
+- source candle must resolve exactly and be closed (`shift >= 1`);
+- TP is read from the approved source-timeframe TOP/LOW BB;
+- hard SL uses the exact source-candle wick plus one broker point as explicit `EA_SAFETY` protection;
+- crossed/stale/missing/invalid source data fails closed with `REJ_SLTP_UNRESOLVED`;
+- fixed-pip or RR-derived fallback is not introduced;
+- opposite-CSM dynamic broker close remains disabled pending downstream lifecycle audit.
+
+### Verification boundary
+The stored `0016` patch has been re-fetched and inspected after commit. The Step 8C implementation path and fail-closed guards are present.
+
+No new full-chain working-source SHA is claimed because the full ordered patch chain has not yet been exactly materialized and compiled as one working source.
 
 ## Next P0 action
-**Step 8C — implement the approved Step 8B resolver in the active blueprint.**
+**Step 9 — continue downstream architecture audit beginning at M18, with special attention to the boundary between entry validation/risk approval and later M19–M24 risk/execution/lifecycle ownership.**
 
-Required scope:
-1. extend executable decision payload so the exact destination-producing source component/timeframe survives M14 -> M15 -> M16 -> M17;
-2. provide an unambiguous source-owned structural SL anchor from closed candles;
-3. patch M17 to resolve TP from the approved mapping rather than fixed-pip/RR manufacture;
-4. retain `REJ_SLTP_UNRESOLVED` for stale, missing or ambiguous payload;
-5. do not enable dynamic opposite-CSM lifecycle closure until M23/M24 ownership is separately audited.
+Before patching Step 9, identify the exact M18 responsibility in the active blueprint and check that it does not recreate M15/M16/M17 strategy decisions or silently alter the approved SL/TP payload.
 
 Do not merge into `main` until the full blueprint audit is clean and explicitly approved as MASTER BLUEPRINT LOCKED.

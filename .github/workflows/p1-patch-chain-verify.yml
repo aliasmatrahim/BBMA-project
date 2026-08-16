@@ -131,8 +131,6 @@ jobs:
               return text[:pos] + fn.group(0) + '\n\n' + text[pos:]
 
           def repair_0018_hunk5(text: str, new_block: str):
-              # Earlier orchestration edits changed the focused hunk context in
-              # ProcessPair. Apply only M19's intended rejection-reason propagation.
               start = text.find('void ProcessPair(int pairIndex)')
               if start < 0:
                   return None
@@ -145,6 +143,27 @@ jobs:
                              '                                          riskStatus.rejection_reason : REJ_TOTAL_RISK;')
               absolute = start + idx
               return text[:absolute] + replacement + text[absolute + len(old):]
+
+          def repair_0021_hunk8(text: str, new_block: str):
+              marker = '         MarkDecisionExecuted(decision.DecisionID, ticket);\n'
+              npos = new_block.find(marker)
+              if npos < 0:
+                  return None
+              desired = new_block[npos:]
+              start_fn = text.find('void ProcessEntry(BBMA_Decision &decision, string pair, RiskValidationSnapshot snapshot)')
+              if start_fn < 0:
+                  return None
+              start = text.find(marker, start_fn)
+              if start < 0:
+                  return None
+              next_mod = text.find('//| MODULE 23:', start)
+              if next_mod < 0:
+                  return None
+              end = text.rfind('\n}\n', start, next_mod)
+              if end < 0:
+                  return None
+              end += 3
+              return text[:start] + desired.rstrip('\n') + '\n' + text[end:]
 
           for p in patches:
               print(f'=== APPLY {p.name} ===')
@@ -178,6 +197,9 @@ jobs:
                       elif p.name.startswith('0018-') and hidx == 5 and count == 0:
                           repaired = repair_0018_hunk5(text, new_block)
                           label = '0018_HUNK5_M19_REJECTION_PROPAGATION'
+                      elif p.name.startswith('0021-') and hidx == 8 and count == 0:
+                          repaired = repair_0021_hunk8(text, new_block)
+                          label = '0021_HUNK8_M22_RESULT_MAPPING_REBASE'
                       if repaired is not None:
                           text = repaired
                           print(f'P1_STEP3_INTEGRATION_REPAIR={label}')

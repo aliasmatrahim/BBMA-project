@@ -33,6 +33,7 @@ The exact baseline is stored as deterministic gzip+base64 chunks under `blueprin
 14. `blueprint/patches/0014-p0-step7-m16-owner-aware-invalidation.patch`
 15. `blueprint/patches/0015-p0-step8-m17-sltp-source-guard-direction-validation.patch`
 16. `blueprint/patches/0016-p0-step8c-m17-approved-sltp-resolver.patch`
+17. `blueprint/patches/0017-p0-step9-m18-label-only-scoring-authority.patch`
 
 ## Full-source SHA verification status
 The previously recorded SHA-256 `274b3d380463f5cd9a477ce0c37b6da0db6c4cc6721013fdef4e984326b291bf` was discovered during Step 3D to have been calculated from a partial reconstruction and remains withdrawn.
@@ -40,7 +41,7 @@ The previously recorded SHA-256 `274b3d380463f5cd9a477ce0c37b6da0db6c4cc6721013f
 Last exact verified full-chain working-source SHA through patches 0001–0005:
 `9ccbfd77032e3e9acdbf4b343ceaf98f632162d932cbb3fcad04a58539c1e3d8`
 
-Patches 0006–0016 currently have focused patch/contract verification only. A new full-chain SHA must only be claimed after exact materialization of the complete ordered patch chain.
+Patches 0006–0017 currently have focused patch/contract verification only. A new full-chain SHA must only be claimed after exact materialization of the complete ordered patch chain.
 
 ## Locked supporting contracts
 - `blueprint/ENTRY_MODE_CONTRACT.md`
@@ -54,6 +55,7 @@ Patches 0006–0016 currently have focused patch/contract verification only. A n
 - `blueprint/contracts/M16_CONFLICT_INVALIDATION_CONTRACT.md`
 - `blueprint/contracts/M17_ENTRY_SLTP_CONTRACT.md`
 - `blueprint/contracts/M17_SLTP_EXIT_RESOLUTION_CONTRACT.md`
+- `blueprint/contracts/M18_SIGNAL_SCORING_LABEL_CONTRACT.md`
 - `docs/references/SOURCE_INDEX.md`
 - `docs/references/BBMA_OMA_ALLY_RULE_INDEX.md`
 
@@ -159,14 +161,52 @@ Step 8C behavior:
 - fixed-pip or RR-derived fallback is not introduced;
 - opposite-CSM dynamic broker close remains disabled pending downstream lifecycle audit.
 
-### Verification boundary
-The stored `0016` patch has been re-fetched and inspected after commit. The Step 8C implementation path and fail-closed guards are present.
+## Step 9 — M18 Signal Scoring / Label Authority
+Status: **COMPLETED AT ACTIVE-BLUEPRINT PATCH + CONTRACT LEVEL**
 
-No new full-chain working-source SHA is claimed because the full ordered patch chain has not yet been exactly materialized and compiled as one working source.
+Baseline finding:
+- M18 was labelled `LABEL ONLY` but used arbitrary numeric weights;
+- it awarded unconditional `BBShape:10` and `MultiTF:5` points;
+- the weights were not established BBMA/Oma Ally source rules;
+- the pre-Step6 orchestration scored raw `extreme/mlv/reEntry` snapshots instead of the atomic final M15 decision.
+
+Step 6 had already removed M18 scoring from the active final-authority path. Step 9 now makes the M18 implementation itself match that architecture.
+
+Implemented by:
+`blueprint/patches/0017-p0-step9-m18-label-only-scoring-authority.patch`
+
+Patch commit:
+`de3db83c82aeb8371b4c06e8c11ae58dcd982362`
+
+Contract:
+`blueprint/contracts/M18_SIGNAL_SCORING_LABEL_CONTRACT.md`
+
+Contract commit:
+`1009901feffe507fe71d11761832a23fba933bef`
+
+Locked M18 behavior:
+- optional observability/display metadata only;
+- `Score = 0`, `Level = LEVEL_NONE` for current execution architecture;
+- no REM/RRE/REE or signal-type quality ranking;
+- no effect on M15 direction/entry authority;
+- no effect on M16 invalidation;
+- no effect on M17 Entry/SL/TP payload;
+- no effect on lot sizing, risk approval, portfolio checks or execution;
+- `SignalMode`, `ScoreDisplayThresholdManual` and `EnableSignalScoring` cannot act as hidden trading filters.
+
+### Verification boundary
+The original M18 baseline was checked directly from the archived `Master Blueprint 2.0.txt`. The only old score-field writer was the M18 helper itself, and the only active orchestration scoring call was already removed by Step 6. Step 9 removes the unsupported weights and raw-signal mutation path.
+
+No new full-chain working-source SHA is claimed until the complete patch chain is exactly materialized and compiled.
 
 ## Next P0 action
-**Step 9 — continue downstream architecture audit beginning at M18, with special attention to the boundary between entry validation/risk approval and later M19–M24 risk/execution/lifecycle ownership.**
+**Step 10 — audit M19 Risk Engine as a filter-only module.**
 
-Before patching Step 9, identify the exact M18 responsibility in the active blueprint and check that it does not recreate M15/M16/M17 strategy decisions or silently alter the approved SL/TP payload.
+Required focus:
+1. M19 may reject a fully formed M15–M17 decision but must not recreate strategy direction or SL/TP;
+2. verify spread, drawdown, basket-loss and total-risk calculations use coherent account/EA ownership and units;
+3. verify decision rejection reason maps to the actual failed risk rule rather than collapsing all failures into `REJ_TOTAL_RISK`;
+4. verify risk snapshot timing and live-order accounting do not violate the closed-candle strategy clock while still using live broker/account state where required;
+5. verify M19 does not consume M18 score/level/SignalMode as a trading filter.
 
 Do not merge into `main` until the full blueprint audit is clean and explicitly approved as MASTER BLUEPRINT LOCKED.

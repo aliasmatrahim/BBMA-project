@@ -1,0 +1,146 @@
+name: P1 Finalization Step2 Canonical Invariants
+
+on:
+  push:
+    branches: [ blueprint-dev ]
+    paths:
+      - '.github/workflows/p1-finalization-step2-canonical-invariants.yml'
+      - 'blueprint/source/BBMA_PROFESSIONAL_EA.mq4'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify canonical SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          FILE='blueprint/source/BBMA_PROFESSIONAL_EA.mq4'
+          test -s "$FILE"
+          ACTUAL=$(sha256sum "$FILE" | awk '{print $1}')
+          EXPECTED='30363d08437b85f253e6baf3e9c82af0d59d70727639ac0e6420a7677f975bc9'
+          echo "P1_FINAL_CANONICAL_SHA=$ACTUAL"
+          test "$ACTUAL" = "$EXPECTED"
+          echo P1_FINAL_SHA=PASS
+
+      - name: Verify canonical architecture invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import sys
+
+          text=Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4').read_text(encoding='utf-8')
+
+          def fail(code,msg):
+              print(f'P1_FINAL_FAIL={code}: {msg}')
+              sys.exit(50)
+
+          def fn_body(needle):
+              s=text.find(needle)
+              if s<0: fail('MISSING_FUNCTION',needle)
+              b=text.find('{',s)
+              if b<0: fail('MISSING_BODY',needle)
+              depth=0; ins=False; esc=False; i=b
+              while i<len(text):
+                  ch=text[i]
+                  if ins:
+                      if esc: esc=False
+                      elif ch=='\\': esc=True
+                      elif ch=='"': ins=False
+                  else:
+                      if ch=='"': ins=True
+                      elif ch=='{': depth+=1
+                      elif ch=='}':
+                          depth-=1
+                          if depth==0: return text[b+1:i]
+                  i+=1
+              fail('UNBALANCED_FUNCTION',needle)
+
+          # M22 executor-only.
+          pe=fn_body('void ProcessEntry(')
+          for forbidden in ('CalculateLotSize(', 'CheckRiskBeforeTrade(', 'FinalPortfolioGuard('):
+              if forbidden in pe: fail('M22_OWNERSHIP',forbidden)
+          if 'double lot = frozenLot;' not in pe: fail('M22_FROZEN_LOT','missing frozen lot consumption')
+
+          # M27 one-pass preflight order.
+          pf=fn_body('bool RunEntryPreflightAndExecute(')
+          ordered=['ValidateSLTP(','CalculateLotSize(','CheckRiskBeforeTrade(','FinalPortfolioGuard(','ProcessEntry(']
+          pos=[]
+          for token in ordered:
+              q=pf.find(token)
+              if q<0: fail('M27_PREFLIGHT_MISSING',token)
+              pos.append(q)
+          if pos!=sorted(pos) or len(set(pos))!=len(pos): fail('M27_PREFLIGHT_ORDER',str(list(zip(ordered,pos))))
+          if 'g_portfolio_emergency_close_requested' not in pf: fail('M20_LATCH_GATE','missing emergency gate')
+
+          pp=fn_body('void ProcessPair(int pairIndex)')
+          if pp.count('RunEntryPreflightAndExecute(')!=1: fail('M27_PREFLIGHT_COUNT',str(pp.count('RunEntryPreflightAndExecute(')))
+
+          ot=fn_body('void OnTickMain()')
+          tokens=['ManagePortfolio();','ManagePositions();','if(g_portfolio_emergency_close_requested) return;','if(g_is_scanning) return;']
+          p=[]
+          for token in tokens:
+              q=ot.find(token)
+              if q<0: fail('M27_TICK_MISSING',token)
+              p.append(q)
+          if p!=sorted(p): fail('M27_TICK_ORDER',str(list(zip(tokens,p))))
+
+          dash=fn_body('void BuildDashboardSnapshot()')
+          if 'PriorityTier' in dash: fail('M25_PRIORITY_AUTHORITY','PriorityTier rendered')
+
+          init=fn_body('int InitializeEA()')
+          if 'g_protection_reference_equity = AccountEquity();' not in init: fail('M26_INIT_EQUITY','missing equity reference')
+          if 'g_protection_reference_equity = AccountBalance();' in init: fail('M26_INIT_BALANCE','balance reference remains')
+
+          # Compile-repair semantic guards.
+          if 'double               StopLevel;' not in text: fail('M17_STOPLEVEL_FIELD','missing field')
+          if 'snapshot.StopLevel = MarketInfo(pair, MODE_STOPLEVEL);' not in text: fail('M17_STOPLEVEL_SNAPSHOT','missing broker snapshot')
+          if 'ENUM_REJECTION_REASON sltpRejection = REJ_NONE;' not in text: fail('M17_REJECTION_PROPAGATION','missing rejection propagation')
+          if 'string[] SplitString(' in text or 'double[] CalculateBollingerArray(' in text: fail('MQL4_ARRAY_RETURN','unsupported array return remains')
+          if 'string SHORT_HASH(string input' in text: fail('MQL4_RESERVED_INPUT','reserved input parameter remains')
+          if 'ComponentSet allSets[3] = {rem, rre, ree};' in text: fail('MQL4_STRUCT_INIT','unsupported aggregate initialization remains')
+
+          # All modules still present.
+          for n in range(1,28):
+              tag=f'MODULE {n:02d}'
+              if tag not in text: fail('MODULE_MISSING',tag)
+
+          print('P1_FINAL_ARCHITECTURE_INVARIANTS=PASS')
+          PY
+
+      - name: Structural sanity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import sys
+          text=Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4').read_text(encoding='utf-8')
+          depth=0; i=0; ins=False; line=False; block=False; esc=False
+          while i<len(text):
+              ch=text[i]; nx=text[i+1] if i+1<len(text) else ''
+              if line:
+                  if ch=='\n': line=False
+              elif block:
+                  if ch=='*' and nx=='/': block=False; i+=1
+              elif ins:
+                  if esc: esc=False
+                  elif ch=='\\': esc=True
+                  elif ch=='"': ins=False
+              else:
+                  if ch=='/' and nx=='/': line=True; i+=1
+                  elif ch=='/' and nx=='*': block=True; i+=1
+                  elif ch=='"': ins=True
+                  elif ch=='{': depth+=1
+                  elif ch=='}':
+                      depth-=1
+                      if depth<0: sys.exit(51)
+              i+=1
+          if depth!=0 or block or ins: sys.exit(52)
+          print('P1_FINAL_STRUCTURAL_SANITY=PASS')
+          PY

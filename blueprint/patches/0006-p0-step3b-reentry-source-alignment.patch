@@ -1,0 +1,424 @@
+--- a/MASTER_BLUEPRINT_2.0_WORKING.txt
++++ b/MASTER_BLUEPRINT_2.0_WORKING.txt
+@@ -328,8 +328,9 @@
+    int                  ConfirmationBar;
+    int                  ExpiryBar;
+    datetime             ExpiryCandleTime;
+    int                  MinCandlesRequired;
++   int                  QualifyingCandles;
+    bool                 IsValid;
+    double               StrengthScore;
+    string               Reason;
+ };
+@@ -2079,90 +2080,144 @@
+ //| MODULE 12: RE-ENTRY ENGINE                                       |
+ //| LEVEL: INTERMEDIATE+                                             |
+ //+------------------------------------------------------------------+
+ 
+-bool DetectReEntry_Type1(string pair, int timeframe, ENUM_DIRECTION direction, int shift)
++bool GetReEntryMACluster(TimeframeData &data, ENUM_DIRECTION direction,
++                         double &ma5, double &ma10)
++{
++   ma5 = 0;
++   ma10 = 0;
++
++   // BBMA source law: BUY uses MA5/10 Low; SELL uses MA5/10 High.
++   if(direction == DIR_BUY)
++   {
++      ma5 = data.ma[2];
++      ma10 = data.ma[3];
++   }
++   else if(direction == DIR_SELL)
++   {
++      ma5 = data.ma[0];
++      ma10 = data.ma[1];
++   }
++   else return false;
++
++   return (ma5 > 0 && ma10 > 0);
++}
++
++bool HasReEntryMAClusterTouch(TimeframeData &data, ENUM_DIRECTION direction)
++{
++   double ma5, ma10;
++   if(!GetReEntryMACluster(data, direction, ma5, ma10)) return false;
++   if(data.close <= 0 || data.high <= 0 || data.low <= 0) return false;
++
++   if(direction == DIR_BUY)
++   {
++      // Market finds MA5/10 Low and candle closes above the support cluster.
++      return (data.low <= MathMax(ma5, ma10) &&
++              data.close >= ma5 && data.close >= ma10);
++   }
++
++   // Market finds MA5/10 High and candle closes below the resistance cluster.
++   return (data.high >= MathMin(ma5, ma10) &&
++           data.close <= ma5 && data.close <= ma10);
++}
++
++bool HasReEntryMA5OrMA50Touch(TimeframeData &data, ENUM_DIRECTION direction)
++{
++   double ma5, ma10;
++   if(!GetReEntryMACluster(data, direction, ma5, ma10)) return false;
++   if(data.ma[4] <= 0 || data.close <= 0 || data.high <= 0 || data.low <= 0) return false;
++
++   if(direction == DIR_BUY)
++   {
++      bool ma5Touch = (data.low <= ma5 && data.close >= ma5);
++      bool ma50Touch = (data.low <= data.ma[4] && data.close >= data.ma[4]);
++      return (ma5Touch || ma50Touch);
++   }
++
++   bool ma5Touch = (data.high >= ma5 && data.close <= ma5);
++   bool ma50Touch = (data.high >= data.ma[4] && data.close <= data.ma[4]);
++   return (ma5Touch || ma50Touch);
++}
++
++bool DetectReEntry_Type1(string pair, ENUM_DIRECTION direction, TimeframeData &data)
+ {
+    if(!EnableRE_Type1) return false;
+-   double close = iClose(pair, timeframe, shift);
+-   double ema50 = EMA(pair, timeframe, EMA50_PERIOD, shift);
+-   if(close <= 0 || ema50 <= 0) return false;
+-   
+-   double point = GetPointSize(pair);
+-   if(direction == DIR_BUY)
+-   {
+-      if(close < ema50 && close > ema50 - point * 10)
+-         return true;
+-   }
+-   else if(direction == DIR_SELL)
+-   {
+-      if(close > ema50 && close < ema50 + point * 10)
+-         return true;
+-   }
+-   return false;
+-}
+-
+-bool ConfirmReEntry_Type1(string pair, int timeframe, ENUM_DIRECTION direction, int shift)
+-{
+-   double close = iClose(pair, timeframe, shift);
+-   double ema50 = EMA(pair, timeframe, EMA50_PERIOD, shift);
+-   if(close <= 0 || ema50 <= 0) return false;
+-   
+-   if(direction == DIR_BUY)
+-      return close > ema50;
+-   else if(direction == DIR_SELL)
+-      return close < ema50;
+-   return false;
+-}
+-
+-bool DetectReEntry_Type2(string pair, int timeframe, ENUM_DIRECTION direction, int shift)
+-{
++   if(!data.is_valid || !data.is_closed) return false;
++
++   // Source: Re-Entry Type 1 is made when price finds the relevant
++   // MA5/10 High (SELL) or MA5/10 Low (BUY), with CS closing on the
++   // resistance/support side of the cluster. No EMA50-cross rule is stated.
++   return HasReEntryMAClusterTouch(data, direction);
++}
++
++bool DetectReEntry_Type2(string pair, ENUM_DIRECTION direction, TimeframeData &data,
++                         bool &mostPowerful)
++{
++   mostPowerful = false;
+    if(!EnableRE_Type2) return false;
+-   double close = iClose(pair, timeframe, shift);
+-   double bb_mid = SMA(pair, timeframe, BB_PERIOD, shift);
+-   double bb_std = StandardDeviation(pair, timeframe, BB_PERIOD, shift);
+-   if(close <= 0 || bb_mid <= 0 || bb_std <= 0) return false;
+-   
+-   double bb_upper = bb_mid + BB_DEVIATION * bb_std;
+-   double bb_lower = bb_mid - BB_DEVIATION * bb_std;
+-   double width = bb_upper - bb_lower;
+-   double avgWidth = SMA(pair, timeframe, BB_PERIOD, shift + 1) * 2;
+-   
+-   if(width < avgWidth * 0.8)
+-   {
+-      if(direction == DIR_BUY && close > bb_upper) return true;
+-      if(direction == DIR_SELL && close < bb_lower) return true;
+-   }
+-   return false;
+-}
+-
+-bool DetectReEntry_Type3(string pair, int timeframe, ENUM_DIRECTION direction, int shift)
++   if(!data.is_valid || !data.is_closed || data.bollinger[1] <= 0) return false;
++
++   double ma5, ma10;
++   if(!GetReEntryMACluster(data, direction, ma5, ma10)) return false;
++
++   // Source: Powerful Re-Entry = MA5/10 and MID BB meet/collide.
++   // Existing project IsNear() is used only as numerical collision tolerance;
++   // it is not a new BBMA strategy condition.
++   bool powerful = IsNear(ma5, data.bollinger[1], pair) &&
++                   IsNear(ma10, data.bollinger[1], pair);
++   if(!powerful) return false;
++
++   // Source: Most Powerful Re-Entry also includes MA50 in the collision.
++   mostPowerful = (data.ma[4] > 0 && IsNear(data.ma[4], data.bollinger[1], pair));
++   return true;
++}
++
++bool DetectReEntry_Type3(string pair, ENUM_DIRECTION direction, TimeframeData &data)
+ {
+    if(!EnableRE_Type3) return false;
+-   return DetectCSM(pair, timeframe, direction, shift);
+-}
+-
+-bool DetectReEntry_Type4(string pair, int timeframe, ENUM_DIRECTION direction, int shift)
++   if(!data.is_valid || !data.is_closed) return false;
++
++   // Type 3 candidate begins only after a CSM has formed. The later retrace
++   // to MA5 or MA50 is handled by the persistent lifecycle below.
++   return DetectCSM(pair, data.timeframe, direction, data.barIndex);
++}
++
++bool DetectReEntry_Type4(string pair, ENUM_DIRECTION direction, TimeframeData &data)
+ {
+    if(!EnableRE_Type4) return false;
+-   double close = iClose(pair, timeframe, shift);
+-   double ma5 = SMA(pair, timeframe, MA5_HIGH_PERIOD, shift);
+-   double ma10 = SMA(pair, timeframe, MA10_HIGH_PERIOD, shift);
+-   if(close <= 0 || ma5 <= 0 || ma10 <= 0) return false;
+-   
+-   if(direction == DIR_BUY)
+-      return close < ma5 && close > ma10;
+-   else if(direction == DIR_SELL)
+-      return close > ma5 && close < ma10;
+-   return false;
+-}
+-
+-ENUM_RE_TYPE DetectReEntry_Master(string pair, int timeframe, ENUM_DIRECTION direction, int shift)
+-{
+-   if(DetectReEntry_Type2(pair, timeframe, direction, shift)) return RE_TYPE_2;
+-   if(DetectReEntry_Type1(pair, timeframe, direction, shift)) return RE_TYPE_1;
+-   if(DetectReEntry_Type3(pair, timeframe, direction, shift)) return RE_TYPE_3_CSM;
+-   if(DetectReEntry_Type4(pair, timeframe, direction, shift)) return RE_TYPE_4_CSD;
++   if(!data.is_valid || !data.is_closed) return false;
++
++   MovingAverage ma;
++   ma.MA5_High = data.ma[0];
++   ma.MA10_High = data.ma[1];
++   ma.MA5_Low = data.ma[2];
++   ma.MA10_Low = data.ma[3];
++   ma.EMA50 = data.ma[4];
++
++   BollingerBand band;
++   ZeroMemory(band);
++   band.TOP_BB = data.bollinger[0];
++   band.MID_BB = data.bollinger[1];
++   band.LOW_BB = data.bollinger[2];
++   band.Width = band.TOP_BB - band.LOW_BB;
++
++   // Type 4 candidate begins when CSD appears. The later gyration/retrace
++   // toward MA5/10 is handled by the persistent lifecycle below.
++   return DetectCSD(pair, data.timeframe, direction, data.barIndex, ma, band);
++}
++
++ENUM_RE_TYPE DetectReEntry_Master(string pair, ENUM_DIRECTION direction,
++                                  TimeframeData &data, bool &mostPowerful)
++{
++   mostPowerful = false;
++
++   // Preserve existing detector precedence; Step 3B changes source semantics,
++   // not cross-type priority policy.
++   if(DetectReEntry_Type2(pair, direction, data, mostPowerful)) return RE_TYPE_2;
++   if(DetectReEntry_Type1(pair, direction, data)) return RE_TYPE_1;
++   if(DetectReEntry_Type3(pair, direction, data)) return RE_TYPE_3_CSM;
++   if(DetectReEntry_Type4(pair, direction, data)) return RE_TYPE_4_CSD;
+    return RE_NONE;
+ }
+ 
+ void ResetReEntryState(ReEntryData &reEntry, ENUM_DIRECTION direction, int timeframe)
+@@ -2179,16 +2234,30 @@
+    if(reEntry.StartCandleTime <= 0 || reEntry.ExpiryCandleTime <= 0) return false;
+    return (currentCandleTime > reEntry.ExpiryCandleTime);
+ }
+ 
+-bool ConfirmReEntryByType(ReEntryData &reEntry, string pair, TimeframeData &data)
+-{
+-   if(reEntry.Type == RE_TYPE_1)
+-      return ConfirmReEntry_Type1(pair, data.timeframe, reEntry.Direction, data.barIndex);
+-
+-   // Source blueprint defines no confirmation contract for Type 2-4.
+-   // They remain non-valid candidates until that contract is explicitly specified.
+-   return false;
++void SetReEntrySnapshotLevels(ReEntryData &reEntry, TimeframeData &data)
++{
++   double ma5, ma10;
++   GetReEntryMACluster(data, reEntry.Direction, ma5, ma10);
++   reEntry.MA5_Level = ma5;
++   reEntry.MA10_Level = ma10;
++   reEntry.MA50_Level = data.ma[4];
++   reEntry.MID_BB = data.bollinger[1];
++}
++
++void ConfirmReEntryState(ReEntryData &reEntry, TimeframeData &data, string reason)
++{
++   reEntry.State = RE_STATE_CONFIRMED;
++   reEntry.ConfirmationBar = data.barIndex;
++   reEntry.ConfirmationCandle = data.candle_time;
++   reEntry.EntryCandle = data.candle_time;
++   reEntry.EntryPrice = data.close;
++   reEntry.IsValid = true;
++   reEntry.LastUpdateBar = data.barIndex;
++   reEntry.LastUpdateCandleTime = data.candle_time;
++   SetReEntrySnapshotLevels(reEntry, data);
++   reEntry.Reason = reason;
+ }
+ 
+ ENUM_RE_STATE UpdateReEntryState(ReEntryData &reEntry, string pair,
+                                  ENUM_DIRECTION direction, TimeframeData &data)
+@@ -2221,27 +2290,17 @@
+    }
+ 
+    if(reEntry.State == RE_STATE_NONE)
+    {
+-      ENUM_RE_TYPE detectedType =
+-         DetectReEntry_Master(pair, data.timeframe, direction, data.barIndex);
++      bool mostPowerful = false;
++      ENUM_RE_TYPE detectedType = DetectReEntry_Master(pair, direction, data, mostPowerful);
+       if(detectedType == RE_NONE) return RE_STATE_NONE;
+ 
+-      // Only Type 1 currently has an explicit confirmation contract in the
+-      // active Master Blueprint. Type 2-4 are quarantined from authoritative
+-      // lifecycle/output until their BBMA confirmation contract is reconciled.
+-      if(detectedType != RE_TYPE_1) return RE_STATE_NONE;
+-
+       reEntry.Type = detectedType;
+-      reEntry.State = RE_STATE_CANDIDATE;
+       reEntry.Direction = direction;
+       reEntry.Timeframe = data.timeframe;
+       reEntry.EntryPrice = 0;
+       reEntry.EntryCandle = 0;
+-      reEntry.MA5_Level = (direction == DIR_BUY) ? data.ma[0] : data.ma[2];
+-      reEntry.MA10_Level = (direction == DIR_BUY) ? data.ma[1] : data.ma[3];
+-      reEntry.MA50_Level = data.ma[4];
+-      reEntry.MID_BB = data.bollinger[1];
+       reEntry.StartBar = data.barIndex;
+       reEntry.StartCandleTime = data.candle_time;
+       reEntry.LastUpdateBar = data.barIndex;
+       reEntry.LastUpdateCandleTime = data.candle_time;
+@@ -2249,32 +2308,107 @@
+       reEntry.ConfirmationCandle = 0;
+       reEntry.ExpiryBar = MaxWaitBars_ReEntry;
+       reEntry.ExpiryCandleTime =
+          reEntry.StartCandleTime + MaxWaitBars_ReEntry * data.timeframe * 60;
+-      reEntry.MinCandlesRequired = 1;
+       reEntry.IsValid = false;
+-
+-      reEntry.Reason = "Type1 candidate awaiting EMA50 confirmation";
++      SetReEntrySnapshotLevels(reEntry, data);
++
++      // Type 1 source contains no separate precursor/confirmation stage:
++      // the relevant MA5/10 touch on a CLOSED candle is the Re-Entry setup.
++      if(detectedType == RE_TYPE_1)
++      {
++         reEntry.MinCandlesRequired = 1;
++         reEntry.QualifyingCandles = 1;
++         ConfirmReEntryState(reEntry, data,
++            (direction == DIR_BUY)
++            ? "Type1 confirmed: MA5/10 Low support touch"
++            : "Type1 confirmed: MA5/10 High resistance touch");
++         return RE_STATE_CONFIRMED;
++      }
++
++      reEntry.State = RE_STATE_CANDIDATE;
++      reEntry.QualifyingCandles = 1;
++
++      if(detectedType == RE_TYPE_2)
++      {
++         // Operational encoding of the source phrase "minimum of 3 candles per TF":
++         // three DISTINCT consecutive closed candles must retain the MA5/10 + MID BB
++         // collision. This interpretation is explicit and must not be silently changed.
++         reEntry.MinCandlesRequired = 3;
++         reEntry.Reason = mostPowerful
++                          ? "Type2 candidate: MA5/10 + MID BB + MA50 collision (1/3)"
++                          : "Type2 candidate: MA5/10 + MID BB collision (1/3)";
++      }
++      else if(detectedType == RE_TYPE_3_CSM)
++      {
++         reEntry.MinCandlesRequired = 1;
++         reEntry.Reason = "Type3 candidate: CSM formed; awaiting retrace to MA5 or MA50";
++      }
++      else if(detectedType == RE_TYPE_4_CSD)
++      {
++         reEntry.MinCandlesRequired = 1;
++         reEntry.Reason = "Type4 candidate: CSD formed; awaiting retrace to MA5/10";
++      }
++
+       return RE_STATE_CANDIDATE;
+    }
+ 
+    if(reEntry.State == RE_STATE_CANDIDATE)
+    {
+-      // Confirmation must occur on a later closed candle.
+-      if(data.candle_time <= reEntry.StartCandleTime) return RE_STATE_CANDIDATE;
++      // M15 is the sole orchestration clock, but one H1/H4/D1 snapshot can be
++      // observed repeatedly. Lifecycle advances only on a NEW closed candle of
++      // the candidate's own timeframe.
++      if(data.candle_time <= reEntry.LastUpdateCandleTime) return RE_STATE_CANDIDATE;
+ 
+       reEntry.LastUpdateBar = data.barIndex;
+       reEntry.LastUpdateCandleTime = data.candle_time;
+-
+-      if(ConfirmReEntryByType(reEntry, pair, data))
+-      {
+-         reEntry.State = RE_STATE_CONFIRMED;
+-         reEntry.ConfirmationBar = data.barIndex;
+-         reEntry.ConfirmationCandle = data.candle_time;
+-         reEntry.EntryCandle = data.candle_time;
+-         reEntry.EntryPrice = data.close;
+-         reEntry.IsValid = true;
+-         reEntry.Reason = "Confirmed";
++      SetReEntrySnapshotLevels(reEntry, data);
++
++      if(reEntry.Type == RE_TYPE_2)
++      {
++         bool mostPowerful = false;
++         if(!DetectReEntry_Type2(pair, direction, data, mostPowerful))
++         {
++            // Three-candle Type 2 confluence must remain continuous.
++            ResetReEntryState(reEntry, direction, data.timeframe);
++            return RE_STATE_NONE;
++         }
++
++         reEntry.QualifyingCandles++;
++         if(reEntry.QualifyingCandles < reEntry.MinCandlesRequired)
++         {
++            reEntry.Reason = mostPowerful
++               ? "Type2 candidate: MA5/10 + MID BB + MA50 collision"
++               : "Type2 candidate: MA5/10 + MID BB collision";
++            return RE_STATE_CANDIDATE;
++         }
++
++         // General BBMA Re-Entry law still requires the market to find the
++         // relevant MA5/10 entry cluster; line confluence alone is not a raw entry.
++         if(!HasReEntryMAClusterTouch(data, direction)) return RE_STATE_CANDIDATE;
++
++         ConfirmReEntryState(reEntry, data,
++            mostPowerful
++            ? "Type2 confirmed: 3-candle MA5/10 + MID BB + MA50 confluence"
++            : "Type2 confirmed: 3-candle MA5/10 + MID BB confluence");
++         return RE_STATE_CONFIRMED;
++      }
++
++      if(reEntry.Type == RE_TYPE_3_CSM)
++      {
++         if(!HasReEntryMA5OrMA50Touch(data, direction)) return RE_STATE_CANDIDATE;
++
++         ConfirmReEntryState(reEntry, data,
++            "Type3 confirmed: post-CSM retrace to MA5 or MA50");
++         return RE_STATE_CONFIRMED;
++      }
++
++      if(reEntry.Type == RE_TYPE_4_CSD)
++      {
++         if(!HasReEntryMAClusterTouch(data, direction)) return RE_STATE_CANDIDATE;
++
++         ConfirmReEntryState(reEntry, data,
++            "Type4 confirmed: post-CSD retrace to MA5/10");
+          return RE_STATE_CONFIRMED;
+       }
+ 
+       return RE_STATE_CANDIDATE;

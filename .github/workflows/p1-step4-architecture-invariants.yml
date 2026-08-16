@@ -1,0 +1,222 @@
+name: P1 Step4 Architecture Invariants
+
+on:
+  push:
+    branches: [ blueprint-dev ]
+    paths:
+      - '.github/workflows/p1-step4-architecture-invariants.yml'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Reconstruct verified baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part01a \
+              blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part01b \
+              blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part02 \
+              blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part03 \
+              blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part04 \
+              blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part05 > /tmp/b64
+          base64 -d /tmp/b64 | gzip -dc > MASTER_BLUEPRINT_2.0_BASELINE.txt
+          test "$(sha256sum MASTER_BLUEPRINT_2.0_BASELINE.txt | awk '{print $1}')" = "e217816e95126857c1e7fa3fde1ac10ecc28f196a82eb51cb2f3625a6901aa00"
+          echo P1_STEP4_BASELINE=PASS
+
+      - name: Materialize exact P1 Step3 full chain
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, textwrap
+
+          y = Path('.github/workflows/p1-step3-integration-v4.yml').read_text(encoding='utf-8')
+          m = re.search(r"python3 - <<'PY'\n(.*?)\n          PY", y, re.S)
+          if not m:
+              raise SystemExit('cannot extract Step3 V4 applicator')
+
+          code = textwrap.dedent(m.group(1))
+          # V4 wrapper's extracted Python executes the V3 applicator with the
+          # deterministic context-only-hunk rule. Execute that exact wrapper body.
+          exec(compile(code, 'p1_step4_materializer', 'exec'), {})
+          PY
+
+          test -s MASTER_BLUEPRINT_2.0_WORKING.txt
+          ACTUAL_SHA=$(sha256sum MASTER_BLUEPRINT_2.0_WORKING.txt | awk '{print $1}')
+          EXPECTED_SHA='e81b91a96d95b4446531b445a54c7d60ee5eb71d91646e98eac15ad8e1001da6'
+          echo "P1_STEP4_WORKING_SHA=$ACTUAL_SHA"
+          test "$ACTUAL_SHA" = "$EXPECTED_SHA"
+          echo P1_STEP4_MATERIALIZATION=PASS
+
+      - name: Verify architecture ownership invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, sys
+
+          p = Path('MASTER_BLUEPRINT_2.0_WORKING.txt')
+          text = p.read_text(encoding='utf-8')
+
+          def fail(code, msg):
+              print(f'P1_STEP4_FAIL={code}: {msg}')
+              sys.exit(40)
+
+          def fn_body(needle):
+              s = text.find(needle)
+              if s < 0:
+                  fail('MISSING_FUNCTION', needle)
+              b = text.find('{', s)
+              if b < 0:
+                  fail('MISSING_BODY', needle)
+              depth = 0
+              in_str = False
+              esc = False
+              i = b
+              while i < len(text):
+                  ch = text[i]
+                  if in_str:
+                      if esc:
+                          esc = False
+                      elif ch == '\\':
+                          esc = True
+                      elif ch == '"':
+                          in_str = False
+                  else:
+                      if ch == '"':
+                          in_str = True
+                      elif ch == '{':
+                          depth += 1
+                      elif ch == '}':
+                          depth -= 1
+                          if depth == 0:
+                              return text[b+1:i]
+                  i += 1
+              fail('UNBALANCED_FUNCTION', needle)
+
+          # M22 must be executor-only after P0/P1 integration.
+          process_entry = fn_body('void ProcessEntry(')
+          for forbidden in ('CalculateLotSize(', 'CheckRiskBeforeTrade(', 'FinalPortfolioGuard('):
+              if forbidden in process_entry:
+                  fail('M22_OWNERSHIP', f'ProcessEntry still calls {forbidden}')
+          if 'double lot = frozenLot;' not in process_entry:
+              fail('M22_FROZEN_LOT', 'ProcessEntry does not consume frozenLot')
+
+          # M27 owns the one-pass preflight ordering.
+          preflight = fn_body('bool RunEntryPreflightAndExecute(')
+          ordered = [
+              'ValidateSLTP(',
+              'CalculateLotSize(',
+              'CheckRiskBeforeTrade(',
+              'FinalPortfolioGuard(',
+              'ProcessEntry('
+          ]
+          pos = []
+          for token in ordered:
+              q = preflight.find(token)
+              if q < 0:
+                  fail('M27_PREFLIGHT_MISSING', token)
+              pos.append(q)
+          if pos != sorted(pos) or len(set(pos)) != len(pos):
+              fail('M27_PREFLIGHT_ORDER', str(list(zip(ordered, pos))))
+          if 'g_portfolio_emergency_close_requested' not in preflight:
+              fail('M20_LATCH_GATE', 'preflight missing emergency-latch gate')
+
+          # ProcessPair must delegate validated decisions exactly once to preflight.
+          process_pair = fn_body('void ProcessPair(int pairIndex)')
+          if process_pair.count('RunEntryPreflightAndExecute(') != 1:
+              fail('M27_PREFLIGHT_COUNT', f"count={process_pair.count('RunEntryPreflightAndExecute(')}")
+
+          # Tick lifecycle ordering: protection -> position lifecycle -> emergency gate -> scan.
+          on_tick = fn_body('void OnTickMain()')
+          tick_tokens = [
+              'ManagePortfolio();',
+              'ManagePositions();',
+              'if(g_portfolio_emergency_close_requested) return;',
+              'if(g_is_scanning) return;'
+          ]
+          tpos = []
+          for token in tick_tokens:
+              q = on_tick.find(token)
+              if q < 0:
+                  fail('M27_TICK_MISSING', token)
+              tpos.append(q)
+          if tpos != sorted(tpos):
+              fail('M27_TICK_ORDER', str(list(zip(tick_tokens, tpos))))
+
+          # M25 display-only cleanup: PriorityTier must not be shown as a quality authority.
+          dashboard = fn_body('void BuildDashboardSnapshot()')
+          if 'PriorityTier' in dashboard:
+              fail('M25_PRIORITY_AUTHORITY', 'PriorityTier still rendered in dashboard snapshot')
+
+          # M26 protection reference must be equity-based on init and daily reset.
+          init = fn_body('int InitializeEA()')
+          if 'g_protection_reference_equity = AccountEquity();' not in init:
+              fail('M26_INIT_EQUITY', 'initial protection baseline is not AccountEquity')
+          if 'g_protection_reference_equity = AccountBalance();' in init:
+              fail('M26_INIT_BALANCE', 'balance-based protection baseline remains')
+
+          # Required modules remain present after materialization.
+          for n in range(1, 28):
+              tag = f'MODULE {n:02d}'
+              if tag not in text:
+                  fail('MODULE_MISSING', tag)
+
+          print('P1_STEP4_ARCHITECTURE_INVARIANTS=PASS')
+          PY
+
+      - name: Source structural sanity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import sys
+
+          text = Path('MASTER_BLUEPRINT_2.0_WORKING.txt').read_text(encoding='utf-8')
+
+          # Lightweight lexical brace sanity ignoring strings and comments. This is
+          # not a MetaTrader compiler substitute; it only catches integration damage.
+          depth = 0
+          i = 0
+          in_str = False
+          in_line = False
+          in_block = False
+          esc = False
+          while i < len(text):
+              ch = text[i]
+              nx = text[i+1] if i + 1 < len(text) else ''
+              if in_line:
+                  if ch == '\n': in_line = False
+              elif in_block:
+                  if ch == '*' and nx == '/':
+                      in_block = False; i += 1
+              elif in_str:
+                  if esc: esc = False
+                  elif ch == '\\': esc = True
+                  elif ch == '"': in_str = False
+              else:
+                  if ch == '/' and nx == '/': in_line = True; i += 1
+                  elif ch == '/' and nx == '*': in_block = True; i += 1
+                  elif ch == '"': in_str = True
+                  elif ch == '{': depth += 1
+                  elif ch == '}':
+                      depth -= 1
+                      if depth < 0:
+                          print('P1_STEP4_STRUCTURAL_FAIL=unexpected_closing_brace')
+                          sys.exit(41)
+              i += 1
+
+          if depth != 0 or in_block or in_str:
+              print(f'P1_STEP4_STRUCTURAL_FAIL=depth:{depth},block:{in_block},string:{in_str}')
+              sys.exit(42)
+
+          print('P1_STEP4_STRUCTURAL_SANITY=PASS')
+          print('P1_STEP4_MT4_COMPILE_STATUS=BLOCKED_NO_METAEDITOR_ON_LINUX_RUNNER')
+          PY

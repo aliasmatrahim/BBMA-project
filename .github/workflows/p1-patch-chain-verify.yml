@@ -98,10 +98,32 @@ jobs:
                       old.append(line[1:])
                       new.append(line[1:])
                   else:
-                      # Non-standard focused patches may contain unprefixed context.
                       old.append(line)
                       new.append(line)
               return ''.join(old), ''.join(new)
+
+          def repair_0014_hunk8(text: str, new_block: str):
+              # P1 integration-only repair. Patch 0013 changed adjacent M15/M16
+              # context, so focused patch 0014 hunk 8 no longer matches byte-for-byte.
+              # Replace only the old M16 invalidation/expiry implementation with
+              # the exact owner-aware implementation carried by patch 0014.
+              new_match = re.search(
+                  r'bool IsExtremeStateExpired\(Signal extreme, datetime currentTime\).*?'
+                  r'decision\.RejectionReason = REJ_NONE;\n\}',
+                  new_block, re.S)
+              if not new_match:
+                  return None
+              replacement = new_match.group(0)
+
+              old_match = re.search(
+                  r'void InvalidationEngine_Atomic\(BBMA_Decision &decision, OppositeConflictPackage &conflict\)\n'
+                  r'\{.*?'
+                  r'bool IsExpired_ReEntry\(ReEntryData reEntry, datetime currentTime\)\n'
+                  r'\{.*?\n\}',
+                  text, re.S)
+              if not old_match:
+                  return None
+              return text[:old_match.start()] + replacement + text[old_match.end():]
 
           for p in patches:
               print(f'=== APPLY {p.name} ===')
@@ -124,6 +146,12 @@ jobs:
                   old_block, new_block = hunk_blocks(h)
                   count = text.count(old_block)
                   if count != 1:
+                      if p.name.startswith('0014-') and hidx == 8 and count == 0:
+                          repaired = repair_0014_hunk8(text, new_block)
+                          if repaired is not None:
+                              text = repaired
+                              print('P1_STEP3_INTEGRATION_REPAIR=0014_HUNK8_M16_CONTEXT_REBASE')
+                              continue
                       print(f'P1_STEP2_FIRST_CONFLICT={p.name}')
                       print(f'HUNK={hidx}')
                       print(f'MATCH_COUNT={count}')

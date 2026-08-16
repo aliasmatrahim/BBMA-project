@@ -23,86 +23,44 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-
           p = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
           s = p.read_text(encoding='utf-8')
-
-          old = '''void OnTimer()
-          {
-             if(!g_is_initialized) return;
-             
-             ManagePositions();
-             
-             CleanupSignalHistoryEntries();
-             CleanupGlobalSignalHistory();
-             
-             datetime todayStart = GetTodayStart();
-             if(todayStart > g_last_reset_date)
-             {
-                // Keep daily reset consistent with the M19 equity-drawdown contract.
-                double resetEquity = AccountEquity();
-                if(resetEquity > 0)
-                   g_protection_reference_equity = resetEquity;
-                g_last_reset_date = todayStart;
-                g_last_daily_profit = 0;
-                Log(DBG_FULL, "Daily reset: protection reference = " + DoubleToString(g_protection_reference_equity, 2));
-             }
-             
-             g_processing_time = GetProcessingTime();
-             for(int i = 0; i < g_pair_count; i++)
-             {
-                if(!g_pair_states[i].pair_enabled) continue;
-                if(g_pair_states[i].is_processing) continue;
-                if(IsNewCandle(g_pair_names[i], i))
-                {
-                   ProcessPair(i);
-                }
-             }
-             
-             if(g_dashboard_needs_update)
-             {
-                UpdateDashboard();
-                g_dashboard_needs_update = false;
-             }
-          }
-          '''
-
-          # The source uses three-space indentation; normalize only the literal
-          # block above so the workflow remains readable and anchor-safe.
-          old = '\n'.join(line[9:] if line.startswith('         ') else line for line in old.splitlines()) + '\n'
-
-          new = '''void OnTimer()
-{
-   if(!g_is_initialized) return;
-
-   // Timer owns only maintenance/reset work. Lifecycle, emergency gating,
-   // dashboard orchestration and strategy scanning have one shared authority:
-   // OnTickMain(). This prevents timer-only state advancement during emergency.
-   CleanupSignalHistoryEntries();
-   CleanupGlobalSignalHistory();
-
-   datetime todayStart = GetTodayStart();
-   if(todayStart > g_last_reset_date)
-   {
-      // Keep daily reset consistent with the M19 equity-drawdown contract.
-      double resetEquity = AccountEquity();
-      if(resetEquity > 0)
-         g_protection_reference_equity = resetEquity;
-      g_last_reset_date = todayStart;
-      g_last_daily_profit = 0;
-      Log(DBG_FULL, "Daily reset: protection reference = " + DoubleToString(g_protection_reference_equity, 2));
-   }
-
-   // Mirror OnTick connectivity semantics before entering shared live orchestration.
-   if(!IsTerminalConnected()) return;
-   OnTickMain();
-}
-'''
-
-          if s.count(old) != 1:
-              raise SystemExit(f'anchor mismatch: {s.count(old)}')
-
-          p.write_text(s.replace(old, new, 1), encoding='utf-8')
+          start = s.find('void OnTimer()\n{')
+          if start < 0:
+              raise SystemExit('OnTimer start not found')
+          end_marker = '\n//+------------------------------------------------------------------+\n//| END OF EXPERT ADVISOR'
+          end = s.find(end_marker, start)
+          if end < 0:
+              raise SystemExit('OnTimer end marker not found')
+          new = (
+              'void OnTimer()\n'
+              '{\n'
+              '   if(!g_is_initialized) return;\n'
+              '\n'
+              '   // Timer owns only maintenance/reset work. Lifecycle, emergency gating,\n'
+              '   // dashboard orchestration and strategy scanning have one shared authority:\n'
+              '   // OnTickMain(). This prevents timer-only state advancement during emergency.\n'
+              '   CleanupSignalHistoryEntries();\n'
+              '   CleanupGlobalSignalHistory();\n'
+              '\n'
+              '   datetime todayStart = GetTodayStart();\n'
+              '   if(todayStart > g_last_reset_date)\n'
+              '   {\n'
+              '      // Keep daily reset consistent with the M19 equity-drawdown contract.\n'
+              '      double resetEquity = AccountEquity();\n'
+              '      if(resetEquity > 0)\n'
+              '         g_protection_reference_equity = resetEquity;\n'
+              '      g_last_reset_date = todayStart;\n'
+              '      g_last_daily_profit = 0;\n'
+              '      Log(DBG_FULL, "Daily reset: protection reference = " + DoubleToString(g_protection_reference_equity, 2));\n'
+              '   }\n'
+              '\n'
+              '   // Mirror OnTick connectivity semantics before entering shared live orchestration.\n'
+              '   if(!IsTerminalConnected()) return;\n'
+              '   OnTickMain();\n'
+              '}\n'
+          )
+          p.write_text(s[:start] + new + s[end:], encoding='utf-8')
           PY
 
       - name: Commit canonical fix

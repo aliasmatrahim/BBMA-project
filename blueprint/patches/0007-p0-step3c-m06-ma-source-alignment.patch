@@ -1,0 +1,113 @@
+--- a/MASTER_BLUEPRINT_2.0_WORKING.txt
++++ b/MASTER_BLUEPRINT_2.0_WORKING.txt
+@@ -1468,6 +1468,8 @@
+ 
+ double SMA(string pair, int timeframe, int period, int shift)
+ {
++   // Close-price SMA is retained for Bollinger calculations only.
++   // BBMA MA5/10 High/Low must use the source-defined LWMA applied price.
+    double sum = 0;
+    int count = 0;
+    for(int i = 0; i < period; i++)
+@@ -1483,23 +1485,24 @@
+    return sum / count;
+ }
+ 
++double BBMAHighMA(string pair, int timeframe, int period, int shift)
++{
++   if(period <= 0 || shift < 0) return 0;
++   return iMA(pair, timeframe, period, 0, MODE_LWMA, PRICE_HIGH, shift);
++}
++
++double BBMALowMA(string pair, int timeframe, int period, int shift)
++{
++   if(period <= 0 || shift < 0) return 0;
++   return iMA(pair, timeframe, period, 0, MODE_LWMA, PRICE_LOW, shift);
++}
++
+ double EMA(string pair, int timeframe, int period, int shift)
+ {
+-   double sum = 0;
+-   double weight = 2.0 / (period + 1);
+-   int count = 0;
+-   for(int i = 0; i < period && i < 100; i++)
+-   {
+-      double price = iClose(pair, timeframe, shift + i);
+-      if(price > 0)
+-      {
+-         if(count == 0) sum = price;
+-         else sum = price * weight + sum * (1 - weight);
+-         count++;
+-      }
+-   }
+-   if(count == 0) return 0;
+-   return sum;
++   if(period <= 0 || shift < 0) return 0;
++   // Source setting: Exponential MA applied to Close. Using MT4 iMA avoids
++   // the previous custom recurrence being evaluated newest-to-oldest.
++   return iMA(pair, timeframe, period, 0, MODE_EMA, PRICE_CLOSE, shift);
+ }
+ 
+ double StandardDeviation(string pair, int timeframe, int period, int shift)
+@@ -1534,10 +1537,14 @@
+ 
+ void CalculateAllMA(string pair, int timeframe, int shift, MovingAverage &ma)
+ {
+-   ma.MA5_High = SMA(pair, timeframe, MA5_HIGH_PERIOD, shift);
+-   ma.MA10_High = SMA(pair, timeframe, MA10_HIGH_PERIOD, shift);
+-   ma.MA5_Low = SMA(pair, timeframe, MA5_LOW_PERIOD, shift);
+-   ma.MA10_Low = SMA(pair, timeframe, MA10_LOW_PERIOD, shift);
++   // BBMA source settings:
++   // MA5/10 High = Linear Weighted applied to High.
++   // MA5/10 Low  = Linear Weighted applied to Low.
++   // MA50        = Exponential applied to Close.
++   ma.MA5_High = BBMAHighMA(pair, timeframe, MA5_HIGH_PERIOD, shift);
++   ma.MA10_High = BBMAHighMA(pair, timeframe, MA10_HIGH_PERIOD, shift);
++   ma.MA5_Low = BBMALowMA(pair, timeframe, MA5_LOW_PERIOD, shift);
++   ma.MA10_Low = BBMALowMA(pair, timeframe, MA10_LOW_PERIOD, shift);
+    ma.EMA50 = EMA(pair, timeframe, EMA50_PERIOD, shift);
+ }
+ 
+@@ -1577,7 +1584,7 @@
+    data.ma[3] = ma.MA10_Low;
+    data.ma[4] = ma.EMA50;
+    
+-   double ema50 = EMA(pair, timeframe, EMA50_PERIOD, shift);
++   double ema50 = ma.EMA50;
+    if(data.close > ema50) data.trend = 1.0;
+    else if(data.close < ema50) data.trend = -1.0;
+    else data.trend = 0;
+@@ -1718,13 +1725,13 @@
+    if(direction == DIR_BUY)
+    {
+       double ma5_high = data.ma[0];
+-      double ma5_high_prev = SMA(pair, PERIOD_H1, MA5_HIGH_PERIOD, data.barIndex + 1);
++      double ma5_high_prev = BBMAHighMA(pair, data.timeframe, MA5_HIGH_PERIOD, data.barIndex + 1);
+       maExtension = (data.close > ma5_high && ma5_high > ma5_high_prev);
+    }
+    else if(direction == DIR_SELL)
+    {
+       double ma5_low = data.ma[2];
+-      double ma5_low_prev = SMA(pair, PERIOD_H1, MA5_LOW_PERIOD, data.barIndex + 1);
++      double ma5_low_prev = BBMALowMA(pair, data.timeframe, MA5_LOW_PERIOD, data.barIndex + 1);
+       maExtension = (data.close < ma5_low && ma5_low < ma5_low_prev);
+    }
+    if(!maExtension) return false;
+@@ -1768,7 +1775,7 @@
+       double ma5_high = data.ma[0];
+       if(data.close > ma5_high)
+       {
+-         double prev_ma5_high = SMA(pair, data.timeframe, MA5_HIGH_PERIOD, data.barIndex + 1);
++         double prev_ma5_high = BBMAHighMA(pair, data.timeframe, MA5_HIGH_PERIOD, data.barIndex + 1);
+          if(prev_ma5_high > 0 && ma5_high > prev_ma5_high)
+             return true;
+       }
+@@ -1778,7 +1785,7 @@
+       double ma5_low = data.ma[2];
+       if(data.close < ma5_low)
+       {
+-         double prev_ma5_low = SMA(pair, data.timeframe, MA5_LOW_PERIOD, data.barIndex + 1);
++         double prev_ma5_low = BBMALowMA(pair, data.timeframe, MA5_LOW_PERIOD, data.barIndex + 1);
+          if(prev_ma5_low > 0 && ma5_low < prev_ma5_low)
+             return true;
+       }

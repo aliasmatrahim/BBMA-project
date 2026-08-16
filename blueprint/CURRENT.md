@@ -34,6 +34,7 @@ The exact baseline is stored as deterministic gzip+base64 chunks under `blueprin
 15. `blueprint/patches/0015-p0-step8-m17-sltp-source-guard-direction-validation.patch`
 16. `blueprint/patches/0016-p0-step8c-m17-approved-sltp-resolver.patch`
 17. `blueprint/patches/0017-p0-step9-m18-label-only-scoring-authority.patch`
+18. `blueprint/patches/0018-p0-step10-m19-risk-filter-accounting.patch`
 
 ## Full-source SHA verification status
 The previously recorded SHA-256 `274b3d380463f5cd9a477ce0c37b6da0db6c4cc6721013fdef4e984326b291bf` was discovered during Step 3D to have been calculated from a partial reconstruction and remains withdrawn.
@@ -41,7 +42,7 @@ The previously recorded SHA-256 `274b3d380463f5cd9a477ce0c37b6da0db6c4cc6721013f
 Last exact verified full-chain working-source SHA through patches 0001–0005:
 `9ccbfd77032e3e9acdbf4b343ceaf98f632162d932cbb3fcad04a58539c1e3d8`
 
-Patches 0006–0017 currently have focused patch/contract verification only. A new full-chain SHA must only be claimed after exact materialization of the complete ordered patch chain.
+Patches 0006–0018 currently have focused patch/contract verification only. A new full-chain SHA must only be claimed after exact materialization of the complete ordered patch chain.
 
 ## Locked supporting contracts
 - `blueprint/ENTRY_MODE_CONTRACT.md`
@@ -56,6 +57,7 @@ Patches 0006–0017 currently have focused patch/contract verification only. A n
 - `blueprint/contracts/M17_ENTRY_SLTP_CONTRACT.md`
 - `blueprint/contracts/M17_SLTP_EXIT_RESOLUTION_CONTRACT.md`
 - `blueprint/contracts/M18_SIGNAL_SCORING_LABEL_CONTRACT.md`
+- `blueprint/contracts/M19_RISK_FILTER_CONTRACT.md`
 - `docs/references/SOURCE_INDEX.md`
 - `docs/references/BBMA_OMA_ALLY_RULE_INDEX.md`
 
@@ -194,19 +196,51 @@ Locked M18 behavior:
 - no effect on lot sizing, risk approval, portfolio checks or execution;
 - `SignalMode`, `ScoreDisplayThresholdManual` and `EnableSignalScoring` cannot act as hidden trading filters.
 
-### Verification boundary
-The original M18 baseline was checked directly from the archived `Master Blueprint 2.0.txt`. The only old score-field writer was the M18 helper itself, and the only active orchestration scoring call was already removed by Step 6. Step 9 removes the unsupported weights and raw-signal mutation path.
+## Step 10 — M19 Risk Engine
+Status: **COMPLETED AT FILTER / ACCOUNTING CONTRACT LEVEL**
 
-No new full-chain working-source SHA is claimed until the complete patch chain is exactly materialized and compiled.
+Baseline defects repaired:
+- spread comparison mixed pips and points, causing unit inconsistency;
+- drawdown was effectively another sum-of-losing-trades metric and ignored profitable floating positions despite reading account equity;
+- total risk counted only the same pair although the input is `MaxTotalRiskPercent` for EA-wide exposure;
+- existing positions were priced with the new candidate pair's tick specification;
+- stale/closed monitored entries could contaminate exposure accounting;
+- every M19 rejection was collapsed downstream into `REJ_TOTAL_RISK` even though specific enums already existed.
+
+Implemented by:
+`blueprint/patches/0018-p0-step10-m19-risk-filter-accounting.patch`
+
+Patch commit:
+`5a32268ecd93efe8716913a518bcfa16924fdee6`
+
+Contract:
+`blueprint/contracts/M19_RISK_FILTER_CONTRACT.md`
+
+Contract commit:
+`460fff4ed7e84e6666c0c5ba03ea6c2784353921`
+
+Locked M19 behavior:
+- filter-only: allow/reject only; no direction, signal, Entry/SL/TP or execution authority;
+- live spread/equity/open-order state is permitted because it is execution-time risk state, while strategy formation remains closed-candle/M15-owned;
+- spread uses `GetPipValue()` and compares directly with `MaxSpreadPips`;
+- drawdown uses live account equity versus the protection reference equity and remains distinct from basket floating loss;
+- basket loss remains negative floating P/L of monitored EA orders;
+- total risk is prospective EA-wide exposure, using each existing trade's own symbol risk conversion plus the proposed M17-approved trade;
+- unquantifiable open-order risk fails closed instead of being treated as zero;
+- rejection reasons propagate as `REJ_SPREAD_HIGH`, `REJ_DD_LIMIT`, `REJ_BASKET_LOSS`, `REJ_TOTAL_RISK` or broker-spec failure as appropriate;
+- M18 score/level/SignalMode are not consumed.
+
+### Verification boundary
+The M19 baseline and both downstream `CheckRiskBeforeTrade()` callers were inspected directly. The patch records the accounting and rejection-propagation repairs, but no new full-chain compile/SHA is claimed yet.
 
 ## Next P0 action
-**Step 10 — audit M19 Risk Engine as a filter-only module.**
+**Step 11 — audit M20 Portfolio Risk & Protection Engine.**
 
 Required focus:
-1. M19 may reject a fully formed M15–M17 decision but must not recreate strategy direction or SL/TP;
-2. verify spread, drawdown, basket-loss and total-risk calculations use coherent account/EA ownership and units;
-3. verify decision rejection reason maps to the actual failed risk rule rather than collapsing all failures into `REJ_TOTAL_RISK`;
-4. verify risk snapshot timing and live-order accounting do not violate the closed-candle strategy clock while still using live broker/account state where required;
-5. verify M19 does not consume M18 score/level/SignalMode as a trading filter.
+1. verify portfolio limits are prospective/atomic before execution rather than off-by-one after the limit is already exceeded;
+2. separate entry gating from lifecycle actions such as basket-profit/basket-loss forced closing;
+3. verify only EA-owned orders are counted/closed and live order state is revalidated before action;
+4. audit `ManagePortfolio()` direct `OrderClose()` calls for execution/retry ownership conflicts with M22/M23/M24;
+5. ensure M20 cannot alter M15–M17 strategy payload or bypass M19 rejection state.
 
 Do not merge into `main` until the full blueprint audit is clean and explicitly approved as MASTER BLUEPRINT LOCKED.

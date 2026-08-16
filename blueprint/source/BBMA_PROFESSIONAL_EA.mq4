@@ -5592,12 +5592,13 @@ void OnTick()
 void OnTimer()
 {
    if(!g_is_initialized) return;
-   
-   ManagePositions();
-   
+
+   // Timer owns only maintenance/reset work. Lifecycle, emergency gating,
+   // dashboard orchestration and strategy scanning have one shared authority:
+   // OnTickMain(). This prevents timer-only state advancement during emergency.
    CleanupSignalHistoryEntries();
    CleanupGlobalSignalHistory();
-   
+
    datetime todayStart = GetTodayStart();
    if(todayStart > g_last_reset_date)
    {
@@ -5609,23 +5610,10 @@ void OnTimer()
       g_last_daily_profit = 0;
       Log(DBG_FULL, "Daily reset: protection reference = " + DoubleToString(g_protection_reference_equity, 2));
    }
-   
-   g_processing_time = GetProcessingTime();
-   for(int i = 0; i < g_pair_count; i++)
-   {
-      if(!g_pair_states[i].pair_enabled) continue;
-      if(g_pair_states[i].is_processing) continue;
-      if(IsNewCandle(g_pair_names[i], i))
-      {
-         ProcessPair(i);
-      }
-   }
-   
-   if(g_dashboard_needs_update)
-   {
-      UpdateDashboard();
-      g_dashboard_needs_update = false;
-   }
+
+   // Mirror OnTick connectivity semantics before entering shared live orchestration.
+   if(!IsTerminalConnected()) return;
+   OnTickMain();
 }
 
 //+------------------------------------------------------------------+

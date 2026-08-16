@@ -1,0 +1,87 @@
+name: P2 Step13 FixA v2
+on:
+  push:
+    branches:
+      - blueprint-dev
+    paths:
+      - '.github/workflows/p2-step13-fixa-v2.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+      - name: Patch source
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          p=Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
+          s=p.read_text(encoding='utf-8')
+          a=s.index('void InitPairState(PairState &state)\n{')
+          b=s.index('\nvoid CopyPairState',a)
+          new='''void InitPairState(PairState &state)
+          {
+             // Deterministic reset boundary: clear every PairState member first,
+             // then restore semantic defaults required by state engines.
+             ZeroMemory(state);
+             state.lot_digits = 2;
+             state.cent_factor = 1;
+             state.digits = 5;
+
+             InitTimeframeData(state.d1_data);
+             InitTimeframeData(state.h4_data);
+             InitTimeframeData(state.h1_data);
+             InitTimeframeData(state.m15_data);
+
+             state.mlv_buy_state.State = MLV_NONE;
+             state.mlv_buy_state.Direction = DIR_BUY;
+             state.mlv_sell_state.State = MLV_NONE;
+             state.mlv_sell_state.Direction = DIR_SELL;
+
+             state.re_h1_buy_state.State = RE_STATE_NONE;
+             state.re_h1_buy_state.Direction = DIR_BUY;
+             state.re_h1_buy_state.Timeframe = PERIOD_H1;
+             state.re_h1_sell_state.State = RE_STATE_NONE;
+             state.re_h1_sell_state.Direction = DIR_SELL;
+             state.re_h1_sell_state.Timeframe = PERIOD_H1;
+             state.re_h4_buy_state.State = RE_STATE_NONE;
+             state.re_h4_buy_state.Direction = DIR_BUY;
+             state.re_h4_buy_state.Timeframe = PERIOD_H4;
+             state.re_h4_sell_state.State = RE_STATE_NONE;
+             state.re_h4_sell_state.Direction = DIR_SELL;
+             state.re_h4_sell_state.Timeframe = PERIOD_H4;
+             state.re_d1_buy_state.State = RE_STATE_NONE;
+             state.re_d1_buy_state.Direction = DIR_BUY;
+             state.re_d1_buy_state.Timeframe = PERIOD_D1;
+             state.re_d1_sell_state.State = RE_STATE_NONE;
+             state.re_d1_sell_state.Direction = DIR_SELL;
+             state.re_d1_sell_state.Timeframe = PERIOD_D1;
+          }
+          '''
+          s=s[:a]+new+s[b:]
+          anchor='   g_processing_time = GetProcessingTime();\n\n   InitBrokerInfo();'
+          repl='''   g_processing_time = GetProcessingTime();
+
+             // Reset transient risk-cache state explicitly on every initialization.
+             g_last_risk_check_time = 0;
+             g_cached_risk_allowed = false;
+             g_cached_risk_reason = "";
+             g_cached_balance = 0.0;
+
+             InitBrokerInfo();'''
+          if s.count(anchor)!=1:
+              raise SystemExit('InitializeEA anchor mismatch')
+          s=s.replace(anchor,repl,1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'P2 S13 Fix A: deterministic runtime state reset'
+          git push origin blueprint-dev

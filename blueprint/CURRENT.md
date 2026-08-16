@@ -3,44 +3,25 @@
 ## Current branch
 `blueprint-dev`
 
-## Baseline
+## Source of truth
+GitHub `aliasmatrahim/BBMA-project` is authoritative for the active Master Blueprint. Notion is supporting documentation only.
+
+## Immutable baseline
 Source: `Master Blueprint 2.0.txt`
 
-Immutable archive is stored as verified deterministic gzip+base64 chunks:
-
-- `blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part01a`
-- `blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part01b`
-- `blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part02`
-- `blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part03`
-- `blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part04`
-- `blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part05`
-
-Verified encoded length: `32224` characters.
-
-Original source SHA-256:
+Verified baseline SHA-256:
 `e217816e95126857c1e7fa3fde1ac10ecc28f196a82eb51cb2f3625a6901aa00`
 
-To reconstruct the exact baseline locally from the repository root:
+The exact baseline is stored as deterministic gzip+base64 chunks under:
+`blueprint/archive/`
 
-```bash
-cat \
-  blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part01a \
-  blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part01b \
-  blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part02 \
-  blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part03 \
-  blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part04 \
-  blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part05 \
-  | base64 -d | gzip -d > MASTER_BLUEPRINT_2.0_BASELINE.txt
-```
-
-Then verify:
-
-```bash
-sha256sum MASTER_BLUEPRINT_2.0_BASELINE.txt
-```
-
-Expected SHA-256:
-`e217816e95126857c1e7fa3fde1ac10ecc28f196a82eb51cb2f3625a6901aa00`
+Reconstruction order:
+1. `MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part01a`
+2. `MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part01b`
+3. `MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part02`
+4. `MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part03`
+5. `MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part04`
+6. `MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part05`
 
 ## Current revision
 Apply patches in order:
@@ -49,9 +30,10 @@ Apply patches in order:
 2. `blueprint/patches/0002-p0-step1-bbshape-extreme-contract.patch`
 3. `blueprint/patches/0003-p0-step2-mlv-persistence-lifecycle.patch`
 4. `blueprint/patches/0004-p0-step2b-mlv-void-transition-contract.patch`
+5. `blueprint/patches/0005-p0-step3-reentry-persistence-lifecycle.patch`
 
-Expected working-source SHA-256 after patches 0001–0004:
-`5e83938613aa3304f5cd4e1241e0dc3fee5f8a52ea5b8d71b5b8fadca779094f`
+Expected working-source SHA-256 after patches 0001–0005:
+`9ccbfd77032e3e9acdbf4b343ceaf98f632162d932cbb3fcad04a58539c1e3d8`
 
 ## Complexity limiter
 Limiter taxonomy is LOCKED for the current blueprint-development cycle.
@@ -84,62 +66,69 @@ Limiter taxonomy is LOCKED for the current blueprint-development cycle.
 - M26 INTERMEDIATE
 - M27 EXPERT-RESTRICTED
 
-## P0 Architecture Repair
+# P0 Architecture Repair
 
-### Step 1 — BB Shape → Extreme contract
+## Step 1 — BB Shape → Extreme contract
 Status: **COMPLETED / VERIFIED AT BLUEPRINT LEVEL**
 
-Architecture after repair:
-- **M06** supplies frozen closed-candle `TimeframeData` and current Bollinger values.
-- **M07** is the sole owner of BB shape classification.
-- **M08** remains detector/consumer only.
-- **M13** remains collect-only and receives classified H1 BB state.
-- **M27** remains orchestrator-only and routes H1/H4 classified band snapshots.
+Architecture:
+- M06 supplies frozen closed-candle market data.
+- M07 solely classifies BB shape/state.
+- M08 consumes classified BB state.
+- M13 remains collect-only.
+- M27 remains orchestrator-only.
 
-Scope guard: no Extreme definition, direction rule, MA rule, sequence rule, SL/TP rule, risk rule, or execution rule was changed by Step 1.
+No Extreme trading rule, direction rule, SL/TP rule, risk rule or execution rule was changed by this step.
 
-### Step 2 — M09 MLV persistence/lifecycle
+## Step 2 — M09 MLV persistence/lifecycle
 Status: **COMPLETED / VERIFIED AT BLUEPRINT LEVEL**
 
-Problems repaired:
-- `MLVData` was previously a local object inside the BUY/SELL loop and was zeroed every processing cycle, making `MLV_CANDIDATE → MLV_CONFIRMED` persistence impossible.
-- One non-directional detector could prefer a SELL DoubleTop before a BUY DoubleBottom when both were inspected in the same state object.
-- M13 was mutating MLV lifecycle even though it is a collect-only module.
-- MLV validity used a hardcoded `10 * 900` expiry instead of `MaxWaitBars_MLV`.
-- M13 used the MLV candidate start candle as the sequence component time even though MLV becomes usable only after confirmation.
-- `MLV_VOID` existed in the enum but there was no defined state-transition interface.
+Architecture:
+- `PairState` owns independent persistent BUY/SELL MLV slots.
+- M09 solely mutates MLV lifecycle.
+- M27 selects the correct state slot and passes a cycle snapshot downstream.
+- M13 no longer mutates MLV lifecycle.
+- Lifecycle: `NONE → CANDIDATE → CONFIRMED → EXPIRED`, plus explicit `VOID` invalidation interface.
+- Candidate cannot confirm on its creation candle.
+- `ExpiryCandleTime` is authoritative.
+- Sequence chronology uses MLV confirmation candle, not candidate start candle.
 
-Architecture after repair:
-- `PairState` owns two persistent slots: `mlv_buy_state` and `mlv_sell_state`.
-- M09 is the sole owner of MLV state mutation.
-- M27 only chooses the pair+direction slot, invokes one M09 update on the frozen closed M15 snapshot, then copies an immutable cycle snapshot downstream.
-- M13 consumes the MLV snapshot and no longer calls the MLV state engine.
-- State lifecycle is now explicitly `MLV_NONE → MLV_CANDIDATE → MLV_CONFIRMED → MLV_EXPIRED`, with `MLV_VOID` available for explicit external invalidation.
-- `MarkMLVVoid()` is the state-mutation interface for future M16 invalidation. Step 2 deliberately does not invent a price-based VOID rule because the source blueprint does not define one.
-- Terminal `VOID/EXPIRED` state is retained for one completed processing candle, then the pair+direction slot is released for a new independent MLV pattern.
-- Candidate creation and confirmation cannot occur on the same closed candle.
-- `ExpiryCandleTime` is derived from `StartCandleTime + MaxWaitBars_MLV × timeframe` and is the authoritative time-based expiry field.
-- A confirmed MLV is valid only while `State == MLV_CONFIRMED`, `IsValid == true`, and the expiry has not passed.
-- REM sequence chronology now uses `m15_mlv.ConfirmationCandleTime` for the MLV component; candidate start time remains available as the overall pattern start metadata.
+## Step 3 — M12 Re-Entry persistence/lifecycle
+Status: **PARTIALLY COMPLETED / SAFE ARCHITECTURE GUARD APPLIED**
 
-Scope guard:
-- Existing DoubleTop/DoubleBottom comparison logic, tolerance (`point * 10`) and confirmation neckline offset (`point * 5`) are preserved.
-- No new BBMA trading condition was invented.
-- No MLV VOID price rule was invented; external invalidation criteria remain for the later M16 repair.
-- Restart persistence is not claimed here; recovery across EA restart belongs to the later recovery/state-reconstruction scope.
+### Repaired
+- Re-Entry is no longer a local object that is recreated/zeroed as lifecycle authority every M15 processing cycle.
+- `PairState` now owns persistent Re-Entry state for H1/H4/D1 independently for BUY and SELL.
+- M12 is the sole owner of Re-Entry lifecycle mutation.
+- M13 remains collect-only and receives an immutable H1 Re-Entry snapshot.
+- M27 only routes frozen H1/H4/D1 data into M12 and exports confirmed H4/D1 Re-Entry signals for combinations.
+- Direct `DetectReEntry_Master(...) → Valid=true` shortcuts in M13/M27 are removed.
+- Type 1 now follows an explicit persistent lifecycle: `NONE → CANDIDATE → CONFIRMED → EXPIRED` using the confirmation rule already present in the active Master Blueprint.
+- Candidate and confirmation must occur on different closed candles.
+- Re-Entry expiry is timeframe-aware via `ExpiryCandleTime = StartCandleTime + MaxWaitBars_ReEntry × timeframe`.
+- Only `RE_STATE_CONFIRMED && IsValid` may be exported as `SIGNAL_RE_ENTRY`.
 
-Verification performed:
-- Old `DetectMLV_State(... timeframe, shift)` call contract is removed from the working revision.
-- M13 no longer mutates MLV state.
-- BUY and SELL persistent state slots are both present and initialized.
-- `ConfirmationCandleTime` is used for the MLV sequence component.
-- Hardcoded `10 * 900` MLV validity expiry is removed.
-- `MLV_EXPIRED` and `MarkMLVVoid()` are present.
-- Structural braces and parentheses remain balanced in the reconstructed working source.
+### Safety quarantine
+Type 2, Type 3 and Type 4 are currently **not execution-eligible** in the authoritative lifecycle. They are deliberately quarantined until their BBMA contract is reconciled. This prevents an incomplete or contradictory detector from becoming a valid combination component.
 
-### Next P0 step
-**Step 3 — M12 Re-Entry persistence/lifecycle.**
+### Source conflict discovered
+The active Master Blueprint defines detector code for Type 2–4 but does not define their confirmation lifecycle. A prior project reference, `PSCODE BBMA CORE V1.0.txt`, states BBMA/PDF-derived semantics that do not match the current detector implementations:
 
-Target: make Re-Entry candidate/confirmation/expiry state persistent and authoritative, remove the current detector-immediately-valid shortcut, and preserve M13 as collect-only.
+- Type 2: MA5/10 + MID BB collision, strongest when MA50 also meets; minimum 3 candles per timeframe.
+- Type 3: CSM occurs, then price retraces/reverses to MA5 or MA50.
+- Type 4: CSD occurs, then price gyrates/retraces toward MA5/10.
+
+The current Master Blueprint Type 2–4 detectors therefore require a deliberate source-alignment repair before they can be re-enabled. The historical reference is supporting evidence only; GitHub remains authoritative after the repair is explicitly incorporated.
+
+### Verification
+- Patch 0005 applies cleanly to the Step 2 working source.
+- Old direct-valid H4/D1 Re-Entry paths are removed.
+- Re-Entry state slots exist for H1/H4/D1 × BUY/SELL.
+- Only confirmed states are exported downstream.
+- Structural braces, parentheses and brackets remain balanced.
+- Working-source SHA-256 is `9ccbfd77032e3e9acdbf4b343ceaf98f632162d932cbb3fcad04a58539c1e3d8`.
+
+## Next P0 action
+**Step 3B — reconcile and lock Re-Entry Type 2–4 BBMA contracts before proceeding to M13/M14.**
 
 Do not merge into `main` until the full blueprint audit is clean and explicitly approved as MASTER BLUEPRINT LOCKED.

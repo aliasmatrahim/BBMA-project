@@ -1,0 +1,118 @@
+--- a/MASTER_BLUEPRINT_2.0_WORKING.txt
++++ b/MASTER_BLUEPRINT_2.0_WORKING.txt
+@@ -59,13 +59,13 @@
+ input double   MinRRRatio                         = 1.5;        // MinRRRatio
+ input double   MaxSLPips                          = 100.0;      // MaxSLPips
+ input int      SignalMode                         = 1;          // Deprecated for M15 entry authority; retained for compatibility/display only
+-input int      ScoreDisplayThresholdManual        = 60;         // ScoreDisplayThresholdManual
++input int      ScoreDisplayThresholdManual        = 60;         // Deprecated trading threshold; display compatibility only
+ input bool     EnableBBShapeEngine                = true;       // EnableBBShapeEngine
+ input bool     EnableExtremeClassifier            = true;       // EnableExtremeClassifier
+ input bool     EnableMLVStateEngine               = true;       // EnableMLVStateEngine
+ input bool     EnableReEntryEngine                = true;       // EnableReEntryEngine
+-input bool     EnableSignalScoring                = true;       // EnableSignalScoring
++input bool     EnableSignalScoring                = true;       // Optional M18 label metadata only; never gates trading
+ input bool     EnableRE_Type1                     = true;       // EnableRE_Type1
+ input bool     EnableRE_Type2                     = true;       // EnableRE_Type2
+ input bool     EnableRE_Type3                     = true;       // EnableRE_Type3
+@@ -2634,68 +2634,48 @@
+ //| MODULE 18: SIGNAL SCORING ENGINE (LABEL ONLY)                    |
+ //| LEVEL: INTERMEDIATE                                              |
+ //+------------------------------------------------------------------+
+ 
+-SignalScoreResult CalculateSignalScore(Signal signal, MLVData mlv, ReEntryData reEntry)
++SignalScoreResult CalculateSignalScore(BBMA_Decision decision)
+ {
+    SignalScoreResult result;
+    result.Score = 0;
+    result.Level = LEVEL_NONE;
+    result.ScoreBreakdown = "";
+-   
+-   if(!signal.Valid) return result;
+-   
+-   if(signal.MA50_Level > 0)
+-   {
+-      if((signal.Direction == DIR_BUY && signal.Close > signal.MA50_Level) ||
+-         (signal.Direction == DIR_SELL && signal.Close < signal.MA50_Level))
+-      {
+-         result.Score += 20;
+-         result.ScoreBreakdown += "Trend:20|";
+-      }
+-   }
+-   
+-   if(signal.Type == SIGNAL_EXTREME)
+-   {
+-      result.Score += 15;
+-      result.ScoreBreakdown += "Extreme:15|";
+-   }
+-   
+-   if(mlv.IsValid && mlv.State == MLV_CONFIRMED)
+-   {
+-      result.Score += 15;
+-      result.ScoreBreakdown += "MLV:15|";
+-   }
+-   
+-   if(signal.Type == SIGNAL_CSD)
+-   {
+-      result.Score += 15;
+-      result.ScoreBreakdown += "CSD:15|";
+-   }
+-   
+-   if(reEntry.IsValid)
+-   {
+-      result.Score += 10;
+-      result.ScoreBreakdown += "ReEntry:10|";
+-   }
+-   
+-   if(signal.Type == SIGNAL_REM || signal.Type == SIGNAL_RRE || signal.Type == SIGNAL_REE)
+-   {
+-      result.Score += 10;
+-      result.ScoreBreakdown += "Combined:10|";
+-   }
+-   
+-   result.Score += 10;
+-   result.ScoreBreakdown += "BBShape:10|";
+-   result.Score += 5;
+-   result.ScoreBreakdown += "MultiTF:5|";
+-   
+-   if(result.Score >= 90) result.Level = LEVEL_A_PLUS;
+-   else if(result.Score >= 80) result.Level = LEVEL_A;
+-   else if(result.Score >= 70) result.Level = LEVEL_B;
+-   else if(result.Score >= 60) result.Level = LEVEL_C;
+-   else result.Level = LEVEL_D;
+-   
++
++   // P0 Step 9: M18 is observability only. M15 is the final entry authority.
++   // The previous weights and unconditional BBShape/MultiTF bonuses were not
++   // source-backed BBMA rules and could imply a false quality hierarchy.
++   if(!decision.Valid) return result;
++
++   result.ScoreBreakdown = "LABEL_ONLY|Type:" + EnumToString(decision.SignalType) +
++                           "|Direction:" + EnumToString(decision.Direction) + "|";
++
++   if(decision.HasSLTPSourceComponent)
++      result.ScoreBreakdown += "SourceTF:" +
++                               IntegerToString(decision.SLTPSourceComponent.Timeframe) + "|";
++
++   // Numeric quality score is deliberately neutral. It cannot rank, gate,
++   // invalidate or change any BBMA decision.
+    return result;
+ }
+ 
+ string GetSignalLevelString(ENUM_SIGNAL_LEVEL level)
+ {
+@@ -2709,12 +2689,6 @@
+       default: return "NONE";
+    }
+ }
+ 
+-void LabelSignalWithScore(Signal &signal, SignalScoreResult scoreResult)
+-{
+-   signal.Score = scoreResult.Score;
+-   signal.Level = scoreResult.Level;
+-}
+-
+ //+------------------------------------------------------------------+
+ //| MODULE 19: RISK ENGINE (FILTER ONLY)                             |
+ //| LEVEL: EXPERT-RESTRICTED                                         |
+ //+------------------------------------------------------------------+

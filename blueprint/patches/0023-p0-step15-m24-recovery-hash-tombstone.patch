@@ -1,0 +1,397 @@
+--- a/MASTER_BLUEPRINT_2.0_WORKING.txt
++++ b/MASTER_BLUEPRINT_2.0_WORKING.txt
+@@
+-enum ENUM_RECOVERY_STATE { REC_NORMAL, REC_CORRUPTED, REC_RECOVERY_INVALID, REC_PARTIAL_INFERRED };
++enum ENUM_RECOVERY_STATE { REC_NORMAL, REC_CORRUPTED, REC_RECOVERY_INVALID, REC_PARTIAL_INFERRED,
++                           REC_IDENTITY_HASH_ONLY };
+@@
+ struct TradeInfo
+ {
+@@
+    string               decision_id;
++   string               execution_hash;
+    string               sequence_hash_short;
+    ENUM_RECOVERY_STATE  recovery_state;
+ };
+@@
+ struct SignalHistoryEntry
+ {
+    string               DecisionID;
++   string               ExecutionHash;
+    string               Pair;
+@@
+ void MarkDecisionExecuted(string decisionID, int ticketNumber)
+ {
++   string executionHash = SHORT_HASH(decisionID);
+    int count = ArraySize(g_global_signal_history);
+    for(int i = 0; i < count; i++)
+    {
+       if(g_global_signal_history[i].DecisionID == decisionID)
+       {
+          g_global_signal_history[i].Executed = true;
+          g_global_signal_history[i].TicketNumber = ticketNumber;
++         g_global_signal_history[i].ExecutionHash = executionHash;
+          break;
+       }
+    }
+ }
+ 
+ bool IsDecisionExecuted(string decisionID)
+ {
++   if(decisionID == "") return false;
++   string executionHash = SHORT_HASH(decisionID);
+    int count = ArraySize(g_global_signal_history);
+    for(int i = 0; i < count; i++)
+    {
+       if(g_global_signal_history[i].DecisionID == decisionID)
+          return g_global_signal_history[i].Executed;
++      if(g_global_signal_history[i].Executed &&
++         g_global_signal_history[i].ExecutionHash != "" &&
++         g_global_signal_history[i].ExecutionHash == executionHash)
++         return true;
+    }
+    return false;
+ }
+ 
+-// FIX 3 & 4: Rebuild DecisionID with actual candle time from comment
+-string RebuildDecisionIDFromComment(string pair, ENUM_DIRECTION direction,
+-                                    ENUM_SIGNAL_TYPE signalType,
+-                                    string sequenceHash, datetime candleTime)
++bool ExtractExecutionHash(string comment, string &executionHash)
+ {
+-   return GenerateDecisionID(pair, candleTime, direction, signalType, sequenceHash);
++   executionHash = "";
++   string prefix = "BBMA|H:";
++   if(StringFind(comment, prefix) != 0) return false;
++
++   int start = StringLen(prefix);
++   int end = StringFind(comment, "|", start);
++   if(end < 0) end = StringLen(comment);
++   if(end <= start) return false;
++
++   executionHash = StringSubstr(comment, start, end - start);
++   return (executionHash != "");
++}
++
++bool IsExactEAOwnedSelectedOrder(int &pairIdx)
++{
++   pairIdx = -1;
++   if(OrderCloseTime() != 0) return false;
++   if(OrderType() != OP_BUY && OrderType() != OP_SELL) return false;
++
++   int magic = OrderMagicNumber();
++   string symbol = OrderSymbol();
++   for(int p = 0; p < g_pair_count; p++)
++   {
++      if(g_pair_states[p].magic_number != magic) continue;
++      if(g_pair_states[p].actual_symbol != symbol) continue;
++      pairIdx = p;
++      return true;
++   }
++   return false;
++}
++
++void UpsertExecutionHashTombstone(string executionHash, int ticket, string pair,
++                                  ENUM_DIRECTION direction, datetime createdTime)
++{
++   if(executionHash == "" || ticket <= 0 || pair == "") return;
++
++   int count = ArraySize(g_global_signal_history);
++   for(int i = 0; i < count; i++)
++   {
++      if(g_global_signal_history[i].ExecutionHash == executionHash)
++      {
++         g_global_signal_history[i].Executed = true;
++         g_global_signal_history[i].TicketNumber = ticket;
++         return;
++      }
++   }
++
++   ArrayResize(g_global_signal_history, count + 1);
++   g_global_signal_history[count].DecisionID = "";
++   g_global_signal_history[count].ExecutionHash = executionHash;
++   g_global_signal_history[count].Pair = pair;
++   g_global_signal_history[count].Direction = direction;
++   g_global_signal_history[count].SignalType = SIGNAL_NONE;
++   g_global_signal_history[count].CandleTime = 0;
++   g_global_signal_history[count].SequenceHash = "";
++   g_global_signal_history[count].Expiry = 0;
++   g_global_signal_history[count].Executed = true;
++   g_global_signal_history[count].CreatedTime = createdTime;
++   g_global_signal_history[count].TicketNumber = ticket;
+ }
+ 
+ void RebuildExecutionHistory()
+ {
+-   int total = OrdersTotal();
+-   for(int i = 0; i < total; i++)
++   // Restart idempotency is execution-hash based. Scan BOTH open and historical
++   // EA orders so an already-executed decision cannot be recreated after restart
++   // merely because its position has already closed.
++   for(int pass = 0; pass < 2; pass++)
+    {
+-      if(OrderSelect(i, SELECT_BY_POS, MODE_TRADES))
++      int total = (pass == 0) ? OrdersTotal() : OrdersHistoryTotal();
++      int pool = (pass == 0) ? MODE_TRADES : MODE_HISTORY;
++      for(int i = 0; i < total; i++)
+       {
+-         int magic = OrderMagicNumber();
+-         for(int p = 0; p < g_pair_count; p++)
+-         {
+-            if(g_pair_states[p].magic_number == magic)
+-            {
+-               string comment = OrderComment();
+-               string decisionHash, pair, sequenceHash, candleTimeStr;
+-               ENUM_DIRECTION direction;
+-               ENUM_SIGNAL_TYPE signalType;
+-               double intendedEntry, intendedSL, intendedLot, intendedRisk;
+-               datetime candleTime = 0;
+-               
+-               if(ParseOrderCommentFull(comment, decisionHash, pair, direction, signalType,
+-                                       intendedEntry, intendedSL, intendedLot, intendedRisk,
+-                                       sequenceHash, candleTime))
+-               {
+-                  // Build full DecisionID using actual candle time from comment
+-                  string fullDecisionID = GenerateDecisionID(pair, candleTime, direction,
+-                                                             signalType, sequenceHash);
+-                  
+-                  int count = ArraySize(g_global_signal_history);
+-                  ArrayResize(g_global_signal_history, count + 1);
+-                  g_global_signal_history[count].DecisionID = fullDecisionID;
+-                  g_global_signal_history[count].Pair = pair;
+-                  g_global_signal_history[count].Direction = direction;
+-                  g_global_signal_history[count].SignalType = signalType;
+-                  g_global_signal_history[count].CandleTime = candleTime;
+-                  g_global_signal_history[count].SequenceHash = sequenceHash;
+-                  g_global_signal_history[count].Expiry = candleTime + 86400;
+-                  g_global_signal_history[count].Executed = true;
+-                  g_global_signal_history[count].CreatedTime = OrderOpenTime();
+-                  g_global_signal_history[count].TicketNumber = OrderTicket();
+-               }
+-               break;
+-            }
+-         }
++         if(!OrderSelect(i, SELECT_BY_POS, pool)) continue;
++         if(OrderType() != OP_BUY && OrderType() != OP_SELL) continue;
++
++         int pairIdx = -1;
++         int magic = OrderMagicNumber();
++         string symbol = OrderSymbol();
++         for(int p = 0; p < g_pair_count; p++)
++         {
++            if(g_pair_states[p].magic_number == magic &&
++               g_pair_states[p].actual_symbol == symbol)
++            {
++               pairIdx = p;
++               break;
++            }
++         }
++         if(pairIdx < 0) continue;
++
++         string executionHash;
++         if(!ExtractExecutionHash(OrderComment(), executionHash)) continue;
++
++         ENUM_DIRECTION liveDirection = (OrderType() == OP_BUY) ? DIR_BUY : DIR_SELL;
++         UpsertExecutionHashTombstone(executionHash, OrderTicket(), symbol,
++                                      liveDirection, OrderOpenTime());
+       }
+    }
+    g_global_signal_count = ArraySize(g_global_signal_history);
+ }
+@@
+ bool ParseOrderCommentFull(string comment, string &decisionHash, string &pair,
+@@
+    while(true)
+    {
+       int next = StringFind(comment, "|", pos);
+-      if(next < 0) break;
++      if(next < 0)
++      {
++         if(pos < StringLen(comment))
++         {
++            ArrayResize(fields, count + 1);
++            fields[count] = StringSubstr(comment, pos);
++            count++;
++         }
++         break;
++      }
+@@
+-   return (candleTime > 0);
++   // Full parsing is metadata only. Recovery identity is H:, because brokers may
++   // truncate later fields and Q: stores a hash of SequenceHash, not the original
++   // SequenceHash required to reconstruct the exact original DecisionID.
++   return (decisionHash != "" && pair != "" && candleTime > 0 &&
++           direction != DIR_NONE && signalType != SIGNAL_NONE);
+ }
+@@
+ void RecoverExistingOrders()
+ {
+@@
+-      int magic = OrderMagicNumber();
+       int pairIdx = -1;
+-      
+-      for(int p = 0; p < g_pair_count; p++)
+-      {
+-         if(g_pair_states[p].magic_number == magic)
+-         {
+-            pairIdx = p;
+-            break;
+-         }
+-      }
+-      
+-      if(pairIdx < 0) continue;
+-      
+-      string pair = g_pair_names[pairIdx];
++      if(!IsExactEAOwnedSelectedOrder(pairIdx)) continue;
++
++      int magic = OrderMagicNumber();
++      string pair = OrderSymbol();
+       string comment = OrderComment();
+-      string decisionHash, sequenceHash;
+-      ENUM_DIRECTION direction;
+-      ENUM_SIGNAL_TYPE signalType;
++      string executionHash;
++      if(!ExtractExecutionHash(comment, executionHash))
++      {
++         Log(DBG_ERROR, "EA-owned order missing execution hash ticket=" +
++             IntegerToString(OrderTicket()));
++         continue;
++      }
++
++      ENUM_DIRECTION liveDirection = (OrderType() == OP_BUY) ? DIR_BUY : DIR_SELL;
++      string decisionHash, parsedPair, sequenceHash;
++      ENUM_DIRECTION parsedDirection = DIR_NONE;
++      ENUM_SIGNAL_TYPE signalType = SIGNAL_NONE;
+       double intendedEntry, intendedSL, intendedLot, intendedRisk;
+       datetime candleTime = 0;
+-      
+-      // FIX 3 & 4: Use full parser with candle time
+-      if(ParseOrderCommentFull(comment, decisionHash, pair, direction, signalType,
+-                               intendedEntry, intendedSL, intendedLot, intendedRisk,
+-                               sequenceHash, candleTime))
+-      {
+-         TradeInfo info;
++
++      bool fullMetadata = ParseOrderCommentFull(comment, decisionHash, parsedPair,
++                                                 parsedDirection, signalType,
++                                                 intendedEntry, intendedSL,
++                                                 intendedLot, intendedRisk,
++                                                 sequenceHash, candleTime);
++
++      // Comment metadata may be truncated, but if present it must agree with live
++      // broker ownership/direction and H: execution identity. Never let parsed
++      // comment fields override the selected live order.
++      if(fullMetadata &&
++         (decisionHash != executionHash || parsedPair != pair ||
++          parsedDirection != liveDirection))
++      {
++         Log(DBG_ERROR, "Recovery metadata mismatch ticket=" + IntegerToString(OrderTicket()));
++         fullMetadata = false;
++         signalType = SIGNAL_NONE;
++         sequenceHash = "";
++      }
++
++      TradeInfo info;
+          info.ticket = OrderTicket();
+          info.magic_number = magic;
+          info.pair = pair;
+-         info.direction = direction;
++         info.direction = liveDirection;
+          info.signal_type = signalType;
+          info.initial_entry_price = OrderOpenPrice();
+          info.initial_stop_loss = OrderStopLoss();
+          info.initial_take_profit = OrderTakeProfit();
+          info.initial_lot = OrderLots();
+@@
+-         // FIX 3: Rebuild full DecisionID with candle time from comment
+-         info.decision_id = RebuildDecisionIDFromComment(pair, direction, signalType,
+-                                                         sequenceHash, candleTime);
++         // Never fabricate a full DecisionID from lossy comment metadata.
++         info.decision_id = "";
++         info.execution_hash = executionHash;
+          info.sequence_hash_short = sequenceHash;
+-         
++
++         // Recovery preserves broker-side Entry/SL/TP/lot exactly. A valid live
++         // BBMA market order must still have directionally sane protective levels.
++         bool geometryValid = (info.initial_entry_price > 0 &&
++                               info.initial_stop_loss > 0 &&
++                               info.initial_take_profit > 0);
++         if(geometryValid && liveDirection == DIR_BUY)
++            geometryValid = (info.initial_stop_loss < info.initial_entry_price &&
++                             info.initial_entry_price < info.initial_take_profit);
++         else if(geometryValid && liveDirection == DIR_SELL)
++            geometryValid = (info.initial_take_profit < info.initial_entry_price &&
++                             info.initial_entry_price < info.initial_stop_loss);
++
+          double currentLot = OrderLots();
+-         if(currentLot > intendedLot)
++         if(!geometryValid || currentLot <= 0 || !IsValidLotStep(currentLot, pair))
++         {
++            info.recovery_state = REC_RECOVERY_INVALID;
++         }
++         else if(fullMetadata && intendedLot > 0 && currentLot > intendedLot + 0.0000001)
+          {
+             info.recovery_state = REC_CORRUPTED;
+-            Log(DBG_ERROR, "Lot mismatch for trade " + IntegerToString(info.ticket) + 
+-                ": actual " + DoubleToString(currentLot, 2) + 
+-                " > intended " + DoubleToString(intendedLot, 2));
+          }
+-         else if(currentLot < intendedLot && currentLot >= GetMinLot(pair))
++         else if(fullMetadata && intendedLot > 0 && currentLot < intendedLot - 0.0000001)
+          {
++            // Legacy/manual external reduction is preserved as live state; never
++            // infer permission for another partial close or restore the old lot.
+             info.recovery_state = REC_PARTIAL_INFERRED;
+-            info.partial_closed = true;
+-            info.partial_attempted = true;
+-            info.partial_available = true;
+             info.remaining_lot = currentLot;
+          }
+-         else if(currentLot < intendedLot && currentLot < GetMinLot(pair))
+-         {
+-            info.recovery_state = REC_RECOVERY_INVALID;
+-            Log(DBG_ERROR, "Invalid lot for trade " + IntegerToString(info.ticket) + 
+-                ": actual " + DoubleToString(currentLot, 2) + 
+-                " < min lot " + DoubleToString(GetMinLot(pair), 2));
+-         }
+-         else if(currentLot == intendedLot)
++         else if(fullMetadata)
+          {
+             info.recovery_state = REC_NORMAL;
+          }
+          else
+          {
+-            info.recovery_state = REC_RECOVERY_INVALID;
+-            Log(DBG_ERROR, "Unexpected lot state for trade " + IntegerToString(info.ticket) + 
+-                ": actual " + DoubleToString(currentLot, 2) + 
+-                " vs intended " + DoubleToString(intendedLot, 2));
++            // Stable H: identity + exact live EA ownership are enough for safe
++            // monitoring and emergency liquidation, but not for reconstructing
++            // strategy metadata that the broker comment no longer contains.
++            info.recovery_state = REC_IDENTITY_HASH_ONLY;
+          }
+-         
+-         if(OrderStopLoss() == info.initial_entry_price)
+-            info.breakeven_set = true;
+-         
++
++         // Step 14 removed breakeven/partial-management authority. Recovery must
++         // not infer or reactivate those deprecated lifecycle policies.
++         info.partial_closed = false;
++         info.partial_available = false;
++         info.partial_attempted = false;
++         info.breakeven_set = false;
++         info.be_attempted = false;
++
+          AddToMonitoredTrades(info);
+-      }
+-      else
+-      {
+-         Log(DBG_ERROR, "Failed to parse comment for order " + IntegerToString(OrderTicket()) + ": " + comment);
+-      }
++
++         UpsertExecutionHashTombstone(executionHash, info.ticket, pair,
++                                      liveDirection, info.open_time);
+    }
+ }

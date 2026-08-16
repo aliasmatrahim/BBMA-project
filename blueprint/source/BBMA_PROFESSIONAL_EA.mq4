@@ -4766,12 +4766,15 @@ void RecoverExistingOrders()
       int magic = OrderMagicNumber();
       string pair = OrderSymbol();
       string comment = OrderComment();
-      string executionHash;
-      if(!ExtractExecutionHash(comment, executionHash))
+      string executionHash = "";
+      bool hasExecutionHash = ExtractExecutionHash(comment, executionHash);
+      if(!hasExecutionHash)
       {
-         Log(DBG_ERROR, "EA-owned order missing execution hash ticket=" +
+         // Exact live EA ownership is authoritative for lifecycle safety even when
+         // broker comment metadata is missing/truncated. Keep the position visible
+         // to M19/M20/M23, but never fabricate an execution identity.
+         Log(DBG_ERROR, "EA-owned order missing execution hash; recovering frozen ticket=" +
              IntegerToString(OrderTicket()));
-         continue;
       }
 
       ENUM_DIRECTION liveDirection = (OrderType() == OP_BUY) ? DIR_BUY : DIR_SELL;
@@ -4781,11 +4784,12 @@ void RecoverExistingOrders()
       double intendedEntry, intendedSL, intendedLot, intendedRisk;
       datetime candleTime = 0;
 
-      bool fullMetadata = ParseOrderCommentFull(comment, decisionHash, parsedPair,
-                                                 parsedDirection, signalType,
-                                                 intendedEntry, intendedSL,
-                                                 intendedLot, intendedRisk,
-                                                 sequenceHash, candleTime);
+      bool fullMetadata = hasExecutionHash &&
+                          ParseOrderCommentFull(comment, decisionHash, parsedPair,
+                                                parsedDirection, signalType,
+                                                intendedEntry, intendedSL,
+                                                intendedLot, intendedRisk,
+                                                sequenceHash, candleTime);
 
       // Comment metadata may be truncated, but if present it must agree with live
       // broker ownership/direction and H: execution identity. Never let parsed
@@ -4868,10 +4872,11 @@ void RecoverExistingOrders()
          }
          else
          {
-            // Stable H: identity + exact live EA ownership are enough for safe
-            // monitoring and emergency liquidation, but not for reconstructing
-            // strategy metadata that the broker comment no longer contains.
-            info.recovery_state = REC_IDENTITY_HASH_ONLY;
+            // Missing H: is stricter than hash-only recovery: preserve the exact
+            // broker position for accounting/emergency ownership, but freeze normal
+            // lifecycle because no stable execution identity can be reconstructed.
+            info.recovery_state = hasExecutionHash ? REC_IDENTITY_HASH_ONLY
+                                                   : REC_RECOVERY_INVALID;
          }
 
          // Step 14 removed breakeven/partial-management authority. Recovery must
@@ -4884,8 +4889,9 @@ void RecoverExistingOrders()
 
          AddToMonitoredTrades(info);
 
-         UpsertExecutionHashTombstone(executionHash, info.ticket, pair,
-                                      liveDirection, info.open_time);
+         if(hasExecutionHash)
+            UpsertExecutionHashTombstone(executionHash, info.ticket, pair,
+                                         liveDirection, info.open_time);
    }
 }
 

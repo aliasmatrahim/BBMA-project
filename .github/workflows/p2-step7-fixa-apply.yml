@@ -1,0 +1,65 @@
+name: P2 Step7 Fix A Apply
+
+on:
+  push:
+    branches: [ blueprint-dev ]
+    paths:
+      - 'blueprint/patches/0026-p2-step7-fixa-execution-tombstone-upsert.patch'
+      - '.github/workflows/p2-step7-fixa-apply.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply-fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify pre-fix canonical source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(sha256sum blueprint/source/BBMA_PROFESSIONAL_EA.mq4 | awk '{print $1}')" = "30363d08437b85f253e6baf3e9c82af0d59d70727639ac0e6420a7677f975bc9"
+
+      - name: Apply P2 Step7 Fix A
+        shell: bash
+        run: |
+          set -euo pipefail
+          patch -p1 < blueprint/patches/0026-p2-step7-fixa-execution-tombstone-upsert.patch
+          grep -q 'UPSERT by full DecisionID or stable execution hash' blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          grep -q 'Executed rows are idempotency tombstones' blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          test "$(sha256sum blueprint/source/BBMA_PROFESSIONAL_EA.mq4 | awk '{print $1}')" = "dda18da4ef08c61efe2e465133165f89ec2de8a980df849726639ca481b0ae63"
+
+      - name: Record fix status
+        shell: bash
+        run: |
+          cat > blueprint/P2_STEP7_FIXA_STATUS.md <<'EOF'
+          # P2 Step 7 Fix A — Execution Tombstone UPSERT
+
+          Status: **APPLIED — AWAITING NATIVE METAEDITOR RECOMPILE**
+
+          Fixes:
+          - `MarkDecisionExecuted()` now UPSERTs an executed tombstone even when no prior DecisionID history row exists.
+          - Same-session duplicate prevention therefore survives position closure.
+          - `CleanupGlobalSignalHistory()` no longer removes executed ticket-backed tombstones through generic size cleanup.
+          - Non-executed rows remain eligible for size cleanup.
+
+          Post-fix source SHA-256:
+          `dda18da4ef08c61efe2e465133165f89ec2de8a980df849726639ca481b0ae63`
+
+          Strategy semantics: unchanged. This is execution/idempotency infrastructure only.
+
+          Gate: native MetaEditor compile must return 0 errors / 0 warnings before Step 7 can be re-audited and passed.
+          EOF
+
+      - name: Commit fixed canonical source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add blueprint/source/BBMA_PROFESSIONAL_EA.mq4 blueprint/P2_STEP7_FIXA_STATUS.md
+          git commit -m "P2 step7 fix A: harden execution tombstone idempotency"
+          git push origin blueprint-dev

@@ -36,6 +36,7 @@ The exact baseline is stored as deterministic gzip+base64 chunks under `blueprin
 17. `blueprint/patches/0017-p0-step9-m18-label-only-scoring-authority.patch`
 18. `blueprint/patches/0018-p0-step10-m19-risk-filter-accounting.patch`
 19. `blueprint/patches/0019-p0-step11-m20-portfolio-gate-protection-ownership.patch`
+20. `blueprint/patches/0020-p0-step12-m21-deterministic-money-management.patch`
 
 ## Full-source SHA verification status
 The previously recorded SHA-256 `274b3d380463f5cd9a477ce0c37b6da0db6c4cc6721013fdef4e984326b291bf` was discovered during Step 3D to have been calculated from a partial reconstruction and remains withdrawn.
@@ -43,7 +44,7 @@ The previously recorded SHA-256 `274b3d380463f5cd9a477ce0c37b6da0db6c4cc6721013f
 Last exact verified full-chain working-source SHA through patches 0001–0005:
 `9ccbfd77032e3e9acdbf4b343ceaf98f632162d932cbb3fcad04a58539c1e3d8`
 
-Patches 0006–0019 currently have focused patch/contract verification only. A new full-chain SHA must only be claimed after exact materialization of the complete ordered patch chain.
+Patches 0006–0020 currently have focused patch/contract verification only. A new full-chain SHA must only be claimed after exact materialization of the complete ordered patch chain.
 
 ## Locked supporting contracts
 - `blueprint/ENTRY_MODE_CONTRACT.md`
@@ -60,6 +61,7 @@ Patches 0006–0019 currently have focused patch/contract verification only. A n
 - `blueprint/contracts/M18_SIGNAL_SCORING_LABEL_CONTRACT.md`
 - `blueprint/contracts/M19_RISK_FILTER_CONTRACT.md`
 - `blueprint/contracts/M20_PORTFOLIO_PROTECTION_CONTRACT.md`
+- `blueprint/contracts/M21_MONEY_MANAGEMENT_CONTRACT.md`
 - `docs/references/SOURCE_INDEX.md`
 - `docs/references/BBMA_OMA_ALLY_RULE_INDEX.md`
 
@@ -203,17 +205,49 @@ Locked M20 behavior:
 ### Downstream issue explicitly deferred
 M23 still contains partial-close-at-1R and breakeven behavior plus direct TP close calls. Those are not silently accepted by Step 11; they are now flagged for the dedicated M23 lifecycle audit because they may conflict with the locked BBMA SL/TP policy and the project's no-extra-exit-management requirement.
 
+## Step 12 — M21 Money Management
+Status: **COMPLETED AT DETERMINISTIC SIZING / FAIL-CLOSED CONTRACT LEVEL**
+
+Baseline defects repaired:
+- AutoLot re-read live `AccountEquity()`, so the same frozen decision could size differently across ticks;
+- AutoLot normalization, maximum-lot and lot-step helpers re-read live broker data rather than using the frozen `RiskValidationSnapshot`;
+- any `MMMode != 1` silently fell through to FixedLot behavior;
+- M21 did not verify that snapshot Entry/SL still matched the final M17-approved decision payload;
+- money-management mode/value inputs were not validated explicitly at initialization.
+
+Implemented by:
+`blueprint/patches/0020-p0-step12-m21-deterministic-money-management.patch`
+
+Patch commit:
+`b3afd2bddac5d0d1f4d7757b7dc5b8cf7ce3d387`
+
+Contract:
+`blueprint/contracts/M21_MONEY_MANAGEMENT_CONTRACT.md`
+
+Contract commit:
+`90f6b28f8f9b80ead10299350ae785bf63ec393a`
+
+Locked M21 behavior:
+- M21 sizes only from final M17 Entry/SL plus the frozen risk snapshot;
+- AutoLot uses `snapshot.Equity` and snapshot TickValue/TickSize;
+- AutoLot rounds DOWN using snapshot LotStep/LotDigits so requested risk cannot be exceeded by lot-step rounding;
+- below-minimum, above broker/MaxAutoLot, invalid step/spec and snapshot mismatch cases fail closed;
+- FixedLot is explicit user intent and is never silently clamped or normalized;
+- only `MMMode` 1 and 2 are accepted; invalid MM inputs fail initialization;
+- M21 does not consume M18 score/level/SignalMode or signal type as a sizing multiplier;
+- M21 cannot mutate Entry, SL, TP, direction or signal identity.
+
 ### Verification boundary
-The M20 baseline, both portfolio-gate call paths, `ManagePortfolio()` tick ordering, and all baseline `OrderClose()` locations were inspected. Patch 0019 and the M20 contract are stored on `blueprint-dev`. No full-chain compile/SHA is claimed yet.
+The M21 baseline, broker-lot helper dependencies and initialization validation path were inspected. Patch 0020 and the M21 contract are stored on `blueprint-dev`. No new full-chain compile/SHA is claimed yet.
 
 ## Next P0 action
-**Step 12 — audit M21 Money Management.**
+**Step 13 — audit M22 Order Execution Engine as a dumb executor.**
 
 Required focus:
-1. lot sizing must consume the final M17-approved Entry/SL distance without modifying it;
-2. AutoLotPercent and FixedLot must be unit-correct across symbols and broker lot steps;
-3. invalid/min/max/step cases must fail closed rather than clamp into unintended risk;
-4. M21 must not use M18 score/level or signal type to change risk;
-5. ensure the lot returned to M19/M20/M22 is deterministic from the frozen decision/risk snapshot.
+1. M22 must execute the immutable M17 Entry/SL/TP payload and M21 lot without manufacturing, widening, tightening or substituting SL/TP during send/retry;
+2. audit retryable/fatal/ambiguous broker errors and ensure ambiguous execution is reconciled before any retry to prevent duplicate orders;
+3. verify execution-price deviation handling is direction-aware and bounded by the frozen execution snapshot;
+4. verify duplicate/trade-lock checks only block execution and do not recreate M15 strategy selection;
+5. revalidate broker/order state at send time without bypassing prior M19/M20 rejection or mutating the approved decision payload.
 
 Do not merge into `main` until the full blueprint audit is clean and explicitly approved as MASTER BLUEPRINT LOCKED.

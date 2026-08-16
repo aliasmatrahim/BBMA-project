@@ -1,0 +1,223 @@
+--- a/MASTER_BLUEPRINT_2.0_WORKING.txt
++++ b/MASTER_BLUEPRINT_2.0_WORKING.txt
+@@ -3907,49 +3907,138 @@
+                        g_pair_states[pairIndex].h1_data);
+    GetDataForTimeframe(actual, PERIOD_M15, g_pair_states[pairIndex].tf_snapshot.M15_CandleTime,
+                        g_pair_states[pairIndex].m15_data);
+-   
+-   BollingerBand h1Band, h1PrevBand, h4Band, h4PrevBand;
++
++   // Numeric BB snapshots exist regardless of whether BB shape classification is enabled.
++   // M06 owns the values; M27 only routes the frozen snapshots to signal owners.
++   BollingerBand h1Band, h1PrevBand, h4Band, h4PrevBand, m15Band;
+    ZeroMemory(h1Band); ZeroMemory(h1PrevBand);
+-   ZeroMemory(h4Band); ZeroMemory(h4PrevBand);
+-   
++   ZeroMemory(h4Band); ZeroMemory(h4PrevBand); ZeroMemory(m15Band);
++
++   h1Band.TOP_BB = g_pair_states[pairIndex].h1_data.bollinger[0];
++   h1Band.MID_BB = g_pair_states[pairIndex].h1_data.bollinger[1];
++   h1Band.LOW_BB = g_pair_states[pairIndex].h1_data.bollinger[2];
++   h1Band.Width = h1Band.TOP_BB - h1Band.LOW_BB;
++   h1Band.State = BB_NONE;
++
++   h4Band.TOP_BB = g_pair_states[pairIndex].h4_data.bollinger[0];
++   h4Band.MID_BB = g_pair_states[pairIndex].h4_data.bollinger[1];
++   h4Band.LOW_BB = g_pair_states[pairIndex].h4_data.bollinger[2];
++   h4Band.Width = h4Band.TOP_BB - h4Band.LOW_BB;
++   h4Band.State = BB_NONE;
++
++   m15Band.TOP_BB = g_pair_states[pairIndex].m15_data.bollinger[0];
++   m15Band.MID_BB = g_pair_states[pairIndex].m15_data.bollinger[1];
++   m15Band.LOW_BB = g_pair_states[pairIndex].m15_data.bollinger[2];
++   m15Band.Width = m15Band.TOP_BB - m15Band.LOW_BB;
++   m15Band.State = BB_NONE;
++
+    if(EnableBBShapeEngine)
+    {
+       BuildBBShapeState(actual, g_pair_states[pairIndex].h1_data, h1Band, h1PrevBand);
+       BuildBBShapeState(actual, g_pair_states[pairIndex].h4_data, h4Band, h4PrevBand);
+    }
+-   
+-   // PairState stores the H1 BB shape snapshot for dashboard/state consumers.
+-   // M07 remains the sole owner of BB state classification.
++
+    g_pair_states[pairIndex].current_bollinger = h1Band;
+    g_pair_states[pairIndex].prev_bollinger = h1PrevBand;
+-   
++
+    for(int dirIdx = 0; dirIdx < 2; dirIdx++)
+    {
+       ENUM_DIRECTION direction = (dirIdx == 0) ? DIR_BUY : DIR_SELL;
+-      
+-      Signal extreme, mhv, csd, ecsd, csm;
+-      MLVData mlv;
+-      ReEntryData reEntry, h4ReEntryState, d1ReEntryState;
+-      ZeroMemory(extreme); ZeroMemory(mhv); ZeroMemory(csd);
+-      ZeroMemory(ecsd); ZeroMemory(csm);
+-
+-      // M09 owns persistent MLV state. M27 only selects the pair+direction slot,
+-      // invokes one state update on the frozen closed M15 candle, then copies a
+-      // cycle snapshot downstream.
++
++      // Signal-owner outputs. M27 orchestrates detector/state-engine calls once;
++      // M13 receives only immutable copies of these cycle snapshots.
++      Signal h1ExtremeSnapshot, m15MHVSnapshot, m15CSDSnapshot;
++      Signal m15ECSDSnapshot, m15CSMSnapshot;
++      ZeroMemory(h1ExtremeSnapshot); ZeroMemory(m15MHVSnapshot);
++      ZeroMemory(m15CSDSnapshot); ZeroMemory(m15ECSDSnapshot);
++      ZeroMemory(m15CSMSnapshot);
++
++      if(DetectExtreme(actual, direction, g_pair_states[pairIndex].h1_data, h1Band))
++      {
++         h1ExtremeSnapshot.Type = SIGNAL_EXTREME;
++         h1ExtremeSnapshot.Direction = direction;
++         h1ExtremeSnapshot.Valid = true;
++         h1ExtremeSnapshot.Timeframe = PERIOD_H1;
++         h1ExtremeSnapshot.BarIndex = g_pair_states[pairIndex].h1_data.barIndex;
++         h1ExtremeSnapshot.CandleTime = g_pair_states[pairIndex].h1_data.candle_time;
++         h1ExtremeSnapshot.Timestamp = h1ExtremeSnapshot.CandleTime;
++         h1ExtremeSnapshot.Close = g_pair_states[pairIndex].h1_data.close;
++      }
++
++      if(DetectMHV(actual, direction, g_pair_states[pairIndex].m15_data))
++      {
++         m15MHVSnapshot.Type = SIGNAL_MHV;
++         m15MHVSnapshot.Direction = direction;
++         m15MHVSnapshot.Valid = true;
++         m15MHVSnapshot.Timeframe = PERIOD_M15;
++         m15MHVSnapshot.BarIndex = g_pair_states[pairIndex].m15_data.barIndex;
++         m15MHVSnapshot.CandleTime = g_pair_states[pairIndex].m15_data.candle_time;
++         m15MHVSnapshot.Timestamp = m15MHVSnapshot.CandleTime;
++         m15MHVSnapshot.Close = g_pair_states[pairIndex].m15_data.close;
++      }
++
++      MovingAverage m15MA;
++      m15MA.MA5_High = g_pair_states[pairIndex].m15_data.ma[0];
++      m15MA.MA10_High = g_pair_states[pairIndex].m15_data.ma[1];
++      m15MA.MA5_Low = g_pair_states[pairIndex].m15_data.ma[2];
++      m15MA.MA10_Low = g_pair_states[pairIndex].m15_data.ma[3];
++      m15MA.EMA50 = g_pair_states[pairIndex].m15_data.ma[4];
++      int m15Shift = g_pair_states[pairIndex].m15_data.barIndex;
++
++      if(DetectCSD(actual, PERIOD_M15, direction, m15Shift, m15MA, m15Band))
++      {
++         m15CSDSnapshot.Type = SIGNAL_CSD;
++         m15CSDSnapshot.Direction = direction;
++         m15CSDSnapshot.Valid = true;
++         m15CSDSnapshot.Timeframe = PERIOD_M15;
++         m15CSDSnapshot.BarIndex = m15Shift;
++         m15CSDSnapshot.CandleTime = g_pair_states[pairIndex].m15_data.candle_time;
++         m15CSDSnapshot.Timestamp = m15CSDSnapshot.CandleTime;
++         m15CSDSnapshot.Close = g_pair_states[pairIndex].m15_data.close;
++      }
++
++      if(DetectECSD(actual, PERIOD_M15, direction, m15Shift, m15MA))
++      {
++         m15ECSDSnapshot.Type = SIGNAL_ECSD;
++         m15ECSDSnapshot.Direction = direction;
++         m15ECSDSnapshot.Valid = true;
++         m15ECSDSnapshot.Timeframe = PERIOD_M15;
++         m15ECSDSnapshot.BarIndex = m15Shift;
++         m15ECSDSnapshot.CandleTime = g_pair_states[pairIndex].m15_data.candle_time;
++         m15ECSDSnapshot.Timestamp = m15ECSDSnapshot.CandleTime;
++         m15ECSDSnapshot.Close = g_pair_states[pairIndex].m15_data.close;
++      }
++
++      if(DetectCSM(actual, PERIOD_M15, direction, m15Shift))
++      {
++         m15CSMSnapshot.Type = SIGNAL_CSM;
++         m15CSMSnapshot.Direction = direction;
++         m15CSMSnapshot.Valid = true;
++         m15CSMSnapshot.Timeframe = PERIOD_M15;
++         m15CSMSnapshot.BarIndex = m15Shift;
++         m15CSMSnapshot.CandleTime = g_pair_states[pairIndex].m15_data.candle_time;
++         m15CSMSnapshot.Timestamp = m15CSMSnapshot.CandleTime;
++         m15CSMSnapshot.Close = g_pair_states[pairIndex].m15_data.close;
++      }
++
++      MLVData mlvSnapshot;
++      ReEntryData h1ReEntrySnapshot, h4ReEntryState, d1ReEntryState;
++      ZeroMemory(mlvSnapshot);
++      ZeroMemory(h1ReEntrySnapshot); ZeroMemory(h4ReEntryState); ZeroMemory(d1ReEntryState);
++
+       if(direction == DIR_BUY)
+       {
+          DetectMLV_State(g_pair_states[pairIndex].mlv_buy_state, actual, direction,
+                          g_pair_states[pairIndex].m15_data);
+-         mlv = g_pair_states[pairIndex].mlv_buy_state;
+-
+-         // M12 owns persistent Re-Entry lifecycle for each higher timeframe.
++         mlvSnapshot = g_pair_states[pairIndex].mlv_buy_state;
++
+          UpdateReEntryState(g_pair_states[pairIndex].re_h1_buy_state, actual, direction,
+                             g_pair_states[pairIndex].h1_data);
+          UpdateReEntryState(g_pair_states[pairIndex].re_h4_buy_state, actual, direction,
+                             g_pair_states[pairIndex].h4_data);
+          UpdateReEntryState(g_pair_states[pairIndex].re_d1_buy_state, actual, direction,
+                             g_pair_states[pairIndex].d1_data);
+-         reEntry = g_pair_states[pairIndex].re_h1_buy_state;
++         h1ReEntrySnapshot = g_pair_states[pairIndex].re_h1_buy_state;
+          h4ReEntryState = g_pair_states[pairIndex].re_h4_buy_state;
+          d1ReEntryState = g_pair_states[pairIndex].re_d1_buy_state;
+       }
+@@ -3957,7 +4046,7 @@
+       {
+          DetectMLV_State(g_pair_states[pairIndex].mlv_sell_state, actual, direction,
+                          g_pair_states[pairIndex].m15_data);
+-         mlv = g_pair_states[pairIndex].mlv_sell_state;
++         mlvSnapshot = g_pair_states[pairIndex].mlv_sell_state;
+ 
+          UpdateReEntryState(g_pair_states[pairIndex].re_h1_sell_state, actual, direction,
+                             g_pair_states[pairIndex].h1_data);
+@@ -3965,31 +4054,39 @@
+                             g_pair_states[pairIndex].h4_data);
+          UpdateReEntryState(g_pair_states[pairIndex].re_d1_sell_state, actual, direction,
+                             g_pair_states[pairIndex].d1_data);
+-         reEntry = g_pair_states[pairIndex].re_h1_sell_state;
++         h1ReEntrySnapshot = g_pair_states[pairIndex].re_h1_sell_state;
+          h4ReEntryState = g_pair_states[pairIndex].re_h4_sell_state;
+          d1ReEntryState = g_pair_states[pairIndex].re_d1_sell_state;
+       }
+ 
+-      CollectAllSignals(actual, direction, g_pair_states[pairIndex].d1_data,
+-                        g_pair_states[pairIndex].h4_data, g_pair_states[pairIndex].h1_data,
+-                        g_pair_states[pairIndex].m15_data, h1Band, extreme, mhv, mlv, csd,
+-                        ecsd, csm, reEntry);
++      Signal extreme, mhv, csd, ecsd, csm;
++      MLVData mlv;
++      ReEntryData reEntry;
++      ZeroMemory(extreme); ZeroMemory(mhv); ZeroMemory(csd);
++      ZeroMemory(ecsd); ZeroMemory(csm); ZeroMemory(mlv); ZeroMemory(reEntry);
++
++      CollectSignalSnapshots(h1ExtremeSnapshot, m15MHVSnapshot, mlvSnapshot,
++                             m15CSDSnapshot, m15ECSDSnapshot, m15CSMSnapshot,
++                             h1ReEntrySnapshot, extreme, mhv, mlv, csd, ecsd, csm, reEntry);
+ 
+       Signal h4_reEntry, d1_reEntry, h4_extreme;
+       ZeroMemory(h4_reEntry); ZeroMemory(d1_reEntry); ZeroMemory(h4_extreme);
+       ExportConfirmedReEntrySignal(h4ReEntryState, h4_reEntry);
+       ExportConfirmedReEntrySignal(d1ReEntryState, d1_reEntry);
+-      
++
+       if(DetectExtreme(actual, direction, g_pair_states[pairIndex].h4_data, h4Band))
+       {
++         h4_extreme.Type = SIGNAL_EXTREME;
++         h4_extreme.Direction = direction;
+          h4_extreme.Valid = true;
+-         h4_extreme.Direction = direction;
++         h4_extreme.Timeframe = PERIOD_H4;
++         h4_extreme.BarIndex = g_pair_states[pairIndex].h4_data.barIndex;
+          h4_extreme.CandleTime = g_pair_states[pairIndex].h4_data.candle_time;
+-         h4_extreme.Type = SIGNAL_EXTREME;
+-      }
+-      
++         h4_extreme.Timestamp = h4_extreme.CandleTime;
++         h4_extreme.Close = g_pair_states[pairIndex].h4_data.close;
++      }
++
+       ComponentSet rem, rre, ree;
+-      ZeroMemory(rem); ZeroMemory(rre); ZeroMemory(ree);
+       BuildPossibleCombinations(rem, rre, ree, h4_reEntry, extreme, mlv,
+                                 d1_reEntry, h4_extreme);
+       

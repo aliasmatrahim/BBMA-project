@@ -43,116 +43,16 @@ jobs:
           PY
           test "$(sha256sum MASTER_BLUEPRINT_2.0_WORKING.txt | awk '{print $1}')" = "e81b91a96d95b4446531b445a54c7d60ee5eb71d91646e98eac15ad8e1001da6"
 
-      - name: Apply verified compile repair passes 1-5
+      - name: Apply exact verified compile repair
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-
-          src=Path('MASTER_BLUEPRINT_2.0_WORKING.txt')
-          text=src.read_text(encoding='utf-8', errors='replace')
-
-          # Pass 1: MQL4-compatible array output helpers.
-          text=text.replace('string[] SplitString(string input, string separator)', 'int SplitString(string input, string separator, string &result[])')
-          text=text.replace('   string result[];\n   ArrayResize(result, count);', '   ArrayResize(result, count);')
-          text=text.replace('   return result;\n}', '   return count;\n}', 1)
-          text=text.replace('double[] CalculateBollingerArray(TimeframeData &data)', 'int CalculateBollingerArray(TimeframeData &data, double &result[])')
-          text=text.replace('   double result[3];', '   ArrayResize(result, 3);', 1)
-          # only the first matching Bollinger helper return
-          idx=text.find('int CalculateBollingerArray(')
-          if idx>=0:
-              j=text.find('   return result;', idx)
-              if j>=0: text=text[:j]+'   return 3;'+text[j+len('   return result;'):]
-          text=text.replace('string pairs[] = SplitString(InpPairs, ",");', 'string pairs[];\n   int pairCount = SplitString(InpPairs, ",", pairs);')
-          text=text.replace('int count = ArraySize(pairs);', 'int count = pairCount;', 1)
-          # second caller (LoadPairs)
-          text=text.replace('string pairList[] = SplitString(InpPairs, ",");', 'string pairList[];\n   int pairListCount = SplitString(InpPairs, ",", pairList);')
-          text=text.replace('int count = ArraySize(pairList);', 'int count = pairListCount;', 1)
-
-          # Pass 2/3: reserved keyword and object-by-reference fixes.
-          text=text.replace('int SplitString(string input, string separator, string &result[])', 'int SplitString(string textValue, string separator, string &result[])')
-          text=text.replace('StringFind(input, separator, pos)', 'StringFind(textValue, separator, pos)')
-          text=text.replace('StringSubstr(input, pos)', 'StringSubstr(textValue, pos)')
-          text=text.replace('StringSubstr(input, pos, next - pos)', 'StringSubstr(textValue, pos, next - pos)')
-          text=text.replace('result[0] = input;', 'result[0] = textValue;')
-          text=text.replace('string SHORT_HASH(string input, int chars=16)', 'string SHORT_HASH(string textValue, int chars=16)')
-          text=text.replace('StringLen(input)', 'StringLen(textValue)')
-          text=text.replace('StringGetChar(input, i)', 'StringGetChar(textValue, i)')
-
-          # Rename local reserved identifier in GenerateSequenceHash.
-          text=text.replace('string input = IntegerToString(componentSet.CombinationType);', 'string hashText = IntegerToString(componentSet.CombinationType);')
-          text=text.replace('   input += IntegerToString(componentSet.ComponentCount);', '   hashText += IntegerToString(componentSet.ComponentCount);')
-          text=text.replace('   input += IntegerToString(componentSet.Comp1.ComponentType);', '   hashText += IntegerToString(componentSet.Comp1.ComponentType);')
-          text=text.replace('   input += IntegerToString(componentSet.Comp1.Direction);', '   hashText += IntegerToString(componentSet.Comp1.Direction);')
-          text=text.replace('   input += IntegerToString(componentSet.Comp1.Timeframe);', '   hashText += IntegerToString(componentSet.Comp1.Timeframe);')
-          text=text.replace('   input += TimeToString(componentSet.Comp1.CandleTime);', '   hashText += TimeToString(componentSet.Comp1.CandleTime);')
-          text=text.replace('   input += IntegerToString(componentSet.Comp2.ComponentType);', '   hashText += IntegerToString(componentSet.Comp2.ComponentType);')
-          text=text.replace('   input += IntegerToString(componentSet.Comp2.Direction);', '   hashText += IntegerToString(componentSet.Comp2.Direction);')
-          text=text.replace('   input += IntegerToString(componentSet.Comp2.Timeframe);', '   hashText += IntegerToString(componentSet.Comp2.Timeframe);')
-          text=text.replace('   input += TimeToString(componentSet.Comp2.CandleTime);', '   hashText += TimeToString(componentSet.Comp2.CandleTime);')
-          text=text.replace('   input += IntegerToString(componentSet.Comp3.ComponentType);', '   hashText += IntegerToString(componentSet.Comp3.ComponentType);')
-          text=text.replace('   input += IntegerToString(componentSet.Comp3.Direction);', '   hashText += IntegerToString(componentSet.Comp3.Direction);')
-          text=text.replace('   input += IntegerToString(componentSet.Comp3.Timeframe);', '   hashText += IntegerToString(componentSet.Comp3.Timeframe);')
-          text=text.replace('   input += TimeToString(componentSet.Comp3.CandleTime);', '   hashText += TimeToString(componentSet.Comp3.CandleTime);')
-          text=text.replace('return SHORT_HASH(input, 16);', 'return SHORT_HASH(hashText, 16);')
-
-          struct_types={
-              'ComponentIdentity','ComponentSet','Candle','BollingerBand','MovingAverage',
-              'Signal','MLVData','ReEntryData','SignalMemory','TimeframeSnapshot',
-              'TimeframeData','BBMA_Decision','OppositeConflictPackage','SignalScoreResult',
-              'RiskValidationSnapshot','ValidatedSequenceCandidate','PairState','TradeInfo',
-              'TradeRequest','RiskStatus','PortfolioStatus','OrderResult','BrokerInfo',
-              'SignalHistoryEntry','ExecutionSnapshot'
-          }
-          def add_refs(params):
-              for t in sorted(struct_types,key=len,reverse=True):
-                  params=re.sub(rf'(?<![\\w]){re.escape(t)}\\s+(?!&)([A-Za-z_]\\w*)(?!\\s*\\[)',rf'{t} &\\1',params)
-              return params
-          out=[]; last=0; i=0; n=len(text)
-          while i<n:
-              if text[i]=='(':
-                  depth=1; j=i+1; ins=False; esc=False
-                  while j<n and depth:
-                      c=text[j]
-                      if ins:
-                          if esc: esc=False
-                          elif c=='\\\\': esc=True
-                          elif c=='"': ins=False
-                      else:
-                          if c=='"': ins=True
-                          elif c=='(': depth+=1
-                          elif c==')': depth-=1
-                      j+=1
-                  if depth==0:
-                      k=j
-                      while k<n and text[k].isspace(): k+=1
-                      if k<n and text[k] in '{;':
-                          ls=text.rfind('\\n',0,i)+1; prefix=text[ls:i]
-                          if re.search(r'\\b[A-Za-z_]\\w*\\s*$',prefix) and not re.search(r'\\b(if|for|while|switch|return)\\s*[A-Za-z_]*\\s*$',prefix):
-                              params=text[i+1:j-1]; fixed=add_refs(params)
-                              if fixed!=params:
-                                  out.append(text[last:i+1]); out.append(fixed); last=j-1
-                      i=j; continue
-              i+=1
-          out.append(text[last:]); text=''.join(out)
-
-          # Pass 4: compile-root cross-module fixes.
-          text=text.replace('   double               Point;\n   int                  Digits;', '   double               Point;\n   double               StopLevel;\n   int                  Digits;', 1)
-          text=text.replace('   snapshot.Point = GetPointSize(pair);\n   snapshot.Digits = GetDigits(pair);', '   snapshot.Point = GetPointSize(pair);\n   snapshot.StopLevel = MarketInfo(pair, MODE_STOPLEVEL);\n   snapshot.Digits = GetDigits(pair);', 1)
-          text=text.replace('''   // M17: resolve/validate the source-owned BBMA destination and protective SL.\n   if(!ValidateSLTP(decision, snapshot))\n   {\n      decision.DecisionState = DEC_REJECTED;\n      decision.RejectionReason = REJ_SLTP_UNRESOLVED;\n      return false;\n   }''','''   // M17: resolve/validate the source-owned BBMA destination and protective SL.\n   ENUM_REJECTION_REASON sltpRejection = REJ_NONE;\n   if(!ValidateSLTP(decision, snapshot, sltpRejection))\n   {\n      decision.DecisionState = DEC_REJECTED;\n      decision.RejectionReason = (sltpRejection != REJ_NONE) ?\n                                 sltpRejection : REJ_SLTP_UNRESOLVED;\n      return false;\n   }''',1)
-          text=text.replace('''      ComponentSet allSets[3] = {rem, rre, ree};\n      for(int s = 0; s < 3; s++)''','''      ComponentSet allSets[3];\n      allSets[0] = rem;\n      allSets[1] = rre;\n      allSets[2] = ree;\n      for(int s = 0; s < 3; s++)''',1)
-
-          # Pass 5: warning cleanup only.
-          text=text.replace('''int GenerateMagicNumber(int StrategyID, int InstanceID, int PairID)\n{\n   if(StrategyID < STRATEGY_ID_MIN || StrategyID > STRATEGY_ID_MAX) return 0;\n   if(InstanceID < INSTANCE_ID_MIN || InstanceID > INSTANCE_ID_MAX) return 0;\n   if(PairID < PAIR_ID_MIN || PairID > PAIR_ID_MAX) return 0;\n   int magic = MAGIC_BASE + (StrategyID * 10000) + (InstanceID * 100) + PairID;\n   if(magic < 0 || magic > 2147483647) return 0;\n   return magic;\n}''','''int GenerateMagicNumber(int strategyIdValue, int instanceIdValue, int pairIdValue)\n{\n   if(strategyIdValue < STRATEGY_ID_MIN || strategyIdValue > STRATEGY_ID_MAX) return 0;\n   if(instanceIdValue < INSTANCE_ID_MIN || instanceIdValue > INSTANCE_ID_MAX) return 0;\n   if(pairIdValue < PAIR_ID_MIN || pairIdValue > PAIR_ID_MAX) return 0;\n\n   // Calculate in 64-bit space so the overflow guard is meaningful before narrowing to int.\n   long magicValue = (long)MAGIC_BASE\n                   + ((long)strategyIdValue * 10000)\n                   + ((long)instanceIdValue * 100)\n                   + (long)pairIdValue;\n\n   if(magicValue < 0 || magicValue > 2147483647) return 0;\n   return (int)magicValue;\n}''',1)
-          text=text.replace('''   string result = "";\n   for(int i = 0; i < chars && i < 16; i++)\n   {\n      int digit = (int)(hash & 0xF);\n      if(digit < 10) result += CharToStr('0' + digit);\n      else result += CharToStr('A' + digit - 10);\n      hash >>= 4;\n   }\n   return result;''','''   string result = "";\n   string hexDigits = "0123456789ABCDEF";\n   for(int i = 0; i < chars && i < 16; i++)\n   {\n      int digit = (int)(hash & 0xF);\n      result += StringSubstr(hexDigits, digit, 1);\n      hash >>= 4;\n   }\n   return result;''',1)
-
-          out=Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
-          out.parent.mkdir(parents=True,exist_ok=True)
-          out.write_text(text,encoding='utf-8')
-          PY
-
+          cat blueprint/finalization/compile_repair.patch.gz.b64.part00 \
+              blueprint/finalization/compile_repair.patch.gz.b64.part01 > /tmp/repair.b64
+          base64 -d /tmp/repair.b64 | gzip -dc > /tmp/compile_repair.patch
+          patch MASTER_BLUEPRINT_2.0_WORKING.txt < /tmp/compile_repair.patch
+          mkdir -p blueprint/source
+          cp MASTER_BLUEPRINT_2.0_WORKING.txt blueprint/source/BBMA_PROFESSIONAL_EA.mq4
           test "$(sha256sum blueprint/source/BBMA_PROFESSIONAL_EA.mq4 | awk '{print $1}')" = "30363d08437b85f253e6baf3e9c82af0d59d70727639ac0e6420a7677f975bc9"
 
       - name: Record compile-clean evidence

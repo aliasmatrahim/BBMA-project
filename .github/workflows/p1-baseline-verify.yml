@@ -1,0 +1,34 @@
+name: P1 Baseline Verify
+
+on:
+  push:
+    branches: [ blueprint-dev ]
+    paths:
+      - '.github/workflows/p1-baseline-verify.yml'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reconstruct and verify immutable baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat \
+            blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part01a \
+            blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part01b \
+            blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part02 \
+            blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part03 \
+            blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part04 \
+            blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part05 \
+            > /tmp/baseline.gz.b64
+          base64 --decode /tmp/baseline.gz.b64 > /tmp/baseline.gz
+          gzip --decompress --stdout /tmp/baseline.gz > /tmp/MASTER_BLUEPRINT_2.0_BASELINE.txt
+          ACTUAL_SHA=$(sha256sum /tmp/MASTER_BLUEPRINT_2.0_BASELINE.txt | awk '{print $1}')
+          EXPECTED_SHA='e217816e95126857c1e7fa3fde1ac10ecc28f196a82eb51cb2f3625a6901aa00'
+          echo "P1_BASELINE_SHA=$ACTUAL_SHA"
+          echo "P1_EXPECTED_SHA=$EXPECTED_SHA"
+          test "$ACTUAL_SHA" = "$EXPECTED_SHA"
+          echo 'P1_STEP1_BASELINE_VERIFICATION=PASS'

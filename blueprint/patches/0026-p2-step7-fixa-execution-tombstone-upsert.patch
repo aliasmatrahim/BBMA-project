@@ -1,0 +1,96 @@
+--- a/blueprint/source/BBMA_PROFESSIONAL_EA.mq4
++++ b/blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+@@ -1180,17 +1180,42 @@
+ void CleanupGlobalSignalHistory()
+ {
+    int count = ArraySize(g_global_signal_history);
+-   if(count > SIGNAL_HISTORY_MAX)
++   if(count <= SIGNAL_HISTORY_MAX)
+    {
+-      int remove = SIGNAL_HISTORY_CLEANUP_SIZE;
+-      if(remove > count) remove = count;
+-      for(int i = remove; i < count; i++)
++      g_global_signal_count = count;
++      return;
++   }
++
++   // Executed rows are idempotency tombstones and must never be removed by the
++   // generic size cleanup. Remove only non-executed rows, oldest first.
++   int targetRemove = SIGNAL_HISTORY_CLEANUP_SIZE;
++   int overflow = count - SIGNAL_HISTORY_MAX;
++   if(targetRemove < overflow) targetRemove = overflow;
++
++   int removed = 0;
++   int write = 0;
++   for(int i = 0; i < count; i++)
++   {
++      bool protectedTombstone = (g_global_signal_history[i].Executed &&
++                                 g_global_signal_history[i].TicketNumber > 0);
++
++      if(!protectedTombstone && removed < targetRemove)
+       {
+-         g_global_signal_history[i - remove] = g_global_signal_history[i];
++         removed++;
++         continue;
+       }
+-      ArrayResize(g_global_signal_history, count - remove);
+-      g_global_signal_count = count - remove;
++
++      if(write != i)
++         g_global_signal_history[write] = g_global_signal_history[i];
++      write++;
+    }
++
++   if(write < count)
++      ArrayResize(g_global_signal_history, write);
++
++   // If executed tombstones alone exceed SIGNAL_HISTORY_MAX, preserve them.
++   // Correct duplicate prevention takes precedence over a soft history-size cap.
++   g_global_signal_count = write;
+ }
+ 
+ void CleanupSignalHistoryEntries()
+@@ -1333,18 +1358,40 @@
+ 
+ void MarkDecisionExecuted(string decisionID, int ticketNumber)
+ {
++   if(decisionID == "" || ticketNumber <= 0) return;
++
+    string executionHash = SHORT_HASH(decisionID);
+    int count = ArraySize(g_global_signal_history);
++
++   // UPSERT by full DecisionID or stable execution hash.
+    for(int i = 0; i < count; i++)
+    {
+-      if(g_global_signal_history[i].DecisionID == decisionID)
++      if(g_global_signal_history[i].DecisionID == decisionID ||
++         (g_global_signal_history[i].ExecutionHash != "" &&
++          g_global_signal_history[i].ExecutionHash == executionHash))
+       {
++         g_global_signal_history[i].DecisionID = decisionID;
++         g_global_signal_history[i].ExecutionHash = executionHash;
+          g_global_signal_history[i].Executed = true;
+          g_global_signal_history[i].TicketNumber = ticketNumber;
+-         g_global_signal_history[i].ExecutionHash = executionHash;
+-         break;
++         if(g_global_signal_history[i].CreatedTime <= 0)
++            g_global_signal_history[i].CreatedTime = TimeCurrent();
++         g_global_signal_count = ArraySize(g_global_signal_history);
++         return;
+       }
+    }
++
++   // A successful execution may occur before any ordinary history row exists.
++   // Create the tombstone immediately so the same DecisionID cannot execute
++   // again later in the same terminal session after the position has closed.
++   ArrayResize(g_global_signal_history, count + 1);
++   ZeroMemory(g_global_signal_history[count]);
++   g_global_signal_history[count].DecisionID = decisionID;
++   g_global_signal_history[count].ExecutionHash = executionHash;
++   g_global_signal_history[count].Executed = true;
++   g_global_signal_history[count].TicketNumber = ticketNumber;
++   g_global_signal_history[count].CreatedTime = TimeCurrent();
++   g_global_signal_count = count + 1;
+ }
+ 
+ bool IsDecisionExecuted(string decisionID)

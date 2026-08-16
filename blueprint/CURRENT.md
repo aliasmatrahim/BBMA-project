@@ -103,48 +103,37 @@ Core locked outcomes:
 ## Step 17 — M27 Orchestrator / end-to-end ownership
 Status: **COMPLETED AT ORCHESTRATION-OWNERSHIP CONTRACT LEVEL**
 
-Final audit defects repaired:
-- `ProcessPair()` and M22 `ProcessEntry()` both performed lot/risk/portfolio preflight, so M21/M19/M20 had duplicate execution-time authority for the same decision;
-- the prior documentation ordering placed M19 before M21 even though prospective total risk requires the proposed lot;
-- a basket-loss emergency latch could remain active after some positions were closed while a later scan could otherwise admit a new trade if current floating loss had fallen below the original trigger;
-- M22's stated dumb-executor contract was therefore not fully reflected in the call graph.
-
-Implemented by:
-`blueprint/patches/0025-p0-step17-m27-end-to-end-orchestration-ownership.patch`
-
-Patch commit:
-`375cd53b99cdea49d437b2db76b38599a57e6486`
-
-Contract:
-`blueprint/contracts/M27_ORCHESTRATOR_END_TO_END_CONTRACT.md`
-
-Contract commit:
-`8f7e10d6a61cf9ad0f1ee7521fea3d835ec44f8a`
-
 Locked end-to-end entry order:
 `M06-M12 -> M13 -> M14 -> M15 -> M16 -> M17 -> M21 -> M19 -> M20 -> M22`
-
-Important dependency note:
-M21 precedes M19 because M19's EA-wide prospective total-risk calculation requires the proposed frozen lot. M18/M25 remain observability only and do not sit in the trading-authority chain.
 
 Locked tick/lifecycle order:
 `M20 ManagePortfolio() -> M23 ManagePositions() -> emergency-latch gate -> strategy scan`
 
-While `g_portfolio_emergency_close_requested` is active, no new strategy scan/order admission is allowed. M23 continues full-lot emergency liquidation and M20 clears the latch only after no live EA-owned monitored positions remain.
-
-M22 now receives the already-frozen lot and no longer re-runs M21, M19 or M20. It remains responsible only for immutable/idempotent broker execution and exact execution-result mapping.
-
-### Verification boundary
-Step 17 audited the M27 signal-owner routing patch, M15 pair-level atomic path, M19 risk caller propagation, M20 tick ordering/protection ownership, M22 execution path and M25/M26 initialization boundary. Patch 0025 and the M27 contract are stored on `blueprint-dev`.
-
 This closes **P0 architecture repair**, but does not yet prove that the entire patch series applies cleanly as one source or compiles in MetaTrader 4. No new full-chain SHA is claimed yet.
 
-## Next action — P1 Integration Verification
-1. reconstruct the immutable `Master Blueprint 2.0.txt` baseline from `blueprint/archive/`;
-2. apply patches `0001` through `0025` in exact order;
-3. detect and repair patch-context/integration conflicts without changing locked BBMA semantics;
-4. compile the fully materialized MT4 source and fix compile defects;
-5. run architecture invariants against the materialized source;
-6. calculate a new exact SHA-256 only after successful full materialization/verification.
+# P1 Integration Verification
+
+## Step 1 — immutable baseline reconstruction and SHA verification
+Status: **PASS**
+
+GitHub Actions workflow:
+`.github/workflows/p1-baseline-verify.yml`
+
+Verified procedure:
+`cat archive chunks -> base64 decode -> gunzip -> SHA-256`
+
+Verified reconstructed SHA-256:
+`e217816e95126857c1e7fa3fde1ac10ecc28f196a82eb51cb2f3625a6901aa00`
+
+Expected canonical SHA-256:
+`e217816e95126857c1e7fa3fde1ac10ecc28f196a82eb51cb2f3625a6901aa00`
+
+Result: exact match. The archive reconstruction blocker is CLOSED.
+
+Verification run:
+GitHub Actions run `31950155981`, job `95172281118`, conclusion `success`.
+
+## Next action — P1 Step 2
+Apply patches `0001` through `0025` in exact order to the verified reconstructed baseline, detect the first patch-context/integration conflict, and repair integration only without changing locked BBMA semantics.
 
 Do not merge into `main` until P1 integration verification is clean and explicitly approved as MASTER BLUEPRINT LOCKED.

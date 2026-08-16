@@ -4,9 +4,7 @@
 `blueprint-dev`
 
 ## Source of truth
-GitHub `aliasmatrahim/BBMA-project` is authoritative for the active Master Blueprint. Notion is supporting documentation only.
-
-BBMA strategy semantics are governed by the user-supplied references indexed under `docs/references/`. If active blueprint logic conflicts with a supported BBMA source rule, blueprint/code must be repaired rather than the source being reinterpreted to fit the code.
+GitHub `aliasmatrahim/BBMA-project` is authoritative for the active Master Blueprint. BBMA strategy semantics are governed by the user-supplied references indexed under `docs/references/`.
 
 ## Immutable baseline
 Source: `Master Blueprint 2.0.txt`
@@ -37,14 +35,15 @@ The exact baseline is stored as deterministic gzip+base64 chunks under `blueprin
 18. `blueprint/patches/0018-p0-step10-m19-risk-filter-accounting.patch`
 19. `blueprint/patches/0019-p0-step11-m20-portfolio-gate-protection-ownership.patch`
 20. `blueprint/patches/0020-p0-step12-m21-deterministic-money-management.patch`
+21. `blueprint/patches/0021-p0-step13-m22-dumb-executor-idempotent-order-send.patch`
 
 ## Full-source SHA verification status
-The previously recorded SHA-256 `274b3d380463f5cd9a477ce0c37b6da0db6c4cc6721013fdef4e984326b291bf` was discovered during Step 3D to have been calculated from a partial reconstruction and remains withdrawn.
+The previously recorded SHA-256 `274b3d380463f5cd9a477ce0c37b6da0db6c4cc6721013fdef4e984326b291bf` remains withdrawn because it was calculated from a partial reconstruction.
 
 Last exact verified full-chain working-source SHA through patches 0001–0005:
 `9ccbfd77032e3e9acdbf4b343ceaf98f632162d932cbb3fcad04a58539c1e3d8`
 
-Patches 0006–0020 currently have focused patch/contract verification only. A new full-chain SHA must only be claimed after exact materialization of the complete ordered patch chain.
+Patches 0006–0021 currently have focused patch/contract verification only. A new full-chain SHA must only be claimed after exact materialization and compilation of the complete ordered patch chain.
 
 ## Locked supporting contracts
 - `blueprint/ENTRY_MODE_CONTRACT.md`
@@ -62,6 +61,7 @@ Patches 0006–0020 currently have focused patch/contract verification only. A n
 - `blueprint/contracts/M19_RISK_FILTER_CONTRACT.md`
 - `blueprint/contracts/M20_PORTFOLIO_PROTECTION_CONTRACT.md`
 - `blueprint/contracts/M21_MONEY_MANAGEMENT_CONTRACT.md`
+- `blueprint/contracts/M22_ORDER_EXECUTION_CONTRACT.md`
 - `docs/references/SOURCE_INDEX.md`
 - `docs/references/BBMA_OMA_ALLY_RULE_INDEX.md`
 
@@ -72,182 +72,65 @@ M01 BEGINNER; M02 BEGINNER; M03 INTERMEDIATE; M04 INTERMEDIATE; M05 INTERMEDIATE
 
 # P0 Architecture Repair
 
-## Steps 1–3E — BBMA source alignment foundations
-Status: **COMPLETED AT THEIR LOCKED CONTRACT LEVELS**
+## Steps 1–12
+Status: **COMPLETED AT THEIR LOCKED PATCH/CONTRACT LEVELS**
 
-- M07 BB-shape ownership repaired.
-- M09 MLV persistence/lifecycle repaired.
-- M12 Re-Entry persistence and Type 1–4 source alignment repaired.
-- M06 MA5/10 High/Low producer corrected to BBMA LWMA High/Low semantics.
-- M08 Extreme source contract repaired.
-- M10 CSM/CSD/eCSD source contracts repaired.
+Core locked outcomes remain:
+- source-aligned BBMA detectors and lifecycle ownership;
+- M13 collector-only and M14 validate-only;
+- M15 sole final entry authority with EntryMode 1/2 contract;
+- M16 invalidation-only;
+- M17 source-based BBMA TP/structural SL with no fixed-pip/RR-manufactured fallback;
+- M18 observability-only with no trading score authority;
+- M19 risk-filter-only with unit-correct EA-wide accounting;
+- M20 prospective portfolio gate and protection-state ownership;
+- M21 deterministic frozen-snapshot money management.
 
-## Step 4 — M13 Combination Engine
-Status: **COMPLETED AT COLLECTOR / COMBINATION CONTRACT LEVEL**
-
-Source-locked project rows:
-- REM = H4 Re-Entry + H1 Extreme + M15 confirmed MLV;
-- RRE = D1 Re-Entry + H4 Re-Entry + H1 Extreme;
-- REE = D1 Re-Entry + H4 Extreme + H1 Extreme.
-
-M13 is collector/assembler only.
-
-## Step 5 — M14 Validation
-Status: **COMPLETED AT VALIDATE-ONLY CONTRACT LEVEL**
-
-M14 validates exact REM/RRE/REE identity, timeframe and direction; populates component payload; no invented chronology, priority or SL/TP source.
-
-## Step 6 — M15 Final Signal Authority
-Status: **COMPLETED AT FINAL-AUTHORITY CONTRACT LEVEL**
-
-- `EntryMode 1 = RE_ENTRY_ONLY` -> confirmed H1 Re-Entry only.
-- `EntryMode 2 = ALL_VALIDATED_BBMA_ENTRIES` -> confirmed H1 Re-Entry + validated REM/RRE/REE.
-- raw Extreme/MLV/CSD/eCSD/CSM cannot directly execute.
-- BUY and SELL are resolved atomically; unresolved opposite validated directions -> no trade.
-- no arbitrary REM/RRE/REE quality ranking.
-
-## Step 7 — M16 Conflict / Invalidation
-Status: **COMPLETED AT CONFLICT / INVALIDATION CONTRACT LEVEL**
-
-- decision components are revalidated against their real owner state;
-- generic M15-based expiry assumptions removed;
-- persistent H1/H4 Extreme validity overlay added;
-- later same-timeframe source-valid CSM invalidates stored Extreme;
-- M16 remains invalidation-only.
-
-## Step 8 — M17 Entry / SL / TP engineering guard
-Status: **COMPLETED AT ENGINEERING GUARD LEVEL**
-
-- BUY execution reference uses ASK; SELL uses BID.
-- direction-aware geometry enforced: BUY `SL < Entry < TP`, SELL `TP < Entry < SL`.
-- MaxSL conversion uses the project pip-price helper; `MaxSLPips` is a rejection cap only.
-- `MinRRRatio` is a rejection filter only and does not manufacture TP.
-- StopLevel/FreezeLevel are direction-aware.
-- unresolved source payload fails closed with `REJ_SLTP_UNRESOLVED`.
-
-## Step 8B — BBMA SL / TP / Exit source resolution
-Status: **APPROVED AT ARCHITECTURE CONTRACT LEVEL**
-
-Provenance remains separated into `PDF_CORE`, `FORUM_SUPPORTED`, and `EA_SAFETY`.
-
-Approved TP mapping:
-- H1 Re-Entry BUY -> H1 TOP BB; SELL -> H1 LOW BB;
-- REM BUY -> H4 TOP BB; SELL -> H4 LOW BB;
-- RRE BUY -> D1 TOP BB; SELL -> D1 LOW BB;
-- REE BUY -> D1 TOP BB; SELL -> D1 LOW BB.
-
-No universal fixed-pip TP/SL is accepted as BBMA Core.
-
-## Step 8C — approved M17 source resolver
-Status: **COMPLETED AT ACTIVE-BLUEPRINT PATCH LEVEL**
-
-Implemented by `blueprint/patches/0016-p0-step8c-m17-approved-sltp-resolver.patch`.
-
-- final decision preserves the exact destination-producing Re-Entry component;
-- H1/H4/D1 mapping is enforced for RE_ENTRY/REM/RRE/REE respectively;
-- source candle must resolve exactly and be closed (`shift >= 1`);
-- TP is read from approved source-timeframe TOP/LOW BB;
-- hard SL uses exact source-candle wick plus one broker point as `EA_SAFETY` protection;
-- unresolved/crossed/stale data fails closed;
-- fixed-pip or RR-derived fallback is not introduced.
-
-## Step 9 — M18 Signal Scoring / Label Authority
-Status: **COMPLETED AT ACTIVE-BLUEPRINT PATCH + CONTRACT LEVEL**
-
-- unsupported numeric BBMA quality weights removed;
-- M18 is optional observability/display metadata only;
-- `Score = 0`, `Level = LEVEL_NONE` for current execution architecture;
-- no impact on entry, invalidation, SL/TP, risk, portfolio or execution.
-
-## Step 10 — M19 Risk Engine
-Status: **COMPLETED AT FILTER / ACCOUNTING CONTRACT LEVEL**
-
-- spread unit handling repaired to true pips;
-- drawdown separated from basket floating loss;
-- total risk made prospective EA-wide and symbol-correct;
-- stale/closed monitored entries excluded;
-- unquantifiable risk fails closed;
-- specific rejection reasons propagate correctly;
-- M19 remains allow/reject only.
-
-## Step 11 — M20 Portfolio Risk & Protection Engine
-Status: **COMPLETED AT PORTFOLIO-GATE / PROTECTION-OWNERSHIP LEVEL**
+## Step 13 — M22 Order Execution Engine
+Status: **COMPLETED AT DUMB-EXECUTOR / IDEMPOTENT-SEND CONTRACT LEVEL**
 
 Baseline defects repaired:
-- `FinalPortfolioGuard()` checked prospective total trades and active pairs but omitted prospective `MaxTradePerPair` enforcement;
-- it ignored `status.allowed` when the current portfolio was already beyond a hard limit;
-- portfolio accounting relied on monitored entries without revalidating live EA magic ownership;
-- `ManagePortfolio()` directly called `OrderClose()`, competing with M23 position-management ownership;
-- `BasketProfitPercent` acted as a second TP policy and could close positions before the M17-approved BBMA destination.
+- M22 could mutate immutable payload by filling `decision.Pair` and regenerating `DecisionID`;
+- retry loop used `retry <= MaxRetry`, permitting one extra send attempt;
+- ambiguous broker outcomes were allowed to re-enter the retry loop, creating duplicate-order risk;
+- ambiguous reconciliation searched for the entire long generated comment, which may fail because MT4/brokers can truncate order comments;
+- duplicate detection and trade-lock checks were not consistently constrained to live EA-owned execution identity;
+- execution deviation and generic broker failure were not cleanly distinguished in the send return path.
 
 Implemented by:
-`blueprint/patches/0019-p0-step11-m20-portfolio-gate-protection-ownership.patch`
+`blueprint/patches/0021-p0-step13-m22-dumb-executor-idempotent-order-send.patch`
 
 Patch commit:
-`db18296e376a149d0238c116ef2c3c933ab00861`
+`2aefae1f7cf422b936dccd2f353a1519b6e4ea64`
 
 Contract:
-`blueprint/contracts/M20_PORTFOLIO_PROTECTION_CONTRACT.md`
+`blueprint/contracts/M22_ORDER_EXECUTION_CONTRACT.md`
 
 Contract commit:
-`641a216cfaa088627b4f0de4366d19850d886e60`
+`fa46a2105f21df5f275525dd98f4b07a15c5c58f`
 
-Locked M20 behavior:
-- current portfolio counts only live, monitored, EA-owned orders whose live magic matches the configured pair magic;
-- entry admission is prospective and atomic for `MaxActivePair`, `MaxTradePerPair`, and `MaxTotalTrade`;
-- M20 may reject only with `REJ_PORTFOLIO_LIMIT_ATOMIC`; it cannot alter M15-M17 payload;
-- basket-loss protection raises a latched `g_portfolio_emergency_close_requested` state;
-- M23, not M20, owns broker close actions;
-- the emergency request stays latched until all live EA-owned monitored positions are closed, allowing later-tick retry;
-- `BasketProfitPercent` is compatibility/display-only and is not an execution trigger, preserving M17 BBMA TP authority;
-- `ManagePortfolio()` is called before `ManagePositions()` so a newly tripped protection request can be acted on by M23 on the same tick.
-
-### Downstream issue explicitly deferred
-M23 still contains partial-close-at-1R and breakeven behavior plus direct TP close calls. Those are not silently accepted by Step 11; they are now flagged for the dedicated M23 lifecycle audit because they may conflict with the locked BBMA SL/TP policy and the project's no-extra-exit-management requirement.
-
-## Step 12 — M21 Money Management
-Status: **COMPLETED AT DETERMINISTIC SIZING / FAIL-CLOSED CONTRACT LEVEL**
-
-Baseline defects repaired:
-- AutoLot re-read live `AccountEquity()`, so the same frozen decision could size differently across ticks;
-- AutoLot normalization, maximum-lot and lot-step helpers re-read live broker data rather than using the frozen `RiskValidationSnapshot`;
-- any `MMMode != 1` silently fell through to FixedLot behavior;
-- M21 did not verify that snapshot Entry/SL still matched the final M17-approved decision payload;
-- money-management mode/value inputs were not validated explicitly at initialization.
-
-Implemented by:
-`blueprint/patches/0020-p0-step12-m21-deterministic-money-management.patch`
-
-Patch commit:
-`b3afd2bddac5d0d1f4d7757b7dc5b8cf7ce3d387`
-
-Contract:
-`blueprint/contracts/M21_MONEY_MANAGEMENT_CONTRACT.md`
-
-Contract commit:
-`90f6b28f8f9b80ead10299350ae785bf63ec393a`
-
-Locked M21 behavior:
-- M21 sizes only from final M17 Entry/SL plus the frozen risk snapshot;
-- AutoLot uses `snapshot.Equity` and snapshot TickValue/TickSize;
-- AutoLot rounds DOWN using snapshot LotStep/LotDigits so requested risk cannot be exceeded by lot-step rounding;
-- below-minimum, above broker/MaxAutoLot, invalid step/spec and snapshot mismatch cases fail closed;
-- FixedLot is explicit user intent and is never silently clamped or normalized;
-- only `MMMode` 1 and 2 are accepted; invalid MM inputs fail initialization;
-- M21 does not consume M18 score/level/SignalMode or signal type as a sizing multiplier;
-- M21 cannot mutate Entry, SL, TP, direction or signal identity.
+Locked M22 behavior:
+- M22 executes only; it cannot recreate `DecisionID`, direction, Entry, SL, TP or lot;
+- missing/mismatched immutable payload fails closed;
+- BUY uses live ASK and SELL uses live BID, bounded by the frozen execution deviation;
+- only definite retryable broker errors can retry;
+- before every send M22 checks for an already-open order using symbol + exact EA magic + order type + stable `BBMA|H:<SHORT_HASH(DecisionID)>` comment prefix;
+- after an ambiguous broker result M22 reconciles once and then stops: if the order is not observable it returns `REJ_AMBIGUOUS_RESULT` and never automatically resends;
+- this allows M24 recovery to reconcile any order that becomes visible later without duplicate creation;
+- trade-lock checks consider live EA-owned positions only;
+- `MaxRetry <= 0`, negative slippage or negative execution-deviation minimum fail initialization.
 
 ### Verification boundary
-The M21 baseline, broker-lot helper dependencies and initialization validation path were inspected. Patch 0020 and the M21 contract are stored on `blueprint-dev`. No new full-chain compile/SHA is claimed yet.
+The baseline M22 send loop, ambiguous-error reconciliation, duplicate checks, execution-deviation path, order-comment identity scheme, and `ProcessEntry()` payload mutation were inspected. Patch 0021 and the M22 contract are stored on `blueprint-dev`. No new full-chain compile/SHA is claimed yet.
 
 ## Next P0 action
-**Step 13 — audit M22 Order Execution Engine as a dumb executor.**
+**Step 14 — audit M23 Position Management / lifecycle exit policy.**
 
 Required focus:
-1. M22 must execute the immutable M17 Entry/SL/TP payload and M21 lot without manufacturing, widening, tightening or substituting SL/TP during send/retry;
-2. audit retryable/fatal/ambiguous broker errors and ensure ambiguous execution is reconciled before any retry to prevent duplicate orders;
-3. verify execution-price deviation handling is direction-aware and bounded by the frozen execution snapshot;
-4. verify duplicate/trade-lock checks only block execution and do not recreate M15 strategy selection;
-5. revalidate broker/order state at send time without bypassing prior M19/M20 rejection or mutating the approved decision payload.
+1. remove or justify the current automatic 50% partial close at 1R because it is not part of the locked BBMA exit policy;
+2. remove or justify automatic breakeven SL migration because M17 owns the structural hard SL and no trailing/extra exit management is part of BBMA Core;
+3. verify TP handling preserves the original M17-approved BBMA destination and does not create a second synthetic TP path;
+4. retain M20 emergency basket-loss liquidation as a protection action, but make close/retry ownership deterministic and EA-owned only;
+5. audit all M23 `OrderClose()`/`OrderModify()` paths for ambiguous/failure handling and M24 recovery consistency.
 
 Do not merge into `main` until the full blueprint audit is clean and explicitly approved as MASTER BLUEPRINT LOCKED.

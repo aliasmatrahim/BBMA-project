@@ -6,17 +6,41 @@
 ## Baseline
 Source: `Master Blueprint 2.0.txt`
 
-Immutable archive:
-`blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64`
+Immutable archive is stored as verified deterministic gzip+base64 chunks:
+
+- `blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part01a`
+- `blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part01b`
+- `blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part02`
+- `blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part03`
+- `blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part04`
+- `blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part05`
+
+Verified encoded length: `32224` characters.
 
 Original source SHA-256:
 `e217816e95126857c1e7fa3fde1ac10ecc28f196a82eb51cb2f3625a6901aa00`
 
-To reconstruct the exact baseline locally:
+To reconstruct the exact baseline locally from the repository root:
 
 ```bash
-base64 -d MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64 | gzip -d > MASTER_BLUEPRINT_2.0_BASELINE.txt
+cat \
+  blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part01a \
+  blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part01b \
+  blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part02 \
+  blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part03 \
+  blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part04 \
+  blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part05 \
+  | base64 -d | gzip -d > MASTER_BLUEPRINT_2.0_BASELINE.txt
 ```
+
+Then verify:
+
+```bash
+sha256sum MASTER_BLUEPRINT_2.0_BASELINE.txt
+```
+
+Expected SHA-256:
+`e217816e95126857c1e7fa3fde1ac10ecc28f196a82eb51cb2f3625a6901aa00`
 
 ## Current revision
 Baseline + `blueprint/patches/0001-fix-m25-complexity-limiter.patch`

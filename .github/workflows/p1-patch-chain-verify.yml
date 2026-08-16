@@ -1,0 +1,80 @@
+name: P1 Patch Chain Verify
+
+on:
+  push:
+    branches: [ blueprint-dev ]
+    paths:
+      - '.github/workflows/p1-patch-chain-verify.yml'
+  workflow_dispatch:
+
+jobs:
+  apply-chain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Reconstruct verified immutable baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat \
+            blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part01a \
+            blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part01b \
+            blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part02 \
+            blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part03 \
+            blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part04 \
+            blueprint/archive/MASTER_BLUEPRINT_2.0_BASELINE.txt.gz.b64.part05 \
+            > /tmp/baseline.gz.b64
+          base64 --decode /tmp/baseline.gz.b64 > /tmp/baseline.gz
+          gzip --decompress --stdout /tmp/baseline.gz > MASTER_BLUEPRINT_2.0_BASELINE.txt
+          ACTUAL_SHA=$(sha256sum MASTER_BLUEPRINT_2.0_BASELINE.txt | awk '{print $1}')
+          EXPECTED_SHA='e217816e95126857c1e7fa3fde1ac10ecc28f196a82eb51cb2f3625a6901aa00'
+          echo "P1_BASELINE_SHA=$ACTUAL_SHA"
+          test "$ACTUAL_SHA" = "$EXPECTED_SHA"
+
+      - name: Apply patches 0001 through 0025 in exact order
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          patches=(blueprint/patches/*.patch)
+          if [ "${#patches[@]}" -ne 25 ]; then
+            echo "ERROR: expected 25 patches, found ${#patches[@]}"
+            printf '%s\n' "${patches[@]}"
+            exit 20
+          fi
+
+          expected=1
+          for patch in "${patches[@]}"; do
+            base=$(basename "$patch")
+            num=${base%%-*}
+            expected_num=$(printf '%04d' "$expected")
+            if [ "$num" != "$expected_num" ]; then
+              echo "ERROR: patch order mismatch: expected $expected_num, got $num ($base)"
+              exit 21
+            fi
+            echo "=== APPLY $base ==="
+            if ! git apply --check --recount --whitespace=nowarn "$patch"; then
+              echo "P1_STEP2_FIRST_CONFLICT=$base"
+              git apply --check --recount --verbose "$patch" || true
+              exit 22
+            fi
+            git apply --recount --whitespace=nowarn "$patch"
+            echo "P1_STEP2_APPLIED=$base"
+            expected=$((expected + 1))
+          done
+
+          test -f MASTER_BLUEPRINT_2.0_WORKING.txt
+          FINAL_SHA=$(sha256sum MASTER_BLUEPRINT_2.0_WORKING.txt | awk '{print $1}')
+          echo "P1_STEP2_PATCHES_APPLIED=25"
+          echo "P1_STEP2_WORKING_SHA=$FINAL_SHA"
+          echo "P1_STEP2_PATCH_CHAIN=PASS"
+
+      - name: Basic materialization sanity
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s MASTER_BLUEPRINT_2.0_WORKING.txt
+          grep -q 'MODULE 27' MASTER_BLUEPRINT_2.0_WORKING.txt
+          grep -q 'MODULE 01' MASTER_BLUEPRINT_2.0_WORKING.txt
+          echo "P1_STEP2_MATERIALIZATION_SANITY=PASS"

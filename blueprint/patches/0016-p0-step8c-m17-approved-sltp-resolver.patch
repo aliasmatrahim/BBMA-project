@@ -1,0 +1,197 @@
+--- a/MASTER_BLUEPRINT_2.0_WORKING.txt
++++ b/MASTER_BLUEPRINT_2.0_WORKING.txt
+@@ -397,6 +397,8 @@
+    int                  ComponentCount;
+    ComponentIdentity    Components[3];
+    datetime             CandidateExpiry;
++   bool                 HasSLTPSourceComponent;
++   ComponentIdentity    SLTPSourceComponent;
+    bool                 PatternValid;
+    bool                 SequenceValid;
+    int                  ExpiryBar;
+@@ -2550,6 +2552,44 @@
+    return 0;
+ }
+ 
++bool ResolveSelectedSLTPSourceComponent(ValidatedSequenceCandidate selected,
++                                        ComponentIdentity &source)
++{
++   ZeroMemory(source);
++
++   int expectedTf = 0;
++   if(selected.SequenceType == SIGNAL_RE_ENTRY)
++      expectedTf = PERIOD_H1;
++   else if(selected.SequenceType == SIGNAL_REM)
++      expectedTf = PERIOD_H4;
++   else if(selected.SequenceType == SIGNAL_RRE ||
++           selected.SequenceType == SIGNAL_REE)
++      expectedTf = PERIOD_D1;
++   else
++      return false;
++
++   for(int i = 0; i < selected.ComponentCount; i++)
++   {
++      ComponentIdentity component = selected.Components[i];
++      if(component.ComponentType != SIGNAL_RE_ENTRY) continue;
++      if(component.Timeframe != expectedTf) continue;
++      if(component.Direction != selected.Direction) continue;
++      if(component.CandleTime <= 0) continue;
++
++      source = component;
++      return true;
++   }
++
++   return false;
++}
++
+ int CompareCanonicalCandidates(ValidatedSequenceCandidate &a,
+                                ValidatedSequenceCandidate &b)
+ {
+@@ -2600,6 +2640,9 @@
+    decision.ComponentCount = selected.ComponentCount;
+    for(int c = 0; c < 3; c++)
+       decision.Components[c] = selected.Components[c];
++   decision.HasSLTPSourceComponent =
++      ResolveSelectedSLTPSourceComponent(selected, decision.SLTPSourceComponent);
++
+    decision.CandidateExpiry = selected.Expiry;
+    decision.SequenceHash = selected.SequenceHash;
+    decision.SequenceValid = true;
+@@ -2841,6 +2884,125 @@
+ //| LEVEL: INTERMEDIATE                                              |
+ //+------------------------------------------------------------------+
+ 
++bool IsApprovedSLTPSourceComponent(BBMA_Decision decision,
++                                   ComponentIdentity source)
++{
++   if(!decision.HasSLTPSourceComponent) return false;
++   if(source.ComponentType != SIGNAL_RE_ENTRY) return false;
++   if(source.Direction != decision.Direction) return false;
++   if(source.CandleTime <= 0) return false;
++
++   if(decision.SignalType == SIGNAL_RE_ENTRY)
++      return (source.Timeframe == PERIOD_H1);
++
++   if(decision.SignalType == SIGNAL_REM)
++      return (source.Timeframe == PERIOD_H4);
++
++   if(decision.SignalType == SIGNAL_RRE ||
++      decision.SignalType == SIGNAL_REE)
++      return (source.Timeframe == PERIOD_D1);
++
++   return false;
++}
++
++int ResolveClosedSourceShift(string pair, ComponentIdentity source)
++{
++   if(source.Timeframe <= 0 || source.CandleTime <= 0) return -1;
++
++   int shift = iBarShift(pair, source.Timeframe, source.CandleTime, true);
++   if(shift < 1) return -1; // source must remain a fully closed candle
++
++   datetime resolvedTime = iTime(pair, source.Timeframe, shift);
++   if(resolvedTime != source.CandleTime) return -1;
++   return shift;
++}
++
++bool ResolveSourceOwnedWickAnchor(string pair, ComponentIdentity source,
++                                  ENUM_DIRECTION direction, double &anchor)
++{
++   anchor = 0.0;
++   int shift = ResolveClosedSourceShift(pair, source);
++   if(shift < 1) return false;
++
++   if(direction == DIR_BUY)
++      anchor = iLow(pair, source.Timeframe, shift);
++   else if(direction == DIR_SELL)
++      anchor = iHigh(pair, source.Timeframe, shift);
++   else
++      return false;
++
++   return (anchor > 0.0);
++}
++
++bool ResolveApprovedBBDestination(string pair, ComponentIdentity source,
++                                  ENUM_DIRECTION direction, double &destination)
++{
++   destination = 0.0;
++   int shift = ResolveClosedSourceShift(pair, source);
++   if(shift < 1) return false;
++
++   int mode = (direction == DIR_BUY) ? MODE_UPPER :
++              (direction == DIR_SELL ? MODE_LOWER : -1);
++   if(mode < 0) return false;
++
++   destination = iBands(pair, source.Timeframe,
++                        BB_PERIOD, BB_DEVIATION, 0, PRICE_CLOSE,
++                        mode, shift);
++   return (destination > 0.0);
++}
++
++bool ResolveApprovedInitialSLTP(BBMA_Decision &decision,
++                                RiskValidationSnapshot snapshot)
++{
++   // Step 8C implements the approved Step 8B mapping only. It does not create
++   // new detector logic, fixed-pip targets, RR-derived targets or higher-TF TP2/TP3.
++   if(!IsApprovedSLTPSourceComponent(decision,
++                                     decision.SLTPSourceComponent))
++      return false;
++
++   double wickAnchor = 0.0;
++   double destination = 0.0;
++   if(!ResolveSourceOwnedWickAnchor(decision.Pair,
++                                    decision.SLTPSourceComponent,
++                                    decision.Direction,
++                                    wickAnchor))
++      return false;
++
++   if(!ResolveApprovedBBDestination(decision.Pair,
++                                    decision.SLTPSourceComponent,
++                                    decision.Direction,
++                                    destination))
++      return false;
++
++   if(snapshot.Point <= 0.0 || decision.EntryPrice <= 0.0) return false;
++
++   // EA_SAFETY: one broker point beyond the exact closed source candle wick.
++   // This buffer is engineering protection and must not be represented as a
++   // PDF Oma Ally rule.
++   double safetyBuffer = snapshot.Point;
++   double structuralSL = (decision.Direction == DIR_BUY)
++      ? wickAnchor - safetyBuffer
++      : wickAnchor + safetyBuffer;
++
++   // A crossed/stale BB destination must not be replaced by another target.
++   if(decision.Direction == DIR_BUY && destination <= decision.EntryPrice)
++      return false;
++   if(decision.Direction == DIR_SELL && destination >= decision.EntryPrice)
++      return false;
++
++   decision.StopLoss = structuralSL;
++   decision.TakeProfit = destination;
++   decision.SLTPSource = decision.SLTPSourceComponent.ComponentType;
++   return true;
++}
++
+ double GetDirectionalClosePrice(RiskValidationSnapshot snapshot, ENUM_DIRECTION direction)
+ {
+    // MT4 market positions close/trigger on BID for BUY and ASK for SELL.
+@@ -4578,6 +4740,14 @@
+          decision.RejectionReason = REJ_MARKET_PRICE_INVALID;
+       }
+       else
+       {
++         if(!ResolveApprovedInitialSLTP(decision, riskSnapshot))
++         {
++            decision.DecisionState = DEC_REJECTED;
++            decision.RejectionReason = REJ_SLTP_UNRESOLVED;
++            decision.Reason = "Approved BBMA destination / structural SL source unresolved or stale";
++         }
++
+          ENUM_REJECTION_REASON sltpRejection = REJ_NONE;
+-         if(!ValidateSLTP(decision, riskSnapshot, sltpRejection))
++         if(decision.DecisionState != DEC_REJECTED &&
++            !ValidateSLTP(decision, riskSnapshot, sltpRejection))
+          {
+             decision.DecisionState = DEC_REJECTED;
+             decision.RejectionReason = sltpRejection;

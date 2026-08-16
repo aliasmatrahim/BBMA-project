@@ -5555,6 +5555,17 @@ int OnInit()
       Log(DBG_ERROR, "EA initialization failed");
       return INIT_FAILED;
    }
+
+   // OnTimer is part of live lifecycle/protection fallback and maintenance.
+   // Initialization is not complete unless the terminal accepts the timer.
+   ResetLastError();
+   if(!EventSetTimer(1))
+   {
+      int timerError = GetLastError();
+      g_is_initialized = false;
+      Log(DBG_ERROR, "Failed to register EA timer, error=" + IntegerToString(timerError));
+      return INIT_FAILED;
+   }
    
    Log(DBG_FULL, "BBMA Professional EA V4.5.1 initialized successfully");
    return INIT_SUCCEEDED;
@@ -5565,6 +5576,9 @@ int OnInit()
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
 {
+   // Stop timer delivery before clearing orchestration state.
+   EventKillTimer();
+
    // Stop all local orchestration first. Do NOT erase execution-hash/tombstone
    // semantics here; restart recovery reconstructs them from broker history.
    g_is_initialized = false;

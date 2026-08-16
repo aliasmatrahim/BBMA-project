@@ -103,10 +103,6 @@ jobs:
               return ''.join(old), ''.join(new)
 
           def repair_0014_hunk8(text: str, new_block: str):
-              # P1 integration-only repair. Patch 0013 changed adjacent M15/M16
-              # context, so focused patch 0014 hunk 8 no longer matches byte-for-byte.
-              # Replace only the old M16 invalidation/expiry implementation with
-              # the exact owner-aware implementation carried by patch 0014.
               new_match = re.search(
                   r'bool IsExtremeStateExpired\(Signal extreme, datetime currentTime\).*?'
                   r'decision\.RejectionReason = REJ_NONE;\n\}',
@@ -114,7 +110,6 @@ jobs:
               if not new_match:
                   return None
               replacement = new_match.group(0)
-
               old_match = re.search(
                   r'void InvalidationEngine_Atomic\(BBMA_Decision &decision, OppositeConflictPackage &conflict\)\n'
                   r'\{.*?'
@@ -124,6 +119,24 @@ jobs:
               if not old_match:
                   return None
               return text[:old_match.start()] + replacement + text[old_match.end():]
+
+          def repair_0016_hunk2(text: str, new_block: str):
+              # Patch 0014 inserted M16 code between the old preceding context and
+              # M15 CompareCanonicalCandidates. Preserve patch 0016 semantics by
+              # inserting only its exact resolver function immediately before the
+              # canonical comparator anchor.
+              fn = re.search(
+                  r'bool ResolveSelectedSLTPSourceComponent\(ValidatedSequenceCandidate selected,.*?\n\}',
+                  new_block, re.S)
+              if not fn:
+                  return None
+              anchor = 'int CompareCanonicalCandidates(ValidatedSequenceCandidate &a,\n'
+              pos = text.find(anchor)
+              if pos < 0:
+                  return None
+              if 'ResolveSelectedSLTPSourceComponent(' in text:
+                  return text
+              return text[:pos] + fn.group(0) + '\n\n' + text[pos:]
 
           for p in patches:
               print(f'=== APPLY {p.name} ===')
@@ -151,6 +164,12 @@ jobs:
                           if repaired is not None:
                               text = repaired
                               print('P1_STEP3_INTEGRATION_REPAIR=0014_HUNK8_M16_CONTEXT_REBASE')
+                              continue
+                      if p.name.startswith('0016-') and hidx == 2 and count == 0:
+                          repaired = repair_0016_hunk2(text, new_block)
+                          if repaired is not None:
+                              text = repaired
+                              print('P1_STEP3_INTEGRATION_REPAIR=0016_HUNK2_M17_RESOLVER_INSERT')
                               continue
                       print(f'P1_STEP2_FIRST_CONFLICT={p.name}')
                       print(f'HUNK={hidx}')

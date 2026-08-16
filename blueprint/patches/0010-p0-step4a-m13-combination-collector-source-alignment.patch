@@ -1,0 +1,281 @@
+--- a/MASTER_BLUEPRINT_2.0_WORKING.txt
++++ b/MASTER_BLUEPRINT_2.0_WORKING.txt
+@@ -212,12 +212,15 @@
+ {
+    ENUM_SIGNAL_TYPE   ComponentType;
+    ENUM_DIRECTION     Direction;
++   int                Timeframe;
+    datetime           CandleTime;
+    string             DecisionID;
+ };
+ 
+ struct ComponentSet
+ {
++   ENUM_SIGNAL_TYPE   CombinationType;
++   int                ComponentCount;
+    ComponentIdentity  Comp1;
+    ComponentIdentity  Comp2;
+    ComponentIdentity  Comp3;
+@@ -1193,17 +1196,22 @@
+ 
+ string GenerateSequenceHash(ComponentSet componentSet)
+ {
+-   string input = "";
++   // Combination identity must include the BBMA setup type and each component TF.
++   // SL/TP source is deliberately excluded: M13 is a collector, not an SL/TP owner.
++   string input = IntegerToString(componentSet.CombinationType);
++   input += IntegerToString(componentSet.ComponentCount);
+    input += IntegerToString(componentSet.Comp1.ComponentType);
+    input += IntegerToString(componentSet.Comp1.Direction);
++   input += IntegerToString(componentSet.Comp1.Timeframe);
+    input += TimeToString(componentSet.Comp1.CandleTime);
+    input += IntegerToString(componentSet.Comp2.ComponentType);
+    input += IntegerToString(componentSet.Comp2.Direction);
++   input += IntegerToString(componentSet.Comp2.Timeframe);
+    input += TimeToString(componentSet.Comp2.CandleTime);
+    input += IntegerToString(componentSet.Comp3.ComponentType);
+    input += IntegerToString(componentSet.Comp3.Direction);
++   input += IntegerToString(componentSet.Comp3.Timeframe);
+    input += TimeToString(componentSet.Comp3.CandleTime);
+-   input += IntegerToString(componentSet.SLTPSource);
+    return SHORT_HASH(input, 16);
+ }
+ 
+@@ -2185,126 +2193,123 @@
+ //| LEVEL: INTERMEDIATE+                                             |
+ //+------------------------------------------------------------------+
+ 
+-void CollectAllSignals(string pair, ENUM_DIRECTION direction, TimeframeData &d1, 
+-                       TimeframeData &h4, TimeframeData &h1, TimeframeData &m15,
+-                       BollingerBand &h1Band, Signal &extreme, Signal &mhv, MLVData &mlv, Signal &csd,
+-                       Signal &ecsd, Signal &csm, ReEntryData &reEntry)
+-{
+-   if(DetectExtreme(pair, direction, h1, h1Band))
+-   {
+-      extreme.Type = SIGNAL_EXTREME;
+-      extreme.Direction = direction;
+-      extreme.Valid = true;
+-      extreme.CandleTime = h1.candle_time;
+-      extreme.Close = h1.close;
+-   }
+-   
+-   if(DetectMHV(pair, direction, m15))
+-   {
+-      mhv.Type = SIGNAL_MHV;
+-      mhv.Direction = direction;
+-      mhv.Valid = true;
+-      mhv.CandleTime = m15.candle_time;
+-      mhv.Close = m15.close;
+-   }
+-   
+-   // MLV lifecycle is owned and updated by M09 before collection.
+-   // M13 receives an immutable snapshot for this processing cycle.
+-   
+-   MovingAverage ma;
+-   ma.MA5_High = m15.ma[0];
+-   ma.MA10_High = m15.ma[1];
+-   ma.MA5_Low = m15.ma[2];
+-   ma.MA10_Low = m15.ma[3];
+-   ma.EMA50 = m15.ma[4];
+-   
+-   BollingerBand m15Band;
+-   ZeroMemory(m15Band);
+-   m15Band.TOP_BB = m15.bollinger[0];
+-   m15Band.MID_BB = m15.bollinger[1];
+-   m15Band.LOW_BB = m15.bollinger[2];
+-   m15Band.Width = m15Band.TOP_BB - m15Band.LOW_BB;
+-   
+-   if(DetectCSD(pair, PERIOD_M15, direction, 1, ma, m15Band))
+-   {
+-      csd.Type = SIGNAL_CSD;
+-      csd.Direction = direction;
+-      csd.Valid = true;
+-      csd.CandleTime = m15.candle_time;
+-      csd.Close = m15.close;
+-   }
+-   
+-   if(DetectECSD(pair, PERIOD_M15, direction, 1, ma))
+-   {
+-      ecsd.Type = SIGNAL_ECSD;
+-      ecsd.Direction = direction;
+-      ecsd.Valid = true;
+-      ecsd.CandleTime = m15.candle_time;
+-      ecsd.Close = m15.close;
+-   }
+-   
+-   if(DetectCSM(pair, PERIOD_M15, direction, 1))
+-   {
+-      csm.Type = SIGNAL_CSM;
+-      csm.Direction = direction;
+-      csm.Valid = true;
+-      csm.CandleTime = m15.candle_time;
+-      csm.Close = m15.close;
+-   }
+-   
+-   // Re-Entry lifecycle is owned and updated by M12 before collection.
+-   // M13 receives an immutable H1 ReEntryData snapshot for this processing cycle.
++void CollectSignalSnapshots(Signal h1_extreme_snapshot, Signal m15_mhv_snapshot,
++                            MLVData m15_mlv_snapshot, Signal m15_csd_snapshot,
++                            Signal m15_ecsd_snapshot, Signal m15_csm_snapshot,
++                            ReEntryData h1_reEntry_snapshot,
++                            Signal &extreme, Signal &mhv, MLVData &mlv, Signal &csd,
++                            Signal &ecsd, Signal &csm, ReEntryData &reEntry)
++{
++   // M13 is a pure collector. Detector/state-engine ownership remains in
++   // M08/M09/M10/M12; M13 only copies immutable per-cycle snapshots.
++   extreme = h1_extreme_snapshot;
++   mhv = m15_mhv_snapshot;
++   mlv = m15_mlv_snapshot;
++   csd = m15_csd_snapshot;
++   ecsd = m15_ecsd_snapshot;
++   csm = m15_csm_snapshot;
++   reEntry = h1_reEntry_snapshot;
++
++   // A full CSD mechanically also crosses MA5/10, so the same closed candle may
++   // satisfy the simpler eCSD predicate. Source classification gives CSD the
++   // stronger identity because it additionally crosses MID BB. Do not count the
++   // same candle as two independent confirmations.
++   if(csd.Valid && ecsd.Valid &&
++      csd.Direction == ecsd.Direction &&
++      csd.CandleTime == ecsd.CandleTime)
++   {
++      ecsd.Valid = false;
++      ecsd.Reason = "Suppressed by same-candle CSD classification";
++   }
++}
++
++bool IsCombinationSignalReady(Signal signal, ENUM_SIGNAL_TYPE expectedType,
++                              int expectedTimeframe)
++{
++   return (signal.Valid &&
++           signal.Type == expectedType &&
++           signal.Timeframe == expectedTimeframe &&
++           signal.CandleTime > 0 &&
++           signal.Direction != DIR_NONE);
++}
++
++bool IsCombinationMLVReady(MLVData mlv)
++{
++   return (mlv.State == MLV_CONFIRMED &&
++           mlv.IsValid &&
++           mlv.Direction != DIR_NONE &&
++           mlv.ConfirmationCandleTime > 0);
++}
++
++void SetCombinationComponent(ComponentIdentity &component, ENUM_SIGNAL_TYPE type,
++                             ENUM_DIRECTION direction, int timeframe,
++                             datetime candleTime)
++{
++   ZeroMemory(component);
++   component.ComponentType = type;
++   component.Direction = direction;
++   component.Timeframe = timeframe;
++   component.CandleTime = candleTime;
++}
++
++void FinalizeCombinationCandidate(ComponentSet &set, ENUM_SIGNAL_TYPE combinationType)
++{
++   set.CombinationType = combinationType;
++   set.ComponentCount = 3;
++   set.SequenceStartTime = MathMin(set.Comp1.CandleTime,
++                           MathMin(set.Comp2.CandleTime, set.Comp3.CandleTime));
++   set.SLTPSource = SIGNAL_NONE; // SL/TP ownership is downstream, never M13.
++   set.SequenceHash = GenerateSequenceHash(set);
+ }
+ 
+ void BuildPossibleCombinations(ComponentSet &rem, ComponentSet &rre, ComponentSet &ree,
+                                Signal h4_reEntry, Signal h1_extreme, MLVData m15_mlv,
+                                Signal d1_reEntry, Signal h4_extreme)
+ {
+-   if(h4_reEntry.Valid && h1_extreme.Valid && m15_mlv.IsValid)
+-   {
+-      rem.Comp1.ComponentType = SIGNAL_RE_ENTRY;
+-      rem.Comp1.Direction = h4_reEntry.Direction;
+-      rem.Comp1.CandleTime = h4_reEntry.CandleTime;
+-      rem.Comp2.ComponentType = SIGNAL_EXTREME;
+-      rem.Comp2.Direction = h1_extreme.Direction;
+-      rem.Comp2.CandleTime = h1_extreme.CandleTime;
+-      rem.Comp3.ComponentType = SIGNAL_MLV;
+-      rem.Comp3.Direction = m15_mlv.Direction;
+-      // A candidate is not a usable sequence component. The MLV component
+-      // becomes real only on its confirmed closed candle.
+-      rem.Comp3.CandleTime = m15_mlv.ConfirmationCandleTime;
+-      rem.SLTPSource = SIGNAL_MLV;
+-      rem.SequenceStartTime = MathMin(h4_reEntry.CandleTime, MathMin(h1_extreme.CandleTime, m15_mlv.StartCandleTime));
+-   }
+-   
+-   if(d1_reEntry.Valid && h4_reEntry.Valid && h1_extreme.Valid)
+-   {
+-      rre.Comp1.ComponentType = SIGNAL_RE_ENTRY;
+-      rre.Comp1.Direction = d1_reEntry.Direction;
+-      rre.Comp1.CandleTime = d1_reEntry.CandleTime;
+-      rre.Comp2.ComponentType = SIGNAL_RE_ENTRY;
+-      rre.Comp2.Direction = h4_reEntry.Direction;
+-      rre.Comp2.CandleTime = h4_reEntry.CandleTime;
+-      rre.Comp3.ComponentType = SIGNAL_EXTREME;
+-      rre.Comp3.Direction = h1_extreme.Direction;
+-      rre.Comp3.CandleTime = h1_extreme.CandleTime;
+-      rre.SLTPSource = SIGNAL_RE_ENTRY;
+-      rre.SequenceStartTime = MathMin(d1_reEntry.CandleTime, MathMin(h4_reEntry.CandleTime, h1_extreme.CandleTime));
+-   }
+-   
+-   if(d1_reEntry.Valid && h4_extreme.Valid && h1_extreme.Valid)
+-   {
+-      ree.Comp1.ComponentType = SIGNAL_RE_ENTRY;
+-      ree.Comp1.Direction = d1_reEntry.Direction;
+-      ree.Comp1.CandleTime = d1_reEntry.CandleTime;
+-      ree.Comp2.ComponentType = SIGNAL_EXTREME;
+-      ree.Comp2.Direction = h4_extreme.Direction;
+-      ree.Comp2.CandleTime = h4_extreme.CandleTime;
+-      ree.Comp3.ComponentType = SIGNAL_EXTREME;
+-      ree.Comp3.Direction = h1_extreme.Direction;
+-      ree.Comp3.CandleTime = h1_extreme.CandleTime;
+-      ree.SLTPSource = SIGNAL_EXTREME;
+-      ree.SequenceStartTime = MathMin(d1_reEntry.CandleTime, MathMin(h4_extreme.CandleTime, h1_extreme.CandleTime));
++   ZeroMemory(rem);
++   ZeroMemory(rre);
++   ZeroMemory(ree);
++
++   // Source row available in this project: H4 Re-Entry + H1 Extreme + M15 MLV.
++   if(IsCombinationSignalReady(h4_reEntry, SIGNAL_RE_ENTRY, PERIOD_H4) &&
++      IsCombinationSignalReady(h1_extreme, SIGNAL_EXTREME, PERIOD_H1) &&
++      IsCombinationMLVReady(m15_mlv))
++   {
++      SetCombinationComponent(rem.Comp1, SIGNAL_RE_ENTRY, h4_reEntry.Direction,
++                              PERIOD_H4, h4_reEntry.CandleTime);
++      SetCombinationComponent(rem.Comp2, SIGNAL_EXTREME, h1_extreme.Direction,
++                              PERIOD_H1, h1_extreme.CandleTime);
++      SetCombinationComponent(rem.Comp3, SIGNAL_MLV, m15_mlv.Direction,
++                              PERIOD_M15, m15_mlv.ConfirmationCandleTime);
++      FinalizeCombinationCandidate(rem, SIGNAL_REM);
++   }
++
++   // Source row available in this project: D1 Re-Entry + H4 Re-Entry + H1 Extreme.
++   if(IsCombinationSignalReady(d1_reEntry, SIGNAL_RE_ENTRY, PERIOD_D1) &&
++      IsCombinationSignalReady(h4_reEntry, SIGNAL_RE_ENTRY, PERIOD_H4) &&
++      IsCombinationSignalReady(h1_extreme, SIGNAL_EXTREME, PERIOD_H1))
++   {
++      SetCombinationComponent(rre.Comp1, SIGNAL_RE_ENTRY, d1_reEntry.Direction,
++                              PERIOD_D1, d1_reEntry.CandleTime);
++      SetCombinationComponent(rre.Comp2, SIGNAL_RE_ENTRY, h4_reEntry.Direction,
++                              PERIOD_H4, h4_reEntry.CandleTime);
++      SetCombinationComponent(rre.Comp3, SIGNAL_EXTREME, h1_extreme.Direction,
++                              PERIOD_H1, h1_extreme.CandleTime);
++      FinalizeCombinationCandidate(rre, SIGNAL_RRE);
++   }
++
++   // Source row available in this project: D1 Re-Entry + H4 Extreme + H1 Extreme.
++   if(IsCombinationSignalReady(d1_reEntry, SIGNAL_RE_ENTRY, PERIOD_D1) &&
++      IsCombinationSignalReady(h4_extreme, SIGNAL_EXTREME, PERIOD_H4) &&
++      IsCombinationSignalReady(h1_extreme, SIGNAL_EXTREME, PERIOD_H1))
++   {
++      SetCombinationComponent(ree.Comp1, SIGNAL_RE_ENTRY, d1_reEntry.Direction,
++                              PERIOD_D1, d1_reEntry.CandleTime);
++      SetCombinationComponent(ree.Comp2, SIGNAL_EXTREME, h4_extreme.Direction,
++                              PERIOD_H4, h4_extreme.CandleTime);
++      SetCombinationComponent(ree.Comp3, SIGNAL_EXTREME, h1_extreme.Direction,
++                              PERIOD_H1, h1_extreme.CandleTime);
++      FinalizeCombinationCandidate(ree, SIGNAL_REE);
+    }
+ }
+ 

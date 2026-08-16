@@ -1,0 +1,252 @@
+--- a/MASTER_BLUEPRINT_2.0_WORKING.txt
++++ b/MASTER_BLUEPRINT_2.0_WORKING.txt
+@@ -73,7 +73,7 @@ input bool     EnableRE_Type4                     = true;
+ input string   PairList                           = "EURUSD,GBPUSD,USDJPY"; // PairList
+ input int      MaxActivePair                      = 5;          // MaxActivePair
+ input int      MaxTradePerPair                    = 2;          // MaxTradePerPair
+ input int      MaxTotalTrade                      = 10;         // MaxTotalTrade
+-input double   BasketProfitPercent                = 5.0;        // BasketProfitPercent
++input double   BasketProfitPercent                = 5.0;        // Display compatibility only; not an execution TP
+@@ -700,6 +700,7 @@ string               g_dashboard_snapshot;
+ 
+ //--- Protection
+ double               g_protection_reference_equity;
++bool                 g_portfolio_emergency_close_requested;
+ 
+ //--- Processing time (frozen ONCE per scan cycle)
+ datetime             g_processing_time;
+@@ -2847,6 +2848,20 @@ RiskStatus CheckRiskBeforeTrade(BBMA_Decision decision, RiskValidationSnapshot snapshot, double calculatedLot)
+ //| LEVEL: EXPERT-RESTRICTED                                         |
+ //+------------------------------------------------------------------+
+ 
++bool IsLiveEAOwnedPortfolioTrade(int monitoredIndex)
++{
++   if(monitoredIndex < 0 || monitoredIndex >= g_monitored_count) return false;
++   if(!OrderSelect(g_monitored_trades[monitoredIndex].ticket, SELECT_BY_TICKET)) return false;
++   if(OrderCloseTime() != 0) return false;
++
++   int pairIdx = FindPairStateIndex(g_monitored_trades[monitoredIndex].pair);
++   if(pairIdx < 0) return false;
++
++   int expectedMagic = g_pair_states[pairIdx].magic_number;
++   if(expectedMagic <= 0) return false;
++   if(g_monitored_trades[monitoredIndex].magic_number != expectedMagic) return false;
++   if(OrderMagicNumber() != expectedMagic) return false;
++   return true;
++}
++
+ PortfolioStatus CheckPortfolioLimits()
+ {
+    PortfolioStatus status;
+@@ -2858,45 +2873,28 @@ PortfolioStatus CheckPortfolioLimits()
+    ArrayInitialize(status.trades_per_pair, 0);
+    
+    for(int i = 0; i < g_monitored_count; i++)
+    {
+-      if(OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))
+-      {
+-         if(OrderCloseTime() == 0)
+-         {
+-            status.total_trades++;
+-            int idx = FindPairStateIndex(g_monitored_trades[i].pair);
+-            if(idx >= 0)
+-               status.trades_per_pair[idx]++;
+-         }
+-      }
+-   }
+-   
+-   string activePairs[];
+-   for(int i = 0; i < g_monitored_count; i++)
+-   {
+-      if(OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))
+-      {
+-         if(OrderCloseTime() == 0)
+-         {
+-            bool found = false;
+-            for(int j = 0; j < ArraySize(activePairs); j++)
+-            {
+-               if(activePairs[j] == g_monitored_trades[i].pair)
+-               {
+-                  found = true;
+-                  break;
+-               }
+-            }
+-            if(!found)
+-            {
+-               ArrayResize(activePairs, ArraySize(activePairs) + 1);
+-               activePairs[ArraySize(activePairs) - 1] = g_monitored_trades[i].pair;
+-            }
+-         }
+-      }
++      if(!IsLiveEAOwnedPortfolioTrade(i)) continue;
++
++      int idx = FindPairStateIndex(g_monitored_trades[i].pair);
++      if(idx < 0) continue;
++
++      status.total_trades++;
++      status.trades_per_pair[idx]++;
+    }
+-   status.active_pairs = ArraySize(activePairs);
++
++   for(int p = 0; p < g_pair_count; p++)
++      if(status.trades_per_pair[p] > 0)
++         status.active_pairs++;
+    
+    if(status.active_pairs > MaxActivePair)
+    {
+@@ -2928,45 +2926,47 @@ void FinalPortfolioGuard(BBMA_Decision &decision)
+    if(decision.DecisionState != DEC_VALIDATED) return;
+    
+    PortfolioStatus status = CheckPortfolioLimits();
++
++   // If current EA portfolio state is already beyond a hard limit, no new trade
++   // may be admitted. M20 only rejects; it never modifies M15-M17 payload.
++   if(!status.allowed)
++   {
++      decision.DecisionState = DEC_REJECTED;
++      decision.RejectionReason = REJ_PORTFOLIO_LIMIT_ATOMIC;
++      return;
++   }
++
++   int pairIdx = FindPairStateIndex(decision.Pair);
++   if(pairIdx < 0)
++   {
++      decision.DecisionState = DEC_REJECTED;
++      decision.RejectionReason = REJ_PORTFOLIO_LIMIT_ATOMIC;
++      return;
++   }
+    
+    int wouldBeTotal = status.total_trades + 1;
+-   int wouldBePairs = status.active_pairs;
+-   
+-   bool pairActive = false;
+-   for(int i = 0; i < g_monitored_count; i++)
+-   {
+-      if(g_monitored_trades[i].pair == decision.Pair)
+-      {
+-         if(OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))
+-         {
+-            if(OrderCloseTime() == 0)
+-            {
+-               pairActive = true;
+-               break;
+-            }
+-         }
+-      }
+-   }
+-   if(!pairActive) wouldBePairs++;
++   int wouldBePairTrades = status.trades_per_pair[pairIdx] + 1;
++   int wouldBePairs = status.active_pairs + ((status.trades_per_pair[pairIdx] == 0) ? 1 : 0);
+    
+    if(wouldBePairs > MaxActivePair)
+    {
+@@ -2971,46 +2971,43 @@ void FinalPortfolioGuard(BBMA_Decision &decision)
+       decision.RejectionReason = REJ_PORTFOLIO_LIMIT_ATOMIC;
+       return;
+    }
++
++   if(wouldBePairTrades > MaxTradePerPair)
++   {
++      decision.DecisionState = DEC_REJECTED;
++      decision.RejectionReason = REJ_PORTFOLIO_LIMIT_ATOMIC;
++      return;
++   }
+ }
+ 
+-void ManagePortfolio()
++int CountLiveEAOwnedPortfolioTrades()
+ {
+-   double basketLoss = CalculateBasketLossPercent_EA();
+-   if(basketLoss >= BasketLossPercent)
+-   {
+-      for(int i = 0; i < g_monitored_count; i++)
+-      {
+-         if(OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))
+-         {
+-            if(OrderCloseTime() == 0)
+-            {
+-               if(g_monitored_trades[i].direction == DIR_BUY)
+-                  OrderClose(OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(), MODE_BID), 0);
+-               else
+-                  OrderClose(OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(), MODE_ASK), 0);
+-            }
+-         }
+-      }
+-   }
+-   
+-   double basketProfit = CalculateBasketProfitPercent_EA();
+-   if(basketProfit >= BasketProfitPercent)
+-   {
+-      for(int i = 0; i < g_monitored_count; i++)
+-      {
+-         if(OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))
+-         {
+-            if(OrderCloseTime() == 0)
+-            {
+-               if(g_monitored_trades[i].direction == DIR_BUY)
+-                  OrderClose(OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(), MODE_BID), 0);
+-               else
+-                  OrderClose(OrderTicket(), OrderLots(), MarketInfo(OrderSymbol(), MODE_ASK), 0);
+-            }
+-         }
+-      }
+-   }
++   int count = 0;
++   for(int i = 0; i < g_monitored_count; i++)
++      if(IsLiveEAOwnedPortfolioTrade(i)) count++;
++   return count;
++}
++
++void ManagePortfolio()
++{
++   // M20 owns portfolio protection state, not broker close execution.
++   // Once basket-loss protection trips, latch the request until all EA-owned
++   // monitored positions are actually closed by M23. This prevents partial-close
++   // failures from silently clearing protection on a later tick.
++   if(g_portfolio_emergency_close_requested)
++   {
++      if(CountLiveEAOwnedPortfolioTrades() == 0)
++         g_portfolio_emergency_close_requested = false;
++      return;
++   }
++
++   if(BasketLossPercent > 0 && CalculateBasketLossPercent_EA() >= BasketLossPercent)
++      g_portfolio_emergency_close_requested = true;
++
++   // BasketProfitPercent is intentionally NOT an execution trigger. M17 owns the
++   // approved BBMA TP destination; M20 must not invent an alternate basket TP.
+ }
+@@ -3386,6 +3383,20 @@ void ManagePositions()
+       if(OrderCloseTime() != 0)
+          continue;
++
++      // M20 may request an emergency basket-loss liquidation, but only M23 owns
++      // the position close action. The request remains latched until no EA-owned
++      // monitored positions remain, so failed closes can be retried on later ticks.
++      if(g_portfolio_emergency_close_requested)
++      {
++         string emergencyPair = OrderSymbol();
++         double emergencyPrice = (g_monitored_trades[i].direction == DIR_BUY) ?
++                                 MarketInfo(emergencyPair, MODE_BID) :
++                                 MarketInfo(emergencyPair, MODE_ASK);
++
++         if(emergencyPrice > 0)
++            OrderClose(OrderTicket(), OrderLots(), emergencyPrice, 0);
++         continue;
++      }
+       
+       if(g_monitored_trades[i].recovery_state == REC_CORRUPTED ||
+          g_monitored_trades[i].recovery_state == REC_RECOVERY_INVALID)
+@@ -3858,6 +3869,7 @@ int OnInitMain()
+    g_monitored_count = 0;
+    
+    g_protection_reference_equity = AccountBalance();
++   g_portfolio_emergency_close_requested = false;
+    g_last_reset_date = GetTodayStart();
+@@ -4090,8 +4102,8 @@ void OnTickMain()
+ {
+-   ManagePositions();
+    ManagePortfolio();
++   ManagePositions();
+    
+    if(g_is_scanning) return;

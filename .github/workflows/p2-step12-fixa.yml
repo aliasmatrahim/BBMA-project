@@ -1,6 +1,6 @@
 name: P2 Step12 Fix A Apply
 
-on:
+"on":
   push:
     branches: [ blueprint-dev ]
     paths:
@@ -23,7 +23,6 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-
           p = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
           s = p.read_text(encoding='utf-8')
 

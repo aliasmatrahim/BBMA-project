@@ -1,0 +1,156 @@
+--- a/MASTER_BLUEPRINT_2.0_WORKING.txt
++++ b/MASTER_BLUEPRINT_2.0_WORKING.txt
+@@
+-void ProcessEntry(BBMA_Decision &decision, string pair, RiskValidationSnapshot snapshot)
++void ProcessEntry(BBMA_Decision &decision, string pair,
++                  RiskValidationSnapshot snapshot, double frozenLot)
+ {
+    if(decision.DecisionState != DEC_VALIDATED) return;
+@@
+-   bool validLot = true;
+-   double lot = CalculateLotSize(decision, snapshot, validLot);
+-   if(!validLot)
+-   {
+-      decision.DecisionState = DEC_REJECTED;
+-      decision.RejectionReason = REJ_INVALID_LOT;
+-      return;
+-   }
+-
+-   RiskStatus riskStatus = CheckRiskBeforeTrade(decision, snapshot, lot);
+-   if(!riskStatus.allowed)
+-   {
+-      decision.DecisionState = DEC_REJECTED;
+-      decision.RejectionReason = (riskStatus.rejection_reason != REJ_NONE) ?
+-                                 riskStatus.rejection_reason : REJ_TOTAL_RISK;
+-      return;
+-   }
+-
+-   FinalPortfolioGuard(decision);
+-   if(decision.DecisionState != DEC_VALIDATED) return;
++   // M22 is execution-only. Lot sizing belongs to M21, live risk filtering to
++   // M19, and prospective portfolio/protection gating to M20. M27 invokes those
++   // owners exactly once before entering M22. Never repeat them here.
++   double lot = frozenLot;
++   if(lot <= 0)
++   {
++      decision.DecisionState = DEC_REJECTED;
++      decision.RejectionReason = REJ_INVALID_LOT;
++      return;
++   }
+@@
+ }
++
++bool RunEntryPreflightAndExecute(BBMA_Decision &decision, string pair)
++{
++   if(decision.DecisionState != DEC_VALIDATED) return false;
++   if(pair == "" || decision.Pair != pair) return false;
++
++   // One frozen execution/risk snapshot for this decision. Strategy semantics
++   // are already frozen by the closed-M15 M15/M16/M17 path; only broker/account
++   // conditions are live here.
++   RiskValidationSnapshot snapshot;
++   BuildRiskValidationSnapshot(pair, decision, snapshot);
++
++   // M17: resolve/validate the source-owned BBMA destination and protective SL.
++   if(!ValidateSLTP(decision, snapshot))
++   {
++      decision.DecisionState = DEC_REJECTED;
++      decision.RejectionReason = REJ_SLTP_UNRESOLVED;
++      return false;
++   }
++
++   // M21 must precede M19 because prospective total-risk requires the proposed
++   // frozen lot. M21 may size only; it cannot change Entry/SL/TP/direction.
++   bool lotValid = true;
++   double lot = CalculateLotSize(decision, snapshot, lotValid);
++   if(!lotValid || lot <= 0)
++   {
++      decision.DecisionState = DEC_REJECTED;
++      decision.RejectionReason = REJ_INVALID_LOT;
++      return false;
++   }
++
++   // M19: live risk filter only.
++   RiskStatus riskStatus = CheckRiskBeforeTrade(decision, snapshot, lot);
++   if(!riskStatus.allowed)
++   {
++      decision.DecisionState = DEC_REJECTED;
++      decision.RejectionReason = (riskStatus.rejection_reason != REJ_NONE) ?
++                                 riskStatus.rejection_reason : REJ_TOTAL_RISK;
++      return false;
++   }
++
++   // M20: final prospective portfolio/protection gate. While emergency
++   // liquidation is latched, no new order may be admitted even if floating loss
++   // has temporarily fallen below the original basket-loss trigger.
++   if(g_portfolio_emergency_close_requested)
++   {
++      decision.DecisionState = DEC_REJECTED;
++      decision.RejectionReason = REJ_BASKET_LOSS;
++      return false;
++   }
++
++   FinalPortfolioGuard(decision);
++   if(decision.DecisionState != DEC_VALIDATED) return false;
++
++   // M22: immutable execution only. No re-sizing, re-risking or strategy repair.
++   ProcessEntry(decision, pair, snapshot, lot);
++   return (decision.DecisionState == DEC_EXECUTED);
++}
+@@
+-   if(decision.DecisionState == DEC_VALIDATED)
+-   {
+-      RiskValidationSnapshot riskSnapshot;
+-      BuildRiskValidationSnapshot(actual, decision, riskSnapshot);
+-      if(!ValidateSLTP(decision, riskSnapshot))
+-      {
+-         decision.DecisionState = DEC_REJECTED;
+-         decision.RejectionReason = REJ_INVALID_SL;
+-      }
+-   }
+-
+-   if(decision.DecisionState == DEC_VALIDATED)
+-   {
+-      RiskValidationSnapshot riskSnapshot;
+-      BuildRiskValidationSnapshot(actual, decision, riskSnapshot);
+-
+-      bool lotValid = true;
+-      double lot = CalculateLotSize(decision, riskSnapshot, lotValid);
+-      if(!lotValid)
+-      {
+-         decision.DecisionState = DEC_REJECTED;
+-         decision.RejectionReason = REJ_INVALID_LOT;
+-      }
+-      else
+-      {
+-         RiskStatus riskStatus = CheckRiskBeforeTrade(decision, riskSnapshot, lot);
+-         if(!riskStatus.allowed)
+-         {
+-            decision.DecisionState = DEC_REJECTED;
+-            decision.RejectionReason = (riskStatus.rejection_reason != REJ_NONE) ?
+-                                       riskStatus.rejection_reason : REJ_TOTAL_RISK;
+-         }
+-         else
+-         {
+-            ProcessEntry(decision, actual, riskSnapshot);
+-         }
+-      }
+-   }
++   if(decision.DecisionState == DEC_VALIDATED)
++      RunEntryPreflightAndExecute(decision, actual);
+@@
+ void OnTickMain()
+ {
++   if(!g_is_initialized) return;
++
++   // Live lifecycle/protection always runs before any new strategy scan.
+    ManagePortfolio();
+    ManagePositions();
++
++   // Emergency liquidation is an exclusive portfolio state. Do not scan or
++   // admit new entries while M20's latch remains active.
++   if(g_portfolio_emergency_close_requested) return;
+    
+    if(g_is_scanning) return;
+@@
+ }

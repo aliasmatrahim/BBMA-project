@@ -1,0 +1,274 @@
+--- a/MASTER_BLUEPRINT_2.0_WORKING.txt
++++ b/MASTER_BLUEPRINT_2.0_WORKING.txt
+@@ -3130,6 +3130,29 @@ bool IsAmbiguousError(int error)
+    return (error == 4 || error == 6 || error == 141);
+ }
+ 
++int FindExistingExecutionTicket(string pair, int direction, int magicNumber,
++                                string decisionID)
++{
++   if(pair == "" || magicNumber <= 0 || decisionID == "") return -1;
++
++   // MT4/brokers may truncate OrderComment(). The stable execution identity is
++   // intentionally placed at the beginning of CreateOrderComment(): BBMA|H:<16-hex>.
++   string executionTag = "BBMA|H:" + SHORT_HASH(decisionID);
++
++   int total = OrdersTotal();
++   for(int i = 0; i < total; i++)
++   {
++      if(!OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) continue;
++      if(OrderCloseTime() != 0) continue;
++      if(OrderSymbol() != pair) continue;
++      if(OrderMagicNumber() != magicNumber) continue;
++      if(OrderType() != direction) continue;
++
++      if(StringFind(OrderComment(), executionTag) == 0)
++         return OrderTicket();
++   }
++
++   return -1;
++}
++
+ bool IsSignalAllowed(BBMA_Decision decision, string pair, int magicNumber)
+ {
+    if(IsDecisionExecuted(decision.DecisionID))
+       return false;
+@@ -3138,31 +3161,27 @@ bool IsSignalAllowed(BBMA_Decision decision, string pair, int magicNumber)
+    if(decision.DecisionState != DEC_VALIDATED)
+       return false;
++
++   if(decision.Pair != pair || pair == "" || magicNumber <= 0 || decision.DecisionID == "")
++      return false;
+    
+    if(TradeLockMode == LOCK_ONE_POSITION)
+    {
+       for(int i = 0; i < g_monitored_count; i++)
+       {
+-         if(g_monitored_trades[i].pair == pair)
+-         {
+-            if(OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))
+-            {
+-               if(OrderCloseTime() == 0)
+-                  return false;
+-            }
+-         }
++         if(!IsLiveEAOwnedPortfolioTrade(i)) continue;
++         if(g_monitored_trades[i].pair == pair)
++            return false;
+       }
+    }
+    else if(TradeLockMode == LOCK_SAME_DIRECTION)
+    {
+       for(int i = 0; i < g_monitored_count; i++)
+       {
+-         if(g_monitored_trades[i].pair == pair &&
+-            g_monitored_trades[i].direction == decision.Direction)
+-         {
+-            if(OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))
+-            {
+-               if(OrderCloseTime() == 0)
+-                  return false;
+-            }
+-         }
++         if(!IsLiveEAOwnedPortfolioTrade(i)) continue;
++         if(g_monitored_trades[i].pair == pair &&
++            g_monitored_trades[i].direction == decision.Direction)
++            return false;
+       }
+    }
+    
+    return true;
+ }
+ 
+-int SendOrderWithRetry(string pair, int direction, double lot, double price, 
++int SendOrderWithRetry(string pair, int direction, double lot,
+                        double stopLoss, double takeProfit, string comment, 
+                        int magicNumber, double frozenAllowedDeviation, 
+-                       double decisionEntryPrice)
++                       double decisionEntryPrice, string decisionID)
+ {
++   // Return codes:
++   //  >0 = confirmed ticket (newly returned or reconciled existing order)
++   //  -1 = definite broker/execution failure
++   //  -2 = ambiguous result; DO NOT resend automatically
++   //  -3 = execution price moved beyond frozen deviation
++   if(MaxRetry <= 0 || pair == "" || lot <= 0 || stopLoss <= 0 || takeProfit <= 0 ||
++      magicNumber <= 0 || decisionID == "")
++      return -1;
++
+    int retry = 0;
+-   while(retry <= MaxRetry)
++   while(retry < MaxRetry)
+    {
++      // Idempotency guard BEFORE every possible send. If an earlier attempt was
++      // accepted but the terminal did not receive a definitive success result,
++      // reconcile it instead of creating a duplicate position.
++      int existingTicket = FindExistingExecutionTicket(pair, direction, magicNumber, decisionID);
++      if(existingTicket > 0)
++         return existingTicket;
++
+       RefreshRates();
+       
+       double bid = MarketInfo(pair, MODE_BID);
+       double ask = MarketInfo(pair, MODE_ASK);
++      if(bid <= 0 || ask <= 0)
++         return -1;
+       
+       double executionPrice = (direction == OP_BUY) ? ask : bid;
+       double deviation = MathAbs(executionPrice - decisionEntryPrice);
+       
+       if(deviation > frozenAllowedDeviation)
+       {
+-         return -1;
++         return -3;
+       }
+       
+       int ticket = OrderSend(pair, direction, lot, executionPrice, Slippage, 
+                              stopLoss, takeProfit, comment, magicNumber, 0, clrNONE);
+@@ -3190,30 +3209,29 @@ int SendOrderWithRetry(string pair, int direction, double lot, double price, 
+       if(IsFatalError(error))
+          return -1;
+       
+       if(IsAmbiguousError(error))
+       {
+-         int total = OrdersTotal();
+-         for(int i = 0; i < total; i++)
+-         {
+-            if(OrderSelect(i, SELECT_BY_POS, MODE_TRADES))
+-            {
+-               if(OrderMagicNumber() == magicNumber && 
+-                  StringFind(OrderComment(), comment) >= 0)
+-               {
+-                  return OrderTicket();
+-               }
+-            }
+-         }
++         // Reconcile once using stable decision identity. If the order is not
++         // observable yet, the result is genuinely ambiguous. Never resend here:
++         // the broker may have accepted the first request and expose it later.
++         int reconciled = FindExistingExecutionTicket(pair, direction, magicNumber, decisionID);
++         if(reconciled > 0)
++            return reconciled;
++         return -2;
+       }
+       
+-      if(IsRetryableError(error) || IsAmbiguousError(error))
++      if(IsRetryableError(error))
+       {
+          retry++;
+-         Sleep(RETRY_SLEEP_MS);
++         if(retry < MaxRetry)
++            Sleep(RETRY_SLEEP_MS);
+       }
+       else
+       {
+          return -1;
+       }
+    }
+-   return -2;
++   return -1;
+ }
+@@ -3230,8 +3248,15 @@ void ProcessEntry(BBMA_Decision &decision, string pair, RiskValidationSnapshot snapshot)
+ {
+    if(decision.DecisionState != DEC_VALIDATED) return;
+-   if(decision.Pair == "") decision.Pair = pair;
++
++   // M22 must never repair or recreate the immutable M15-M17 payload.
++   if(pair == "" || decision.Pair != pair || decision.DecisionID == "" ||
++      decision.Direction == DIR_NONE || decision.EntryPrice <= 0 ||
++      decision.StopLoss <= 0 || decision.TakeProfit <= 0)
++   {
++      decision.DecisionState = DEC_REJECTED;
++      decision.RejectionReason = REJ_INVALID_DECISION_STATE;
++      return;
++   }
+    
+    bool validLot = true;
+    double lot = CalculateLotSize(decision, snapshot, validLot);
+@@ -3270,18 +3295,13 @@ void ProcessEntry(BBMA_Decision &decision, string pair, RiskValidationSnapshot snapshot)
+       return;
+    }
+    
+-   int total = OrdersTotal();
+-   for(int i = 0; i < total; i++)
++   int existingTicket = FindExistingExecutionTicket(pair,
++                           (decision.Direction == DIR_BUY) ? OP_BUY : OP_SELL,
++                           magic, decision.DecisionID);
++   if(existingTicket > 0)
+    {
+-      if(OrderSelect(i, SELECT_BY_POS, MODE_TRADES))
+-      {
+-         if(OrderMagicNumber() == magic &&
+-            StringFind(OrderComment(), SHORT_HASH(decision.DecisionID)) >= 0)
+-         {
+-            decision.DecisionState = DEC_REJECTED;
+-            decision.RejectionReason = REJ_DUPLICATE;
+-            return;
+-         }
+-      }
++      decision.DecisionState = DEC_REJECTED;
++      decision.RejectionReason = REJ_DUPLICATE;
++      return;
+    }
+    
+    RefreshRates();
+@@ -3301,13 +3321,6 @@ void ProcessEntry(BBMA_Decision &decision, string pair, RiskValidationSnapshot snapshot)
+       return;
+    }
+    
+-   if(StringFind(decision.DecisionID, pair) < 0)
+-   {
+-      decision.DecisionID = GenerateDecisionID(pair, decision.CandleTime,
+-                                               decision.Direction,
+-                                               decision.SignalType,
+-                                               decision.SequenceHash);
+-   }
+-   
+    // FIX 3: Pass candle time to comment
+    string comment = CreateOrderComment(decision.DecisionID, pair, decision.Direction,
+                                        decision.SignalType, executionPrice, 
+@@ -3315,10 +3328,10 @@ void ProcessEntry(BBMA_Decision &decision, string pair, RiskValidationSnapshot snapshot)
+                                        decision.CandleTime);
+    
+-   int ticket = SendOrderWithRetry(pair, orderType, lot, executionPrice,
++   int ticket = SendOrderWithRetry(pair, orderType, lot,
+                                     decision.StopLoss, decision.TakeProfit,
+                                     comment, magic, frozenAllowedDeviation,
+-                                    decision.EntryPrice);
++                                    decision.EntryPrice, decision.DecisionID);
+    
+    if(ticket > 0)
+    {
+@@ -3365,8 +3378,26 @@ void ProcessEntry(BBMA_Decision &decision, string pair, RiskValidationSnapshot snapshot)
+          MarkDecisionExecuted(decision.DecisionID, ticket);
+          decision.DecisionState = DEC_EXECUTED;
+          decision.RejectionReason = REJ_NONE;
++         return;
+       }
++
++      // A ticket was identified but cannot be selected/reconciled now. Treat this
++      // as ambiguous rather than sending another order on the same decision.
++      decision.DecisionState = DEC_REJECTED;
++      decision.RejectionReason = REJ_AMBIGUOUS_RESULT;
++      return;
+    }
+-   else
++
++   decision.DecisionState = DEC_REJECTED;
++   if(ticket == -2)
++      decision.RejectionReason = REJ_AMBIGUOUS_RESULT;
++   else if(ticket == -3)
++      decision.RejectionReason = REJ_EXECUTION_DEVIATION_EXCEEDED;
++   else
+    {
+-      decision.DecisionState = DEC_REJECTED;
+       decision.RejectionReason = REJ_BROKER_ERROR;
+    }
+ }
+@@ -3754,6 +3785,8 @@ bool ValidateInputParameters()
+ {
++   if(MaxRetry <= 0) return false;
++   if(Slippage < 0 || AllowedExecutionDeviation_MinPoints < 0) return false;
+    if(MMMode != 1 && MMMode != 2) return false;
+    if(MMMode == 1 && AutoLotPercent <= 0) return false;
+    if(MMMode == 1 && MaxAutoLot <= 0) return false;

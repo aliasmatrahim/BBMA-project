@@ -1,0 +1,238 @@
+--- a/MASTER_BLUEPRINT_2.0_WORKING.txt
++++ b/MASTER_BLUEPRINT_2.0_WORKING.txt
+@@ -179,6 +179,7 @@
+    REJ_INVALID_SL,
+    REJ_INVALID_TP,
+    REJ_INVALID_RR,
++   REJ_SLTP_UNRESOLVED,
+    REJ_INVALID_LOT,
+    REJ_DUPLICATE,
+    REJ_TRADE_LOCK,
+@@ -2840,44 +2841,172 @@
+ //| LEVEL: INTERMEDIATE                                              |
+ //+------------------------------------------------------------------+
+ 
+-bool ValidateSLTP(BBMA_Decision decision, RiskValidationSnapshot snapshot)
++double GetDirectionalClosePrice(RiskValidationSnapshot snapshot, ENUM_DIRECTION direction)
+ {
+-   if(decision.StopLoss <= 0 || decision.TakeProfit <= 0) return false;
+-   if(snapshot.EntryPrice <= 0) return false;
+-   
++   // MT4 market positions close/trigger on BID for BUY and ASK for SELL.
++   if(direction == DIR_BUY) return snapshot.Bid;
++   if(direction == DIR_SELL) return snapshot.Ask;
++   return 0.0;
++}
++
++bool ResolveExecutionReferencePrice(BBMA_Decision &decision, RiskValidationSnapshot &snapshot)
++{
++   // This is broker execution geometry, not a new BBMA strategy entry rule.
++   // BUY market execution references ASK; SELL references BID.
++   double price = 0.0;
++   if(decision.Direction == DIR_BUY) price = snapshot.Ask;
++   else if(decision.Direction == DIR_SELL) price = snapshot.Bid;
++
++   if(price <= 0.0) return false;
++
++   decision.EntryPrice = price;
++   snapshot.EntryPrice = price;
++   return true;
++}
++
++bool HasSourceResolvedSLTP(BBMA_Decision decision)
++{
++   // Step 8 is deliberately fail-closed. The supplied BBMA PDF gives an
++   // Extreme SL placement example but no deterministic TP formula, and it does
++   // not define a complete SL/TP pair for the currently executable confirmed
++   // Re-Entry / REM / RRE / REE candidates. Legacy MaxSL/MinRR builders are
++   // therefore not accepted as BBMA source resolution.
++   if(decision.SLTPSource == SIGNAL_NONE) return false;
++   return (decision.StopLoss > 0.0 && decision.TakeProfit > 0.0);
++}
++
++bool ValidateDirectionalSLTPGeometry(BBMA_Decision decision)
++{
++   if(decision.Direction == DIR_BUY)
++      return (decision.StopLoss < decision.EntryPrice &&
++              decision.TakeProfit > decision.EntryPrice);
++
++   if(decision.Direction == DIR_SELL)
++      return (decision.StopLoss > decision.EntryPrice &&
++              decision.TakeProfit < decision.EntryPrice);
++
++   return false;
++}
++
++bool ValidateSLTP(BBMA_Decision &decision, RiskValidationSnapshot snapshot,
++                  ENUM_REJECTION_REASON &rejection)
++{
++   rejection = REJ_NONE;
++
++   if(decision.EntryPrice <= 0.0 || snapshot.EntryPrice <= 0.0)
++   {
++      rejection = REJ_MARKET_PRICE_INVALID;
++      return false;
++   }
++
++   if(!HasSourceResolvedSLTP(decision))
++   {
++      rejection = REJ_SLTP_UNRESOLVED;
++      return false;
++   }
++
++   if(decision.StopLoss <= 0.0)
++   {
++      rejection = REJ_INVALID_SL;
++      return false;
++   }
++
++   if(decision.TakeProfit <= 0.0)
++   {
++      rejection = REJ_INVALID_TP;
++      return false;
++   }
++
++   if(!ValidateDirectionalSLTPGeometry(decision))
++   {
++      rejection = (decision.StopLoss == decision.EntryPrice)
++         ? REJ_INVALID_SL : REJ_INVALID_TP;
++      return false;
++   }
++
+    double slDistance = MathAbs(decision.EntryPrice - decision.StopLoss);
+-   double minDistance = snapshot.StopLevel * snapshot.Point;
+-   if(slDistance < minDistance) return false;
+-   
+    double tpDistance = MathAbs(decision.TakeProfit - decision.EntryPrice);
+-   if(tpDistance / slDistance < MinRRRatio) return false;
+-   
+-   double maxSL = MaxSLPips * snapshot.Point / 10;
+-   if(slDistance > maxSL) return false;
+-   
++   if(slDistance <= 0.0 || tpDistance <= 0.0)
++   {
++      rejection = (slDistance <= 0.0) ? REJ_INVALID_SL : REJ_INVALID_TP;
++      return false;
++   }
++
++   // MaxSLPips is a project risk cap only; it must never manufacture the SL.
++   double pipPrice = GetPipValue(decision.Pair);
++   if(MaxSLPips > 0.0 && pipPrice > 0.0)
++   {
++      double maxSLPrice = MaxSLPips * pipPrice;
++      if(slDistance > maxSLPrice)
++      {
++         rejection = REJ_INVALID_SL;
++         return false;
++      }
++   }
++
++   // MinRRRatio is also a rejection filter only; it never manufactures TP.
++   if(MinRRRatio > 0.0 && (tpDistance / slDistance) < MinRRRatio)
++   {
++      rejection = REJ_INVALID_RR;
++      return false;
++   }
++
++   // StopLevel is measured from the side that closes/triggers the market order:
++   // BID for BUY positions, ASK for SELL positions.
++   double closePrice = GetDirectionalClosePrice(snapshot, decision.Direction);
++   double minDistance = snapshot.StopLevel * snapshot.Point;
++   if(closePrice <= 0.0)
++   {
++      rejection = REJ_MARKET_PRICE_INVALID;
++      return false;
++   }
++
++   if(minDistance > 0.0)
++   {
++      if(MathAbs(decision.StopLoss - closePrice) < minDistance)
++      {
++         rejection = REJ_INVALID_SL;
++         return false;
++      }
++      if(MathAbs(decision.TakeProfit - closePrice) < minDistance)
++      {
++         rejection = REJ_INVALID_TP;
++         return false;
++      }
++   }
++
++   decision.StopLossPoints = slDistance / snapshot.Point;
+    return true;
+ }
+ 
+-bool ValidateStopLevel(double price, string pair)
++bool ValidateStopLevel(double price, string pair, ENUM_DIRECTION direction)
+ {
+    int stopLevel = GetStopLevel(pair);
+    double point = GetPointSize(pair);
+    if(stopLevel <= 0) return true;
++   if(point <= 0.0) return false;
++
+    double minDist = stopLevel * point;
+-   double currentPrice = MarketInfo(pair, MODE_BID);
+-   if(MathAbs(price - currentPrice) < minDist) return false;
+-   return true;
++   double currentPrice = (direction == DIR_BUY)
++      ? MarketInfo(pair, MODE_BID)
++      : (direction == DIR_SELL ? MarketInfo(pair, MODE_ASK) : 0.0);
++   if(currentPrice <= 0.0) return false;
++   return (MathAbs(price - currentPrice) >= minDist);
+ }
+ 
+-bool ValidateFreezeLevel(double price, string pair)
++bool ValidateFreezeLevel(double price, string pair, ENUM_DIRECTION direction)
+ {
+    int freezeLevel = GetFreezeLevel(pair);
+    double point = GetPointSize(pair);
+    if(freezeLevel <= 0) return true;
++   if(point <= 0.0) return false;
++
+    double minDist = freezeLevel * point;
+-   double currentPrice = MarketInfo(pair, MODE_BID);
+-   if(MathAbs(price - currentPrice) < minDist) return false;
+-   return true;
++   double currentPrice = (direction == DIR_BUY)
++      ? MarketInfo(pair, MODE_BID)
++      : (direction == DIR_SELL ? MarketInfo(pair, MODE_ASK) : 0.0);
++   if(currentPrice <= 0.0) return false;
++   return (MathAbs(price - currentPrice) >= minDist);
+ }
+ 
+ //+------------------------------------------------------------------+
+@@ -3734,7 +3863,8 @@
+          {
+             double bePrice = g_monitored_trades[i].initial_entry_price;
+             
+-            if(ValidateStopLevel(bePrice, pair) && ValidateFreezeLevel(bePrice, pair))
++            if(ValidateStopLevel(bePrice, pair, g_monitored_trades[i].direction) &&
++               ValidateFreezeLevel(bePrice, pair, g_monitored_trades[i].direction))
+             {
+                if(OrderModify(OrderTicket(), OrderOpenPrice(), bePrice, OrderTakeProfit(), 0, clrNONE))
+                {
+@@ -4442,11 +4572,25 @@
+    {
+       RiskValidationSnapshot riskSnapshot;
+       BuildRiskValidationSnapshot(actual, decision, riskSnapshot);
+-      if(!ValidateSLTP(decision, riskSnapshot))
++
++      if(!ResolveExecutionReferencePrice(decision, riskSnapshot))
+       {
+          decision.DecisionState = DEC_REJECTED;
+-         decision.RejectionReason = REJ_INVALID_SL;
++         decision.RejectionReason = REJ_MARKET_PRICE_INVALID;
++      }
++      else
++      {
++         ENUM_REJECTION_REASON sltpRejection = REJ_NONE;
++         if(!ValidateSLTP(decision, riskSnapshot, sltpRejection))
++         {
++            decision.DecisionState = DEC_REJECTED;
++            decision.RejectionReason = sltpRejection;
++            if(sltpRejection == REJ_SLTP_UNRESOLVED)
++               decision.Reason = "BBMA SL/TP contract unresolved by supplied source";
++         }
+       }
+    }
+ 

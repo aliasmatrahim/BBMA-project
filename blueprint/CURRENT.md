@@ -31,14 +31,15 @@ The exact baseline is stored as deterministic gzip+base64 chunks under `blueprin
 12. `blueprint/patches/0012-p0-step5-m14-combination-validation.patch`
 13. `blueprint/patches/0013-p0-step6-m15-final-authority-atomic-entry-mode.patch`
 14. `blueprint/patches/0014-p0-step7-m16-owner-aware-invalidation.patch`
+15. `blueprint/patches/0015-p0-step8-m17-sltp-source-guard-direction-validation.patch`
 
 ## Full-source SHA verification status
 The previously recorded SHA-256 `274b3d380463f5cd9a477ce0c37b6da0db6c4cc6721013fdef4e984326b291bf` was discovered during Step 3D to have been calculated from a partial reconstruction and remains withdrawn.
 
-Last previously verified exact full-chain working-source SHA through patches 0001–0005:
+Last exact verified full-chain working-source SHA through patches 0001–0005:
 `9ccbfd77032e3e9acdbf4b343ceaf98f632162d932cbb3fcad04a58539c1e3d8`
 
-Patches 0006–0014 have focused verification records in their contracts. A new full-chain SHA must only be claimed after exact materialization of the complete ordered patch chain.
+Patches 0006–0015 have focused verification records in their contracts. A new full-chain SHA must only be claimed after exact materialization of the complete ordered patch chain.
 
 ## Locked supporting contracts
 - `blueprint/ENTRY_MODE_CONTRACT.md`
@@ -50,6 +51,7 @@ Patches 0006–0014 have focused verification records in their contracts. A new 
 - `blueprint/contracts/M14_COMBINATION_VALIDATION_CONTRACT.md`
 - `blueprint/contracts/M15_FINAL_SIGNAL_AUTHORITY_CONTRACT.md`
 - `blueprint/contracts/M16_CONFLICT_INVALIDATION_CONTRACT.md`
+- `blueprint/contracts/M17_ENTRY_SLTP_CONTRACT.md`
 - `docs/references/SOURCE_INDEX.md`
 - `docs/references/BBMA_OMA_ALLY_RULE_INDEX.md`
 
@@ -60,37 +62,17 @@ M01 BEGINNER; M02 BEGINNER; M03 INTERMEDIATE; M04 INTERMEDIATE; M05 INTERMEDIATE
 
 # P0 Architecture Repair
 
-## Step 1 — BB Shape → Extreme contract
-Status: **COMPLETED / VERIFIED AT BLUEPRINT LEVEL**
+## Steps 1–3E — BBMA source alignment foundations
+Status: **COMPLETED AT THEIR LOCKED CONTRACT LEVELS**
 
-M07 owns BB-shape classification; BB shape is auxiliary Extreme context and no fabricated state is substituted when classification is disabled.
+- M07 BB-shape ownership repaired.
+- M09 MLV persistence/lifecycle repaired.
+- M12 Re-Entry persistence and Type 1–4 source alignment repaired.
+- M06 MA5/10 High/Low producer corrected to BBMA LWMA High/Low semantics.
+- M08 Extreme source contract repaired.
+- M10 CSM/CSD/eCSD source contracts repaired.
 
-## Step 2 — M09 MLV persistence/lifecycle
-Status: **COMPLETED / VERIFIED AT BLUEPRINT LEVEL**
-
-Persistent BUY/SELL MLV slots, M09 lifecycle ownership, confirmed chronology/expiry and downstream immutable snapshots are established.
-
-## Step 3 / 3B — M12 Re-Entry persistence + BBMA source alignment
-Status: **COMPLETED AT M12 CONTRACT LEVEL**
-
-Persistent H1/H4/D1 x BUY/SELL state is established. Type 1–4 contracts are source-aligned; only confirmed Re-Entry may be exported downstream.
-
-## Step 3C — M06 MA producer source alignment
-Status: **COMPLETED / VERIFIED AT BLUEPRINT LEVEL**
-
-MA5/10 High/Low use source-specific LWMA High/Low production; EMA50 uses EMA Close.
-
-## Step 3D — M08 Extreme source alignment
-Status: **COMPLETED AT RAW EXTREME SIGNAL CONTRACT LEVEL; TEMPORAL VALIDITY NOW CONNECTED BY STEP 7**
-
-BUY/SELL MA-side mapping, outer-BB rule and VOID-on-close-outside behavior are source-aligned. Raw Extreme is not standalone execution authority. Step 7 now supplies the persistent validity overlay and later-CSM invalidation path while M08 remains the detector.
-
-## Step 3E — M10 CSM / CSD / eCSD source alignment
-Status: **COMPLETED AT SIGNAL-PRODUCER CONTRACT LEVEL**
-
-Legacy unsourced CSM formula was removed; CSM follows directional outer-BB momentum context. eCSD and CSD use source-aligned crossing contracts; same-candle CSD-over-eCSD precedence is handled by M13.
-
-## Step 4 — M13 Combination Engine / collector contract
+## Step 4 — M13 Combination Engine
 Status: **COMPLETED AT COLLECTOR / COMBINATION CONTRACT LEVEL**
 
 Source-locked project rows:
@@ -98,96 +80,82 @@ Source-locked project rows:
 - RRE = D1 Re-Entry + H4 Re-Entry + H1 Extreme;
 - REE = D1 Re-Entry + H4 Extreme + H1 Extreme.
 
-M13 is collector/assembler only and does not detect, mutate lifecycle, rank or choose SL/TP.
+M13 is collector/assembler only.
 
-## Step 5 — M14 REM/RRE/REE validation
+## Step 5 — M14 Validation
 Status: **COMPLETED AT VALIDATE-ONLY CONTRACT LEVEL**
 
-M14 validates exact combination identity/type/timeframe/direction, populates validated component identity, removes unrelated legacy sequence signatures and does not invent strict chronology, priority tier or SL/TP source.
+M14 validates exact REM/RRE/REE identity, timeframe and direction; populates component payload; no invented chronology, priority or SL/TP source.
 
-## Step 6 — M15 Final Signal Authority / Entry Mode / atomic direction
+## Step 6 — M15 Final Signal Authority
 Status: **COMPLETED AT FINAL-AUTHORITY CONTRACT LEVEL**
 
 - `EntryMode 1 = RE_ENTRY_ONLY` -> confirmed H1 Re-Entry only.
 - `EntryMode 2 = ALL_VALIDATED_BBMA_ENTRIES` -> confirmed H1 Re-Entry + validated REM/RRE/REE.
 - raw Extreme/MLV/CSD/eCSD/CSM cannot directly execute.
-- BUY and SELL candidates are pooled before one atomic M15 pass.
-- simultaneous eligible BUY and SELL -> no created trade decision; no arbitrary winner.
-- `SignalMode` quality-tier gating is removed from M15 authority.
-- no REM/RRE/REE superiority ranking is invented.
+- BUY and SELL are resolved atomically; unresolved opposite validated directions -> no trade.
+- no arbitrary REM/RRE/REE quality ranking.
 
-Patch: `blueprint/patches/0013-p0-step6-m15-final-authority-atomic-entry-mode.patch`.
-Contract: `blueprint/contracts/M15_FINAL_SIGNAL_AUTHORITY_CONTRACT.md`.
-
-## Step 7 — M16 conflict / invalidation / owner-aware freshness
+## Step 7 — M16 Conflict / Invalidation
 Status: **COMPLETED AT CONFLICT / INVALIDATION CONTRACT LEVEL**
 
-Primary BBMA source rule connected in this step: an Extreme is no longer valid in the presence of CSM.
+- decision components are revalidated against their real owner state;
+- generic M15-based expiry assumptions removed;
+- persistent H1/H4 Extreme validity overlay added;
+- later same-timeframe source-valid CSM invalidates stored Extreme;
+- M16 remains invalidation-only.
 
-### Persistent Extreme validity overlay
-M08 remains the raw detector. M16 now owns H1/H4 x BUY/SELL persistent Extreme validity snapshots for temporal invalidation/expiry:
-- `extreme_h1_buy_state`;
-- `extreme_h1_sell_state`;
-- `extreme_h4_buy_state`;
-- `extreme_h4_sell_state`.
+## Step 8 — M17 Entry / SL / TP
+Status: **PARTIALLY COMPLETED / SAFE SOURCE GUARD ACTIVE**
 
-A later source-valid CLOSED CSM on the same timeframe invalidates the stored Extreme. The source does not qualify this invalidation by CSM direction, so Step 7 does not invent a same-direction requirement. This same-timeframe/later-candle mapping is explicitly an engineering translation of the source sentence.
+### Source finding
+The primary BBMA reference explicitly states for Extreme that reversal confirmation is required, retest is the point of entry, and SL may be placed a few pips beyond the highest shadow/wick. However, the supplied source does **not** define a deterministic TP formula.
 
-### Owner-aware decision validation
-M15 now forwards explicit selected component identity into `BBMA_Decision` through `ComponentCount`, `Components[3]` and explicit `CandidateExpiry` when an owner supplies it.
+For the currently executable confirmed Re-Entry / REM / RRE / REE paths, the supplied pages define setup/entry-location concepts but do not define a complete deterministic SL + TP pair suitable for autonomous execution.
 
-M16 checks every selected component against its actual owner state before allowing `DEC_VALIDATED`:
-- Re-Entry -> matching M12 H1/H4/D1 + direction slot, confirmed/valid/same confirmation candle/not expired;
-- MLV -> matching M09 M15 + direction slot, confirmed/valid/same confirmation candle/not expired;
-- Extreme -> matching M16 H1/H4 + direction persistent validity slot, same identity/not expired/not invalidated by later CSM.
+Therefore the old blueprint formulas that manufactured SL from `MaxSLPips` and TP from `MinRRRatio` are **not accepted as BBMA source rules**.
 
-If any required component is no longer owner-valid, the assembled decision cannot proceed.
+### Safe guard
+M17 now fails closed with `REJ_SLTP_UNRESOLVED` unless a future approved source resolver supplies a complete SL/TP pair and a non-`SIGNAL_NONE` source identity.
 
-### Legacy generic expiry removed
-M16 no longer uses:
-- `decision.CandleTime + MaxWaitBars_Global * 900`;
-- `decision.CycleStartTime + MaxWaitBars_Global * 900`.
+This means upstream BBMA setups may still be detected and validated, but they are not execution-ready until the SL/TP source gap is resolved.
 
-Legacy generic Signal/MLV/Re-Entry expiry helpers are removed from the active M16 path. Expiry and strategy invalidation are treated separately.
-
-### Ownership cleanup
-- broker initialization rejection removed from M16 because broker readiness is not strategy invalidation ownership;
-- unresolved opposite direction remains no-trade; M16 never invents a winner;
-- M16 remains conflict/invalidation-only and does not own SL/TP, risk, priority or execution.
+### Engineering fixes completed
+- BUY execution reference uses ASK; SELL uses BID.
+- direction-aware geometry enforced: BUY `SL < Entry < TP`, SELL `TP < Entry < SL`.
+- MaxSL conversion corrected using the project pip-price helper; `MaxSLPips` is a rejection cap only.
+- `MinRRRatio` is a rejection filter only and no longer manufactures TP.
+- StopLevel/FreezeLevel are direction-aware: BUY uses BID close/trigger side, SELL uses ASK.
+- M23 compatibility call updated to pass explicit direction.
+- `StopLossPoints` is normalized to actual broker points after valid resolution.
 
 Patch:
-`blueprint/patches/0014-p0-step7-m16-owner-aware-invalidation.patch`
+`blueprint/patches/0015-p0-step8-m17-sltp-source-guard-direction-validation.patch`
 
 Contract:
-`blueprint/contracts/M16_CONFLICT_INVALIDATION_CONTRACT.md`
+`blueprint/contracts/M17_ENTRY_SLTP_CONTRACT.md`
 
 Focused patch SHA-256:
-`d333b64594eb563c3013776e36d3ab967041be471f7b45206fb73d466adc034a`
+`8aeeb013aaa76182f222b31eb0b0dfeb67a2765090cc8dad7dc9a488188e0b8c`
 
 ### Focused verification
 - dry-run/apply clean and exact generated target match;
-- braces 502/502;
-- parentheses 1538/1538;
-- brackets 353/353;
-- old generic decision/cycle expiry formulas absent;
-- owner snapshot validator present;
-- persistent H1/H4 Extreme validity overlay present;
-- temporal later-CSM invalidation present;
-- explicit pairIndex routing into M16 present.
+- braces 521/521;
+- parentheses 1583/1583;
+- brackets 355/355;
+- old M17 `MaxSLPips * Point / 10` formula absent;
+- BID-only StopLevel/FreezeLevel behavior absent;
+- source-resolution fail-closed guard present.
 
 No new full-chain working-source SHA is claimed from this focused verification.
 
 ## Next P0 action
-**Step 8 — M17 entry / SL / TP contract and direction-aware validation.**
+**Step 8B — resolve the BBMA SL/TP source gap before execution can be certified.**
 
-Priorities:
-1. resolve where `EntryPrice`, `StopLoss`, `TakeProfit` and `StopLossPoints` are actually built for each final eligible entry type;
-2. replace absolute-distance-only validation with direction-aware BUY/SELL SL/TP geometry;
-3. correct MaxSL pip/point conversion;
-4. make StopLevel/FreezeLevel validation execution-side aware rather than always using BID;
-5. preserve BBMA-source SL/TP semantics where explicitly stated; if the PDF does not specify a deterministic rule for an entry type, mark it unresolved rather than inventing one;
-6. keep M17 validation/resolution separate from risk sizing and order execution.
+Acceptable routes:
+1. add another authoritative BBMA/Oma Ally source that explicitly defines deterministic SL/TP/exit rules; or
+2. explicitly approve a separate non-BBMA trade-management SL/TP rule, clearly labelled as project management logic rather than BBMA strategy semantics.
 
-After M17, continue to scoring/risk/portfolio/execution blockers in dependency order.
+Until Step 8B is resolved, later modules may still be audited, but the EA must remain fail-closed before execution.
 
 Do not merge into `main` until the full blueprint audit is clean and explicitly approved as MASTER BLUEPRINT LOCKED.

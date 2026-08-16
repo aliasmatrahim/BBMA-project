@@ -1,0 +1,21 @@
+name: Export Latest MQ4
+
+on:
+  push:
+    branches: [ blueprint-dev ]
+    paths:
+      - '.github/workflows/export-latest-mq4.yml'
+  workflow_dispatch:
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare export
+        run: cp blueprint/source/BBMA_PROFESSIONAL_EA.mq4 BBMA_PROFESSIONAL_EA_P2_STEP8_FIXC.mq4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BBMA_PROFESSIONAL_EA_P2_STEP8_FIXC
+          path: BBMA_PROFESSIONAL_EA_P2_STEP8_FIXC.mq4
+          if-no-files-found: error

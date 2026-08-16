@@ -38,6 +38,7 @@ The exact baseline is stored as deterministic gzip+base64 chunks under `blueprin
 21. `blueprint/patches/0021-p0-step13-m22-dumb-executor-idempotent-order-send.patch`
 22. `blueprint/patches/0022-p0-step14-m23-position-lifecycle-exit-ownership.patch`
 23. `blueprint/patches/0023-p0-step15-m24-recovery-hash-tombstone.patch`
+24. `blueprint/patches/0024-p0-step16-m25-m26-dashboard-init-cleanup.patch`
 
 ## Full-source SHA verification status
 The previously recorded SHA-256 `274b3d380463f5cd9a477ce0c37b6da0db6c4cc6721013fdef4e984326b291bf` remains withdrawn because it was calculated from a partial reconstruction.
@@ -45,7 +46,7 @@ The previously recorded SHA-256 `274b3d380463f5cd9a477ce0c37b6da0db6c4cc6721013f
 Last exact verified full-chain working-source SHA through patches 0001–0005:
 `9ccbfd77032e3e9acdbf4b343ceaf98f632162d932cbb3fcad04a58539c1e3d8`
 
-Patches 0006–0023 currently have focused patch/contract verification only. A new full-chain SHA must only be claimed after exact materialization and compilation of the complete ordered patch chain.
+Patches 0006–0024 currently have focused patch/contract verification only. A new full-chain SHA must only be claimed after exact materialization and compilation of the complete ordered patch chain.
 
 ## Locked supporting contracts
 - `blueprint/ENTRY_MODE_CONTRACT.md`
@@ -66,6 +67,7 @@ Patches 0006–0023 currently have focused patch/contract verification only. A n
 - `blueprint/contracts/M22_ORDER_EXECUTION_CONTRACT.md`
 - `blueprint/contracts/M23_POSITION_LIFECYCLE_CONTRACT.md`
 - `blueprint/contracts/M24_RECOVERY_CONTRACT.md`
+- `blueprint/contracts/M25_M26_DASHBOARD_INITIALIZATION_CONTRACT.md`
 - `docs/references/SOURCE_INDEX.md`
 - `docs/references/BBMA_OMA_ALLY_RULE_INDEX.md`
 
@@ -76,7 +78,7 @@ M01 BEGINNER; M02 BEGINNER; M03 INTERMEDIATE; M04 INTERMEDIATE; M05 INTERMEDIATE
 
 # P0 Architecture Repair
 
-## Steps 1–15
+## Steps 1–16
 Status: **COMPLETED AT THEIR LOCKED PATCH/CONTRACT LEVELS**
 
 Core locked outcomes:
@@ -91,54 +93,52 @@ Core locked outcomes:
 - M21 performs deterministic frozen-snapshot lot sizing;
 - M22 is a dumb/idempotent executor using stable `BBMA|H:<SHORT_HASH(DecisionID)>` identity;
 - M23 preserves broker-side M17 SL/TP and removes unsupported 1R partial close/breakeven/synthetic TP handling;
-- M24 recovery is restart-idempotent and hash-based without fabricating strategy identity.
+- M24 recovery is restart-idempotent and hash-based without fabricating strategy identity;
+- M25 is display-only and no longer presents PriorityTier as trading-quality authority;
+- M26 initialization is fail-closed, recovery runs only after pair/magic ownership validation, and protection reference is equity-based.
 
-## Step 15 — M24 Recovery Engine
-Status: **COMPLETED AT RECOVERY / RESTART-IDEMPOTENCY CONTRACT LEVEL**
+## Step 16 — M25 Dashboard + M26 Initialization/Cleanup
+Status: **COMPLETED AT DISPLAY / INITIALIZATION-OWNERSHIP CONTRACT LEVEL**
 
 Baseline defects repaired:
-- recovery rebuilt a full `DecisionID` from lossy order-comment fields;
-- `Q:` stores `SHORT_HASH(sequenceHash)`, so rebuilding with `Q:` cannot reproduce the original `DecisionID` deterministically;
-- broker/MT4 comment truncation could remove later metadata while the stable `H:` prefix remained available;
-- execution history was rebuilt only from currently open orders, allowing a previously executed-and-closed decision to be forgotten after restart;
-- comment parsing dropped the final field when no trailing `|` existed;
-- recovery matched magic but did not require exact live symbol + market-order ownership before rebuilding state;
-- legacy recovery inferred partial-close/breakeven lifecycle state that Step 14 has removed.
+- M25 displayed `PriorityTier`, which could imply an unsupported setup-quality hierarchy after M18 scoring/ranking authority had been removed;
+- initialization relied on implicit default values for scan/manage/initialized/emergency-latch state;
+- `g_protection_reference_equity` was initialized from `AccountBalance()` although M19 defines drawdown against live equity;
+- daily protection reset also used balance, creating inconsistency with the M19 drawdown contract;
+- deinitialization did not explicitly stop local scan/manage/dashboard-refresh state or clear the chart comment.
 
 Implemented by:
-`blueprint/patches/0023-p0-step15-m24-recovery-hash-tombstone.patch`
+`blueprint/patches/0024-p0-step16-m25-m26-dashboard-init-cleanup.patch`
 
 Patch commit:
-`7b75d4807396c666368e62af250b689c74115438`
+`cb148e3dc9b074d1ad0811ba6b9b4e237a2b1a42`
 
 Contract:
-`blueprint/contracts/M24_RECOVERY_CONTRACT.md`
+`blueprint/contracts/M25_M26_DASHBOARD_INITIALIZATION_CONTRACT.md`
 
 Contract commit:
-`6f08d0be253da6dadb8f91cb6aebf4ae23cbebce`
+`a920c5c990d553ec6baf7904f2ecc9314dc9ca66`
 
-Locked M24 behavior:
-- stable execution identity is `H:SHORT_HASH(DecisionID)`, not a fabricated full DecisionID;
-- exact EA ownership requires matching configured symbol + exact magic + market-order type;
-- restart tombstones are rebuilt from both open orders and account order history;
-- `IsDecisionExecuted()` recognizes full DecisionID or matching executed hash tombstone;
-- ambiguous M22 orders that appear later can be recovered without a second `OrderSend()`;
-- live broker Entry/SL/TP/lot are preserved exactly and are never recreated from current market data;
-- valid hash-only/truncated-comment positions may be monitored as `REC_IDENTITY_HASH_ONLY` without inventing signal metadata;
-- invalid geometry or unsafe lot state fails recovery closed;
-- recovery does not reactivate partial-close or breakeven behavior.
+Locked Step 16 behavior:
+- dashboard renders state only and cannot mutate strategy/risk/recovery/order state;
+- no Tier/score/partial-close/breakeven/basket-profit execution semantics are presented as trading authority;
+- initialization remains non-operational until broker info, pairs, PairID/magic collision checks, execution-history rebuild and live-order recovery complete;
+- M24 recovery happens only after exact pair/symbol/magic ownership has been established;
+- protection reference uses positive `AccountEquity()` on initialization and daily reset;
+- transient M20 emergency latch starts false and may only re-latch from current live protection evaluation;
+- deinitialization stops local orchestration/display state without closing or modifying broker positions.
 
 ### Verification boundary
-The baseline M24 recovery block, execution-history rebuild, comment creation/parser, decision-execution history helpers and initialization ordering were inspected. Patch 0023 and the M24 contract are stored on `blueprint-dev`. No new full-chain compile/SHA is claimed yet.
+The M25/M26 baseline was recovered from the repository's archived Master Blueprint source after GitHub code search failed. The relevant baseline dashboard, `InitializeEA()`, `OnInit()`, `OnDeinit()` and daily reset paths were inspected. Patch 0024 and the M25/M26 contract are stored on `blueprint-dev`. No new full-chain compile/SHA is claimed yet.
 
 ## Next P0 action
-**Step 16 — audit M25 Dashboard + M26 Initialization/Cleanup boundaries.**
+**Step 17 — final M27 orchestrator / end-to-end ownership audit.**
 
 Required focus:
-1. M25 must remain display-only and must not influence trading decisions or mutate state;
-2. remove stale dashboard concepts such as score tiers, partial-close/breakeven status or deprecated basket-profit execution semantics;
-3. verify M26 initializes all newly introduced protection/recovery/hash state deterministically and in safe order;
-4. ensure restart initialization performs pair/magic validation before M24 recovery and does not wipe required recovery state after reconstruction;
-5. audit deinitialization/timer cleanup for side effects on strategy or order lifecycle.
+1. verify the actual patched call order M20 -> M23 and the M15 -> M17 -> M19 -> M20 -> M21 -> M22 entry pipeline;
+2. remove any residual old priority/scoring, generic rejection, or pre-patch portfolio paths still present in M27;
+3. ensure M15 closed-candle processing remains the sole strategy clock while live risk/execution/lifecycle checks remain tick-safe;
+4. verify dashboard/recovery/protection calls cannot race or mutate decision ownership;
+5. after M27 is clean, materialize the full ordered patch chain and begin full-source compile/SHA verification before any merge to `main`.
 
 Do not merge into `main` until the full blueprint audit is clean and explicitly approved as MASTER BLUEPRINT LOCKED.

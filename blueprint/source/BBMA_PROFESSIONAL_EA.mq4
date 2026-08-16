@@ -4709,17 +4709,10 @@ void ManagePositions()
       g_monitored_trades[i].lot = OrderLots();
       g_monitored_trades[i].remaining_lot = OrderLots();
       
-      if(g_monitored_trades[i].recovery_state == REC_CORRUPTED ||
-         g_monitored_trades[i].recovery_state == REC_RECOVERY_INVALID)
-      {
-         Log(DBG_ERROR, "Trade " + IntegerToString(g_monitored_trades[i].ticket) + 
-             " corrupted, frozen: " + EnumToString(g_monitored_trades[i].recovery_state));
-         continue;
-      }
-
-      // M20 emergency basket-loss protection is the only active M23 broker-side
-      // lifecycle close policy at this stage. Keep the request latched in M20 so
-      // a failed close is retried on a later tick. No partial close is allowed.
+      // Emergency liquidation has precedence over recovery-state freezing.
+      // Exact symbol/magic ownership was already revalidated above. Therefore an
+      // EA-owned position flagged corrupted/recovery-invalid must still be closable
+      // when M20 latches basket-loss protection; otherwise the latch can be trapped.
       if(g_portfolio_emergency_close_requested)
       {
          double closePrice = (g_monitored_trades[i].direction == DIR_BUY) ? bid : ask;
@@ -4732,6 +4725,14 @@ void ManagePositions()
             Log(DBG_ERROR, "Emergency close failed ticket=" + IntegerToString(OrderTicket()) +
                 " error=" + IntegerToString(error));
          }
+         continue;
+      }
+
+      if(g_monitored_trades[i].recovery_state == REC_CORRUPTED ||
+         g_monitored_trades[i].recovery_state == REC_RECOVERY_INVALID)
+      {
+         Log(DBG_ERROR, "Trade " + IntegerToString(g_monitored_trades[i].ticket) + 
+             " corrupted, frozen: " + EnumToString(g_monitored_trades[i].recovery_state));
          continue;
       }
 

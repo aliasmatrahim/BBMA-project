@@ -1,0 +1,196 @@
+--- a/MASTER_BLUEPRINT_2.0_WORKING.txt
++++ b/MASTER_BLUEPRINT_2.0_WORKING.txt
+@@ -3380,150 +3380,55 @@
+ //| MODULE 23: POSITION MANAGEMENT (TICK-DRIVEN)                     |
+ //| LEVEL: EXPERT-RESTRICTED                                         |
+ //+------------------------------------------------------------------+
+ 
+ void ManagePositions()
+ {
+    if(g_is_managing_trade) return;
+    g_is_managing_trade = true;
+    
+    for(int i = 0; i < g_monitored_count; i++)
+    {
+       if(!OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))
+          continue;
+       if(OrderCloseTime() != 0)
+          continue;
++
++      // Revalidate live EA ownership before any lifecycle action.
++      int pairIdx = FindPairStateIndex(OrderSymbol());
++      if(pairIdx < 0) continue;
++      int expectedMagic = g_pair_states[pairIdx].magic_number;
++      if(expectedMagic <= 0 || OrderMagicNumber() != expectedMagic ||
++         g_monitored_trades[i].magic_number != expectedMagic)
++         continue;
++
++      string pair = OrderSymbol();
++      double bid = MarketInfo(pair, MODE_BID);
++      double ask = MarketInfo(pair, MODE_ASK);
++
++      // Keep monitored state synchronized with broker state only. M23 must not
++      // manufacture a new SL/TP or lot policy.
++      g_monitored_trades[i].entry_price = OrderOpenPrice();
++      g_monitored_trades[i].current_sl = OrderStopLoss();
++      g_monitored_trades[i].current_tp = OrderTakeProfit();
++      g_monitored_trades[i].lot = OrderLots();
++      g_monitored_trades[i].remaining_lot = OrderLots();
+       
+       if(g_monitored_trades[i].recovery_state == REC_CORRUPTED ||
+          g_monitored_trades[i].recovery_state == REC_RECOVERY_INVALID)
+       {
+          Log(DBG_ERROR, "Trade " + IntegerToString(g_monitored_trades[i].ticket) + 
+              " corrupted, frozen: " + EnumToString(g_monitored_trades[i].recovery_state));
+          continue;
+       }
+-      
+-      string pair = OrderSymbol();
+-      double bid = MarketInfo(pair, MODE_BID);
+-      double ask = MarketInfo(pair, MODE_ASK);
+-      
+-      g_monitored_trades[i].entry_price = OrderOpenPrice();
+-      g_monitored_trades[i].current_sl = OrderStopLoss();
+-      g_monitored_trades[i].current_tp = OrderTakeProfit();
+-      g_monitored_trades[i].lot = OrderLots();
+-      
+-      bool at1R = false;
+-      double initialRisk = g_monitored_trades[i].initial_risk_price_distance;
+-      
+-      if(g_monitored_trades[i].direction == DIR_BUY)
+-      {
+-         double target1R = g_monitored_trades[i].initial_entry_price + initialRisk;
+-         if(bid >= target1R)
+-            at1R = true;
+-      }
+-      else if(g_monitored_trades[i].direction == DIR_SELL)
+-      {
+-         double target1R = g_monitored_trades[i].initial_entry_price - initialRisk;
+-         if(ask <= target1R)
+-            at1R = true;
+-      }
+-      
+-      if(at1R && !g_monitored_trades[i].partial_closed)
+-      {
+-         if(!g_monitored_trades[i].partial_attempted ||
+-            (TimeCurrent() - g_monitored_trades[i].partial_last_attempt_time >= BERetryInterval &&
+-             g_monitored_trades[i].partial_last_attempt_time > 0))
+-         {
+-            double partialLot = NormalizeLot(g_monitored_trades[i].initial_lot * 0.50, pair);
+-            double remainingLot = NormalizeLot(g_monitored_trades[i].initial_lot - partialLot, pair);
+-            
+-            if(partialLot >= GetMinLot(pair) && remainingLot >= GetMinLot(pair) &&
+-               IsValidLotStep(partialLot, pair) && IsValidLotStep(remainingLot, pair))
+-            {
+-               g_monitored_trades[i].partial_available = true;
+-               double closePrice = (g_monitored_trades[i].direction == DIR_BUY) ? bid : ask;
+-               
+-               if(OrderClose(OrderTicket(), partialLot, closePrice, 0))
+-               {
+-                  g_monitored_trades[i].partial_closed = true;
+-                  g_monitored_trades[i].partial_attempted = true;
+-                  g_monitored_trades[i].remaining_lot = OrderLots();
+-                  
+-                  if(g_monitored_trades[i].remaining_lot <= 0)
+-                  {
+-                     g_monitored_trades[i] = g_monitored_trades[g_monitored_count - 1];
+-                     g_monitored_count--;
+-                     i--;
+-                     continue;
+-                  }
+-               }
+-               else
+-               {
+-                  int error = GetLastError();
+-                  if(IsFatalError(error))
+-                  {
+-                     g_monitored_trades[i].partial_available = false;
+-                     g_monitored_trades[i].partial_attempted = true;
+-                  }
+-               }
+-            }
+-            else
+-            {
+-               g_monitored_trades[i].partial_available = false;
+-               g_monitored_trades[i].partial_attempted = true;
+-            }
+-            g_monitored_trades[i].partial_last_attempt_time = TimeCurrent();
+-         }
+-      }
+-      
+-      bool beEligible = (g_monitored_trades[i].partial_closed || 
+-                          !g_monitored_trades[i].partial_available);
+-      
+-      if(beEligible && !g_monitored_trades[i].breakeven_set && !g_monitored_trades[i].be_attempted)
+-      {
+-         if(g_monitored_trades[i].be_last_attempt_time == 0 ||
+-            TimeCurrent() - g_monitored_trades[i].be_last_attempt_time >= BERetryInterval)
+-         {
+-            double bePrice = g_monitored_trades[i].initial_entry_price;
+-            
+-            if(ValidateStopLevel(bePrice, pair) && ValidateFreezeLevel(bePrice, pair))
+-            {
+-               if(OrderModify(OrderTicket(), OrderOpenPrice(), bePrice, OrderTakeProfit(), 0, clrNONE))
+-               {
+-                  g_monitored_trades[i].breakeven_set = true;
+-                  g_monitored_trades[i].current_sl = bePrice;
+-               }
+-               else
+-               {
+-                  int error = GetLastError();
+-                  if(error == 130)
+-                  {
+-                     g_monitored_trades[i].be_attempted = true;
+-                  }
+-               }
+-            }
+-            g_monitored_trades[i].be_last_attempt_time = TimeCurrent();
+-         }
+-      }
+-      
+-      if(g_monitored_trades[i].direction == DIR_BUY)
+-      {
+-         if(bid >= g_monitored_trades[i].initial_take_profit)
+-         {
+-            if(g_monitored_trades[i].partial_closed)
+-               OrderClose(OrderTicket(), g_monitored_trades[i].remaining_lot, bid, 0);
+-            else
+-               OrderClose(OrderTicket(), OrderLots(), bid, 0);
+-         }
+-      }
+-      else
+-      {
+-         if(ask <= g_monitored_trades[i].initial_take_profit)
+-         {
+-            if(g_monitored_trades[i].partial_closed)
+-               OrderClose(OrderTicket(), g_monitored_trades[i].remaining_lot, ask, 0);
+-            else
+-               OrderClose(OrderTicket(), OrderLots(), ask, 0);
+-         }
+-      }
++
++      // M20 emergency basket-loss protection is the only active M23 broker-side
++      // lifecycle close policy at this stage. Keep the request latched in M20 so
++      // a failed close is retried on a later tick. No partial close is allowed.
++      if(g_portfolio_emergency_close_requested)
++      {
++         double closePrice = (g_monitored_trades[i].direction == DIR_BUY) ? bid : ask;
++         if(closePrice <= 0) continue;
++
++         ResetLastError();
++         if(!OrderClose(OrderTicket(), OrderLots(), closePrice, Slippage))
++         {
++            int error = GetLastError();
++            Log(DBG_ERROR, "Emergency close failed ticket=" + IntegerToString(OrderTicket()) +
++                " error=" + IntegerToString(error));
++         }
++         continue;
++      }
++
++      // Normal exit is broker-side SL/TP already supplied by M17->M22.
++      // No 1R partial close, breakeven migration, trailing stop, TP2/TP3, or
++      // synthetic manual TP close is permitted here.
+    }
+    
+    g_is_managing_trade = false;
+ }

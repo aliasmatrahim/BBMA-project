@@ -1,0 +1,315 @@
+--- a/MASTER_BLUEPRINT_2.0_WORKING.txt
++++ b/MASTER_BLUEPRINT_2.0_WORKING.txt
+@@ -138,7 +138,7 @@
+ 
+ enum ENUM_BB_STATE { BB_NONE, BB_SQUEEZE, BB_EXPANDING, BB_CONTRACTING, BB_FLAT };
+ 
+-enum ENUM_MLV_STATE { MLV_NONE, MLV_CANDIDATE, MLV_CONFIRMED, MLV_VOID };
++enum ENUM_MLV_STATE { MLV_NONE, MLV_CANDIDATE, MLV_CONFIRMED, MLV_VOID, MLV_EXPIRED };
+ 
+ enum ENUM_RE_TYPE { RE_NONE, RE_TYPE_1, RE_TYPE_2, RE_TYPE_3_CSM, RE_TYPE_4_CSD };
+ 
+@@ -298,9 +298,12 @@
+    int                  StartBar;
+    datetime             StartCandleTime;
+    int                  LastUpdateBar;
++   datetime             LastUpdateCandleTime;
+    int                  ConfirmationBar;
++   datetime             ConfirmationCandleTime;
+    int                  VoidBar;
+    int                  ExpiryBar;
++   datetime             ExpiryCandleTime;
+    bool                 IsValid;
+    double               StrengthScore;
+ };
+@@ -498,6 +501,8 @@
+    int                  last_20_count;
+    BollingerBand        prev_bollinger;
+    BollingerBand        current_bollinger;
++   MLVData              mlv_buy_state;
++   MLVData              mlv_sell_state;
+    double               prev_ema50;
+    double               current_ema50;
+    double               prev_daily_ema50;
+@@ -1023,6 +1028,12 @@
+    state.last_3_count = 0;
+    state.last_5_count = 0;
+    state.last_20_count = 0;
++   ZeroMemory(state.mlv_buy_state);
++   ZeroMemory(state.mlv_sell_state);
++   state.mlv_buy_state.State = MLV_NONE;
++   state.mlv_buy_state.Direction = DIR_BUY;
++   state.mlv_sell_state.State = MLV_NONE;
++   state.mlv_sell_state.Direction = DIR_SELL;
+    state.trade_count = 0;
+    state.magic_number = 0;
+    state.broker_retry_count = 0;
+@@ -1807,91 +1818,147 @@
+    return false;
+ }
+ 
+-ENUM_MLV_STATE DetectMLV_State(MLVData &mlv, string pair, int timeframe, int shift)
++void ResetMLVState(MLVData &mlv, ENUM_DIRECTION direction)
++{
++   ZeroMemory(mlv);
++   mlv.State = MLV_NONE;
++   mlv.Direction = direction;
++}
++
++bool IsMLVIntrinsicExpired(MLVData &mlv, datetime currentCandleTime)
++{
++   if(mlv.StartCandleTime <= 0 || mlv.ExpiryCandleTime <= 0) return false;
++   return (currentCandleTime > mlv.ExpiryCandleTime);
++}
++
++ENUM_MLV_STATE DetectMLV_State(MLVData &mlv, string pair,
++                               ENUM_DIRECTION direction, TimeframeData &data)
+ {
+    if(!EnableMLVStateEngine) return MLV_NONE;
++   if(direction != DIR_BUY && direction != DIR_SELL) return MLV_NONE;
++   if(!data.is_valid || !data.is_closed || data.candle_time <= 0) return mlv.State;
++   
++   // A terminal state is kept for one completed processing candle, then released
++   // so the same pair+direction slot can detect a new independent MLV pattern.
++   if((mlv.State == MLV_VOID || mlv.State == MLV_EXPIRED) &&
++      mlv.LastUpdateCandleTime > 0 && data.candle_time > mlv.LastUpdateCandleTime)
++   {
++      ResetMLVState(mlv, direction);
++   }
++   
++   // Each persistent slot is direction-owned. Never let a BUY update mutate SELL state.
++   if(mlv.State != MLV_NONE && mlv.Direction != direction)
++      return mlv.State;
++   
++   if((mlv.State == MLV_CANDIDATE || mlv.State == MLV_CONFIRMED) &&
++      IsMLVIntrinsicExpired(mlv, data.candle_time))
++   {
++      mlv.State = MLV_EXPIRED;
++      mlv.IsValid = false;
++      mlv.Reason = "MaxWaitBars_MLV expired";
++      mlv.LastUpdateBar = data.barIndex;
++      mlv.LastUpdateCandleTime = data.candle_time;
++      return MLV_EXPIRED;
++   }
+    
+    if(mlv.State == MLV_NONE)
+    {
+-      double high1 = iHigh(pair, timeframe, shift);
+-      double high2 = iHigh(pair, timeframe, shift + 2);
+-      double low1 = iLow(pair, timeframe, shift);
+-      double low2 = iLow(pair, timeframe, shift + 2);
++      double point = GetPointSize(pair);
++      if(point <= 0 || data.barIndex < 1) return MLV_NONE;
+       
+-      if(high1 > 0 && high2 > 0)
+-      {
+-         double diff = MathAbs(high1 - high2);
+-         if(diff < GetPointSize(pair) * 10)
+-         {
+-            mlv.State = MLV_CANDIDATE;
+-            mlv.Direction = DIR_SELL;
+-            mlv.Level1 = high1;
+-            mlv.Level2 = high2;
+-            mlv.StartCandleTime = iTime(pair, timeframe, shift);
+-            mlv.PatternID = "DoubleTop_" + TimeToString(mlv.StartCandleTime);
+-            return MLV_CANDIDATE;
+-         }
++      double currentLevel = 0;
++      double previousLevel = 0;
++      string patternType = "";
++      
++      if(direction == DIR_SELL)
++      {
++         currentLevel = data.high;
++         previousLevel = iHigh(pair, data.timeframe, data.barIndex + 2);
++         patternType = "DoubleTop";
+       }
+-      
+-      if(low1 > 0 && low2 > 0)
++      else
+       {
+-         double diff = MathAbs(low1 - low2);
+-         if(diff < GetPointSize(pair) * 10)
+-         {
+-            mlv.State = MLV_CANDIDATE;
+-            mlv.Direction = DIR_BUY;
+-            mlv.Level1 = low1;
+-            mlv.Level2 = low2;
+-            mlv.StartCandleTime = iTime(pair, timeframe, shift);
+-            mlv.PatternID = "DoubleBottom_" + TimeToString(mlv.StartCandleTime);
+-            return MLV_CANDIDATE;
+-         }
+-      }
+-   }
+-   else if(mlv.State == MLV_CANDIDATE)
+-   {
+-      double breakLevel;
+-      if(mlv.Direction == DIR_SELL)
+-         breakLevel = (mlv.Level1 + mlv.Level2) / 2 - GetPointSize(pair) * 5;
++         currentLevel = data.low;
++         previousLevel = iLow(pair, data.timeframe, data.barIndex + 2);
++         patternType = "DoubleBottom";
++      }
++      
++      if(currentLevel <= 0 || previousLevel <= 0) return MLV_NONE;
++      if(MathAbs(currentLevel - previousLevel) >= point * 10) return MLV_NONE;
++      
++      mlv.State = MLV_CANDIDATE;
++      mlv.Direction = direction;
++      mlv.PatternType = patternType;
++      mlv.Level1 = currentLevel;
++      mlv.Level2 = previousLevel;
++      mlv.Neckline = (direction == DIR_SELL)
++                     ? (mlv.Level1 + mlv.Level2) / 2 - point * 5
++                     : (mlv.Level1 + mlv.Level2) / 2 + point * 5;
++      mlv.StartBar = data.barIndex;
++      mlv.StartCandleTime = data.candle_time;
++      mlv.LastUpdateBar = data.barIndex;
++      mlv.LastUpdateCandleTime = data.candle_time;
++      mlv.ExpiryBar = MaxWaitBars_MLV;
++      mlv.ExpiryCandleTime = mlv.StartCandleTime + MaxWaitBars_MLV * data.timeframe * 60;
++      mlv.PatternID = patternType + "_" + TimeToString(mlv.StartCandleTime);
++      mlv.IsValid = false;
++      mlv.Reason = "Awaiting confirmation";
++      return MLV_CANDIDATE;
++   }
++   
++   if(mlv.State == MLV_CANDIDATE)
++   {
++      // Confirmation must occur on a later closed M15 candle, never on the
++      // same candle that created the candidate.
++      if(data.candle_time <= mlv.StartCandleTime) return MLV_CANDIDATE;
++      
++      mlv.LastUpdateBar = data.barIndex;
++      mlv.LastUpdateCandleTime = data.candle_time;
++      
++      bool confirmed = false;
++      if(direction == DIR_SELL)
++         confirmed = (data.close > 0 && data.close < mlv.Neckline);
+       else
+-         breakLevel = (mlv.Level1 + mlv.Level2) / 2 + GetPointSize(pair) * 5;
++         confirmed = (data.close > 0 && data.close > mlv.Neckline);
+       
+-      double close = iClose(pair, timeframe, shift);
+-      if(close > 0)
++      if(confirmed)
+       {
+-         if(mlv.Direction == DIR_SELL && close < breakLevel)
+-         {
+-            mlv.State = MLV_CONFIRMED;
+-            mlv.ConfirmationBar = shift;
+-            mlv.IsValid = true;
+-            return MLV_CONFIRMED;
+-         }
+-         else if(mlv.Direction == DIR_BUY && close > breakLevel)
+-         {
+-            mlv.State = MLV_CONFIRMED;
+-            mlv.ConfirmationBar = shift;
+-            mlv.IsValid = true;
+-            return MLV_CONFIRMED;
+-         }
++         mlv.State = MLV_CONFIRMED;
++         mlv.ConfirmationBar = data.barIndex;
++         mlv.ConfirmationCandleTime = data.candle_time;
++         mlv.IsValid = true;
++         mlv.Reason = "Confirmed";
++         return MLV_CONFIRMED;
+       }
++      return MLV_CANDIDATE;
+    }
++   
++   if(mlv.State == MLV_CONFIRMED)
++   {
++      mlv.IsValid = true;
++      mlv.LastUpdateBar = data.barIndex;
++      mlv.LastUpdateCandleTime = data.candle_time;
++   }
++   
+    return mlv.State;
+ }
+ 
+-bool DetectMLVPattern(string pair, int timeframe, ENUM_DIRECTION direction, 
++bool DetectMLVPattern(string pair, int timeframe, ENUM_DIRECTION direction,
+                       MLVData &mlv, datetime candleTime)
+ {
+-   int shift = iBarShift(pair, timeframe, candleTime);
+-   if(shift < 0) return false;
+-   return DetectMLV_State(mlv, pair, timeframe, shift) == MLV_CONFIRMED;
++   TimeframeData data;
++   InitTimeframeData(data);
++   GetDataForTimeframe(pair, timeframe, candleTime, data);
++   if(!data.is_valid || !data.is_closed) return false;
++   return DetectMLV_State(mlv, pair, direction, data) == MLV_CONFIRMED;
+ }
+ 
+ bool IsMLVPatternStillValid(MLVData mlv, datetime currentTime)
+ {
+-   if(mlv.State == MLV_VOID || mlv.State == MLV_NONE) return false;
++   if(mlv.State != MLV_CONFIRMED) return false;
+    if(!mlv.IsValid) return false;
+-   if(currentTime > mlv.StartCandleTime + 10 * 900) return false;
+-   return true;
++   if(mlv.ExpiryCandleTime <= 0) return false;
++   return currentTime <= mlv.ExpiryCandleTime;
+ }
+ 
+ void GetMLVEntry(MLVData mlv, ENUM_DIRECTION direction, 
+@@ -2234,7 +2301,8 @@
+       mhv.Close = m15.close;
+    }
+    
+-   DetectMLV_State(mlv, pair, PERIOD_M15, 1);
++   // MLV lifecycle is owned and updated by M09 before collection.
++   // M13 receives an immutable snapshot for this processing cycle.
+    
+    MovingAverage ma;
+    ma.MA5_High = m15.ma[0];
+@@ -2301,7 +2369,9 @@
+       rem.Comp2.CandleTime = h1_extreme.CandleTime;
+       rem.Comp3.ComponentType = SIGNAL_MLV;
+       rem.Comp3.Direction = m15_mlv.Direction;
+-      rem.Comp3.CandleTime = m15_mlv.StartCandleTime;
++      // A candidate is not a usable sequence component. The MLV component
++      // becomes real only on its confirmed closed candle.
++      rem.Comp3.CandleTime = m15_mlv.ConfirmationCandleTime;
+       rem.SLTPSource = SIGNAL_MLV;
+       rem.SequenceStartTime = MathMin(h4_reEntry.CandleTime, MathMin(h1_extreme.CandleTime, m15_mlv.StartCandleTime));
+    }
+@@ -2599,7 +2669,9 @@
+ 
+ bool IsExpired_MLV(MLVData mlv, datetime currentTime)
+ {
+-   return mlv.StartCandleTime + MaxWaitBars_MLV * 900 < currentTime;
++   if(mlv.State == MLV_EXPIRED) return true;
++   if(mlv.ExpiryCandleTime <= 0) return false;
++   return currentTime > mlv.ExpiryCandleTime;
+ }
+ 
+ bool IsExpired_ReEntry(ReEntryData reEntry, datetime currentTime)
+@@ -3954,8 +4026,24 @@
+       Signal extreme, mhv, csd, ecsd, csm;
+       MLVData mlv;
+       ReEntryData reEntry;
+-      ZeroMemory(extreme); ZeroMemory(mhv); ZeroMemory(csd); 
+-      ZeroMemory(ecsd); ZeroMemory(csm); ZeroMemory(mlv); ZeroMemory(reEntry);
++      ZeroMemory(extreme); ZeroMemory(mhv); ZeroMemory(csd);
++      ZeroMemory(ecsd); ZeroMemory(csm); ZeroMemory(reEntry);
++      
++      // M09 owns persistent MLV state. M27 only selects the pair+direction slot,
++      // invokes one state update on the frozen closed M15 candle, then copies a
++      // cycle snapshot downstream.
++      if(direction == DIR_BUY)
++      {
++         DetectMLV_State(g_pair_states[pairIndex].mlv_buy_state, actual, direction,
++                         g_pair_states[pairIndex].m15_data);
++         mlv = g_pair_states[pairIndex].mlv_buy_state;
++      }
++      else
++      {
++         DetectMLV_State(g_pair_states[pairIndex].mlv_sell_state, actual, direction,
++                         g_pair_states[pairIndex].m15_data);
++         mlv = g_pair_states[pairIndex].mlv_sell_state;
++      }
+       
+       CollectAllSignals(actual, direction, g_pair_states[pairIndex].d1_data,
+                         g_pair_states[pairIndex].h4_data, g_pair_states[pairIndex].h1_data,

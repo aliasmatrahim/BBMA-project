@@ -30,6 +30,7 @@ Apply patches in order:
 9. `blueprint/patches/0009-p0-step3e-m10-csd-ecsd-csm-source-alignment.patch`
 10. `blueprint/patches/0010-p0-step4a-m13-combination-collector-source-alignment.patch`
 11. `blueprint/patches/0011-p0-step4b-m27-signal-owner-routing.patch`
+12. `blueprint/patches/0012-p0-step5-m14-combination-validation.patch`
 
 ## Full-source SHA verification status
 The previously recorded SHA-256
@@ -39,7 +40,7 @@ was discovered during Step 3D to have been calculated from a **partial reconstru
 Last previously verified exact full-chain working-source SHA through patches 0001–0005:
 `9ccbfd77032e3e9acdbf4b343ceaf98f632162d932cbb3fcad04a58539c1e3d8`
 
-Patches 0006–0011 have focused structural/hunk verification records in their contracts. A new full-chain SHA must be generated only after exact materialization of the complete ordered patch chain.
+Patches 0006–0012 have focused structural/hunk verification records in their contracts. A new full-chain SHA must be generated only after exact materialization of the complete ordered patch chain.
 
 ## Locked supporting contracts
 - `blueprint/ENTRY_MODE_CONTRACT.md`
@@ -48,6 +49,7 @@ Patches 0006–0011 have focused structural/hunk verification records in their c
 - `blueprint/contracts/M10_DIRECTION_MOMENTUM_SOURCE_CONTRACT.md`
 - `blueprint/contracts/M12_REENTRY_SOURCE_CONTRACT.md`
 - `blueprint/contracts/M13_COMBINATION_COLLECTOR_CONTRACT.md`
+- `blueprint/contracts/M14_COMBINATION_VALIDATION_CONTRACT.md`
 - `docs/references/SOURCE_INDEX.md`
 - `docs/references/BBMA_OMA_ALLY_RULE_INDEX.md`
 
@@ -108,12 +110,12 @@ Status: **COMPLETED AT M12 CONTRACT LEVEL**
 - Type 4 uses CSD as precursor then retrace to MA5/10.
 - Only confirmed Re-Entry may be exported downstream.
 
-M10 precursor production for Type 3/4 is now source-aligned by Step 3E.
+M10 precursor production for Type 3/4 is source-aligned by Step 3E.
 
 ## Step 3C — M06 BBMA MA producer source alignment
 Status: **COMPLETED / VERIFIED AT BLUEPRINT LEVEL**
 
-- MA5/10 High/Low are now source-specific LWMA High/Low producers.
+- MA5/10 High/Low are source-specific LWMA High/Low producers.
 - EMA50 uses MT4 EMA applied to Close.
 - Generic close SMA no longer produces BBMA MA5/10.
 - previous-MA retrieval follows the same M06 producer and snapshot timeframe.
@@ -129,7 +131,7 @@ Status: **COMPLETED AT EXTREME SIGNAL CONTRACT LEVEL / TEMPORAL CSM INVALIDATION
 - non-source 10% proximity, MA5 slope and mandatory BB-state gates were removed.
 - raw Extreme remains a signal, not standalone execution authority.
 
-Step 3E now provides a source-aligned CSM producer. However, the source rule that a later CSM invalidates an existing Extreme is temporal. M08 currently detects raw per-candle Extreme and does not own a persistent Extreme lifecycle. That later invalidation must be connected through the appropriate lifecycle/invalidation owner rather than being falsely represented as solved by a same-candle check.
+Step 3E provides a source-aligned CSM producer. However, the source rule that a later CSM invalidates an existing Extreme is temporal. M08 currently detects raw per-candle Extreme and does not own a persistent Extreme lifecycle. That later invalidation must be connected through the appropriate lifecycle/invalidation owner.
 
 Contract: `blueprint/contracts/M08_EXTREME_SOURCE_CONTRACT.md`.
 
@@ -141,30 +143,14 @@ Primary source basis: `Oma ally BBMA - AL.pdf`, especially pages 2, 5 and 8. Sec
 ### Repaired — CSM
 - Removed the unsourced rule requiring exactly three same-colour candles.
 - Removed the unsourced `body > 70% of three-candle average body` test.
-- CSM now follows the supplied BBMA momentum law: directional candle close outside TOP/LOW BB in vertical/expanding BB context.
+- CSM follows the supplied BBMA momentum law: directional candle close outside TOP/LOW BB in vertical/expanding BB context.
 - Operational `BB vertical` encoding uses increasing BB width plus MID/outer BB movement in the momentum direction, with no arbitrary percentage threshold.
 
-### Repaired — eCSD
-- eCSD no longer means merely `close already beyond MA5/10`.
-- It now requires the closed candle to cross MA5/10 from open to close.
-- BUY uses the directional High MA pair; SELL uses the directional Low MA pair as an explicitly documented implementation interpretation.
+### Repaired — eCSD / CSD
+- eCSD requires the closed candle to cross MA5/10 from open to close.
+- CSD requires the candle to cross MA5/10 **and MID BB**.
+- same-candle CSD-over-eCSD collector precedence is handled by Step 4.
 
-### Repaired — CSD
-- CSD now requires the candle to cross MA5/10 **and MID BB**.
-- MID BB crossing remains the distinction showing stronger/real directional intent.
-
-### Explicit implementation interpretation
-The source says `crosses` but does not specify wick-vs-body coding semantics. Step 3E encodes a cross as the **closed candle body** spanning the level from open to close; wick-only touches do not count.
-
-The source phrase `BB vertical` is encoded deterministically as widening BB plus MID/relevant outer band moving in the momentum direction. This is engineering translation, not claimed verbatim source wording.
-
-### Downstream consequences
-- M12 Type 3 now consumes source-aligned CSM.
-- M12 Type 4 now consumes source-aligned CSD.
-- CSD-over-eCSD collector precedence is now handled by Step 4.
-- temporal CSM invalidation of an already-existing Extreme remains an M08/M16 lifecycle integration item.
-
-Patch: `blueprint/patches/0009-p0-step3e-m10-csd-ecsd-csm-source-alignment.patch`.
 Contract: `blueprint/contracts/M10_DIRECTION_MOMENTUM_SOURCE_CONTRACT.md`.
 
 ## Step 4 — M13 Combination Engine / collector contract
@@ -172,33 +158,20 @@ Status: **COMPLETED AT COLLECTOR / COMBINATION CONTRACT LEVEL**
 
 Primary source basis: `Oma ally BBMA - AL.pdf`, pages 12–13.
 
-### Source-locked combinations for project timeframes
+### Source-locked project combinations
 - REM = H4 Re-Entry + H1 Extreme + M15 confirmed MLV.
 - RRE = D1 Re-Entry + H4 Re-Entry + H1 Extreme.
 - REE = D1 Re-Entry + H4 Extreme + H1 Extreme.
 
-These are the D1/H4/H1/M15 rows supported by the project. M13 does not invent alternative components or substitute timeframes.
-
-### Pure collector repair
+### Collector repair
 - Removed all strategy detector/state-engine calls from M13.
-- M27 now orchestrates M08/M09/M10/M12 owner calls once and passes immutable per-cycle snapshots to M13.
-- `CollectSignalSnapshots()` copies owner outputs only.
-- Same-candle CSD suppresses eCSD as an independent collected confirmation, preventing one candle from being double-counted.
-
-### Combination identity
-- `ComponentIdentity` now stores `Timeframe`.
-- `ComponentSet` now stores `CombinationType` and `ComponentCount`.
-- sequence hash identity now includes combination type and each component timeframe.
-- REM uses MLV `ConfirmationCandleTime`, not candidate/start time.
-
-### Ownership guard
-M13 no longer chooses `SLTPSource`. Combination candidates leave `SLTPSource = SIGNAL_NONE`; later owning validation/SLTP architecture must resolve that separately.
-
-### M27 routing correction
-Numeric H1/H4/M15 BB snapshots are routed from frozen data even when optional BB-shape classification is disabled. This prevents disabling BB shape from accidentally zeroing the TOP/LOW BB values required by M08 Extreme detection.
-
-### Temporal interpretation guard
-The PDF describes REM/RRE/REE as three setups forming across three different timeframes. M13 assembles coexisting components and does **not** impose an artificial `Comp1 < Comp2 < Comp3` chronology. Direction consistency, coexistence/expiry windows and final validation belong downstream.
+- M27 orchestrates M08/M09/M10/M12 owner calls once and passes immutable per-cycle snapshots to M13.
+- same-candle CSD suppresses eCSD as an independent collected confirmation.
+- `ComponentIdentity` stores timeframe.
+- `ComponentSet` stores `CombinationType` and `ComponentCount`.
+- REM uses MLV `ConfirmationCandleTime`.
+- M13 leaves `SLTPSource = SIGNAL_NONE`.
+- M13 does not impose artificial component chronology.
 
 Patches:
 - `blueprint/patches/0010-p0-step4a-m13-combination-collector-source-alignment.patch`
@@ -206,26 +179,59 @@ Patches:
 
 Contract: `blueprint/contracts/M13_COMBINATION_COLLECTOR_CONTRACT.md`.
 
-### Verification
-- 0010 and 0011 dry-run/apply sequentially: clean.
-- sequential applied output exactly matches the generated Step 4 target in focused reconstruction.
-- braces 489/489, parentheses 1454/1454, brackets 339/339.
-- M13 strategy detector/state-mutator calls: 0.
-- old `CollectAllSignals()` calls: 0.
-- REM/RRE/REE each have explicit combination identity and timeframe-stamped components.
+## Step 5 — M14 REM/RRE/REE validation contract
+Status: **COMPLETED AT VALIDATE-ONLY CONTRACT LEVEL**
 
-No new full-chain working-source SHA is claimed from this focused reconstruction.
+Primary source basis: `Oma ally BBMA - AL.pdf`, pages 12–13.
+
+### Repaired
+- Removed the unrelated legacy `Extreme -> MLV/MHV -> CSD` reversal signature.
+- Removed the unrelated `CSD -> Re-Entry -> REM` continuation signature.
+- Removed the unrelated `REE/RRE -> CSD -> Re-Entry` major-reversal signature.
+- Removed universal strict chronology `Comp1 < Comp2 < Comp3`.
+- M14 now validates the exact REM/RRE/REE component type + timeframe signatures created by M13.
+- `ComponentCount == 3`, non-zero component identity and direction consistency are mandatory.
+- `ValidatedSequenceCandidate.Components[0..2]` are now populated completely.
+- `candidate.SequenceType` is the actual `SIGNAL_REM`, `SIGNAL_RRE`, or `SIGNAL_REE`.
+
+### Ownership guard
+M14 remains validate-only:
+- `PriorityTier = TIER_NONE` because the supplied PDF does not define a REM/RRE/REE ranking policy;
+- `SLTPSource = SIGNAL_NONE` because the combination pages do not define an M14-owned SL/TP source;
+- no detector, lifecycle mutation, final entry selection, risk or execution authority is added.
+
+### Temporal guard
+M14 treats the combination as coexisting owner-valid snapshots in the current M15 processing cycle. It does not invent chronological ordering between D1/H4/H1/M15 candle times.
+
+The current generic candidate-expiry construction downstream is **not certified** by Step 5. Owner-aware freshness/expiry remains an M15/M16 integration item.
+
+Patch: `blueprint/patches/0012-p0-step5-m14-combination-validation.patch`.
+Contract: `blueprint/contracts/M14_COMBINATION_VALIDATION_CONTRACT.md`.
+
+### Verification
+Focused post-Step4 patch verification passed:
+- dry-run/apply clean;
+- braces 488/488;
+- parentheses 1457/1457;
+- brackets 342/342;
+- legacy strict chronology validator absent;
+- exact REM/RRE/REE signature checks present;
+- `candidate.Components[0..2]` populated.
+
+No new full-chain working-source SHA is claimed from this focused verification.
 
 ## Next P0 action
-**Step 5 — audit and repair M14 validation against the source-defined REM/RRE/REE combination contract.**
+**Step 6 — audit and repair M15 Final Signal Authority / atomic direction resolution.**
 
-Priorities for Step 5:
-1. remove the current unrelated reversal/continuation/major-reversal signatures that do not validate M13 REM/RRE/REE correctly;
-2. validate `CombinationType`, exact component signature, three distinct expected timeframes and direction consistency;
-3. replace the inappropriate strict chronological `Comp1 < Comp2 < Comp3` requirement with a source-compatible coexistence/expiry contract;
-4. populate `ValidatedSequenceCandidate.Components[3]` completely because M15 consumes them;
-5. keep M14 validate-only — no detection, lifecycle mutation, priority selection or execution authority.
+Priorities for Step 6:
+1. stop M27 from running independent final authority once for BUY and once for SELL; M15 must see both directions before choosing a final outcome;
+2. define safe M15 treatment of validated REM/RRE/REE now that M14 intentionally leaves `PriorityTier = TIER_NONE`;
+3. enforce the locked Entry Mode contract: `RE_ENTRY_ONLY` versus `ALL_VALIDATED_BBMA_ENTRIES`;
+4. repair candidate freshness/expiry so it is not derived from `Comp1` with a generic M15 multiplier;
+5. use the now-populated `candidate.Components[]` consistently when creating the final decision;
+6. keep raw detector validity from becoming execution authority;
+7. leave SL/TP source resolution to the proper downstream contract rather than inventing it in M15.
 
-After M14, continue to M15 final signal authority and atomic BUY/SELL resolution.
+After M15, continue to M16 conflict/invalidation integration, including temporal CSM invalidation of an existing Extreme.
 
 Do not merge into `main` until the full blueprint audit is clean and explicitly approved as MASTER BLUEPRINT LOCKED.

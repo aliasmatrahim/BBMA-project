@@ -1,0 +1,217 @@
+--- a/MASTER_BLUEPRINT_2.0_WORKING.txt
++++ b/MASTER_BLUEPRINT_2.0_WORKING.txt
+@@ -572,6 +572,7 @@ struct RiskStatus
+ {
+    bool                 allowed;
+    string               reason;
++   ENUM_REJECTION_REASON rejection_reason;
+ };
+@@ -2724,25 +2725,16 @@ double CalculateDrawdownPercent_EA()
+ {
+-   double totalProfit = 0;
+-   double totalLoss = 0;
+-   
+-   for(int i = 0; i < g_monitored_count; i++)
+-   {
+-      if(OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))
+-      {
+-         if(OrderCloseTime() != 0) continue;
+-         double profit = OrderProfit() + OrderSwap() + OrderCommission();
+-         if(profit > 0) totalProfit += profit;
+-         else totalLoss += MathAbs(profit);
+-      }
+-   }
+-   
+-   double equity = AccountEquity();
+-   double balance = AccountBalance();
+-   if(balance <= 0) return 0;
+-   return (totalLoss / g_protection_reference_equity) * 100;
++   if(g_protection_reference_equity <= 0) return 0;
++
++   double equity = AccountEquity();
++   if(equity <= 0) return 100.0;
++
++   double drawdownMoney = g_protection_reference_equity - equity;
++   if(drawdownMoney <= 0) return 0;
++
++   return drawdownMoney / g_protection_reference_equity * 100.0;
+ }
+@@ -2785,28 +2777,44 @@ double CalculateBasketProfitPercent_EA()
+    return floatingProfit / g_protection_reference_equity * 100;
+ }
+ 
+-double CalculateTotalRisk(string pair, double newLot, double newEntry, double newSL, RiskValidationSnapshot snapshot)
++double CalculateTotalRisk(string pair, double newLot, double newEntry, double newSL,
++                          RiskValidationSnapshot snapshot, bool &valid)
+ {
++   valid = true;
+    double totalRisk = 0;
+-   
++
++   // MaxTotalRiskPercent is an EA-wide cap, not a same-pair cap. Existing open
++   // trades must be measured using their own symbol tick value/tick size.
+    for(int i = 0; i < g_monitored_count; i++)
+    {
+-      if(g_monitored_trades[i].pair == pair)
++      if(!OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))
++         continue;
++      if(OrderCloseTime() != 0)
++         continue;
++
++      if(g_monitored_trades[i].remaining_lot <= 0)
++         continue;
++
++      double riskDistance = MathAbs(g_monitored_trades[i].entry_price -
++                                    g_monitored_trades[i].current_sl);
++
++      if(riskDistance <= 0)
++         continue; // breakeven / zero-distance protected position
++
++      if(g_monitored_trades[i].current_sl <= 0)
+       {
+-         double riskDistance;
+-         if(g_monitored_trades[i].current_sl == g_monitored_trades[i].entry_price)
+-            riskDistance = 0;
+-         else
+-            riskDistance = MathAbs(g_monitored_trades[i].entry_price - g_monitored_trades[i].current_sl);
+-         
+-         double riskPerLot = riskDistance * snapshot.TickValue / snapshot.TickSize_Price;
+-         totalRisk += riskPerLot * g_monitored_trades[i].remaining_lot;
++         valid = false;
++         return 0;
+       }
++
++      double existingRisk = CalculateTradeRiskMoney(g_monitored_trades[i].pair,
++                                                     g_monitored_trades[i].remaining_lot,
++                                                     g_monitored_trades[i].entry_price,
++                                                     g_monitored_trades[i].current_sl);
++      if(existingRisk <= 0)
++      {
++         valid = false;
++         return 0;
++      }
++      totalRisk += existingRisk;
+    }
+-   
+-   double newRiskDistance = MathAbs(newEntry - newSL);
+-   double newRiskPerLot = newRiskDistance * snapshot.TickValue / snapshot.TickSize_Price;
+-   totalRisk += newRiskPerLot * newLot;
+-   
++
++   double newRisk = CalculateTradeRiskMoney(pair, newLot, newEntry, newSL);
++   if(newRisk <= 0)
++   {
++      valid = false;
++      return 0;
++   }
++   totalRisk += newRisk;
++
+    return totalRisk;
+ }
+ 
+ RiskStatus CheckRiskBeforeTrade(BBMA_Decision decision, RiskValidationSnapshot snapshot, double calculatedLot)
+ {
+    RiskStatus status;
+    status.allowed = true;
+    status.reason = "";
+-   
+-   double spreadPips = snapshot.CurrentSpreadPrice / (snapshot.Point * 10);
+-   double spreadPoints = ConvertSpreadToPoints(decision.Pair, spreadPips);
+-   if(spreadPoints > MaxSpreadPips)
++   status.rejection_reason = REJ_NONE;
++
++   // MaxSpreadPips is expressed in pips. Use the project pip-price helper so
++   // 4/5-digit and 2/3-digit broker quoting are handled coherently.
++   double pipValue = GetPipValue(decision.Pair);
++   if(pipValue <= 0)
++   {
++      status.allowed = false;
++      status.reason = "Invalid pip specification";
++      status.rejection_reason = REJ_BROKER_SPEC_INVALID;
++      return status;
++   }
++
++   double spreadPips = snapshot.CurrentSpreadPrice / pipValue;
++   if(spreadPips > MaxSpreadPips)
+    {
+       status.allowed = false;
+       status.reason = "Spread too high";
++      status.rejection_reason = REJ_SPREAD_HIGH;
+       return status;
+    }
+-   
++
+    double dd = CalculateDrawdownPercent_EA();
+-   if(dd > MaxDrawdownPercent)
++   if(dd >= MaxDrawdownPercent)
+    {
+       status.allowed = false;
+       status.reason = "Drawdown limit exceeded";
++      status.rejection_reason = REJ_DD_LIMIT;
+       return status;
+    }
+-   
++
+    double basketLoss = CalculateBasketLossPercent_EA();
+-   if(basketLoss > BasketLossPercent)
++   if(basketLoss >= BasketLossPercent)
+    {
+       status.allowed = false;
+       status.reason = "Basket loss limit exceeded";
++      status.rejection_reason = REJ_BASKET_LOSS;
+       return status;
+    }
+-   
+-   double totalRisk = CalculateTotalRisk(decision.Pair, calculatedLot, decision.EntryPrice, decision.StopLoss, snapshot);
+-   double balance = AccountBalance();
+-   if(balance > 0 && totalRisk / balance * 100 > MaxTotalRiskPercent)
++
++   bool riskValid = true;
++   double totalRisk = CalculateTotalRisk(decision.Pair, calculatedLot,
++                                         decision.EntryPrice, decision.StopLoss,
++                                         snapshot, riskValid);
++   if(!riskValid)
++   {
++      status.allowed = false;
++      status.reason = "Unable to calculate total EA risk safely";
++      status.rejection_reason = REJ_TOTAL_RISK;
++      return status;
++   }
++
++   double equity = snapshot.Equity;
++   if(equity <= 0)
++   {
++      status.allowed = false;
++      status.reason = "Invalid equity for total-risk validation";
++      status.rejection_reason = REJ_TOTAL_RISK;
++      return status;
++   }
++
++   if(totalRisk / equity * 100.0 > MaxTotalRiskPercent)
+    {
+       status.allowed = false;
+       status.reason = "Total risk limit exceeded";
++      status.rejection_reason = REJ_TOTAL_RISK;
+       return status;
+    }
+-   
++
+    return status;
+ }
+@@ -3247,7 +3255,8 @@ void ProcessEntry(BBMA_Decision &decision, string pair, RiskValidationSnapshot snapshot)
+    if(!riskStatus.allowed)
+    {
+       decision.DecisionState = DEC_REJECTED;
+-      decision.RejectionReason = REJ_TOTAL_RISK;
++      decision.RejectionReason = (riskStatus.rejection_reason != REJ_NONE) ?
++                                 riskStatus.rejection_reason : REJ_TOTAL_RISK;
+       return;
+    }
+@@ -4050,7 +4059,8 @@ void ProcessPair(int pairIndex)
+             if(!riskStatus.allowed)
+             {
+                decision.DecisionState = DEC_REJECTED;
+-               decision.RejectionReason = REJ_TOTAL_RISK;
++               decision.RejectionReason = (riskStatus.rejection_reason != REJ_NONE) ?
++                                          riskStatus.rejection_reason : REJ_TOTAL_RISK;
+             }

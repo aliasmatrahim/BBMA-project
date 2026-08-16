@@ -1,0 +1,44 @@
+name: P2 Step9 Fix A Apply
+on:
+  push:
+    branches: [blueprint-dev]
+    paths: ['.github/workflows/p2-step9-fixa.yml']
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+      - name: Patch M24 missing execution hash recovery
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
+          s=p.read_text()
+          old='''      string comment = OrderComment();\n      string executionHash;\n      if(!ExtractExecutionHash(comment, executionHash))\n      {\n         Log(DBG_ERROR, "EA-owned order missing execution hash ticket=" +\n             IntegerToString(OrderTicket()));\n         continue;\n      }\n\n      ENUM_DIRECTION liveDirection = (OrderType() == OP_BUY) ? DIR_BUY : DIR_SELL;'''
+          new='''      string comment = OrderComment();\n      string executionHash = "";\n      bool hasExecutionHash = ExtractExecutionHash(comment, executionHash);\n      if(!hasExecutionHash)\n      {\n         // Exact live EA ownership is authoritative for lifecycle safety even when\n         // broker comment metadata is missing/truncated. Keep the position visible\n         // to M19/M20/M23, but never fabricate an execution identity.\n         Log(DBG_ERROR, "EA-owned order missing execution hash; recovering frozen ticket=" +\n             IntegerToString(OrderTicket()));\n      }\n\n      ENUM_DIRECTION liveDirection = (OrderType() == OP_BUY) ? DIR_BUY : DIR_SELL;'''
+          if s.count(old)!=1: raise SystemExit(f'anchor1 count={s.count(old)}')
+          s=s.replace(old,new,1)
+          old2='''      bool fullMetadata = ParseOrderCommentFull(comment, decisionHash, parsedPair,\n                                                 parsedDirection, signalType,\n                                                 intendedEntry, intendedSL,\n                                                 intendedLot, intendedRisk,\n                                                 sequenceHash, candleTime);'''
+          new2='''      bool fullMetadata = hasExecutionHash &&\n                          ParseOrderCommentFull(comment, decisionHash, parsedPair,\n                                                parsedDirection, signalType,\n                                                intendedEntry, intendedSL,\n                                                intendedLot, intendedRisk,\n                                                sequenceHash, candleTime);'''
+          if s.count(old2)!=1: raise SystemExit(f'anchor2 count={s.count(old2)}')
+          s=s.replace(old2,new2,1)
+          old3='''         else\n         {\n            // Stable H: identity + exact live EA ownership are enough for safe\n            // monitoring and emergency liquidation, but not for reconstructing\n            // strategy metadata that the broker comment no longer contains.\n            info.recovery_state = REC_IDENTITY_HASH_ONLY;\n         }'''
+          new3='''         else\n         {\n            // Missing H: is stricter than hash-only recovery: preserve the exact\n            // broker position for accounting/emergency ownership, but freeze normal\n            // lifecycle because no stable execution identity can be reconstructed.\n            info.recovery_state = hasExecutionHash ? REC_IDENTITY_HASH_ONLY\n                                                   : REC_RECOVERY_INVALID;\n         }'''
+          if s.count(old3)!=1: raise SystemExit(f'anchor3 count={s.count(old3)}')
+          s=s.replace(old3,new3,1)
+          old4='''         UpsertExecutionHashTombstone(executionHash, info.ticket, pair,\n                                      liveDirection, info.open_time);'''
+          new4='''         if(hasExecutionHash)\n            UpsertExecutionHashTombstone(executionHash, info.ticket, pair,\n                                         liveDirection, info.open_time);'''
+          if s.count(old4)!=1: raise SystemExit(f'anchor4 count={s.count(old4)}')
+          s=s.replace(old4,new4,1)
+          p.write_text(s)
+      - name: Commit canonical fix
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          git commit -m "P2 step9 fix A: recover owned orders without execution hash"
+          git push origin blueprint-dev

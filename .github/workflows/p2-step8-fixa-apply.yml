@@ -1,0 +1,139 @@
+name: P2 Step8 Fix A Apply
+
+on:
+  push:
+    branches: [ blueprint-dev ]
+    paths:
+      - '.github/workflows/p2-step8-fixa-apply.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply monitored-trade compaction fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+
+          p = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
+          text = p.read_text(encoding='utf-8')
+
+          expected = 'dda18da4ef08c61efe2e465133165f89ec2de8a980df849726639ca481b0ae63'
+          actual = hashlib.sha256(text.encode('utf-8')).hexdigest()
+          if actual != expected:
+              raise SystemExit(f'unexpected canonical source sha: {actual}')
+
+          old = '''void AddToMonitoredTrades(TradeInfo &info)
+{
+   for(int i = 0; i < g_monitored_count; i++)
+   {
+      if(g_monitored_trades[i].ticket == info.ticket)
+      {
+         g_monitored_trades[i] = info;
+         return;
+      }
+   }
+   
+   if(g_monitored_count < MAX_MONITORED)
+   {
+      g_monitored_trades[g_monitored_count] = info;
+      g_monitored_count++;
+   }
+}
+'''
+
+          new = '''void CompactMonitoredTrades()
+{
+   int write = 0;
+   for(int i = 0; i < g_monitored_count; i++)
+   {
+      bool removeClosed = false;
+
+      // Only discard a slot when the broker definitively confirms the ticket is
+      // already closed. If OrderSelect fails transiently, preserve the slot so
+      // M19/M20/M23 never lose ownership because of a temporary terminal fault.
+      if(OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))
+         removeClosed = (OrderCloseTime() != 0);
+
+      if(removeClosed)
+         continue;
+
+      if(write != i)
+         g_monitored_trades[write] = g_monitored_trades[i];
+      write++;
+   }
+
+   g_monitored_count = write;
+}
+
+void AddToMonitoredTrades(TradeInfo &info)
+{
+   // Update an existing live/recovered ticket in-place before any compaction.
+   for(int i = 0; i < g_monitored_count; i++)
+   {
+      if(g_monitored_trades[i].ticket == info.ticket)
+      {
+         g_monitored_trades[i] = info;
+         return;
+      }
+   }
+
+   // Closed broker tickets are historical state, not lifecycle ownership. Reuse
+   // those slots so the registry cannot become exhausted after MAX_MONITORED
+   // cumulative trades in a long-running terminal session.
+   CompactMonitoredTrades();
+
+   if(g_monitored_count < MAX_MONITORED)
+   {
+      g_monitored_trades[g_monitored_count] = info;
+      g_monitored_count++;
+      return;
+   }
+
+   // Reaching this state means MAX_MONITORED simultaneous/unselectable records,
+   // not cumulative historical trades. Fail visibly; never overwrite a possibly
+   // live owned trade just to make room.
+   Log(DBG_ERROR, "Monitored registry full; unable to register ticket=" +
+       IntegerToString(info.ticket));
+}
+'''
+
+          if text.count(old) != 1:
+              raise SystemExit(f'AddToMonitoredTrades anchor count={text.count(old)}')
+
+          text = text.replace(old, new, 1)
+          p.write_text(text, encoding='utf-8')
+
+          digest = hashlib.sha256(text.encode('utf-8')).hexdigest()
+          print('P2_STEP8_FIXA_NEW_SHA=' + digest)
+
+          report = Path('blueprint/P2_STEP8_FIXA_MONITORED_COMPACTION.md')
+          report.write_text(f'''# P2 Step 8 Fix A — Monitored Trade Compaction\n\nStatus: **APPLIED — REQUIRES NATIVE METAEDITOR 0E/0W VERIFICATION**\n\nCanonical source SHA-256 after fix:\n`{digest}`\n\n## Fix\n- Added `CompactMonitoredTrades()`.\n- Only broker-confirmed closed tickets are removed.\n- `OrderSelect` failures are preserved rather than treated as closed.\n- `AddToMonitoredTrades()` updates an existing ticket first, then compacts before append.\n- If the registry is still full, it logs an error and never overwrites a possibly live owned trade.\n\n## Strategy semantics\nNo BBMA signal, SL/TP, entry, money-management, or portfolio-policy semantics were changed. This repair is lifecycle bookkeeping only.\n''', encoding='utf-8')
+          PY
+
+      - name: Static guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'void CompactMonitoredTrades()' blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          grep -q 'CompactMonitoredTrades();' blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          grep -q 'Monitored registry full' blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+
+      - name: Commit fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add blueprint/source/BBMA_PROFESSIONAL_EA.mq4 blueprint/P2_STEP8_FIXA_MONITORED_COMPACTION.md
+          git commit -m 'P2 step8 fix A: compact monitored trade registry'
+          git push origin blueprint-dev

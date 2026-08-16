@@ -1,0 +1,168 @@
+--- a/MASTER_BLUEPRINT_2.0_WORKING.txt
++++ b/MASTER_BLUEPRINT_2.0_WORKING.txt
+@@ -3019,63 +3019,111 @@ void ManagePortfolio()
+ //| LEVEL: INTERMEDIATE+                                             |
+ //+------------------------------------------------------------------+
+ 
++double NormalizeLotDownFromSnapshot(double lot, RiskValidationSnapshot snapshot)
++{
++   if(lot <= 0 || snapshot.LotStep <= 0 || snapshot.LotDigits < 0)
++      return 0;
++
++   // Risk sizing must never round UP because that can exceed AutoLotPercent.
++   double stepped = MathFloor((lot / snapshot.LotStep) + 0.000000001) * snapshot.LotStep;
++   return NormalizeDouble(stepped, snapshot.LotDigits);
++}
++
++bool IsValidSnapshotLotStep(double lot, RiskValidationSnapshot snapshot)
++{
++   if(lot <= 0 || snapshot.LotStep <= 0) return false;
++   double ratio = lot / snapshot.LotStep;
++   return MathAbs(ratio - MathRound(ratio)) < 0.00001;
++}
++
+ double CalculateLotSize(BBMA_Decision decision, RiskValidationSnapshot snapshot, bool &valid)
+ {
+    valid = true;
+-   
++
++   // M21 is sizing-only. It consumes the final M17 Entry/SL and may not repair,
++   // clamp, replace or reinterpret either value.
++   if(decision.DecisionState != DEC_VALIDATED || decision.Pair == "" ||
++      decision.EntryPrice <= 0 || decision.StopLoss <= 0)
++   {
++      valid = false;
++      return 0;
++   }
++
++   if(snapshot.Point <= 0 || snapshot.TickSize_Price <= 0 || snapshot.TickValue <= 0 ||
++      snapshot.LotStep <= 0 || snapshot.MinLot <= 0 ||
++      snapshot.MaxLot < snapshot.MinLot || snapshot.LotDigits < 0 || snapshot.Equity <= 0)
++   {
++      valid = false;
++      return 0;
++   }
++
++   // The risk snapshot is frozen for this decision. Reject a mismatched payload
++   // instead of mixing a later broker/account state with the approved M17 values.
++   double payloadTolerance = snapshot.Point * 0.5;
++   if(MathAbs(snapshot.EntryPrice - decision.EntryPrice) > payloadTolerance ||
++      MathAbs(snapshot.StopLoss - decision.StopLoss) > payloadTolerance)
++   {
++      valid = false;
++      return 0;
++   }
++
+    if(MMMode == 1)
+    {
+-      if(snapshot.TickSize_Price <= 0 || snapshot.TickValue <= 0)
++      if(AutoLotPercent <= 0 || MaxAutoLot <= 0)
+       {
+          valid = false;
+          return 0;
+       }
+-      
++
+       double slDistance = MathAbs(decision.EntryPrice - decision.StopLoss);
+       if(slDistance <= 0)
+       {
+          valid = false;
+          return 0;
+       }
+-      
++
+       double riskPerLot = slDistance * snapshot.TickValue / snapshot.TickSize_Price;
+       if(riskPerLot <= 0)
+       {
+          valid = false;
+          return 0;
+       }
+-      
+-      double riskAmount = AccountEquity() * (AutoLotPercent / 100.0);
++
++      // Use the same frozen equity snapshot that downstream M19 validates.
++      // Calling AccountEquity() here made lot sizing tick-dependent and non-atomic.
++      double riskAmount = snapshot.Equity * (AutoLotPercent / 100.0);
+       if(riskAmount <= 0)
+       {
+          valid = false;
+          return 0;
+       }
+-      
++
+       double rawLot = riskAmount / riskPerLot;
+-      double calcLot = NormalizeLot(rawLot, decision.Pair);
+-      
++      double calcLot = NormalizeLotDownFromSnapshot(rawLot, snapshot);
++
+       if(calcLot < snapshot.MinLot)
+       {
+          valid = false;
+          return 0;
+       }
+-      
+-      double maxLot = GetEffectiveMaxLot(decision.Pair);
++
++      // MaxAutoLot is an AutoLot-only user cap; broker MaxLot comes from the
++      // same frozen snapshot. Do not re-query live broker data during sizing.
++      double maxLot = MathMin(snapshot.MaxLot, MaxAutoLot);
++      if(maxLot < snapshot.MinLot)
++      {
++         valid = false;
++         return 0;
++      }
++
+       if(calcLot > maxLot)
+       {
+          valid = false;
+          return 0;
+       }
+-      
+-      if(!IsValidLotStep(calcLot, decision.Pair))
++
++      if(!IsValidSnapshotLotStep(calcLot, snapshot))
+       {
+          valid = false;
+          return 0;
+       }
+-      
++
+       return calcLot;
+    }
+-   else
++   else if(MMMode == 2)
+    {
+       double lot = FixedLot;
+-      if(lot < snapshot.MinLot || lot > snapshot.MaxLot)
++      if(lot <= 0 || lot < snapshot.MinLot || lot > snapshot.MaxLot)
+       {
+          valid = false;
+          return 0;
+       }
+-      if(!IsValidLotStep(lot, decision.Pair))
++
++      // FixedLot is explicit user intent. Do not silently normalize or clamp it;
++      // an invalid broker step/min/max setting must fail closed.
++      if(!IsValidSnapshotLotStep(lot, snapshot))
+       {
+          valid = false;
+          return 0;
+       }
++
+       return lot;
+    }
++
++   // Unknown MMMode must never silently fall through to FixedLot.
++   valid = false;
++   return 0;
+ }
+@@ -3706,6 +3754,12 @@ bool ValidateInputParameters()
+ {
++   if(MMMode != 1 && MMMode != 2) return false;
++   if(MMMode == 1 && AutoLotPercent <= 0) return false;
++   if(MMMode == 1 && MaxAutoLot <= 0) return false;
++   if(MMMode == 2 && FixedLot <= 0) return false;
++
+    if(MaxActivePair > MAX_PAIRS) return false;
+    if(MaxTradePerPair > MAX_TRADES_PER_PAIR) return false;
+    if(MaxTotalTrade > MAX_MONITORED) return false;

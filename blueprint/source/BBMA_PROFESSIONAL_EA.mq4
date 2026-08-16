@@ -4424,6 +4424,15 @@ void CompactMonitoredTrades()
    g_monitored_count = write;
 }
 
+bool EnsureMonitoredRegistryCapacity()
+{
+   // Capacity is verified before broker execution. Compact only tickets that the
+   // broker definitively reports as closed; transient selection failures remain
+   // reserved fail-closed so a possibly live owned order is never forgotten.
+   CompactMonitoredTrades();
+   return (g_monitored_count < MAX_MONITORED);
+}
+
 void AddToMonitoredTrades(TradeInfo &info)
 {
    for(int i = 0; i < g_monitored_count; i++)
@@ -4499,6 +4508,17 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
    {
       decision.DecisionState = DEC_REJECTED;
       decision.RejectionReason = REJ_DUPLICATE;
+      return;
+   }
+
+   // Fail BEFORE OrderSend if lifecycle ownership cannot be registered safely.
+   // This guarantees that any broker order opened by M22 has a monitored slot
+   // available for M19/M20/M23 ownership and emergency management.
+   if(!EnsureMonitoredRegistryCapacity())
+   {
+      decision.DecisionState = DEC_REJECTED;
+      decision.RejectionReason = REJ_PORTFOLIO_LIMIT_ATOMIC;
+      Log(DBG_ERROR, "Pre-send monitored registry capacity exhausted for " + pair);
       return;
    }
    

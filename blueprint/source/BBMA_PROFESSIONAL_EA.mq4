@@ -3561,8 +3561,37 @@ bool ResolveApprovedInitialSLTP(BBMA_Decision &decision,
    if(decision.Direction == DIR_SELL && destination >= decision.EntryPrice)
       return false;
 
-   decision.StopLoss = structuralSL;
-   decision.TakeProfit = destination;
+   // P2 S15 Fix A: broker execution precision is an engineering boundary, not
+   // a BBMA rule. Normalize source-owned prices onto the frozen broker tick grid.
+   // Protective SL rounding is direction-safe: BUY SL never moves upward/closer,
+   // SELL SL never moves downward/closer. TP is rounded toward the entry so the
+   // EA never extends the source-owned BB destination beyond its original level.
+   if(snapshot.TickSize_Price <= 0.0 || snapshot.Digits < 0) return false;
+
+   double slTicks = structuralSL / snapshot.TickSize_Price;
+   double tpTicks = destination / snapshot.TickSize_Price;
+   double normalizedSL = 0.0;
+   double normalizedTP = 0.0;
+
+   if(decision.Direction == DIR_BUY)
+   {
+      normalizedSL = MathFloor(slTicks + 0.000000001) * snapshot.TickSize_Price;
+      normalizedTP = MathFloor(tpTicks + 0.000000001) * snapshot.TickSize_Price;
+   }
+   else if(decision.Direction == DIR_SELL)
+   {
+      normalizedSL = MathCeil(slTicks - 0.000000001) * snapshot.TickSize_Price;
+      normalizedTP = MathCeil(tpTicks - 0.000000001) * snapshot.TickSize_Price;
+   }
+   else
+      return false;
+
+   normalizedSL = NormalizeDouble(normalizedSL, snapshot.Digits);
+   normalizedTP = NormalizeDouble(normalizedTP, snapshot.Digits);
+   if(normalizedSL <= 0.0 || normalizedTP <= 0.0) return false;
+
+   decision.StopLoss = normalizedSL;
+   decision.TakeProfit = normalizedTP;
    decision.SLTPSource = decision.SLTPSourceComponent.ComponentType;
    return true;
 }

@@ -1,21 +1,21 @@
 # P3 Step 5 — Recovery State Validation & Frozen-Trade Diagnostics
 
 ## Status
-IN PROGRESS — FIX A VERIFIED; FIX B IMPLEMENTED; NATIVE COMPILE PASS; S5C RUNTIME EVIDENCE PENDING
+IN PROGRESS — FIX A VERIFIED; FIX B IMPLEMENTED; S5B + S5C NATIVE COMPILE PASS; FINAL MT4 RUNTIME CLOSURE PENDING
 
 ## Triggering runtime finding
 MT4 Experts originally showed repeated messages for ticket `483347962`:
 - corrupted/frozen;
 - recovery state `REC_RECOVERY_INVALID`.
 
-P3 S5 diagnostic instrumentation then isolated the root cause instead of treating the symptom generically.
+P3 S5 diagnostic instrumentation isolated the root cause instead of treating the symptom generically.
 
-## Latest runtime evidence
-The latest MT4 Experts capture shows two exact EA-owned USDCHF tickets:
+## Latest runtime evidence before Fix B
+The latest pre-Fix-B MT4 Experts capture showed two exact EA-owned USDCHF tickets:
 - `483347969`;
 - `483347962`.
 
-Both were classified by the pre-Fix-B diagnostic build as:
+Both were classified by the diagnostic build as:
 - `State=REC_RECOVERY_INVALID`;
 - `Cause=MISSING_EXECUTION_HASH`;
 - `HashFound=N`;
@@ -24,14 +24,10 @@ Both were classified by the pre-Fix-B diagnostic build as:
 
 At the same time the P33/P34 signal pipeline continued operating and GBPUSD produced a valid eligible H1 Re-Entry SELL candidate. Therefore the observed failure is isolated to restart/recovery identity handling, not the signal pipeline.
 
-## P3 S5 Fix A — diagnostic scope
-- Preserve fail-closed handling for `REC_CORRUPTED` and `REC_RECOVERY_INVALID`.
-- Preserve emergency liquidation precedence.
-- Classify recovery root cause explicitly during `RecoverExistingOrders()`.
-- Emit one structured P3S5 recovery diagnostic per recovered owned order.
-- Suppress repeated frozen-trade log spam after the first management notification for that in-memory recovery instance.
+## P3 S5 Fix A — diagnostic result
+**PASS for root-cause isolation.**
 
-## Root-cause classes
+Recovery causes are explicitly separated:
 - `INVALID_GEOMETRY`
 - `NONPOSITIVE_LIVE_LOT`
 - `INVALID_LIVE_LOT_STEP`
@@ -41,12 +37,7 @@ At the same time the P33/P34 signal pipeline continued operating and GBPUSD prod
 - `EXECUTION_HASH_ONLY`
 - `MISSING_EXECUTION_HASH`
 
-## Fix A runtime result
-**PASS for root-cause isolation.**
-
-The instrumentation successfully distinguished `MISSING_EXECUTION_HASH` from geometry/lot corruption. This exposed a state-model problem: a valid exact-owned position with missing execution identity was being collapsed into `REC_RECOVERY_INVALID`.
-
-P3 Step 5 must not close on Fix A alone.
+Fix A proved that missing execution identity was being collapsed into `REC_RECOVERY_INVALID` even when broker geometry/lot were otherwise preservable.
 
 ## P3 S5 Fix B — state-model repair
 The M24 recovery contract defines:
@@ -59,23 +50,18 @@ Use this state only when:
 - live lot is positive and broker-step valid;
 - no valid `BBMA|H:` execution hash is observable.
 
-This state is intentionally not called `LEGACY`. An empty comment cannot prove whether the order predates execution hashes or whether the broker/server removed the comment.
+This state is intentionally not called `LEGACY`. An empty comment cannot prove whether an order predates execution hashes or whether the broker/server removed the comment.
 
-### Required behavior
-- Preserve broker Entry/SL/TP/lot exactly.
-- Keep the order inside M19/M20 risk, basket and portfolio accounting.
-- Preserve M23 emergency-close precedence.
-- Freeze ordinary identity-dependent lifecycle actions.
-- Never fabricate `DecisionID`, hash, signal type, sequence, candle time or tombstone.
-- Emit one structured `MISSING_EXECUTION_HASH` diagnostic.
-- Do not classify the position as `REC_RECOVERY_INVALID` solely because `H:` is missing.
+Required behavior remains locked:
+- preserve broker Entry/SL/TP/lot exactly;
+- keep the order inside M19/M20 risk, basket and portfolio accounting;
+- preserve M23 emergency-close precedence;
+- freeze ordinary identity-dependent lifecycle actions;
+- never fabricate `DecisionID`, hash, signal type, sequence, candle time or tombstone;
+- emit one structured `MISSING_EXECUTION_HASH` diagnostic;
+- do not classify the position as `REC_RECOVERY_INVALID` solely because `H:` is missing.
 
-### Hard invalid state remains separate
-`REC_RECOVERY_INVALID` remains mandatory for actual hard failures such as:
-- invalid directional Entry/SL/TP geometry;
-- non-positive live lot;
-- invalid live lot step;
-- another broker-state inconsistency that cannot safely be preserved.
+Hard broker-state failures remain `REC_RECOVERY_INVALID`, including invalid directional Entry/SL/TP geometry, non-positive live lot, and invalid live lot step.
 
 ## Fix B canonical source implementation
 **IMPLEMENTED on `blueprint-dev`.**
@@ -85,14 +71,14 @@ Canonical source commit:
 
 Implemented changes:
 1. Added `REC_IDENTITY_MISSING_FROZEN` to `ENUM_RECOVERY_STATE`.
-2. M24 now separates invalid geometry, non-positive lot and invalid lot-step causes before identity classification.
-3. Valid exact-owned/no-`H:` positions now map to `REC_IDENTITY_MISSING_FROZEN`.
+2. M24 separates invalid geometry, non-positive lot and invalid lot-step causes before identity classification.
+3. Valid exact-owned/no-`H:` positions map to `REC_IDENTITY_MISSING_FROZEN`.
 4. `REC_RECOVERY_INVALID` remains reserved for actual hard broker-state invalidity.
 5. M23 freezes `REC_IDENTITY_MISSING_FROZEN` only after emergency-liquidation precedence.
 6. Repeated per-cycle frozen logging was removed from M23.
 7. M24 emits one structured `[P3S5][RECOVERY]` line during reconstruction.
 8. No tombstone or full strategy identity is fabricated when `H:` is absent.
-9. M22 `BBMA|H:` generation for new executions is unchanged.
+9. M22 `BBMA|H:` generation for new executions remains unchanged.
 
 Source applicator verification:
 - Workflow: `P3 S5B Apply Source`
@@ -100,10 +86,8 @@ Source applicator verification:
 - Result: **SUCCESS**
 - Exact-anchor/static postconditions: **PASS**
 
-## Native compile gate
+## P3 S5B native compile gate
 **PASS.**
-
-GitHub-hosted Windows native MetaEditor compiled the exact prepared P3 S5B source using official MT4 MetaEditor.
 
 Compile evidence:
 - Workflow: `P3 S5B Recovery Identity Fix`
@@ -113,24 +97,64 @@ Compile evidence:
 - Workflow marker: `P3_S5B_NATIVE_MT4_COMPILE=PASS`
 - EX4 artifact produced successfully.
 
-This closes closure criterion #1 for the Fix-B source.
+## P3 S5C — fresh-order execution identity persistence instrumentation
+**IMPLEMENTED AND COMPILE-VERIFIED.**
 
-## P3 S5C — fresh-order execution identity persistence gate
-Missing `H:` on the two existing USDCHF tickets does not prove they are legacy orders.
+Canonical S5C source commit:
+`0b57f042c4c90a5a00531c152252c1e53332eb3f`
 
-A fresh-order persistence diagnostic is being added at the successful M22 `OrderSelect(ticket)` boundary. It reads the broker-returned `OrderComment()` and compares the observed `H:` against `SHORT_HASH(decision.DecisionID)` without modifying broker metadata or fabricating identity.
+At the successful M22 `OrderSelect(ticket)` boundary, the EA now:
+1. reads the broker-returned `OrderComment()`;
+2. extracts the persisted `H:` value;
+3. compares it with `SHORT_HASH(decision.DecisionID)`;
+4. stores `TradeInfo.execution_hash` only when the broker-returned hash matches;
+5. emits one `[P3S5][EXEC_ID]` runtime diagnostic;
+6. never rewrites broker comment metadata and never fabricates a restart identity.
 
-Expected one-time runtime line for a fresh execution:
+Expected fresh-order runtime line:
 
-`[P3S5][EXEC_ID] Ticket=... Pair=... Persist=PASS HashFound=Y HashMatch=Y ... RawComment=<BBMA|H:...>`
+`[P3S5][EXEC_ID] Ticket=... Pair=... Persist=PASS HashFound=Y HashMatch=Y ExpectedHash=... PersistedHash=... RawComment=<BBMA|H:...>`
 
-If `Persist=FAIL`, restart idempotency remains unresolved at the broker-comment persistence boundary even though the live position can still be managed safely during the current process.
+If `Persist=FAIL`, restart idempotency remains unresolved at the broker-comment persistence boundary even though the live position remains managed safely during the current process.
 
-S5C workflow:
-- `P3 S5C Execution Identity Persistence`
+S5C CI evidence:
+- Workflow: `P3 S5C Execution Identity Persistence`
 - GitHub Actions run: `32026948381`
-- Prepare/source patch stage: **PASS**
-- Native compile/commit stages: pending at the time of this record.
+- Prepare/source patch: **PASS**
+- Native MetaEditor compile: **PASS**
+- Compile job: `95378287873`
+- MetaEditor result: `0 errors, 0 warnings, 88 msec elapsed`
+- Workflow marker: `P3_S5C_NATIVE_MT4_COMPILE=PASS`
+- EX4 artifact: `p3-s5c-compile-output`, artifact ID `9287742252`
+- Canonical commit stage: **PASS**
+- Canonical source commit: `0b57f042c4c90a5a00531c152252c1e53332eb3f`
+
+## Final MT4 runtime closure protocol
+Deploy/re-attach the latest S5C build and collect only the following evidence:
+
+1. **Restart recovery of existing no-H tickets**
+   - Tickets `483347969` / `483347962`, if still open and geometry/lot remain valid, must report:
+   - `State=REC_IDENTITY_MISSING_FROZEN`
+   - `Cause=MISSING_EXECUTION_HASH`
+   - `HashFound=N`
+   - `FullMeta=N`
+
+2. **No recovery log spam**
+   - one `[P3S5][RECOVERY]` line per reconstructed order;
+   - no repeated frozen-state line every tick/timer cycle.
+
+3. **Fresh execution persistence**
+   - wait for one valid post-S5C M22 execution;
+   - require `[P3S5][EXEC_ID] ... Persist=PASS HashFound=Y HashMatch=Y ...`.
+
+4. **Restart the EA after that fresh trade remains open**
+   - the fresh order must recover with an observable execution hash;
+   - it must not fall into `REC_IDENTITY_MISSING_FROZEN` solely because of broker comment loss.
+
+5. **Safety invariants**
+   - genuine invalid geometry/lot remains `REC_RECOVERY_INVALID`;
+   - M19/M20 continue counting exact-owned frozen trades;
+   - emergency-close precedence remains above the recovery freeze.
 
 ## P3 Step 5 closure criteria
 P3 Step 5 is PASS only when all of the following are verified:
@@ -139,9 +163,9 @@ P3 Step 5 is PASS only when all of the following are verified:
 3. Genuine geometry/lot-invalid orders remain `REC_RECOVERY_INVALID`.
 4. One recovery diagnostic is emitted per recovered order without per-tick/timer spam.
 5. Emergency portfolio close can still close a frozen exact-owned order.
-6. A newly executed M22 order retains the `BBMA|H:` prefix after broker acceptance/restart observation.
+6. A newly executed M22 order retains the `BBMA|H:` prefix after broker acceptance and still exposes the hash after restart observation.
 
 ## Decision
 **Do not close P3 Step 5 yet.**
 
-Compile is now proven clean. The next remaining evidence is runtime: restart/re-attach against the existing no-`H:` positions, plus one fresh post-S5C M22 execution to prove broker persistence of `BBMA|H:`.
+All source and compile gates are now complete. The only remaining gate is live MT4 runtime evidence using the canonical S5C build.

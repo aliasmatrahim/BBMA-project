@@ -69,8 +69,8 @@ input bool     EnableRE_Type1                     = true;       // EnableRE_Type
 input bool     EnableRE_Type2                     = true;       // EnableRE_Type2
 input bool     EnableRE_Type3                     = true;       // EnableRE_Type3
 input bool     EnableRE_Type4                     = true;       // EnableRE_Type4
-input string   PairList                           = "EURUSD,GBPUSD,USDJPY"; // PairList
-input int      MaxActivePair                      = 5;          // MaxActivePair
+input string   PairList                           = "EURUSD,USDJPY,GBPUSD,AUDUSD,USDCAD,USDCHF,NZDUSD"; // PairList
+input int      MaxActivePair                      = 7;          // MaxActivePair
 input int      MaxTradePerPair                    = 2;          // MaxTradePerPair
 input int      MaxTotalTrade                      = 10;         // MaxTotalTrade
 input double   BasketProfitPercent                = 5.0;        // Display compatibility only; not an execution TP
@@ -104,7 +104,7 @@ input int      AllowedExecutionDeviation_MinPoints= 5;          // AllowedExecut
 #define SIGNAL_HISTORY_MAX      2000
 #define SIGNAL_HISTORY_CLEANUP_SIZE 200
 #define PAIR_ID_MIN             1
-#define PAIR_ID_MAX             20
+#define PAIR_ID_MAX             99
 #define INSTANCE_ID_MIN         0
 #define INSTANCE_ID_MAX         99
 #define STRATEGY_ID_MIN         1
@@ -5040,9 +5040,9 @@ bool ValidateInputParameters()
 
 bool ValidatePairIDCollision()
 {
-   int usedIDs[MAX_PAIRS];
-   ArrayInitialize(usedIDs, 0);
-   
+   // P3 S1 Fix B: PairID is packed into the low two decimal digits of
+   // the magic layout, so the safe deterministic namespace is 1..99.
+   // Compare loaded pairs directly; do not index MAX_PAIRS by PairID.
    for(int i = 0; i < g_pair_count; i++)
    {
       int pid = g_pair_states[i].pair_id;
@@ -5052,14 +5052,18 @@ bool ValidatePairIDCollision()
          Log(DBG_ERROR, "PairID out of range for " + g_pair_names[i]);
          return false;
       }
-      if(usedIDs[pid - PAIR_ID_MIN] > 0)
+
+      for(int j = 0; j < i; j++)
       {
-         g_pair_states[i].pair_enabled = false;
-         Log(DBG_ERROR, "PairID collision for " + g_pair_names[i] + 
-             " with " + g_pair_names[usedIDs[pid - PAIR_ID_MIN] - 1]);
-         return false;
+         if(g_pair_states[j].pair_id == pid)
+         {
+            g_pair_states[i].pair_enabled = false;
+            Log(DBG_ERROR, "PairID collision for " + g_pair_names[i] +
+                " with " + g_pair_names[j] +
+                " (PID=" + IntegerToString(pid) + ")");
+            return false;
+         }
       }
-      usedIDs[pid - PAIR_ID_MIN] = i + 1;
    }
    return true;
 }

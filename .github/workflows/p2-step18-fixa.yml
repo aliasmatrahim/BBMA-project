@@ -1,0 +1,39 @@
+name: P2 Step18 FixA
+on:
+  push:
+    paths:
+      - '.github/workflows/p2-step18-fixa.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+      - name: Patch TradeLock validation and enforcement
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
+          s = p.read_text(encoding='utf-8')
+          old1 = """   if(MaxRetry <= 0) return false;\n   if(Slippage < 0 || AllowedExecutionDeviation_MinPoints < 0) return false;\n   if(MMMode != 1 && MMMode != 2) return false;\n"""
+          new1 = """   if(MaxRetry <= 0) return false;\n   if(Slippage < 0 || AllowedExecutionDeviation_MinPoints < 0) return false;\n   if(TradeLockMode < LOCK_OFF || TradeLockMode > LOCK_ONE_POSITION) return false;\n   if(MMMode != 1 && MMMode != 2) return false;\n"""
+          if s.count(old1) != 1:
+              raise SystemExit(f'validation anchor count={s.count(old1)}')
+          s = s.replace(old1, new1, 1)
+
+          old2 = """   if(IsDecisionExecuted(decision.DecisionID))\n   {\n      decision.DecisionState = DEC_REJECTED;\n      decision.RejectionReason = REJ_DUPLICATE;\n      return;\n   }\n   \n   int pairIdx = FindPairStateIndex(pair);\n"""
+          new2 = """   if(IsDecisionExecuted(decision.DecisionID))\n   {\n      decision.DecisionState = DEC_REJECTED;\n      decision.RejectionReason = REJ_DUPLICATE;\n      return;\n   }\n\n   // P2 S18 Fix A: enforce the configured trade-lock policy before any\n   // broker-send preparation. IsSignalAllowed() owns lock semantics; M22 only\n   // converts a blocked admission into the explicit lifecycle rejection reason.\n   int lockPairIdx = FindPairStateIndex(pair);\n   if(lockPairIdx < 0 || !IsSignalAllowed(decision, pair, g_pair_states[lockPairIdx].magic_number))\n   {\n      decision.DecisionState = DEC_REJECTED;\n      decision.RejectionReason = REJ_TRADE_LOCK;\n      return;\n   }\n   \n   int pairIdx = FindPairStateIndex(pair);\n"""
+          if s.count(old2) != 1:
+              raise SystemExit(f'execution anchor count={s.count(old2)}')
+          s = s.replace(old2, new2, 1)
+          p.write_text(s, encoding='utf-8')
+      - name: Commit canonical patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          git commit -m "P2 Step18 FixA enforce TradeLockMode"
+          git push origin HEAD:blueprint-dev

@@ -1,0 +1,74 @@
+name: P2 Step18 FixB
+
+on:
+  push:
+    branches: [blueprint-dev]
+    paths:
+      - '.github/workflows/p2-step18-fixb.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+          fetch-depth: 0
+
+      - name: Remove duplicate TradeLock validation and gate
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
+          s = p.read_text(encoding='utf-8')
+
+          v = '   if(TradeLockMode < LOCK_OFF || TradeLockMode > LOCK_ONE_POSITION) return false;\n'
+          if s.count(v) != 2:
+              raise SystemExit(f'Expected 2 TradeLock validation lines, found {s.count(v)}')
+          s = s.replace(v + v, v, 1)
+
+          early = '''   // P2 S18 Fix A: enforce the configured trade-lock policy before any
+   // broker-send preparation. IsSignalAllowed() owns lock semantics; M22 only
+   // converts a blocked admission into the explicit lifecycle rejection reason.
+   int lockPairIdx = FindPairStateIndex(pair);
+   if(lockPairIdx < 0 || !IsSignalAllowed(decision, pair, g_pair_states[lockPairIdx].magic_number))
+   {
+      decision.DecisionState = DEC_REJECTED;
+      decision.RejectionReason = REJ_TRADE_LOCK;
+      return;
+   }
+   
+'''
+          if s.count(early) != 1:
+              raise SystemExit(f'Expected 1 early duplicate gate, found {s.count(early)}')
+          s = s.replace(early, '', 1)
+
+          # Final invariants: exactly one input validation and one live ProcessEntry lock gate.
+          if s.count(v) != 1:
+              raise SystemExit('TradeLock validation cleanup failed')
+          a = s.index('void ProcessEntry(BBMA_Decision &decision')
+          b = s.index('//+------------------------------------------------------------------+', a + 1)
+          proc = s[a:b]
+          if proc.count('if(!IsSignalAllowed(decision, pair, magic))') != 1:
+              raise SystemExit('ProcessEntry must contain exactly one final trade-lock gate')
+          if 'lockPairIdx' in proc:
+              raise SystemExit('Residual duplicate lockPairIdx gate remains')
+
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Commit canonical FixB
+        run: |
+          if git diff --quiet; then
+            echo 'No changes required'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          git commit -m 'P2 Step18 FixB remove duplicate trade lock gates'
+          git push origin blueprint-dev

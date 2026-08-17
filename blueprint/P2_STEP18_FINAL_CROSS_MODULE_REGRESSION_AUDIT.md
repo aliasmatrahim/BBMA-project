@@ -1,25 +1,27 @@
 # P2 Step 18 — Final Cross-Module Regression Audit
 
-Status: FAIL — Fix A required
+Status: FAIL — Fix B required
 
-Compile baseline entering S18: 0 Errors / 0 Warnings (user-reported after P2 S17 Fix A)
+Compile baseline after S18 Fix A: 0 Errors / 0 Warnings (user-reported MetaEditor result)
 
 ## Scope
 Final P2 static regression across initialization/input contract, broker symbol identity, signal-to-decision lifecycle, invalidation, SL/TP, risk, portfolio protection, execution, recovery and orchestration.
 
-## Finding — TradeLockMode is not enforced at execution boundary
-`IsSignalAllowed()` contains the intended TradeLockMode contract for `LOCK_ONE_POSITION` and `LOCK_SAME_DIRECTION`, but the current `ProcessEntry()` path never calls it before `OrderSend()`.
+## Fix A Re-Audit
+The original TradeLock defect is functionally closed: the canonical source now validates the TradeLockMode range and calls `IsSignalAllowed()` before broker-send work.
 
-Therefore `TradeLockMode` can be configured yet have no effect on live entry admission. The final execution path currently checks duplicate DecisionID, pair/magic ownership, monitored-registry capacity, execution deviation and broker execution, but not the trade-lock policy.
+However the patch was applied twice in two places:
 
-This is a cross-module regression because the input contract is declared in M01, the lock predicate exists in M22, while M27 routes validated decisions through M17 -> M21 -> M19 -> M20 -> M22 without enforcing that predicate.
+1. `ValidateInputParameters()` contains the exact same TradeLockMode range check twice consecutively.
+2. `ProcessEntry()` calls `IsSignalAllowed()` twice: first through `lockPairIdx`, then again after resolving `pairIdx`/`magic`.
 
-A related input-contract gap also exists: `ValidateInputParameters()` validates EntryMode and MMMode but does not reject TradeLockMode values outside 0..2. Invalid values therefore silently behave as lock-off.
+The second issue is more than cosmetic. Trade-lock admission should have one deterministic execution-boundary check. Duplicating a live-state predicate creates two observation points for the same admission decision and can produce inconsistent rejection behavior if broker/monitored state changes between them. It also violates the single-authority/minimal-executor architecture established during P2.
 
-## Required Fix A
-1. Validate `TradeLockMode` is one of `LOCK_OFF`, `LOCK_SAME_DIRECTION`, `LOCK_ONE_POSITION` during input validation.
-2. Enforce `IsSignalAllowed(decision, pair, magic)` in `ProcessEntry()` after pair/magic resolution and before monitored-capacity/broker-send work.
-3. Reject with `REJ_TRADE_LOCK` when the lock predicate fails; existing dedicated duplicate checks remain authoritative for duplicate execution identity.
-4. Preserve M22 as execution-only. No BBMA signal, EntryMode, SL/TP, risk or portfolio formulas are changed.
+## Required Fix B
+- Remove the duplicate TradeLockMode input validation line; keep exactly one range check.
+- Remove the first pre-pair/magic `lockPairIdx` TradeLock block.
+- Keep exactly one `IsSignalAllowed(decision, pair, magic)` call after canonical `pairIdx` and `magic` validation and before monitored-registry capacity / broker-send preparation.
+- Preserve `REJ_TRADE_LOCK` as the rejection reason for that single lock gate.
+- No BBMA signal, EntryMode, SL/TP, sizing, risk or portfolio formula changes.
 
-P2 cannot be closed until Fix A compiles 0E/0W and passes Step 18 re-audit.
+P2 remains open until Fix B compiles 0E/0W and the final S18 re-audit passes.

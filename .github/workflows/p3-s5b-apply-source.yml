@@ -1,0 +1,70 @@
+name: P3 S5B Apply Source
+
+on:
+  push:
+    branches: [blueprint-dev]
+    paths:
+      - '.github/workflows/p3-s5b-apply-source.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+          fetch-depth: 0
+
+      - name: Apply P3 S5B canonical source repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
+          s = p.read_text(encoding='utf-8')
+
+          if 'REC_IDENTITY_MISSING_FROZEN' not in s:
+              def r(old, new, label):
+                  global s
+                  n=s.count(old)
+                  if n != 1: raise SystemExit(f'{label} anchor count={n}')
+                  s=s.replace(old,new,1)
+
+              r('''enum ENUM_RECOVERY_STATE { REC_NORMAL, REC_CORRUPTED, REC_RECOVERY_INVALID, REC_PARTIAL_INFERRED,\n                           REC_IDENTITY_HASH_ONLY };''',
+                '''enum ENUM_RECOVERY_STATE { REC_NORMAL, REC_CORRUPTED, REC_RECOVERY_INVALID, REC_PARTIAL_INFERRED,\n                           REC_IDENTITY_HASH_ONLY, REC_IDENTITY_MISSING_FROZEN };''','enum')
+
+              r('''      if(g_monitored_trades[i].recovery_state == REC_CORRUPTED ||\n         g_monitored_trades[i].recovery_state == REC_RECOVERY_INVALID)\n      {\n         Log(DBG_ERROR, "Trade " + IntegerToString(g_monitored_trades[i].ticket) + \n             " corrupted, frozen: " + EnumToString(g_monitored_trades[i].recovery_state));\n         continue;\n      }''',
+                '''      if(g_monitored_trades[i].recovery_state == REC_CORRUPTED ||\n         g_monitored_trades[i].recovery_state == REC_RECOVERY_INVALID ||\n         g_monitored_trades[i].recovery_state == REC_IDENTITY_MISSING_FROZEN)\n      {\n         // P3 S5B: M24 logs recovery classification once. M23 only freezes\n         // ordinary lifecycle after emergency-close precedence.\n         continue;\n      }''','M23')
+
+              r('''      bool hasExecutionHash = ExtractExecutionHash(comment, executionHash);\n      if(!hasExecutionHash)\n      {\n         // Exact live EA ownership is authoritative for lifecycle safety even when\n         // broker comment metadata is missing/truncated. Keep the position visible\n         // to M19/M20/M23, but never fabricate an execution identity.\n         Log(DBG_ERROR, "EA-owned order missing execution hash; recovering frozen ticket=" +\n             IntegerToString(OrderTicket()));\n      }\n''',
+                '''      bool hasExecutionHash = ExtractExecutionHash(comment, executionHash);\n      // P3 S5B: missing H: is classified only after broker geometry/lot validation.\n      // Exact ownership remains visible to safety accounting; no identity is fabricated.\n''','prelog')
+
+              r('''         double currentLot = OrderLots();\n         if(!geometryValid || currentLot <= 0 || !IsValidLotStep(currentLot, pair))\n         {\n            info.recovery_state = REC_RECOVERY_INVALID;\n         }\n         else if(fullMetadata && intendedLot > 0 && currentLot > intendedLot + 0.0000001)\n         {\n            info.recovery_state = REC_CORRUPTED;\n         }\n         else if(fullMetadata && intendedLot > 0 && currentLot < intendedLot - 0.0000001)\n         {\n            // Legacy/manual external reduction is preserved as live state; never\n            // infer permission for another partial close or restore the old lot.\n            info.recovery_state = REC_PARTIAL_INFERRED;\n            info.remaining_lot = currentLot;\n         }\n         else if(fullMetadata)\n         {\n            info.recovery_state = REC_NORMAL;\n         }\n         else\n         {\n            // Missing H: is stricter than hash-only recovery: preserve the exact\n            // broker position for accounting/emergency ownership, but freeze normal\n            // lifecycle because no stable execution identity can be reconstructed.\n            info.recovery_state = hasExecutionHash ? REC_IDENTITY_HASH_ONLY\n                                                   : REC_RECOVERY_INVALID;\n         }\n''',
+                '''         string recoveryCause = "";\n         double currentLot = OrderLots();\n         if(!geometryValid)\n         {\n            info.recovery_state = REC_RECOVERY_INVALID;\n            recoveryCause = "INVALID_GEOMETRY";\n         }\n         else if(currentLot <= 0)\n         {\n            info.recovery_state = REC_RECOVERY_INVALID;\n            recoveryCause = "NONPOSITIVE_LIVE_LOT";\n         }\n         else if(!IsValidLotStep(currentLot, pair))\n         {\n            info.recovery_state = REC_RECOVERY_INVALID;\n            recoveryCause = "INVALID_LIVE_LOT_STEP";\n         }\n         else if(fullMetadata && intendedLot > 0 && currentLot > intendedLot + 0.0000001)\n         {\n            info.recovery_state = REC_CORRUPTED;\n            recoveryCause = "LIVE_LOT_ABOVE_INTENDED";\n         }\n         else if(fullMetadata && intendedLot > 0 && currentLot < intendedLot - 0.0000001)\n         {\n            info.recovery_state = REC_PARTIAL_INFERRED;\n            info.remaining_lot = currentLot;\n            recoveryCause = "LIVE_LOT_BELOW_INTENDED";\n         }\n         else if(fullMetadata)\n         {\n            info.recovery_state = REC_NORMAL;\n            recoveryCause = "FULL_METADATA_MATCH";\n         }\n         else if(hasExecutionHash)\n         {\n            info.recovery_state = REC_IDENTITY_HASH_ONLY;\n            recoveryCause = "EXECUTION_HASH_ONLY";\n         }\n         else\n         {\n            info.recovery_state = REC_IDENTITY_MISSING_FROZEN;\n            recoveryCause = "MISSING_EXECUTION_HASH";\n         }\n''','classification')
+
+              r('''         AddToMonitoredTrades(info);\n\n         if(hasExecutionHash)\n            UpsertExecutionHashTombstone(executionHash, info.ticket, pair,\n                                         liveDirection, info.open_time);''',
+                '''         AddToMonitoredTrades(info);\n\n         Print("[P3S5][RECOVERY] Ticket=", IntegerToString(info.ticket),\n               " Pair=", pair,\n               " State=", EnumToString(info.recovery_state),\n               " Cause=", recoveryCause,\n               " HashFound=", hasExecutionHash ? "Y" : "N",\n               " FullMeta=", fullMetadata ? "Y" : "N");\n\n         if(hasExecutionHash)\n            UpsertExecutionHashTombstone(executionHash, info.ticket, pair,\n                                         liveDirection, info.open_time);''','diagnostic')
+
+              p.write_text(s,encoding='utf-8')
+
+          s=p.read_text(encoding='utf-8')
+          assert s.count('REC_IDENTITY_MISSING_FROZEN') == 3
+          for marker in ['MISSING_EXECUTION_HASH','INVALID_GEOMETRY','NONPOSITIVE_LIVE_LOT','INVALID_LIVE_LOT_STEP','[P3S5][RECOVERY] Ticket=']:
+              assert marker in s, marker
+          PY
+
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          if git diff --cached --quiet; then
+            echo 'P3 S5B source already present'
+          else
+            git commit -m 'P3 S5B implement missing execution identity frozen state'
+            git push origin blueprint-dev
+          fi

@@ -1,0 +1,137 @@
+name: P3 S5C Execution Identity Persistence
+
+on:
+  push:
+    branches: [blueprint-dev]
+    paths:
+      - '.github/workflows/p3-s5c-execution-identity-persistence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+          fetch-depth: 0
+
+      - name: Add fresh-order execution identity persistence diagnostic
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
+          s = p.read_text(encoding='utf-8')
+
+          marker = '[P3S5][EXEC_ID] Ticket='
+          if marker not in s:
+              old = '''         info.decision_id = decision.DecisionID;\n         info.sequence_hash_short = SHORT_HASH(decision.SequenceHash);\n         info.recovery_state = REC_NORMAL;'''
+              new = '''         info.decision_id = decision.DecisionID;\n         info.sequence_hash_short = SHORT_HASH(decision.SequenceHash);\n\n         // P3 S5C: verify what the broker actually persisted after successful\n         // OrderSend/selection. This is observability only; it does not rewrite\n         // broker metadata or fabricate a restart identity.\n         string expectedExecutionHash = SHORT_HASH(decision.DecisionID);\n         string persistedExecutionHash = \"\";\n         string persistedComment = OrderComment();\n         bool persistedHashFound = ExtractExecutionHash(persistedComment, persistedExecutionHash);\n         bool persistedHashMatch = (persistedHashFound &&\n                                    persistedExecutionHash == expectedExecutionHash);\n         info.execution_hash = persistedHashMatch ? persistedExecutionHash : \"\";\n         info.recovery_state = REC_NORMAL;\n\n         Print(\"[P3S5][EXEC_ID] Ticket=\", IntegerToString(ticket),\n               \" Pair=\", pair,\n               \" Persist=\", persistedHashMatch ? \"PASS\" : \"FAIL\",\n               \" HashFound=\", persistedHashFound ? \"Y\" : \"N\",\n               \" HashMatch=\", persistedHashMatch ? \"Y\" : \"N\",\n               \" ExpectedHash=\", expectedExecutionHash,\n               \" PersistedHash=\", persistedExecutionHash,\n               \" RawLen=\", IntegerToString(StringLen(persistedComment)),\n               \" RawComment=<\", persistedComment, \">\");'''
+              n = s.count(old)
+              if n != 1:
+                  raise SystemExit(f'ProcessEntry identity anchor count={n}')
+              s = s.replace(old, new, 1)
+              p.write_text(s, encoding='utf-8')
+
+          s = p.read_text(encoding='utf-8')
+          assert s.count(marker) == 1
+          assert 'info.execution_hash = persistedHashMatch ? persistedExecutionHash : "";' in s
+          assert 'Persist=' in s and 'ExpectedHash=' in s and 'RawComment=<' in s
+          PY
+
+          git diff --check
+          git diff -- blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p3-s5c-source
+          path: blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          if-no-files-found: error
+
+  compile-mt4:
+    needs: prepare
+    runs-on: windows-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: p3-s5c-source
+          path: .
+
+      - name: Acquire official MT4 MetaEditor
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $meta) {
+            $url = 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe'
+            Invoke-WebRequest -Uri $url -OutFile "$env:RUNNER_TEMP\mt4setup.exe" -UseBasicParsing
+            Start-Process -FilePath "$env:RUNNER_TEMP\mt4setup.exe" -ArgumentList '/auto' -Wait
+            Start-Sleep -Seconds 5
+            $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          }
+          if (-not $meta) { throw 'MT4 MetaEditor not found after official installer attempt' }
+          "METAEDITOR=$($meta.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "Using $($meta.FullName)"
+
+      - name: Native MetaEditor compile — require 0 errors and 0 warnings
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = (Resolve-Path '.\BBMA_PROFESSIONAL_EA.mq4').Path
+          $log = Join-Path $env:RUNNER_TEMP 'p3-s5c-metaeditor.log'
+          & "$env:METAEDITOR" "/compile:$src" "/log:$log"
+          Start-Sleep -Seconds 2
+          if (-not (Test-Path $log)) { throw 'MetaEditor compile log missing' }
+          $txt = Get-Content $log -Raw
+          $txt | Write-Host
+          $ex4 = [System.IO.Path]::ChangeExtension($src,'.ex4')
+          if (-not (Test-Path $ex4)) { throw 'MetaEditor did not produce EX4' }
+          if ($txt -notmatch '(?i)0 errors?,\s*0 warnings?') {
+            throw 'P3 S5C requires native compile 0 errors / 0 warnings'
+          }
+          Write-Host 'P3_S5C_NATIVE_MT4_COMPILE=PASS'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p3-s5c-compile-output
+          path: |
+            BBMA_PROFESSIONAL_EA.ex4
+            ${{ runner.temp }}/p3-s5c-metaeditor.log
+          if-no-files-found: warn
+
+  commit:
+    needs: compile-mt4
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: p3-s5c-source
+          path: blueprint/source
+
+      - name: Verify and commit canonical P3 S5C source
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q '\[P3S5\]\[EXEC_ID\]' blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          grep -q 'info.execution_hash = persistedHashMatch' blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          if git diff --cached --quiet; then
+            echo 'No source change required'
+            exit 0
+          fi
+          git commit -m 'P3 S5C verify fresh-order execution identity persistence'
+          git push origin blueprint-dev

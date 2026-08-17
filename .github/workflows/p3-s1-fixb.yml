@@ -1,0 +1,97 @@
+name: P3 S1 FixB
+
+on:
+  push:
+    branches: [blueprint-dev]
+    paths:
+      - '.github/workflows/p3-s1-fixb.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+      - name: Apply P3 S1 Fix B
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          p = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
+          s = p.read_text(encoding='utf-8')
+
+          s = s.replace(
+              'input string   PairList                           = "EURUSD,GBPUSD,USDJPY"; // PairList',
+              'input string   PairList                           = "EURUSD,USDJPY,GBPUSD,AUDUSD,USDCAD,USDCHF,NZDUSD"; // PairList',
+              1)
+          s = s.replace(
+              'input int      MaxActivePair                      = 5;          // MaxActivePair',
+              'input int      MaxActivePair                      = 7;          // MaxActivePair',
+              1)
+          if '#define PAIR_ID_MAX             20' not in s:
+              raise SystemExit('PAIR_ID_MAX anchor missing')
+          s = s.replace('#define PAIR_ID_MAX             20',
+                        '#define PAIR_ID_MAX             99', 1)
+
+          pat = re.compile(r'bool ValidatePairIDCollision\(\)\s*\{.*?\n\}\n\nbool ValidateMagicCollision\(\)', re.S)
+          m = pat.search(s)
+          if not m:
+              raise SystemExit('ValidatePairIDCollision not found')
+          repl = '''bool ValidatePairIDCollision()
+          {
+             // P3 S1 Fix B: PairID is packed into the low two decimal digits of
+             // the magic layout, so the safe deterministic namespace is 1..99.
+             // Compare loaded pairs directly; do not index MAX_PAIRS by PairID.
+             for(int i = 0; i < g_pair_count; i++)
+             {
+                int pid = g_pair_states[i].pair_id;
+                if(pid < PAIR_ID_MIN || pid > PAIR_ID_MAX)
+                {
+                   g_pair_states[i].pair_enabled = false;
+                   Log(DBG_ERROR, "PairID out of range for " + g_pair_names[i]);
+                   return false;
+                }
+
+                for(int j = 0; j < i; j++)
+                {
+                   if(g_pair_states[j].pair_id == pid)
+                   {
+                      g_pair_states[i].pair_enabled = false;
+                      Log(DBG_ERROR, "PairID collision for " + g_pair_names[i] +
+                          " with " + g_pair_names[j] +
+                          " (PID=" + IntegerToString(pid) + ")");
+                      return false;
+                   }
+                }
+             }
+             return true;
+          }
+
+          bool ValidateMagicCollision()'''
+          s = s[:m.start()] + repl + s[m.end():]
+          p.write_text(s, encoding='utf-8')
+      - name: Verify requested 7-pair IDs
+        shell: python
+        run: |
+          pairs = ['EURUSD','USDJPY','GBPUSD','AUDUSD','USDCAD','USDCHF','NZDUSD']
+          def pid(symbol):
+              h = 0
+              for ch in symbol:
+                  h = (h * 31 + ord(ch)) & 0xffffffff
+                  if h >= 2**31:
+                      h -= 2**32
+              return 1 + (abs(h) % 99)
+          ids = {p: pid(p) for p in pairs}
+          print(ids)
+          assert len(set(ids.values())) == len(pairs)
+      - name: Commit canonical source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          git commit -m "P3 S1 Fix B: expand PairID namespace and set 7-pair defaults"
+          git push origin HEAD:blueprint-dev

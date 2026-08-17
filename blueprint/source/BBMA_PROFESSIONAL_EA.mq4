@@ -207,7 +207,7 @@ enum ENUM_OPPOSITE_CONFLICT_TYPE
 enum ENUM_DEBUG_LEVEL { DBG_OFF, DBG_ERROR, DBG_SIGNAL, DBG_TRADE, DBG_FULL };
 
 enum ENUM_RECOVERY_STATE { REC_NORMAL, REC_CORRUPTED, REC_RECOVERY_INVALID, REC_PARTIAL_INFERRED,
-                           REC_IDENTITY_HASH_ONLY };
+                           REC_IDENTITY_HASH_ONLY, REC_IDENTITY_MISSING_FROZEN };
 
 //--- STRUCTS
 struct ComponentIdentity
@@ -4802,10 +4802,11 @@ void ManagePositions()
       }
 
       if(g_monitored_trades[i].recovery_state == REC_CORRUPTED ||
-         g_monitored_trades[i].recovery_state == REC_RECOVERY_INVALID)
+         g_monitored_trades[i].recovery_state == REC_RECOVERY_INVALID ||
+         g_monitored_trades[i].recovery_state == REC_IDENTITY_MISSING_FROZEN)
       {
-         Log(DBG_ERROR, "Trade " + IntegerToString(g_monitored_trades[i].ticket) + 
-             " corrupted, frozen: " + EnumToString(g_monitored_trades[i].recovery_state));
+         // P3 S5B: M24 emits the recovery diagnostic once. M23 only enforces
+         // the frozen ordinary lifecycle state after emergency-close precedence.
          continue;
       }
 
@@ -4841,14 +4842,9 @@ void RecoverExistingOrders()
       string comment = OrderComment();
       string executionHash = "";
       bool hasExecutionHash = ExtractExecutionHash(comment, executionHash);
-      if(!hasExecutionHash)
-      {
-         // Exact live EA ownership is authoritative for lifecycle safety even when
-         // broker comment metadata is missing/truncated. Keep the position visible
-         // to M19/M20/M23, but never fabricate an execution identity.
-         Log(DBG_ERROR, "EA-owned order missing execution hash; recovering frozen ticket=" +
-             IntegerToString(OrderTicket()));
-      }
+      // P3 S5B: absence of H: is classified only after broker geometry/lot
+      // validation. Exact ownership stays visible to safety accounting, but M24
+      // must never fabricate an execution identity or tombstone.
 
       ENUM_DIRECTION liveDirection = (OrderType() == OP_BUY) ? DIR_BUY : DIR_SELL;
       string decisionHash, parsedPair, sequenceHash;
@@ -4923,14 +4919,27 @@ void RecoverExistingOrders()
             geometryValid = (info.initial_take_profit < info.initial_entry_price &&
                              info.initial_entry_price < info.initial_stop_loss);
 
+         string recoveryCause = "";
          double currentLot = OrderLots();
-         if(!geometryValid || currentLot <= 0 || !IsValidLotStep(currentLot, pair))
+         if(!geometryValid)
          {
             info.recovery_state = REC_RECOVERY_INVALID;
+            recoveryCause = "INVALID_GEOMETRY";
+         }
+         else if(currentLot <= 0)
+         {
+            info.recovery_state = REC_RECOVERY_INVALID;
+            recoveryCause = "NONPOSITIVE_LIVE_LOT";
+         }
+         else if(!IsValidLotStep(currentLot, pair))
+         {
+            info.recovery_state = REC_RECOVERY_INVALID;
+            recoveryCause = "INVALID_LIVE_LOT_STEP";
          }
          else if(fullMetadata && intendedLot > 0 && currentLot > intendedLot + 0.0000001)
          {
             info.recovery_state = REC_CORRUPTED;
+            recoveryCause = "LIVE_LOT_ABOVE_INTENDED";
          }
          else if(fullMetadata && intendedLot > 0 && currentLot < intendedLot - 0.0000001)
          {
@@ -4938,18 +4947,24 @@ void RecoverExistingOrders()
             // infer permission for another partial close or restore the old lot.
             info.recovery_state = REC_PARTIAL_INFERRED;
             info.remaining_lot = currentLot;
+            recoveryCause = "LIVE_LOT_BELOW_INTENDED";
          }
          else if(fullMetadata)
          {
             info.recovery_state = REC_NORMAL;
+            recoveryCause = "FULL_METADATA_MATCH";
+         }
+         else if(hasExecutionHash)
+         {
+            info.recovery_state = REC_IDENTITY_HASH_ONLY;
+            recoveryCause = "EXECUTION_HASH_ONLY";
          }
          else
          {
-            // Missing H: is stricter than hash-only recovery: preserve the exact
-            // broker position for accounting/emergency ownership, but freeze normal
-            // lifecycle because no stable execution identity can be reconstructed.
-            info.recovery_state = hasExecutionHash ? REC_IDENTITY_HASH_ONLY
-                                                   : REC_RECOVERY_INVALID;
+            // Exact ownership + valid broker geometry/lot with no H: is degraded
+            // restart identity, not broker-state corruption.
+            info.recovery_state = REC_IDENTITY_MISSING_FROZEN;
+            recoveryCause = "MISSING_EXECUTION_HASH";
          }
 
          // Step 14 removed breakeven/partial-management authority. Recovery must
@@ -4961,6 +4976,15 @@ void RecoverExistingOrders()
          info.be_attempted = false;
 
          AddToMonitoredTrades(info);
+
+         // Exactly one structured recovery diagnostic is emitted during restart
+         // reconstruction; M23 must not repeat it each tick/timer cycle.
+         Print("[P3S5][RECOVERY] Ticket=", IntegerToString(info.ticket),
+               " Pair=", pair,
+               " State=", EnumToString(info.recovery_state),
+               " Cause=", recoveryCause,
+               " HashFound=", hasExecutionHash ? "Y" : "N",
+               " FullMeta=", fullMetadata ? "Y" : "N");
 
          if(hasExecutionHash)
             UpsertExecutionHashTombstone(executionHash, info.ticket, pair,

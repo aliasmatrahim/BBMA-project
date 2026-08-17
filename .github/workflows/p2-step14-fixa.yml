@@ -1,0 +1,33 @@
+name: P2 Step14 FixA
+on:
+  push:
+    branches: [blueprint-dev]
+    paths: [.github/workflows/p2-step14-fixa.yml]
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+      - name: Patch canonical source
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
+          s = p.read_text(encoding='utf-8')
+          old = '''string FindActualSymbol(string symbol)\n{\n   string base = RemoveSuffix(symbol);\n   for(int i = 0; i < SymbolsTotal(true); i++)\n   {\n      string name = SymbolName(i, true);\n      if(StringFind(name, base) == 0)\n         return name;\n   }\n   return symbol;\n}\n'''
+          new = '''string FindActualSymbol(string symbol)\n{\n   string requested = StringTrimLeft(StringTrimRight(symbol));\n   if(requested == \"\") return \"\";\n\n   // 1) Exact broker symbol wins when it exists and can be selected.\n   int totalAll = SymbolsTotal(false);\n   for(int i = 0; i < totalAll; i++)\n   {\n      string name = SymbolName(i, false);\n      if(name != requested) continue;\n      if(SymbolSelect(name, true)) return name;\n      return \"\";\n   }\n\n   // 2) Otherwise accept a broker suffix/prefix variant only when unique.\n   string base = RemoveSuffix(requested);\n   string candidate = \"\";\n   int matches = 0;\n   for(int j = 0; j < totalAll; j++)\n   {\n      string name = SymbolName(j, false);\n      if(RemoveSuffix(name) != base && StringFind(name, base) != 0) continue;\n      candidate = name;\n      matches++;\n      if(matches > 1) return \"\";\n   }\n\n   if(matches != 1 || candidate == \"\") return \"\";\n   if(!SymbolSelect(candidate, true)) return \"\";\n   return candidate;\n}\n'''
+          if s.count(old) != 1:
+              raise SystemExit(f'FindActualSymbol anchor count={s.count(old)}')
+          s = s.replace(old, new, 1)
+          p.write_text(s, encoding='utf-8')
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          git commit -m "P2 S14 Fix A: fail-closed symbol resolution" || exit 0
+          git push origin blueprint-dev

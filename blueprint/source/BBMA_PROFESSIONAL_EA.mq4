@@ -4655,7 +4655,28 @@ int pairIdx = FindPairStateIndex(pair);
          info.freeze_level = GetFreezeLevel(pair);
          info.decision_id = decision.DecisionID;
          info.sequence_hash_short = SHORT_HASH(decision.SequenceHash);
+
+         // P3 S5C: verify what the broker actually persisted after successful
+         // OrderSend/selection. This is observability only; it does not rewrite
+         // broker metadata or fabricate a restart identity.
+         string expectedExecutionHash = SHORT_HASH(decision.DecisionID);
+         string persistedExecutionHash = "";
+         string persistedComment = OrderComment();
+         bool persistedHashFound = ExtractExecutionHash(persistedComment, persistedExecutionHash);
+         bool persistedHashMatch = (persistedHashFound &&
+                                    persistedExecutionHash == expectedExecutionHash);
+         info.execution_hash = persistedHashMatch ? persistedExecutionHash : "";
          info.recovery_state = REC_NORMAL;
+
+         Print("[P3S5][EXEC_ID] Ticket=", IntegerToString(ticket),
+               " Pair=", pair,
+               " Persist=", persistedHashMatch ? "PASS" : "FAIL",
+               " HashFound=", persistedHashFound ? "Y" : "N",
+               " HashMatch=", persistedHashMatch ? "Y" : "N",
+               " ExpectedHash=", expectedExecutionHash,
+               " PersistedHash=", persistedExecutionHash,
+               " RawLen=", IntegerToString(StringLen(persistedComment)),
+               " RawComment=<", persistedComment, ">");
          
          AddToMonitoredTrades(info);
          

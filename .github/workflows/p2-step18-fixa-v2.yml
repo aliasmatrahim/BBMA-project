@@ -1,0 +1,57 @@
+name: P2 Step18 FixA v2
+on:
+  push:
+    paths:
+      - '.github/workflows/p2-step18-fixa-v2.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+      - name: Patch TradeLock validation and enforcement
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
+          s = p.read_text(encoding='utf-8')
+
+          anchor1 = '   if(Slippage < 0 || AllowedExecutionDeviation_MinPoints < 0) return false;\n'
+          if s.count(anchor1) != 1:
+              raise SystemExit(f'validation anchor count={s.count(anchor1)}')
+          s = s.replace(anchor1, anchor1 + '   if(TradeLockMode < LOCK_OFF || TradeLockMode > LOCK_ONE_POSITION) return false;\n', 1)
+
+          proc = s.find('void ProcessEntry(BBMA_Decision &decision')
+          magic = s.find('int magic = g_pair_states[pairIdx].magic_number;', proc)
+          existing = s.find('int existingTicket = FindExistingExecutionTicket(pair,', magic)
+          if proc < 0 or magic < 0 or existing < 0:
+              raise SystemExit('ProcessEntry anchors not found')
+
+          block = s[magic:existing]
+          needle = '   }\n   \n   '
+          pos = block.rfind(needle)
+          if pos < 0:
+              raise SystemExit('magic validation block end not found')
+          insert_at = magic + pos + len(needle)
+          lock_code = (
+              '// P2 S18 Fix A: enforce configured trade-lock policy before any\n'
+              '   // broker-send preparation. IsSignalAllowed() owns lock semantics.\n'
+              '   if(!IsSignalAllowed(decision, pair, magic))\n'
+              '   {\n'
+              '      decision.DecisionState = DEC_REJECTED;\n'
+              '      decision.RejectionReason = REJ_TRADE_LOCK;\n'
+              '      return;\n'
+              '   }\n   \n   '
+          )
+          s = s[:insert_at] + lock_code + s[insert_at:]
+          p.write_text(s, encoding='utf-8')
+      - name: Commit canonical patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          git commit -m "P2 Step18 FixA enforce TradeLockMode"
+          git push origin HEAD:blueprint-dev

@@ -1,0 +1,40 @@
+name: P2 Step17 FixA
+
+on:
+  push:
+    branches: [ blueprint-dev ]
+    paths:
+      - '.github/workflows/p2-step17-fixa.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+      - name: Patch canonical MQ4
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
+          s = p.read_text(encoding='utf-8')
+          old = '      if(IsNewCandle(g_pair_names[i], i))\n'
+          new = '      // P2 S17 Fix A: schedule new-candle processing on the broker-resolved symbol.\n      // All downstream data, detector and execution paths use actual_symbol; the clock must match.\n      if(IsNewCandle(g_pair_states[i].actual_symbol, i))\n'
+          if s.count(old) != 1:
+              raise SystemExit(f'expected one anchor, found {s.count(old)}')
+          p.write_text(s.replace(old, new, 1), encoding='utf-8')
+          PY
+      - name: Commit patch
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          git diff --cached --quiet && exit 0
+          git commit -m 'P2 S17 Fix A: use actual symbol for candle gate'
+          git push origin HEAD:blueprint-dev

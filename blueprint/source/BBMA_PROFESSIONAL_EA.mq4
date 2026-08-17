@@ -755,14 +755,35 @@ string RemoveSuffix(string symbol)
 
 string FindActualSymbol(string symbol)
 {
-   string base = RemoveSuffix(symbol);
-   for(int i = 0; i < SymbolsTotal(true); i++)
+   string requested = StringTrimLeft(StringTrimRight(symbol));
+   if(requested == "") return "";
+
+   // 1) Exact broker symbol wins when it exists and can be selected.
+   int totalAll = SymbolsTotal(false);
+   for(int i = 0; i < totalAll; i++)
    {
-      string name = SymbolName(i, true);
-      if(StringFind(name, base) == 0)
-         return name;
+      string name = SymbolName(i, false);
+      if(name != requested) continue;
+      if(SymbolSelect(name, true)) return name;
+      return "";
    }
-   return symbol;
+
+   // 2) Otherwise accept a broker suffix/prefix variant only when unique.
+   string base = RemoveSuffix(requested);
+   string candidate = "";
+   int matches = 0;
+   for(int j = 0; j < totalAll; j++)
+   {
+      string name = SymbolName(j, false);
+      if(RemoveSuffix(name) != base && StringFind(name, base) != 0) continue;
+      candidate = name;
+      matches++;
+      if(matches > 1) return "";
+   }
+
+   if(matches != 1 || candidate == "") return "";
+   if(!SymbolSelect(candidate, true)) return "";
+   return candidate;
 }
 
 double GetPointSize(string pair)

@@ -1,7 +1,7 @@
 # P3 Step 5 — Recovery State Validation & Frozen-Trade Diagnostics
 
 ## Status
-IN PROGRESS — FIX A RUNTIME DIAGNOSTICS VERIFIED; FIX B SOURCE IMPLEMENTED; NATIVE COMPILE + RUNTIME CLOSURE PENDING
+IN PROGRESS — FIX A VERIFIED; FIX B IMPLEMENTED; NATIVE COMPILE PASS; S5C RUNTIME EVIDENCE PENDING
 
 ## Triggering runtime finding
 MT4 Experts originally showed repeated messages for ticket `483347962`:
@@ -83,9 +83,6 @@ This state is intentionally not called `LEGACY`. An empty comment cannot prove w
 Canonical source commit:
 `8f4f9abb88557aacb584d4390a140fbaba351301`
 
-Canonical source blob after Fix B:
-`833669b73b52ea85eff4924de1333d4a6b5b5abc`
-
 Implemented changes:
 1. Added `REC_IDENTITY_MISSING_FROZEN` to `ENUM_RECOVERY_STATE`.
 2. M24 now separates invalid geometry, non-positive lot and invalid lot-step causes before identity classification.
@@ -104,22 +101,40 @@ Source applicator verification:
 - Exact-anchor/static postconditions: **PASS**
 
 ## Native compile gate
-A GitHub-hosted Windows native MetaEditor compile attempt was started for the exact prepared Fix-B source. The source change itself is already committed; P3 Step 5 does not claim compile PASS until MetaEditor explicitly reports **0 errors / 0 warnings**.
+**PASS.**
 
-If hosted MetaEditor acquisition is unavailable or non-deterministic, the canonical source must be compiled in the normal MT4/MetaEditor environment and the result recorded before runtime closure.
+GitHub-hosted Windows native MetaEditor compiled the exact prepared P3 S5B source using official MT4 MetaEditor.
 
-## Fresh-order identity persistence gate
+Compile evidence:
+- Workflow: `P3 S5B Recovery Identity Fix`
+- GitHub Actions run: `32024947673`
+- Compile job: `95372340171`
+- MetaEditor result: `0 errors, 0 warnings, 103 msec elapsed`
+- Workflow marker: `P3_S5B_NATIVE_MT4_COMPILE=PASS`
+- EX4 artifact produced successfully.
+
+This closes closure criterion #1 for the Fix-B source.
+
+## P3 S5C — fresh-order execution identity persistence gate
 Missing `H:` on the two existing USDCHF tickets does not prove they are legacy orders.
 
-Before P3 Step 5 can close, a freshly executed post-fix M22 order must be observed after broker acceptance and verified to retain an `OrderComment()` beginning with:
+A fresh-order persistence diagnostic is being added at the successful M22 `OrderSelect(ticket)` boundary. It reads the broker-returned `OrderComment()` and compares the observed `H:` against `SHORT_HASH(decision.DecisionID)` without modifying broker metadata or fabricating identity.
 
-`BBMA|H:`
+Expected one-time runtime line for a fresh execution:
 
-If a fresh order loses this prefix, restart idempotency is still unresolved at the broker-comment persistence boundary. M24 must not hide that condition by labeling it as legacy.
+`[P3S5][EXEC_ID] Ticket=... Pair=... Persist=PASS HashFound=Y HashMatch=Y ... RawComment=<BBMA|H:...>`
+
+If `Persist=FAIL`, restart idempotency remains unresolved at the broker-comment persistence boundary even though the live position can still be managed safely during the current process.
+
+S5C workflow:
+- `P3 S5C Execution Identity Persistence`
+- GitHub Actions run: `32026948381`
+- Prepare/source patch stage: **PASS**
+- Native compile/commit stages: pending at the time of this record.
 
 ## P3 Step 5 closure criteria
 P3 Step 5 is PASS only when all of the following are verified:
-1. Native compile: 0 errors / 0 warnings.
+1. **PASS** — Native compile: 0 errors / 0 warnings.
 2. Existing exact-owned/no-`H:` tickets with otherwise valid broker geometry recover as `REC_IDENTITY_MISSING_FROZEN`.
 3. Genuine geometry/lot-invalid orders remain `REC_RECOVERY_INVALID`.
 4. One recovery diagnostic is emitted per recovered order without per-tick/timer spam.
@@ -129,4 +144,4 @@ P3 Step 5 is PASS only when all of the following are verified:
 ## Decision
 **Do not close P3 Step 5 yet.**
 
-Fix B is now present in the canonical source. The next gate is native compilation, followed by restart/re-attach runtime verification against the existing no-`H:` positions and one fresh post-fix M22 execution.
+Compile is now proven clean. The next remaining evidence is runtime: restart/re-attach against the existing no-`H:` positions, plus one fresh post-S5C M22 execution to prove broker persistence of `BBMA|H:`.

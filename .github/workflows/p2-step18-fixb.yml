@@ -2,9 +2,10 @@ name: P2 Step18 FixB
 
 on:
   push:
-    branches: [blueprint-dev]
+    branches:
+      - blueprint-dev
     paths:
-      - '.github/workflows/p2-step18-fixb.yml'
+      - .github/workflows/p2-step18-fixb.yml
   workflow_dispatch:
 
 permissions:
@@ -20,48 +21,37 @@ jobs:
           fetch-depth: 0
 
       - name: Remove duplicate TradeLock validation and gate
+        shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
           s = p.read_text(encoding='utf-8')
-
           v = '   if(TradeLockMode < LOCK_OFF || TradeLockMode > LOCK_ONE_POSITION) return false;\n'
           if s.count(v) != 2:
-              raise SystemExit(f'Expected 2 TradeLock validation lines, found {s.count(v)}')
+              raise SystemExit('Expected exactly two TradeLock validation lines before FixB')
           s = s.replace(v + v, v, 1)
-
-          early = '''   // P2 S18 Fix A: enforce the configured trade-lock policy before any
-   // broker-send preparation. IsSignalAllowed() owns lock semantics; M22 only
-   // converts a blocked admission into the explicit lifecycle rejection reason.
-   int lockPairIdx = FindPairStateIndex(pair);
-   if(lockPairIdx < 0 || !IsSignalAllowed(decision, pair, g_pair_states[lockPairIdx].magic_number))
-   {
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_TRADE_LOCK;
-      return;
-   }
-   
-'''
-          if s.count(early) != 1:
-              raise SystemExit(f'Expected 1 early duplicate gate, found {s.count(early)}')
-          s = s.replace(early, '', 1)
-
-          # Final invariants: exactly one input validation and one live ProcessEntry lock gate.
+          start = s.index('void ProcessEntry(BBMA_Decision &decision')
+          end = s.index('int pairIdx = FindPairStateIndex(pair);', start)
+          prefix = s[start:end]
+          gate_start = prefix.index('   // P2 S18 Fix A: enforce the configured trade-lock policy before any\n')
+          gate_end = prefix.index('   int pairIdx = FindPairStateIndex(pair);') if '   int pairIdx = FindPairStateIndex(pair);' in prefix else len(prefix)
+          early = prefix[gate_start:gate_end]
+          s = s[:start] + prefix[:gate_start] + s[end:]
+          start = s.index('void ProcessEntry(BBMA_Decision &decision')
+          next_marker = s.index('//+------------------------------------------------------------------+', start + 1)
+          proc = s[start:next_marker]
           if s.count(v) != 1:
               raise SystemExit('TradeLock validation cleanup failed')
-          a = s.index('void ProcessEntry(BBMA_Decision &decision')
-          b = s.index('//+------------------------------------------------------------------+', a + 1)
-          proc = s[a:b]
           if proc.count('if(!IsSignalAllowed(decision, pair, magic))') != 1:
-              raise SystemExit('ProcessEntry must contain exactly one final trade-lock gate')
+              raise SystemExit('Expected exactly one final trade-lock gate')
           if 'lockPairIdx' in proc:
-              raise SystemExit('Residual duplicate lockPairIdx gate remains')
-
+              raise SystemExit('Residual duplicate early trade-lock gate remains')
           p.write_text(s, encoding='utf-8')
           PY
 
       - name: Commit canonical FixB
+        shell: bash
         run: |
           if git diff --quiet; then
             echo 'No changes required'

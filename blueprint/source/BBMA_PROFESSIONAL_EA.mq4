@@ -104,7 +104,7 @@ input int      AllowedExecutionDeviation_MinPoints= 5;          // AllowedExecut
 #define SIGNAL_HISTORY_MAX      2000
 #define SIGNAL_HISTORY_CLEANUP_SIZE 200
 #define PAIR_ID_MIN             1
-#define PAIR_ID_MAX             99
+#define PAIR_ID_MAX             20
 #define INSTANCE_ID_MIN         0
 #define INSTANCE_ID_MAX         99
 #define STRATEGY_ID_MIN         1
@@ -1001,6 +1001,13 @@ int SplitString(string textValue, string separator, string &result[])
 int GeneratePairID(string symbol)
 {
    string clean = RemoveSuffix(symbol);
+
+   // P3 S1 Fix B:
+   // Preserve historical PairID/magic identity for all existing pairs.
+   // Legacy hash maps AUDUSD and NZDUSD to PID 15, so reserve PID 16
+   // for NZDUSD rather than remapping the entire PairID namespace.
+   if(clean == "NZDUSD") return 16;
+
    int hash = 0;
    for(int i = 0; i < StringLen(clean); i++)
    {

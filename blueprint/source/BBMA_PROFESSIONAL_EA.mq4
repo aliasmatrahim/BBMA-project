@@ -4543,18 +4543,7 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
       return;
    }
 
-   // P2 S18 Fix A: enforce the configured trade-lock policy before any
-   // broker-send preparation. IsSignalAllowed() owns lock semantics; M22 only
-   // converts a blocked admission into the explicit lifecycle rejection reason.
-   int lockPairIdx = FindPairStateIndex(pair);
-   if(lockPairIdx < 0 || !IsSignalAllowed(decision, pair, g_pair_states[lockPairIdx].magic_number))
-   {
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_TRADE_LOCK;
-      return;
-   }
-   
-   int pairIdx = FindPairStateIndex(pair);
+int pairIdx = FindPairStateIndex(pair);
    if(pairIdx < 0)
    {
       decision.DecisionState = DEC_REJECTED;
@@ -5025,7 +5014,6 @@ bool ValidateInputParameters()
 {
    if(MaxRetry <= 0) return false;
    if(Slippage < 0 || AllowedExecutionDeviation_MinPoints < 0) return false;
-   if(TradeLockMode < LOCK_OFF || TradeLockMode > LOCK_ONE_POSITION) return false;
    if(TradeLockMode < LOCK_OFF || TradeLockMode > LOCK_ONE_POSITION) return false;
    if(MMMode != 1 && MMMode != 2) return false;
    if(MMMode == 1 && AutoLotPercent <= 0) return false;

@@ -1,0 +1,40 @@
+name: P2 Step15 FixA
+
+on:
+  push:
+    branches: [ blueprint-dev ]
+    paths:
+      - '.github/workflows/p2-step15-fixa.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+      - name: Patch canonical MQ4
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
+          s = p.read_text(encoding='utf-8')
+          old = '''   decision.StopLoss = structuralSL;\n   decision.TakeProfit = destination;\n   decision.SLTPSource = decision.SLTPSourceComponent.ComponentType;\n   return true;\n}'''
+          new = '''   // P2 S15 Fix A: broker execution precision is an engineering boundary, not\n   // a BBMA rule. Normalize source-owned prices onto the frozen broker tick grid.\n   // Protective SL rounding is direction-safe: BUY SL never moves upward/closer,\n   // SELL SL never moves downward/closer. TP is rounded toward the entry so the\n   // EA never extends the source-owned BB destination beyond its original level.\n   if(snapshot.TickSize_Price <= 0.0 || snapshot.Digits < 0) return false;\n\n   double slTicks = structuralSL / snapshot.TickSize_Price;\n   double tpTicks = destination / snapshot.TickSize_Price;\n   double normalizedSL = 0.0;\n   double normalizedTP = 0.0;\n\n   if(decision.Direction == DIR_BUY)\n   {\n      normalizedSL = MathFloor(slTicks + 0.000000001) * snapshot.TickSize_Price;\n      normalizedTP = MathFloor(tpTicks + 0.000000001) * snapshot.TickSize_Price;\n   }\n   else if(decision.Direction == DIR_SELL)\n   {\n      normalizedSL = MathCeil(slTicks - 0.000000001) * snapshot.TickSize_Price;\n      normalizedTP = MathCeil(tpTicks - 0.000000001) * snapshot.TickSize_Price;\n   }\n   else\n      return false;\n\n   normalizedSL = NormalizeDouble(normalizedSL, snapshot.Digits);\n   normalizedTP = NormalizeDouble(normalizedTP, snapshot.Digits);\n   if(normalizedSL <= 0.0 || normalizedTP <= 0.0) return false;\n\n   decision.StopLoss = normalizedSL;\n   decision.TakeProfit = normalizedTP;\n   decision.SLTPSource = decision.SLTPSourceComponent.ComponentType;\n   return true;\n}'''
+          if s.count(old) != 1:
+              raise SystemExit(f'expected one anchor, found {s.count(old)}')
+          p.write_text(s.replace(old, new, 1), encoding='utf-8')
+          PY
+      - name: Commit patch
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          git diff --cached --quiet && exit 0
+          git commit -m 'P2 S15 Fix A: normalize SLTP to broker tick grid'
+          git push origin HEAD:blueprint-dev

@@ -1,0 +1,58 @@
+name: P3 S1 FixA
+
+on:
+  push:
+    branches: [blueprint-dev]
+    paths:
+      - '.github/workflows/p3-s1-fixa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+          fetch-depth: 0
+
+      - name: Add unconditional startup diagnostics
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
+          s = p.read_text(encoding='utf-8')
+
+          old = '''      string actual = FindActualSymbol(pair);\n      if(actual == "")\n      {\n         Log(DBG_ERROR, "Symbol not found: " + pair);\n         continue;\n      }\n'''
+          new = '''      Print("[P3S1] Pair request=", pair);\n\n      string actual = FindActualSymbol(pair);\n      if(actual == "")\n      {\n         Print("[P3S1][FAIL] Symbol resolution failed for ", pair);\n         Log(DBG_ERROR, "Symbol not found: " + pair);\n         continue;\n      }\n\n      Print("[P3S1] Symbol resolved ", pair, " -> ", actual);\n'''
+          if s.count(old) != 1: raise SystemExit(f'symbol anchor count={s.count(old)}')
+          s = s.replace(old, new, 1)
+
+          old = '''      if(ValidateBrokerSpecificationWithRetry(actual, g_pair_states[g_pair_count]))\n         g_pair_states[g_pair_count].pair_enabled = true;\n      else\n         g_pair_states[g_pair_count].pair_enabled = false;\n'''
+          new = '''      if(ValidateBrokerSpecificationWithRetry(actual, g_pair_states[g_pair_count]))\n      {\n         g_pair_states[g_pair_count].pair_enabled = true;\n         Print("[P3S1][PASS] Broker spec ", actual,\n               " PID=", IntegerToString(g_pair_states[g_pair_count].pair_id),\n               " Magic=", IntegerToString(g_pair_states[g_pair_count].magic_number));\n      }\n      else\n      {\n         g_pair_states[g_pair_count].pair_enabled = false;\n         Print("[P3S1][FAIL] Broker spec ", actual,\n               " Point=", DoubleToString(g_pair_states[g_pair_count].point, 8),\n               " Digits=", IntegerToString(g_pair_states[g_pair_count].digits),\n               " TickValue=", DoubleToString(g_pair_states[g_pair_count].tick_value, 8),\n               " TickSize=", DoubleToString(g_pair_states[g_pair_count].tick_size_price, 8),\n               " MinLot=", DoubleToString(g_pair_states[g_pair_count].min_lot, 4),\n               " MaxLot=", DoubleToString(g_pair_states[g_pair_count].max_lot, 4),\n               " LotStep=", DoubleToString(g_pair_states[g_pair_count].lot_step, 4),\n               " StopLevel=", IntegerToString(g_pair_states[g_pair_count].stop_level),\n               " FreezeLevel=", IntegerToString(g_pair_states[g_pair_count].freeze_level));\n      }\n'''
+          if s.count(old) != 1: raise SystemExit(f'broker anchor count={s.count(old)}')
+          s = s.replace(old, new, 1)
+
+          old = '''   InitBrokerInfo();\n   LoadPairs();\n   if(g_pair_count == 0)\n   {\n      Log(DBG_ERROR, "No valid pairs loaded");\n      return INIT_FAILED;\n   }\n   \n   if(!ValidatePairIDCollision())\n   {\n      Log(DBG_ERROR, "PairID collision detected");\n      return INIT_PARAMETERS_INCORRECT;\n   }\n   if(!ValidateMagicCollision())\n   {\n      Log(DBG_ERROR, "Magic collision detected");\n      return INIT_PARAMETERS_INCORRECT;\n   }\n'''
+          new = '''   Print("[P3S1] InitializeEA start PairList=", PairList,\n         " MaxActivePair=", IntegerToString(MaxActivePair));\n\n   InitBrokerInfo();\n   LoadPairs();\n   Print("[P3S1] LoadPairs completed count=", IntegerToString(g_pair_count));\n   if(g_pair_count == 0)\n   {\n      Print("[P3S1][FAIL] No valid pairs loaded");\n      Log(DBG_ERROR, "No valid pairs loaded");\n      return INIT_FAILED;\n   }\n   \n   if(!ValidatePairIDCollision())\n   {\n      Print("[P3S1][FAIL] PairID validation failed");\n      Log(DBG_ERROR, "PairID collision detected");\n      return INIT_PARAMETERS_INCORRECT;\n   }\n   Print("[P3S1][PASS] PairID validation");\n\n   if(!ValidateMagicCollision())\n   {\n      Print("[P3S1][FAIL] Magic validation failed");\n      Log(DBG_ERROR, "Magic collision detected");\n      return INIT_PARAMETERS_INCORRECT;\n   }\n   Print("[P3S1][PASS] Magic validation");\n'''
+          if s.count(old) != 1: raise SystemExit(f'init anchor count={s.count(old)}')
+          s = s.replace(old, new, 1)
+
+          old = '''   g_is_initialized = true;\n   Log(DBG_FULL, "EA initialized successfully with " + IntegerToString(g_pair_count) + " pairs");\n   \n   return INIT_SUCCEEDED;\n'''
+          new = '''   g_is_initialized = true;\n   Print("[P3S1][PASS] EA initialized successfully with ",\n         IntegerToString(g_pair_count), " pairs");\n   Log(DBG_FULL, "EA initialized successfully with " + IntegerToString(g_pair_count) + " pairs");\n   \n   return INIT_SUCCEEDED;\n'''
+          if s.count(old) != 1: raise SystemExit(f'success anchor count={s.count(old)}')
+          s = s.replace(old, new, 1)
+
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Commit P3 S1 FixA
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          git commit -m 'P3 S1 FixA add startup diagnostics'
+          git push origin blueprint-dev

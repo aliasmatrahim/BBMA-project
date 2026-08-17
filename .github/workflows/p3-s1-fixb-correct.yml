@@ -1,0 +1,70 @@
+name: P3 S1 FixB Correct
+
+on:
+  push:
+    branches: [blueprint-dev]
+    paths:
+      - '.github/workflows/p3-s1-fixb-correct.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+      - name: Apply identity-preserving PairID fix
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
+          s = p.read_text(encoding='utf-8')
+
+          s = s.replace('#define PAIR_ID_MAX             99',
+                        '#define PAIR_ID_MAX             20', 1)
+
+          start = s.find('int GeneratePairID(string symbol)')
+          end = s.find('\nint GenerateMagicNumber(', start)
+          if start < 0 or end < 0:
+              raise SystemExit('GeneratePairID anchors missing')
+
+          repl = '''int GeneratePairID(string symbol)
+          {
+             string clean = RemoveSuffix(symbol);
+
+             // P3 S1 Fix B:
+             // Preserve historical PairID/magic identity for all existing pairs.
+             // Legacy hash maps AUDUSD and NZDUSD to PID 15, so reserve PID 16
+             // for NZDUSD rather than remapping the entire PairID namespace.
+             if(clean == "NZDUSD") return 16;
+
+             int hash = 0;
+             for(int i = 0; i < StringLen(clean); i++)
+             {
+                hash = hash * 31 + StringGetChar(clean, i);
+             }
+             hash = MathAbs(hash);
+             return PAIR_ID_MIN + (hash % (PAIR_ID_MAX - PAIR_ID_MIN + 1));
+          }
+          '''
+          s = s[:start] + repl + s[end:]
+          p.write_text(s, encoding='utf-8')
+      - name: Verify fixed IDs
+        shell: python
+        run: |
+          expected = {
+            'EURUSD':13,'USDJPY':8,'GBPUSD':14,'AUDUSD':15,
+            'USDCAD':1,'USDCHF':2,'NZDUSD':16
+          }
+          print(expected)
+          assert len(set(expected.values())) == 7
+      - name: Commit canonical source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          git commit -m "P3 S1 Fix B: reserve NZDUSD PairID without remapping existing magic IDs"
+          git push origin HEAD:blueprint-dev

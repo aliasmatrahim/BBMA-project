@@ -5110,12 +5110,17 @@ void LoadPairs()
       pair = StringTrimRight(pair);
       if(pair == "") continue;
       
+      Print("[P3S1] Pair request=", pair);
+
       string actual = FindActualSymbol(pair);
       if(actual == "")
       {
+         Print("[P3S1][FAIL] Symbol resolution failed for ", pair);
          Log(DBG_ERROR, "Symbol not found: " + pair);
          continue;
       }
+
+      Print("[P3S1] Symbol resolved ", pair, " -> ", actual);
       
       g_pair_names[g_pair_count] = pair;
       InitPairState(g_pair_states[g_pair_count]);
@@ -5135,9 +5140,26 @@ void LoadPairs()
       g_pair_states[g_pair_count].magic_number = GenerateMagicNumber(StrategyID, InstanceID, g_pair_states[g_pair_count].pair_id);
       
       if(ValidateBrokerSpecificationWithRetry(actual, g_pair_states[g_pair_count]))
+      {
          g_pair_states[g_pair_count].pair_enabled = true;
+         Print("[P3S1][PASS] Broker spec ", actual,
+               " PID=", IntegerToString(g_pair_states[g_pair_count].pair_id),
+               " Magic=", IntegerToString(g_pair_states[g_pair_count].magic_number));
+      }
       else
+      {
          g_pair_states[g_pair_count].pair_enabled = false;
+         Print("[P3S1][FAIL] Broker spec ", actual,
+               " Point=", DoubleToString(g_pair_states[g_pair_count].point, 8),
+               " Digits=", IntegerToString(g_pair_states[g_pair_count].digits),
+               " TickValue=", DoubleToString(g_pair_states[g_pair_count].tick_value, 8),
+               " TickSize=", DoubleToString(g_pair_states[g_pair_count].tick_size_price, 8),
+               " MinLot=", DoubleToString(g_pair_states[g_pair_count].min_lot, 4),
+               " MaxLot=", DoubleToString(g_pair_states[g_pair_count].max_lot, 4),
+               " LotStep=", DoubleToString(g_pair_states[g_pair_count].lot_step, 4),
+               " StopLevel=", IntegerToString(g_pair_states[g_pair_count].stop_level),
+               " FreezeLevel=", IntegerToString(g_pair_states[g_pair_count].freeze_level));
+      }
       
       g_pair_states[g_pair_count].is_cent_account = DetectCentAccount();
       g_pair_states[g_pair_count].cent_factor = GetCentFactor();
@@ -5164,24 +5186,34 @@ int InitializeEA()
    g_cached_risk_reason = "";
    g_cached_balance = 0.0;
 
+   Print("[P3S1] InitializeEA start PairList=", PairList,
+         " MaxActivePair=", IntegerToString(MaxActivePair));
+
    InitBrokerInfo();
    LoadPairs();
+   Print("[P3S1] LoadPairs completed count=", IntegerToString(g_pair_count));
    if(g_pair_count == 0)
    {
+      Print("[P3S1][FAIL] No valid pairs loaded");
       Log(DBG_ERROR, "No valid pairs loaded");
       return INIT_FAILED;
    }
    
    if(!ValidatePairIDCollision())
    {
+      Print("[P3S1][FAIL] PairID validation failed");
       Log(DBG_ERROR, "PairID collision detected");
       return INIT_PARAMETERS_INCORRECT;
    }
+   Print("[P3S1][PASS] PairID validation");
+
    if(!ValidateMagicCollision())
    {
+      Print("[P3S1][FAIL] Magic validation failed");
       Log(DBG_ERROR, "Magic collision detected");
       return INIT_PARAMETERS_INCORRECT;
    }
+   Print("[P3S1][PASS] Magic validation");
    
    ArrayResize(g_global_signal_history, 0);
    g_global_signal_count = 0;
@@ -5212,6 +5244,8 @@ int InitializeEA()
    g_portfolio_emergency_close_requested = false;
 
    g_is_initialized = true;
+   Print("[P3S1][PASS] EA initialized successfully with ",
+         IntegerToString(g_pair_count), " pairs");
    Log(DBG_FULL, "EA initialized successfully with " + IntegerToString(g_pair_count) + " pairs");
    
    return INIT_SUCCEEDED;

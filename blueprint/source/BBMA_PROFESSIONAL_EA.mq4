@@ -3872,8 +3872,16 @@ double CalculateTotalRisk(string pair, double newLot, double newEntry, double ne
    // trades must be measured using their own symbol tick value/tick size.
    for(int i = 0; i < g_monitored_count; i++)
    {
+      // P2 S16 Fix A: hard portfolio-risk accounting is fail-closed.
+      // A monitored ticket whose broker state cannot be selected is unknown risk,
+      // never zero risk. Reject the prospective entry instead of understating
+      // MaxTotalRiskPercent. Only a definitively closed broker order is ignored.
+      ResetLastError();
       if(!OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))
-         continue;
+      {
+         valid = false;
+         return 0;
+      }
       if(OrderCloseTime() != 0)
          continue;
 

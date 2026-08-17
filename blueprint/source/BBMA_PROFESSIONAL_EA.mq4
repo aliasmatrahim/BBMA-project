@@ -5565,7 +5565,9 @@ void OnTickMain()
    {
       if(!g_pair_states[i].pair_enabled) continue;
       if(g_pair_states[i].is_processing) continue;
-      if(IsNewCandle(g_pair_names[i], i))
+      // P2 S17 Fix A: schedule new-candle processing on the broker-resolved symbol.
+      // All downstream data, detector and execution paths use actual_symbol; the clock must match.
+      if(IsNewCandle(g_pair_states[i].actual_symbol, i))
       {
          ProcessPair(i);
       }

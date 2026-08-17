@@ -4805,8 +4805,8 @@ void ManagePositions()
          g_monitored_trades[i].recovery_state == REC_RECOVERY_INVALID ||
          g_monitored_trades[i].recovery_state == REC_IDENTITY_MISSING_FROZEN)
       {
-         // P3 S5B: M24 emits the recovery diagnostic once. M23 only enforces
-         // the frozen ordinary lifecycle state after emergency-close precedence.
+         // P3 S5B: recovery classification is logged once by M24. M23 only
+         // enforces the frozen lifecycle state here, after emergency precedence.
          continue;
       }
 
@@ -4842,9 +4842,9 @@ void RecoverExistingOrders()
       string comment = OrderComment();
       string executionHash = "";
       bool hasExecutionHash = ExtractExecutionHash(comment, executionHash);
-      // P3 S5B: absence of H: is classified only after broker geometry/lot
-      // validation. Exact ownership stays visible to safety accounting, but M24
-      // must never fabricate an execution identity or tombstone.
+      // P3 S5B: absence of H: is classified after broker geometry/lot validation.
+      // Exact ownership remains authoritative for safety accounting, but M24 must
+      // never fabricate an execution identity or tombstone.
 
       ENUM_DIRECTION liveDirection = (OrderType() == OP_BUY) ? DIR_BUY : DIR_SELL;
       string decisionHash, parsedPair, sequenceHash;
@@ -4961,8 +4961,9 @@ void RecoverExistingOrders()
          }
          else
          {
-            // Exact ownership + valid broker geometry/lot with no H: is degraded
-            // restart identity, not broker-state corruption.
+            // Exact EA ownership and valid broker geometry/lot are preserved, but
+            // missing H: means restart identity cannot be reconstructed safely.
+            // This is degraded identity, not broker-state corruption.
             info.recovery_state = REC_IDENTITY_MISSING_FROZEN;
             recoveryCause = "MISSING_EXECUTION_HASH";
          }
@@ -4977,8 +4978,8 @@ void RecoverExistingOrders()
 
          AddToMonitoredTrades(info);
 
-         // Exactly one structured recovery diagnostic is emitted during restart
-         // reconstruction; M23 must not repeat it each tick/timer cycle.
+         // One structured diagnostic per recovered exact-owned order. M23 does
+         // not repeat this on every tick/timer cycle.
          Print("[P3S5][RECOVERY] Ticket=", IntegerToString(info.ticket),
                " Pair=", pair,
                " State=", EnumToString(info.recovery_state),

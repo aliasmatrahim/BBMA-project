@@ -1,0 +1,157 @@
+name: P3 S5B Recovery Identity Fix
+
+on:
+  push:
+    branches: [blueprint-dev]
+    paths:
+      - '.github/workflows/p3-s5b-recovery-identity-fix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+          fetch-depth: 0
+
+      - name: Apply P3 S5B recovery-state repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
+          s = p.read_text(encoding='utf-8')
+
+          def replace_once(old, new, label):
+              global s
+              count = s.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label} anchor count={count}')
+              s = s.replace(old, new, 1)
+
+          old = '''enum ENUM_RECOVERY_STATE { REC_NORMAL, REC_CORRUPTED, REC_RECOVERY_INVALID, REC_PARTIAL_INFERRED,\n                           REC_IDENTITY_HASH_ONLY };'''
+          new = '''enum ENUM_RECOVERY_STATE { REC_NORMAL, REC_CORRUPTED, REC_RECOVERY_INVALID, REC_PARTIAL_INFERRED,\n                           REC_IDENTITY_HASH_ONLY, REC_IDENTITY_MISSING_FROZEN };'''
+          replace_once(old, new, 'recovery enum')
+
+          old = '''      if(g_monitored_trades[i].recovery_state == REC_CORRUPTED ||\n         g_monitored_trades[i].recovery_state == REC_RECOVERY_INVALID)\n      {\n         Log(DBG_ERROR, "Trade " + IntegerToString(g_monitored_trades[i].ticket) + \n             " corrupted, frozen: " + EnumToString(g_monitored_trades[i].recovery_state));\n         continue;\n      }'''
+          new = '''      if(g_monitored_trades[i].recovery_state == REC_CORRUPTED ||\n         g_monitored_trades[i].recovery_state == REC_RECOVERY_INVALID ||\n         g_monitored_trades[i].recovery_state == REC_IDENTITY_MISSING_FROZEN)\n      {\n         // P3 S5B: recovery classification is logged once by M24. M23 only\n         // enforces the frozen lifecycle state here, after emergency precedence.\n         continue;\n      }'''
+          replace_once(old, new, 'M23 frozen-state gate')
+
+          old = '''      bool hasExecutionHash = ExtractExecutionHash(comment, executionHash);\n      if(!hasExecutionHash)\n      {\n         // Exact live EA ownership is authoritative for lifecycle safety even when\n         // broker comment metadata is missing/truncated. Keep the position visible\n         // to M19/M20/M23, but never fabricate an execution identity.\n         Log(DBG_ERROR, "EA-owned order missing execution hash; recovering frozen ticket=" +\n             IntegerToString(OrderTicket()));\n      }\n'''
+          new = '''      bool hasExecutionHash = ExtractExecutionHash(comment, executionHash);\n      // P3 S5B: absence of H: is classified after broker geometry/lot validation.\n      // Exact ownership remains authoritative for safety accounting, but M24 must\n      // never fabricate an execution identity or tombstone.\n'''
+          replace_once(old, new, 'M24 missing-hash prelog')
+
+          old = '''         double currentLot = OrderLots();\n         if(!geometryValid || currentLot <= 0 || !IsValidLotStep(currentLot, pair))\n         {\n            info.recovery_state = REC_RECOVERY_INVALID;\n         }\n         else if(fullMetadata && intendedLot > 0 && currentLot > intendedLot + 0.0000001)\n         {\n            info.recovery_state = REC_CORRUPTED;\n         }\n         else if(fullMetadata && intendedLot > 0 && currentLot < intendedLot - 0.0000001)\n         {\n            // Legacy/manual external reduction is preserved as live state; never\n            // infer permission for another partial close or restore the old lot.\n            info.recovery_state = REC_PARTIAL_INFERRED;\n            info.remaining_lot = currentLot;\n         }\n         else if(fullMetadata)\n         {\n            info.recovery_state = REC_NORMAL;\n         }\n         else\n         {\n            // Missing H: is stricter than hash-only recovery: preserve the exact\n            // broker position for accounting/emergency ownership, but freeze normal\n            // lifecycle because no stable execution identity can be reconstructed.\n            info.recovery_state = hasExecutionHash ? REC_IDENTITY_HASH_ONLY\n                                                   : REC_RECOVERY_INVALID;\n         }\n'''
+          new = '''         string recoveryCause = "";\n         double currentLot = OrderLots();\n         if(!geometryValid)\n         {\n            info.recovery_state = REC_RECOVERY_INVALID;\n            recoveryCause = "INVALID_GEOMETRY";\n         }\n         else if(currentLot <= 0)\n         {\n            info.recovery_state = REC_RECOVERY_INVALID;\n            recoveryCause = "NONPOSITIVE_LIVE_LOT";\n         }\n         else if(!IsValidLotStep(currentLot, pair))\n         {\n            info.recovery_state = REC_RECOVERY_INVALID;\n            recoveryCause = "INVALID_LIVE_LOT_STEP";\n         }\n         else if(fullMetadata && intendedLot > 0 && currentLot > intendedLot + 0.0000001)\n         {\n            info.recovery_state = REC_CORRUPTED;\n            recoveryCause = "LIVE_LOT_ABOVE_INTENDED";\n         }\n         else if(fullMetadata && intendedLot > 0 && currentLot < intendedLot - 0.0000001)\n         {\n            // Legacy/manual external reduction is preserved as live state; never\n            // infer permission for another partial close or restore the old lot.\n            info.recovery_state = REC_PARTIAL_INFERRED;\n            info.remaining_lot = currentLot;\n            recoveryCause = "LIVE_LOT_BELOW_INTENDED";\n         }\n         else if(fullMetadata)\n         {\n            info.recovery_state = REC_NORMAL;\n            recoveryCause = "FULL_METADATA_MATCH";\n         }\n         else if(hasExecutionHash)\n         {\n            info.recovery_state = REC_IDENTITY_HASH_ONLY;\n            recoveryCause = "EXECUTION_HASH_ONLY";\n         }\n         else\n         {\n            // Exact EA ownership and valid broker geometry/lot are preserved, but\n            // missing H: means restart identity cannot be reconstructed safely.\n            // This is degraded identity, not broker-state corruption.\n            info.recovery_state = REC_IDENTITY_MISSING_FROZEN;\n            recoveryCause = "MISSING_EXECUTION_HASH";\n         }\n'''
+          replace_once(old, new, 'M24 recovery classification')
+
+          old = '''         AddToMonitoredTrades(info);\n\n         if(hasExecutionHash)\n            UpsertExecutionHashTombstone(executionHash, info.ticket, pair,\n                                         liveDirection, info.open_time);'''
+          new = '''         AddToMonitoredTrades(info);\n\n         // One structured diagnostic per recovered exact-owned order. M23 does\n         // not repeat this on every tick/timer cycle.\n         Print("[P3S5][RECOVERY] Ticket=", IntegerToString(info.ticket),\n               " Pair=", pair,\n               " State=", EnumToString(info.recovery_state),\n               " Cause=", recoveryCause,\n               " HashFound=", hasExecutionHash ? "Y" : "N",\n               " FullMeta=", fullMetadata ? "Y" : "N");\n\n         if(hasExecutionHash)\n            UpsertExecutionHashTombstone(executionHash, info.ticket, pair,\n                                         liveDirection, info.open_time);'''
+          replace_once(old, new, 'M24 structured diagnostic')
+
+          # Postconditions: keep this repair narrow and fail closed if anchors drift.
+          assert s.count('REC_IDENTITY_MISSING_FROZEN') == 3, s.count('REC_IDENTITY_MISSING_FROZEN')
+          assert s.count('Cause=') >= 1
+          assert 'recoveryCause = "MISSING_EXECUTION_HASH";' in s
+          assert 'hasExecutionHash ? REC_IDENTITY_HASH_ONLY\n                                                   : REC_RECOVERY_INVALID' not in s
+
+          p.write_text(s, encoding='utf-8')
+          PY
+
+          git diff --check
+          git diff -- blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p3-s5b-source
+          path: blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          if-no-files-found: error
+
+  compile-mt4:
+    needs: prepare
+    runs-on: windows-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: p3-s5b-source
+          path: .
+
+      - name: Acquire official MT4 MetaEditor
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $meta) {
+            $url = 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe'
+            Invoke-WebRequest -Uri $url -OutFile "$env:RUNNER_TEMP\mt4setup.exe" -UseBasicParsing
+            Start-Process -FilePath "$env:RUNNER_TEMP\mt4setup.exe" -ArgumentList '/auto' -Wait
+            Start-Sleep -Seconds 5
+            $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          }
+          if (-not $meta) { throw 'MT4 MetaEditor not found after official installer attempt' }
+          "METAEDITOR=$($meta.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "Using $($meta.FullName)"
+
+      - name: Native MetaEditor compile — require 0 errors and 0 warnings
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = (Resolve-Path '.\BBMA_PROFESSIONAL_EA.mq4').Path
+          $log = Join-Path $env:RUNNER_TEMP 'p3-s5b-metaeditor.log'
+          & "$env:METAEDITOR" "/compile:$src" "/log:$log"
+          Start-Sleep -Seconds 2
+          if (-not (Test-Path $log)) { throw 'MetaEditor compile log missing' }
+          $txt = Get-Content $log -Raw
+          $txt | Write-Host
+          $ex4 = [System.IO.Path]::ChangeExtension($src,'.ex4')
+          if (-not (Test-Path $ex4)) { throw 'MetaEditor did not produce EX4' }
+          if ($txt -notmatch '(?i)0 errors?,\s*0 warnings?') {
+            throw 'P3 S5B requires native compile 0 errors / 0 warnings'
+          }
+          Write-Host 'P3_S5B_NATIVE_MT4_COMPILE=PASS'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p3-s5b-compile-output
+          path: |
+            BBMA_PROFESSIONAL_EA.ex4
+            ${{ runner.temp }}/p3-s5b-metaeditor.log
+          if-no-files-found: warn
+
+  commit:
+    needs: compile-mt4
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: p3-s5b-source
+          path: blueprint/source
+
+      - name: Verify and commit canonical P3 S5B source
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'REC_IDENTITY_MISSING_FROZEN' blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          grep -q '\[P3S5\]\[RECOVERY\]' blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add blueprint/source/BBMA_PROFESSIONAL_EA.mq4
+          if git diff --cached --quiet; then
+            echo 'No source change required'
+            exit 0
+          fi
+          git commit -m 'P3 S5B implement missing execution identity frozen state'
+          git push origin blueprint-dev

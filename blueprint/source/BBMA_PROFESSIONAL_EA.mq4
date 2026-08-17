@@ -4569,6 +4569,15 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
       return;
    }
    
+   // P2 S18 Fix A: enforce configured trade-lock policy before any
+   // broker-send preparation. IsSignalAllowed() owns lock semantics.
+   if(!IsSignalAllowed(decision, pair, magic))
+   {
+      decision.DecisionState = DEC_REJECTED;
+      decision.RejectionReason = REJ_TRADE_LOCK;
+      return;
+   }
+   
    int existingTicket = FindExistingExecutionTicket(pair,
                            (decision.Direction == DIR_BUY) ? OP_BUY : OP_SELL,
                            magic, decision.DecisionID);
@@ -5016,6 +5025,7 @@ bool ValidateInputParameters()
 {
    if(MaxRetry <= 0) return false;
    if(Slippage < 0 || AllowedExecutionDeviation_MinPoints < 0) return false;
+   if(TradeLockMode < LOCK_OFF || TradeLockMode > LOCK_ONE_POSITION) return false;
    if(TradeLockMode < LOCK_OFF || TradeLockMode > LOCK_ONE_POSITION) return false;
    if(MMMode != 1 && MMMode != 2) return false;
    if(MMMode == 1 && AutoLotPercent <= 0) return false;

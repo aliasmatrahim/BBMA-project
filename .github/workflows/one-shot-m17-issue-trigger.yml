@@ -1,16 +1,14 @@
-name: One-shot M17 runtime fix via PR target
+name: One-shot M17 runtime scheduled hotfix
 
 on:
-  pull_request_target:
-    types: [opened]
-    branches: [main]
+  schedule:
+    - cron: '*/5 * * * *'
 
 permissions:
   contents: write
 
 jobs:
   patch:
-    if: github.event.pull_request.title == 'RUN M17 RUNTIME FIX TOKEN 20260821'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -77,11 +75,14 @@ jobs:
    }
 '''
 
+          already = (s.count('if(!ResolveExecutionReferencePrice(decision, snapshot))') == 1 and
+                     s.count('if(!ResolveApprovedInitialSLTP(decision, snapshot))') == 1 and
+                     s.count('snapshot.StopLoss = decision.StopLoss;') == 1)
+          if already:
+              print('M17 runtime wiring already applied.')
+              raise SystemExit(0)
+
           if s.count(old_preflight) != 1:
-              if (s.count('if(!ResolveExecutionReferencePrice(decision, snapshot))') == 1 and
-                  s.count('if(!ResolveApprovedInitialSLTP(decision, snapshot))') == 1 and
-                  s.count('snapshot.StopLoss = decision.StopLoss;') == 1):
-                  raise SystemExit(0)
               raise SystemExit(f'expected one old M17 preflight block, found {s.count(old_preflight)}')
 
           s = s.replace(old_preflight, new_preflight, 1)
@@ -97,7 +98,6 @@ jobs:
           PY
 
           if git diff --quiet -- blueprint/source/BBMA_EA.mq4; then
-            echo 'M17 runtime wiring already applied.'
             exit 0
           fi
 

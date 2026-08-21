@@ -1,8 +1,8 @@
-name: One-shot M17 fix after known workflow rerun
+name: One-shot M17 fix after baseline rerun
 
 on:
   workflow_run:
-    workflows: ["P3 PairID PR Native Verify"]
+    workflows: ["P1 Baseline Verify"]
     types: [completed]
 
 permissions:
@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   patch:
-    if: github.event.workflow_run.id == 32444293586
+    if: github.event.workflow_run.id == 31950155981
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

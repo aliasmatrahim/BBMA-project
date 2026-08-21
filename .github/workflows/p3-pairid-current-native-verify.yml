@@ -1,0 +1,160 @@
+name: P3 PairID Current Native Verify
+
+on:
+  push:
+    branches: [ blueprint-dev ]
+    paths:
+      - '.github/workflows/p3-pairid-current-native-verify.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  static-pairid-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate requested 20-pair registry and magic namespace
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
+          s = p.read_text(encoding='utf-8')
+
+          def define(name):
+              m = re.search(rf'^#define\s+{re.escape(name)}\s+(\d+)\s*$', s, re.M)
+              if not m:
+                  raise SystemExit(f'missing #define {name}')
+              return int(m.group(1))
+
+          assert define('MAX_PAIRS') == 20, 'MAX_PAIRS must remain 20'
+          assert define('PAIR_ID_MIN') == 1, 'PAIR_ID_MIN must remain 1'
+          assert define('PAIR_ID_MAX') == 99, 'PAIR_ID_MAX must be 99'
+
+          body_m = re.search(r'int\s+GeneratePairID\s*\(string\s+symbol\)\s*\{(.*?)\n\}', s, re.S)
+          if not body_m:
+              raise SystemExit('GeneratePairID body not found')
+          body = body_m.group(1)
+          registry = {
+              sym:int(pid)
+              for sym,pid in re.findall(r'if\(clean\s*==\s*"([A-Z0-9]+)"\)\s*return\s+(\d+)\s*;', body)
+          }
+
+          requested = [
+              'EURUSD','GBPUSD','USDJPY','USDCHF','USDCAD','AUDUSD','NZDUSD',
+              'EURJPY','GBPJPY','AUDJPY','CADJPY','CHFJPY','NZDJPY','EURGBP',
+              'EURAUD','EURCAD','EURCHF','GBPAUD','GBPCAD','AUDCAD'
+          ]
+          missing = [x for x in requested if x not in registry]
+          if missing:
+              raise SystemExit('missing registry symbols: ' + ','.join(missing))
+
+          ids = [registry[x] for x in requested]
+          if len(set(ids)) != 20:
+              dup = sorted({x for x in ids if ids.count(x) > 1})
+              raise SystemExit('PairID collision(s): ' + ','.join(map(str, dup)))
+          if not all(1 <= x <= 99 for x in ids):
+              raise SystemExit('PairID outside 1..99')
+
+          # Verify magic layout remains injective for this pair set at current defaults.
+          strategy = 1
+          instance = 0
+          magic_base = define('MAGIC_BASE')
+          magics = [magic_base + strategy*10000 + instance*100 + x for x in ids]
+          if len(set(magics)) != 20:
+              raise SystemExit('Magic collision detected')
+
+          print('P3_PAIRID_STATIC=PASS')
+          print('PAIR_IDS=' + ','.join(f'{p}:{registry[p]}' for p in requested))
+          print('MAGICS=' + ','.join(map(str, magics)))
+          PY
+
+  native-metaeditor-compile:
+    needs: static-pairid-validation
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Acquire official MT4 MetaEditor
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $meta) {
+            $url = 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe'
+            Invoke-WebRequest -Uri $url -OutFile "$env:RUNNER_TEMP\mt4setup.exe" -UseBasicParsing
+            Start-Process -FilePath "$env:RUNNER_TEMP\mt4setup.exe" -ArgumentList '/auto' -Wait
+            Start-Sleep -Seconds 5
+            $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          }
+          if (-not $meta) { throw 'MT4 MetaEditor not found after official installer attempt' }
+          "METAEDITOR=$($meta.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "Using $($meta.FullName)"
+
+      - name: Compile current canonical MQ4 with native MetaEditor
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = (Resolve-Path '.\blueprint\source\BBMA_PROFESSIONAL_EA.mq4').Path
+          $log = Join-Path $env:RUNNER_TEMP 'p3-pairid-current-metaeditor.log'
+          & "$env:METAEDITOR" "/compile:$src" "/log:$log"
+          Start-Sleep -Seconds 2
+          if (-not (Test-Path $log)) { throw 'MetaEditor compile log missing' }
+          $txt = Get-Content $log -Raw
+          $txt | Write-Host
+          $ex4 = [System.IO.Path]::ChangeExtension($src,'.ex4')
+          if (-not (Test-Path $ex4)) { throw 'MetaEditor did not produce EX4' }
+          if ($txt -notmatch '(?i)0\s+errors?\s*,?\s*0\s+warnings?') {
+            throw 'Native compile is not confirmed 0 errors / 0 warnings'
+          }
+          "COMPILE_LOG=$log" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host 'P3_PAIRID_NATIVE_MT4_COMPILE=PASS_0E0W'
+
+      - name: Record verified evidence
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = '.\blueprint\source\BBMA_PROFESSIONAL_EA.mq4'
+          $sha = (Get-FileHash $src -Algorithm SHA256).Hash.ToLower()
+          $head = (git rev-parse HEAD).Trim()
+          $record = @"
+          # P3 PairID Native Compile Record
+
+          Status: **PASS — NATIVE METAEDITOR 0 ERRORS, 0 WARNINGS**
+
+          Verification scope:
+          - current canonical source compiled directly from `blueprint/source/BBMA_PROFESSIONAL_EA.mq4`;
+          - `MAX_PAIRS = 20`;
+          - PairID namespace `1..99`;
+          - requested 20-pair portfolio resolves to 20 unique PairIDs;
+          - generated magic numbers are unique for the requested 20-pair set under StrategyID=1, InstanceID=0.
+
+          Source SHA-256: `$sha`
+          Verified source commit: `$head`
+
+          Requested portfolio:
+          `EURUSD,GBPUSD,USDJPY,USDCHF,USDCAD,AUDUSD,NZDUSD,EURJPY,GBPJPY,AUDJPY,CADJPY,CHFJPY,NZDJPY,EURGBP,EURAUD,EURCAD,EURCHF,GBPAUD,GBPCAD,AUDCAD`
+
+          This verification changes no BBMA strategy semantics.
+          "@
+          Set-Content -Path '.\blueprint\P3_PAIRID_NATIVE_COMPILE_RECORD.md' -Value $record -Encoding utf8
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add blueprint/P3_PAIRID_NATIVE_COMPILE_RECORD.md
+          git commit -m "P3 verify: PairID hotfix native MetaEditor 0E0W"
+          git push origin blueprint-dev
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: p3-pairid-current-native-compile
+          path: |
+            blueprint/source/BBMA_PROFESSIONAL_EA.ex4
+            ${{ runner.temp }}/p3-pairid-current-metaeditor.log
+          if-no-files-found: error

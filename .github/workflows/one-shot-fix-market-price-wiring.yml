@@ -3,6 +3,8 @@ name: One-shot fix market price wiring
 on:
   push:
     branches: [ blueprint-dev ]
+  pull_request:
+    branches: [ blueprint-dev ]
 
 permissions:
   contents: write
@@ -74,7 +76,6 @@ jobs:
 '''
 
           if s.count(old) != 1:
-              # Idempotent no-op if the exact fixed wiring is already present.
               if s.count('if(!ResolveExecutionReferencePrice(decision, snapshot))') == 1 and \
                  s.count('if(!ResolveApprovedInitialSLTP(decision, snapshot))') == 1:
                   raise SystemExit(0)

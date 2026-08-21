@@ -1,0 +1,76 @@
+name: P3 PairID Native Compile Verify
+
+on:
+  push:
+    branches: [ blueprint-dev ]
+    paths:
+      - '.github/workflows/p3-pairid-native-compile-verify.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  compile-and-record:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Acquire official MT4 MetaEditor
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $meta) {
+            $url = 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe'
+            Invoke-WebRequest -Uri $url -OutFile "$env:RUNNER_TEMP\mt4setup.exe" -UseBasicParsing
+            Start-Process -FilePath "$env:RUNNER_TEMP\mt4setup.exe" -ArgumentList '/auto' -Wait
+            Start-Sleep -Seconds 5
+            $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          }
+          if (-not $meta) { throw 'MT4 MetaEditor not found after official installer attempt' }
+          "METAEDITOR=$($meta.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "Using $($meta.FullName)"
+
+      - name: Native compile current hotfixed source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = (Resolve-Path '.\blueprint\source\BBMA_PROFESSIONAL_EA.mq4').Path
+          $log = Join-Path $env:RUNNER_TEMP 'p3-pairid-metaeditor.log'
+          & "$env:METAEDITOR" "/compile:$src" "/log:$log"
+          Start-Sleep -Seconds 2
+          if (Test-Path $log) { Get-Content $log -Raw | Write-Host }
+          $ex4 = [System.IO.Path]::ChangeExtension($src,'.ex4')
+          if (-not (Test-Path $ex4)) { throw 'MetaEditor did not produce EX4' }
+          $txt = if (Test-Path $log) { Get-Content $log -Raw } else { '' }
+          if ($txt -match '(?i)\berror\b' -and $txt -notmatch '(?i)0 error') { throw 'MetaEditor compile log contains errors' }
+          if ($txt -match '(?i)\bwarning\b' -and $txt -notmatch '(?i)0 warning') { throw 'MetaEditor compile log contains warnings' }
+          Write-Host 'P3_PAIRID_NATIVE_MT4_COMPILE=PASS'
+
+      - name: Record verification
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = '.\blueprint\source\BBMA_PROFESSIONAL_EA.mq4'
+          $sha = (Get-FileHash -Path $src -Algorithm SHA256).Hash.ToLower()
+          $body = @"
+          # P3 PairID Native Compile Verification
+
+          Status: **PASS — NATIVE METAEDITOR 0 ERRORS / 0 WARNINGS**
+
+          Source: `blueprint/source/BBMA_PROFESSIONAL_EA.mq4`
+
+          SHA-256: `$sha`
+
+          Verified source revision: `$env:GITHUB_SHA`
+
+          Scope: PairID registry / initialization infrastructure hotfix only.
+          "@
+          $body | Set-Content -Path '.\blueprint\P3_PAIRID_NATIVE_COMPILE_VERIFY.md' -Encoding utf8
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- blueprint/P3_PAIRID_NATIVE_COMPILE_VERIFY.md
+          git diff --cached --check
+          git commit -m "P3 verify: PairID hotfix native compile 0E0W"
+          git push origin blueprint-dev

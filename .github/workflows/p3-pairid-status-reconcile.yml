@@ -1,0 +1,83 @@
+name: P3 PairID Status Reconcile
+
+on:
+  push:
+    branches: [ blueprint-dev ]
+    paths:
+      - '.github/workflows/p3-pairid-status-reconcile.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Reconcile current source metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+
+          source = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
+          current = Path('blueprint/CURRENT.md')
+          record = Path('blueprint/P3_PAIRID_REGISTRY_FIX.md')
+
+          source_sha = hashlib.sha256(source.read_bytes()).hexdigest()
+          current_text = current.read_text()
+
+          # Make the post-hotfix source authoritative without rewriting historical P1 evidence.
+          heading_old = '## Canonical compile-clean source\n'
+          heading_new = '## P1 canonical compile-clean source (historical locked baseline)\n'
+          if current_text.count(heading_old) != 1:
+              raise SystemExit(f'unexpected canonical heading count: {current_text.count(heading_old)}')
+          current_text = current_text.replace(heading_old, heading_new, 1)
+
+          anchor = '## Immutable baseline\n'
+          if current_text.count(anchor) != 1:
+              raise SystemExit('CURRENT.md immutable-baseline anchor missing/ambiguous')
+
+          section = f'''## Current deployed source — P3 PairID registry hotfix
+Path:
+`blueprint/source/BBMA_PROFESSIONAL_EA.mq4`
+
+SHA-256:
+`{source_sha}`
+
+Status: **PAIRID HOTFIX APPLIED — 20/20 REQUESTED PAIRS UNIQUE**
+
+Evidence:
+`blueprint/P3_PAIRID_REGISTRY_FIX.md`
+
+Introduced by commit:
+`2b91a73e3ad4996e8e4cb6af76086cd4d6265da9`
+
+The P1 compile-clean SHA recorded later in this document remains historical P1 evidence; it is no longer the hash of the current deployed source after this P3 infrastructure hotfix. BBMA strategy semantics were not changed.
+
+'''
+          current_text = current_text.replace(anchor, section + anchor, 1)
+          current.write_text(current_text)
+
+          record_text = record.read_text()
+          sha_block = f'''\n## Current source identity\nPath: `blueprint/source/BBMA_PROFESSIONAL_EA.mq4`\n\nSHA-256: `{source_sha}`\n\nHotfix source commit: `2b91a73e3ad4996e8e4cb6af76086cd4d6265da9`\n'''
+          if '## Current source identity' not in record_text:
+              record.write_text(record_text.rstrip() + '\n' + sha_block)
+
+          print('Current source SHA-256:', source_sha)
+          PY
+
+      - name: Commit reconciled metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- blueprint/CURRENT.md blueprint/P3_PAIRID_REGISTRY_FIX.md
+          git diff --cached --check
+          git commit -m "P3 maintenance: record PairID hotfix source identity"
+          git push origin blueprint-dev

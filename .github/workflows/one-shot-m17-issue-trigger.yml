@@ -1,14 +1,16 @@
-name: One-shot M17 runtime scheduled hotfix
+name: One-shot M17 runtime fix via issue
 
 on:
-  schedule:
-    - cron: '*/5 * * * *'
+  issues:
+    types: [opened]
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   patch:
+    if: github.event.issue.title == 'RUN M17 RUNTIME FIX TOKEN 20260821'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,7 +27,7 @@ jobs:
           p = Path('blueprint/source/BBMA_EA.mq4')
           s = p.read_text(encoding='utf-8')
 
-          old_preflight = '''   RiskValidationSnapshot snapshot;
+          old = '''   RiskValidationSnapshot snapshot;
    BuildRiskValidationSnapshot(pair, decision, snapshot);
 
    // M17: resolve/validate the source-owned BBMA destination and protective SL.
@@ -39,7 +41,7 @@ jobs:
    }
 '''
 
-          new_preflight = '''   RiskValidationSnapshot snapshot;
+          new = '''   RiskValidationSnapshot snapshot;
    BuildRiskValidationSnapshot(pair, decision, snapshot);
 
    // M17 runtime wiring: strategy eligibility is already frozen by M15/M16,
@@ -82,28 +84,35 @@ jobs:
               print('M17 runtime wiring already applied.')
               raise SystemExit(0)
 
-          if s.count(old_preflight) != 1:
-              raise SystemExit(f'expected one old M17 preflight block, found {s.count(old_preflight)}')
+          if s.count(old) != 1:
+              raise SystemExit(f'expected one old M17 preflight block, found {s.count(old)}')
 
-          s = s.replace(old_preflight, new_preflight, 1)
+          s = s.replace(old, new, 1)
 
           if s.count('if(!ResolveExecutionReferencePrice(decision, snapshot))') != 1:
               raise SystemExit('execution-price wiring not unique')
           if s.count('if(!ResolveApprovedInitialSLTP(decision, snapshot))') != 1:
-              raise SystemExit('SLTP resolver wiring not unique')
+              raise SystemExit('SLTP wiring not unique')
           if s.count('snapshot.StopLoss = decision.StopLoss;') != 1:
-              raise SystemExit('M17-to-M21 frozen StopLoss sync not unique')
+              raise SystemExit('M17-to-M21 StopLoss snapshot sync not unique')
 
           p.write_text(s, encoding='utf-8')
           PY
 
           if git diff --quiet -- blueprint/source/BBMA_EA.mq4; then
-            exit 0
+            echo 'M17 wiring already applied; nothing to commit.'
+          else
+            git diff --check
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -- blueprint/source/BBMA_EA.mq4
+            git commit -m "P3 runtime fix: wire M17 market price and source SLTP"
+            git push origin HEAD:blueprint-dev
           fi
 
-          git diff --check
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- blueprint/source/BBMA_EA.mq4
-          git commit -m "P3 runtime fix: wire M17 market price and source SLTP"
-          git push origin HEAD:blueprint-dev
+      - name: Close trigger issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: gh issue close "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --comment "M17 runtime fix workflow finished."

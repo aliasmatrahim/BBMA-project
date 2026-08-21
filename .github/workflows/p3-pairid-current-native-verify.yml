@@ -12,7 +12,7 @@ permissions:
   issues: write
 
 jobs:
-  static-pairid-validation:
+  static_pairid_validation:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,8 +25,7 @@ jobs:
           from pathlib import Path
           import re
 
-          p = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
-          s = p.read_text(encoding='utf-8')
+          s = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4').read_text(encoding='utf-8')
 
           def define(name):
               m = re.search(rf'^#define\s+{re.escape(name)}\s+(\d+)\s*$', s, re.M)
@@ -34,17 +33,16 @@ jobs:
                   raise SystemExit(f'missing #define {name}')
               return int(m.group(1))
 
-          assert define('MAX_PAIRS') == 20, 'MAX_PAIRS must remain 20'
-          assert define('PAIR_ID_MIN') == 1, 'PAIR_ID_MIN must remain 1'
-          assert define('PAIR_ID_MAX') == 99, 'PAIR_ID_MAX must be 99'
+          assert define('MAX_PAIRS') == 20
+          assert define('PAIR_ID_MIN') == 1
+          assert define('PAIR_ID_MAX') == 99
 
           body_m = re.search(r'int\s+GeneratePairID\s*\(string\s+symbol\)\s*\{(.*?)\n\}', s, re.S)
           if not body_m:
               raise SystemExit('GeneratePairID body not found')
-          body = body_m.group(1)
           registry = {
               sym:int(pid)
-              for sym,pid in re.findall(r'if\(clean\s*==\s*"([A-Z0-9]+)"\)\s*return\s+(\d+)\s*;', body)
+              for sym,pid in re.findall(r'if\(clean\s*==\s*"([A-Z0-9]+)"\)\s*return\s+(\d+)\s*;', body_m.group(1))
           }
 
           requested = [
@@ -52,31 +50,27 @@ jobs:
               'EURJPY','GBPJPY','AUDJPY','CADJPY','CHFJPY','NZDJPY','EURGBP',
               'EURAUD','EURCAD','EURCHF','GBPAUD','GBPCAD','AUDCAD'
           ]
-          missing = [x for x in requested if x not in registry]
+          missing = [p for p in requested if p not in registry]
           if missing:
               raise SystemExit('missing registry symbols: ' + ','.join(missing))
 
-          ids = [registry[x] for x in requested]
+          ids = [registry[p] for p in requested]
           if len(set(ids)) != 20:
-              dup = sorted({x for x in ids if ids.count(x) > 1})
-              raise SystemExit('PairID collision(s): ' + ','.join(map(str, dup)))
-          if not all(1 <= x <= 99 for x in ids):
+              raise SystemExit('PairID collision detected')
+          if not all(1 <= pid <= 99 for pid in ids):
               raise SystemExit('PairID outside 1..99')
 
-          strategy = 1
-          instance = 0
           magic_base = define('MAGIC_BASE')
-          magics = [magic_base + strategy*10000 + instance*100 + x for x in ids]
+          magics = [magic_base + 1*10000 + 0*100 + pid for pid in ids]
           if len(set(magics)) != 20:
               raise SystemExit('Magic collision detected')
 
           print('P3_PAIRID_STATIC=PASS')
           print('PAIR_IDS=' + ','.join(f'{p}:{registry[p]}' for p in requested))
-          print('MAGICS=' + ','.join(map(str, magics)))
           PY
 
-  native-metaeditor-compile:
-    needs: static-pairid-validation
+  native_metaeditor_compile:
+    needs: static_pairid_validation
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -95,7 +89,6 @@ jobs:
           }
           if (-not $meta) { throw 'MT4 MetaEditor not found after official installer attempt' }
           "METAEDITOR=$($meta.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
-          Write-Host "Using $($meta.FullName)"
 
       - name: Compile current canonical MQ4 with native MetaEditor
         shell: pwsh
@@ -122,28 +115,27 @@ jobs:
           $src = '.\blueprint\source\BBMA_PROFESSIONAL_EA.mq4'
           $sha = (Get-FileHash $src -Algorithm SHA256).Hash.ToLower()
           $head = (git rev-parse HEAD).Trim()
-          $record = @"
-          # P3 PairID Native Compile Record
-
-          Status: **PASS — NATIVE METAEDITOR 0 ERRORS, 0 WARNINGS**
-
-          Verification scope:
-          - current canonical source compiled directly from `blueprint/source/BBMA_PROFESSIONAL_EA.mq4`;
-          - `MAX_PAIRS = 20`;
-          - PairID namespace `1..99`;
-          - requested 20-pair portfolio resolves to 20 unique PairIDs;
-          - generated magic numbers are unique for the requested 20-pair set under StrategyID=1, InstanceID=0.
-
-          Source SHA-256: `$sha`
-          Verified source commit: `$head`
-          GitHub Actions run: `${{ github.run_id }}`
-
-          Requested portfolio:
-          `EURUSD,GBPUSD,USDJPY,USDCHF,USDCAD,AUDUSD,NZDUSD,EURJPY,GBPJPY,AUDJPY,CADJPY,CHFJPY,NZDJPY,EURGBP,EURAUD,EURCAD,EURCHF,GBPAUD,GBPCAD,AUDCAD`
-
-          This verification changes no BBMA strategy semantics.
-          "@
-          Set-Content -Path '.\blueprint\P3_PAIRID_NATIVE_COMPILE_RECORD.md' -Value $record -Encoding utf8
+          @(
+            '# P3 PairID Native Compile Record',
+            '',
+            'Status: **PASS — NATIVE METAEDITOR 0 ERRORS, 0 WARNINGS**',
+            '',
+            'Verification scope:',
+            '- current canonical source compiled directly from blueprint/source/BBMA_PROFESSIONAL_EA.mq4;',
+            '- MAX_PAIRS = 20;',
+            '- PairID namespace 1..99;',
+            '- requested 20-pair portfolio resolves to 20 unique PairIDs;',
+            '- generated magic numbers are unique for StrategyID=1, InstanceID=0.',
+            '',
+            "Source SHA-256: $sha",
+            "Verified source commit: $head",
+            'GitHub Actions run: ${{ github.run_id }}',
+            '',
+            'Requested portfolio:',
+            'EURUSD,GBPUSD,USDJPY,USDCHF,USDCAD,AUDUSD,NZDUSD,EURJPY,GBPJPY,AUDJPY,CADJPY,CHFJPY,NZDJPY,EURGBP,EURAUD,EURCAD,EURCHF,GBPAUD,GBPCAD,AUDCAD',
+            '',
+            'This verification changes no BBMA strategy semantics.'
+          ) | Set-Content -Path '.\blueprint\P3_PAIRID_NATIVE_COMPILE_RECORD.md' -Encoding utf8
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -159,16 +151,16 @@ jobs:
             ${{ runner.temp }}/p3-pairid-current-metaeditor.log
           if-no-files-found: error
 
-  report-run:
+  report_run:
     if: always()
-    needs: [static-pairid-validation, native-metaeditor-compile]
+    needs: [static_pairid_validation, native_metaeditor_compile]
     runs-on: ubuntu-latest
     steps:
       - name: Publish run result for connector verification
         env:
           GH_TOKEN: ${{ github.token }}
-          STATIC_RESULT: ${{ needs.static-pairid-validation.result }}
-          COMPILE_RESULT: ${{ needs.native-metaeditor-compile.result }}
+          STATIC_RESULT: ${{ needs.static_pairid_validation.result }}
+          COMPILE_RESULT: ${{ needs.native_metaeditor_compile.result }}
         shell: bash
         run: |
           set -euo pipefail

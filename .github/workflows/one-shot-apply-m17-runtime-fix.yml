@@ -1,0 +1,76 @@
+name: One-shot apply M17 runtime fix
+
+on:
+  push:
+    branches: [ blueprint-dev ]
+    paths:
+      - '.github/workflows/one-shot-apply-m17-runtime-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+
+      - name: Apply M17 execution-reference wiring
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('blueprint/source/BBMA_EA.mq4')
+          s = p.read_text(encoding='utf-8')
+
+          if s.count('bool ResolveExecutionReferencePrice(BBMA_Decision &decision, RiskValidationSnapshot &snapshot)') != 1:
+              raise SystemExit('ResolveExecutionReferencePrice definition not unique')
+          if s.count('bool ResolveApprovedInitialSLTP(BBMA_Decision &decision,') != 1:
+              raise SystemExit('ResolveApprovedInitialSLTP definition not unique')
+
+          call_price = 'if(!ResolveExecutionReferencePrice(decision, snapshot))'
+          call_sltp = 'if(!ResolveApprovedInitialSLTP(decision, snapshot))'
+          sync_sl = 'snapshot.StopLoss = decision.StopLoss;'
+
+          already = (s.count(call_price) == 1 and s.count(call_sltp) == 1 and s.count(sync_sl) == 1)
+          if not already:
+              needle = '''   RiskValidationSnapshot snapshot;\n   BuildRiskValidationSnapshot(pair, decision, snapshot);\n\n   // M17: resolve/validate the source-owned BBMA destination and protective SL.\n'''
+              replacement = '''   RiskValidationSnapshot snapshot;\n   BuildRiskValidationSnapshot(pair, decision, snapshot);\n\n   // M17 runtime wiring: strategy eligibility is already frozen by M15/M16,\n   // while market execution geometry must use the live broker side.\n   // BUY references ASK; SELL references BID.\n   if(!ResolveExecutionReferencePrice(decision, snapshot))\n   {\n      decision.DecisionState = DEC_REJECTED;\n      decision.RejectionReason = REJ_MARKET_PRICE_INVALID;\n      return false;\n   }\n\n   // Resolve only the already-approved source-owned BBMA SL/TP. No fixed-pip,\n   // RR-derived or alternate destination is manufactured here.\n   if(!ResolveApprovedInitialSLTP(decision, snapshot))\n   {\n      decision.DecisionState = DEC_REJECTED;\n      decision.RejectionReason = REJ_SLTP_UNRESOLVED;\n      return false;\n   }\n\n   // Freeze the finalized protective SL into the same risk snapshot so M19/M21\n   // consume one atomic M17 payload.\n   snapshot.StopLoss = decision.StopLoss;\n\n   // M17: validate the resolved source-owned BBMA destination and protective SL.\n'''
+              if s.count(needle) != 1:
+                  raise SystemExit(f'expected one M17 preflight insertion point, found {s.count(needle)}')
+              s = s.replace(needle, replacement, 1)
+
+          if s.count(call_price) != 1:
+              raise SystemExit('execution-price call not unique after patch')
+          if s.count(call_sltp) != 1:
+              raise SystemExit('source SLTP call not unique after patch')
+          if s.count(sync_sl) != 1:
+              raise SystemExit('StopLoss snapshot sync not unique after patch')
+
+          price_pos = s.index(call_price)
+          sltp_pos = s.index(call_sltp)
+          validate_pos = s.index('if(!ValidateSLTP(decision, snapshot, sltpRejection))', sltp_pos)
+          if not (price_pos < sltp_pos < validate_pos):
+              raise SystemExit('M17 runtime call order invalid')
+
+          p.write_text(s, encoding='utf-8')
+
+          record = Path('blueprint/P3_M17_MARKET_PRICE_RUNTIME_FIX.md')
+          record.write_text('''# P3 M17 Market Price Runtime Fix\n\nStatus: **APPLIED — STATIC WIRING VERIFIED, NATIVE RECOMPILE REQUIRED**\n\nObserved runtime symptom:\n- validated `SIGNAL_RE_ENTRY` decisions were rejected as `REJ_MARKET_PRICE_INVALID`;\n- `decision.EntryPrice` / `snapshot.EntryPrice` could still be zero when M17 called `ValidateSLTP()`.\n\nFix applied:\n- resolve live execution reference before SL/TP validation (`BUY = ASK`, `SELL = BID`);\n- resolve only source-owned approved BBMA SL/TP after the execution reference exists;\n- synchronize finalized `decision.StopLoss` into the frozen risk snapshot;\n- preserve fail-closed behavior and all existing risk/portfolio/execution gates.\n\nStatic order verified:\n`BuildRiskValidationSnapshot -> ResolveExecutionReferencePrice -> ResolveApprovedInitialSLTP -> ValidateSLTP`.\n\nNo dashboard logic, PairID mapping, signal detector, entry eligibility, or fallback TP/SL rule was changed.\n''', encoding='utf-8')
+          PY
+
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- blueprint/source/BBMA_EA.mq4 blueprint/P3_M17_MARKET_PRICE_RUNTIME_FIX.md
+          git rm -- .github/workflows/one-shot-apply-m17-runtime-fix.yml
+          if git diff --cached --quiet; then
+            echo 'No changes to commit.'
+            exit 0
+          fi
+          git commit -m "P3 runtime fix: wire M17 market price before SLTP validation"
+          git push origin HEAD:blueprint-dev

@@ -5,6 +5,8 @@ on:
     branches: [ blueprint-dev ]
     paths:
       - '.github/workflows/p3-pairid-current-native-verify.yml'
+  pull_request:
+    branches: [ blueprint-dev ]
   workflow_dispatch:
 
 permissions:
@@ -109,6 +111,7 @@ jobs:
           Write-Host 'P3_PAIRID_NATIVE_MT4_COMPILE=PASS_0E0W'
 
       - name: Record verified evidence
+        if: github.event_name == 'push'
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -152,7 +155,7 @@ jobs:
           if-no-files-found: error
 
   report_run:
-    if: always()
+    if: always() && github.event_name == 'push'
     needs: [static_pairid_validation, native_metaeditor_compile]
     runs-on: ubuntu-latest
     steps:

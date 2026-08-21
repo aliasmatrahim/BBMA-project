@@ -101,3 +101,5 @@ jobs:
           git add -- blueprint/source/BBMA_EA.mq4
           git commit -m "P3 runtime fix: wire market price before M17 SLTP validation"
           git push origin blueprint-dev
+
+# Triggered after workflow existed on branch to ensure push execution.

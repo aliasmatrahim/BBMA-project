@@ -43,7 +43,7 @@ The exact baseline is stored as deterministic gzip+base64 chunks under `blueprin
 
 ## Canonical compile-clean source
 Path:
-`blueprint/source/BBMA_PROFESSIONAL_EA.mq4`
+`blueprint/source/BBMA_EA.mq4`
 
 SHA-256:
 `30363d08437b85f253e6baf3e9c82af0d59d70727639ac0e6420a7677f975bc9`
@@ -156,7 +156,7 @@ Successful GitHub Actions run:
 `31953336281`, conclusion `success`.
 
 Canonical source:
-`blueprint/source/BBMA_PROFESSIONAL_EA.mq4`
+`blueprint/source/BBMA_EA.mq4`
 
 Canonical source SHA-256:
 `30363d08437b85f253e6baf3e9c82af0d59d70727639ac0e6420a7677f975bc9`

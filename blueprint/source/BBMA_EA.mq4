@@ -1,5 +1,5 @@
 //+------------------------------------------------------------------+
-//|                                           BBMA_PROFESSIONAL_EA.mq4 |
+//|                                           BBMA_EA.mq4 |
 //|                                    Version 4.5.1 - PATCHED 2.1    |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
@@ -29,8 +29,8 @@
 //|                                                                   |
 //|  IMPORTANT: "EXPERT" DOES NOT MEAN "MAXIMUM COMPLEXITY".         |
 //+------------------------------------------------------------------+
-#property copyright "BBMA Professional EA"
-#property link      "https://www.bbmaea.com"
+#property copyright "BBMA EA"
+#property link      ""
 #property version   "4.51"
 #property strict
 

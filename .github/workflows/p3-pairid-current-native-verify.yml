@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   static-pairid-validation:
@@ -62,7 +63,6 @@ jobs:
           if not all(1 <= x <= 99 for x in ids):
               raise SystemExit('PairID outside 1..99')
 
-          # Verify magic layout remains injective for this pair set at current defaults.
           strategy = 1
           instance = 0
           magic_base = define('MAGIC_BASE')
@@ -113,7 +113,6 @@ jobs:
           if ($txt -notmatch '(?i)0\s+errors?\s*,?\s*0\s+warnings?') {
             throw 'Native compile is not confirmed 0 errors / 0 warnings'
           }
-          "COMPILE_LOG=$log" | Out-File -FilePath $env:GITHUB_ENV -Append
           Write-Host 'P3_PAIRID_NATIVE_MT4_COMPILE=PASS_0E0W'
 
       - name: Record verified evidence
@@ -137,6 +136,7 @@ jobs:
 
           Source SHA-256: `$sha`
           Verified source commit: `$head`
+          GitHub Actions run: `${{ github.run_id }}`
 
           Requested portfolio:
           `EURUSD,GBPUSD,USDJPY,USDCHF,USDCAD,AUDUSD,NZDUSD,EURJPY,GBPJPY,AUDJPY,CADJPY,CHFJPY,NZDJPY,EURGBP,EURAUD,EURCAD,EURCHF,GBPAUD,GBPCAD,AUDCAD`
@@ -158,3 +158,21 @@ jobs:
             blueprint/source/BBMA_PROFESSIONAL_EA.ex4
             ${{ runner.temp }}/p3-pairid-current-metaeditor.log
           if-no-files-found: error
+
+  report-run:
+    if: always()
+    needs: [static-pairid-validation, native-metaeditor-compile]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish run result for connector verification
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STATIC_RESULT: ${{ needs.static-pairid-validation.result }}
+          COMPILE_RESULT: ${{ needs.native-metaeditor-compile.result }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh issue create \
+            --repo "${{ github.repository }}" \
+            --title "P3 PairID Verify Run ${{ github.run_id }}" \
+            --body "Workflow run: ${{ github.run_id }}\nCommit: ${{ github.sha }}\nStatic PairID validation: ${STATIC_RESULT}\nNative MetaEditor compile: ${COMPILE_RESULT}\nRun URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"

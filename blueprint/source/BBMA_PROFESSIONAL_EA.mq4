@@ -104,7 +104,7 @@ input int      AllowedExecutionDeviation_MinPoints= 5;          // AllowedExecut
 #define SIGNAL_HISTORY_MAX      2000
 #define SIGNAL_HISTORY_CLEANUP_SIZE 200
 #define PAIR_ID_MIN             1
-#define PAIR_ID_MAX             20
+#define PAIR_ID_MAX             99
 #define INSTANCE_ID_MIN         0
 #define INSTANCE_ID_MAX         99
 #define STRATEGY_ID_MIN         1
@@ -1002,19 +1002,51 @@ int GeneratePairID(string symbol)
 {
    string clean = RemoveSuffix(symbol);
 
-   // P3 S1 Fix B:
-   // Preserve historical PairID/magic identity for all existing pairs.
-   // Legacy hash maps AUDUSD and NZDUSD to PID 15, so reserve PID 16
-   // for NZDUSD rather than remapping the entire PairID namespace.
+   // P3 PairID registry hotfix:
+   // PairID occupies the low two decimal digits of the magic number, so
+   // 1..99 is the valid namespace. Common FX symbols use a fixed registry
+   // to keep identity stable regardless of PairList order and to eliminate
+   // hash collisions. Existing non-colliding legacy IDs are preserved.
+   if(clean == "USDCAD") return 1;
+   if(clean == "USDCHF") return 2;
+   if(clean == "CHFJPY") return 3;
+   if(clean == "EURGBP") return 4;
+   if(clean == "AUDCHF") return 5;
+   if(clean == "AUDNZD") return 6;
+   if(clean == "CADCHF") return 7;
+   if(clean == "USDJPY") return 8;
+   if(clean == "EURNZD") return 9;
+   if(clean == "EURJPY") return 10;
+   if(clean == "GBPJPY") return 11;
+   if(clean == "AUDJPY") return 12;
+   if(clean == "EURUSD") return 13;
+   if(clean == "GBPUSD") return 14;
+   if(clean == "AUDUSD") return 15;
    if(clean == "NZDUSD") return 16;
+   if(clean == "EURCAD") return 17;
+   if(clean == "NZDJPY") return 18;
+   if(clean == "AUDCAD") return 19;
+   if(clean == "CADJPY") return 20;
+   if(clean == "EURAUD") return 21;
+   if(clean == "EURCHF") return 22;
+   if(clean == "GBPAUD") return 23;
+   if(clean == "GBPCAD") return 24;
+   if(clean == "GBPCHF") return 25;
+   if(clean == "GBPNZD") return 26;
+   if(clean == "NZDCAD") return 27;
+   if(clean == "NZDCHF") return 28;
 
-   int hash = 0;
+   // Unsupported/non-standard symbols use a deterministic extension
+   // namespace only. Collision validation remains fail-closed, but these
+   // IDs can never collide with the fixed common-FX registry above.
+   ulong hash = 0;
    for(int i = 0; i < StringLen(clean); i++)
-   {
-      hash = hash * 31 + StringGetChar(clean, i);
-   }
-   hash = MathAbs(hash);
-   return PAIR_ID_MIN + (hash % (PAIR_ID_MAX - PAIR_ID_MIN + 1));
+      hash = hash * 1099511628211 + (ulong)StringGetChar(clean, i);
+
+   int extensionMin = 29;
+   int extensionSpan = PAIR_ID_MAX - extensionMin + 1;
+   if(extensionSpan <= 0) return 0;
+   return extensionMin + (int)(hash % (ulong)extensionSpan);
 }
 
 int GenerateMagicNumber(int strategyIdValue, int instanceIdValue, int pairIdValue)

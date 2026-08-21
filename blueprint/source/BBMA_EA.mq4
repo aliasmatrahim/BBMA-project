@@ -1114,8 +1114,6 @@ void StorePairState(PairState &state)
 
 void InitPairState(PairState &state)
 {
-   // Deterministic reset boundary: clear every PairState member first,
-   // then restore semantic defaults required by state engines.
    ZeroMemory(state);
    state.lot_digits = 2;
    state.cent_factor = 1;
@@ -1223,8 +1221,6 @@ void CleanupGlobalSignalHistory()
       return;
    }
 
-   // Executed rows are idempotency tombstones and must never be removed by the
-   // generic size cleanup. Remove only non-executed rows, oldest first.
    int targetRemove = SIGNAL_HISTORY_CLEANUP_SIZE;
    int overflow = count - SIGNAL_HISTORY_MAX;
    if(targetRemove < overflow) targetRemove = overflow;
@@ -1250,8 +1246,6 @@ void CleanupGlobalSignalHistory()
    if(write < count)
       ArrayResize(g_global_signal_history, write);
 
-   // If executed tombstones alone exceed SIGNAL_HISTORY_MAX, preserve them.
-   // Correct duplicate prevention takes precedence over a soft history-size cap.
    g_global_signal_count = write;
 }
 
@@ -1340,8 +1334,6 @@ bool IsValidLotStep(double lot, string pair)
 
 string GenerateSequenceHash(ComponentSet &componentSet)
 {
-   // Combination identity must include the BBMA setup type and each component TF.
-   // SL/TP source is deliberately excluded: M13 is a collector, not an SL/TP owner.
    string hashText = IntegerToString(componentSet.CombinationType);
    hashText += IntegerToString(componentSet.ComponentCount);
    hashText += IntegerToString(componentSet.Comp1.ComponentType);
@@ -1400,7 +1392,6 @@ void MarkDecisionExecuted(string decisionID, int ticketNumber)
    string executionHash = SHORT_HASH(decisionID);
    int count = ArraySize(g_global_signal_history);
 
-   // UPSERT by full DecisionID or stable execution hash.
    for(int i = 0; i < count; i++)
    {
       if(g_global_signal_history[i].DecisionID == decisionID ||
@@ -1418,9 +1409,6 @@ void MarkDecisionExecuted(string decisionID, int ticketNumber)
       }
    }
 
-   // A successful execution may occur before any ordinary history row exists.
-   // Create the tombstone immediately so the same DecisionID cannot execute
-   // again later in the same terminal session after the position has closed.
    ArrayResize(g_global_signal_history, count + 1);
    ZeroMemory(g_global_signal_history[count]);
    g_global_signal_history[count].DecisionID = decisionID;
@@ -1513,9 +1501,6 @@ void UpsertExecutionHashTombstone(string executionHash, int ticket, string pair,
 
 void RebuildExecutionHistory()
 {
-   // Restart idempotency is execution-hash based. Scan BOTH open and historical
-   // EA orders so an already-executed decision cannot be recreated after restart
-   // merely because its position has already closed.
    for(int pass = 0; pass < 2; pass++)
    {
       int total = (pass == 0) ? OrdersTotal() : OrdersHistoryTotal();
@@ -1560,7 +1545,6 @@ void SetDecisionRejectionReason(BBMA_Decision &decision, ENUM_REJECTION_REASON r
    decision.RejectionReason = reason;
 }
 
-// FIX 3 & 4: Create comment with C: for candle time
 string CreateOrderComment(string decisionID, string pair, 
                           ENUM_DIRECTION direction, ENUM_SIGNAL_TYPE signalType,
                           double intendedEntry, double intendedSL, 
@@ -1576,7 +1560,6 @@ string CreateOrderComment(string decisionID, string pair,
           "|Q:" + seqHash;
 }
 
-// FIX 3 & 4: Parse comment with full fields including C:
 bool ParseOrderCommentFull(string comment, string &decisionHash, string &pair,
                            ENUM_DIRECTION &direction, ENUM_SIGNAL_TYPE &signalType,
                            double &intendedEntry, double &intendedSL,
@@ -1620,7 +1603,7 @@ bool ParseOrderCommentFull(string comment, string &decisionHash, string &pair,
       string value = StringSubstr(field, colon + 1);
       
       if(key == "H") decisionHash = value;
-      else if(key == "C") candleTime = StringToTime(value);  // FIX 3: Parse actual candle time
+      else if(key == "C") candleTime = StringToTime(value);
       else if(key == "P") pair = value;
       else if(key == "D") direction = (ENUM_DIRECTION)StringToInteger(value);
       else if(key == "T") signalType = (ENUM_SIGNAL_TYPE)StringToInteger(value);
@@ -1630,9 +1613,6 @@ bool ParseOrderCommentFull(string comment, string &decisionHash, string &pair,
       else if(key == "R") intendedRisk = StringToDouble(value);
       else if(key == "Q") sequenceHash = value;
    }
-   // Full parsing is metadata only. Recovery identity is H:, because brokers may
-   // truncate later fields and Q: stores a hash of SequenceHash, not the original
-   // SequenceHash required to reconstruct the exact original DecisionID.
    return (decisionHash != "" && pair != "" && candleTime > 0 &&
            direction != DIR_NONE && signalType != SIGNAL_NONE);
 }
@@ -1705,8 +1685,6 @@ double GetAllowedExecutionDeviation(string pair, RiskValidationSnapshot &snapsho
 
 double SMA(string pair, int timeframe, int period, int shift)
 {
-   // Close-price SMA is retained for Bollinger calculations only.
-   // BBMA MA5/10 High/Low must use the source-defined LWMA applied price.
    double sum = 0;
    int count = 0;
    for(int i = 0; i < period; i++)
@@ -1737,8 +1715,6 @@ double BBMALowMA(string pair, int timeframe, int period, int shift)
 double EMA(string pair, int timeframe, int period, int shift)
 {
    if(period <= 0 || shift < 0) return 0;
-   // Source setting: Exponential MA applied to Close. Using MT4 iMA avoids
-   // the previous custom recurrence being evaluated newest-to-oldest.
    return iMA(pair, timeframe, period, 0, MODE_EMA, PRICE_CLOSE, shift);
 }
 
@@ -1774,10 +1750,6 @@ void CalculateBollinger(string pair, int timeframe, int shift, BollingerBand &ba
 
 void CalculateAllMA(string pair, int timeframe, int shift, MovingAverage &ma)
 {
-   // BBMA source settings:
-   // MA5/10 High = Linear Weighted applied to High.
-   // MA5/10 Low  = Linear Weighted applied to Low.
-   // MA50        = Exponential applied to Close.
    ma.MA5_High = BBMAHighMA(pair, timeframe, MA5_HIGH_PERIOD, shift);
    ma.MA10_High = BBMAHighMA(pair, timeframe, MA10_HIGH_PERIOD, shift);
    ma.MA5_Low = BBMALowMA(pair, timeframe, MA5_LOW_PERIOD, shift);
@@ -1968,19 +1940,12 @@ bool DetectExtreme(string pair, ENUM_DIRECTION direction, TimeframeData &data, B
    if(data.close <= 0 || band.TOP_BB <= 0 || band.LOW_BB <= 0) return false;
    if(direction != DIR_BUY && direction != DIR_SELL) return false;
 
-   // M08 detects the BBMA Extreme SIGNAL only. A detected Extreme is not
-   // automatically an execution-eligible standalone entry. The source requires
-   // reversal-candle confirmation and identifies the retest candle as the
-   // standalone Extreme entry point; that entry-eligibility contract is handled
-   // separately from raw signal detection.
    if(direction == DIR_SELL)
    {
       double ma5High = data.ma[0];
       double ma10High = data.ma[1];
       if(ma5High <= 0 || ma10High <= 0) return false;
 
-      // Source contract: SELL Extreme forms when MA5 or MA5/10 High is
-      // outside the TOP BB. A candle close outside TOP BB makes it VOID.
       bool maOutside = (ma5High > band.TOP_BB || ma10High > band.TOP_BB);
       if(!maOutside) return false;
       if(data.close > band.TOP_BB) return false;
@@ -1991,8 +1956,6 @@ bool DetectExtreme(string pair, ENUM_DIRECTION direction, TimeframeData &data, B
    double ma10Low = data.ma[3];
    if(ma5Low <= 0 || ma10Low <= 0) return false;
 
-   // Source contract: BUY Extreme forms when MA5 or MA5/10 Low is
-   // outside the LOW BB. A candle close outside LOW BB makes it VOID.
    bool maOutside = (ma5Low < band.LOW_BB || ma10Low < band.LOW_BB);
    if(!maOutside) return false;
    if(data.close < band.LOW_BB) return false;
@@ -2082,15 +2045,12 @@ ENUM_MLV_STATE DetectMLV_State(MLVData &mlv, string pair,
    if(direction != DIR_BUY && direction != DIR_SELL) return MLV_NONE;
    if(!data.is_valid || !data.is_closed || data.candle_time <= 0) return mlv.State;
    
-   // A terminal state is kept for one completed processing candle, then released
-   // so the same pair+direction slot can detect a new independent MLV pattern.
    if((mlv.State == MLV_VOID || mlv.State == MLV_EXPIRED) &&
       mlv.LastUpdateCandleTime > 0 && data.candle_time > mlv.LastUpdateCandleTime)
    {
       ResetMLVState(mlv, direction);
    }
    
-   // Each persistent slot is direction-owned. Never let a BUY update mutate SELL state.
    if(mlv.State != MLV_NONE && mlv.Direction != direction)
       return mlv.State;
    
@@ -2152,8 +2112,6 @@ ENUM_MLV_STATE DetectMLV_State(MLVData &mlv, string pair,
    
    if(mlv.State == MLV_CANDIDATE)
    {
-      // Confirmation must occur on a later closed M15 candle, never on the
-      // same candle that created the candidate.
       if(data.candle_time <= mlv.StartCandleTime) return MLV_CANDIDATE;
       
       mlv.LastUpdateBar = data.barIndex;
@@ -2309,14 +2267,6 @@ bool DetectCSM(string pair, int timeframe, ENUM_DIRECTION direction, int shift)
       previousBand.LOW_BB <= 0 || previousBand.Width <= 0)
       return false;
 
-   // Source: a candle close outside TOP/LOW BB while BB is vertical marks
-   // directional MOMENTUM. The reference also describes expanding BB as
-   // momentum getting stronger.
-   //
-   // Operational encoding of "BB vertical":
-   // - BB width is increasing versus the previous closed candle; and
-   // - MID BB is moving in the same direction as the momentum.
-   // No arbitrary percentage threshold is added.
    bool bbExpanding = (currentBand.Width > previousBand.Width);
 
    if(direction == DIR_BUY)
@@ -2353,9 +2303,6 @@ bool DetectCSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
    if(open <= 0 || close <= 0 || band.MID_BB <= 0) return false;
    if(direction != DIR_BUY && direction != DIR_SELL) return false;
 
-   // Source: eCSD crosses MA5/10; CSD crosses MA5/10 AND MID BB.
-   // Operational encoding: "crosses" means the CLOSED candle body spans
-   // each required line from open to close. Wick-only touches do not count.
    if(direction == DIR_BUY)
    {
       if(ma.MA5_High <= 0 || ma.MA10_High <= 0) return false;
@@ -2378,8 +2325,6 @@ bool DetectECSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
    if(open <= 0 || close <= 0) return false;
    if(direction != DIR_BUY && direction != DIR_SELL) return false;
 
-   // Source: eCSD is the early direction candle that crosses MA5/10,
-   // without requiring the MID BB cross that distinguishes a full CSD.
    if(direction == DIR_BUY)
    {
       if(ma.MA5_High <= 0 || ma.MA10_High <= 0) return false;
@@ -2442,7 +2387,6 @@ bool GetReEntryMACluster(TimeframeData &data, ENUM_DIRECTION direction,
    ma5 = 0;
    ma10 = 0;
 
-   // BBMA source law: BUY uses MA5/10 Low; SELL uses MA5/10 High.
    if(direction == DIR_BUY)
    {
       ma5 = data.ma[2];
@@ -2466,12 +2410,10 @@ bool HasReEntryMAClusterTouch(TimeframeData &data, ENUM_DIRECTION direction)
 
    if(direction == DIR_BUY)
    {
-      // Market finds MA5/10 Low and candle closes above the support cluster.
       return (data.low <= MathMax(ma5, ma10) &&
               data.close >= ma5 && data.close >= ma10);
    }
 
-   // Market finds MA5/10 High and candle closes below the resistance cluster.
    return (data.high >= MathMin(ma5, ma10) &&
            data.close <= ma5 && data.close <= ma10);
 }
@@ -2499,9 +2441,6 @@ bool DetectReEntry_Type1(string pair, ENUM_DIRECTION direction, TimeframeData &d
    if(!EnableRE_Type1) return false;
    if(!data.is_valid || !data.is_closed) return false;
 
-   // Source: Re-Entry Type 1 is made when price finds the relevant
-   // MA5/10 High (SELL) or MA5/10 Low (BUY), with CS closing on the
-   // resistance/support side of the cluster. No EMA50-cross rule is stated.
    return HasReEntryMAClusterTouch(data, direction);
 }
 
@@ -2515,14 +2454,10 @@ bool DetectReEntry_Type2(string pair, ENUM_DIRECTION direction, TimeframeData &d
    double ma5, ma10;
    if(!GetReEntryMACluster(data, direction, ma5, ma10)) return false;
 
-   // Source: Powerful Re-Entry = MA5/10 and MID BB meet/collide.
-   // Existing project IsNear() is used only as numerical collision tolerance;
-   // it is not a new BBMA strategy condition.
    bool powerful = IsNear(ma5, data.bollinger[1], pair) &&
                    IsNear(ma10, data.bollinger[1], pair);
    if(!powerful) return false;
 
-   // Source: Most Powerful Re-Entry also includes MA50 in the collision.
    mostPowerful = (data.ma[4] > 0 && IsNear(data.ma[4], data.bollinger[1], pair));
    return true;
 }
@@ -2532,8 +2467,6 @@ bool DetectReEntry_Type3(string pair, ENUM_DIRECTION direction, TimeframeData &d
    if(!EnableRE_Type3) return false;
    if(!data.is_valid || !data.is_closed) return false;
 
-   // Type 3 candidate begins only after a source-valid CSM has formed.
-   // The later retrace to MA5 or MA50 is handled by the persistent lifecycle.
    return DetectCSM(pair, data.timeframe, direction, data.barIndex);
 }
 
@@ -2556,8 +2489,6 @@ bool DetectReEntry_Type4(string pair, ENUM_DIRECTION direction, TimeframeData &d
    band.LOW_BB = data.bollinger[2];
    band.Width = band.TOP_BB - band.LOW_BB;
 
-   // Type 4 candidate begins when CSD appears. The later gyration/retrace
-   // toward MA5/10 is handled by the persistent lifecycle below.
    return DetectCSD(pair, data.timeframe, direction, data.barIndex, ma, band);
 }
 
@@ -2566,8 +2497,6 @@ ENUM_RE_TYPE DetectReEntry_Master(string pair, ENUM_DIRECTION direction,
 {
    mostPowerful = false;
 
-   // Preserve existing detector precedence; Step 3B changes source semantics,
-   // not cross-type priority policy.
    if(DetectReEntry_Type2(pair, direction, data, mostPowerful)) return RE_TYPE_2;
    if(DetectReEntry_Type1(pair, direction, data)) return RE_TYPE_1;
    if(DetectReEntry_Type3(pair, direction, data)) return RE_TYPE_3_CSM;
@@ -2620,7 +2549,6 @@ ENUM_RE_STATE UpdateReEntryState(ReEntryData &reEntry, string pair,
    if(direction != DIR_BUY && direction != DIR_SELL) return RE_STATE_NONE;
    if(!data.is_valid || !data.is_closed || data.candle_time <= 0) return reEntry.State;
 
-   // EXPIRED is retained for one completed timeframe candle before reuse.
    if(reEntry.State == RE_STATE_EXPIRED &&
       reEntry.LastUpdateCandleTime > 0 &&
       data.candle_time > reEntry.LastUpdateCandleTime)
@@ -2628,7 +2556,6 @@ ENUM_RE_STATE UpdateReEntryState(ReEntryData &reEntry, string pair,
       ResetReEntryState(reEntry, direction, data.timeframe);
    }
 
-   // One slot is owned by one timeframe + direction.
    if(reEntry.State != RE_STATE_NONE &&
       (reEntry.Direction != direction || reEntry.Timeframe != data.timeframe))
       return reEntry.State;
@@ -2667,8 +2594,6 @@ ENUM_RE_STATE UpdateReEntryState(ReEntryData &reEntry, string pair,
       reEntry.IsValid = false;
       SetReEntrySnapshotLevels(reEntry, data);
 
-      // Type 1 source contains no separate precursor/confirmation stage:
-      // the relevant MA5/10 touch on a CLOSED candle is the Re-Entry setup.
       if(detectedType == RE_TYPE_1)
       {
          reEntry.MinCandlesRequired = 1;
@@ -2685,9 +2610,6 @@ ENUM_RE_STATE UpdateReEntryState(ReEntryData &reEntry, string pair,
 
       if(detectedType == RE_TYPE_2)
       {
-         // Operational encoding of the source phrase "minimum of 3 candles per TF":
-         // three DISTINCT consecutive closed candles must retain the MA5/10 + MID BB
-         // collision. This interpretation is explicit and must not be silently changed.
          reEntry.MinCandlesRequired = 3;
          reEntry.Reason = mostPowerful
                           ? "Type2 candidate: MA5/10 + MID BB + MA50 collision (1/3)"
@@ -2709,9 +2631,6 @@ ENUM_RE_STATE UpdateReEntryState(ReEntryData &reEntry, string pair,
 
    if(reEntry.State == RE_STATE_CANDIDATE)
    {
-      // M15 is the sole orchestration clock, but one H1/H4/D1 snapshot can be
-      // observed repeatedly. Lifecycle advances only on a NEW closed candle of
-      // the candidate's own timeframe.
       if(data.candle_time <= reEntry.LastUpdateCandleTime) return RE_STATE_CANDIDATE;
 
       reEntry.LastUpdateBar = data.barIndex;
@@ -2723,7 +2642,6 @@ ENUM_RE_STATE UpdateReEntryState(ReEntryData &reEntry, string pair,
          bool mostPowerful = false;
          if(!DetectReEntry_Type2(pair, direction, data, mostPowerful))
          {
-            // Three-candle Type 2 confluence must remain continuous.
             ResetReEntryState(reEntry, direction, data.timeframe);
             return RE_STATE_NONE;
          }
@@ -2737,8 +2655,6 @@ ENUM_RE_STATE UpdateReEntryState(ReEntryData &reEntry, string pair,
             return RE_STATE_CANDIDATE;
          }
 
-         // General BBMA Re-Entry law still requires the market to find the
-         // relevant MA5/10 entry cluster; line confluence alone is not a raw entry.
          if(!HasReEntryMAClusterTouch(data, direction)) return RE_STATE_CANDIDATE;
 
          ConfirmReEntryState(reEntry, data,
@@ -2834,8 +2750,6 @@ void CollectSignalSnapshots(Signal &h1_extreme_snapshot, Signal &m15_mhv_snapsho
                             Signal &extreme, Signal &mhv, MLVData &mlv, Signal &csd,
                             Signal &ecsd, Signal &csm, ReEntryData &reEntry)
 {
-   // M13 is a pure collector. Detector/state-engine ownership remains in
-   // M08/M09/M10/M12; M13 only copies immutable per-cycle snapshots.
    extreme = h1_extreme_snapshot;
    mhv = m15_mhv_snapshot;
    mlv = m15_mlv_snapshot;
@@ -2844,10 +2758,6 @@ void CollectSignalSnapshots(Signal &h1_extreme_snapshot, Signal &m15_mhv_snapsho
    csm = m15_csm_snapshot;
    reEntry = h1_reEntry_snapshot;
 
-   // A full CSD mechanically also crosses MA5/10, so the same closed candle may
-   // satisfy the simpler eCSD predicate. Source classification gives CSD the
-   // stronger identity because it additionally crosses MID BB. Do not count the
-   // same candle as two independent confirmations.
    if(csd.Valid && ecsd.Valid &&
       csd.Direction == ecsd.Direction &&
       csd.CandleTime == ecsd.CandleTime)
@@ -2892,7 +2802,7 @@ void FinalizeCombinationCandidate(ComponentSet &set, ENUM_SIGNAL_TYPE combinatio
    set.ComponentCount = 3;
    set.SequenceStartTime = MathMin(set.Comp1.CandleTime,
                            MathMin(set.Comp2.CandleTime, set.Comp3.CandleTime));
-   set.SLTPSource = SIGNAL_NONE; // SL/TP ownership is downstream, never M13.
+   set.SLTPSource = SIGNAL_NONE;
    set.SequenceHash = GenerateSequenceHash(set);
 }
 
@@ -2904,7 +2814,6 @@ void BuildPossibleCombinations(ComponentSet &rem, ComponentSet &rre, ComponentSe
    ZeroMemory(rre);
    ZeroMemory(ree);
 
-   // Source row available in this project: H4 Re-Entry + H1 Extreme + M15 MLV.
    if(IsCombinationSignalReady(h4_reEntry, SIGNAL_RE_ENTRY, PERIOD_H4) &&
       IsCombinationSignalReady(h1_extreme, SIGNAL_EXTREME, PERIOD_H1) &&
       IsCombinationMLVReady(m15_mlv))
@@ -2918,7 +2827,6 @@ void BuildPossibleCombinations(ComponentSet &rem, ComponentSet &rre, ComponentSe
       FinalizeCombinationCandidate(rem, SIGNAL_REM);
    }
 
-   // Source row available in this project: D1 Re-Entry + H4 Re-Entry + H1 Extreme.
    if(IsCombinationSignalReady(d1_reEntry, SIGNAL_RE_ENTRY, PERIOD_D1) &&
       IsCombinationSignalReady(h4_reEntry, SIGNAL_RE_ENTRY, PERIOD_H4) &&
       IsCombinationSignalReady(h1_extreme, SIGNAL_EXTREME, PERIOD_H1))
@@ -2932,7 +2840,6 @@ void BuildPossibleCombinations(ComponentSet &rem, ComponentSet &rre, ComponentSe
       FinalizeCombinationCandidate(rre, SIGNAL_RRE);
    }
 
-   // Source row available in this project: D1 Re-Entry + H4 Extreme + H1 Extreme.
    if(IsCombinationSignalReady(d1_reEntry, SIGNAL_RE_ENTRY, PERIOD_D1) &&
       IsCombinationSignalReady(h4_extreme, SIGNAL_EXTREME, PERIOD_H4) &&
       IsCombinationSignalReady(h1_extreme, SIGNAL_EXTREME, PERIOD_H1))
@@ -2976,7 +2883,6 @@ bool ValidateCombinationSignature(ComponentSet &set)
       !IsValidCombinationComponent(set.Comp3))
       return false;
 
-   // Source-locked project rows from the REM/RRE/REE BBMA table.
    if(set.CombinationType == SIGNAL_REM)
    {
       return (set.Comp1.ComponentType == SIGNAL_RE_ENTRY &&
@@ -3021,10 +2927,6 @@ void PopulateValidatedCombination(ComponentSet &set,
    candidate.Components[2] = set.Comp3;
    candidate.SequenceStartTime = set.SequenceStartTime;
    candidate.SequenceHash = GenerateSequenceHash(set);
-
-   // M14 validates only. M13 does not own SL/TP and the supplied source does
-   // not define a priority tier among REM/RRE/REE. Those policies remain
-   // downstream responsibilities and must not be invented here.
    candidate.SLTPSource = SIGNAL_NONE;
    candidate.PriorityTier = TIER_NONE;
    candidate.RequirementCompleteness = 3;
@@ -3037,11 +2939,6 @@ void ValidateSequence(ComponentSet &set, ValidatedSequenceCandidate &candidate)
 {
    ZeroMemory(candidate);
 
-   // REM/RRE/REE are multi-timeframe combinations, not a universal
-   // Comp1 < Comp2 < Comp3 chronological sequence. M13 supplies components
-   // that coexist as valid owner snapshots in the current processing cycle.
-   // M14 validates identity, exact TF signature and direction consistency only.
-   // Expiry/freshness policy remains downstream and must use owner-aware data.
    if(!ValidateCombinationSignature(set) ||
       !ValidateDirectionConsistency(set))
    {
@@ -3064,10 +2961,10 @@ datetime CheckEffectiveExpiry(datetime individual, datetime combined, datetime g
 
 bool IsEntryModeCandidateAllowed(ValidatedSequenceCandidate &candidate)
 {
-   if(EntryMode == 1) // RE_ENTRY_ONLY
+   if(EntryMode == 1)
       return (candidate.SequenceType == SIGNAL_RE_ENTRY);
 
-   if(EntryMode == 2) // ALL_VALIDATED_BBMA_ENTRIES
+   if(EntryMode == 2)
    {
       return (candidate.SequenceType == SIGNAL_RE_ENTRY ||
               candidate.SequenceType == SIGNAL_REM ||
@@ -3083,10 +2980,6 @@ bool IsCandidateEligible(ValidatedSequenceCandidate &candidate)
    if(!candidate.Valid) return false;
    if(candidate.Direction != DIR_BUY && candidate.Direction != DIR_SELL) return false;
    if(!IsEntryModeCandidateAllowed(candidate)) return false;
-
-   // Candidates are rebuilt atomically on every closed M15 processing cycle.
-   // Persistent validity belongs to the owner module. A non-zero Expiry here is
-   // used only when the owner exported an explicit expiry (e.g. Re-Entry).
    if(candidate.Expiry > 0 && candidate.Expiry < g_processing_time) return false;
    return true;
 }
@@ -3096,8 +2989,6 @@ void BuildConfirmedReEntryCandidate(ReEntryData &reEntry,
 {
    ZeroMemory(candidate);
 
-   // M12 is the sole Re-Entry lifecycle owner. M15 only normalizes an already
-   // confirmed snapshot into the common final-authority candidate format.
    if(reEntry.State != RE_STATE_CONFIRMED || !reEntry.IsValid) return;
    if(reEntry.Direction != DIR_BUY && reEntry.Direction != DIR_SELL) return;
    if(reEntry.Timeframe != PERIOD_H1) return;
@@ -3180,9 +3071,6 @@ bool ResolveSelectedSLTPSourceComponent(ValidatedSequenceCandidate &selected,
 int CompareCanonicalCandidates(ValidatedSequenceCandidate &a,
                                ValidatedSequenceCandidate &b)
 {
-   // This is deterministic bookkeeping, NOT a BBMA quality ranking.
-   // When several same-direction entries are simultaneously valid, use the
-   // freshest current-cycle representation. No REM/RRE/REE superiority is invented.
    datetime aAnchor = GetCandidateAnchorTime(a);
    datetime bAnchor = GetCandidateAnchorTime(b);
    if(aAnchor > bAnchor) return 1;
@@ -3209,10 +3097,6 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
       else if(candidates[i].Direction == DIR_SELL) sellCount++;
    }
 
-   // M15 is the final direction authority. Opposite validated opportunities are
-   // resolved atomically. The supplied BBMA source does not define a universal
-   // tie-break rule between simultaneous BUY and SELL setups, so no trade is
-   // preferred by invention.
    if(buyCount > 0 && sellCount > 0)
    {
       conflict.Exists = true;
@@ -3275,8 +3159,6 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
 
 bool IsExtremeStateExpired(Signal &extreme, datetime currentTime)
 {
-   // Expiry and invalidation are different states. Invalid/VOID-by-CSM must not
-   // be mislabeled as time expiry.
    if(extreme.CandleTime <= 0 || extreme.Timeframe <= 0)
       return false;
 
@@ -3288,8 +3170,6 @@ bool IsExtremeStateExpired(Signal &extreme, datetime currentTime)
 void UpdatePersistentExtremeState(Signal &detectedExtreme, Signal &csmSnapshot,
                                   Signal &state)
 {
-   // M08 remains the detector. M16 only stores validity identity and applies
-   // temporal invalidation/expiry to that already-detected Extreme.
    if(detectedExtreme.Valid)
    {
       if(!state.Valid || detectedExtreme.CandleTime >= state.CandleTime)
@@ -3302,9 +3182,6 @@ void UpdatePersistentExtremeState(Signal &detectedExtreme, Signal &csmSnapshot,
       state.Reason = "Extreme expired by timeframe-aware project window";
    }
 
-   // Source rule: an Extreme is no longer valid in the presence of CSM.
-   // Operational encoding: a later CLOSED CSM on the same timeframe invalidates
-   // the stored Extreme. Direction is deliberately not used as an extra source rule.
    if(state.Valid && csmSnapshot.Valid &&
       csmSnapshot.Type == SIGNAL_CSM &&
       csmSnapshot.Timeframe == state.Timeframe &&
@@ -3448,9 +3325,6 @@ void InvalidationEngine_Atomic(int pairIndex, BBMA_Decision &decision,
 {
    if(decision.DecisionState != DEC_CREATED) return;
 
-   // Step 6 normally produces no DEC_CREATED decision when opposite validated
-   // BUY and SELL coexist. Keep this guard for any future conflict package that
-   // reaches M16 together with a created decision.
    if(conflict.Exists &&
       (conflict.ConflictType == CONFLICT_DIRECTION_VIOLATION ||
        conflict.BreaksSequence))
@@ -3476,8 +3350,6 @@ void InvalidationEngine_Atomic(int pairIndex, BBMA_Decision &decision,
       return;
    }
 
-   // Explicit candidate expiry is carried only when an owner supplies one
-   // (currently standalone confirmed Re-Entry). No generic M15 multiplier here.
    if(decision.CandidateExpiry > 0 && g_processing_time > decision.CandidateExpiry)
    {
       decision.DecisionState = DEC_EXPIRED;
@@ -3520,7 +3392,7 @@ int ResolveClosedSourceShift(string pair, ComponentIdentity &source)
    if(source.Timeframe <= 0 || source.CandleTime <= 0) return -1;
 
    int shift = iBarShift(pair, source.Timeframe, source.CandleTime, true);
-   if(shift < 1) return -1; // source must remain a fully closed candle
+   if(shift < 1) return -1;
 
    datetime resolvedTime = iTime(pair, source.Timeframe, shift);
    if(resolvedTime != source.CandleTime) return -1;
@@ -3564,8 +3436,6 @@ bool ResolveApprovedBBDestination(string pair, ComponentIdentity &source,
 bool ResolveApprovedInitialSLTP(BBMA_Decision &decision,
                                 RiskValidationSnapshot &snapshot)
 {
-   // Step 8C implements the approved Step 8B mapping only. It does not create
-   // new detector logic, fixed-pip targets, RR-derived targets or higher-TF TP2/TP3.
    if(!IsApprovedSLTPSourceComponent(decision,
                                      decision.SLTPSourceComponent))
       return false;
@@ -3586,25 +3456,16 @@ bool ResolveApprovedInitialSLTP(BBMA_Decision &decision,
 
    if(snapshot.Point <= 0.0 || decision.EntryPrice <= 0.0) return false;
 
-   // EA_SAFETY: one broker point beyond the exact closed source candle wick.
-   // This buffer is engineering protection and must not be represented as a
-   // PDF Oma Ally rule.
    double safetyBuffer = snapshot.Point;
    double structuralSL = (decision.Direction == DIR_BUY)
       ? wickAnchor - safetyBuffer
       : wickAnchor + safetyBuffer;
 
-   // A crossed/stale BB destination must not be replaced by another target.
    if(decision.Direction == DIR_BUY && destination <= decision.EntryPrice)
       return false;
    if(decision.Direction == DIR_SELL && destination >= decision.EntryPrice)
       return false;
 
-   // P2 S15 Fix A: broker execution precision is an engineering boundary, not
-   // a BBMA rule. Normalize source-owned prices onto the frozen broker tick grid.
-   // Protective SL rounding is direction-safe: BUY SL never moves upward/closer,
-   // SELL SL never moves downward/closer. TP is rounded toward the entry so the
-   // EA never extends the source-owned BB destination beyond its original level.
    if(snapshot.TickSize_Price <= 0.0 || snapshot.Digits < 0) return false;
 
    double slTicks = structuralSL / snapshot.TickSize_Price;
@@ -3637,7 +3498,6 @@ bool ResolveApprovedInitialSLTP(BBMA_Decision &decision,
 
 double GetDirectionalClosePrice(RiskValidationSnapshot &snapshot, ENUM_DIRECTION direction)
 {
-   // MT4 market positions close/trigger on BID for BUY and ASK for SELL.
    if(direction == DIR_BUY) return snapshot.Bid;
    if(direction == DIR_SELL) return snapshot.Ask;
    return 0.0;
@@ -3645,8 +3505,6 @@ double GetDirectionalClosePrice(RiskValidationSnapshot &snapshot, ENUM_DIRECTION
 
 bool ResolveExecutionReferencePrice(BBMA_Decision &decision, RiskValidationSnapshot &snapshot)
 {
-   // This is broker execution geometry, not a new BBMA strategy entry rule.
-   // BUY market execution references ASK; SELL references BID.
    double price = 0.0;
    if(decision.Direction == DIR_BUY) price = snapshot.Ask;
    else if(decision.Direction == DIR_SELL) price = snapshot.Bid;
@@ -3660,11 +3518,6 @@ bool ResolveExecutionReferencePrice(BBMA_Decision &decision, RiskValidationSnaps
 
 bool HasSourceResolvedSLTP(BBMA_Decision &decision)
 {
-   // Step 8 is deliberately fail-closed. The supplied BBMA PDF gives an
-   // Extreme SL placement example but no deterministic TP formula, and it does
-   // not define a complete SL/TP pair for the currently executable confirmed
-   // Re-Entry / REM / RRE / REE candidates. Legacy MaxSL/MinRR builders are
-   // therefore not accepted as BBMA source resolution.
    if(decision.SLTPSource == SIGNAL_NONE) return false;
    return (decision.StopLoss > 0.0 && decision.TakeProfit > 0.0);
 }
@@ -3726,7 +3579,6 @@ bool ValidateSLTP(BBMA_Decision &decision, RiskValidationSnapshot &snapshot,
       return false;
    }
 
-   // MaxSLPips is a project risk cap only; it must never manufacture the SL.
    double pipPrice = GetPipValue(decision.Pair);
    if(MaxSLPips > 0.0 && pipPrice > 0.0)
    {
@@ -3738,15 +3590,12 @@ bool ValidateSLTP(BBMA_Decision &decision, RiskValidationSnapshot &snapshot,
       }
    }
 
-   // MinRRRatio is also a rejection filter only; it never manufactures TP.
    if(MinRRRatio > 0.0 && (tpDistance / slDistance) < MinRRRatio)
    {
       rejection = REJ_INVALID_RR;
       return false;
    }
 
-   // StopLevel is measured from the side that closes/triggers the market order:
-   // BID for BUY positions, ASK for SELL positions.
    double closePrice = GetDirectionalClosePrice(snapshot, decision.Direction);
    double minDistance = snapshot.StopLevel * snapshot.Point;
    if(closePrice <= 0.0)
@@ -3815,9 +3664,6 @@ SignalScoreResult CalculateSignalScore(BBMA_Decision &decision)
    result.Level = LEVEL_NONE;
    result.ScoreBreakdown = "";
 
-   // P0 Step 9: M18 is observability only. M15 is the final entry authority.
-   // The previous weights and unconditional BBShape/MultiTF bonuses were not
-   // source-backed BBMA rules and could imply a false quality hierarchy.
    if(!decision.Valid) return result;
 
    result.ScoreBreakdown = "LABEL_ONLY|Type:" + EnumToString(decision.SignalType) +
@@ -3827,8 +3673,6 @@ SignalScoreResult CalculateSignalScore(BBMA_Decision &decision)
       result.ScoreBreakdown += "SourceTF:" +
                                IntegerToString(decision.SLTPSourceComponent.Timeframe) + "|";
 
-   // Numeric quality score is deliberately neutral. It cannot rank, gate,
-   // invalidate or change any BBMA decision.
    return result;
 }
 
@@ -3907,14 +3751,8 @@ double CalculateTotalRisk(string pair, double newLot, double newEntry, double ne
    valid = true;
    double totalRisk = 0;
 
-   // MaxTotalRiskPercent is an EA-wide cap, not a same-pair cap. Existing open
-   // trades must be measured using their own symbol tick value/tick size.
    for(int i = 0; i < g_monitored_count; i++)
    {
-      // P2 S16 Fix A: hard portfolio-risk accounting is fail-closed.
-      // A monitored ticket whose broker state cannot be selected is unknown risk,
-      // never zero risk. Reject the prospective entry instead of understating
-      // MaxTotalRiskPercent. Only a definitively closed broker order is ignored.
       ResetLastError();
       if(!OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))
       {
@@ -3931,7 +3769,7 @@ double CalculateTotalRisk(string pair, double newLot, double newEntry, double ne
                                     g_monitored_trades[i].current_sl);
 
       if(riskDistance <= 0)
-         continue; // breakeven / zero-distance protected position
+         continue;
 
       if(g_monitored_trades[i].current_sl <= 0)
       {
@@ -3969,8 +3807,6 @@ RiskStatus CheckRiskBeforeTrade(BBMA_Decision &decision, RiskValidationSnapshot 
    status.reason = "";
    status.rejection_reason = REJ_NONE;
 
-   // MaxSpreadPips is expressed in pips. Use the project pip-price helper so
-   // 4/5-digit and 2/3-digit broker quoting are handled coherently.
    double pipValue = GetPipValue(decision.Pair);
    if(pipValue <= 0)
    {
@@ -4117,8 +3953,6 @@ void FinalPortfolioGuard(BBMA_Decision &decision)
    
    PortfolioStatus status = CheckPortfolioLimits();
 
-   // If current EA portfolio state is already beyond a hard limit, no new trade
-   // may be admitted. M20 only rejects; it never modifies M15-M17 payload.
    if(!status.allowed)
    {
       decision.DecisionState = DEC_REJECTED;
@@ -4170,8 +4004,6 @@ int CountLiveEAOwnedPortfolioTrades()
 
 bool BrokerConfirmsNoLiveEAOwnedOrders()
 {
-   // Emergency protection may be released only from broker truth. Any uncertainty
-   // in terminal connectivity or order enumeration is fail-closed: keep the latch.
    if(!IsTerminalConnected()) return false;
 
    int total = OrdersTotal();
@@ -4193,9 +4025,6 @@ bool BrokerConfirmsNoLiveEAOwnedOrders()
 
 void ManagePortfolio()
 {
-   // M20 owns portfolio protection state, not broker close execution.
-   // Once basket-loss protection trips, release is allowed only when a direct
-   // broker-side scan definitively confirms that no exact EA-owned live order remains.
    if(g_portfolio_emergency_close_requested)
    {
       if(BrokerConfirmsNoLiveEAOwnedOrders())
@@ -4205,9 +4034,6 @@ void ManagePortfolio()
 
    if(BasketLossPercent > 0 && CalculateBasketLossPercent_EA() >= BasketLossPercent)
       g_portfolio_emergency_close_requested = true;
-
-   // BasketProfitPercent is intentionally NOT an execution trigger. M17 owns the
-   // approved BBMA TP destination; M20 must not invent an alternate basket TP.
 }
 
 //+------------------------------------------------------------------+
@@ -4220,7 +4046,6 @@ double NormalizeLotDownFromSnapshot(double lot, RiskValidationSnapshot &snapshot
    if(lot <= 0 || snapshot.LotStep <= 0 || snapshot.LotDigits < 0)
       return 0;
 
-   // Risk sizing must never round UP because that can exceed AutoLotPercent.
    double stepped = MathFloor((lot / snapshot.LotStep) + 0.000000001) * snapshot.LotStep;
    return NormalizeDouble(stepped, snapshot.LotDigits);
 }
@@ -4236,8 +4061,6 @@ double CalculateLotSize(BBMA_Decision &decision, RiskValidationSnapshot &snapsho
 {
    valid = true;
 
-   // M21 is sizing-only. It consumes the final M17 Entry/SL and may not repair,
-   // clamp, replace or reinterpret either value.
    if(decision.DecisionState != DEC_VALIDATED || decision.Pair == "" ||
       decision.EntryPrice <= 0 || decision.StopLoss <= 0)
    {
@@ -4253,8 +4076,6 @@ double CalculateLotSize(BBMA_Decision &decision, RiskValidationSnapshot &snapsho
       return 0;
    }
 
-   // The risk snapshot is frozen for this decision. Reject a mismatched payload
-   // instead of mixing a later broker/account state with the approved M17 values.
    double payloadTolerance = snapshot.Point * 0.5;
    if(MathAbs(snapshot.EntryPrice - decision.EntryPrice) > payloadTolerance ||
       MathAbs(snapshot.StopLoss - decision.StopLoss) > payloadTolerance)
@@ -4285,8 +4106,6 @@ double CalculateLotSize(BBMA_Decision &decision, RiskValidationSnapshot &snapsho
          return 0;
       }
 
-      // Use the same frozen equity snapshot that downstream M19 validates.
-      // Calling AccountEquity() here made lot sizing tick-dependent and non-atomic.
       double riskAmount = snapshot.Equity * (AutoLotPercent / 100.0);
       if(riskAmount <= 0)
       {
@@ -4303,8 +4122,6 @@ double CalculateLotSize(BBMA_Decision &decision, RiskValidationSnapshot &snapsho
          return 0;
       }
 
-      // MaxAutoLot is an AutoLot-only user cap; broker MaxLot comes from the
-      // same frozen snapshot. Do not re-query live broker data during sizing.
       double maxLot = MathMin(snapshot.MaxLot, MaxAutoLot);
       if(maxLot < snapshot.MinLot)
       {
@@ -4335,8 +4152,6 @@ double CalculateLotSize(BBMA_Decision &decision, RiskValidationSnapshot &snapsho
          return 0;
       }
 
-      // FixedLot is explicit user intent. Do not silently normalize or clamp it;
-      // an invalid broker step/min/max setting must fail closed.
       if(!IsValidSnapshotLotStep(lot, snapshot))
       {
          valid = false;
@@ -4346,7 +4161,6 @@ double CalculateLotSize(BBMA_Decision &decision, RiskValidationSnapshot &snapsho
       return lot;
    }
 
-   // Unknown MMMode must never silently fall through to FixedLot.
    valid = false;
    return 0;
 }
@@ -4376,8 +4190,6 @@ int FindExistingExecutionTicket(string pair, int direction, int magicNumber,
 {
    if(pair == "" || magicNumber <= 0 || decisionID == "") return -1;
 
-   // MT4/brokers may truncate OrderComment(). The stable execution identity is
-   // intentionally placed at the beginning of CreateOrderComment(): BBMA|H:<16-hex>.
    string executionTag = "BBMA|H:" + SHORT_HASH(decisionID);
 
    int total = OrdersTotal();
@@ -4435,11 +4247,6 @@ int SendOrderWithRetry(string pair, int direction, double lot,
                        int magicNumber, double frozenAllowedDeviation, 
                        double decisionEntryPrice, string decisionID)
 {
-   // Return codes:
-   //  >0 = confirmed ticket (newly returned or reconciled existing order)
-   //  -1 = definite broker/execution failure
-   //  -2 = ambiguous result; DO NOT resend automatically
-   //  -3 = execution price moved beyond frozen deviation
    if(MaxRetry <= 0 || pair == "" || lot <= 0 || stopLoss <= 0 || takeProfit <= 0 ||
       magicNumber <= 0 || decisionID == "")
       return -1;
@@ -4447,9 +4254,6 @@ int SendOrderWithRetry(string pair, int direction, double lot,
    int retry = 0;
    while(retry < MaxRetry)
    {
-      // Idempotency guard BEFORE every possible send. If an earlier attempt was
-      // accepted but the terminal did not receive a definitive success result,
-      // reconcile it instead of creating a duplicate position.
       int existingTicket = FindExistingExecutionTicket(pair, direction, magicNumber, decisionID);
       if(existingTicket > 0)
          return existingTicket;
@@ -4482,9 +4286,6 @@ int SendOrderWithRetry(string pair, int direction, double lot,
       
       if(IsAmbiguousError(error))
       {
-         // Reconcile once using stable decision identity. If the order is not
-         // observable yet, the result is genuinely ambiguous. Never resend here:
-         // the broker may have accepted the first request and expose it later.
          int reconciled = FindExistingExecutionTicket(pair, direction, magicNumber, decisionID);
          if(reconciled > 0)
             return reconciled;
@@ -4522,9 +4323,6 @@ void CompactMonitoredTrades()
 
 bool EnsureMonitoredRegistryCapacity()
 {
-   // Capacity is verified before broker execution. Compact only tickets that the
-   // broker definitively reports as closed; transient selection failures remain
-   // reserved fail-closed so a possibly live owned order is never forgotten.
    CompactMonitoredTrades();
    return (g_monitored_count < MAX_MONITORED);
 }
@@ -4554,7 +4352,6 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
 {
    if(decision.DecisionState != DEC_VALIDATED) return;
 
-   // M22 must never repair or recreate the immutable M15-M17 payload.
    if(pair == "" || decision.Pair != pair || decision.DecisionID == "" ||
       decision.Direction == DIR_NONE || decision.EntryPrice <= 0 ||
       decision.StopLoss <= 0 || decision.TakeProfit <= 0)
@@ -4564,9 +4361,6 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
       return;
    }
    
-   // M22 is execution-only. Lot sizing belongs to M21, live risk filtering to
-   // M19, and prospective portfolio/protection gating to M20. M27 invokes those
-   // owners exactly once before entering M22. Never repeat them here.
    double lot = frozenLot;
    if(lot <= 0)
    {
@@ -4582,7 +4376,7 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
       return;
    }
 
-int pairIdx = FindPairStateIndex(pair);
+   int pairIdx = FindPairStateIndex(pair);
    if(pairIdx < 0)
    {
       decision.DecisionState = DEC_REJECTED;
@@ -4597,8 +4391,6 @@ int pairIdx = FindPairStateIndex(pair);
       return;
    }
    
-   // P2 S18 Fix A: enforce configured trade-lock policy before any
-   // broker-send preparation. IsSignalAllowed() owns lock semantics.
    if(!IsSignalAllowed(decision, pair, magic))
    {
       decision.DecisionState = DEC_REJECTED;
@@ -4616,9 +4408,6 @@ int pairIdx = FindPairStateIndex(pair);
       return;
    }
 
-   // Fail BEFORE OrderSend if lifecycle ownership cannot be registered safely.
-   // This guarantees that any broker order opened by M22 has a monitored slot
-   // available for M19/M20/M23 ownership and emergency management.
    if(!EnsureMonitoredRegistryCapacity())
    {
       decision.DecisionState = DEC_REJECTED;
@@ -4642,7 +4431,6 @@ int pairIdx = FindPairStateIndex(pair);
       return;
    }
    
-   // FIX 3: Pass candle time to comment
    string comment = CreateOrderComment(decision.DecisionID, pair, decision.Direction,
                                        decision.SignalType, executionPrice, 
                                        decision.StopLoss, lot, 0, decision.SequenceHash,
@@ -4688,9 +4476,6 @@ int pairIdx = FindPairStateIndex(pair);
          info.decision_id = decision.DecisionID;
          info.sequence_hash_short = SHORT_HASH(decision.SequenceHash);
 
-         // P3 S5C: verify what the broker actually persisted after successful
-         // OrderSend/selection. This is observability only; it does not rewrite
-         // broker metadata or fabricate a restart identity.
          string expectedExecutionHash = SHORT_HASH(decision.DecisionID);
          string persistedExecutionHash = "";
          string persistedComment = OrderComment();
@@ -4719,8 +4504,6 @@ int pairIdx = FindPairStateIndex(pair);
          return;
       }
 
-      // A ticket was identified but cannot be selected/reconciled now. Treat this
-      // as ambiguous rather than sending another order on the same decision.
       decision.DecisionState = DEC_REJECTED;
       decision.RejectionReason = REJ_AMBIGUOUS_RESULT;
       return;
@@ -4748,7 +4531,28 @@ bool RunEntryPreflightAndExecute(BBMA_Decision &decision, string pair)
    RiskValidationSnapshot snapshot;
    BuildRiskValidationSnapshot(pair, decision, snapshot);
 
-   // M17: resolve/validate the source-owned BBMA destination and protective SL.
+   // M17 runtime wiring: strategy eligibility is already frozen by M15/M16,
+   // while market execution geometry must use the live broker side.
+   // BUY references ASK; SELL references BID.
+   if(!ResolveExecutionReferencePrice(decision, snapshot))
+   {
+      decision.DecisionState = DEC_REJECTED;
+      decision.RejectionReason = REJ_MARKET_PRICE_INVALID;
+      return false;
+   }
+
+   // Resolve only the already-approved source-owned BBMA SL/TP. No fixed-pip,
+   // RR-derived or alternate destination is manufactured here.
+   if(!ResolveApprovedInitialSLTP(decision, snapshot))
+   {
+      decision.DecisionState = DEC_REJECTED;
+      decision.RejectionReason = REJ_SLTP_UNRESOLVED;
+      return false;
+   }
+
+   // M17 finalized SL; freeze the same value into the atomic risk snapshot.
+   snapshot.StopLoss = decision.StopLoss;
+
    ENUM_REJECTION_REASON sltpRejection = REJ_NONE;
    if(!ValidateSLTP(decision, snapshot, sltpRejection))
    {
@@ -4758,8 +4562,6 @@ bool RunEntryPreflightAndExecute(BBMA_Decision &decision, string pair)
       return false;
    }
 
-   // M21 must precede M19 because prospective total-risk requires the proposed
-   // frozen lot. M21 may size only; it cannot change Entry/SL/TP/direction.
    bool lotValid = true;
    double lot = CalculateLotSize(decision, snapshot, lotValid);
    if(!lotValid || lot <= 0)
@@ -4769,7 +4571,6 @@ bool RunEntryPreflightAndExecute(BBMA_Decision &decision, string pair)
       return false;
    }
 
-   // M19: live risk filter only.
    RiskStatus riskStatus = CheckRiskBeforeTrade(decision, snapshot, lot);
    if(!riskStatus.allowed)
    {
@@ -4779,9 +4580,6 @@ bool RunEntryPreflightAndExecute(BBMA_Decision &decision, string pair)
       return false;
    }
 
-   // M20: final prospective portfolio/protection gate. While emergency
-   // liquidation is latched, no new order may be admitted even if floating loss
-   // has temporarily fallen below the original basket-loss trigger.
    if(g_portfolio_emergency_close_requested)
    {
       decision.DecisionState = DEC_REJECTED;
@@ -4792,11 +4590,9 @@ bool RunEntryPreflightAndExecute(BBMA_Decision &decision, string pair)
    FinalPortfolioGuard(decision);
    if(decision.DecisionState != DEC_VALIDATED) return false;
 
-   // M22: immutable execution only. No re-sizing, re-risking or strategy repair.
    ProcessEntry(decision, pair, snapshot, lot);
    return (decision.DecisionState == DEC_EXECUTED);
 }
-
 
 //+------------------------------------------------------------------+
 //| MODULE 23: POSITION MANAGEMENT (TICK-DRIVEN)                     |
@@ -4815,7 +4611,6 @@ void ManagePositions()
       if(OrderCloseTime() != 0)
          continue;
 
-      // Revalidate live EA ownership before any lifecycle action.
       int pairIdx = FindPairStateIndex(OrderSymbol());
       if(pairIdx < 0) continue;
       int expectedMagic = g_pair_states[pairIdx].magic_number;
@@ -4827,18 +4622,12 @@ void ManagePositions()
       double bid = MarketInfo(pair, MODE_BID);
       double ask = MarketInfo(pair, MODE_ASK);
 
-      // Keep monitored state synchronized with broker state only. M23 must not
-      // manufacture a new SL/TP or lot policy.
       g_monitored_trades[i].entry_price = OrderOpenPrice();
       g_monitored_trades[i].current_sl = OrderStopLoss();
       g_monitored_trades[i].current_tp = OrderTakeProfit();
       g_monitored_trades[i].lot = OrderLots();
       g_monitored_trades[i].remaining_lot = OrderLots();
       
-      // Emergency liquidation has precedence over recovery-state freezing.
-      // Exact symbol/magic ownership was already revalidated above. Therefore an
-      // EA-owned position flagged corrupted/recovery-invalid must still be closable
-      // when M20 latches basket-loss protection; otherwise the latch can be trapped.
       if(g_portfolio_emergency_close_requested)
       {
          double closePrice = (g_monitored_trades[i].direction == DIR_BUY) ? bid : ask;
@@ -4858,14 +4647,8 @@ void ManagePositions()
          g_monitored_trades[i].recovery_state == REC_RECOVERY_INVALID ||
          g_monitored_trades[i].recovery_state == REC_IDENTITY_MISSING_FROZEN)
       {
-         // P3 S5B: recovery classification is logged once by M24. M23 only
-         // enforces the frozen lifecycle state here, after emergency precedence.
          continue;
       }
-
-      // Normal exit is broker-side SL/TP already supplied by M17->M22.
-      // No 1R partial close, breakeven migration, trailing stop, TP2/TP3, or
-      // synthetic manual TP close is permitted here.
    }
    
    g_is_managing_trade = false;
@@ -4895,9 +4678,6 @@ void RecoverExistingOrders()
       string comment = OrderComment();
       string executionHash = "";
       bool hasExecutionHash = ExtractExecutionHash(comment, executionHash);
-      // P3 S5B: absence of H: is classified after broker geometry/lot validation.
-      // Exact ownership remains authoritative for safety accounting, but M24 must
-      // never fabricate an execution identity or tombstone.
 
       ENUM_DIRECTION liveDirection = (OrderType() == OP_BUY) ? DIR_BUY : DIR_SELL;
       string decisionHash, parsedPair, sequenceHash;
@@ -4913,9 +4693,6 @@ void RecoverExistingOrders()
                                                 intendedLot, intendedRisk,
                                                 sequenceHash, candleTime);
 
-      // Comment metadata may be truncated, but if present it must agree with live
-      // broker ownership/direction and H: execution identity. Never let parsed
-      // comment fields override the selected live order.
       if(fullMetadata &&
          (decisionHash != executionHash || parsedPair != pair ||
           parsedDirection != liveDirection))
@@ -4927,122 +4704,109 @@ void RecoverExistingOrders()
       }
 
       TradeInfo info;
-         info.ticket = OrderTicket();
-         info.magic_number = magic;
-         info.pair = pair;
-         info.direction = liveDirection;
-         info.signal_type = signalType;
-         info.initial_entry_price = OrderOpenPrice();
-         info.initial_stop_loss = OrderStopLoss();
-         info.initial_take_profit = OrderTakeProfit();
-         info.initial_lot = OrderLots();
-         info.initial_risk_price_distance = MathAbs(info.initial_entry_price - info.initial_stop_loss);
-         info.entry_price = info.initial_entry_price;
-         info.current_sl = info.initial_stop_loss;
-         info.current_tp = info.initial_take_profit;
-         info.lot = OrderLots();
-         info.remaining_lot = OrderLots();
-         info.partial_closed = false;
-         info.partial_available = false;
-         info.partial_attempted = false;
-         info.breakeven_set = false;
-         info.be_attempted = false;
-         info.be_last_attempt_time = 0;
-         info.partial_last_attempt_time = 0;
-         info.open_time = OrderOpenTime();
-         info.point = GetPointSize(pair);
-         info.digits = GetDigits(pair);
-         info.stop_level = GetStopLevel(pair);
-         info.freeze_level = GetFreezeLevel(pair);
-         
-         // Never fabricate a full DecisionID from lossy comment metadata.
-         info.decision_id = "";
-         info.execution_hash = executionHash;
-         info.sequence_hash_short = sequenceHash;
+      info.ticket = OrderTicket();
+      info.magic_number = magic;
+      info.pair = pair;
+      info.direction = liveDirection;
+      info.signal_type = signalType;
+      info.initial_entry_price = OrderOpenPrice();
+      info.initial_stop_loss = OrderStopLoss();
+      info.initial_take_profit = OrderTakeProfit();
+      info.initial_lot = OrderLots();
+      info.initial_risk_price_distance = MathAbs(info.initial_entry_price - info.initial_stop_loss);
+      info.entry_price = info.initial_entry_price;
+      info.current_sl = info.initial_stop_loss;
+      info.current_tp = info.initial_take_profit;
+      info.lot = OrderLots();
+      info.remaining_lot = OrderLots();
+      info.partial_closed = false;
+      info.partial_available = false;
+      info.partial_attempted = false;
+      info.breakeven_set = false;
+      info.be_attempted = false;
+      info.be_last_attempt_time = 0;
+      info.partial_last_attempt_time = 0;
+      info.open_time = OrderOpenTime();
+      info.point = GetPointSize(pair);
+      info.digits = GetDigits(pair);
+      info.stop_level = GetStopLevel(pair);
+      info.freeze_level = GetFreezeLevel(pair);
+      info.decision_id = "";
+      info.execution_hash = executionHash;
+      info.sequence_hash_short = sequenceHash;
 
-         // Recovery preserves broker-side Entry/SL/TP/lot exactly. A valid live
-         // BBMA market order must still have directionally sane protective levels.
-         bool geometryValid = (info.initial_entry_price > 0 &&
-                               info.initial_stop_loss > 0 &&
-                               info.initial_take_profit > 0);
-         if(geometryValid && liveDirection == DIR_BUY)
-            geometryValid = (info.initial_stop_loss < info.initial_entry_price &&
-                             info.initial_entry_price < info.initial_take_profit);
-         else if(geometryValid && liveDirection == DIR_SELL)
-            geometryValid = (info.initial_take_profit < info.initial_entry_price &&
-                             info.initial_entry_price < info.initial_stop_loss);
+      bool geometryValid = (info.initial_entry_price > 0 &&
+                            info.initial_stop_loss > 0 &&
+                            info.initial_take_profit > 0);
+      if(geometryValid && liveDirection == DIR_BUY)
+         geometryValid = (info.initial_stop_loss < info.initial_entry_price &&
+                          info.initial_entry_price < info.initial_take_profit);
+      else if(geometryValid && liveDirection == DIR_SELL)
+         geometryValid = (info.initial_take_profit < info.initial_entry_price &&
+                          info.initial_entry_price < info.initial_stop_loss);
 
-         string recoveryCause = "";
-         double currentLot = OrderLots();
-         if(!geometryValid)
-         {
-            info.recovery_state = REC_RECOVERY_INVALID;
-            recoveryCause = "INVALID_GEOMETRY";
-         }
-         else if(currentLot <= 0)
-         {
-            info.recovery_state = REC_RECOVERY_INVALID;
-            recoveryCause = "NONPOSITIVE_LIVE_LOT";
-         }
-         else if(!IsValidLotStep(currentLot, pair))
-         {
-            info.recovery_state = REC_RECOVERY_INVALID;
-            recoveryCause = "INVALID_LIVE_LOT_STEP";
-         }
-         else if(fullMetadata && intendedLot > 0 && currentLot > intendedLot + 0.0000001)
-         {
-            info.recovery_state = REC_CORRUPTED;
-            recoveryCause = "LIVE_LOT_ABOVE_INTENDED";
-         }
-         else if(fullMetadata && intendedLot > 0 && currentLot < intendedLot - 0.0000001)
-         {
-            // Legacy/manual external reduction is preserved as live state; never
-            // infer permission for another partial close or restore the old lot.
-            info.recovery_state = REC_PARTIAL_INFERRED;
-            info.remaining_lot = currentLot;
-            recoveryCause = "LIVE_LOT_BELOW_INTENDED";
-         }
-         else if(fullMetadata)
-         {
-            info.recovery_state = REC_NORMAL;
-            recoveryCause = "FULL_METADATA_MATCH";
-         }
-         else if(hasExecutionHash)
-         {
-            info.recovery_state = REC_IDENTITY_HASH_ONLY;
-            recoveryCause = "EXECUTION_HASH_ONLY";
-         }
-         else
-         {
-            // Exact EA ownership and valid broker geometry/lot are preserved, but
-            // missing H: means restart identity cannot be reconstructed safely.
-            // This is degraded identity, not broker-state corruption.
-            info.recovery_state = REC_IDENTITY_MISSING_FROZEN;
-            recoveryCause = "MISSING_EXECUTION_HASH";
-         }
+      string recoveryCause = "";
+      double currentLot = OrderLots();
+      if(!geometryValid)
+      {
+         info.recovery_state = REC_RECOVERY_INVALID;
+         recoveryCause = "INVALID_GEOMETRY";
+      }
+      else if(currentLot <= 0)
+      {
+         info.recovery_state = REC_RECOVERY_INVALID;
+         recoveryCause = "NONPOSITIVE_LIVE_LOT";
+      }
+      else if(!IsValidLotStep(currentLot, pair))
+      {
+         info.recovery_state = REC_RECOVERY_INVALID;
+         recoveryCause = "INVALID_LIVE_LOT_STEP";
+      }
+      else if(fullMetadata && intendedLot > 0 && currentLot > intendedLot + 0.0000001)
+      {
+         info.recovery_state = REC_CORRUPTED;
+         recoveryCause = "LIVE_LOT_ABOVE_INTENDED";
+      }
+      else if(fullMetadata && intendedLot > 0 && currentLot < intendedLot - 0.0000001)
+      {
+         info.recovery_state = REC_PARTIAL_INFERRED;
+         info.remaining_lot = currentLot;
+         recoveryCause = "LIVE_LOT_BELOW_INTENDED";
+      }
+      else if(fullMetadata)
+      {
+         info.recovery_state = REC_NORMAL;
+         recoveryCause = "FULL_METADATA_MATCH";
+      }
+      else if(hasExecutionHash)
+      {
+         info.recovery_state = REC_IDENTITY_HASH_ONLY;
+         recoveryCause = "EXECUTION_HASH_ONLY";
+      }
+      else
+      {
+         info.recovery_state = REC_IDENTITY_MISSING_FROZEN;
+         recoveryCause = "MISSING_EXECUTION_HASH";
+      }
 
-         // Step 14 removed breakeven/partial-management authority. Recovery must
-         // not infer or reactivate those deprecated lifecycle policies.
-         info.partial_closed = false;
-         info.partial_available = false;
-         info.partial_attempted = false;
-         info.breakeven_set = false;
-         info.be_attempted = false;
+      info.partial_closed = false;
+      info.partial_available = false;
+      info.partial_attempted = false;
+      info.breakeven_set = false;
+      info.be_attempted = false;
 
-         AddToMonitoredTrades(info);
+      AddToMonitoredTrades(info);
 
-         // One structured diagnostic per recovered exact-owned order. M23 does
-         // not repeat this on every tick/timer cycle.
-         Print("[P3S5][RECOVERY] Ticket=", IntegerToString(info.ticket),
-               " Pair=", pair,
-               " State=", EnumToString(info.recovery_state),
-               " Cause=", recoveryCause,
-               " HashFound=", hasExecutionHash ? "Y" : "N",
-               " FullMeta=", fullMetadata ? "Y" : "N");
+      Print("[P3S5][RECOVERY] Ticket=", IntegerToString(info.ticket),
+            " Pair=", pair,
+            " State=", EnumToString(info.recovery_state),
+            " Cause=", recoveryCause,
+            " HashFound=", hasExecutionHash ? "Y" : "N",
+            " FullMeta=", fullMetadata ? "Y" : "N");
 
-         if(hasExecutionHash)
-            UpsertExecutionHashTombstone(executionHash, info.ticket, pair,
-                                         liveDirection, info.open_time);
+      if(hasExecutionHash)
+         UpsertExecutionHashTombstone(executionHash, info.ticket, pair,
+                                      liveDirection, info.open_time);
    }
 }
 
@@ -5085,8 +4849,6 @@ void BuildDashboardSnapshot()
 void UpdateDashboard()
 {
    if(!ShowDashboard) return;
-   // M25 is display-only. It may render already-owned state but must never mutate
-   // strategy, risk, recovery, order or lifecycle state.
    Comment(g_dashboard_snapshot);
 }
 
@@ -5115,19 +4877,13 @@ bool ValidateInputParameters()
    SplitString(PairList, ",", pairs);
    if(ArraySize(pairs) > MAX_PAIRS) return false;
 
-   // Locked Entry Mode contract: only the two source-governed meanings are valid.
    if(EntryMode < 1 || EntryMode > 2) return false;
 
-   // SignalMode no longer gates M15 entry authority. Arbitrary SAFE/NORMAL/
-   // AGGRESSIVE tier ranking is not part of the supplied BBMA source.
    return true;
 }
 
 bool ValidatePairIDCollision()
 {
-   // P3 S1 Fix B: PairID is packed into the low two decimal digits of
-   // the magic layout, so the safe deterministic namespace is 1..99.
-   // Compare loaded pairs directly; do not index MAX_PAIRS by PairID.
    for(int i = 0; i < g_pair_count; i++)
    {
       int pid = g_pair_states[i].pair_id;
@@ -5260,8 +5016,6 @@ void LoadPairs()
 
 int InitializeEA()
 {
-   // Explicitly enter a non-operational state until ALL ownership, recovery and
-   // protection initialization has completed successfully.
    g_is_initialized = false;
    g_is_scanning = false;
    g_is_managing_trade = false;
@@ -5269,7 +5023,6 @@ int InitializeEA()
    g_portfolio_emergency_close_requested = false;
    g_processing_time = GetProcessingTime();
 
-   // Reset transient risk-cache state explicitly on every initialization.
    g_last_risk_check_time = 0;
    g_cached_risk_allowed = false;
    g_cached_risk_reason = "";
@@ -5308,9 +5061,6 @@ int InitializeEA()
    g_global_signal_count = 0;
    g_monitored_count = 0;
 
-   // M19 drawdown contract is explicitly equity-based. Using balance here would
-   // create a false restart drawdown baseline whenever recovered positions are
-   // already floating in profit/loss.
    g_protection_reference_equity = AccountEquity();
    if(g_protection_reference_equity <= 0)
    {
@@ -5322,14 +5072,9 @@ int InitializeEA()
    g_cumulative_profit = 0;
    g_dashboard_needs_update = true;
 
-   // Pair/symbol/magic ownership is already validated above. Only now may M24
-   // rebuild execution tombstones and monitored live-order state.
    RebuildExecutionHistory();
    RecoverExistingOrders();
 
-   // Recovery must not implicitly re-arm an old in-memory emergency latch. The
-   // live M20 protection engine will evaluate the recovered portfolio from current
-   // broker state and latch again deterministically when required.
    g_portfolio_emergency_close_requested = false;
 
    g_is_initialized = true;
@@ -5378,8 +5123,6 @@ void ProcessPair(int pairIndex)
    GetDataForTimeframe(actual, PERIOD_M15, g_pair_states[pairIndex].tf_snapshot.M15_CandleTime,
                        g_pair_states[pairIndex].m15_data);
 
-   // Numeric BB snapshots exist regardless of whether BB shape classification is enabled.
-   // M06 owns the values; M27 only routes the frozen snapshots to signal owners.
    BollingerBand h1Band, h1PrevBand, h4Band, h4PrevBand, m15Band;
    ZeroMemory(h1Band); ZeroMemory(h1PrevBand);
    ZeroMemory(h4Band); ZeroMemory(h4PrevBand); ZeroMemory(m15Band);
@@ -5411,9 +5154,6 @@ void ProcessPair(int pairIndex)
    g_pair_states[pairIndex].current_bollinger = h1Band;
    g_pair_states[pairIndex].prev_bollinger = h1PrevBand;
 
-   // M16 temporal Extreme invalidation needs the presence of a later CSM on the
-   // same timeframe. The source does not qualify that invalidation by CSM direction,
-   // so build one H1/H4 CSM presence snapshot before the BUY/SELL candidate loop.
    Signal h1AnyCSMSnapshot, h4AnyCSMSnapshot;
    ZeroMemory(h1AnyCSMSnapshot); ZeroMemory(h4AnyCSMSnapshot);
 
@@ -5443,8 +5183,6 @@ void ProcessPair(int pairIndex)
       h4AnyCSMSnapshot.Close = g_pair_states[pairIndex].h4_data.close;
    }
 
-   // Both directions are collected first. M15 receives one atomic pair-level pool
-   // and is called exactly once after BUY and SELL owner snapshots are complete.
    ValidatedSequenceCandidate allCandidates[];
    int allCandidateCount = 0;
 
@@ -5452,8 +5190,6 @@ void ProcessPair(int pairIndex)
    {
       ENUM_DIRECTION direction = (dirIdx == 0) ? DIR_BUY : DIR_SELL;
 
-      // Signal-owner outputs. M27 orchestrates detector/state-engine calls once;
-      // M13 receives only immutable copies of these cycle snapshots.
       Signal h1ExtremeSnapshot, h4ExtremeSnapshot, m15MHVSnapshot, m15CSDSnapshot;
       Signal m15ECSDSnapshot, m15CSMSnapshot;
       ZeroMemory(h1ExtremeSnapshot); ZeroMemory(h4ExtremeSnapshot);
@@ -5569,8 +5305,6 @@ void ProcessPair(int pairIndex)
          d1ReEntryState = g_pair_states[pairIndex].re_d1_sell_state;
       }
 
-      // M16 applies temporal validity over M08's raw Extreme detector output.
-      // CSM invalidation is evaluated on the same timeframe as the stored Extreme.
       if(direction == DIR_BUY)
       {
          UpdatePersistentExtremeState(detectedH1Extreme, h1AnyCSMSnapshot,
@@ -5629,13 +5363,10 @@ void ProcessPair(int pairIndex)
       BuildPossibleCombinations(rem, rre, ree, h4_reEntry, extreme, mlv,
                                 d1_reEntry, h4_extreme);
       
-      // Standalone Re-Entry eligibility is normalized from the authoritative H1
-      // M12 lifecycle snapshot. H4/D1 Re-Entry remain higher-TF combination context.
       ValidatedSequenceCandidate reEntryCandidate;
       BuildConfirmedReEntryCandidate(reEntry, reEntryCandidate);
       AppendValidatedCandidate(reEntryCandidate, allCandidates, allCandidateCount);
 
-      // M14 validates only the three source-defined REM/RRE/REE rows.
       ComponentSet allSets[3];
       allSets[0] = rem;
       allSets[1] = rre;
@@ -5649,7 +5380,6 @@ void ProcessPair(int pairIndex)
       }
    }
 
-   // FINAL pair-level authority: exactly one M15 pass after both directions exist.
    BBMA_Decision decision;
    OppositeConflictPackage conflict;
    ZeroMemory(decision);
@@ -5681,12 +5411,9 @@ void OnTickMain()
 {
    if(!g_is_initialized) return;
 
-   // Live lifecycle/protection always runs before any new strategy scan.
    ManagePortfolio();
    ManagePositions();
 
-   // Emergency liquidation is an exclusive portfolio state. Do not scan or
-   // admit new entries while M20's latch remains active.
    if(g_portfolio_emergency_close_requested) return;
    
    if(g_is_scanning) return;
@@ -5698,8 +5425,6 @@ void OnTickMain()
    {
       if(!g_pair_states[i].pair_enabled) continue;
       if(g_pair_states[i].is_processing) continue;
-      // P2 S17 Fix A: schedule new-candle processing on the broker-resolved symbol.
-      // All downstream data, detector and execution paths use actual_symbol; the clock must match.
       if(IsNewCandle(g_pair_states[i].actual_symbol, i))
       {
          ProcessPair(i);
@@ -5732,8 +5457,6 @@ int OnInit()
       return INIT_FAILED;
    }
 
-   // OnTimer is part of live lifecycle/protection fallback and maintenance.
-   // Initialization is not complete unless the terminal accepts the timer.
    ResetLastError();
    if(!EventSetTimer(1))
    {
@@ -5752,11 +5475,8 @@ int OnInit()
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
 {
-   // Stop timer delivery before clearing orchestration state.
    EventKillTimer();
 
-   // Stop all local orchestration first. Do NOT erase execution-hash/tombstone
-   // semantics here; restart recovery reconstructs them from broker history.
    g_is_initialized = false;
    g_is_scanning = false;
    g_is_managing_trade = false;
@@ -5783,16 +5503,12 @@ void OnTimer()
 {
    if(!g_is_initialized) return;
 
-   // Timer owns only maintenance/reset work. Lifecycle, emergency gating,
-   // dashboard orchestration and strategy scanning have one shared authority:
-   // OnTickMain(). This prevents timer-only state advancement during emergency.
    CleanupSignalHistoryEntries();
    CleanupGlobalSignalHistory();
 
    datetime todayStart = GetTodayStart();
    if(todayStart > g_last_reset_date)
    {
-      // Keep daily reset consistent with the M19 equity-drawdown contract.
       double resetEquity = AccountEquity();
       if(resetEquity > 0)
          g_protection_reference_equity = resetEquity;
@@ -5801,7 +5517,6 @@ void OnTimer()
       Log(DBG_FULL, "Daily reset: protection reference = " + DoubleToString(g_protection_reference_equity, 2));
    }
 
-   // Mirror OnTick connectivity semantics before entering shared live orchestration.
    if(!IsTerminalConnected()) return;
    OnTickMain();
 }

@@ -1,0 +1,195 @@
+name: P3 PairID Registry Hotfix
+
+on:
+  push:
+    branches: [ blueprint-dev ]
+    paths:
+      - '.github/workflows/p3-pairid-registry-hotfix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  hotfix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply collision-free stable PairID registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4')
+          text = path.read_text()
+
+          old_max = '#define PAIR_ID_MAX             20'
+          new_max = '#define PAIR_ID_MAX             99'
+          if text.count(old_max) != 1:
+              raise SystemExit(f'expected exactly one old PAIR_ID_MAX, found {text.count(old_max)}')
+          text = text.replace(old_max, new_max, 1)
+
+          old_func = '''int GeneratePairID(string symbol)
+          {
+             string clean = RemoveSuffix(symbol);
+
+             // P3 S1 Fix B:
+             // Preserve historical PairID/magic identity for all existing pairs.
+             // Legacy hash maps AUDUSD and NZDUSD to PID 15, so reserve PID 16
+             // for NZDUSD rather than remapping the entire PairID namespace.
+             if(clean == "NZDUSD") return 16;
+
+             int hash = 0;
+             for(int i = 0; i < StringLen(clean); i++)
+             {
+                hash = hash * 31 + StringGetChar(clean, i);
+             }
+             hash = MathAbs(hash);
+             return PAIR_ID_MIN + (hash % (PAIR_ID_MAX - PAIR_ID_MIN + 1));
+          }
+          '''
+
+          new_func = '''int GeneratePairID(string symbol)
+          {
+             string clean = RemoveSuffix(symbol);
+
+             // P3 PairID registry hotfix:
+             // PairID occupies the low two decimal digits of the magic number, so
+             // 1..99 is the valid namespace. Common FX symbols use a fixed registry
+             // to keep identity stable regardless of PairList order and to eliminate
+             // hash collisions. Existing non-colliding legacy IDs are preserved.
+             if(clean == "USDCAD") return 1;
+             if(clean == "USDCHF") return 2;
+             if(clean == "CHFJPY") return 3;
+             if(clean == "EURGBP") return 4;
+             if(clean == "AUDCHF") return 5;
+             if(clean == "AUDNZD") return 6;
+             if(clean == "CADCHF") return 7;
+             if(clean == "USDJPY") return 8;
+             if(clean == "EURNZD") return 9;
+             if(clean == "EURJPY") return 10;
+             if(clean == "GBPJPY") return 11;
+             if(clean == "AUDJPY") return 12;
+             if(clean == "EURUSD") return 13;
+             if(clean == "GBPUSD") return 14;
+             if(clean == "AUDUSD") return 15;
+             if(clean == "NZDUSD") return 16;
+             if(clean == "EURCAD") return 17;
+             if(clean == "NZDJPY") return 18;
+             if(clean == "AUDCAD") return 19;
+             if(clean == "CADJPY") return 20;
+             if(clean == "EURAUD") return 21;
+             if(clean == "EURCHF") return 22;
+             if(clean == "GBPAUD") return 23;
+             if(clean == "GBPCAD") return 24;
+             if(clean == "GBPCHF") return 25;
+             if(clean == "GBPNZD") return 26;
+             if(clean == "NZDCAD") return 27;
+             if(clean == "NZDCHF") return 28;
+
+             // Unsupported/non-standard symbols use a deterministic extension
+             // namespace only. Collision validation remains fail-closed, but these
+             // IDs can never collide with the fixed common-FX registry above.
+             ulong hash = 0;
+             for(int i = 0; i < StringLen(clean); i++)
+                hash = hash * 1099511628211 + (ulong)StringGetChar(clean, i);
+
+             int extensionMin = 29;
+             int extensionSpan = PAIR_ID_MAX - extensionMin + 1;
+             if(extensionSpan <= 0) return 0;
+             return extensionMin + (int)(hash % (ulong)extensionSpan);
+          }
+          '''
+
+          if text.count(old_func) != 1:
+              raise SystemExit(f'expected exactly one legacy GeneratePairID block, found {text.count(old_func)}')
+          text = text.replace(old_func, new_func, 1)
+          path.write_text(text)
+
+          registry = {
+              'USDCAD':1, 'USDCHF':2, 'CHFJPY':3, 'EURGBP':4,
+              'AUDCHF':5, 'AUDNZD':6, 'CADCHF':7, 'USDJPY':8,
+              'EURNZD':9, 'EURJPY':10, 'GBPJPY':11, 'AUDJPY':12,
+              'EURUSD':13, 'GBPUSD':14, 'AUDUSD':15, 'NZDUSD':16,
+              'EURCAD':17, 'NZDJPY':18, 'AUDCAD':19, 'CADJPY':20,
+              'EURAUD':21, 'EURCHF':22, 'GBPAUD':23, 'GBPCAD':24,
+              'GBPCHF':25, 'GBPNZD':26, 'NZDCAD':27, 'NZDCHF':28,
+          }
+          if len(registry) != 28 or len(set(registry.values())) != 28:
+              raise SystemExit('registry is not one-to-one')
+
+          requested = [
+              'EURUSD','GBPUSD','USDJPY','USDCHF','USDCAD','AUDUSD','NZDUSD',
+              'EURJPY','GBPJPY','AUDJPY','CADJPY','CHFJPY','NZDJPY','EURGBP',
+              'EURAUD','EURCAD','EURCHF','GBPAUD','GBPCAD','AUDCAD'
+          ]
+          ids = [registry[p] for p in requested]
+          if len(ids) != 20 or len(set(ids)) != 20:
+              raise SystemExit(f'user 20-pair list still collides: {ids}')
+
+          legacy_default = {
+              'EURUSD':13, 'USDJPY':8, 'GBPUSD':14, 'AUDUSD':15,
+              'USDCAD':1, 'USDCHF':2, 'NZDUSD':16,
+          }
+          for pair, pid in legacy_default.items():
+              if registry[pair] != pid:
+                  raise SystemExit(f'legacy identity changed for {pair}')
+
+          source = path.read_text()
+          if '#define PAIR_ID_MAX             99' not in source:
+              raise SystemExit('PAIR_ID_MAX was not widened to 99')
+          for pair, pid in registry.items():
+              needle = f'if(clean == "{pair}") return {pid};'
+              if needle not in source:
+                  raise SystemExit(f'missing source registry row: {needle}')
+
+          print('PASS: 28-pair stable registry unique')
+          print('PASS: requested 20-pair list unique')
+          print('PASS: default 7 legacy PairIDs preserved')
+          PY
+
+      - name: Record hotfix evidence
+        shell: bash
+        run: |
+          cat > blueprint/P3_PAIRID_REGISTRY_FIX.md <<'EOF'
+          # P3 PairID Registry Hotfix
+
+          Status: **APPLIED**
+
+          ## Problem
+          `MAX_PAIRS` allowed 20 loaded pairs, but `GeneratePairID()` hashed every
+          symbol into the same 1..20 namespace. Valid 20-pair portfolios could
+          therefore collide and make initialization fail closed.
+
+          ## Fix
+          - retain `MAX_PAIRS = 20` as the loaded-pair capacity;
+          - widen PairID namespace to the magic layout's intended two-digit range `1..99`;
+          - introduce a fixed one-to-one registry for 28 common FX pairs;
+          - preserve existing non-colliding/default PairIDs and their magic identity;
+          - assign unique IDs to the previously colliding requested pairs;
+          - reserve `29..99` as deterministic extension IDs for non-standard symbols;
+          - keep `ValidatePairIDCollision()` and `ValidateMagicCollision()` fail-closed.
+
+          ## Requested 20-pair validation
+          `EURUSD, GBPUSD, USDJPY, USDCHF, USDCAD, AUDUSD, NZDUSD, EURJPY, GBPJPY, AUDJPY, CADJPY, CHFJPY, NZDJPY, EURGBP, EURAUD, EURCAD, EURCHF, GBPAUD, GBPCAD, AUDCAD`
+
+          Result: **20/20 unique PairIDs**.
+
+          ## Strategy semantics
+          No BBMA detector, entry, SL/TP, risk, lifecycle, or execution policy was changed.
+          This is identity/initialization infrastructure only.
+          EOF
+
+      - name: Commit hotfix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- blueprint/source/BBMA_PROFESSIONAL_EA.mq4 blueprint/P3_PAIRID_REGISTRY_FIX.md
+          git diff --cached --check
+          git commit -m "P3 hotfix: make 20-pair PairID registry collision-free"
+          git push origin blueprint-dev

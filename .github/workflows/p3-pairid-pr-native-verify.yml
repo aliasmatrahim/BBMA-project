@@ -8,17 +8,47 @@ permissions:
   contents: read
 
 jobs:
-  verify:
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate requested 20-pair PairID and magic uniqueness
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          s = Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4').read_text(encoding='utf-8')
+          requested = [
+              'EURUSD','GBPUSD','USDJPY','USDCHF','USDCAD','AUDUSD','NZDUSD',
+              'EURJPY','GBPJPY','AUDJPY','CADJPY','CHFJPY','NZDJPY','EURGBP',
+              'EURAUD','EURCAD','EURCHF','GBPAUD','GBPCAD','AUDCAD'
+          ]
+          registry = {
+              sym: int(pid)
+              for sym, pid in re.findall(r'if\(clean\s*==\s*"([A-Z0-9]+)"\)\s*return\s+(\d+)\s*;', s)
+          }
+          ids = [registry[p] for p in requested]
+          assert len(ids) == 20
+          assert len(set(ids)) == 20
+          assert all(1 <= pid <= 99 for pid in ids)
+          assert re.search(r'^#define\s+MAX_PAIRS\s+20\s*$', s, re.M)
+          assert re.search(r'^#define\s+PAIR_ID_MAX\s+99\s*$', s, re.M)
+          mb = int(re.search(r'^#define\s+MAGIC_BASE\s+(\d+)\s*$', s, re.M).group(1))
+          magics = [mb + 10000 + pid for pid in ids]
+          assert len(set(magics)) == 20
+          print('P3_PAIRID_STATIC=PASS')
+          print(','.join(f'{p}:{registry[p]}' for p in requested))
+          PY
+
+  native:
+    needs: static
     runs-on: windows-latest
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-
-      - name: Validate requested 20-pair PairID and magic uniqueness
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          python -c "from pathlib import Path; import re; s=Path('blueprint/source/BBMA_PROFESSIONAL_EA.mq4').read_text(encoding='utf-8'); req=['EURUSD','GBPUSD','USDJPY','USDCHF','USDCAD','AUDUSD','NZDUSD','EURJPY','GBPJPY','AUDJPY','CADJPY','CHFJPY','NZDJPY','EURGBP','EURAUD','EURCAD','EURCHF','GBPAUD','GBPCAD','AUDCAD']; d={a:int(b) for a,b in re.findall(r'if\\(clean\\s*==\\s*\"([A-Z0-9]+)\"\\)\\s*return\\s+(\\d+)\\s*;', s)}; ids=[d[x] for x in req]; assert len(ids)==20 and len(set(ids))==20; assert all(1<=x<=99 for x in ids); assert re.search(r'^#define\\s+MAX_PAIRS\\s+20\\s*$',s,re.M); assert re.search(r'^#define\\s+PAIR_ID_MAX\\s+99\\s*$',s,re.M); mb=int(re.search(r'^#define\\s+MAGIC_BASE\\s+(\\d+)\\s*$',s,re.M).group(1)); mag=[mb+10000+x for x in ids]; assert len(set(mag))==20; print('P3_PAIRID_STATIC=PASS'); print(list(zip(req,ids)))"
 
       - name: Acquire official MT4 MetaEditor with bounded wait
         timeout-minutes: 3

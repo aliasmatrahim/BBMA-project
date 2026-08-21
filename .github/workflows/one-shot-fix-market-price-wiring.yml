@@ -1,0 +1,103 @@
+name: One-shot fix market price wiring
+
+on:
+  push:
+    branches: [ blueprint-dev ]
+    paths:
+      - '.github/workflows/one-shot-fix-market-price-wiring.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+
+      - name: Wire M17 execution price and source-owned SLTP
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('blueprint/source/BBMA_EA.mq4')
+          s = p.read_text(encoding='utf-8')
+
+          old = '''   RiskValidationSnapshot snapshot;
+   BuildRiskValidationSnapshot(pair, decision, snapshot);
+
+   // M17: resolve/validate the source-owned BBMA destination and protective SL.
+   ENUM_REJECTION_REASON sltpRejection = REJ_NONE;
+   if(!ValidateSLTP(decision, snapshot, sltpRejection))
+   {
+      decision.DecisionState = DEC_REJECTED;
+      decision.RejectionReason = (sltpRejection != REJ_NONE) ?
+                                 sltpRejection : REJ_SLTP_UNRESOLVED;
+      return false;
+   }
+'''
+
+          new = '''   RiskValidationSnapshot snapshot;
+   BuildRiskValidationSnapshot(pair, decision, snapshot);
+
+   // M17 runtime wiring: the strategy decision is already fixed by closed-candle
+   // BBMA logic, but a market order still requires a live broker-side reference
+   // price. BUY uses ASK and SELL uses BID. This is execution geometry only.
+   if(!ResolveExecutionReferencePrice(decision, snapshot))
+   {
+      decision.DecisionState = DEC_REJECTED;
+      decision.RejectionReason = REJ_MARKET_PRICE_INVALID;
+      return false;
+   }
+
+   // Resolve the already-approved source-owned BBMA SL/TP only after the live
+   // execution reference exists, because directional geometry depends on EntryPrice.
+   // Do not manufacture fallback fixed-pip or RR-derived destinations here.
+   if(!ResolveApprovedInitialSLTP(decision, snapshot))
+   {
+      decision.DecisionState = DEC_REJECTED;
+      decision.RejectionReason = REJ_SLTP_UNRESOLVED;
+      return false;
+   }
+
+   // M17: validate the resolved source-owned BBMA destination and protective SL.
+   ENUM_REJECTION_REASON sltpRejection = REJ_NONE;
+   if(!ValidateSLTP(decision, snapshot, sltpRejection))
+   {
+      decision.DecisionState = DEC_REJECTED;
+      decision.RejectionReason = (sltpRejection != REJ_NONE) ?
+                                 sltpRejection : REJ_SLTP_UNRESOLVED;
+      return false;
+   }
+'''
+
+          if s.count(old) != 1:
+              raise SystemExit(f'expected exactly one preflight M17 block, found {s.count(old)}')
+          s = s.replace(old, new, 1)
+
+          # Structural guards: helpers must remain single-owner functions and the
+          # new preflight calls must exist exactly once in the executable path.
+          if s.count('bool ResolveExecutionReferencePrice(BBMA_Decision &decision, RiskValidationSnapshot &snapshot)') != 1:
+              raise SystemExit('ResolveExecutionReferencePrice helper count changed unexpectedly')
+          if s.count('bool ResolveApprovedInitialSLTP(BBMA_Decision &decision,') != 1:
+              raise SystemExit('ResolveApprovedInitialSLTP helper count changed unexpectedly')
+          if s.count('if(!ResolveExecutionReferencePrice(decision, snapshot))') != 1:
+              raise SystemExit('execution price preflight wiring not unique')
+          if s.count('if(!ResolveApprovedInitialSLTP(decision, snapshot))') != 1:
+              raise SystemExit('SLTP preflight wiring not unique')
+
+          p.write_text(s, encoding='utf-8')
+          PY
+
+          git diff --check
+          git diff -- blueprint/source/BBMA_EA.mq4
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- blueprint/source/BBMA_EA.mq4
+          git commit -m "P3 runtime fix: wire market price before M17 SLTP validation"
+          git push origin blueprint-dev

@@ -191,7 +191,35 @@ Verified directly against canonical compile-clean source:
 
 The canonical source has now passed deterministic reconstruction, ordered patch integration, architecture-invariant verification, native MetaEditor compilation at **0 errors / 0 warnings**, canonicalization, and a second architecture/invariant audit directly against that compile-clean canonical source.
 
-## Next action — P1 Finalization Step 3
-Create the formal P1 release-candidate lock record for canonical SHA `30363d08437b85f253e6baf3e9c82af0d59d70727639ac0e6420a7677f975bc9`, then transition to P2 functional/Strategy Tester verification. Do not treat the EA as production-ready until P2 functional tests pass.
+## Historical next action — P1 Finalization Step 3
+This section is retained as historical context only. P1 subsequently progressed into recorded P2/P3 work; it is no longer the current next action.
 
-Do not merge into `main` until the release-candidate lock is explicitly recorded and approved.
+Do not merge into `main` until the release-candidate/phase gate appropriate to the active development phase is explicitly recorded and approved.
+
+# 2026-08-22 Project State Reconciliation
+
+This section is the authoritative current-status overlay and supersedes stale phase/next-action wording above where there is a conflict.
+
+## Reconciled status
+- **P0:** complete at locked patch/contract level.
+- **P1:** integration verification, compile repair, canonicalization and release-candidate records exist; no longer the active phase.
+- **P2:** functional/cross-module audit and re-audit records exist through Step 18, with recorded fixes/workflows in repository. Individual P2 record files remain authoritative for their exact pass/fix status.
+- **P3:** ACTIVE runtime-validation phase. Step 1–4 closure records exist. Step 5 source/compile/deployment records exist, but final live MT4 runtime closure remains pending under `blueprint/P3_STEP5_RUNTIME_CLOSURE_CHECKLIST.md` until Tests A–D are directly evidenced and E–F remain satisfied.
+- **P3 PairID/Magic:** static validation PASS; local MetaEditor compile reported 0 errors / 0 warnings in `P3_PAIRID_VERIFICATION_RECORD.md`.
+- **Latest runtime source state observed during reconciliation:** branch head before this tracking-only update was commit `cdcaf8f849f357512be23f91bbb9184098fce574` — `P3 runtime fix: wire M17 market price before SLTP validation`.
+
+## Canonical active queue
+The authoritative work queue is now:
+`blueprint/MASTER_QUEUE.md`
+
+Highest-priority next strategy gate:
+**P3-M1 — Mode 1 Official BBMA Compliance Audit**
+
+Queued alongside it:
+- opposite-direction / same-pair cycle integrity audit;
+- sequential cumulative risk-budget admission verification;
+- `REJ_INVALID_LOT` diagnostics (observability only);
+- dashboard active-trade count refresh.
+
+## Change control
+This reconciliation changes project tracking only. It does not change BBMA strategy logic, execution logic, risk logic, lot sizing, dashboard code, or broker behavior.

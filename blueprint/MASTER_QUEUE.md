@@ -20,15 +20,27 @@ This file is the canonical work queue for active development. It complements `bl
 
 #### CORE-V2-F1 — M09 MHV/MLV source alignment
 Priority: **CRITICAL**
-Status: QUEUED FROM CORE V2 AUDIT
+Status: **PARTIALLY RESOLVED — USER APPROVED STRUCTURAL LIFECYCLE + MANDATORY PRIOR EXTREME PROVENANCE; TP/FORMATION/ANCHOR/RETEST DETAILS PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-04/CV2-05/CV2-06
-Required scope:
-- one canonical MHV/MLV owner-state model;
-- source-timeframe outer-BB close must void candidate/confirmed MHV/MLV;
-- replace synthetic High/Low + fixed-point neckline construction with source-faithful body/retest ownership;
-- morphology must not be restricted to an invented mandatory double-top/bottom formula;
-- remove/demote independent legacy `DetectMHV()` semantics so MHV and MLV cannot disagree.
-Constraint: audit/spec first, then patch. Do not invent arbitrary pip thresholds and present them as BBMA rules.
+Decision record: `blueprint/decisions/CORE_V2_F1_MHV_MLV_LIFECYCLE_DECISION.md`
+Locked decisions:
+- MHV/MLV is one canonical structural lifecycle/owner-state model, not a one-candle detector;
+- MHV and MLV remain terminology aliases for one setup family unless stronger source evidence later distinguishes them;
+- accepted high-level lifecycle is `PRIOR EXTREME / TP CONTEXT -> LOSS OF PRIOR MOMENTUM -> MHV/MLV FORMATION -> MARKED BODY/REFERENCE -> RETEST / ACTIVE SETUP -> VALID CONTINUATION OR VOID/SUPERSESSION`;
+- a **prior source-valid Extreme in the same source-timeframe / owner-cycle is mandatory** for a canonical MHV/MLV candidate;
+- generic inside-BB consolidation, morphology, or loss of impulse without a provable prior Extreme owner-chain must resolve to `NO CANONICAL MHV/MLV OWNER`;
+- an old Extreme cannot be reused indefinitely after the relevant cycle is superseded/restarted;
+- source-timeframe close beyond the relevant outer BB voids MHV/MLV and returns authority to Momentum/CSM;
+- marked body/reference + retest belong to the same lifecycle; synthetic fixed-point neckline logic must not replace the source body/retest concept;
+- double/triple top/bottom and H&S-like forms are morphology/examples, not mandatory universal formulas;
+- independent legacy `DetectMHV()`/MLV semantics must ultimately converge into one canonical owner-state result.
+Classification: **DIRECT SOURCE STRUCTURAL/SEQUENCE CONCEPT + PROJECT STATE-MACHINE / PROVENANCE MAPPING**.
+Remaining specification before code:
+- decide whether TP Wajib must actually be reached/completed before MHV formation and what minimum F2 Extreme maturity is required for the provenance link;
+- define deterministic BBMA proof of `LOSS OF PRIOR MOMENTUM` without ATR/ADX/pip thresholds;
+- define body-reference ownership/freeze, retest interaction, and further supersession/void rules;
+- then migrate/remove duplicate legacy detector semantics.
+Constraint: audit/spec first, then patch. Do not invent arbitrary pip thresholds, fixed candle counts or generic consolidation heuristics and present them as BBMA rules.
 
 #### CORE-V2-F2 — Extreme maturity inside REM/REE
 Priority: **HIGH**
@@ -181,8 +193,8 @@ Before declaring P3 complete, preserve the existing Step 5 closure rule in `P3_S
 
 ## Execution order
 1. Keep `CURRENT.md` + this queue reconciled.
-2. Implement/audit the resolved CORE-V2-F2 Extreme lifecycle, CORE-V2-F3 Type 1 state/owner contract, and CORE-V2-F4 H4 parent/owner/recovery contract.
-3. Repair CORE-V2-F1 M09 MHV/MLV against the resolved canonical Core contract.
+2. Finish CORE-V2-F1 MHV/MLV lifecycle specification.
+3. Implement/audit resolved CORE-V2-F1/F2/F3/F4 contracts in dependency-safe order.
 4. Repair CORE-V2-F5 BB-flat classification and run CORE-V2-F6 timing verification.
 5. Re-run Core V2 static audit until no critical/high Strategy-Core mismatch remains.
 6. Complete P3-M1 Mode 1 end-to-end compliance closure and opposite-direction cycle audit.

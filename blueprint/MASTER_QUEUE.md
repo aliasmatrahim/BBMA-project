@@ -44,7 +44,7 @@ Remaining dependency before code: define a deterministic source-faithful reversa
 
 #### CORE-V2-F3 — Re-Entry Type 1 context
 Priority: **HIGH**
-Status: **PARTIALLY RESOLVED — USER APPROVED CORE PHILOSOPHY; IMPLEMENTATION PREDICATE STILL PENDING**
+Status: **PARTIALLY RESOLVED — USER APPROVED CONTEXT/RANGING/PRIOR-MOVE PHILOSOPHY; MOMENTUM-PAUSE/CONSOLIDATION PREDICATE STILL PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-09
 Decision record: `blueprint/decisions/CORE_V2_F3_TYPE1_CONTEXT_DECISION.md`
 Locked decisions:
@@ -53,12 +53,14 @@ Locked decisions:
 - sideways/ranging is interpreted as BBMA structural ranging, not `BB_FLAT` alone;
 - `BB_FLAT` may be supporting evidence only;
 - **no fixed minimum candle count** is required for Type 1; structural completion governs maturity;
-- do not import Type 2's 3-candle requirement into Type 1.
+- qualifying prior rise/fall must be evidenced by a source-valid BBMA direction/momentum state (`eCSD`, `CSD`, or `CSM/Momentum`) before the ranging/retrace phase;
+- do not substitute EMA50 slope, ATR, pip displacement or generic candle movement for prior BBMA state;
+- if a structure specifically satisfies Type 3 (`CSM -> MA5/MA50 retrace`) or Type 4 (`CSD -> MA5/10 retrace`), keep that specific type classification rather than relabelling it Type 1.
 Remaining specification before code:
-- deterministic BBMA-state predicate for prior move;
-- momentum pause/end;
+- deterministic momentum pause/end transition;
 - consolidation/retrace vs continued impulse;
-- invalidation when momentum resumes or MA5/MA10 close-side breaks.
+- invalidation when momentum resumes or MA5/MA10 close-side breaks;
+- owner-aware relevance/freshness of the prior direction/momentum state.
 Constraint: use BBMA-owned state where possible; no RSI/ADX/ATR/fixed-pip heuristics as disguised Core rules.
 
 #### CORE-V2-F4 — Higher-timeframe context for standalone H1 Re-Entry
@@ -147,7 +149,7 @@ Before declaring P3 complete, preserve the existing Step 5 closure rule in `P3_S
 
 ## Execution order
 1. Keep `CURRENT.md` + this queue reconciled.
-2. Finish CORE-V2-F3 deterministic Type 1 BBMA-state predicate, then resolve CORE-V2-F4 higher-timeframe H1 Re-Entry context.
+2. Finish CORE-V2-F3 momentum-pause/consolidation/invalidation predicate, then resolve CORE-V2-F4 higher-timeframe H1 Re-Entry context.
 3. Define deterministic reversal-confirmation semantics required to implement the already-approved CORE-V2-F2 maturity decision.
 4. Repair CORE-V2-F1 M09 MHV/MLV against the resolved canonical Core contract.
 5. Repair CORE-V2-F5 BB-flat classification and run CORE-V2-F6 timing verification.

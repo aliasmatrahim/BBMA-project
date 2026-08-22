@@ -1,7 +1,7 @@
 # CORE-V2-F4 — Higher-Timeframe Context for Standalone H1 Re-Entry
 
 Date: 2026-08-22
-Status: **PARTIALLY RESOLVED — USER-APPROVED H4 PARENT + AUTHORITATIVE CYCLE-STATE ALIGNMENT + INHERITED DIRECTIONAL OWNER + eCSD AUTHORITY + ATOMIC OPPOSITE OWNER HANDOVER + NO-OWNER BLOCK; FRESHNESS/LIFETIME STILL PENDING**
+Status: **PARTIALLY RESOLVED — USER-APPROVED H4 PARENT + AUTHORITATIVE CYCLE-STATE ALIGNMENT + INHERITED DIRECTIONAL OWNER + eCSD AUTHORITY + ATOMIC OPPOSITE OWNER HANDOVER + NO-OWNER BLOCK + STRUCTURAL OWNER LIFETIME; RESTART/RECOVERY RECONSTRUCTION STILL PENDING**
 Branch: `blueprint-dev`
 
 ## User-approved decision 1 — immediate higher-timeframe owner
@@ -102,6 +102,20 @@ Operational meaning:
 
 Evidence classification: **DIRECT MTF PRINCIPLE + SOURCE-INFERRED NO-OWNER EXECUTION GUARD**. The source requires higher-timeframe context/alignment but does not publish a verbatim software `NO_OWNER` state rule.
 
+## User-approved decision 7 — structural H4 owner lifetime / freshness
+The project adopts **PURE STRUCTURAL H4 OWNER LIFETIME WITH NO GENERIC FIXED EXPIRY**.
+
+Accepted rule:
+- an authoritative H4 directional owner remains current while the same BBMA cycle/structure remains valid under the accepted owner, inheritance and supersession rules;
+- owner age by itself does not invalidate H4 context;
+- there is no generic 3/5/10-H4-candle expiry, 24-hour expiry, daily reset, session reset, or periodic requirement for a fresh eCSD/CSD merely because time has passed;
+- owner lifetime ends through structural invalidation/supersession, including a source-valid opposite owner handover or another authoritative BBMA cycle/state transition that ends the old owner;
+- a neutral H4 candle may occur during the owner's lifetime without expiring it;
+- candle/bar age may be recorded for observability, audit and recovery diagnostics, but must not become a BBMA eligibility filter;
+- the project does not add an engineering-only stale timeout at this stage because no source-derived threshold exists and such a timeout would be arbitrary.
+
+Evidence classification: **SOURCE-INFERRED / STRONG HINT + SOURCE-FAITHFUL ABSENCE OF NUMERIC EXPIRY RULE**. The source teaches BBMA as a structural cycle/state progression and provides no universal expiration count for higher-timeframe directional context.
+
 ## Evidence classification
 The source explicitly requires multi-timeframe reading and instructs that Re-Entry direction be checked against higher timeframes. The primary PDF also gives intraday H4/H1/M15 alignment guidance.
 
@@ -111,9 +125,9 @@ Finale strongly corroborates parent/child timeframe ownership and inherited cycl
 - V05 explicitly distinguishes early direction (eCSD), stronger direction (CSD), Re-Entry setup and later Momentum/continuation;
 - V06 repeats the cycle `Extreme -> MHV -> direction -> Re-Entry -> Momentum/continuation` across timeframes.
 
-Classification: **DIRECT SOURCE PRINCIPLE + SOURCE-INFERRED / STRONG HINT FOR H4 AS THE IMMEDIATE PARENT AND FOR OWNER/STATE-BASED ALIGNMENT/INHERITANCE/HANDOVER**.
+Classification: **DIRECT SOURCE PRINCIPLE + SOURCE-INFERRED / STRONG HINT FOR H4 AS THE IMMEDIATE PARENT AND FOR OWNER/STATE-BASED ALIGNMENT/INHERITANCE/HANDOVER/LIFETIME**.
 
-The source does not provide a single verbatim Boolean formula or software state-machine for every standalone H1 Re-Entry. Exact owner freshness/lifetime remains project specification.
+The source does not provide a single verbatim Boolean formula or software state-machine for every standalone H1 Re-Entry. Restart/recovery reconstruction remains a project implementation specification.
 
 ## Rejected alternatives
 - H1-only execution with no higher-timeframe context: rejected as inconsistent with the source's MTF requirement.
@@ -128,13 +142,16 @@ The source does not provide a single verbatim Boolean formula or software state-
 - allowing simultaneous authoritative H4 BUY and SELL owners: rejected.
 - allowing standalone H1 execution when H4 has no active authoritative owner: rejected because it defeats the accepted higher-timeframe context requirement.
 - using D1, Mid-BB/MA50 or absence-of-opposite as a silent fallback owner when H4 is no-owner: rejected.
+- fixed H4 owner expiry by candle count, clock time, day or session: rejected as unsupported.
+- periodic forced refresh of eCSD/CSD solely due to owner age: rejected.
 
 ## Remaining sub-specification
-Before code is patched, define the remaining H4 owner freshness/lifetime rule.
+Before code is patched, define **restart/recovery reconstruction** of the H4 owner.
 
 The next review must decide:
-- whether H4 owner lifetime should be purely structural with no generic fixed expiry;
-- or whether an engineering-only stale timeout should exist outside Strategy Core;
-- how restart/recovery reconstructs a still-valid owner without inventing direction from incomplete state.
+- whether recovery should rebuild owner state by replaying closed H4 BBMA history until the latest authoritative owner/supersession state is deterministically reconstructed;
+- whether recovery may trust persisted owner state without replay;
+- what to do when available history is insufficient to prove the owner chain;
+- how to avoid inventing direction from incomplete state after restart.
 
-No M12/M15 code patch is authorized until this H4 owner-state contract is fully resolved.
+No M12/M15 code patch is authorized until restart/recovery reconstruction is resolved.

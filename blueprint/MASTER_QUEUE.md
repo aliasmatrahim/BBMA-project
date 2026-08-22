@@ -32,30 +32,29 @@ Constraint: audit/spec first, then patch. Do not invent arbitrary pip thresholds
 
 #### CORE-V2-F2 — Extreme maturity inside REM/REE
 Priority: **HIGH**
-Status: **PARTIALLY RESOLVED — USER APPROVED MATURITY + REVERSAL DIRECTION + FIRST-QUALIFYING-CANDLE PROMOTION + STRUCTURAL ANCHOR FREEZE + RETEST-START TRIGGER + BODY-ANCHOR MAPPING; RETEST VALIDATION PENDING**
+Status: **SPECIFICATION RESOLVED — USER APPROVED; CODE PATCH/AUDIT STILL PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-03
 Decision record: `blueprint/decisions/CORE_V2_F2_EXTREME_MATURITY_DECISION.md`
 Locked decisions:
+- maturity lifecycle is `RAW EXTREME -> REVERSAL-CONFIRMED EXTREME -> RETEST/ENTRY-READY EXTREME`;
 - raw Extreme alone is not sufficient for executable REM/REE;
-- Extreme used as REM/REE component must be **reversal-confirmed**;
-- standalone Extreme entry still requires the later **retest** stage;
-- reversal confirmation uses the minimum source-faithful directional mapping on closed source-TF candles: SELL `Close < Open`, BUY `Close > Open`;
-- no mandatory previous-candle colour flip, named candlestick pattern, fixed two-/three-candle template, or eCSD/CSD prerequisite is added;
-- close-back-inside-BB is supporting/preferred rather than a universal hard requirement under the accepted source wording;
-- the **first qualifying closed reversal-direction candle** promotes `RAW EXTREME -> REVERSAL-CONFIRMED`, provided the candidate has not already been voided by accepted outside-BB/Momentum invalidation;
-- later same-direction reversal candles may continue the reversal phase but are not required merely to reach REM/REE component maturity;
-- the provisional body/reference anchor may extend during the same reversal phase but is frozen when the retest phase begins;
-- deterministic retest-start trigger: SELL Extreme begins retest when first later closed candle has `CurrentClose > PreviousClose`; BUY Extreme begins retest when first later closed candle has `CurrentClose < PreviousClose`;
-- the retest-start candle is excluded from the reversal-phase anchor and is the first retest-phase candle;
-- frozen numeric body anchor uses the full completed reversal phase: SELL = highest `max(Open,Close)`; BUY = lowest `min(Open,Close)`;
-- wick `High/Low` is not the mandatory body anchor; relevant MA5 remains an alternate/confluent retest reference and does not replace the frozen body anchor;
-- candle colour alone, fixed-N delay, previous-high/low breakout or waiting for an actual body/MA5 touch are not used merely to declare retest phase start;
-- classification: maturity decision **SOURCE-INFERRED / STRONG HINT**; reversal direction/promotion/retest-start/body-anchor predicates are **DIRECT SOURCE REQUIREMENT / SOURCE-DERIVED BODY-RETEST CONCEPT + MINIMAL DETERMINISTIC PROJECT MAPPING**.
-Remaining dependency before code:
-- define valid standalone retest interaction with the frozen body reference and/or relevant MA5;
-- decide whether wick/range touch is sufficient or whether a separate close-side confirmation is source-supported;
-- apply accepted outside-BB/Momentum invalidation cleanly through the retest phase.
-Constraint: do not invent arbitrary candle counts, named patterns, EMA/ATR/RSI filters, mandatory body+MA5 dual touch, or a moving anchor that can drift indefinitely.
+- Extreme used as REM/REE component must be at least **reversal-confirmed**;
+- standalone Extreme entry requires the later **retest/entry-ready** stage;
+- reversal confirmation uses closed source-TF candles with the minimal deterministic direction mapping: SELL `Close < Open`, BUY `Close > Open`;
+- the first qualifying closed reversal-direction candle promotes `RAW -> REVERSAL-CONFIRMED`, provided accepted outside-BB/Momentum invalidation has not already voided the candidate;
+- no mandatory previous-candle colour flip, named pattern, fixed two-/three-candle template, eCSD/CSD prerequisite, or universal close-back-inside-BB requirement is added;
+- the reversal phase may continue structurally after first confirmation; provisional body reference may update only while that reversal phase remains active;
+- retest starts on the first later closed candle whose close moves back toward the original Extreme/reference relative to the previous close: SELL `CurrentClose > PreviousClose`; BUY `CurrentClose < PreviousClose`;
+- the retest-start candle is the first retest-phase candle and is excluded from the completed reversal-phase anchor;
+- frozen body anchor across the completed reversal phase is SELL = highest `max(Open,Close)`; BUY = lowest `min(Open,Close)`;
+- wick `High/Low` is not the body-anchor value;
+- standalone retest is completed by price-range/wick interaction with the frozen body anchor **or** the relevant MA5 area; no universal extra close-side/named-pattern/second-confirmation rule is added;
+- body anchor and MA5 are alternative source-supported retest references, not mandatory dual-touch confluence;
+- if body anchor and MA5 are separated, the **first valid interaction with either** completes the retest; there is no body-first/MA5-first priority and no nearest-reference heuristic;
+- accepted outside-BB/Momentum invalidation has priority over reversal/retest promotion and results in `VOID`;
+- classification: component maturity is **SOURCE-INFERRED / STRONG HINT**; reversal/retest direction, phase, body-reference and first-valid-interaction predicates are **DIRECT SOURCE REQUIREMENT / SOURCE-DERIVED CONCEPT + MINIMAL DETERMINISTIC PROJECT MAPPING**.
+Constraint: implementation must reproduce this lifecycle without arbitrary candle counts, named candlestick patterns, EMA/ATR/RSI filters, moving anchors, mandatory dual-touch, or invented target hierarchy.
+Next action for F2: patch/audit the Extreme lifecycle and REM/REE component maturity against the resolved contract; no code was changed during specification review.
 
 #### CORE-V2-F3 — Re-Entry Type 1 context
 Priority: **HIGH**
@@ -105,7 +104,7 @@ Classification:
 - H4 MTF/owner semantics: direct source principle + source-inferred/strong-hint project mapping;
 - restart/recovery mechanics: EA engineering policy only, preserving the approved Core semantics.
 Constraint: implementation must not invent EMA-only, score-based, timer-based, D1-fallback, or current-snapshot shortcuts.
-Next action for F4: patch/audit H4 owner consumption and M24 recovery only after the remaining pre-code specification dependency below is resolved.
+Next action for F4: patch/audit H4 owner consumption and M24 recovery after the specification gates are closed.
 
 #### P3-M1 — Mode 1 Official BBMA Compliance Audit
 Priority: CRITICAL / NEXT STRATEGY GATE AFTER CORE-V2 SPEC CLOSURE
@@ -182,16 +181,15 @@ Before declaring P3 complete, preserve the existing Step 5 closure rule in `P3_S
 
 ## Execution order
 1. Keep `CURRENT.md` + this queue reconciled.
-2. Finish CORE-V2-F2 standalone Extreme retest-validation specification.
-3. Implement/audit CORE-V2-F3 Type 1 state/owner contract and CORE-V2-F4 H4 parent/owner/recovery contract.
-4. Repair CORE-V2-F1 M09 MHV/MLV against the resolved canonical Core contract.
-5. Repair CORE-V2-F5 BB-flat classification and run CORE-V2-F6 timing verification.
-6. Re-run Core V2 static audit until no critical/high Strategy-Core mismatch remains.
-7. Complete P3-M1 Mode 1 end-to-end compliance closure and opposite-direction cycle audit.
-8. Verify sequential risk-budget admission.
-9. Complete P3 Step 5 live runtime closure evidence.
-10. Address observability/UI items: invalid-lot diagnostics and dashboard active-count refresh.
-11. Recompile and run regression/backtest gates before optimization or win-rate based analysis.
+2. Implement/audit the resolved CORE-V2-F2 Extreme lifecycle, CORE-V2-F3 Type 1 state/owner contract, and CORE-V2-F4 H4 parent/owner/recovery contract.
+3. Repair CORE-V2-F1 M09 MHV/MLV against the resolved canonical Core contract.
+4. Repair CORE-V2-F5 BB-flat classification and run CORE-V2-F6 timing verification.
+5. Re-run Core V2 static audit until no critical/high Strategy-Core mismatch remains.
+6. Complete P3-M1 Mode 1 end-to-end compliance closure and opposite-direction cycle audit.
+7. Verify sequential risk-budget admission.
+8. Complete P3 Step 5 live runtime closure evidence.
+9. Address observability/UI items: invalid-lot diagnostics and dashboard active-count refresh.
+10. Recompile and run regression/backtest gates before optimization or win-rate based analysis.
 
 ## Governance
 - GitHub records are authoritative over chat recollection.

@@ -1,7 +1,7 @@
 # CORE-V2-F2 — Extreme Lifecycle Implementation Audit
 
 Date: 2026-08-22
-Status: **IMPLEMENTED / STATIC AUDIT PASS — NATIVE METAEDITOR COMPILE + REGRESSION/RUNTIME STILL REQUIRED**
+Status: **IMPLEMENTED / STATIC REGRESSION PASS — NATIVE METAEDITOR COMPILE + RUNTIME TRACE STILL REQUIRED**
 Branch: `blueprint-dev`
 
 ## Scope
@@ -35,10 +35,18 @@ Implements the resolved `CORE_V2_F2_EXTREME_MATURITY_DECISION.md` contract on th
 - M16 component owner still exact-matches direction, timeframe and confirmation-candle identity.
 - No standalone Extreme direct-entry authority is introduced.
 
+## Static regression closure
+Post-implementation re-audit additionally verified:
+- the full source has balanced braces/parentheses/brackets after stripping comments/strings;
+- only one `SIGNAL_EXTREME` executable export assignment exists, inside the reversal-confirmed exporter;
+- `DetectExtreme()` has only the definition plus H1/H4 RAW call sites;
+- `MaxWaitBars_Extreme` is not used as executable expiry/reset logic inside `UpdateExtremeLifecycle()`;
+- H1/H4 exact combination signatures remain unchanged;
+- duplicate H4 snapshot assignment from the first patch pass was removed.
+
 ## Remaining verification
 1. Native MetaEditor compile must report **0 errors / 0 warnings**.
-2. Regression/static re-audit should prove RAW Extreme never reaches M13/M14/M15 as an executable component.
-3. Runtime trace should cover: RAW->REVERSAL_CONFIRMED; invalidation-before-confirmation; multi-candle reversal anchor update; retest start/freeze; body-touch completion; MA5-touch completion; invalidation precedence.
-4. F1 implementation must consume the underlying F2 lifecycle for prior-Extreme provenance without weakening F2 maturity or converting `MaxWaitBars_Extreme` into a strategy-lifecycle TTL.
+2. Runtime trace should cover: RAW->REVERSAL_CONFIRMED; invalidation-before-confirmation; multi-candle reversal anchor update; retest start/freeze; body-touch completion; MA5-touch completion; invalidation precedence.
+3. F1 implementation must consume the underlying F2 lifecycle for prior-Extreme provenance without weakening F2 maturity or converting `MaxWaitBars_Extreme` into a strategy-lifecycle TTL.
 
 Decision provenance: `blueprint/decisions/CORE_V2_F2_EXTREME_MATURITY_DECISION.md`.

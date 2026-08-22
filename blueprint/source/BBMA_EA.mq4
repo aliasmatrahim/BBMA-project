@@ -571,8 +571,8 @@ struct PairState
    ExtremeLifecycleData extreme_h1_sell_lifecycle;
    ExtremeLifecycleData extreme_h4_buy_lifecycle;
    ExtremeLifecycleData extreme_h4_sell_lifecycle;
-   // M16 persistent validity overlay for source-detected Extremes.
-   // M08 remains the detector; M16 owns temporal invalidation/expiry only.
+   // M16 executable-component freshness/identity overlay for mature Extremes.
+   // M08 owns RAW/reversal/retest maturity and strategy invalidation.
    Signal               extreme_h1_buy_state;
    Signal               extreme_h1_sell_state;
    Signal               extreme_h4_buy_state;
@@ -5657,7 +5657,6 @@ void ProcessPair(int pairIndex)
                                       g_pair_states[pairIndex].extreme_h4_sell_state);
          h4ExtremeSnapshot = g_pair_states[pairIndex].extreme_h4_sell_state;
       }
-      h4_extreme = h4ExtremeSnapshot;
       h4_extreme = h4ExtremeSnapshot;
 
       ComponentSet rem, rre, ree;

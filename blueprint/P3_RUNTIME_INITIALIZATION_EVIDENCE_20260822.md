@@ -2,30 +2,50 @@
 
 Date: 2026-08-22
 Branch: `blueprint-dev`
-Status: **INITIALIZATION PASS / PAIR-MAP EVIDENCE PASS — P3S5 RECOVERY DETAIL PARTIAL, NEXT CAPTURE REQUIRED**
+Status: **INITIALIZATION PASS / PAIR-MAP PASS / P3S5 TEST A PASS — TEST B/C/D PENDING**
 
 ## Evidence source
-User-provided native MT4 screenshot after attaching the current compile-clean EA build.
+User-provided native MT4 screenshots after attaching the current compile-clean EA build.
 
-## Directly visible evidence
+## Directly visible startup evidence
 - EA log reaches `[P3S1][PASS] EA initialized successfully with 20 pairs`.
-- Visible pair-resolution lines show requested symbols resolving successfully to broker symbols.
-- Visible broker-spec lines report `[P3S1][PASS]` together with PairID and Magic values for multiple pairs, including EURUSD, GBPUSD, USDJPY, USDCHF, USDCAD, AUDUSD, NZDUSD, EURJPY, GBPJPY, AUDJPY, CADJPY, CHFJPY and NZDJPY.
-- No initialization-failure line is visible in the supplied screenshot.
-- Earlier `uninit reason 3` lines are followed by a clean re-initialization and are treated as prior chart/timeframe lifecycle noise rather than evidence of current init failure.
+- Pair resolution and broker-spec validation complete across the configured 20-pair set in the supplied captures.
+- Visible broker-spec lines report `[P3S1][PASS]` with PairID and Magic values.
+- No current initialization-failure line is visible.
+- Earlier `uninit reason 3` lines are followed by a clean re-initialization and are treated as chart/timeframe lifecycle events rather than current init failure.
 
-## P3 Step 5 recovery evidence
-A `[P3S5][RECOVERY]` line is visible at the bottom of the screenshot for ticket `484106108`, pair `GBPAUD`, but the right-hand fields are cut off by the log viewport. Therefore the screenshot does **not** yet prove the required Test A state/cause/hash fields.
+## P3 Step 5 — Test A recovery evidence
+The second supplied capture exposes the full recovery fields for multiple exact-owned open orders. Examples include GBPAUD, EURAUD, GBPUSD, EURUSD and GBPCAD. Each visible recovery line has the required form:
+
+`[P3S5][RECOVERY] Ticket=<ticket> Pair=<pair> State=REC_IDENTITY_MISSING_FROZEN Cause=MISSING_EXECUTION_HASH HashFound=N FullMeta=N`
+
+This directly proves the runtime classification expected for pre-existing exact-owned orders that do not carry the current `BBMA|H:` execution identity.
+
+The current source also confirms that, after geometry/lot validation and classification, `AddToMonitoredTrades(info)` is executed before the recovery diagnostic is printed. Therefore these frozen identity-missing orders remain in EA monitored/risk/portfolio ownership rather than being silently discarded.
+
+### Test A verdict
+**PASS.** Required runtime classification fields are visible and the source ownership path preserves the recovered orders in the monitored portfolio.
+
+## Remaining P3 Step 5 evidence
+### Test B — frozen-state log suppression
+**PENDING.** Current screenshots show the initialization/reconstruction burst only. Need a later Experts-log window, after several subsequent ticks/timer cycles, proving that `[P3S5][RECOVERY]` is not emitted repeatedly outside reconstruction.
+
+### Test C — fresh M22 execution identity persistence
+**PENDING.** Need one genuine new EA trade from the current build and a visible `[P3S5][EXEC_ID] ... Persist=PASS HashFound=Y HashMatch=Y ...` line.
+
+### Test D — restart after fresh hashed trade
+**PENDING.** After Test C, restart/re-attach while that fresh trade remains open and verify the execution hash is recovered without downgrading the trade to `REC_IDENTITY_MISSING_FROZEN` and without duplicate execution.
 
 ## Current runtime verdict
-- Native compile: PASS (0 errors / 0 warnings), recorded separately.
+- Native MetaEditor: **PASS — 0 errors / 0 warnings**.
 - Runtime initialization: **PASS**.
-- Pair/symbol/broker-spec startup mapping: **PASS for the visible evidence**.
-- P3S5 Test A recovery classification: **PENDING FULL LINE**.
-- P3S5 Test B log-suppression: **PENDING**.
-- P3S5 Tests C/D fresh execution hash + restart recovery: **PENDING**.
+- Pair/symbol/broker-spec startup mapping: **PASS**.
+- P3S5 Test A: **PASS**.
+- P3S5 Test B: **PENDING**.
+- P3S5 Test C: **PENDING**.
+- P3S5 Test D: **PENDING**.
 
 ## Next evidence capture
-Capture the full `[P3S5][RECOVERY]` line by horizontally scrolling the Experts log to the right or widening the Message column. The required fields are the complete `State=... Cause=... HashFound=... FullMeta=...` portion. Then leave the EA running for several subsequent cycles and capture enough log to determine whether the recovery diagnostic repeats or remains initialization-only.
+Leave the EA attached and running through several subsequent cycles without restarting it. Then capture the Experts log at a later timestamp. The evidence target for Test B is that the earlier `[P3S5][RECOVERY]` burst does not keep repeating every cycle.
 
-No strategy, risk, execution or dashboard code is changed by this record.
+No strategy, risk, execution or dashboard code is changed by this evidence record.

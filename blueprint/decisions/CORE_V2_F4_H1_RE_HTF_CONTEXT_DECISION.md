@@ -1,7 +1,7 @@
 # CORE-V2-F4 — Higher-Timeframe Context for Standalone H1 Re-Entry
 
 Date: 2026-08-22
-Status: **PARTIALLY RESOLVED — USER-APPROVED H4 PARENT + AUTHORITATIVE CYCLE-STATE ALIGNMENT + INHERITED DIRECTIONAL OWNER + eCSD AUTHORITY + ATOMIC OPPOSITE OWNER HANDOVER + NO-OWNER BLOCK + STRUCTURAL OWNER LIFETIME; RESTART/RECOVERY RECONSTRUCTION STILL PENDING**
+Status: **RESOLVED — USER-APPROVED H4 PARENT/OWNER/TRANSITION/LIFETIME/RECOVERY SPECIFICATION**
 Branch: `blueprint-dev`
 
 ## User-approved decision 1 — immediate higher-timeframe owner
@@ -45,7 +45,7 @@ Operational meaning:
 - one neutral H4 candle does not erase the inherited owner when the authoritative H4 cycle remains valid;
 - raw Extreme and raw MHV/MLV remain pre-direction context and do not own H4 directional authority by themselves;
 - multiple same-direction owner-capable states are interpreted as lifecycle progression/continuation, not a quality ranking between signal families;
-- opposite or superseding H4 structural states must terminate or replace the old owner according to the final invalidation/transition contract.
+- opposite or superseding H4 structural states terminate or replace the old owner according to the accepted handover contract.
 
 Evidence classification: **SOURCE-INFERRED / STRONG HINT**. V05/V06 explicitly teach direction -> Re-Entry -> Momentum/continuation as one BBMA cycle progression, but do not provide a verbatim software-owner-state algorithm.
 
@@ -79,7 +79,7 @@ Operational meaning:
 - an opposite raw Extreme or raw MHV/MLV alone still does not automatically establish a new directional owner because those stages are not directional authority by themselves;
 - this owner-handover rule is a deterministic project mapping of source-defined directional states, not a verbatim source software instruction.
 
-Evidence classification: **SOURCE-INFERRED / STRONG HINT + INTERNAL CONSISTENCY WITH THE USER-APPROVED eCSD OWNER RULE**. The source explicitly treats eCSD/CSD as direction information and CSM/Momentum as continuation/directional movement, but does not publish an owner-state handover algorithm.
+Evidence classification: **SOURCE-INFERRED / STRONG HINT + INTERNAL CONSISTENCY WITH THE USER-APPROVED eCSD OWNER RULE**.
 
 ## User-approved decision 6 — neutral candle versus true no-owner H4 state
 The project adopts **NEUTRAL-CANDLE PRESERVATION + TRUE NO-OWNER EXECUTION BLOCK**.
@@ -100,7 +100,7 @@ Operational meaning:
 - do not invent temporary direction from H4 Mid-BB/MA50 position, candle color, generic price position, or absence of an opposite signal;
 - the H1 detector may still observe/build its setup while H4 is no-owner, but final standalone H1 execution eligibility remains blocked until a compatible H4 owner exists.
 
-Evidence classification: **DIRECT MTF PRINCIPLE + SOURCE-INFERRED NO-OWNER EXECUTION GUARD**. The source requires higher-timeframe context/alignment but does not publish a verbatim software `NO_OWNER` state rule.
+Evidence classification: **DIRECT MTF PRINCIPLE + SOURCE-INFERRED NO-OWNER EXECUTION GUARD**.
 
 ## User-approved decision 7 — structural H4 owner lifetime / freshness
 The project adopts **PURE STRUCTURAL H4 OWNER LIFETIME WITH NO GENERIC FIXED EXPIRY**.
@@ -114,7 +114,47 @@ Accepted rule:
 - candle/bar age may be recorded for observability, audit and recovery diagnostics, but must not become a BBMA eligibility filter;
 - the project does not add an engineering-only stale timeout at this stage because no source-derived threshold exists and such a timeout would be arbitrary.
 
-Evidence classification: **SOURCE-INFERRED / STRONG HINT + SOURCE-FAITHFUL ABSENCE OF NUMERIC EXPIRY RULE**. The source teaches BBMA as a structural cycle/state progression and provides no universal expiration count for higher-timeframe directional context.
+Evidence classification: **SOURCE-INFERRED / STRONG HINT + SOURCE-FAITHFUL ABSENCE OF NUMERIC EXPIRY RULE**.
+
+## User-approved decision 8 — verified checkpoint + deterministic replay on restart/recovery
+The project adopts **VERIFIED CHECKPOINT + DETERMINISTIC CLOSED-H4 REPLAY + FAIL-SAFE NO_OWNER** for H4 owner reconstruction after EA restart/recovery.
+
+Accepted recovery flow:
+
+`RESTART -> LOAD PERSISTED CHECKPOINT -> VERIFY PROVENANCE/CONSISTENCY -> REPLAY CLOSED H4 AFTER CHECKPOINT -> APPLY THE SAME OWNER/HANDOVER/INVALIDATION RULES -> RECONSTRUCT LATEST AUTHORITATIVE OWNER`
+
+Fallback behavior:
+- persisted H4 owner state is a **checkpoint/cache**, not an unquestioned source of truth;
+- if the checkpoint is missing, corrupt, inconsistent, or cannot be proven against its provenance, rebuild from available closed H4 history;
+- replay must use the same source-valid eCSD/CSD/Re-Entry/CSM owner semantics, opposite-owner handover rules, and structural lifetime rules used during normal runtime;
+- replay must process closed H4 states chronologically so restart does not change the owner that would have existed without interruption;
+- if available history is insufficient to prove an authoritative owner chain, recovery must end in **`NO_OWNER`**, not in an inferred BUY/SELL guess;
+- while recovery is unresolved or ends in `NO_OWNER`, standalone H1 Re-Entry execution remains blocked under decision 6;
+- recovery must not manufacture direction from current candle color, current MA/EMA position, D1 fallback, absence of opposite signals, or a persisted direction field whose provenance cannot be verified.
+
+Primary engineering invariant:
+
+**After deterministic recovery, the reconstructed H4 owner should equal the owner that the same closed-candle state machine would have produced if the EA had remained continuously running.**
+
+Evidence classification: **EA ENGINEERING POLICY / DETERMINISTIC RECOVERY CONTRACT**. The BBMA sources do not discuss EA persistence or restart mechanics; this decision exists only to preserve the already-approved Strategy-Core owner semantics across restart.
+
+## Consolidated standalone H1 Re-Entry parent contract
+A standalone H1 Re-Entry is eligible for higher-timeframe alignment only when:
+1. H4 has an active authoritative directional/cycle owner;
+2. that H4 owner direction is compatible with the H1 Re-Entry direction;
+3. the owner is source-valid under the eCSD/CSD/Re-Entry/CSM inherited-cycle model;
+4. the owner has not been structurally superseded or handed over to the opposite direction;
+5. H4 is not in a true `NO_OWNER` state;
+6. restart/recovery, when applicable, has deterministically reconstructed the owner or explicitly resolved to `NO_OWNER`.
+
+There is:
+- no H1-only bypass of H4 context;
+- no mandatory universal D1 hard gate;
+- no raw Extreme/MHV-only directional ownership;
+- no EMA50/Mid-BB-only owner substitute;
+- no simultaneous authoritative H4 BUY and SELL owners;
+- no generic fixed owner expiry;
+- no silent D1/indicator fallback during no-owner or recovery uncertainty.
 
 ## Evidence classification
 The source explicitly requires multi-timeframe reading and instructs that Re-Entry direction be checked against higher timeframes. The primary PDF also gives intraday H4/H1/M15 alignment guidance.
@@ -125,33 +165,27 @@ Finale strongly corroborates parent/child timeframe ownership and inherited cycl
 - V05 explicitly distinguishes early direction (eCSD), stronger direction (CSD), Re-Entry setup and later Momentum/continuation;
 - V06 repeats the cycle `Extreme -> MHV -> direction -> Re-Entry -> Momentum/continuation` across timeframes.
 
-Classification: **DIRECT SOURCE PRINCIPLE + SOURCE-INFERRED / STRONG HINT FOR H4 AS THE IMMEDIATE PARENT AND FOR OWNER/STATE-BASED ALIGNMENT/INHERITANCE/HANDOVER/LIFETIME**.
+Classification: **DIRECT SOURCE PRINCIPLE + SOURCE-INFERRED / STRONG HINT FOR H4 PARENT/OWNER SEMANTICS; RESTART/RECOVERY MECHANICS ARE ENGINEERING-ONLY**.
 
-The source does not provide a single verbatim Boolean formula or software state-machine for every standalone H1 Re-Entry. Restart/recovery reconstruction remains a project implementation specification.
+The source does not provide a verbatim Boolean formula or software state-machine for every standalone H1 Re-Entry. The project encoding above is the user-approved deterministic mapping of the accepted source principles.
 
 ## Rejected alternatives
-- H1-only execution with no higher-timeframe context: rejected as inconsistent with the source's MTF requirement.
-- universal D1 + H4 hard alignment for every H1 Re-Entry: not selected; this is stricter than the source clearly establishes for the H4/H1/M15 intraday chain.
-- `H4 OR D1` alignment as a generic fallback: rejected as an unsupported engineering compromise.
-- H4 EMA50-only alignment: rejected as an insufficient substitute for BBMA higher-timeframe context.
-- current-H4-candle-only directional gating: rejected as too atomic for the source's cycle/state teaching.
-- raw H4 Extreme-only or raw H4 MHV/MLV-only ownership: rejected because those stages do not by themselves establish authoritative direction.
-- treating every H4 eCSD/CSD/Re-Entry/CSM occurrence as an unrelated independent owner: rejected in favor of inherited same-cycle directional ownership.
-- requiring CSD/Re-Entry/CSM before a valid H4 eCSD may establish directional ownership: rejected as an unsupported extra hard filter.
-- keeping the old H4 owner alive after a valid opposite eCSD while waiting for stronger confirmation: rejected as inconsistent with the accepted rule that valid eCSD itself can establish directional ownership.
-- allowing simultaneous authoritative H4 BUY and SELL owners: rejected.
-- allowing standalone H1 execution when H4 has no active authoritative owner: rejected because it defeats the accepted higher-timeframe context requirement.
-- using D1, Mid-BB/MA50 or absence-of-opposite as a silent fallback owner when H4 is no-owner: rejected.
-- fixed H4 owner expiry by candle count, clock time, day or session: rejected as unsupported.
-- periodic forced refresh of eCSD/CSD solely due to owner age: rejected.
+- H1-only execution with no higher-timeframe context;
+- universal D1 + H4 hard alignment for every H1 Re-Entry;
+- `H4 OR D1` alignment as a generic fallback;
+- H4 EMA50-only alignment;
+- current-H4-candle-only directional gating;
+- raw H4 Extreme-only or raw H4 MHV/MLV-only ownership;
+- treating every H4 eCSD/CSD/Re-Entry/CSM occurrence as an unrelated independent owner;
+- requiring CSD/Re-Entry/CSM before a valid H4 eCSD may establish directional ownership;
+- keeping the old H4 owner alive after a valid opposite eCSD while waiting for stronger confirmation;
+- allowing simultaneous authoritative H4 BUY and SELL owners;
+- allowing standalone H1 execution when H4 has no active authoritative owner;
+- using D1, Mid-BB/MA50 or absence-of-opposite as a silent fallback owner when H4 is no-owner;
+- fixed H4 owner expiry by candle count, clock time, day or session;
+- periodic forced refresh of eCSD/CSD solely due to owner age;
+- trusting persisted owner state blindly after restart;
+- inferring a recovery owner from current snapshot when historical provenance is insufficient.
 
-## Remaining sub-specification
-Before code is patched, define **restart/recovery reconstruction** of the H4 owner.
-
-The next review must decide:
-- whether recovery should rebuild owner state by replaying closed H4 BBMA history until the latest authoritative owner/supersession state is deterministically reconstructed;
-- whether recovery may trust persisted owner state without replay;
-- what to do when available history is insufficient to prove the owner chain;
-- how to avoid inventing direction from incomplete state after restart.
-
-No M12/M15 code patch is authorized until restart/recovery reconstruction is resolved.
+## Implementation guard
+This record closes the **CORE-V2-F4 strategy/engineering specification**. It does not itself patch M12/M15/M24 or any other EA module. Implementation must preserve the exact closed-candle owner semantics above and must be audited so restart/recovery does not create an owner that continuous runtime would not have produced.

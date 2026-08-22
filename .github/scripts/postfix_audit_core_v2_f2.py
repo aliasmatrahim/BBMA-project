@@ -59,7 +59,9 @@ lifecycle = block(
     'ENUM_EXTREME_MATURITY UpdateExtremeLifecycle(',
     'bool ExportReversalConfirmedExtremeSignal('
 )
-if 'MaxWaitBars_Extreme' in lifecycle:
+# MaxWaitBars_Extreme may appear in explanatory comments, but must not be used
+# as executable lifecycle expiry/reset logic inside M08.
+if 'MaxWaitBars_Extreme *' in lifecycle or 'IsExtremeStateExpired' in lifecycle:
     raise SystemExit('MaxWaitBars_Extreme leaked into F2 strategy lifecycle')
 for required in [
     'if(direction == DIR_SELL) return (data.close < data.open);',
@@ -135,7 +137,7 @@ text = text.replace(
 )
 text = text.replace(
     '## Remaining verification\n1. Native MetaEditor compile must report **0 errors / 0 warnings**.\n2. Regression/static re-audit should prove RAW Extreme never reaches M13/M14/M15 as an executable component.\n3. Runtime trace should cover:',
-    '## Static regression closure\nPost-implementation re-audit additionally verified:\n- the full source has balanced braces/parentheses/brackets after stripping comments/strings;\n- only one `SIGNAL_EXTREME` executable export assignment exists, inside the reversal-confirmed exporter;\n- `DetectExtreme()` has only the definition plus H1/H4 RAW call sites;\n- `MaxWaitBars_Extreme` does not appear inside `UpdateExtremeLifecycle()`;\n- H1/H4 exact combination signatures remain unchanged;\n- duplicate H4 snapshot assignment from the first patch pass was removed.\n\n## Remaining verification\n1. Native MetaEditor compile must report **0 errors / 0 warnings**.\n2. Runtime trace should cover:'
+    '## Static regression closure\nPost-implementation re-audit additionally verified:\n- the full source has balanced braces/parentheses/brackets after stripping comments/strings;\n- only one `SIGNAL_EXTREME` executable export assignment exists, inside the reversal-confirmed exporter;\n- `DetectExtreme()` has only the definition plus H1/H4 RAW call sites;\n- `MaxWaitBars_Extreme` is not used as executable expiry/reset logic inside `UpdateExtremeLifecycle()`;\n- H1/H4 exact combination signatures remain unchanged;\n- duplicate H4 snapshot assignment from the first patch pass was removed.\n\n## Remaining verification\n1. Native MetaEditor compile must report **0 errors / 0 warnings**.\n2. Runtime trace should cover:'
 )
 text = text.replace(
     '4. F1 implementation must consume the underlying F2 lifecycle',

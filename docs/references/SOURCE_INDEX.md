@@ -5,6 +5,17 @@ This directory defines the source hierarchy used when auditing and repairing the
 
 GitHub remains the project source of truth. Source material is used to validate BBMA Core semantics; it must not be silently reinterpreted to fit existing code.
 
+## Canonical derived Strategy-Core reference
+### `BBMA_STRATEGY_CORE_SOURCE_OF_TRUTH_V2.md`
+- Project role: **ACTIVE / AUTHORITATIVE CONSOLIDATED BBMA STRATEGY-CORE SPECIFICATION**.
+- Scope: accepted Strategy-Core rules only.
+- Built from: the primary PDF, secondary/corroborating PDF, and accepted BBMA Finale V01–V07 evidence.
+- Excludes: `HOLD`, `UNCERTAIN`, personal workflow, money-management and EA-management material.
+- Important: this is a **derived project specification**, not a replacement for the original source files and not an independent claim of publication/authorship provenance.
+- Every material rule must remain traceable to the source digest and/or timestamped Finale evidence.
+
+This canonical file is the preferred **developer-facing Core rule reference**. Original PDFs, Finale transcripts, rule extractions and conflict registers remain the evidence/provenance layer behind it.
+
 ## Primary operational reference
 ### Oma ally BBMA - AL.pdf
 - Project role: **PRIMARY OPERATIONAL BBMA REFERENCE**
@@ -64,20 +75,26 @@ The Finale material does **not automatically override** the established PDF cont
 
 ## Source precedence / conflict policy
 1. `PROJECT_INSTRUCTIONS.md` governs project scope and change-control rules.
-2. User-supplied BBMA source documents govern BBMA Core semantics.
+2. The original user-supplied BBMA source documents remain the evidence layer governing BBMA Core semantics.
 3. `Oma ally BBMA - AL.pdf` remains the primary operational reference because it contains the more explicit cycle, four Re-Entry types, MLV/CSD relationships and REM/RRE/REE contracts.
 4. `BBMA technique.pdf` remains the historical/secondary corroborating reference.
 5. BBMA Finale V01–V07 is a supplemental instructional/clarification source. It may strengthen, clarify or expose gaps in existing Core rules, but it must not silently overwrite an established PDF rule.
-6. If any sources conflict, **do not silently choose or merge rules**. Record the contradiction and resolve it explicitly in the blueprint audit/source-conflict register.
-7. Master Blueprint code/specification must never override a clearly supported BBMA Core source rule merely because the current implementation behaves differently.
-8. Project-reference status does not imply independent authentication of authorship or publication provenance.
+6. `BBMA_STRATEGY_CORE_SOURCE_OF_TRUTH_V2.md` is the canonical **derived developer-facing consolidation** of only accepted Core rules from the evidence hierarchy above.
+7. If any sources conflict, **do not silently choose or merge rules**. Record the contradiction and resolve it explicitly in the blueprint audit/source-conflict register.
+8. Master Blueprint code/specification must never override a clearly supported BBMA Core source rule merely because the current implementation behaves differently.
+9. Project-reference status does not imply independent authentication of authorship or publication provenance.
 
-## Current P0 relevance
-The primary reference directly supports the prior P0 Step 3B reconciliation:
+## Current implementation relevance
+The canonical V2 Core preserves the previously reconciled contracts, including:
 - Type 1: MA5/10 High resistance for sell in an uptrend; MA5/10 Low support for buy in a downtrend.
 - Type 2: MA5/10 and MID BB meet/collide; strongest when MA50 also meets; minimum 3 candles per timeframe.
 - Type 3: CSM forms, then price reverses/retraces to MA5 or MA50 for Re-Entry setup.
 - Type 4: CSD forms, then price gyrates/retraces toward MA5/10; direction follows the relevant MA5/10 High/Low context.
+- REM: H4 Re-Entry + H1 Extreme + M15 MHV/MLV.
+- RRE: D1 Re-Entry + H4 Re-Entry + H1 Extreme.
+- REE: D1 Re-Entry + H4 Extreme + H1 Extreme.
+
+Post-Finale implementation mismatches must be handled through the separate implementation-gap register and subsequent blueprint/code audit. They must not be confused with source-of-truth changes.
 
 ## File-storage note
 The GitHub connector used by ChatGPT exposes UTF-8 text writes but no mounted/local-file upload parameter. The exact raw PDF filenames/hashes remain recorded here. For the BBMA Finale series, full original/corrected SRT files are preserved in the generated source pack; GitHub synchronization state and hashes are recorded in `VIDEO_SOURCE_INDEX.md`. Derived analysis Markdown is committed directly to GitHub.

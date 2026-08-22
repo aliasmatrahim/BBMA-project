@@ -98,23 +98,50 @@ The following are **not authoritative Core rules yet**:
 
 These remain governed by `BBMA_FINALE_SOURCE_CONFLICT_REGISTER.md`.
 
-### 5.4 Extreme maturity when used inside REM / REE
-**User-approved project Core decision:** an Extreme used as a component of an executable REM or REE must be at least **reversal-confirmed**.
+### 5.4 Extreme maturity and deterministic reversal/retest lifecycle
+**User-approved project Core decision:** an Extreme used as a component of executable REM/REE must be at least **reversal-confirmed**, while a standalone Extreme entry requires the later **retest/entry-ready** stage.
 
 Maturity distinction:
 - `RAW EXTREME` = strict MA5/MA10-outside-BB condition only. Not sufficient for executable REM/REE.
-- `REVERSAL-CONFIRMED EXTREME` = raw Extreme plus source-valid reversal confirmation. Eligible as an Extreme component of REM/REE.
-- `RETEST / ENTRY-READY EXTREME` = reversal-confirmed Extreme plus the later retest. Required for standalone Extreme entry eligibility.
+- `REVERSAL-CONFIRMED EXTREME` = raw Extreme plus accepted reversal confirmation. Eligible as an Extreme component of REM/REE.
+- `RETEST/ENTRY-READY EXTREME` = reversal-confirmed Extreme plus the later accepted retest. Required for standalone Extreme entry eligibility.
 
-Evidence classification: **SOURCE-INFERRED / STRONG HINT**, not a verbatim Oma Ally statement specifically defining REM/REE component maturity.
+Accepted deterministic mapping:
+- reversal confirmation is evaluated on closed candles on the same source timeframe;
+- SELL Extreme reversal direction: `Close < Open`;
+- BUY Extreme reversal direction: `Close > Open`;
+- the first qualifying closed reversal-direction candle promotes `RAW EXTREME -> REVERSAL-CONFIRMED`, provided accepted outside-BB/Momentum invalidation has not already voided the candidate;
+- no mandatory previous-candle colour flip, named candlestick pattern, fixed two-/three-candle minimum, eCSD/CSD prerequisite, or universal close-back-inside-BB requirement is added;
+- later same-direction candles may continue the reversal phase without delaying basic reversal-confirmed maturity;
+- while the reversal phase continues, the provisional body reference may update; once retest starts, it freezes and must not drift;
+- retest begins on the first later closed candle whose close moves back toward the original Extreme/reference relative to the previous close: SELL `CurrentClose > PreviousClose`; BUY `CurrentClose < PreviousClose`;
+- the retest-start candle is the first retest-phase candle and is excluded from the completed reversal-phase anchor;
+- for each reversal-phase candle, `BodyTop = max(Open,Close)` and `BodyBottom = min(Open,Close)`;
+- frozen SELL body anchor = highest `BodyTop` across the completed reversal phase;
+- frozen BUY body anchor = lowest `BodyBottom` across the completed reversal phase;
+- wick `High/Low` is not the numeric body-anchor definition;
+- relevant MA5 remains a source-supported alternate/confluent retest reference;
+- standalone retest is completed by a valid price-range/wick interaction with the frozen body anchor **or** the relevant MA5 area; a universal additional close-side confirmation or named reversal pattern is not required;
+- when body anchor and MA5 are separated, the **first valid interaction with either** completes the retest; there is no body-first/MA5-first hierarchy and no mandatory dual-touch;
+- accepted outside-BB/Momentum invalidation has higher priority than maturity promotion or retest completion and results in `VOID`.
+
+Consolidated lifecycle:
+
+`RAW EXTREME -> FIRST QUALIFYING REVERSAL-DIRECTION CLOSED CANDLE -> REVERSAL-CONFIRMED -> OPTIONAL REVERSAL CONTINUATION -> RETEST START / ANCHOR FREEZE -> FIRST VALID BODY-ANCHOR OR MA5 INTERACTION -> RETEST/ENTRY-READY`
+
+Evidence classification:
+- REM/REE component maturity = **SOURCE-INFERRED / STRONG HINT**;
+- reversal-candle requirement and body/MA5 retest concepts = **DIRECT SOURCE / SOURCE-DERIVED**;
+- exact Boolean direction, close-progression phase trigger, numeric candle-body edge, range-touch, and first-valid-reference rules = **MINIMAL DETERMINISTIC PROJECT MAPPING**, not verbatim Oma Ally formulas.
 
 Reasoning basis:
-- V04 separates raw Extreme, reversal confirmation and retest, and ties the retest to standalone Extreme entry.
-- V05 teaches lower-timeframe Extreme/MHV/direction structures as supporting completion for higher-timeframe Re-Entry, indicating that supporting MTF Extreme context is not identical to standalone Extreme entry maturity.
+- V04 separates raw Extreme, reversal confirmation and retest, and ties the retest to standalone Extreme entry;
+- V04 permits retest to revisit a marked body/reference or relevant MA5 and gives outside-BB/Momentum behavior priority as invalidation;
+- V05 teaches lower-timeframe Extreme/MHV/direction structures as supporting completion for higher-timeframe Re-Entry, supporting a distinction between MTF component maturity and standalone entry maturity.
 
 Decision provenance: `blueprint/decisions/CORE_V2_F2_EXTREME_MATURITY_DECISION.md`.
 
-Implementation guard: this decision does **not** authorize inventing a reversal-candle algorithm. A deterministic source-faithful reversal-confirmation contract must still be specified before patching M08/M13/M14/M15 behavior.
+Implementation guard: implementation must reproduce this approved lifecycle without inventing arbitrary candle counts, named patterns, EMA/ATR/RSI filters, moving anchors, mandatory body+MA5 dual-touch, or an unsupported body-vs-MA5 priority hierarchy.
 
 ---
 
@@ -320,7 +347,7 @@ Accepted material changes the project knowledge in these specific ways:
 - strengthens the interpretation that eCSD/CSD is direction information and Re-Entry is the entry setup;
 - clarifies higher-timeframe ownership/context of lower-timeframe signals;
 - records the first-validation-candle / second-entry-candle phrase as a timing semantic that still requires runtime mapping;
-- adds the user-approved source-inferred maturity distinction that REM/REE Extreme components must be reversal-confirmed, while standalone Extreme entry still requires the later retest;
+- closes the user-approved Extreme maturity/reversal/retest lifecycle: reversal-confirmed is sufficient for REM/REE components; standalone Extreme requires later body-or-MA5 retest; deterministic reversal direction, phase transition, frozen body anchor, first-valid-reference retest and invalidation precedence are now specified;
 - closes the Type 1 structural-ranging contract, including prior BBMA-state proof, structural invalidation and no fixed minimum/expiry count;
 - closes the standalone H1 Re-Entry H4-parent contract, including inherited H4 owner semantics, eCSD owner authority, atomic opposite handover, no-owner block and structural owner lifetime;
 - records verified checkpoint + deterministic replay as engineering-only restart/recovery policy to preserve the H4 owner contract.

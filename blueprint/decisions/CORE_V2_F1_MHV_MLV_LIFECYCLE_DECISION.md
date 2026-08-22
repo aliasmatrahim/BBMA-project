@@ -1,7 +1,7 @@
 # CORE-V2-F1 — MHV/MLV Canonical Lifecycle
 
 Date: 2026-08-22
-Status: **PARTIALLY RESOLVED — LIFECYCLE + PARENT PROVENANCE + TP-WAJIB + PARENT MATURITY + LOSS-OF-MOMENTUM + TURNING-BODY FORMATION + IMMEDIATE BODY-FREEZE + RANGE-TOUCH RETEST USER APPROVED; COMPONENT MATURITY/SUPERSESSION DETAILS STILL PENDING**
+Status: **PARTIALLY RESOLVED — LIFECYCLE + PARENT PROVENANCE + TP-WAJIB + PARENT MATURITY + LOSS-OF-MOMENTUM + TURNING-BODY FORMATION + IMMEDIATE BODY-FREEZE + RANGE-TOUCH RETEST + REM COMPONENT MATURITY USER APPROVED; SUPERSESSION DETAILS STILL PENDING**
 Branch: `blueprint-dev`
 
 ## Decision 1 — MHV/MLV is one structural lifecycle
@@ -131,11 +131,32 @@ Canonical transition:
 
 Classification: **DIRECT SOURCE MARKED-BODY / RETEST CONCEPT + MINIMAL RANGE-INTERACTION PROJECT MAPPING**.
 
-## Source support for Decisions 1–8
-- primary PDF digest pages 2 and 7–8: MLV normally follows Extreme/TP phase, highest/lowest body is marked because price may retrace for a retest, MLV may show double/triple morphology, and outside-BB close voids the setup;
-- Finale V05 OA-F-V05-006 to OA-F-V05-009: MHV follows Extreme + TP Wajib, represents loss of prior momentum, must remain inside relevant outer BB, uses marked body/line plus retest structure, and is a setup stage.
+## Decision 9 — M15 MHV/MLV used inside REM requires formation-established maturity, not retest completion
+The project adopts **`MHV/MLV FORMATION ESTABLISHED + FROZEN MARKED BODY` AS THE MINIMUM MATURITY REQUIRED WHEN M15 MHV/MLV SERVES AS THE MLV/MHV COMPONENT OF REM**.
 
-The exact software states, body-edge formulas, close-to-close turning predicates, immediate freeze transition, and range-interaction retest predicates are project-level deterministic encodings of the source concepts and are not claimed as verbatim Oma Ally Boolean formulas.
+Locked operational rule:
+- exact REM signature remains `H4 Re-Entry + H1 Extreme + M15 MHV/MLV` under the authoritative PDF-derived contract;
+- the M15 component is not valid while it is only an eligible parent context, a pending loss-of-momentum state, or an unfrozen provisional formation;
+- once Decision 6 establishes the M15 MHV/MLV formation and Decision 7 freezes its marked body, the M15 component is structurally mature enough to satisfy the MHV/MLV leg of REM, provided it has not been voided/superseded;
+- Decision 8 `RETEST COMPLETE / ACTIVE MHV SETUP` is a later maturity state and is **not mandatory merely for M15 MHV/MLV to serve as the REM component**;
+- this preserves the separation between **component maturity** and later standalone/setup maturity, analogous to the already-approved F2 rule where an Extreme component may be usable before standalone Extreme entry-readiness;
+- no eCSD/CSD, second retest, double/triple morphology, fixed waiting period, or broker execution event is added as an extra REM requirement;
+- if the M15 MHV/MLV is `VOID/SUPERSEDED` under the canonical lifecycle before the REM decision is consumed, the M15 leg is invalid and REM must not treat that stale component as valid;
+- this decision does not redefine H4 Re-Entry or H1 Extreme maturity; those remain governed by their own locked contracts.
+
+Canonical REM component condition:
+
+`H4 VALID RE + H1 REVERSAL-CONFIRMED EXTREME + M15 MHV/MLV FORMATION ESTABLISHED WITH FROZEN BODY -> REM COMPONENT SET COMPLETE`, subject to normal M14/M15/M16 validation and invalidation authority.
+
+Classification: **DIRECT SOURCE REM SIGNATURE + SOURCE-INFERRED COMPONENT-MATURITY MAPPING**.
+
+## Source support for Decisions 1–9
+- primary PDF digest pages 2 and 7–8: MLV normally follows Extreme/TP phase, highest/lowest body is marked because price may retest, MLV may show double/triple morphology, and outside-BB close voids the setup;
+- primary PDF digest pages 12–13: REM is the exact multi-timeframe family `H4 Re-Entry + H1 Extreme + M15 MLV/MHV`;
+- Finale V05 OA-F-V05-006 to OA-F-V05-009: MHV follows Extreme + TP Wajib, represents loss of prior momentum, must remain inside relevant outer BB, uses marked body/line plus retest structure, and is a setup stage;
+- Finale V05 OA-F-V05-017 and OA-F-V05-019 reinforce the higher/lower-timeframe setup-family relationship while leaving the exact REM signature governed by the PDF.
+
+The exact software states, body-edge formulas, close-to-close turning predicates, immediate freeze transition, range-interaction retest predicates, and REM component-maturity threshold are project-level deterministic encodings of the source concepts and are not claimed as verbatim Oma Ally Boolean formulas.
 
 ## Rejected alternatives
 - one-candle detector as the complete MHV/MLV model;
@@ -153,11 +174,12 @@ The exact software states, body-edge formulas, close-to-close turning predicates
 - fixed 2/3-candle delay before freezing the reference;
 - requiring candle-body close exactly at/across the frozen marked body to count as retest;
 - requiring a named reversal candle or additional close-away confirmation after touch merely to complete the retest;
-- requiring double/triple retest morphology or eCSD/CSD to mature the retest.
+- requiring double/triple retest morphology or eCSD/CSD to mature the retest;
+- allowing a merely pending loss-of-momentum state to satisfy the M15 MHV/MLV leg of REM;
+- requiring M15 MHV/MLV `RETEST COMPLETE` merely to satisfy the REM component signature.
 
 ## Remaining specification before code
-The lifecycle, parent provenance, TP-Wajib prerequisite, parent maturity, loss-of-momentum state, turning-body formation predicate, immediate frozen-reference policy and range-touch retest contract are locked. Remaining one-by-one review before M09 patching:
-- decide what maturity of MHV/MLV is required when it serves as the M15 component of REM;
+The lifecycle, parent provenance, TP-Wajib prerequisite, parent maturity, loss-of-momentum state, turning-body formation predicate, immediate frozen-reference policy, range-touch retest contract and REM component-maturity threshold are locked. Remaining one-by-one review before M09 patching:
 - define lifecycle supersession/void rules beyond the explicit outer-BB/Momentum invalidation;
 - migrate/remove legacy duplicate detector semantics after the canonical contract is complete.
 

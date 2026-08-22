@@ -1,7 +1,7 @@
 # CORE-V2-F1 — MHV/MLV Canonical Lifecycle
 
 Date: 2026-08-22
-Status: **PARTIALLY RESOLVED — LIFECYCLE + PARENT PROVENANCE + TP-WAJIB + PARENT MATURITY + LOSS-OF-MOMENTUM + TURNING-BODY FORMATION + IMMEDIATE BODY-FREEZE USER APPROVED; RETEST/SUPERSESSION DETAILS STILL PENDING**
+Status: **PARTIALLY RESOLVED — LIFECYCLE + PARENT PROVENANCE + TP-WAJIB + PARENT MATURITY + LOSS-OF-MOMENTUM + TURNING-BODY FORMATION + IMMEDIATE BODY-FREEZE + RANGE-TOUCH RETEST USER APPROVED; COMPONENT MATURITY/SUPERSESSION DETAILS STILL PENDING**
 Branch: `blueprint-dev`
 
 ## Decision 1 — MHV/MLV is one structural lifecycle
@@ -101,7 +101,7 @@ Locked operational rule:
 - prior Extreme BUY / top-side MHV: freeze the highest `BodyTop` accumulated through the candle immediately preceding the move-away trigger;
 - all later candles are evaluated against that frozen reference and must not move it merely because price creates a later body extreme;
 - the move-away trigger candle itself does not redefine the frozen reference;
-- later price action that creates another body extreme must be classified by the later lifecycle rules as retest, continuation, invalidation/supersession or a new formation/cycle; it must not silently drag the existing anchor;
+- later price action that creates another body extreme must be classified by later lifecycle rules as retest, continuation, invalidation/supersession or a new formation/cycle; it must not silently drag the existing anchor;
 - no fixed-N waiting period, eCSD/CSD prerequisite, wick substitution or moving-neckline/chasing behavior is added;
 - source-valid outer-BB/Momentum invalidation remains higher priority and can void/supersede the lifecycle.
 
@@ -111,11 +111,31 @@ Canonical transition:
 
 Classification: **DIRECT SOURCE MARKED-BODY / RETEST CONCEPT + MINIMAL FIXED-REFERENCE PROJECT MAPPING**.
 
-Source support for Decisions 1–7:
-- primary PDF digest pages 2 and 7–8: MLV normally follows Extreme/TP phase, highest/lowest body is marked because price may retest, MLV may show double/triple morphology, and outside-BB close voids the setup;
+## Decision 8 — range/wick interaction with the frozen marked body completes MHV/MLV retest
+The project adopts **FIRST VALID PRICE-RANGE INTERACTION WITH THE FROZEN MARKED BODY AS THE MINIMUM DETERMINISTIC RETEST-COMPLETION RULE**.
+
+Locked operational rule:
+- retest evaluation begins only after Decision 6 has established the MHV/MLV formation and Decision 7 has frozen its marked-body reference;
+- for a bottom-side MHV/MLV descending from prior Extreme SELL, retest is completed when a later source-timeframe candle satisfies `Low <= FrozenMarkedBody`;
+- for a top-side MHV/MLV descending from prior Extreme BUY, retest is completed when a later source-timeframe candle satisfies `High >= FrozenMarkedBody`;
+- price-range/wick interaction is sufficient to prove that price has returned to the source-marked reference; the candle is evaluated on the project closed-candle processing clock, but no universal requirement is added for the candle body to close exactly at the marked line;
+- no universal extra close-away confirmation, engulfing/pin-bar/named pattern, mandatory second/third touch, exact double/triple morphology, or eCSD/CSD prerequisite is added merely to complete the MHV/MLV retest;
+- the formation-establishing move-away candle cannot simultaneously count as a later retest candle; retest requires subsequent price action after the frozen reference exists;
+- the frozen reference remains unchanged during and after the retest;
+- accepted source-valid outside-outer-BB close / Momentum/CSM invalidation has priority. If the same candle/structure satisfies the project invalidation contract, the lifecycle resolves to `VOID/SUPERSEDED`, not `RETEST COMPLETE`;
+- `RETEST COMPLETE / ACTIVE MHV SETUP` is a setup/context maturity state only. It does **not** make MHV/MLV a standalone trade-entry authority.
+
+Canonical transition:
+
+`MHV/MLV FORMATION ESTABLISHED + FROZEN MARKED BODY -> LATER RANGE/WICK INTERACTION WITH FROZEN BODY -> RETEST COMPLETE / ACTIVE MHV SETUP`
+
+Classification: **DIRECT SOURCE MARKED-BODY / RETEST CONCEPT + MINIMAL RANGE-INTERACTION PROJECT MAPPING**.
+
+## Source support for Decisions 1–8
+- primary PDF digest pages 2 and 7–8: MLV normally follows Extreme/TP phase, highest/lowest body is marked because price may retrace for a retest, MLV may show double/triple morphology, and outside-BB close voids the setup;
 - Finale V05 OA-F-V05-006 to OA-F-V05-009: MHV follows Extreme + TP Wajib, represents loss of prior momentum, must remain inside relevant outer BB, uses marked body/line plus retest structure, and is a setup stage.
 
-The exact software states, body-edge formulas, close-to-close turning predicates and immediate freeze transition are project-level deterministic encodings of the source concepts and are not claimed as verbatim Oma Ally Boolean formulas.
+The exact software states, body-edge formulas, close-to-close turning predicates, immediate freeze transition, and range-interaction retest predicates are project-level deterministic encodings of the source concepts and are not claimed as verbatim Oma Ally Boolean formulas.
 
 ## Rejected alternatives
 - one-candle detector as the complete MHV/MLV model;
@@ -130,11 +150,13 @@ The exact software states, body-edge formulas, close-to-close turning predicates
 - waiting for eCSD/CSD before recognizing formation;
 - keeping the marked body moving after formation is established;
 - wick High/Low as replacement for the source-described body reference;
-- fixed 2/3-candle delay before freezing the reference.
+- fixed 2/3-candle delay before freezing the reference;
+- requiring candle-body close exactly at/across the frozen marked body to count as retest;
+- requiring a named reversal candle or additional close-away confirmation after touch merely to complete the retest;
+- requiring double/triple retest morphology or eCSD/CSD to mature the retest.
 
 ## Remaining specification before code
-The lifecycle, parent provenance, TP-Wajib prerequisite, parent maturity, loss-of-momentum state, turning-body formation predicate and immediate frozen-reference policy are locked. Remaining one-by-one review before M09 patching:
-- define the exact retest/active-setup interaction with the frozen marked body/reference;
+The lifecycle, parent provenance, TP-Wajib prerequisite, parent maturity, loss-of-momentum state, turning-body formation predicate, immediate frozen-reference policy and range-touch retest contract are locked. Remaining one-by-one review before M09 patching:
 - decide what maturity of MHV/MLV is required when it serves as the M15 component of REM;
 - define lifecycle supersession/void rules beyond the explicit outer-BB/Momentum invalidation;
 - migrate/remove legacy duplicate detector semantics after the canonical contract is complete.

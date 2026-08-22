@@ -20,7 +20,7 @@ This file is the canonical work queue for active development. It complements `bl
 
 #### CORE-V2-F1 — M09 MHV/MLV source alignment
 Priority: **CRITICAL**
-Status: **SPECIFICATION RESOLVED — BEST-RECOMMENDATION REVIEW COMPLETE; CODE PATCH/AUDIT STILL PENDING**
+Status: **CODE IMPLEMENTED / STATIC REGRESSION PASS — NATIVE METAEDITOR COMPILE + RUNTIME TRACE PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-04/CV2-05/CV2-06
 Decision record: `blueprint/decisions/CORE_V2_F1_MHV_MLV_LIFECYCLE_DECISION.md`
 Locked decisions:
@@ -47,11 +47,11 @@ Locked decisions:
 - independent legacy `DetectMHV()`/MLV semantics must converge into one canonical M09 owner-state result.
 Classification: **DIRECT SOURCE STRUCTURAL/SEQUENCE/LOSS-OF-MOMENTUM/BODY-RETEST/REM/CYCLE-RESTART CONCEPT + PROJECT DETERMINISTIC STATE-MACHINE / PROVENANCE / TURNING-POINT / FIXED-REFERENCE / COMPONENT-MATURITY / STAGE-BOUNDARY / ATOMIC-SUPERSESSION MAPPING**.
 Constraint: implementation must reproduce the resolved contract without arbitrary pip thresholds, fixed-N expiry, generic consolidation heuristics, broker-order prerequisites, mandatory morphology, moving anchors, or unsupported extra REM gates.
-Next action for F1: migrate/remove duplicate MHV detector semantics, implement/audit one canonical M09 lifecycle, verify REM stale-provenance rejection, then compile/regression/runtime-test. No EA code was changed during specification review.
+Next action for F1: native MetaEditor compile and runtime lifecycle traces; static implementation/regression is complete.
 
 #### CORE-V2-F2 — Extreme maturity inside REM/REE
 Priority: **HIGH**
-Status: **SPECIFICATION RESOLVED — USER APPROVED; CODE PATCH/AUDIT STILL PENDING**
+Status: **CODE IMPLEMENTED / STATIC REGRESSION PASS — NATIVE METAEDITOR COMPILE + RUNTIME TRACE PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-03
 Decision record: `blueprint/decisions/CORE_V2_F2_EXTREME_MATURITY_DECISION.md`
 Locked decisions:
@@ -73,7 +73,7 @@ Locked decisions:
 - accepted outside-BB/Momentum invalidation has priority over reversal/retest promotion and results in `VOID`;
 - classification: component maturity is **SOURCE-INFERRED / STRONG HINT**; reversal/retest direction, phase, body-reference and first-valid-interaction predicates are **DIRECT SOURCE REQUIREMENT / SOURCE-DERIVED CONCEPT + MINIMAL DETERMINISTIC PROJECT MAPPING**.
 Constraint: implementation must reproduce this lifecycle without arbitrary candle counts, named candlestick patterns, EMA/ATR/RSI filters, moving anchors, mandatory dual-touch, or invented target hierarchy.
-Next action for F2: patch/audit the Extreme lifecycle and REM/REE component maturity against the resolved contract; no code was changed during specification review.
+Next action for F2: native MetaEditor compile and runtime lifecycle traces; static implementation/regression is complete.
 
 #### CORE-V2-F3 — Re-Entry Type 1 context
 Priority: **HIGH**

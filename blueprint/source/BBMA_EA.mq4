@@ -43,7 +43,7 @@
 input int      EntryMode                          = 2;          // EntryMode: 1=RE_ENTRY_ONLY, 2=ALL_VALIDATED_BBMA_ENTRIES
 input int      TradeLockMode                      = 0;          // TradeLockMode: 0=OFF, 1=SAME_DIRECTION, 2=ONE_POSITION
 input int      MaxWaitBars_Extreme                = 5;          // MaxWaitBars_Extreme
-input int      MaxWaitBars_MLV                    = 5;          // MaxWaitBars_MLV
+input int      MaxWaitBars_MLV                    = 5;          // Legacy compatibility only; canonical MHV/MLV has no strategy TTL
 input int      MaxWaitBars_CSD                    = 5;          // MaxWaitBars_CSD
 input int      MaxWaitBars_ReEntry                = 5;          // MaxWaitBars_ReEntry
 input int      MaxWaitBars_Combined               = 5;          // MaxWaitBars_Combined
@@ -138,7 +138,18 @@ enum ENUM_DIRECTION { DIR_NONE, DIR_BUY, DIR_SELL };
 
 enum ENUM_BB_STATE { BB_NONE, BB_SQUEEZE, BB_EXPANDING, BB_CONTRACTING, BB_FLAT };
 
-enum ENUM_MLV_STATE { MLV_NONE, MLV_CANDIDATE, MLV_CONFIRMED, MLV_VOID, MLV_EXPIRED };
+enum ENUM_MLV_STATE
+{
+   MLV_NONE,
+   MLV_PARENT_READY,
+   MLV_TP_COMPLETE,
+   MLV_LOSS_DEVELOPING,
+   MLV_FORMATION_ESTABLISHED,
+   MLV_RETEST_COMPLETE,
+   MLV_DIRECTION_TAKEN,
+   MLV_VOID,
+   MLV_SUPERSEDED
+};
 
 enum ENUM_RE_TYPE { RE_NONE, RE_TYPE_1, RE_TYPE_2, RE_TYPE_3_CSM, RE_TYPE_4_CSD };
 
@@ -325,26 +336,43 @@ struct MLVData
 {
    ENUM_MLV_STATE       State;
    ENUM_DIRECTION       Direction;
-   string               PatternType;
+   ENUM_DIRECTION       ParentExtremeDirection;
+   int                  Timeframe;
    string               Reason;
-   string               PatternID;
-   double               Candle1;
-   double               Candle2;
-   double               Candle3;
-   double               Level1;
-   double               Level2;
-   double               Neckline;
+
+   datetime             ParentRawCandleTime;
+   datetime             ParentConfirmationCandleTime;
+   datetime             TPWajibCandleTime;
+
+   double               ProvisionalBodyAnchor;
+   double               FrozenMarkedBody;
+   double               PreviousClose;
+
    int                  StartBar;
    datetime             StartCandleTime;
    int                  LastUpdateBar;
    datetime             LastUpdateCandleTime;
+
    int                  ConfirmationBar;
    datetime             ConfirmationCandleTime;
+   double               ConfirmationClose;
+
+   int                  RetestBar;
+   datetime             RetestCandleTime;
+   int                  DirectionTakeoverBar;
+   datetime             DirectionTakeoverCandleTime;
+
    int                  VoidBar;
-   int                  ExpiryBar;
-   datetime             ExpiryCandleTime;
+   datetime             VoidCandleTime;
+   int                  SupersededBar;
+   datetime             SupersededCandleTime;
+
+   bool                 InvalidationWindowOpen;
    bool                 IsValid;
-   double               StrengthScore;
+
+   bool                 SupersessionCandidateActive;
+   int                  SupersessionRawBar;
+   datetime             SupersessionRawCandleTime;
 };
 
 struct ReEntryData
@@ -571,6 +599,9 @@ struct PairState
    ExtremeLifecycleData extreme_h1_sell_lifecycle;
    ExtremeLifecycleData extreme_h4_buy_lifecycle;
    ExtremeLifecycleData extreme_h4_sell_lifecycle;
+   // F1 uses the F2 Extreme maturity engine as same-TF M15 parent provenance.
+   ExtremeLifecycleData extreme_m15_buy_lifecycle;
+   ExtremeLifecycleData extreme_m15_sell_lifecycle;
    // M16 executable-component freshness/identity overlay for mature Extremes.
    // M08 owns RAW/reversal/retest maturity and strategy invalidation.
    Signal               extreme_h1_buy_state;
@@ -1165,8 +1196,19 @@ void InitPairState(PairState &state)
 
    state.mlv_buy_state.State = MLV_NONE;
    state.mlv_buy_state.Direction = DIR_BUY;
+   state.mlv_buy_state.ParentExtremeDirection = DIR_SELL;
+   state.mlv_buy_state.Timeframe = PERIOD_M15;
    state.mlv_sell_state.State = MLV_NONE;
    state.mlv_sell_state.Direction = DIR_SELL;
+   state.mlv_sell_state.ParentExtremeDirection = DIR_BUY;
+   state.mlv_sell_state.Timeframe = PERIOD_M15;
+
+   state.extreme_m15_buy_lifecycle.Maturity = EXT_MAT_NONE;
+   state.extreme_m15_buy_lifecycle.Direction = DIR_BUY;
+   state.extreme_m15_buy_lifecycle.Timeframe = PERIOD_M15;
+   state.extreme_m15_sell_lifecycle.Maturity = EXT_MAT_NONE;
+   state.extreme_m15_sell_lifecycle.Direction = DIR_SELL;
+   state.extreme_m15_sell_lifecycle.Timeframe = PERIOD_M15;
 
    state.re_h1_buy_state.State = RE_STATE_NONE;
    state.re_h1_buy_state.Direction = DIR_BUY;
@@ -2311,36 +2353,33 @@ void BuildSLTP_Extreme(ENUM_DIRECTION direction, double entryPrice,
 }
 
 //+------------------------------------------------------------------+
-//| MODULE 09: MHV & MLV STATE ENGINE                                |
+//| MODULE 09: MHV & MLV CANONICAL LIFECYCLE ENGINE                  |
 //| LEVEL: INTERMEDIATE+                                             |
 //+------------------------------------------------------------------+
 
-bool DetectMHV(string pair, ENUM_DIRECTION direction, TimeframeData &data)
+ENUM_DIRECTION GetMHVParentExtremeDirection(ENUM_DIRECTION mhvDirection)
 {
-   if(!data.is_valid || !data.is_closed) return false;
-   if(data.ma[0] <= 0 || data.ma[2] <= 0) return false;
-   
-   if(direction == DIR_BUY)
-   {
-      double ma5_high = data.ma[0];
-      if(data.close > ma5_high)
-      {
-         double prev_ma5_high = BBMAHighMA(pair, data.timeframe, MA5_HIGH_PERIOD, data.barIndex + 1);
-         if(prev_ma5_high > 0 && ma5_high > prev_ma5_high)
-            return true;
-      }
-   }
-   else if(direction == DIR_SELL)
-   {
-      double ma5_low = data.ma[2];
-      if(data.close < ma5_low)
-      {
-         double prev_ma5_low = BBMALowMA(pair, data.timeframe, MA5_LOW_PERIOD, data.barIndex + 1);
-         if(prev_ma5_low > 0 && ma5_low < prev_ma5_low)
-            return true;
-      }
-   }
-   return false;
+   if(mhvDirection == DIR_BUY) return DIR_SELL;
+   if(mhvDirection == DIR_SELL) return DIR_BUY;
+   return DIR_NONE;
+}
+
+bool IsMHVParentExtremeMature(ExtremeLifecycleData &parent)
+{
+   if(!parent.IsValid) return false;
+   if(parent.ConfirmationCandleTime <= 0 || parent.Timeframe != PERIOD_M15)
+      return false;
+
+   return (parent.Maturity == EXT_MAT_REVERSAL_CONFIRMED ||
+           parent.Maturity == EXT_MAT_RETEST_PHASE ||
+           parent.Maturity == EXT_MAT_RETEST_READY);
+}
+
+bool IsCanonicalMLVMatureState(ENUM_MLV_STATE state)
+{
+   return (state == MLV_FORMATION_ESTABLISHED ||
+           state == MLV_RETEST_COMPLETE ||
+           state == MLV_DIRECTION_TAKEN);
 }
 
 void ResetMLVState(MLVData &mlv, ENUM_DIRECTION direction)
@@ -2348,169 +2387,454 @@ void ResetMLVState(MLVData &mlv, ENUM_DIRECTION direction)
    ZeroMemory(mlv);
    mlv.State = MLV_NONE;
    mlv.Direction = direction;
+   mlv.ParentExtremeDirection = GetMHVParentExtremeDirection(direction);
+   mlv.Timeframe = PERIOD_M15;
 }
 
-void MarkMLVVoid(MLVData &mlv, datetime voidCandleTime, int voidBar, string reason)
+void AttachCanonicalMHVParent(MLVData &mlv, ENUM_DIRECTION direction,
+                              ExtremeLifecycleData &parent,
+                              TimeframeData &data)
 {
-   if(mlv.State == MLV_NONE || mlv.State == MLV_EXPIRED) return;
+   ResetMLVState(mlv, direction);
+   mlv.State = MLV_PARENT_READY;
+   mlv.ParentRawCandleTime = parent.RawCandleTime;
+   mlv.ParentConfirmationCandleTime = parent.ConfirmationCandleTime;
+   mlv.LastUpdateBar = data.barIndex;
+   mlv.LastUpdateCandleTime = data.candle_time;
+   mlv.PreviousClose = data.close;
+   mlv.IsValid = false;
+   mlv.Reason = "Canonical MHV parent attached: reversal-confirmed M15 Extreme";
+}
+
+void MarkCanonicalMLVVoid(MLVData &mlv, TimeframeData &data, string reason)
+{
    mlv.State = MLV_VOID;
    mlv.IsValid = false;
-   mlv.VoidBar = voidBar;
-   mlv.LastUpdateBar = voidBar;
-   mlv.LastUpdateCandleTime = voidCandleTime;
+   mlv.InvalidationWindowOpen = false;
+   mlv.VoidBar = data.barIndex;
+   mlv.VoidCandleTime = data.candle_time;
+   mlv.LastUpdateBar = data.barIndex;
+   mlv.LastUpdateCandleTime = data.candle_time;
+   mlv.PreviousClose = data.close;
    mlv.Reason = reason;
 }
 
-bool IsMLVIntrinsicExpired(MLVData &mlv, datetime currentCandleTime)
+void MarkCanonicalMLVSuperseded(MLVData &mlv, TimeframeData &data, string reason)
 {
-   if(mlv.StartCandleTime <= 0 || mlv.ExpiryCandleTime <= 0) return false;
-   return (currentCandleTime > mlv.ExpiryCandleTime);
+   mlv.State = MLV_SUPERSEDED;
+   mlv.IsValid = false;
+   mlv.InvalidationWindowOpen = false;
+   mlv.SupersededBar = data.barIndex;
+   mlv.SupersededCandleTime = data.candle_time;
+   mlv.LastUpdateBar = data.barIndex;
+   mlv.LastUpdateCandleTime = data.candle_time;
+   mlv.PreviousClose = data.close;
+   mlv.Reason = reason;
 }
 
-ENUM_MLV_STATE DetectMLV_State(MLVData &mlv, string pair,
-                               ENUM_DIRECTION direction, TimeframeData &data)
+bool IsMHVTPWajibCompleted(TimeframeData &data, ENUM_DIRECTION parentDirection)
+{
+   if(data.high <= 0 || data.low <= 0) return false;
+
+   if(parentDirection == DIR_SELL)
+   {
+      double ma5Low = data.ma[2];
+      double ma10Low = data.ma[3];
+      if(ma5Low <= 0 || ma10Low <= 0) return false;
+      return (data.low <= ma5Low || data.low <= ma10Low);
+   }
+
+   if(parentDirection == DIR_BUY)
+   {
+      double ma5High = data.ma[0];
+      double ma10High = data.ma[1];
+      if(ma5High <= 0 || ma10High <= 0) return false;
+      return (data.high >= ma5High || data.high >= ma10High);
+   }
+
+   return false;
+}
+
+bool IsMHVContinuationInvalidation(string pair, ENUM_DIRECTION mhvDirection,
+                                   TimeframeData &data, BollingerBand &band)
+{
+   if(data.close <= 0 || band.TOP_BB <= 0 || band.LOW_BB <= 0) return false;
+
+   // Bottom-side BUY MHV follows a prior SELL Extreme/TP move: a fresh
+   // downside outer-BB close / SELL CSM means prior momentum continued.
+   if(mhvDirection == DIR_BUY)
+   {
+      if(data.close < band.LOW_BB) return true;
+      return DetectCSM(pair, data.timeframe, DIR_SELL, data.barIndex);
+   }
+
+   // Top-side SELL MHV mirrors the rule after a prior BUY Extreme/TP move.
+   if(mhvDirection == DIR_SELL)
+   {
+      if(data.close > band.TOP_BB) return true;
+      return DetectCSM(pair, data.timeframe, DIR_BUY, data.barIndex);
+   }
+
+   return false;
+}
+
+bool IsMHVLossPhaseEligible(string pair, ENUM_DIRECTION mhvDirection,
+                            TimeframeData &data, BollingerBand &band)
+{
+   if(data.close <= 0 || band.TOP_BB <= 0 || band.LOW_BB <= 0) return false;
+   if(data.close < band.LOW_BB || data.close > band.TOP_BB) return false;
+
+   ENUM_DIRECTION priorMoveDirection = GetMHVParentExtremeDirection(mhvDirection);
+   if(priorMoveDirection == DIR_NONE) return false;
+   if(DetectCSM(pair, data.timeframe, priorMoveDirection, data.barIndex)) return false;
+   return true;
+}
+
+double GetMHVBodyEdge(TimeframeData &data, ENUM_DIRECTION mhvDirection)
+{
+   if(data.open <= 0 || data.close <= 0) return 0.0;
+   if(mhvDirection == DIR_BUY)  return MathMin(data.open, data.close); // bottom body
+   if(mhvDirection == DIR_SELL) return MathMax(data.open, data.close); // top body
+   return 0.0;
+}
+
+void UpdateMHVProvisionalBody(MLVData &mlv, TimeframeData &data)
+{
+   double edge = GetMHVBodyEdge(data, mlv.Direction);
+   if(edge <= 0) return;
+
+   if(mlv.ProvisionalBodyAnchor <= 0)
+      mlv.ProvisionalBodyAnchor = edge;
+   else if(mlv.Direction == DIR_BUY)
+      mlv.ProvisionalBodyAnchor = MathMin(mlv.ProvisionalBodyAnchor, edge);
+   else if(mlv.Direction == DIR_SELL)
+      mlv.ProvisionalBodyAnchor = MathMax(mlv.ProvisionalBodyAnchor, edge);
+}
+
+bool IsMHVFormationMoveAway(MLVData &mlv, TimeframeData &data)
+{
+   if(mlv.PreviousClose <= 0 || data.close <= 0) return false;
+   if(mlv.Direction == DIR_BUY)  return (data.close > mlv.PreviousClose);
+   if(mlv.Direction == DIR_SELL) return (data.close < mlv.PreviousClose);
+   return false;
+}
+
+bool IsMHVRetestInteraction(MLVData &mlv, TimeframeData &data)
+{
+   if(mlv.FrozenMarkedBody <= 0 || data.high <= 0 || data.low <= 0) return false;
+   if(mlv.Direction == DIR_BUY)  return (data.low <= mlv.FrozenMarkedBody);
+   if(mlv.Direction == DIR_SELL) return (data.high >= mlv.FrozenMarkedBody);
+   return false;
+}
+
+void InstallMHVSupersessionParent(MLVData &mlv,
+                                  ExtremeLifecycleData &parent,
+                                  TimeframeData &data)
+{
+   ENUM_DIRECTION parentDirection = GetMHVParentExtremeDirection(mlv.Direction);
+   int rawBar = mlv.SupersessionRawBar;
+   datetime rawTime = mlv.SupersessionRawCandleTime;
+
+   ResetExtremeLifecycle(parent, parentDirection, data.timeframe);
+   parent.Maturity = EXT_MAT_REVERSAL_CONFIRMED;
+   parent.Direction = parentDirection;
+   parent.Timeframe = data.timeframe;
+   parent.RawBar = rawBar;
+   parent.RawCandleTime = rawTime;
+   parent.ConfirmationBar = data.barIndex;
+   parent.ConfirmationCandleTime = data.candle_time;
+   parent.ConfirmationClose = data.close;
+   parent.LastUpdateBar = data.barIndex;
+   parent.LastUpdateCandleTime = data.candle_time;
+   parent.PreviousClose = data.close;
+   parent.ProvisionalBodyAnchor = GetExtremeReversalBodyEdge(data, parentDirection);
+   parent.RelevantMA5 = GetExtremeRelevantMA5(data, parentDirection);
+   parent.IsValid = true;
+   parent.Reason = "Reversal-confirmed M15 Extreme installed by F1 cycle supersession";
+}
+
+bool TryAdvanceMHVSupersessionCandidate(MLVData &mlv, string pair,
+                                        TimeframeData &data, BollingerBand &band,
+                                        ExtremeLifecycleData &parent)
+{
+   ENUM_DIRECTION parentDirection = GetMHVParentExtremeDirection(mlv.Direction);
+   if(parentDirection == DIR_NONE) return false;
+
+   if(mlv.SupersessionCandidateActive)
+   {
+      if(data.candle_time <= mlv.SupersessionRawCandleTime) return false;
+
+      if(IsExtremeLifecycleInvalidation(pair, parentDirection, data, band))
+      {
+         mlv.SupersessionCandidateActive = false;
+         mlv.SupersessionRawBar = 0;
+         mlv.SupersessionRawCandleTime = 0;
+         return false;
+      }
+
+      if(IsExtremeReversalDirection(data, parentDirection))
+      {
+         InstallMHVSupersessionParent(mlv, parent, data);
+         MarkCanonicalMLVSuperseded(
+            mlv, data,
+            "Old MHV/MLV cycle superseded by opposite reversal-confirmed Extreme");
+         return true;
+      }
+      return false;
+   }
+
+   datetime boundary = mlv.ConfirmationCandleTime;
+   if(boundary <= 0) boundary = mlv.VoidCandleTime;
+   if(boundary <= 0 || data.candle_time <= boundary) return false;
+
+   bool rawDetected = DetectExtreme(pair, parentDirection, data, band);
+   if(!rawDetected) return false;
+
+   // Opposite RAW Extreme is only a new-cycle candidate. It cannot erase the
+   // old MHV provenance until the later reversal-confirmation candle arrives.
+   if(IsExtremeLifecycleInvalidation(pair, parentDirection, data, band))
+      return false;
+
+   mlv.SupersessionCandidateActive = true;
+   mlv.SupersessionRawBar = data.barIndex;
+   mlv.SupersessionRawCandleTime = data.candle_time;
+   return false;
+}
+
+ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
+                                       ENUM_DIRECTION direction,
+                                       TimeframeData &data,
+                                       BollingerBand &band,
+                                       ExtremeLifecycleData &parent,
+                                       bool sameDirectionSignal)
 {
    if(!EnableMLVStateEngine) return MLV_NONE;
    if(direction != DIR_BUY && direction != DIR_SELL) return MLV_NONE;
    if(!data.is_valid || !data.is_closed || data.candle_time <= 0) return mlv.State;
-   
-   if((mlv.State == MLV_VOID || mlv.State == MLV_EXPIRED) &&
-      mlv.LastUpdateCandleTime > 0 && data.candle_time > mlv.LastUpdateCandleTime)
-   {
+
+   if(mlv.Direction != direction || mlv.Timeframe != data.timeframe)
       ResetMLVState(mlv, direction);
-   }
-   
-   if(mlv.State != MLV_NONE && mlv.Direction != direction)
-      return mlv.State;
-   
-   if((mlv.State == MLV_CANDIDATE || mlv.State == MLV_CONFIRMED) &&
-      IsMLVIntrinsicExpired(mlv, data.candle_time))
-   {
-      mlv.State = MLV_EXPIRED;
-      mlv.IsValid = false;
-      mlv.Reason = "MaxWaitBars_MLV expired";
-      mlv.LastUpdateBar = data.barIndex;
-      mlv.LastUpdateCandleTime = data.candle_time;
-      return MLV_EXPIRED;
-   }
-   
+
+   bool parentMature = IsMHVParentExtremeMature(parent);
+
    if(mlv.State == MLV_NONE)
    {
-      double point = GetPointSize(pair);
-      if(point <= 0 || data.barIndex < 1) return MLV_NONE;
-      
-      double currentLevel = 0;
-      double previousLevel = 0;
-      string patternType = "";
-      
-      if(direction == DIR_SELL)
-      {
-         currentLevel = data.high;
-         previousLevel = iHigh(pair, data.timeframe, data.barIndex + 2);
-         patternType = "DoubleTop";
-      }
-      else
-      {
-         currentLevel = data.low;
-         previousLevel = iLow(pair, data.timeframe, data.barIndex + 2);
-         patternType = "DoubleBottom";
-      }
-      
-      if(currentLevel <= 0 || previousLevel <= 0) return MLV_NONE;
-      if(MathAbs(currentLevel - previousLevel) >= point * 10) return MLV_NONE;
-      
-      mlv.State = MLV_CANDIDATE;
-      mlv.Direction = direction;
-      mlv.PatternType = patternType;
-      mlv.Level1 = currentLevel;
-      mlv.Level2 = previousLevel;
-      mlv.Neckline = (direction == DIR_SELL)
-                     ? (mlv.Level1 + mlv.Level2) / 2 - point * 5
-                     : (mlv.Level1 + mlv.Level2) / 2 + point * 5;
-      mlv.StartBar = data.barIndex;
-      mlv.StartCandleTime = data.candle_time;
-      mlv.LastUpdateBar = data.barIndex;
-      mlv.LastUpdateCandleTime = data.candle_time;
-      mlv.ExpiryBar = MaxWaitBars_MLV;
-      mlv.ExpiryCandleTime = mlv.StartCandleTime + MaxWaitBars_MLV * data.timeframe * 60;
-      mlv.PatternID = patternType + "_" + TimeToString(mlv.StartCandleTime);
-      mlv.IsValid = false;
-      mlv.Reason = "Awaiting confirmation";
-      return MLV_CANDIDATE;
+      if(!parentMature) return MLV_NONE;
+      AttachCanonicalMHVParent(mlv, direction, parent, data);
+      return mlv.State;
    }
-   
-   if(mlv.State == MLV_CANDIDATE)
+
+   // A newly installed reversal-confirmed parent is a new cycle. Preserve the
+   // atomic supersession transition for one processing step, then attach it.
+   if(parentMature && parent.ConfirmationCandleTime > 0 &&
+      parent.ConfirmationCandleTime != mlv.ParentConfirmationCandleTime)
    {
-      if(data.candle_time <= mlv.StartCandleTime) return MLV_CANDIDATE;
-      
+      if(mlv.State == MLV_SUPERSEDED || mlv.State == MLV_VOID)
+      {
+         AttachCanonicalMHVParent(mlv, direction, parent, data);
+         return mlv.State;
+      }
+
+      MarkCanonicalMLVSuperseded(
+         mlv, data,
+         "MHV/MLV provenance superseded by a newer reversal-confirmed parent Extreme");
+      return mlv.State;
+   }
+
+   if(data.candle_time <= mlv.LastUpdateCandleTime)
+      return mlv.State;
+
+   // Before formation, parent validity is mandatory. After formation, the
+   // frozen parent identity is historical provenance and is not retroactively
+   // erased by later same-cycle progression.
+   if(!parentMature && !IsCanonicalMLVMatureState(mlv.State) &&
+      mlv.State != MLV_VOID && mlv.State != MLV_SUPERSEDED)
+   {
+      MarkCanonicalMLVVoid(mlv, data,
+                           "Canonical MHV void: parent Extreme lost validity before formation");
+      return mlv.State;
+   }
+
+   if(mlv.State == MLV_PARENT_READY)
+   {
+      if(data.candle_time <= mlv.ParentConfirmationCandleTime) return mlv.State;
+
+      if(IsMHVTPWajibCompleted(data, mlv.ParentExtremeDirection))
+      {
+         mlv.State = MLV_TP_COMPLETE;
+         mlv.TPWajibCandleTime = data.candle_time;
+         mlv.LastUpdateBar = data.barIndex;
+         mlv.LastUpdateCandleTime = data.candle_time;
+         mlv.PreviousClose = data.close;
+         mlv.Reason = "Normal TP-Wajib structurally completed; awaiting loss of prior momentum";
+      }
+      else
+      {
+         mlv.LastUpdateBar = data.barIndex;
+         mlv.LastUpdateCandleTime = data.candle_time;
+         mlv.PreviousClose = data.close;
+      }
+      return mlv.State;
+   }
+
+   if(mlv.State == MLV_TP_COMPLETE)
+   {
+      // Continuing Momentum after TP means loss-of-momentum has not started.
+      // No fixed candle count or timer is used; wait for an actual inside-BB,
+      // non-CSM structural pause to begin the MHV formation phase.
+      if(IsMHVLossPhaseEligible(pair, direction, data, band))
+      {
+         mlv.State = MLV_LOSS_DEVELOPING;
+         mlv.StartBar = data.barIndex;
+         mlv.StartCandleTime = data.candle_time;
+         mlv.ProvisionalBodyAnchor = 0.0;
+         UpdateMHVProvisionalBody(mlv, data);
+         mlv.InvalidationWindowOpen = true;
+         mlv.Reason = "Post-TP structural loss of prior momentum developing";
+      }
+
       mlv.LastUpdateBar = data.barIndex;
       mlv.LastUpdateCandleTime = data.candle_time;
-      
-      bool confirmed = false;
-      if(direction == DIR_SELL)
-         confirmed = (data.close > 0 && data.close < mlv.Neckline);
-      else
-         confirmed = (data.close > 0 && data.close > mlv.Neckline);
-      
-      if(confirmed)
+      mlv.PreviousClose = data.close;
+      return mlv.State;
+   }
+
+   if(mlv.State == MLV_LOSS_DEVELOPING)
+   {
+      // Invalidation has priority over formation promotion.
+      if(IsMHVContinuationInvalidation(pair, direction, data, band))
       {
-         mlv.State = MLV_CONFIRMED;
+         MarkCanonicalMLVVoid(
+            mlv, data,
+            "Canonical MHV void: prior Momentum/outer-BB continuation resumed before formation");
+         return mlv.State;
+      }
+
+      bool moveAway = IsMHVFormationMoveAway(mlv, data);
+      if(moveAway && mlv.ProvisionalBodyAnchor > 0)
+      {
+         // The move-away trigger candle confirms formation but is excluded from
+         // the accumulated most-extreme body reference.
+         mlv.FrozenMarkedBody = mlv.ProvisionalBodyAnchor;
+         mlv.State = MLV_FORMATION_ESTABLISHED;
          mlv.ConfirmationBar = data.barIndex;
          mlv.ConfirmationCandleTime = data.candle_time;
+         mlv.ConfirmationClose = data.close;
          mlv.IsValid = true;
-         mlv.Reason = "Confirmed";
-         return MLV_CONFIRMED;
+         mlv.InvalidationWindowOpen = true;
+         mlv.LastUpdateBar = data.barIndex;
+         mlv.LastUpdateCandleTime = data.candle_time;
+         mlv.PreviousClose = data.close;
+         mlv.Reason = "Canonical MHV/MLV formation established; marked body frozen";
+         return mlv.State;
       }
-      return MLV_CANDIDATE;
-   }
-   
-   if(mlv.State == MLV_CONFIRMED)
-   {
-      mlv.IsValid = true;
+
+      UpdateMHVProvisionalBody(mlv, data);
       mlv.LastUpdateBar = data.barIndex;
       mlv.LastUpdateCandleTime = data.candle_time;
+      mlv.PreviousClose = data.close;
+      return mlv.State;
    }
-   
+
+   if(mlv.State == MLV_FORMATION_ESTABLISHED ||
+      mlv.State == MLV_RETEST_COMPLETE)
+   {
+      if(mlv.InvalidationWindowOpen &&
+         IsMHVContinuationInvalidation(pair, direction, data, band))
+      {
+         MarkCanonicalMLVVoid(
+            mlv, data,
+            "Canonical MHV void: outer-BB/Momentum invalidation before direction takeover");
+         return mlv.State;
+      }
+
+      if(TryAdvanceMHVSupersessionCandidate(mlv, pair, data, band, parent))
+         return mlv.State;
+
+      if(mlv.State == MLV_FORMATION_ESTABLISHED &&
+         data.candle_time > mlv.ConfirmationCandleTime &&
+         IsMHVRetestInteraction(mlv, data))
+      {
+         mlv.State = MLV_RETEST_COMPLETE;
+         mlv.RetestBar = data.barIndex;
+         mlv.RetestCandleTime = data.candle_time;
+         mlv.Reason = "Canonical MHV/MLV retest complete at frozen marked body";
+      }
+
+      // eCSD/CSD is the normal next stage, not MHV invalidation. It may take
+      // ownership only on a later closed candle after formation exists.
+      if(sameDirectionSignal && data.candle_time > mlv.ConfirmationCandleTime)
+      {
+         mlv.State = MLV_DIRECTION_TAKEN;
+         mlv.DirectionTakeoverBar = data.barIndex;
+         mlv.DirectionTakeoverCandleTime = data.candle_time;
+         mlv.InvalidationWindowOpen = false;
+         mlv.IsValid = true;
+         mlv.Reason = "Same-cycle eCSD/CSD direction takeover; MHV provenance retained";
+      }
+
+      mlv.LastUpdateBar = data.barIndex;
+      mlv.LastUpdateCandleTime = data.candle_time;
+      mlv.PreviousClose = data.close;
+      return mlv.State;
+   }
+
+   if(mlv.State == MLV_DIRECTION_TAKEN)
+   {
+      // Later same-cycle RE/CSM/Momentum must not retroactively void MHV.
+      mlv.InvalidationWindowOpen = false;
+      mlv.IsValid = true;
+
+      if(TryAdvanceMHVSupersessionCandidate(mlv, pair, data, band, parent))
+         return mlv.State;
+
+      mlv.LastUpdateBar = data.barIndex;
+      mlv.LastUpdateCandleTime = data.candle_time;
+      mlv.PreviousClose = data.close;
+      return mlv.State;
+   }
+
+   if(mlv.State == MLV_VOID)
+   {
+      // VOID remains non-authoritative. A later RAW opposite-cycle Extreme is
+      // only a candidate; a reversal-confirmed Extreme installs the new parent.
+      TryAdvanceMHVSupersessionCandidate(mlv, pair, data, band, parent);
+      mlv.LastUpdateBar = data.barIndex;
+      mlv.LastUpdateCandleTime = data.candle_time;
+      mlv.PreviousClose = data.close;
+      return mlv.State;
+   }
+
+   if(mlv.State == MLV_SUPERSEDED)
+   {
+      mlv.IsValid = false;
+      mlv.InvalidationWindowOpen = false;
+      mlv.LastUpdateBar = data.barIndex;
+      mlv.LastUpdateCandleTime = data.candle_time;
+      mlv.PreviousClose = data.close;
+   }
+
    return mlv.State;
 }
 
-bool DetectMLVPattern(string pair, int timeframe, ENUM_DIRECTION direction,
-                      MLVData &mlv, datetime candleTime)
+bool ExportCanonicalMHVSignal(MLVData &mlv, Signal &signal)
 {
-   TimeframeData data;
-   InitTimeframeData(data);
-   GetDataForTimeframe(pair, timeframe, candleTime, data);
-   if(!data.is_valid || !data.is_closed) return false;
-   return DetectMLV_State(mlv, pair, direction, data) == MLV_CONFIRMED;
-}
+   ZeroMemory(signal);
+   if(!IsCanonicalMLVMatureState(mlv.State) || !mlv.IsValid) return false;
+   if(mlv.Direction != DIR_BUY && mlv.Direction != DIR_SELL) return false;
+   if(mlv.Timeframe != PERIOD_M15 || mlv.ConfirmationCandleTime <= 0) return false;
+   if(mlv.FrozenMarkedBody <= 0) return false;
 
-bool IsMLVPatternStillValid(MLVData &mlv, datetime currentTime)
-{
-   if(mlv.State != MLV_CONFIRMED) return false;
-   if(!mlv.IsValid) return false;
-   if(mlv.ExpiryCandleTime <= 0) return false;
-   return currentTime <= mlv.ExpiryCandleTime;
-}
-
-void GetMLVEntry(MLVData &mlv, ENUM_DIRECTION direction, 
-                 double &entry, double &sl, double &tp, double &slPoints)
-{
-   double point = GetPointSize(Symbol());
-   double slDistance = MaxSLPips * point / 10;
-   
-   if(direction == DIR_BUY)
-   {
-      entry = mlv.Level2 + point * 5;
-      sl = mlv.Level1 - slDistance;
-      tp = entry + slDistance * MinRRRatio;
-   }
-   else if(direction == DIR_SELL)
-   {
-      entry = mlv.Level2 - point * 5;
-      sl = mlv.Level1 + slDistance;
-      tp = entry - slDistance * MinRRRatio;
-   }
-   slPoints = MathAbs(entry - sl);
+   signal.Type = SIGNAL_MHV;
+   signal.Direction = mlv.Direction;
+   signal.Valid = true;
+   signal.Timeframe = mlv.Timeframe;
+   signal.BarIndex = mlv.ConfirmationBar;
+   signal.Timestamp = mlv.ConfirmationCandleTime;
+   signal.CandleTime = mlv.ConfirmationCandleTime;
+   signal.Close = mlv.ConfirmationClose;
+   signal.Reason = mlv.Reason;
+   return true;
 }
 
 //+------------------------------------------------------------------+
@@ -3108,9 +3432,11 @@ bool IsCombinationSignalReady(Signal &signal, ENUM_SIGNAL_TYPE expectedType,
 
 bool IsCombinationMLVReady(MLVData &mlv)
 {
-   return (mlv.State == MLV_CONFIRMED &&
+   return (IsCanonicalMLVMatureState(mlv.State) &&
            mlv.IsValid &&
            mlv.Direction != DIR_NONE &&
+           mlv.Timeframe == PERIOD_M15 &&
+           mlv.FrozenMarkedBody > 0 &&
            mlv.ConfirmationCandleTime > 0);
 }
 
@@ -3559,14 +3885,12 @@ bool IsPersistentMLVComponentValid(PairState &pairState,
    else if(component.Direction == DIR_SELL) mlv = pairState.mlv_sell_state;
    else return false;
 
-   if(mlv.ExpiryCandleTime > 0 && g_processing_time > mlv.ExpiryCandleTime)
-   {
-      expired = true;
-      return false;
-   }
-
-   return (mlv.State == MLV_CONFIRMED &&
+   // F1 lifecycle has no generic candle/session/day expiry. Exact formation
+   // identity stays valid until structural VOID or atomic cycle supersession.
+   return (IsCanonicalMLVMatureState(mlv.State) &&
            mlv.IsValid &&
+           mlv.Timeframe == PERIOD_M15 &&
+           mlv.FrozenMarkedBody > 0 &&
            mlv.Direction == component.Direction &&
            mlv.ConfirmationCandleTime == component.CandleTime);
 }
@@ -5479,6 +5803,19 @@ void ProcessPair(int pairIndex)
    ValidatedSequenceCandidate allCandidates[];
    int allCandidateCount = 0;
 
+   // F1 parent provenance: M15 Extreme maturity uses the already-resolved F2
+   // lifecycle. RAW Extreme alone cannot parent canonical MHV/MLV.
+   bool m15RawBuyExtreme = DetectExtreme(actual, DIR_BUY,
+                                          g_pair_states[pairIndex].m15_data, m15Band);
+   bool m15RawSellExtreme = DetectExtreme(actual, DIR_SELL,
+                                           g_pair_states[pairIndex].m15_data, m15Band);
+   UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_m15_buy_lifecycle,
+                          actual, DIR_BUY, g_pair_states[pairIndex].m15_data,
+                          m15Band, m15RawBuyExtreme);
+   UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_m15_sell_lifecycle,
+                          actual, DIR_SELL, g_pair_states[pairIndex].m15_data,
+                          m15Band, m15RawSellExtreme);
+
    for(int dirIdx = 0; dirIdx < 2; dirIdx++)
    {
       ENUM_DIRECTION direction = (dirIdx == 0) ? DIR_BUY : DIR_SELL;
@@ -5509,18 +5846,6 @@ void ProcessPair(int pairIndex)
                                 g_pair_states[pairIndex].h1_data, h1Band, h1RawExtreme);
          ExportReversalConfirmedExtremeSignal(
             g_pair_states[pairIndex].extreme_h1_sell_lifecycle, detectedH1Extreme);
-      }
-
-      if(DetectMHV(actual, direction, g_pair_states[pairIndex].m15_data))
-      {
-         m15MHVSnapshot.Type = SIGNAL_MHV;
-         m15MHVSnapshot.Direction = direction;
-         m15MHVSnapshot.Valid = true;
-         m15MHVSnapshot.Timeframe = PERIOD_M15;
-         m15MHVSnapshot.BarIndex = g_pair_states[pairIndex].m15_data.barIndex;
-         m15MHVSnapshot.CandleTime = g_pair_states[pairIndex].m15_data.candle_time;
-         m15MHVSnapshot.Timestamp = m15MHVSnapshot.CandleTime;
-         m15MHVSnapshot.Close = g_pair_states[pairIndex].m15_data.close;
       }
 
       MovingAverage m15MA;
@@ -5574,9 +5899,14 @@ void ProcessPair(int pairIndex)
 
       if(direction == DIR_BUY)
       {
-         DetectMLV_State(g_pair_states[pairIndex].mlv_buy_state, actual, direction,
-                         g_pair_states[pairIndex].m15_data);
+         UpdateCanonicalMLVState(
+            g_pair_states[pairIndex].mlv_buy_state, actual, DIR_BUY,
+            g_pair_states[pairIndex].m15_data, m15Band,
+            g_pair_states[pairIndex].extreme_m15_sell_lifecycle,
+            (m15CSDSnapshot.Valid || m15ECSDSnapshot.Valid));
          mlvSnapshot = g_pair_states[pairIndex].mlv_buy_state;
+         ExportCanonicalMHVSignal(g_pair_states[pairIndex].mlv_buy_state,
+                                  m15MHVSnapshot);
 
          UpdateReEntryState(g_pair_states[pairIndex].re_h1_buy_state, actual, direction,
                             g_pair_states[pairIndex].h1_data);
@@ -5590,9 +5920,14 @@ void ProcessPair(int pairIndex)
       }
       else
       {
-         DetectMLV_State(g_pair_states[pairIndex].mlv_sell_state, actual, direction,
-                         g_pair_states[pairIndex].m15_data);
+         UpdateCanonicalMLVState(
+            g_pair_states[pairIndex].mlv_sell_state, actual, DIR_SELL,
+            g_pair_states[pairIndex].m15_data, m15Band,
+            g_pair_states[pairIndex].extreme_m15_buy_lifecycle,
+            (m15CSDSnapshot.Valid || m15ECSDSnapshot.Valid));
          mlvSnapshot = g_pair_states[pairIndex].mlv_sell_state;
+         ExportCanonicalMHVSignal(g_pair_states[pairIndex].mlv_sell_state,
+                                  m15MHVSnapshot);
 
          UpdateReEntryState(g_pair_states[pairIndex].re_h1_sell_state, actual, direction,
                             g_pair_states[pairIndex].h1_data);

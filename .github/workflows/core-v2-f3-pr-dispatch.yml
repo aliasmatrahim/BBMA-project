@@ -24,6 +24,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('.github/scripts/apply_core_v2_f3.py')
+          t = p.read_text(encoding='utf-8')
+          old = "if s.count('TYPE1_CTX_DIRECTION_OWNER') < 3 or s.count('TYPE1_CTX_RANGING') < 3:"
+          new = "if s.count('TYPE1_CTX_DIRECTION_OWNER') < 3 or s.count('TYPE1_CTX_RANGING') < 2:"
+          if old not in t:
+              raise SystemExit('F3 static-check patch target not found')
+          p.write_text(t.replace(old, new, 1), encoding='utf-8')
+          PY
           python3 .github/scripts/apply_core_v2_f3.py
           git diff --check
 

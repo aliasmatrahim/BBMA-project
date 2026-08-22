@@ -20,7 +20,7 @@ This file is the canonical work queue for active development. It complements `bl
 
 #### CORE-V2-F1 — M09 MHV/MLV source alignment
 Priority: **CRITICAL**
-Status: **PARTIALLY RESOLVED — USER APPROVED STRUCTURAL LIFECYCLE + MANDATORY PRIOR EXTREME PROVENANCE + TP-WAJIB COMPLETION; EXTREME MATURITY/FORMATION/ANCHOR/RETEST DETAILS PENDING**
+Status: **PARTIALLY RESOLVED — USER APPROVED STRUCTURAL LIFECYCLE + MANDATORY PRIOR EXTREME PROVENANCE + TP-WAJIB COMPLETION + REVERSAL-CONFIRMED PARENT MATURITY; FORMATION/ANCHOR/RETEST DETAILS PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-04/CV2-05/CV2-06
 Decision record: `blueprint/decisions/CORE_V2_F1_MHV_MLV_LIFECYCLE_DECISION.md`
 Locked decisions:
@@ -32,15 +32,16 @@ Locked decisions:
 - after the prior Extreme, the **normal TP-Wajib structural area must actually be reached before canonical MHV/MLV formation may begin**;
 - prior Extreme SELL TP-Wajib prerequisite = opposite MA5/MA10 Low area; prior Extreme BUY = opposite MA5/MA10 High area; Mid BB remains farther/maximum context rather than the canonical first TP prerequisite;
 - TP-Wajib completion is market-structure evidence, not a broker/order-status requirement;
+- minimum parent maturity is **REVERSAL-CONFIRMED EXTREME**; `RAW EXTREME` is insufficient and standalone `RETEST/ENTRY-READY` maturity is not required solely for downstream MHV/MLV provenance;
+- canonical parent chain is `RAW EXTREME -> REVERSAL-CONFIRMED -> TP-WAJIB STRUCTURALLY COMPLETED -> ELIGIBLE MHV/MLV PARENT CONTEXT`;
 - advanced Extreme without normal TP-Wajib remains HOLD/UNCERTAIN and cannot bypass the canonical sequence;
 - an old Extreme cannot be reused indefinitely after the relevant cycle is superseded/restarted;
 - source-timeframe close beyond the relevant outer BB voids MHV/MLV and returns authority to Momentum/CSM;
 - marked body/reference + retest belong to the same lifecycle; synthetic fixed-point neckline logic must not replace the source body/retest concept;
 - double/triple top/bottom and H&S-like forms are morphology/examples, not mandatory universal formulas;
 - independent legacy `DetectMHV()`/MLV semantics must ultimately converge into one canonical owner-state result.
-Classification: **DIRECT SOURCE STRUCTURAL/SEQUENCE CONCEPT + PROJECT STATE-MACHINE / PROVENANCE / STRUCTURAL-COMPLETION MAPPING**.
+Classification: **DIRECT SOURCE STRUCTURAL/SEQUENCE/REVERSAL CONCEPT + PROJECT STATE-MACHINE / PROVENANCE / STRUCTURAL-COMPLETION MAPPING; ENTRY-MATURITY-vs-CYCLE-PROVENANCE SEPARATION IS SOURCE-INFERRED**.
 Remaining specification before code:
-- decide the minimum F2 Extreme maturity required for the provenance link;
 - define deterministic BBMA proof of `LOSS OF PRIOR MOMENTUM` without ATR/ADX/pip thresholds;
 - define body-reference ownership/freeze, retest interaction, and further supersession/void rules;
 - then migrate/remove duplicate legacy detector semantics.

@@ -1,7 +1,7 @@
 # CORE-V2-F3 — Re-Entry Type 1 Context
 
 Date: 2026-08-22
-Status: **PARTIALLY RESOLVED — USER-APPROVED CORE PHILOSOPHY + STRUCTURAL RANGING + NO FIXED MINIMUM CANDLE; IMPLEMENTATION PREDICATE STILL PENDING**
+Status: **PARTIALLY RESOLVED — USER-APPROVED CONTEXT/RANGING/PRIOR-MOVE PHILOSOPHY; MOMENTUM-PAUSE/CONSOLIDATION PREDICATE STILL PENDING**
 Branch: `blueprint-dev`
 
 ## User-approved decision 1 — Type 1 context
@@ -40,6 +40,24 @@ Consequences:
 
 Evidence classification: **SOURCE-FAITHFUL ABSENCE OF NUMERIC RULE / USER-APPROVED PROJECT SPECIFICATION**. The source is explicit about the Type 1 structural context but silent on a universal minimum candle count.
 
+## User-approved decision 4 — qualifying prior rise/fall
+The project adopts **SOURCE-VALID BBMA DIRECTION/MOMENTUM STATE** as the proof that the required prior rise/fall has occurred.
+
+Accepted interpretation:
+- a qualifying prior move must be evidenced by an already source-valid BBMA directional or momentum state before the Type 1 ranging/retrace phase;
+- accepted state families are the existing BBMA direction/momentum producers (`eCSD`, `CSD`, or `CSM/Momentum`) when they are valid under their own source contracts;
+- EMA50 slope, ATR, pip displacement, candle-count movement and external indicators are not substitutes for this BBMA-state evidence;
+- the prior state must precede the ranging/retrace phase; a same-candle MA touch with no prior BBMA directional/momentum state is not sufficient to manufacture Type 1.
+
+This is classified **SOURCE-INFERRED / STRONG HINT**. The PDF explicitly requires Type 1 after a rise/fall. Finale repeatedly teaches direction/momentum before Re-Entry, but it does not give a verbatim sentence saying that Type 1 must be encoded specifically as `eCSD/CSD/CSM` state memory.
+
+### Type-family classification guard
+This prior-state rule must not erase the source-defined special Re-Entry families:
+- if the active structure specifically satisfies the Type 3 contract (`CSM -> retrace to MA5/MA50`), classify it as Type 3 rather than relabeling it generic Type 1;
+- if the active structure specifically satisfies the Type 4 contract (`CSD -> retrace to MA5/10`), classify it as Type 4 rather than relabeling it generic Type 1.
+
+This guard is deterministic project classification to prevent duplicate/mislabelled setup ownership. It is not a claim that the source ranks Type 3/4 above Type 1 by quality.
+
 ## Evidence classification
 The requirement for **rise/fall + sideways/ranging + MA5/MA10 support/resistance behavior** is directly source-backed by the primary PDF page-9 Type 1 description.
 
@@ -53,18 +71,19 @@ Finale provides supporting context rather than a dedicated numeric Type 1 formul
 Therefore:
 - `MA touch alone = Type 1` is rejected as too broad;
 - `BB_FLAT alone = Type 1 sideways` is rejected as too narrow/unsupported;
-- a fixed minimum Type 1 candle count is rejected as unsupported.
+- a fixed minimum Type 1 candle count is rejected as unsupported;
+- generic EMA/ATR/pip movement is rejected as proof of the required prior BBMA move.
 
-The structural-ranging interpretation is classified as **SOURCE-INFERRED / STRONG HINT** built on an explicit PDF requirement for sideways/ranging.
+The structural-ranging and prior-BBMA-state interpretations are classified as **SOURCE-INFERRED / STRONG HINT** built on explicit PDF requirements plus Finale cycle/context teaching.
 
 ## Remaining implementation sub-specification
-The Core philosophy is now substantially resolved, but code still needs a deterministic state/predicate that expresses the structural conditions without inventing non-source indicators or thresholds.
+The Core philosophy is now substantially resolved, but code still needs a deterministic state/predicate for the transition from prior move into Type 1 ranging.
 
 Remaining questions to resolve before patching M12 include:
-- how to recognize that a qualifying prior rise/fall has occurred using existing BBMA state;
-- how to recognize that active momentum has paused/ended without equating all ranging to `BB_FLAT`;
+- how to recognize that active momentum has paused/ended without treating one non-CSM candle as sufficient;
 - how to distinguish consolidation/retrace from continued impulsive movement using source-owned BBMA states;
-- how the state is invalidated when momentum resumes or the MA5/MA10 close-side rule is broken.
+- how the state is invalidated when momentum resumes or the MA5/MA10 close-side rule is broken;
+- how long the prior direction/momentum state remains structurally relevant, using owner-state validity rather than an invented generic candle-count window.
 
 These must be resolved using existing BBMA structure/state where possible, not RSI/ADX/ATR/pip-width heuristics.
 
@@ -73,8 +92,9 @@ These must be resolved using existing BBMA structure/state where possible, not R
 - `BB_FLAT` alone as the ranging definition: rejected.
 - fixed ATR/pip/range threshold as a Core rule: rejected as unsupported.
 - fixed 2-candle or 3-candle minimum for Type 1: rejected as unsupported.
-- requiring CSD/CSM as a universal Type 1 precursor: not accepted; this risks collapsing Type 1 into the source-defined Type 3/Type 4 families.
+- EMA50 slope or raw price displacement alone as proof of prior rise/fall: rejected.
+- requiring only CSM or only CSD as the universal prior move: rejected as unnecessarily narrow; valid BBMA direction/momentum state is the accepted family-level proof.
 - disabling Type 1 indefinitely: not selected.
 
 ## Implementation guard
-No M12 code patch is authorized until the remaining structural state/predicate sub-specification is resolved. The current active implementation remains subject to this known Core gap.
+No M12 code patch is authorized until the remaining momentum-pause/consolidation/invalidation state predicate is resolved. The current active implementation remains subject to this known Core gap.

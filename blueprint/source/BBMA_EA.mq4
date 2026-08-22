@@ -691,26 +691,6 @@ struct TradeInfo
    ENUM_RECOVERY_STATE  recovery_state;
 };
 
-struct TradeRequest
-{
-   string               pair;
-   ENUM_DIRECTION       direction;
-   ENUM_SIGNAL_TYPE     signal_type;
-   string               comment;
-   double               lot;
-   double               entry_price;
-   double               stop_loss;
-   double               take_profit;
-   int                  magic_number;
-   int                  priority;
-   datetime             candle_time;
-   double               point;
-   int                  digits;
-   int                  stop_level;
-   int                  freeze_level;
-   string               DecisionID;
-};
-
 struct RiskStatus
 {
    bool                 allowed;
@@ -730,14 +710,6 @@ struct PortfolioStatus
    int                  trades_per_pair[MAX_PAIRS];
    bool                 allowed;
    string               reason;
-};
-
-struct OrderResult
-{
-   int                  ticket;
-   bool                 success;
-   int                  error;
-   bool                 ambiguous;
 };
 
 struct BrokerInfo
@@ -772,26 +744,6 @@ struct SignalHistoryEntry
    bool                 Executed;
    datetime             CreatedTime;
    int                  TicketNumber;
-};
-
-struct ExecutionSnapshot
-{
-   string               DecisionID;
-   string               Pair;
-   ENUM_DIRECTION       Direction;
-   ENUM_SIGNAL_TYPE     SignalType;
-   ENUM_PRIORITY_TIER   PriorityTier;
-   double               IntendedEntryPrice;
-   double               DecisionStopLoss;
-   double               DecisionTakeProfit;
-   double               Lot;
-   datetime             CandleTime;
-   double               CurrentBid;
-   double               CurrentAsk;
-   double               IntendedExecutionPrice;
-   int                  MagicNumber;
-   double               IntendedRiskPriceDistance;
-   double               FrozenAllowedDeviation;
 };
 
 //+------------------------------------------------------------------+
@@ -956,23 +908,10 @@ int GetFreezeLevel(string pair)
    return (int)MarketInfo(pair, MODE_FREEZELEVEL);
 }
 
-double NormalizePrice(double price, string pair)
-{
-   int digits = GetDigits(pair);
-   return NormalizeDouble(price, digits);
-}
-
 double NormalizeLot(double lot, string pair)
 {
    int digits = GetLotDigits(pair);
    return NormalizeDouble(RoundDownToLotStep(lot, pair), digits);
-}
-
-double RoundToLotStep(double lot, string pair)
-{
-   double step = GetLotStep(pair);
-   if(step <= 0) return lot;
-   return MathFloor(lot / step + 0.5) * step;
 }
 
 double RoundDownToLotStep(double lot, string pair)
@@ -980,19 +919,6 @@ double RoundDownToLotStep(double lot, string pair)
    double step = GetLotStep(pair);
    if(step <= 0) return lot;
    return MathFloor(lot / step) * step;
-}
-
-bool ValidatePrice(double price, string pair)
-{
-   if(price <= 0) return false;
-   double point = GetPointSize(pair);
-   if(point <= 0) return false;
-   return true;
-}
-
-bool IsSymbolAllowed(string symbol)
-{
-   return SymbolSelect(symbol, true);
 }
 
 bool IsTerminalConnected()
@@ -1057,11 +983,6 @@ datetime GetLatestClosedCandleTime(string pair, int timeframe)
          return candleTime;
    }
    return 0;
-}
-
-int GetTolerance(string pair)
-{
-   return (int)MarketInfo(pair, MODE_SPREAD);
 }
 
 bool IsNear(double price1, double price2, string pair)
@@ -1182,16 +1103,6 @@ datetime GetTodayStart()
    return StructToTime(dt);
 }
 
-string FormatNumber(double number, int decimals)
-{
-   return DoubleToString(number, decimals);
-}
-
-void RefreshPrices()
-{
-   RefreshRates();
-}
-
 int FindPairStateIndex(string pair)
 {
    for(int i = 0; i < g_pair_count; i++)
@@ -1200,23 +1111,6 @@ int FindPairStateIndex(string pair)
          return i;
    }
    return -1;
-}
-
-PairState GetPairState(string pair)
-{
-   int idx = FindPairStateIndex(pair);
-   if(idx >= 0 && idx < g_pair_count)
-      return g_pair_states[idx];
-   PairState empty;
-   InitPairState(empty);
-   return empty;
-}
-
-void StorePairState(PairState &state)
-{
-   int idx = FindPairStateIndex(state.base_symbol);
-   if(idx >= 0 && idx < g_pair_count)
-      g_pair_states[idx] = state;
 }
 
 void InitPairState(PairState &state)
@@ -1275,11 +1169,6 @@ void InitPairState(PairState &state)
    state.h4_direction_owner.RecoveredFromCheckpoint = false;
 }
 
-void CopyPairState(PairState &dest, PairState &src)
-{
-   dest = src;
-}
-
 void InitTimeframeData(TimeframeData &data)
 {
    ArrayInitialize(data.ma, 0);
@@ -1297,11 +1186,6 @@ void InitTimeframeData(TimeframeData &data)
    data.is_valid = false;
    data.is_closed = false;
    data.timeframe = 0;
-}
-
-void CopyTimeframeData(TimeframeData &dest, TimeframeData &src)
-{
-   dest = src;
 }
 
 void InitBrokerInfo()
@@ -1395,11 +1279,6 @@ void CleanupSignalHistoryEntries()
    g_global_signal_count = write;
 }
 
-datetime GetCandleTimeFromBarIndex(string pair, int timeframe, int shift)
-{
-   return iTime(pair, timeframe, shift);
-}
-
 int GetTimeframeSeconds(int timeframe)
 {
    switch(timeframe)
@@ -1417,36 +1296,12 @@ int GetTimeframeSeconds(int timeframe)
    }
 }
 
-datetime GetExpiryTime(Signal &signal, int maxWaitBars)
-{
-   int seconds = GetTimeframeSeconds(signal.Timeframe);
-   return signal.CandleTime + (maxWaitBars * seconds);
-}
-
-datetime GetGlobalExpiryTime(datetime cycleStartTime)
-{
-   return cycleStartTime + (MaxWaitBars_Global * 900);
-}
-
-datetime GetCombinedExpiry(datetime combinationStartTime)
-{
-   return combinationStartTime + (MaxWaitBars_Combined * 900);
-}
-
 datetime GetEffectiveExpiry(datetime individual, datetime combined, datetime global)
 {
    datetime min = individual;
    if(combined < min) min = combined;
    if(global < min) min = global;
    return min;
-}
-
-double GetEffectiveMaxLot(string pair)
-{
-   double brokerMax = GetMaxLot(pair);
-   if(MaxAutoLot < brokerMax)
-      return MaxAutoLot;
-   return brokerMax;
 }
 
 bool IsValidLotStep(double lot, string pair)
@@ -1753,13 +1608,6 @@ double CalculateTradeRiskMoney(string pair, double lot, double entryPrice, doubl
    return lot * (slDistance * tickValue / tickSizePrice);
 }
 
-double ConvertSpreadToPoints(string pair, double spreadPips)
-{
-   int digits = GetDigits(pair);
-   int multiplier = (digits == 5 || digits == 3) ? 10 : 1;
-   return spreadPips * multiplier;
-}
-
 void BuildTimeframeSnapshot(string pair, TimeframeSnapshot &snapshot)
 {
    snapshot.ProcessingServerTime = g_processing_time;
@@ -1925,17 +1773,6 @@ void GetDataForTimeframe(string pair, int timeframe, datetime targetTime, Timefr
    else data.trend = 0;
 }
 
-void CreateCandleFromData(TimeframeData &data, Candle &candle)
-{
-   candle.Open = data.open;
-   candle.High = data.high;
-   candle.Low = data.low;
-   candle.Close = data.close;
-   candle.Time = data.candle_time;
-   candle.Index = data.barIndex;
-   candle.Type = 0;
-}
-
 double GetHighestHigh(string pair, int timeframe, int count, int shift)
 {
    double max = 0;
@@ -1956,34 +1793,6 @@ double GetLowestLow(string pair, int timeframe, int count, int shift)
       if(low < min) min = low;
    }
    return min;
-}
-
-double AverageBodySize(string pair, int timeframe, int count, int shift)
-{
-   double sum = 0;
-   int total = 0;
-   for(int i = 0; i < count; i++)
-   {
-      double open = iOpen(pair, timeframe, shift + i);
-      double close = iClose(pair, timeframe, shift + i);
-      if(open > 0 && close > 0)
-      {
-         sum += MathAbs(close - open);
-         total++;
-      }
-   }
-   if(total == 0) return 0;
-   return sum / total;
-}
-
-double GetHighestHigh3(string pair, int timeframe, int shift)
-{
-   return GetHighestHigh(pair, timeframe, 3, shift);
-}
-
-double GetLowestLow3(string pair, int timeframe, int shift)
-{
-   return GetLowestLow(pair, timeframe, 3, shift);
 }
 
 //+------------------------------------------------------------------+
@@ -2059,29 +1868,6 @@ bool BuildBBShapeState(string pair, TimeframeData &data,
 
    current.State = DetectBBState(current, previous, pointTolerance);
    return (current.State != BB_NONE);
-}
-
-int CalculateBollingerArray(string pair, int timeframe, int period, int count, double &result[])
-{
-   if(count < 0) count = 0;
-   ArrayResize(result, count);
-   for(int i = 0; i < count; i++)
-   {
-      result[i] = SMA(pair, timeframe, period, i);
-   }
-   return count;
-}
-
-string GetBBStateString(ENUM_BB_STATE state)
-{
-   switch(state)
-   {
-      case BB_SQUEEZE: return "SQUEEZE";
-      case BB_EXPANDING: return "EXPANDING";
-      case BB_CONTRACTING: return "CONTRACTING";
-      case BB_FLAT: return "FLAT";
-      default: return "NONE";
-   }
 }
 
 //+------------------------------------------------------------------+
@@ -2405,25 +2191,6 @@ bool ExportReversalConfirmedExtremeSignal(ExtremeLifecycleData &extreme,
    signal.MA5_Level = extreme.RelevantMA5;
    signal.Reason = extreme.Reason;
    return true;
-}
-
-void BuildSLTP_Extreme(ENUM_DIRECTION direction, double entryPrice, 
-                       double &sl, double &tp, double &slPoints)
-{
-   double point = GetPointSize(Symbol());
-   double slDistance = MaxSLPips * point / 10;
-   
-   if(direction == DIR_BUY)
-   {
-      sl = entryPrice - slDistance;
-      tp = entryPrice + slDistance * MinRRRatio;
-   }
-   else if(direction == DIR_SELL)
-   {
-      sl = entryPrice + slDistance;
-      tp = entryPrice - slDistance * MinRRRatio;
-   }
-   slPoints = MathAbs(entryPrice - sl);
 }
 
 //+------------------------------------------------------------------+
@@ -2916,64 +2683,6 @@ bool ExportCanonicalMHVSignal(MLVData &mlv, Signal &signal)
 //| LEVEL: INTERMEDIATE                                              |
 //+------------------------------------------------------------------+
 
-bool IsReversalCandle(Candle &candle)
-{
-   double body = MathAbs(candle.Close - candle.Open);
-   double range = candle.High - candle.Low;
-   if(range <= 0) return false;
-   return (body / range) > 0.6;
-}
-
-bool IsCandleCloseOutsideBB(Candle &candle, BollingerBand &band)
-{
-   if(candle.Close <= 0 || band.MID_BB <= 0) return false;
-   return (candle.Close > band.TOP_BB || candle.Close < band.LOW_BB);
-}
-
-bool IsCandleCloseInsideBB(Candle &candle, BollingerBand &band)
-{
-   if(candle.Close <= 0 || band.MID_BB <= 0) return false;
-   return (candle.Close >= band.LOW_BB && candle.Close <= band.TOP_BB);
-}
-
-bool IsCandleCloseAbove(Candle &candle, double level)
-{
-   return candle.Close > level;
-}
-
-bool IsCandleCloseBelow(Candle &candle, double level)
-{
-   return candle.Close < level;
-}
-
-bool IsCandleCloseNear(Candle &candle, double level, string pair)
-{
-   double point = GetPointSize(pair);
-   return MathAbs(candle.Close - level) < point * 5;
-}
-
-bool IsDoubleTopPattern(Candle &candle1, Candle &candle2, double tolerance)
-{
-   if(candle1.High <= 0 || candle2.High <= 0) return false;
-   return MathAbs(candle1.High - candle2.High) < tolerance;
-}
-
-bool IsDoubleBottomPattern(Candle &candle1, Candle &candle2, double tolerance)
-{
-   if(candle1.Low <= 0 || candle2.Low <= 0) return false;
-   return MathAbs(candle1.Low - candle2.Low) < tolerance;
-}
-
-bool HasRecentCSD(SignalMemory &memory, int bars)
-{
-   return (memory.CSD != SIGNAL_NONE);
-}
-
-bool HasRecentCSM(SignalMemory &memory, int bars)
-{
-   return (memory.CSM != SIGNAL_NONE);
-}
-
 bool DetectCSM(string pair, int timeframe, ENUM_DIRECTION direction, int shift)
 {
    if(direction != DIR_BUY && direction != DIR_SELL) return false;
@@ -3064,44 +2773,10 @@ bool DetectECSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
           CandleBodyCrossesLevel(open, close, ma.MA10_Low, direction);
 }
 
-void BuildSLTP_CSD(ENUM_DIRECTION direction, double entryPrice,
-                   double &sl, double &tp, double &slPoints)
-{
-   double point = GetPointSize(Symbol());
-   double slDistance = MaxSLPips * point / 10;
-   
-   if(direction == DIR_BUY)
-   {
-      sl = entryPrice - slDistance;
-      tp = entryPrice + slDistance * MinRRRatio;
-   }
-   else if(direction == DIR_SELL)
-   {
-      sl = entryPrice + slDistance;
-      tp = entryPrice - slDistance * MinRRRatio;
-   }
-   slPoints = MathAbs(entryPrice - sl);
-}
-
 //+------------------------------------------------------------------+
 //| MODULE 11: TREND FUNCTIONS                                       |
 //| LEVEL: BEGINNER                                                  |
 //+------------------------------------------------------------------+
-
-int GetTrend(string pair, int timeframe, int shift)
-{
-   double ema50 = EMA(pair, timeframe, EMA50_PERIOD, shift);
-   double close = iClose(pair, timeframe, shift);
-   if(close <= 0 || ema50 <= 0) return 0;
-   if(close > ema50) return 1;
-   if(close < ema50) return -1;
-   return 0;
-}
-
-double GetTrendFromMA50(string pair, int timeframe, int shift)
-{
-   return EMA(pair, timeframe, EMA50_PERIOD, shift);
-}
 
 //+------------------------------------------------------------------+
 //| MODULE 12: RE-ENTRY ENGINE                                       |
@@ -3712,25 +3387,6 @@ bool ExportConfirmedReEntrySignal(ReEntryData &reEntry, Signal &signal)
    return true;
 }
 
-void BuildReEntrySignal(ENUM_RE_TYPE type, ENUM_DIRECTION direction, double entryPrice,
-                        double &sl, double &tp, double &slPoints)
-{
-   double point = GetPointSize(Symbol());
-   double slDistance = MaxSLPips * point / 10;
-
-   if(direction == DIR_BUY)
-   {
-      sl = entryPrice - slDistance;
-      tp = entryPrice + slDistance * MinRRRatio;
-   }
-   else if(direction == DIR_SELL)
-   {
-      sl = entryPrice + slDistance;
-      tp = entryPrice - slDistance * MinRRRatio;
-   }
-   slPoints = MathAbs(entryPrice - sl);
-}
-
 //+------------------------------------------------------------------+
 //| MODULE 13: COMBINATION ENGINE (COLLECT ONLY)                     |
 //| LEVEL: INTERMEDIATE+                                             |
@@ -3942,11 +3598,6 @@ void ValidateSequence(ComponentSet &set, ValidatedSequenceCandidate &candidate)
    }
 
    PopulateValidatedCombination(set, candidate);
-}
-
-datetime CheckEffectiveExpiry(datetime individual, datetime combined, datetime global)
-{
-   return GetEffectiveExpiry(individual, combined, global);
 }
 
 //+------------------------------------------------------------------+
@@ -4720,25 +4371,6 @@ double CalculateBasketLossPercent_EA()
    
    if(g_protection_reference_equity <= 0) return 0;
    return floatingLoss / g_protection_reference_equity * 100;
-}
-
-double CalculateBasketProfitPercent_EA()
-{
-   double floatingProfit = 0;
-   
-   for(int i = 0; i < g_monitored_count; i++)
-   {
-      if(OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))
-      {
-         if(OrderCloseTime() != 0) continue;
-         double profit = OrderProfit() + OrderSwap() + OrderCommission();
-         if(profit > 0)
-            floatingProfit += profit;
-      }
-   }
-   
-   if(g_protection_reference_equity <= 0) return 0;
-   return floatingProfit / g_protection_reference_equity * 100;
 }
 
 double CalculateTotalRisk(string pair, double newLot, double newEntry, double newSL,

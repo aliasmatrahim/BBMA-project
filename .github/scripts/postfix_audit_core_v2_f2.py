@@ -31,10 +31,14 @@ if s.count('signal.Type = SIGNAL_EXTREME;') != 1:
     raise SystemExit('SIGNAL_EXTREME must have exactly one executable export assignment')
 if s.count('DetectExtreme(') != 3:
     raise SystemExit('DetectExtreme must be definition + H1 RAW call + H4 RAW call only')
-if s.count('UpdateExtremeLifecycle(') != 5:
-    raise SystemExit('UpdateExtremeLifecycle expected definition + H1 BUY/SELL + H4 BUY/SELL')
-if s.count('ExportReversalConfirmedExtremeSignal(') != 5:
-    raise SystemExit('mature Extreme export expected definition + H1 BUY/SELL + H4 BUY/SELL')
+if s.count('ENUM_EXTREME_MATURITY UpdateExtremeLifecycle(') != 1:
+    raise SystemExit('UpdateExtremeLifecycle definition count drift')
+if s.count('UpdateExtremeLifecycle(g_pair_states') != 4:
+    raise SystemExit('UpdateExtremeLifecycle expected H1 BUY/SELL + H4 BUY/SELL call sites')
+if s.count('bool ExportReversalConfirmedExtremeSignal(') != 1:
+    raise SystemExit('mature Extreme exporter definition count drift')
+if s.count('ExportReversalConfirmedExtremeSignal(\n            g_pair_states') != 4:
+    raise SystemExit('mature Extreme exporter expected H1 BUY/SELL + H4 BUY/SELL call sites')
 if s.count('IsCombinationSignalReady(h1_extreme, SIGNAL_EXTREME, PERIOD_H1)') != 3:
     raise SystemExit('H1 Extreme combination signature drift')
 if s.count('IsCombinationSignalReady(h4_extreme, SIGNAL_EXTREME, PERIOD_H4)') != 1:

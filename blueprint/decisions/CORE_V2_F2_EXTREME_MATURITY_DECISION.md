@@ -1,7 +1,7 @@
 # CORE-V2-F2 — Extreme Maturity inside REM / REE
 
 Date: 2026-08-22
-Status: **PARTIALLY RESOLVED — MATURITY + REVERSAL-DIRECTION + FIRST-QUALIFYING-CANDLE PROMOTION + STRUCTURAL ANCHOR FREEZE + RETEST-START TRIGGER + BODY-ANCHOR MAPPING + RETEST-INTERACTION VALIDATION USER APPROVED; BODY-vs-MA5 PRIORITY FINAL CHECK STILL PENDING**
+Status: **RESOLVED — USER-APPROVED EXTREME MATURITY / REVERSAL / RETEST SPECIFICATION**
 Branch: `blueprint-dev`
 
 ## Decision 1 — Extreme maturity inside REM / REE
@@ -135,6 +135,42 @@ Source support:
 
 The exact range predicates (`High >= anchor`, `Low <= anchor`) are deterministic software mappings of a source-described revisit/touch concept and are not claimed as verbatim Oma Ally formulas.
 
+## Decision 8 — no priority between body anchor and relevant MA5
+When the frozen body anchor and relevant MA5 are separated, the project adopts **FIRST VALID INTERACTION WITH EITHER SOURCE-SUPPORTED RETEST REFERENCE COMPLETES THE RETEST**.
+
+Accepted rule:
+- there is no mandatory hierarchy of `body first` or `MA5 first`;
+- after the retest phase has begun, the first valid interaction with either the frozen body anchor **or** the relevant MA5 area is sufficient to promote the standalone Extreme to `RETEST/ENTRY-READY`;
+- if body anchor is touched first, the lifecycle does not wait for MA5;
+- if relevant MA5 is touched first, the lifecycle does not wait for body anchor;
+- if both are interacted with on the same completed candle, the result is still one completed retest; implementations may record both references for observability but must not require both for validity;
+- accepted outside-BB/Momentum invalidation remains higher-priority than retest completion. If the same completed candle/structure is invalid under the established Extreme-void rule, the result is `VOID`, not `RETEST/ENTRY-READY`;
+- no distance-based, nearest-reference, EMA/ATR, score, or arbitrary priority heuristic is introduced.
+
+### Evidence classification
+**DIRECT SOURCE ALTERNATIVE RETEST REFERENCES + MINIMAL FIRST-VALID-INTERACTION PROJECT MAPPING**.
+
+Finale V04 explicitly permits the retest to revisit the marked body/reference **or** the relevant MA5 area, but does not establish a priority order. Treating the first valid interaction with either as sufficient preserves that source framing without inventing a hierarchy.
+
+## Consolidated Extreme lifecycle contract
+For implementation/audit, the approved lifecycle is:
+
+`RAW EXTREME`
+`-> first qualifying same-TF reversal-direction closed candle`
+`-> REVERSAL-CONFIRMED`
+`-> optional continued reversal phase with provisional body anchor`
+`-> first close-progression reversal toward the original Extreme starts RETEST PHASE and freezes anchor`
+`-> first valid range interaction with frozen body anchor OR relevant MA5`
+`-> RETEST/ENTRY-READY`
+
+At every pre-entry stage:
+
+`ACCEPTED OUTSIDE-BB / MOMENTUM INVALIDATION -> VOID`
+
+Maturity use:
+- executable REM/REE Extreme component: minimum `REVERSAL-CONFIRMED`;
+- standalone Extreme entry: minimum `RETEST/ENTRY-READY`.
+
 ## Rejected alternatives
 - raw Extreme alone as executable REM/REE component;
 - reversal + retest required for every REM/REE Extreme component;
@@ -153,11 +189,11 @@ The exact range predicates (`High >= anchor`, `Low <= anchor`) are deterministic
 - first reversal candle body as the only possible final anchor;
 - mandatory body-anchor + MA5 dual-touch;
 - mandatory close-side confirmation after every retest touch;
-- mandatory named reversal pattern at the retest.
+- mandatory named reversal pattern at the retest;
+- mandatory body-before-MA5 or MA5-before-body priority;
+- nearest-reference/distance heuristic for selecting the valid retest target.
 
-## Remaining sub-specification before code
-One final focused review remains:
-- when frozen body anchor and relevant MA5 are materially separated, decide whether the **first valid interaction with either source-supported reference** completes retest, or whether one reference has priority;
-- preserve outside-BB/Momentum invalidation as higher-priority void logic during that interaction.
+## Specification closure
+CORE-V2-F2 is **RESOLVED at specification level**.
 
-No M08/Extreme lifecycle code patch is authorized until this final priority question is closed.
+Next action is implementation/audit against this exact lifecycle. No strategy code was changed by this decision record.

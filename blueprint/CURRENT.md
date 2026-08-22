@@ -254,3 +254,12 @@ This reconciliation changes project tracking/specification records only. It does
 - CV2-16/F7 remains a source-governance decision only and is not treated as a proven Core code defect.
 - **Next strategy gate: P3-M1 Mode 1 Official BBMA Compliance Audit.**
 - Audit record: `blueprint/P3_CORE_V2_STRATEGY_REAUDIT_20260822.md`.
+
+
+# 2026-08-22 P3-M1 Mode 1 Compliance Overlay
+- **Mode 1 static end-to-end BBMA compliance audit: PASS.**
+- EntryMode 1 admits only confirmed H1 Re-Entry, under recovered same-direction H4 authoritative ownership; F3 Type1 and existing Type2–4 semantics remain intact.
+- M15/M16 authority and F6 next-candle timing mapping pass static review.
+- Native MetaEditor and runtime Mode1 traces remain pending.
+- **Next engineering gate: opposite-direction / same-pair cycle integrity audit.**
+- Record: `blueprint/P3_M1_MODE1_OFFICIAL_BBMA_COMPLIANCE_AUDIT.md`.

@@ -133,8 +133,9 @@ Constraint: implementation must not invent EMA-only, score-based, timer-based, D
 Next action for F4: native MetaEditor compile and H4 owner/recovery runtime traces; static implementation/regression is complete.
 
 #### P3-M1 — Mode 1 Official BBMA Compliance Audit
-Priority: CRITICAL / NEXT STRATEGY GATE AFTER CORE-V2 SPEC CLOSURE
-Status: STATIC CORE COVERAGE PARTIAL; MODE-1-SPECIFIC END-TO-END/RUNTIME CLOSURE STILL QUEUED
+Priority: CRITICAL / STRATEGY GATE
+Status: **STATIC END-TO-END COMPLIANCE PASS — NATIVE METAEDITOR + RUNTIME MODE1 TRACE PENDING**
+Audit record: `blueprint/P3_M1_MODE1_OFFICIAL_BBMA_COMPLIANCE_AUDIT.md`
 Scope:
 - EntryMode 1 (`RE_ENTRY_ONLY`) end-to-end compliance against `BBMA_STRATEGY_CORE_SOURCE_OF_TRUTH_V2.md`;
 - M12 Re-Entry Type 1–4 semantics;

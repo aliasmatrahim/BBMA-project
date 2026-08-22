@@ -20,26 +20,23 @@ jobs:
           ref: blueprint-dev
           fetch-depth: 0
 
-      - name: Execute canonical F2 one-shot run block
+      - name: Apply CORE-V2-F2 patch and static invariants
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          src = Path('.github/workflows/one-shot-core-v2-f2-extreme-lifecycle.yml')
-          lines = src.read_text(encoding='utf-8').splitlines()
-          marker = '        run: |'
-          idx = lines.index(marker)
-          body = []
-          for line in lines[idx + 1:]:
-              if line.startswith('          '):
-                  body.append(line[10:])
-              elif line.strip() == '':
-                  body.append('')
-              else:
-                  break
-          if not body:
-              raise SystemExit('canonical F2 run block empty')
-          Path('/tmp/run-f2.sh').write_text('\n'.join(body) + '\n', encoding='utf-8')
-          PY
-          bash /tmp/run-f2.sh
+          python3 .github/scripts/apply_core_v2_f2.py
+          git diff --check
+
+      - name: Commit F2 implementation to blueprint-dev
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- blueprint/source/BBMA_EA.mq4 blueprint/CORE_V2_F2_IMPLEMENTATION_AUDIT.md
+          if git diff --cached --quiet; then
+            echo 'No source changes to commit.'
+            exit 0
+          fi
+          git commit -m "CORE-V2-F2: implement Extreme maturity lifecycle"
+          git push origin HEAD:blueprint-dev

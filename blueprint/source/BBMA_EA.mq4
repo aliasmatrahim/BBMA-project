@@ -155,6 +155,13 @@ enum ENUM_RE_TYPE { RE_NONE, RE_TYPE_1, RE_TYPE_2, RE_TYPE_3_CSM, RE_TYPE_4_CSD 
 
 enum ENUM_RE_STATE { RE_STATE_NONE, RE_STATE_CANDIDATE, RE_STATE_CONFIRMED, RE_STATE_EXPIRED };
 
+enum ENUM_TYPE1_CONTEXT_STATE
+{
+   TYPE1_CTX_NONE,
+   TYPE1_CTX_DIRECTION_OWNER,
+   TYPE1_CTX_RANGING
+};
+
 enum ENUM_EXTREME_TYPE { EXT_NONE, EXT_SIDEWAYS, EXT_WITH_MOMENTUM, EXT_WITHOUT_MOMENTUM };
 
 enum ENUM_EXTREME_MATURITY
@@ -400,6 +407,13 @@ struct ReEntryData
    datetime             ExpiryCandleTime;
    int                  MinCandlesRequired;
    int                  QualifyingCandles;
+
+   ENUM_TYPE1_CONTEXT_STATE Type1ContextState;
+   ENUM_SIGNAL_TYPE     Type1OwnerSignal;
+   datetime             Type1OwnerCandleTime;
+   datetime             Type1RangingStartCandleTime;
+   double               Type1PreviousClose;
+
    bool                 IsValid;
    double               StrengthScore;
    string               Reason;
@@ -3089,12 +3103,39 @@ bool HasReEntryMA5OrMA50Touch(TimeframeData &data, ENUM_DIRECTION direction)
    return (ma5Touch || ma50Touch);
 }
 
-bool DetectReEntry_Type1(string pair, ENUM_DIRECTION direction, TimeframeData &data)
+void BuildReEntryDirectionInputs(TimeframeData &data, MovingAverage &ma,
+                                 BollingerBand &band)
 {
-   if(!EnableRE_Type1) return false;
-   if(!data.is_valid || !data.is_closed) return false;
+   ma.MA5_High = data.ma[0];
+   ma.MA10_High = data.ma[1];
+   ma.MA5_Low = data.ma[2];
+   ma.MA10_Low = data.ma[3];
+   ma.EMA50 = data.ma[4];
 
-   return HasReEntryMAClusterTouch(data, direction);
+   ZeroMemory(band);
+   band.TOP_BB = data.bollinger[0];
+   band.MID_BB = data.bollinger[1];
+   band.LOW_BB = data.bollinger[2];
+   band.Width = band.TOP_BB - band.LOW_BB;
+}
+
+ENUM_SIGNAL_TYPE DetectReEntryDirectionOwnerSignal(string pair,
+                                                    ENUM_DIRECTION direction,
+                                                    TimeframeData &data)
+{
+   if(direction != DIR_BUY && direction != DIR_SELL) return SIGNAL_NONE;
+   if(!data.is_valid || !data.is_closed || data.barIndex < 1) return SIGNAL_NONE;
+
+   MovingAverage ma;
+   BollingerBand band;
+   BuildReEntryDirectionInputs(data, ma, band);
+
+   // Momentum is the strongest same-candle classification. CSD is checked
+   // before eCSD because a CSD candle also contains the eCSD MA crossing.
+   if(DetectCSM(pair, data.timeframe, direction, data.barIndex)) return SIGNAL_CSM;
+   if(DetectCSD(pair, data.timeframe, direction, data.barIndex, ma, band)) return SIGNAL_CSD;
+   if(DetectECSD(pair, data.timeframe, direction, data.barIndex, ma)) return SIGNAL_ECSD;
+   return SIGNAL_NONE;
 }
 
 bool DetectReEntry_Type2(string pair, ENUM_DIRECTION direction, TimeframeData &data,
@@ -3119,7 +3160,6 @@ bool DetectReEntry_Type3(string pair, ENUM_DIRECTION direction, TimeframeData &d
 {
    if(!EnableRE_Type3) return false;
    if(!data.is_valid || !data.is_closed) return false;
-
    return DetectCSM(pair, data.timeframe, direction, data.barIndex);
 }
 
@@ -3129,32 +3169,9 @@ bool DetectReEntry_Type4(string pair, ENUM_DIRECTION direction, TimeframeData &d
    if(!data.is_valid || !data.is_closed) return false;
 
    MovingAverage ma;
-   ma.MA5_High = data.ma[0];
-   ma.MA10_High = data.ma[1];
-   ma.MA5_Low = data.ma[2];
-   ma.MA10_Low = data.ma[3];
-   ma.EMA50 = data.ma[4];
-
    BollingerBand band;
-   ZeroMemory(band);
-   band.TOP_BB = data.bollinger[0];
-   band.MID_BB = data.bollinger[1];
-   band.LOW_BB = data.bollinger[2];
-   band.Width = band.TOP_BB - band.LOW_BB;
-
+   BuildReEntryDirectionInputs(data, ma, band);
    return DetectCSD(pair, data.timeframe, direction, data.barIndex, ma, band);
-}
-
-ENUM_RE_TYPE DetectReEntry_Master(string pair, ENUM_DIRECTION direction,
-                                  TimeframeData &data, bool &mostPowerful)
-{
-   mostPowerful = false;
-
-   if(DetectReEntry_Type2(pair, direction, data, mostPowerful)) return RE_TYPE_2;
-   if(DetectReEntry_Type1(pair, direction, data)) return RE_TYPE_1;
-   if(DetectReEntry_Type3(pair, direction, data)) return RE_TYPE_3_CSM;
-   if(DetectReEntry_Type4(pair, direction, data)) return RE_TYPE_4_CSD;
-   return RE_NONE;
 }
 
 void ResetReEntryState(ReEntryData &reEntry, ENUM_DIRECTION direction, int timeframe)
@@ -3164,10 +3181,14 @@ void ResetReEntryState(ReEntryData &reEntry, ENUM_DIRECTION direction, int timef
    reEntry.State = RE_STATE_NONE;
    reEntry.Direction = direction;
    reEntry.Timeframe = timeframe;
+   reEntry.Type1ContextState = TYPE1_CTX_NONE;
+   reEntry.Type1OwnerSignal = SIGNAL_NONE;
 }
 
 bool IsReEntryIntrinsicExpired(ReEntryData &reEntry, datetime currentCandleTime)
 {
+   // CORE-V2-F3: Type 1 has structural owner lifetime, not a generic candle TTL.
+   if(reEntry.Type == RE_TYPE_1) return false;
    if(reEntry.StartCandleTime <= 0 || reEntry.ExpiryCandleTime <= 0) return false;
    return (currentCandleTime > reEntry.ExpiryCandleTime);
 }
@@ -3196,22 +3217,193 @@ void ConfirmReEntryState(ReEntryData &reEntry, TimeframeData &data, string reaso
    reEntry.Reason = reason;
 }
 
+string ReEntryOwnerSignalName(ENUM_SIGNAL_TYPE type)
+{
+   if(type == SIGNAL_ECSD) return "eCSD";
+   if(type == SIGNAL_CSD) return "CSD";
+   if(type == SIGNAL_CSM) return "CSM";
+   return "NONE";
+}
+
+void AdoptType1DirectionOwner(ReEntryData &reEntry, ENUM_DIRECTION direction,
+                              TimeframeData &data, ENUM_SIGNAL_TYPE ownerSignal)
+{
+   ResetReEntryState(reEntry, direction, data.timeframe);
+   reEntry.Type1ContextState = TYPE1_CTX_DIRECTION_OWNER;
+   reEntry.Type1OwnerSignal = ownerSignal;
+   reEntry.Type1OwnerCandleTime = data.candle_time;
+   reEntry.Type1PreviousClose = data.close;
+   reEntry.LastUpdateBar = data.barIndex;
+   reEntry.LastUpdateCandleTime = data.candle_time;
+   reEntry.Reason = "Type1 owner established by source-valid " +
+                    ReEntryOwnerSignalName(ownerSignal) +
+                    "; awaiting structural pause/retrace";
+}
+
+bool IsType1MAClusterCloseSideFailure(TimeframeData &data,
+                                      ENUM_DIRECTION direction)
+{
+   double ma5, ma10;
+   if(!GetReEntryMACluster(data, direction, ma5, ma10)) return true;
+   if(data.close <= 0) return true;
+
+   // Penetration of one MA is not automatically failure. The pending setup
+   // fails only when price closes clear through the full MA5/MA10 cluster.
+   if(direction == DIR_BUY)
+      return (data.close < MathMin(ma5, ma10));
+   if(direction == DIR_SELL)
+      return (data.close > MathMax(ma5, ma10));
+   return true;
+}
+
+bool IsType1StructuralRetraceEvidence(ReEntryData &reEntry,
+                                      TimeframeData &data,
+                                      ENUM_DIRECTION direction)
+{
+   if(reEntry.Type1PreviousClose <= 0 || data.close <= 0) return false;
+
+   // A valid MA-cluster interaction is itself structural retrace evidence.
+   // Otherwise use direction-only close progression toward the cluster; no
+   // pip/ATR/EMA threshold or fixed candle count is introduced.
+   if(HasReEntryMAClusterTouch(data, direction)) return true;
+   if(direction == DIR_BUY)  return (data.close < reEntry.Type1PreviousClose);
+   if(direction == DIR_SELL) return (data.close > reEntry.Type1PreviousClose);
+   return false;
+}
+
+void BeginType1RangingCandidate(ReEntryData &reEntry,
+                                ENUM_DIRECTION direction,
+                                TimeframeData &data)
+{
+   reEntry.Type = RE_TYPE_1;
+   reEntry.State = RE_STATE_CANDIDATE;
+   reEntry.Direction = direction;
+   reEntry.Timeframe = data.timeframe;
+   reEntry.StartBar = data.barIndex;
+   reEntry.StartCandleTime = data.candle_time;
+   reEntry.LastUpdateBar = data.barIndex;
+   reEntry.LastUpdateCandleTime = data.candle_time;
+   reEntry.EntryPrice = 0;
+   reEntry.EntryCandle = 0;
+   reEntry.ConfirmationBar = 0;
+   reEntry.ConfirmationCandle = 0;
+   reEntry.ExpiryBar = 0;
+   reEntry.ExpiryCandleTime = 0;
+   reEntry.MinCandlesRequired = 0;
+   reEntry.QualifyingCandles = 0;
+   reEntry.IsValid = false;
+   reEntry.Type1ContextState = TYPE1_CTX_RANGING;
+   reEntry.Type1RangingStartCandleTime = data.candle_time;
+   reEntry.Type1PreviousClose = data.close;
+   SetReEntrySnapshotLevels(reEntry, data);
+   reEntry.Reason = "Type1 structural ranging/retrace established; awaiting MA5/10 validation";
+}
+
+void StartSpecificReEntryCandidate(ReEntryData &reEntry,
+                                   ENUM_RE_TYPE type,
+                                   ENUM_DIRECTION direction,
+                                   TimeframeData &data,
+                                   bool mostPowerful)
+{
+   ResetReEntryState(reEntry, direction, data.timeframe);
+   reEntry.Type = type;
+   reEntry.State = RE_STATE_CANDIDATE;
+   reEntry.StartBar = data.barIndex;
+   reEntry.StartCandleTime = data.candle_time;
+   reEntry.LastUpdateBar = data.barIndex;
+   reEntry.LastUpdateCandleTime = data.candle_time;
+   reEntry.ExpiryBar = MaxWaitBars_ReEntry;
+   reEntry.ExpiryCandleTime =
+      reEntry.StartCandleTime + MaxWaitBars_ReEntry * data.timeframe * 60;
+   reEntry.QualifyingCandles = 1;
+   SetReEntrySnapshotLevels(reEntry, data);
+
+   if(type == RE_TYPE_2)
+   {
+      reEntry.MinCandlesRequired = 3;
+      reEntry.Reason = mostPowerful
+                       ? "Type2 candidate: MA5/10 + MID BB + MA50 collision (1/3)"
+                       : "Type2 candidate: MA5/10 + MID BB collision (1/3)";
+   }
+   else if(type == RE_TYPE_3_CSM)
+   {
+      reEntry.MinCandlesRequired = 1;
+      reEntry.Reason = "Type3 candidate: CSM formed; awaiting retrace to MA5 or MA50";
+   }
+   else if(type == RE_TYPE_4_CSD)
+   {
+      reEntry.MinCandlesRequired = 1;
+      reEntry.Reason = "Type4 candidate: CSD formed; awaiting retrace to MA5/10";
+   }
+}
+
+bool TryStartSpecificReEntry(ReEntryData &reEntry, string pair,
+                             ENUM_DIRECTION direction, TimeframeData &data)
+{
+   // Exact Type 3/4 precursor families own their setup before generic Type 1.
+   if(DetectReEntry_Type3(pair, direction, data))
+   {
+      StartSpecificReEntryCandidate(reEntry, RE_TYPE_3_CSM, direction, data, false);
+      return true;
+   }
+
+   if(DetectReEntry_Type4(pair, direction, data))
+   {
+      StartSpecificReEntryCandidate(reEntry, RE_TYPE_4_CSD, direction, data, false);
+      return true;
+   }
+
+   bool mostPowerful = false;
+   if(DetectReEntry_Type2(pair, direction, data, mostPowerful))
+   {
+      StartSpecificReEntryCandidate(reEntry, RE_TYPE_2, direction, data, mostPowerful);
+      return true;
+   }
+
+   return false;
+}
+
+void ResetType1AndAdoptCurrentOwner(ReEntryData &reEntry,
+                                    ENUM_DIRECTION direction,
+                                    TimeframeData &data,
+                                    ENUM_SIGNAL_TYPE sameDirectionSignal)
+{
+   ResetReEntryState(reEntry, direction, data.timeframe);
+   if(sameDirectionSignal != SIGNAL_NONE)
+      AdoptType1DirectionOwner(reEntry, direction, data, sameDirectionSignal);
+}
+
 ENUM_RE_STATE UpdateReEntryState(ReEntryData &reEntry, string pair,
                                  ENUM_DIRECTION direction, TimeframeData &data)
 {
    if(direction != DIR_BUY && direction != DIR_SELL) return RE_STATE_NONE;
    if(!data.is_valid || !data.is_closed || data.candle_time <= 0) return reEntry.State;
 
-   if(reEntry.State == RE_STATE_EXPIRED &&
-      reEntry.LastUpdateCandleTime > 0 &&
-      data.candle_time > reEntry.LastUpdateCandleTime)
+   if(reEntry.Direction != direction || reEntry.Timeframe != data.timeframe)
+      ResetReEntryState(reEntry, direction, data.timeframe);
+
+   // Do not process the same closed source-TF candle twice.
+   if(reEntry.LastUpdateCandleTime > 0 &&
+      data.candle_time <= reEntry.LastUpdateCandleTime)
+      return reEntry.State;
+
+   ENUM_DIRECTION oppositeDirection =
+      (direction == DIR_BUY) ? DIR_SELL : DIR_BUY;
+   ENUM_SIGNAL_TYPE sameSignal =
+      DetectReEntryDirectionOwnerSignal(pair, direction, data);
+   ENUM_SIGNAL_TYPE oppositeSignal =
+      DetectReEntryDirectionOwnerSignal(pair, oppositeDirection, data);
+
+   // Opposite source-valid direction/momentum atomically removes the old
+   // Type-1 directional context. The opposite-direction state is managed by
+   // its own ReEntryData owner in the parallel direction pass.
+   if(oppositeSignal != SIGNAL_NONE &&
+      (reEntry.Type == RE_TYPE_1 ||
+       reEntry.Type1ContextState != TYPE1_CTX_NONE))
    {
       ResetReEntryState(reEntry, direction, data.timeframe);
+      return RE_STATE_NONE;
    }
-
-   if(reEntry.State != RE_STATE_NONE &&
-      (reEntry.Direction != direction || reEntry.Timeframe != data.timeframe))
-      return reEntry.State;
 
    if((reEntry.State == RE_STATE_CANDIDATE || reEntry.State == RE_STATE_CONFIRMED) &&
       IsReEntryIntrinsicExpired(reEntry, data.candle_time))
@@ -3224,59 +3416,99 @@ ENUM_RE_STATE UpdateReEntryState(ReEntryData &reEntry, string pair,
       return RE_STATE_EXPIRED;
    }
 
-   if(reEntry.State == RE_STATE_NONE)
+   // Confirmed Type 1 remains structurally valid only while its owner survives.
+   if(reEntry.State == RE_STATE_CONFIRMED && reEntry.Type == RE_TYPE_1)
    {
-      bool mostPowerful = false;
-      ENUM_RE_TYPE detectedType = DetectReEntry_Master(pair, direction, data, mostPowerful);
-      if(detectedType == RE_NONE) return RE_STATE_NONE;
+      if(IsType1MAClusterCloseSideFailure(data, direction))
+      {
+         ResetReEntryState(reEntry, direction, data.timeframe);
+         return RE_STATE_NONE;
+      }
 
-      reEntry.Type = detectedType;
-      reEntry.Direction = direction;
-      reEntry.Timeframe = data.timeframe;
-      reEntry.EntryPrice = 0;
-      reEntry.EntryCandle = 0;
-      reEntry.StartBar = data.barIndex;
-      reEntry.StartCandleTime = data.candle_time;
+      if(sameSignal == SIGNAL_CSM || sameSignal == SIGNAL_CSD)
+      {
+         // Exact Type 3/4 may take ownership immediately on their precursor.
+         if(TryStartSpecificReEntry(reEntry, pair, direction, data))
+            return reEntry.State;
+         ResetType1AndAdoptCurrentOwner(reEntry, direction, data, sameSignal);
+         return reEntry.State;
+      }
+
+      if(sameSignal == SIGNAL_ECSD)
+      {
+         ResetType1AndAdoptCurrentOwner(reEntry, direction, data, sameSignal);
+         return reEntry.State;
+      }
+
+      reEntry.IsValid = true;
       reEntry.LastUpdateBar = data.barIndex;
       reEntry.LastUpdateCandleTime = data.candle_time;
-      reEntry.ConfirmationBar = 0;
-      reEntry.ConfirmationCandle = 0;
-      reEntry.ExpiryBar = MaxWaitBars_ReEntry;
-      reEntry.ExpiryCandleTime =
-         reEntry.StartCandleTime + MaxWaitBars_ReEntry * data.timeframe * 60;
-      reEntry.IsValid = false;
-      SetReEntrySnapshotLevels(reEntry, data);
+      reEntry.Type1PreviousClose = data.close;
+      return RE_STATE_CONFIRMED;
+   }
 
-      if(detectedType == RE_TYPE_1)
+   if(reEntry.State == RE_STATE_EXPIRED)
+   {
+      ResetReEntryState(reEntry, direction, data.timeframe);
+      // Continue on the same candle so a fresh structural owner is not lost.
+   }
+
+   if(reEntry.State == RE_STATE_NONE)
+   {
+      // Specific source-defined Re-Entry families own before generic Type 1.
+      if(TryStartSpecificReEntry(reEntry, pair, direction, data))
+         return reEntry.State;
+
+      if(!EnableRE_Type1)
       {
-         reEntry.MinCandlesRequired = 1;
-         reEntry.QualifyingCandles = 1;
-         ConfirmReEntryState(reEntry, data,
+         reEntry.LastUpdateBar = data.barIndex;
+         reEntry.LastUpdateCandleTime = data.candle_time;
+         return RE_STATE_NONE;
+      }
+
+      if(sameSignal != SIGNAL_NONE)
+      {
+         // eCSD/CSD/CSM is prior-move evidence only for Type 1; it is never
+         // itself a Type-1 entry. Type3/4 were already given exact ownership.
+         AdoptType1DirectionOwner(reEntry, direction, data, sameSignal);
+         return RE_STATE_NONE;
+      }
+
+      if(reEntry.Type1ContextState != TYPE1_CTX_DIRECTION_OWNER)
+      {
+         reEntry.LastUpdateBar = data.barIndex;
+         reEntry.LastUpdateCandleTime = data.candle_time;
+         return RE_STATE_NONE;
+      }
+
+      if(IsType1MAClusterCloseSideFailure(data, direction))
+      {
+         ResetReEntryState(reEntry, direction, data.timeframe);
+         return RE_STATE_NONE;
+      }
+
+      if(!IsType1StructuralRetraceEvidence(reEntry, data, direction))
+      {
+         reEntry.Type1PreviousClose = data.close;
+         reEntry.LastUpdateBar = data.barIndex;
+         reEntry.LastUpdateCandleTime = data.candle_time;
+         return RE_STATE_NONE;
+      }
+
+      BeginType1RangingCandidate(reEntry, direction, data);
+
+      // No fixed minimum candle count: if this structurally proven retrace
+      // candle also reaches MA5/MA10 and closes on the valid side, it may
+      // complete Type 1 immediately. This is not an MA-touch-only shortcut
+      // because an earlier source-valid direction owner was mandatory.
+      if(HasReEntryMAClusterTouch(data, direction))
+      {
+         ConfirmReEntryState(
+            reEntry, data,
             (direction == DIR_BUY)
-            ? "Type1 confirmed: MA5/10 Low support touch"
-            : "Type1 confirmed: MA5/10 High resistance touch");
+            ? "Type1 confirmed: prior BBMA direction -> structural ranging -> MA5/10 Low support retest"
+            : "Type1 confirmed: prior BBMA direction -> structural ranging -> MA5/10 High resistance retest");
          return RE_STATE_CONFIRMED;
-      }
-
-      reEntry.State = RE_STATE_CANDIDATE;
-      reEntry.QualifyingCandles = 1;
-
-      if(detectedType == RE_TYPE_2)
-      {
-         reEntry.MinCandlesRequired = 3;
-         reEntry.Reason = mostPowerful
-                          ? "Type2 candidate: MA5/10 + MID BB + MA50 collision (1/3)"
-                          : "Type2 candidate: MA5/10 + MID BB collision (1/3)";
-      }
-      else if(detectedType == RE_TYPE_3_CSM)
-      {
-         reEntry.MinCandlesRequired = 1;
-         reEntry.Reason = "Type3 candidate: CSM formed; awaiting retrace to MA5 or MA50";
-      }
-      else if(detectedType == RE_TYPE_4_CSD)
-      {
-         reEntry.MinCandlesRequired = 1;
-         reEntry.Reason = "Type4 candidate: CSD formed; awaiting retrace to MA5/10";
       }
 
       return RE_STATE_CANDIDATE;
@@ -3284,7 +3516,48 @@ ENUM_RE_STATE UpdateReEntryState(ReEntryData &reEntry, string pair,
 
    if(reEntry.State == RE_STATE_CANDIDATE)
    {
-      if(data.candle_time <= reEntry.LastUpdateCandleTime) return RE_STATE_CANDIDATE;
+      if(reEntry.Type == RE_TYPE_1)
+      {
+         // Structural invalidation / ownership transfer has priority.
+         if(IsType1MAClusterCloseSideFailure(data, direction))
+         {
+            ResetReEntryState(reEntry, direction, data.timeframe);
+            return RE_STATE_NONE;
+         }
+
+         if(sameSignal == SIGNAL_CSM || sameSignal == SIGNAL_CSD)
+         {
+            if(TryStartSpecificReEntry(reEntry, pair, direction, data))
+               return reEntry.State;
+            ResetType1AndAdoptCurrentOwner(reEntry, direction, data, sameSignal);
+            return reEntry.State;
+         }
+
+         if(sameSignal == SIGNAL_ECSD)
+         {
+            ResetType1AndAdoptCurrentOwner(reEntry, direction, data, sameSignal);
+            return reEntry.State;
+         }
+
+         if(HasReEntryMAClusterTouch(data, direction))
+         {
+            ConfirmReEntryState(
+               reEntry, data,
+               (direction == DIR_BUY)
+               ? "Type1 confirmed: structural ranging retest at MA5/10 Low support"
+               : "Type1 confirmed: structural ranging retest at MA5/10 High resistance");
+            return RE_STATE_CONFIRMED;
+         }
+
+         // No fixed expiry and no invented minimum count. Keep the candidate
+         // only while no structural invalidation/supersession has occurred.
+         reEntry.Type1PreviousClose = data.close;
+         reEntry.LastUpdateBar = data.barIndex;
+         reEntry.LastUpdateCandleTime = data.candle_time;
+         SetReEntrySnapshotLevels(reEntry, data);
+         reEntry.Reason = "Type1 structural ranging active; awaiting MA5/10 support/resistance validation";
+         return RE_STATE_CANDIDATE;
+      }
 
       reEntry.LastUpdateBar = data.barIndex;
       reEntry.LastUpdateCandleTime = data.candle_time;
@@ -3377,7 +3650,7 @@ void BuildReEntrySignal(ENUM_RE_TYPE type, ENUM_DIRECTION direction, double entr
 {
    double point = GetPointSize(Symbol());
    double slDistance = MaxSLPips * point / 10;
-   
+
    if(direction == DIR_BUY)
    {
       sl = entryPrice - slDistance;

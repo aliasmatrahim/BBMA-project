@@ -77,7 +77,7 @@ Next action for F2: native MetaEditor compile and runtime lifecycle traces; stat
 
 #### CORE-V2-F3 — Re-Entry Type 1 context
 Priority: **HIGH**
-Status: **SPECIFICATION PHILOSOPHY RESOLVED — USER APPROVED; CODE PATCH/AUDIT STILL PENDING**
+Status: **CODE IMPLEMENTED / STATIC REGRESSION PASS — NATIVE METAEDITOR COMPILE + RUNTIME TRACE PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-09
 Decision record: `blueprint/decisions/CORE_V2_F3_TYPE1_CONTEXT_DECISION.md`
 Locked decisions:
@@ -93,7 +93,7 @@ Locked decisions:
 - owner lifetime has **no generic fixed candle expiry** and remains valid only while the same authoritative BBMA structure/cycle survives;
 - age may be logged but is not a BBMA validity rule.
 Constraint: implementation must use BBMA-owned state/owner transitions; no RSI/ADX/ATR/fixed-pip or timer heuristics as disguised Core rules.
-Next action for F3: patch/audit M12 only after the remaining higher-priority Core specification closures are reconciled; do not alter code during specification review.
+Next action for F3: native MetaEditor compile and runtime Type1 lifecycle traces; static implementation/regression is complete.
 
 #### CORE-V2-F4 — Higher-timeframe context for standalone H1 Re-Entry
 Priority: **HIGH**

@@ -173,14 +173,19 @@ Accepted source/project interpretation:
 - The project interprets the ranging phase structurally: prior directional movement has occurred, active momentum has paused/ended, price consolidates/retraces rather than continuing impulsively, and the relevant MA5/MA10 cluster begins acting as support/resistance.
 - `BB_FLAT`/horizontal BB may support the ranging interpretation but is not by itself a universal mandatory Type 1 condition.
 - There is **no fixed minimum candle count** for Type 1 ranging. Structural completion, not an invented 2-candle/3-candle threshold, governs maturity.
+- A qualifying prior rise/fall must be evidenced by a source-valid BBMA direction/momentum state (`eCSD`, `CSD`, or `CSM/Momentum`) under its own source contract; generic EMA/ATR/pip displacement is not a substitute.
+- Transition into Type 1 ranging is owner/state based: prior valid direction/momentum → active momentum ceases/pauses → retrace/consolidation toward the relevant MA5/MA10 cluster. One non-CSM candle by itself is insufficient proof of ranging.
 - SELL context: MA5/10 High acts as resistance; sell Re-Entry is considered when price finds the relevant cluster and the validating candle remains/closes on the permitted SELL side.
 - BUY context: MA5/10 Low acts as support; buy Re-Entry is considered when price finds the relevant cluster and the validating candle remains/closes on the permitted BUY side.
+- A pending Type 1 is structurally invalidated/reset/reclassified when the relevant MA5/MA10 close-side fails, same-direction Momentum/CSM resumes and ends the old ranging phase, opposite source-valid direction/momentum supersedes the old context, or an exact Type 3/Type 4 structure becomes the correct setup owner.
+- Type 1 owner lifetime is **structural, not timer-based**. There is no generic fixed candle expiry; owner age may be logged but does not determine validity.
+- Exact Type 3 (`CSM -> MA5/MA50 retrace`) and Type 4 (`CSD -> MA5/10 retrace`) structures retain their own ownership and must not be relabelled as generic Type 1.
 
-Source basis: primary PDF page 9; Finale supporting context V01/V02/V03/V05/V06. The structural-ranging interpretation is **SOURCE-INFERRED / STRONG HINT** around the PDF-explicit sideways/ranging requirement. The no-fixed-candle rule is a source-faithful project specification because the source provides no universal Type 1 candle count.
+Source basis: primary PDF page 9; Finale supporting context V01/V02/V03/V05/V06. The structural-ranging, prior-owner, transition and invalidation interpretations are **SOURCE-INFERRED / STRONG HINT** around the PDF-explicit rise/fall + sideways/ranging requirement. The no-fixed-candle/no-fixed-expiry rules are source-faithful project specifications because the source provides no universal numeric Type 1 threshold.
 
 Decision provenance: `blueprint/decisions/CORE_V2_F3_TYPE1_CONTEXT_DECISION.md`.
 
-Implementation guard: a deterministic BBMA-state predicate for prior movement, momentum pause, consolidation/retrace and invalidation still requires specification before M12 is patched. Do not introduce RSI/ADX/ATR/fixed-pip thresholds as disguised Core rules.
+Implementation guard: the Type 1 strategy specification is resolved, but M12 still requires implementation/audit against the approved owner/state contract. Do not introduce RSI/ADX/ATR/fixed-pip/timer heuristics as disguised Core rules.
 
 ### 8.3 Type 2 — Powerful Re-Entry
 - MA5/MA10 and Mid BB meet/collide.
@@ -222,6 +227,39 @@ Accepted Core interpretation:
 - The structural principle scales across related chains such as D1/H4/H1, H4/H1/M15, H1/M15/M5 and M15/M5/M1, but project execution contracts use only explicitly approved timeframe signatures.
 
 Source basis: primary PDF page 10 and pages 12–13; Finale V05 00:34:48–00:36:37 and 00:46:16–00:53:55; V06 00:26:57–00:29:02.
+
+### 9.1 Standalone H1 Re-Entry higher-timeframe parent contract
+**User-approved project Core decision:** standalone H1 Re-Entry uses **H4 as the immediate higher-timeframe parent/context owner** in the approved intraday chain.
+
+Accepted contract:
+- H1 standalone Re-Entry cannot be treated as autonomous from H4 BBMA context.
+- D1 remains broader structural context but is not a universal mandatory hard gate for every standalone H1 Re-Entry.
+- H4 compatibility is based on an **active authoritative BBMA directional/cycle owner**, not a single current H4 candle, EMA50-only reading, Mid-BB-only reading, score, or generic trend filter.
+- Raw H4 Extreme and raw H4 MHV/MLV are pre-direction context and do not by themselves establish directional ownership.
+- H4 directional ownership is inherited across one same-direction cycle: a valid direction signal establishes/advances the owner; same-direction Re-Entry and CSM/Momentum inherit/continue that owner.
+- A valid H4 `eCSD` is sufficient to establish H4 directional ownership for parent compatibility; later same-direction CSD/Re-Entry/CSM may strengthen/advance the same owner but are not mandatory prerequisites.
+- eCSD remains directional context only; it does not become direct trade-entry authority.
+- A source-valid opposite H4 `eCSD`, `CSD`, or `CSM/Momentum` causes **atomic owner handover**: the old owner is superseded and the new opposite owner becomes authoritative on the closed-candle transition.
+- Simultaneous authoritative H4 BUY and SELL owners are not allowed.
+- An ordinary neutral H4 candle does not erase an inherited owner that remains structurally valid.
+- If H4 is truly **`NO_OWNER`**, standalone H1 Re-Entry execution is blocked until a compatible authoritative H4 owner exists. No silent fallback to D1, MA50/Mid BB, candle color, generic price position, or absence of an opposite signal is permitted.
+- H4 owner lifetime is **purely structural with no generic fixed candle/time/day/session expiry**.
+
+Evidence classification: the requirement for higher-timeframe reading/alignment is a **DIRECT SOURCE PRINCIPLE**. H4-as-immediate-parent and the deterministic owner/inheritance/handover/no-owner/lifetime encoding are **SOURCE-INFERRED / STRONG HINT** based on the explicit H4/H1/M15 chain, source direction/setup separation and Finale parent/child teaching.
+
+Decision provenance: `blueprint/decisions/CORE_V2_F4_H1_RE_HTF_CONTEXT_DECISION.md`.
+
+### 9.2 Restart/recovery preservation of the H4 owner
+Restart/recovery mechanics are **EA ENGINEERING POLICY**, not an Oma Ally strategy rule, but they must preserve Section 9.1 semantics.
+
+Approved recovery contract:
+- persisted owner state is only a verified checkpoint/cache, not unquestioned source of truth;
+- after restart, replay closed H4 history chronologically after the checkpoint using the same owner/invalidation/handover state machine;
+- if checkpoint provenance cannot be verified, rebuild from available closed H4 history;
+- if available history cannot prove an authoritative owner chain, resolve to `NO_OWNER` and block standalone H1 execution;
+- the recovered H4 owner should equal the owner that uninterrupted closed-candle runtime would have produced.
+
+This recovery mechanism must never invent direction from a current snapshot or unsupported fallback.
 
 ---
 
@@ -283,6 +321,8 @@ Accepted material changes the project knowledge in these specific ways:
 - clarifies higher-timeframe ownership/context of lower-timeframe signals;
 - records the first-validation-candle / second-entry-candle phrase as a timing semantic that still requires runtime mapping;
 - adds the user-approved source-inferred maturity distinction that REM/REE Extreme components must be reversal-confirmed, while standalone Extreme entry still requires the later retest;
-- adds the user-approved Type 1 structural-ranging interpretation and explicitly rejects inventing a fixed Type 1 minimum candle count.
+- closes the Type 1 structural-ranging contract, including prior BBMA-state proof, structural invalidation and no fixed minimum/expiry count;
+- closes the standalone H1 Re-Entry H4-parent contract, including inherited H4 owner semantics, eCSD owner authority, atomic opposite handover, no-owner block and structural owner lifetime;
+- records verified checkpoint + deterministic replay as engineering-only restart/recovery policy to preserve the H4 owner contract.
 
 The unresolved Extreme exceptions and personal/workflow material remain outside authoritative Core.

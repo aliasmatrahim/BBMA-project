@@ -64,7 +64,7 @@ Next action for F3: patch/audit M12 only after the remaining higher-priority Cor
 
 #### CORE-V2-F4 — Higher-timeframe context for standalone H1 Re-Entry
 Priority: **HIGH**
-Status: **PARTIALLY RESOLVED — USER APPROVED H4 PARENT + AUTHORITATIVE CYCLE-STATE ALIGNMENT + INHERITED DIRECTIONAL OWNER + eCSD AUTHORITY + ATOMIC OPPOSITE HANDOVER + NO-OWNER BLOCK + STRUCTURAL OWNER LIFETIME; RESTART/RECOVERY RECONSTRUCTION PENDING**
+Status: **SPECIFICATION RESOLVED — USER APPROVED; CODE PATCH/AUDIT STILL PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-12
 Decision record: `blueprint/decisions/CORE_V2_F4_H1_RE_HTF_CONTEXT_DECISION.md`
 Locked decisions:
@@ -82,17 +82,15 @@ Locked decisions:
 - a neutral H4 candle does not erase an already-valid inherited H4 owner if that owner remains structurally valid;
 - when H4 is truly **NO OWNER**, standalone H1 Re-Entry execution is blocked until a compatible H4 owner exists;
 - no-owner must not silently fall back to D1, Mid-BB/MA50, candle color, generic price position or absence of opposite signal;
-- H4 owner freshness uses **pure structural lifetime with no generic fixed expiry**; owner age, clock time, day/session change or lack of periodic fresh eCSD/CSD does not invalidate an otherwise still-authoritative owner;
-- the H4 owner ends only through structural invalidation/supersession such as a valid opposite owner handover or another authoritative cycle/state transition;
-- bar age may be logged for observability/recovery diagnostics but is not an eligibility filter;
-- no engineering-only stale timeout is added at this stage because there is no source-derived threshold;
-- Mid-BB/MA50 may support context but cannot substitute as the sole owner;
-- this does not redefine REM/RRE/REE or turn standalone H1 Re-Entry into a three-timeframe combination;
-- H4 compatibility must not be reduced to an invented EMA50-only, score-based, or generic trend filter.
-Remaining specification before code:
-- define restart/recovery reconstruction of the authoritative H4 owner after EA/init state loss;
-- decide whether recovery replays closed H4 BBMA history, trusts persisted state, or uses a hybrid validation path;
-- define fail-safe behavior when available history is insufficient to prove a valid owner chain without inventing direction.
+- H4 owner lifetime is **purely structural with no generic fixed candle/time/session expiry**;
+- restart/recovery uses **verified persisted checkpoint + deterministic closed-H4 replay**; checkpoint is cache/provenance aid, not unquestioned truth;
+- if checkpoint/history cannot prove an authoritative owner, recovery resolves to `NO_OWNER` and standalone H1 execution remains blocked;
+- recovered owner must match the owner the same closed-candle state machine would have produced under uninterrupted runtime.
+Classification:
+- H4 MTF/owner semantics: direct source principle + source-inferred/strong-hint project mapping;
+- restart/recovery mechanics: EA engineering policy only, preserving the approved Core semantics.
+Constraint: implementation must not invent EMA-only, score-based, timer-based, D1-fallback, or current-snapshot shortcuts.
+Next action for F4: patch/audit H4 owner consumption and M24 recovery only after the remaining pre-code specification dependency below is resolved.
 
 #### P3-M1 — Mode 1 Official BBMA Compliance Audit
 Priority: CRITICAL / NEXT STRATEGY GATE AFTER CORE-V2 SPEC CLOSURE
@@ -106,7 +104,7 @@ Scope:
 - M13 -> M14 -> M15 -> M16 selection/invalidation integrity;
 - ensure no non-compliant Re-Entry can reach M17/M21/M19/M20/M22.
 Rule: audit first; only create strategy fixes from evidence-backed deviations. Do not introduce win-rate heuristics or non-BBMA filters.
-Dependency: CORE-V2-F4 must be resolved and F3 implemented/audited before Mode 1 can be declared source-compliant.
+Dependency: CORE-V2-F4 must be implemented/audited and F3 implemented/audited before Mode 1 can be declared source-compliant.
 
 ### P1 — Core support / semantic verification
 
@@ -170,9 +168,9 @@ Before declaring P3 complete, preserve the existing Step 5 closure rule in `P3_S
 
 ## Execution order
 1. Keep `CURRENT.md` + this queue reconciled.
-2. Finish CORE-V2-F4 restart/recovery reconstruction specification.
-3. Define deterministic reversal-confirmation semantics required to implement the already-approved CORE-V2-F2 maturity decision.
-4. Implement/audit CORE-V2-F3 Type 1 state/owner contract and repair CORE-V2-F1 M09 MHV/MLV against the resolved canonical Core contract.
+2. Define deterministic source-faithful Extreme reversal-confirmation semantics required to implement the already-approved CORE-V2-F2 maturity decision.
+3. Implement/audit CORE-V2-F3 Type 1 state/owner contract and CORE-V2-F4 H4 parent/owner/recovery contract.
+4. Repair CORE-V2-F1 M09 MHV/MLV against the resolved canonical Core contract.
 5. Repair CORE-V2-F5 BB-flat classification and run CORE-V2-F6 timing verification.
 6. Re-run Core V2 static audit until no critical/high Strategy-Core mismatch remains.
 7. Complete P3-M1 Mode 1 end-to-end compliance closure and opposite-direction cycle audit.

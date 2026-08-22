@@ -172,15 +172,11 @@ Current contract explicitly separates `FORUM_SUPPORTED` TP and `EA_SAFETY` hard 
 
 ### P1 — Opposite-direction / same-pair cycle integrity
 Priority: HIGH
-Status: QUEUED; dependency/overlap with P3-M1
-Problem statement:
-- runtime observation can show BUY and SELL positions on the same pair;
-- determine whether this is a valid cycle transition with an older position still open, or opposite-direction leakage from one active authoritative cycle.
-Audit path:
-`M13 -> M14 -> M15 -> M16 -> M20/M22`
-Evidence fields:
-`Pair`, `Direction`, `CycleStartTime`, `DecisionID`, `SequenceHash`, decision state, cycle state, existing position direction.
-Expected invariant to verify: one active authoritative BBMA cycle per pair must not simultaneously authorize contradictory directions unless an explicit, source-backed cycle transition has occurred.
+Status: **BUG CONFIRMED / FIX IMPLEMENTED / STATIC REGRESSION PASS — METAEDITOR + RUNTIME TRACE PENDING**
+Audit record: `blueprint/P3_OPPOSITE_DIRECTION_PAIR_INTEGRITY_AUDIT.md`
+Finding: M15 already rejects contradictory eligible BUY/SELL candidates in one atomic scan. The observed BUY+SELL coexistence under `TradeLockMode=1` came from a reversed M22 lock predicate: mode 1 blocked same-direction adds and allowed opposite-direction orders.
+Fix: `LOCK_SAME_DIRECTION` now means same-direction-only coexistence on the pair; an existing live EA-owned opposite direction rejects the new order with `REJ_TRADE_LOCK`. Mode 0 and mode 2 semantics remain unchanged.
+Next action: native compile + focused TradeLock runtime trace; proceed to sequential cumulative risk-budget admission audit.
 
 ### P1 — Sequential risk-budget admission
 Priority: HIGH

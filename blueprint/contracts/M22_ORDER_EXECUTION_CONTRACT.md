@@ -51,6 +51,13 @@ If a matching live order is found, its ticket is treated as the confirmed execut
 ## Trade lock
 Trade-lock checks must consider only live EA-owned positions. Stale monitored entries or foreign/manual orders cannot create an M22 trade-lock rejection.
 
+Mode semantics are explicit:
+- `LOCK_OFF` / `TradeLockMode=0`: trade-lock itself imposes no pair-direction restriction; normal portfolio/strategy gates still apply.
+- `LOCK_SAME_DIRECTION` / `TradeLockMode=1`: if this EA already has a live position on the pair, a new position is allowed only in the **same direction**; an opposite BUY/SELL coexistence on that pair is rejected with `REJ_TRADE_LOCK`. Multiple same-direction positions remain subject to `MaxTradePerPair` and other portfolio limits.
+- `LOCK_ONE_POSITION` / `TradeLockMode=2`: any existing live EA-owned position on the pair blocks another position on that pair.
+
+This is an EA execution-policy lock. It does not rewrite BBMA cycle direction. A later source-valid opposite cycle may become the strategy owner, but under mode 1 its new opposite order must wait until the old opposite live position is no longer open.
+
 ## Result mapping
 - confirmed ticket: `DEC_EXECUTED`, `REJ_NONE`;
 - execution deviation: `DEC_REJECTED`, `REJ_EXECUTION_DEVIATION_EXCEEDED`;

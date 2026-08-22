@@ -263,3 +263,12 @@ This reconciliation changes project tracking/specification records only. It does
 - Native MetaEditor and runtime Mode1 traces remain pending.
 - **Next engineering gate: opposite-direction / same-pair cycle integrity audit.**
 - Record: `blueprint/P3_M1_MODE1_OFFICIAL_BBMA_COMPLIANCE_AUDIT.md`.
+
+
+# 2026-08-22 Opposite-Direction Pair Integrity Overlay
+- **TradeLockMode=1 opposite-direction bug confirmed and fixed; static regression PASS.**
+- M15 already blocks simultaneous contradictory eligible directions in one scan.
+- M22 `LOCK_SAME_DIRECTION` was reversed; it now allows same-direction adds and blocks opposite-direction coexistence for the same EA/pair.
+- Audit: `blueprint/P3_OPPOSITE_DIRECTION_PAIR_INTEGRITY_AUDIT.md`.
+- Native MetaEditor/runtime verification remains pending.
+- **Next engineering gate: sequential cumulative risk-budget admission audit.**

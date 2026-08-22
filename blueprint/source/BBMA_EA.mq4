@@ -41,7 +41,7 @@
 
 //--- INPUTS
 input int      EntryMode                          = 2;          // EntryMode: 1=RE_ENTRY_ONLY, 2=ALL_VALIDATED_BBMA_ENTRIES
-input int      TradeLockMode                      = 0;          // TradeLockMode: 0=OFF, 1=SAME_DIRECTION, 2=ONE_POSITION
+input int      TradeLockMode                      = 0;          // TradeLockMode: 0=OFF, 1=SAME_DIRECTION_ONLY, 2=ONE_POSITION
 input int      MaxWaitBars_Extreme                = 5;          // MaxWaitBars_Extreme
 input int      MaxWaitBars_MLV                    = 5;          // Legacy compatibility only; canonical MHV/MLV has no strategy TTL
 input int      MaxWaitBars_CSD                    = 5;          // MaxWaitBars_CSD
@@ -5226,11 +5226,15 @@ bool IsSignalAllowed(BBMA_Decision &decision, string pair, int magicNumber)
    }
    else if(TradeLockMode == LOCK_SAME_DIRECTION)
    {
+      // Pair-direction lock: once this EA already has a live position on the
+      // pair, additional positions may only follow that same direction.
+      // The previous comparison was reversed: it blocked same-direction adds
+      // and allowed BUY+SELL coexistence, contradicting SAME_DIRECTION mode.
       for(int i = 0; i < g_monitored_count; i++)
       {
          if(!IsLiveEAOwnedPortfolioTrade(i)) continue;
          if(g_monitored_trades[i].pair == pair &&
-            g_monitored_trades[i].direction == decision.Direction)
+            g_monitored_trades[i].direction != decision.Direction)
             return false;
       }
    }

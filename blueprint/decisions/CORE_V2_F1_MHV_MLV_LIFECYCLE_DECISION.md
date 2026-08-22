@@ -1,7 +1,7 @@
 # CORE-V2-F1 — MHV/MLV Canonical Lifecycle
 
 Date: 2026-08-22
-Status: **PARTIALLY RESOLVED — STRUCTURAL LIFECYCLE + MANDATORY PRIOR EXTREME + TP-WAJIB COMPLETION + REVERSAL-CONFIRMED PARENT MATURITY + STRUCTURAL LOSS-OF-MOMENTUM STATE USER APPROVED; ANCHOR/RETEST/SUPERSESSION DETAILS STILL PENDING**
+Status: **PARTIALLY RESOLVED — STRUCTURAL LIFECYCLE + MANDATORY PRIOR EXTREME + TP-WAJIB COMPLETION + REVERSAL-CONFIRMED PARENT MATURITY + STRUCTURAL LOSS-OF-MOMENTUM + TURNING-BODY FORMATION PREDICATE USER APPROVED; REFERENCE-FREEZE/RETEST/SUPERSESSION DETAILS STILL PENDING**
 Branch: `blueprint-dev`
 
 ## User-approved decision 1 — MHV/MLV is a structural lifecycle, not a one-candle detector
@@ -107,12 +107,11 @@ Accepted operational rule:
 - absence of Momentum/CSM is therefore necessary but not sufficient: there must also be an actually developing post-TP structure in the same owner-cycle;
 - `BB_FLAT` may be observed elsewhere by the EA but is **not** the universal definition of MHV/MLV loss of momentum;
 - no ATR, ADX, fixed pip displacement, fixed body-size percentage, body-smaller-than-previous rule, or fixed 2-/3-candle minimum is introduced as BBMA Core evidence;
-- if a source-valid close beyond the relevant outer BB / source-valid Momentum/CSM appears before MHV/MLV formation matures, the pending MHV/MLV interpretation is void/superseded rather than coexisting with Momentum;
-- the exact body/pivot/reference event that turns this developing failed-continuation state into a concrete MHV/MLV formation is intentionally left to the next review; Decision 5 only locks the semantic state that must precede it.
+- if a source-valid close beyond the relevant outer BB / source-valid Momentum/CSM appears before MHV/MLV formation matures, the pending MHV/MLV interpretation is void/superseded rather than coexisting with Momentum.
 
 Canonical transition therefore becomes:
 
-`ELIGIBLE MHV/MLV PARENT CONTEXT -> POST-TP STRUCTURE DEVELOPS INSIDE RELEVANT OUTER BB WITHOUT SOURCE-VALID MOMENTUM/CSM -> LOSS-OF-PRIOR-MOMENTUM STATE -> [FORMATION PREDICATE PENDING]`
+`ELIGIBLE MHV/MLV PARENT CONTEXT -> POST-TP STRUCTURE DEVELOPS INSIDE RELEVANT OUTER BB WITHOUT SOURCE-VALID MOMENTUM/CSM -> LOSS-OF-PRIOR-MOMENTUM STATE`
 
 ### Evidence classification
 This decision is **DIRECT SOURCE LOSS-OF-MOMENTUM + OUTER-BB/MOMENTUM INVALIDATION PRINCIPLE, WITH SOURCE-INFERRED STRUCTURAL STATE MAPPING**.
@@ -124,6 +123,39 @@ Source support:
 - the primary PDF digest likewise describes MLV as a multi-candle structural setup with highest/lowest body marking and later retest.
 
 The requirement for a developing same-cycle post-TP structure, and the refusal to promote one ordinary candle into MHV, are deterministic project state-management mappings of those source concepts rather than verbatim candle-count rules.
+
+## User-approved decision 6 — most-extreme body plus first closed move-away establishes concrete MHV/MLV formation
+The project adopts **MOST-EXTREME CANDLE-BODY REFERENCE DURING THE ACTIVE LOSS-OF-MOMENTUM PHASE, FOLLOWED BY THE FIRST CLOSED MOVE AWAY FROM THAT SIDE, AS THE MINIMUM DETERMINISTIC PREDICATE THAT ESTABLISHES A CONCRETE MHV/MLV FORMATION**.
+
+Accepted operational rule:
+- Decision 6 is evaluated only after the same-timeframe eligible parent context and Decision 5 loss-of-prior-momentum state already exist;
+- for a lifecycle descending from a prior **Extreme SELL**, the post-TP structure is the bottom-side MHV/MLV formation context:
+  - for each qualifying closed candle in the active loss-of-momentum phase, `BodyBottom = min(Open, Close)`;
+  - track the **lowest `BodyBottom`** reached by that phase as the provisional marked-body candidate;
+  - the first later closed candle with `CurrentClose > PreviousClose` establishes that price has begun moving away from the bottom-side body extreme and promotes the structure to `MHV/MLV FORMATION ESTABLISHED`;
+- for a lifecycle descending from a prior **Extreme BUY**, the post-TP structure is the top-side MHV/MLV formation context:
+  - for each qualifying closed candle in the active loss-of-momentum phase, `BodyTop = max(Open, Close)`;
+  - track the **highest `BodyTop`** reached by that phase as the provisional marked-body candidate;
+  - the first later closed candle with `CurrentClose < PreviousClose` establishes that price has begun moving away from the top-side body extreme and promotes the structure to `MHV/MLV FORMATION ESTABLISHED`;
+- the move-away trigger candle is treated as the first candle after the completed body-extreme formation segment; the provisional marked-body value is finalized from the loss-of-momentum structure **through the immediately preceding closed candle**, not redefined by the trigger candle itself;
+- wick `High/Low` is not substituted for the source-described candle-body reference;
+- no mandatory second touch, exact double/triple-top or bottom, H&S, named candlestick pattern, eCSD/CSD, previous-high/low breakout, or fixed candle count is added merely to establish initial MHV/MLV formation;
+- double/triple and H&S-like morphology remain possible later visual forms of the same structural family, not prerequisites to initial formation maturity;
+- the marked body created here is **provisional for the next lifecycle step**. Whether it freezes immediately at formation or may still evolve before the formal retest stage is intentionally left to the next focused review;
+- accepted outer-BB/Momentum invalidation has priority: if the trigger candle/structure is source-valid Momentum/CSM or closes beyond the relevant outer BB under the canonical rule, the pending MHV/MLV interpretation is `VOID/SUPERSEDED`, not formation-established.
+
+Canonical transition therefore becomes:
+
+`LOSS-OF-PRIOR-MOMENTUM STATE -> MOST-EXTREME BODY DEVELOPS -> FIRST CLOSED MOVE AWAY -> MHV/MLV FORMATION ESTABLISHED -> PROVISIONAL MARKED BODY/REFERENCE`
+
+### Evidence classification
+This decision is **DIRECT SOURCE BODY-MARKING / RETEST CONCEPT + MINIMAL STRUCTURAL TURNING-POINT PROJECT MAPPING**.
+
+Source support:
+- the primary PDF digest states that the highest/lowest body is marked because price may later retrace for a retest;
+- Finale V05 OA-F-V05-008 reinforces marked body/line plus retest structure and shows multiple possible morphologies without prescribing one mandatory formula.
+
+The exact `BodyBottom`/`BodyTop` formulas and `CurrentClose` move-away predicates are project-level deterministic encodings of a source-described body-marking/turning structure. They are not claimed as verbatim Oma Ally Boolean formulas.
 
 ## Rejected alternatives
 - single-candle MHV/MLV detector as the complete source model;
@@ -141,14 +173,16 @@ The requirement for a developing same-cycle post-TP structure, and the refusal t
 - requiring the prior Extreme to become standalone `RETEST/ENTRY-READY` before it can provide downstream MHV/MLV provenance;
 - treating the first non-Momentum candle after TP as sufficient proof of MHV/MLV;
 - defining loss of momentum through `BB_FLAT` alone;
-- using ATR/ADX/fixed-pip/body-size or fixed-N-candle heuristics as canonical BBMA proof of MHV/MLV.
+- using ATR/ADX/fixed-pip/body-size or fixed-N-candle heuristics as canonical BBMA proof of MHV/MLV;
+- using the first post-TP candle as the marked MHV/MLV body without a structural move-away;
+- requiring a mandatory second touch/double top-bottom before initial MHV/MLV formation can exist;
+- waiting for eCSD/CSD before recognizing MHV/MLV formation.
 
 ## Remaining specification before code
-The structural lifecycle, mandatory prior-Extreme provenance, mandatory TP-Wajib completion, minimum parent-Extreme maturity and structural loss-of-momentum state are locked. Deterministic sub-rules still need one-by-one review before M09 is patched:
-- define the exact body/pivot/reference predicate that matures the loss-of-momentum state into a concrete MHV/MLV formation;
-- define how the marked highest/lowest body reference is owned and frozen;
-- define what constitutes the retest/active-setup interaction;
-- define lifecycle supersession/void rules beyond the explicit outer-BB close;
+The structural lifecycle, mandatory prior-Extreme provenance, mandatory TP-Wajib completion, minimum parent-Extreme maturity, structural loss-of-momentum state and initial turning-body formation predicate are locked. Deterministic sub-rules still need one-by-one review before M09 is patched:
+- decide whether the provisional highest/lowest body reference freezes immediately at formation or can still evolve before the formal retest stage;
+- define the exact retest/active-setup interaction with the frozen marked body/reference;
+- define lifecycle supersession/void rules beyond the explicit outer-BB/Momentum invalidation;
 - migrate/remove legacy duplicate detector semantics after the canonical contract is complete.
 
 No EA code change is authorized by these decisions alone.

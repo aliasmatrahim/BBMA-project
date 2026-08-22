@@ -5648,26 +5648,27 @@ void ClearH4OwnerCheckpoint(PairState &state)
 
 void SaveH4OwnerCheckpoint(PairState &state)
 {
-   H4DirectionalOwner &owner = state.h4_direction_owner;
-   if(owner.State != H4_OWNER_ACTIVE || !owner.IsValid ||
-      (owner.Direction != DIR_BUY && owner.Direction != DIR_SELL) ||
-      owner.SourceCandleTime <= 0 ||
-      (owner.SourceSignal != SIGNAL_ECSD &&
-       owner.SourceSignal != SIGNAL_CSD &&
-       owner.SourceSignal != SIGNAL_CSM))
+   if(state.h4_direction_owner.State != H4_OWNER_ACTIVE ||
+      !state.h4_direction_owner.IsValid ||
+      (state.h4_direction_owner.Direction != DIR_BUY &&
+       state.h4_direction_owner.Direction != DIR_SELL) ||
+      state.h4_direction_owner.SourceCandleTime <= 0 ||
+      (state.h4_direction_owner.SourceSignal != SIGNAL_ECSD &&
+       state.h4_direction_owner.SourceSignal != SIGNAL_CSD &&
+       state.h4_direction_owner.SourceSignal != SIGNAL_CSM))
    {
       ClearH4OwnerCheckpoint(state);
       return;
    }
 
    string base = H4OwnerGVBase(state);
-   GlobalVariableSet(base + "D", (double)owner.Direction);
-   GlobalVariableSet(base + "S", (double)owner.SourceSignal);
-   GlobalVariableSet(base + "T", (double)owner.SourceCandleTime);
+   GlobalVariableSet(base + "D", (double)state.h4_direction_owner.Direction);
+   GlobalVariableSet(base + "S", (double)state.h4_direction_owner.SourceSignal);
+   GlobalVariableSet(base + "T", (double)state.h4_direction_owner.SourceCandleTime);
    GlobalVariablesFlush();
 }
 
-ENUM_SIGNAL_TYPE ClassifyH4AuthoritativeSignal(string pair,
+ENUM_SIGNAL_TYPE ClassifyH4AuthoritativeSignalENUM_SIGNAL_TYPE ClassifyH4AuthoritativeSignal(string pair,
                                                 ENUM_DIRECTION direction,
                                                 TimeframeData &data)
 {
@@ -5696,30 +5697,31 @@ void ApplyH4AuthoritativeEvent(PairState &state,
                                datetime candleTime,
                                bool recovered)
 {
-   H4DirectionalOwner &owner = state.h4_direction_owner;
    if(direction != DIR_BUY && direction != DIR_SELL) return;
    if(signalType != SIGNAL_ECSD && signalType != SIGNAL_CSD &&
       signalType != SIGNAL_CSM) return;
    if(candleTime <= 0) return;
 
-   bool handover = (owner.State == H4_OWNER_ACTIVE && owner.IsValid &&
-                    owner.Direction != DIR_NONE && owner.Direction != direction);
+   bool handover = (state.h4_direction_owner.State == H4_OWNER_ACTIVE &&
+                    state.h4_direction_owner.IsValid &&
+                    state.h4_direction_owner.Direction != DIR_NONE &&
+                    state.h4_direction_owner.Direction != direction);
 
-   owner.State = H4_OWNER_ACTIVE;
-   owner.Direction = direction;
-   owner.SourceSignal = signalType;
-   owner.SourceCandleTime = candleTime;
-   owner.LastAdvanceSignal = signalType;
-   owner.LastAdvanceCandleTime = candleTime;
-   owner.IsValid = true;
-   owner.RecoveryComplete = true;
-   owner.RecoveredFromCheckpoint = recovered;
-   owner.Reason = handover
-                  ? "Atomic H4 owner handover by opposite source-valid direction/momentum"
-                  : "H4 authoritative directional owner established/advanced";
+   state.h4_direction_owner.State = H4_OWNER_ACTIVE;
+   state.h4_direction_owner.Direction = direction;
+   state.h4_direction_owner.SourceSignal = signalType;
+   state.h4_direction_owner.SourceCandleTime = candleTime;
+   state.h4_direction_owner.LastAdvanceSignal = signalType;
+   state.h4_direction_owner.LastAdvanceCandleTime = candleTime;
+   state.h4_direction_owner.IsValid = true;
+   state.h4_direction_owner.RecoveryComplete = true;
+   state.h4_direction_owner.RecoveredFromCheckpoint = recovered;
+   state.h4_direction_owner.Reason = handover
+      ? "Atomic H4 owner handover by opposite source-valid direction/momentum"
+      : "H4 authoritative directional owner established/advanced";
 }
 
-bool VerifyH4OwnerCheckpoint(PairState &state,
+bool VerifyH4OwnerCheckpointbool VerifyH4OwnerCheckpoint(PairState &state,
                              ENUM_DIRECTION direction,
                              ENUM_SIGNAL_TYPE signalType,
                              datetime candleTime)
@@ -5798,40 +5800,47 @@ void ApplyH4ReplayCandle(PairState &state, TimeframeData &data)
 void RecoverH4DirectionalOwnerForPair(int pairIndex)
 {
    if(pairIndex < 0 || pairIndex >= g_pair_count) return;
-   PairState &state = g_pair_states[pairIndex];
-   ResetH4DirectionalOwner(state.h4_direction_owner,
+
+   ResetH4DirectionalOwner(g_pair_states[pairIndex].h4_direction_owner,
                            H4_OWNER_RECOVERY_UNRESOLVED);
 
-   if(!state.pair_enabled || state.actual_symbol == "")
+   if(!g_pair_states[pairIndex].pair_enabled ||
+      g_pair_states[pairIndex].actual_symbol == "")
    {
-      ResetH4DirectionalOwner(state.h4_direction_owner, H4_OWNER_NONE);
-      state.h4_direction_owner.Reason = "H4 recovery unavailable for disabled/unresolved pair";
+      ResetH4DirectionalOwner(g_pair_states[pairIndex].h4_direction_owner,
+                              H4_OWNER_NONE);
+      g_pair_states[pairIndex].h4_direction_owner.Reason =
+         "H4 recovery unavailable for disabled/unresolved pair";
       return;
    }
 
-   bool checkpointValid = LoadVerifiedH4OwnerCheckpoint(state);
-   int bars = iBars(state.actual_symbol, PERIOD_H4);
+   bool checkpointValid = LoadVerifiedH4OwnerCheckpoint(g_pair_states[pairIndex]);
+   int bars = iBars(g_pair_states[pairIndex].actual_symbol, PERIOD_H4);
    if(bars < 3)
    {
       if(!checkpointValid)
       {
-         ResetH4DirectionalOwner(state.h4_direction_owner, H4_OWNER_NONE);
-         state.h4_direction_owner.Reason = "Insufficient closed H4 history -> NO_OWNER";
+         ResetH4DirectionalOwner(g_pair_states[pairIndex].h4_direction_owner,
+                                 H4_OWNER_NONE);
+         g_pair_states[pairIndex].h4_direction_owner.Reason =
+            "Insufficient closed H4 history -> NO_OWNER";
       }
-      state.h4_direction_owner.RecoveryComplete = true;
+      g_pair_states[pairIndex].h4_direction_owner.RecoveryComplete = true;
       return;
    }
 
-   int startShift = bars - 2; // replay all available closed H4 history by default.
+   int startShift = bars - 2;
    if(checkpointValid)
    {
-      int checkpointShift = iBarShift(state.actual_symbol, PERIOD_H4,
-                                      state.h4_direction_owner.SourceCandleTime, true);
+      int checkpointShift = iBarShift(
+         g_pair_states[pairIndex].actual_symbol, PERIOD_H4,
+         g_pair_states[pairIndex].h4_direction_owner.SourceCandleTime, true);
       if(checkpointShift >= 1)
          startShift = checkpointShift - 1;
       else
       {
-         ResetH4DirectionalOwner(state.h4_direction_owner, H4_OWNER_NONE);
+         ResetH4DirectionalOwner(g_pair_states[pairIndex].h4_direction_owner,
+                                 H4_OWNER_NONE);
          checkpointValid = false;
          startShift = bars - 2;
       }
@@ -5839,34 +5848,36 @@ void RecoverH4DirectionalOwnerForPair(int pairIndex)
 
    for(int shift = startShift; shift >= 1; shift--)
    {
-      datetime candleTime = iTime(state.actual_symbol, PERIOD_H4, shift);
+      datetime candleTime =
+         iTime(g_pair_states[pairIndex].actual_symbol, PERIOD_H4, shift);
       if(candleTime <= 0) continue;
 
       TimeframeData data;
       InitTimeframeData(data);
-      GetDataForTimeframe(state.actual_symbol, PERIOD_H4, candleTime, data);
+      GetDataForTimeframe(g_pair_states[pairIndex].actual_symbol,
+                          PERIOD_H4, candleTime, data);
       if(!data.is_valid || !data.is_closed) continue;
 
-      ApplyH4ReplayCandle(state, data);
+      ApplyH4ReplayCandle(g_pair_states[pairIndex], data);
    }
 
-   state.h4_direction_owner.RecoveryComplete = true;
-   if(state.h4_direction_owner.State != H4_OWNER_ACTIVE ||
-      !state.h4_direction_owner.IsValid)
+   g_pair_states[pairIndex].h4_direction_owner.RecoveryComplete = true;
+   if(g_pair_states[pairIndex].h4_direction_owner.State != H4_OWNER_ACTIVE ||
+      !g_pair_states[pairIndex].h4_direction_owner.IsValid)
    {
-      state.h4_direction_owner.State = H4_OWNER_NONE;
-      state.h4_direction_owner.Direction = DIR_NONE;
-      state.h4_direction_owner.IsValid = false;
-      state.h4_direction_owner.Reason =
+      g_pair_states[pairIndex].h4_direction_owner.State = H4_OWNER_NONE;
+      g_pair_states[pairIndex].h4_direction_owner.Direction = DIR_NONE;
+      g_pair_states[pairIndex].h4_direction_owner.IsValid = false;
+      g_pair_states[pairIndex].h4_direction_owner.Reason =
          "Closed-H4 replay could not prove authoritative owner -> NO_OWNER";
-      ClearH4OwnerCheckpoint(state);
+      ClearH4OwnerCheckpoint(g_pair_states[pairIndex]);
       return;
    }
 
-   SaveH4OwnerCheckpoint(state);
+   SaveH4OwnerCheckpoint(g_pair_states[pairIndex]);
 }
 
-void RecoverH4DirectionalOwners()
+void RecoverH4DirectionalOwners()void RecoverH4DirectionalOwners()
 {
    for(int i = 0; i < g_pair_count; i++)
       RecoverH4DirectionalOwnerForPair(i);
@@ -5875,62 +5886,71 @@ void RecoverH4DirectionalOwners()
 void UpdateRuntimeH4DirectionalOwner(int pairIndex)
 {
    if(pairIndex < 0 || pairIndex >= g_pair_count) return;
-   PairState &state = g_pair_states[pairIndex];
-   TimeframeData &data = state.h4_data;
 
-   if(!state.h4_direction_owner.RecoveryComplete) return;
-   if(!data.is_valid || !data.is_closed || data.timeframe != PERIOD_H4 ||
-      data.candle_time <= 0)
+   if(!g_pair_states[pairIndex].h4_direction_owner.RecoveryComplete) return;
+   if(!g_pair_states[pairIndex].h4_data.is_valid ||
+      !g_pair_states[pairIndex].h4_data.is_closed ||
+      g_pair_states[pairIndex].h4_data.timeframe != PERIOD_H4 ||
+      g_pair_states[pairIndex].h4_data.candle_time <= 0)
       return;
-   if(data.candle_time == state.h4_direction_owner.LastProcessedH4CandleTime)
+   if(g_pair_states[pairIndex].h4_data.candle_time ==
+      g_pair_states[pairIndex].h4_direction_owner.LastProcessedH4CandleTime)
       return;
 
-   ENUM_SIGNAL_TYPE buySignal =
-      ClassifyH4AuthoritativeSignal(state.actual_symbol, DIR_BUY, data);
-   ENUM_SIGNAL_TYPE sellSignal =
-      ClassifyH4AuthoritativeSignal(state.actual_symbol, DIR_SELL, data);
+   ENUM_SIGNAL_TYPE buySignal = ClassifyH4AuthoritativeSignal(
+      g_pair_states[pairIndex].actual_symbol, DIR_BUY,
+      g_pair_states[pairIndex].h4_data);
+   ENUM_SIGNAL_TYPE sellSignal = ClassifyH4AuthoritativeSignal(
+      g_pair_states[pairIndex].actual_symbol, DIR_SELL,
+      g_pair_states[pairIndex].h4_data);
 
    if(buySignal != SIGNAL_NONE && sellSignal != SIGNAL_NONE)
    {
-      ResetH4DirectionalOwner(state.h4_direction_owner, H4_OWNER_NONE);
-      state.h4_direction_owner.LastProcessedH4CandleTime = data.candle_time;
-      state.h4_direction_owner.Reason =
+      ResetH4DirectionalOwner(g_pair_states[pairIndex].h4_direction_owner,
+                              H4_OWNER_NONE);
+      g_pair_states[pairIndex].h4_direction_owner.LastProcessedH4CandleTime =
+         g_pair_states[pairIndex].h4_data.candle_time;
+      g_pair_states[pairIndex].h4_direction_owner.Reason =
          "Ambiguous simultaneous H4 BUY/SELL authoritative events -> NO_OWNER";
-      ClearH4OwnerCheckpoint(state);
+      ClearH4OwnerCheckpoint(g_pair_states[pairIndex]);
       return;
    }
 
    if(buySignal != SIGNAL_NONE)
-      ApplyH4AuthoritativeEvent(state, DIR_BUY, buySignal, data.candle_time, false);
+      ApplyH4AuthoritativeEvent(g_pair_states[pairIndex], DIR_BUY, buySignal,
+                                g_pair_states[pairIndex].h4_data.candle_time, false);
    else if(sellSignal != SIGNAL_NONE)
-      ApplyH4AuthoritativeEvent(state, DIR_SELL, sellSignal, data.candle_time, false);
-   // Else neutral candle: preserve inherited owner exactly as specified.
+      ApplyH4AuthoritativeEvent(g_pair_states[pairIndex], DIR_SELL, sellSignal,
+                                g_pair_states[pairIndex].h4_data.candle_time, false);
 
-   state.h4_direction_owner.LastProcessedH4CandleTime = data.candle_time;
-   if(state.h4_direction_owner.State == H4_OWNER_ACTIVE &&
-      state.h4_direction_owner.IsValid)
-      SaveH4OwnerCheckpoint(state);
+   g_pair_states[pairIndex].h4_direction_owner.LastProcessedH4CandleTime =
+      g_pair_states[pairIndex].h4_data.candle_time;
+   if(g_pair_states[pairIndex].h4_direction_owner.State == H4_OWNER_ACTIVE &&
+      g_pair_states[pairIndex].h4_direction_owner.IsValid)
+      SaveH4OwnerCheckpoint(g_pair_states[pairIndex]);
 }
 
-void NoteH4ReEntryInheritance(int pairIndex, ReEntryData &reEntry)
+void NoteH4ReEntryInheritancevoid NoteH4ReEntryInheritance(int pairIndex, ReEntryData &reEntry)
 {
    if(pairIndex < 0 || pairIndex >= g_pair_count) return;
-   H4DirectionalOwner &owner = g_pair_states[pairIndex].h4_direction_owner;
 
-   if(!owner.RecoveryComplete || !owner.IsValid ||
-      owner.State != H4_OWNER_ACTIVE ||
+   if(!g_pair_states[pairIndex].h4_direction_owner.RecoveryComplete ||
+      !g_pair_states[pairIndex].h4_direction_owner.IsValid ||
+      g_pair_states[pairIndex].h4_direction_owner.State != H4_OWNER_ACTIVE ||
       reEntry.State != RE_STATE_CONFIRMED || !reEntry.IsValid ||
       reEntry.Timeframe != PERIOD_H4 ||
-      reEntry.Direction != owner.Direction ||
+      reEntry.Direction != g_pair_states[pairIndex].h4_direction_owner.Direction ||
       reEntry.ConfirmationCandle <= 0)
       return;
 
-   owner.LastAdvanceSignal = SIGNAL_RE_ENTRY;
-   owner.LastAdvanceCandleTime = reEntry.ConfirmationCandle;
-   owner.Reason = "Same-direction H4 Re-Entry inherited existing directional owner";
+   g_pair_states[pairIndex].h4_direction_owner.LastAdvanceSignal = SIGNAL_RE_ENTRY;
+   g_pair_states[pairIndex].h4_direction_owner.LastAdvanceCandleTime =
+      reEntry.ConfirmationCandle;
+   g_pair_states[pairIndex].h4_direction_owner.Reason =
+      "Same-direction H4 Re-Entry inherited existing directional owner";
 }
 
-void RecoverExistingOrders()
+void RecoverExistingOrders()void RecoverExistingOrders()
 {
    int total = OrdersTotal();
    

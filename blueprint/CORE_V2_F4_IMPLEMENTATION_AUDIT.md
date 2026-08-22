@@ -36,6 +36,7 @@ Implements the resolved `CORE_V2_F4_H1_RE_HTF_CONTEXT_DECISION.md` contract with
 - no generic H4 owner TTL or D1/EMA fallback is introduced;
 - same-direction H4 Re-Entry can inherit but cannot establish a no-owner direction;
 - source lexical brace/parenthesis/bracket sanity passes.
+- post-static MQL4 compatibility repair removes unsupported local reference-variable aliases; references remain only in function parameters, as supported by MQL4.
 
 ## Remaining verification
 1. Native MetaEditor compile must report **0 errors / 0 warnings** for the F1-F4 integrated source.

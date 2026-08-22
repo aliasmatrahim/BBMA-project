@@ -1,7 +1,7 @@
 # CORE-V2-F2 — Extreme Maturity inside REM / REE
 
 Date: 2026-08-22
-Status: **PARTIALLY RESOLVED — MATURITY + REVERSAL-DIRECTION + FIRST-QUALIFYING-CANDLE PROMOTION + STRUCTURAL ANCHOR FREEZE + RETEST-START TRIGGER USER APPROVED; EXACT BODY-REFERENCE/RETEST-VALIDATION STILL PENDING**
+Status: **PARTIALLY RESOLVED — MATURITY + REVERSAL-DIRECTION + FIRST-QUALIFYING-CANDLE PROMOTION + STRUCTURAL ANCHOR FREEZE + RETEST-START TRIGGER + BODY-ANCHOR MAPPING USER APPROVED; RETEST-VALIDATION STILL PENDING**
 Branch: `blueprint-dev`
 
 ## Decision 1 — Extreme maturity inside REM / REE
@@ -111,6 +111,24 @@ This decision is **SOURCE-DERIVED RETEST SEQUENCE + MINIMAL DETERMINISTIC PROJEC
 
 The source clearly teaches `reversal -> later retest` and permits retest toward a marked body/reference or MA5, but does not publish a software Boolean for the first retest candle. Close progression relative to the previous close is the selected minimum directional-change predicate and must not be presented as verbatim Oma Ally wording.
 
+## Decision 6 — numeric frozen body-anchor mapping
+The project adopts the **EXTREME BODY EDGE ACROSS THE COMPLETED REVERSAL PHASE** as the numeric frozen body/reference anchor.
+
+Accepted mapping:
+- only closed candles belonging to the completed reversal phase are used; the raw-Extreme candle is not automatically substituted for the reversal-phase body reference, and the first retest-start candle is excluded under Decision 5;
+- for every completed reversal-phase candle, define `BodyTop = max(Open, Close)` and `BodyBottom = min(Open, Close)`;
+- for a **SELL Extreme**, the frozen body anchor is the **highest `BodyTop`** across the completed reversal phase;
+- for a **BUY Extreme**, the frozen body anchor is the **lowest `BodyBottom`** across the completed reversal phase;
+- wick `High`/`Low` is not used as the numeric body anchor because the accepted source concept is a marked candle **body/reference**, not a mandatory wick-extreme reference;
+- the provisional body anchor may update only while the reversal phase remains active; once Decision 5 starts the retest phase, this value is frozen and cannot drift;
+- relevant MA5 remains a source-supported alternate/confluent retest reference, but MA5 does not erase or universally replace the frozen body anchor;
+- this mapping does not redefine the strict raw-Extreme detector or the later standalone retest-validity rule.
+
+### Evidence classification
+This decision is **DIRECT SOURCE BODY-REFERENCE CONCEPT + MINIMAL NUMERIC PROJECT MAPPING**.
+
+The source explicitly teaches marking a highest/lowest candle-body/reference for possible retest. The exact formulas `max(Open, Close)` / `min(Open, Close)` are the project's minimal numeric encoding of candle-body edges and are not claimed as verbatim source formulas.
+
 ## Rejected alternatives
 - Raw Extreme alone as executable REM/REE component: rejected as too immature relative to the accepted Extreme lifecycle.
 - Reversal + retest required for every REM/REE Extreme component: rejected because the source ties retest specifically to standalone Extreme entry and does not clearly require it for supporting MTF components.
@@ -125,13 +143,15 @@ The source clearly teaches `reversal -> later retest` and permits retest toward 
 - Using MA5 alone and discarding the source-marked body/reference concept: rejected.
 - first opposite-colour candle as the mandatory retest-start trigger: rejected as weaker than close-progression evidence and not source-stated;
 - waiting until actual touch of body/MA5 before freezing the anchor: rejected because the reference would keep drifting into the retest itself;
-- previous-high/low breakout as mandatory retest-start confirmation: rejected as an unsupported extra breakout rule.
+- previous-high/low breakout as mandatory retest-start confirmation: rejected as an unsupported extra breakout rule;
+- using wick `High/Low` as the mandatory body anchor: rejected because it changes a body-reference concept into a wick-extreme rule;
+- using only the first reversal candle body as the final anchor: rejected because the approved reversal phase may span multiple candles.
 
 ## Remaining sub-specification before code
-The reversal direction, maturity-promotion point, structural anchor-freeze philosophy and retest-start trigger are now locked. Remaining focused review before M08/Extreme lifecycle code is patched:
-- define the exact numeric highest/lowest-body reference used as the frozen anchor when reversal spans multiple candles;
+The reversal direction, maturity-promotion point, structural anchor-freeze philosophy, retest-start trigger and numeric body anchor are now locked. Remaining focused review before M08/Extreme lifecycle code is patched:
 - define what constitutes a valid standalone Extreme retest interaction with the frozen body reference and/or relevant MA5;
-- preserve relevant MA5 as a source-supported alternate/confluent retest reference without letting it replace the body-reference concept universally;
+- decide whether a wick/range touch is sufficient or whether a separate close-side confirmation is source-supported;
+- preserve relevant MA5 as a source-supported alternate/confluent retest reference without turning body+MA5 into an invented mandatory dual-touch rule;
 - apply the existing outside-BB/Momentum invalidation cleanly during the retest phase.
 
-Until those body-anchor/retest-validation details are closed, active Mode 2 REM/REE cannot yet be declared fully Core-V2-compliant merely because a raw M08 Extreme plus one colour condition is present.
+Until those retest-validation details are closed, active Mode 2 REM/REE cannot yet be declared fully Core-V2-compliant merely because a raw M08 Extreme plus one colour condition is present.

@@ -1,7 +1,7 @@
 # CORE-V2-F1 — MHV/MLV Canonical Lifecycle
 
 Date: 2026-08-22
-Status: **PARTIALLY RESOLVED — STRUCTURAL LIFECYCLE + MANDATORY PRIOR EXTREME CONTEXT USER APPROVED; TP/LOSS-OF-MOMENTUM/ANCHOR/RETEST DETAILS STILL PENDING**
+Status: **PARTIALLY RESOLVED — STRUCTURAL LIFECYCLE + MANDATORY PRIOR EXTREME + TP-WAJIB COMPLETION USER APPROVED; EXTREME MATURITY/LOSS-OF-MOMENTUM/ANCHOR/RETEST DETAILS STILL PENDING**
 Branch: `blueprint-dev`
 
 ## User-approved decision 1 — MHV/MLV is a structural lifecycle, not a one-candle detector
@@ -40,7 +40,7 @@ Accepted operational rule:
 - the MHV/MLV lifecycle must be traceable to a prior Extreme context belonging to the same structural cycle on that source timeframe;
 - if no such prior Extreme can be established from the authoritative closed-candle lifecycle/history, the result is `NO CANONICAL MHV/MLV OWNER` rather than inferring MHV from morphology alone;
 - a new/opposite cycle that supersedes the relevant prior Extreme also breaks the old provenance chain; the old Extreme cannot be reused indefinitely to authorize unrelated later consolidations;
-- this decision does **not yet decide** whether TP Wajib must have been actually reached/completed before MHV formation is allowed, nor does it yet decide the minimum F2 Extreme maturity required for the provenance link. Those are intentionally left for the next focused review rather than silently inferred here.
+- this decision does **not yet decide** the minimum F2 Extreme maturity required for the provenance link. That remains a separate focused review.
 
 ### Evidence classification
 This decision is **DIRECT SOURCE SEQUENCE + SOURCE-FAITHFUL PROJECT OWNER/PROVENANCE GUARD**.
@@ -51,6 +51,29 @@ Source support:
 
 The same-timeframe / same-owner-cycle provenance requirement is the project's deterministic state-management encoding of that source sequence and is not claimed as verbatim software wording from Oma Ally.
 
+## User-approved decision 3 — normal TP-Wajib structural move must complete before MHV/MLV formation
+The project adopts **NORMAL TP-WAJIB STRUCTURAL COMPLETION AS A MANDATORY PRECONDITION BEFORE CANONICAL MHV/MLV FORMATION MAY BEGIN**.
+
+Accepted operational rule:
+- after a valid prior Extreme exists, price must first reach the accepted normal TP-Wajib structural area for that Extreme before the lifecycle may advance into MHV/MLV formation;
+- for a prior Extreme SELL, normal TP-Wajib completion is price reaching the opposite MA5/MA10 Low area under the accepted Extreme contract;
+- for a prior Extreme BUY, normal TP-Wajib completion is price reaching the opposite MA5/MA10 High area;
+- Mid BB remains farther/maximum context and does not replace the normal first TP-Wajib area as the canonical prerequisite;
+- `TP-Wajib completed` is a **market-structure state**, not an execution/broker state: no actual EA order, filled position, or broker TP-close event is required to prove the structural sequence;
+- a mere configured TP level, unfilled target, or assumption that price was “likely headed there” is insufficient; the authoritative closed-candle/price history must show the accepted target area was actually reached;
+- the advanced-Extreme-without-normal-TP-Wajib exception remains `HOLD / UNCERTAIN` and cannot be used to bypass this canonical rule;
+- this decision still does **not** decide whether the prior Extreme must be merely reversal-confirmed or fully standalone retest/entry-ready before it can serve as the MHV/MLV parent. That is intentionally separated into the next review.
+
+### Evidence classification
+This decision is **DIRECT SOURCE SEQUENCE + MINIMAL STRUCTURAL PROJECT MAPPING**.
+
+Source support:
+- Finale V05 OA-F-V05-006 explicitly teaches MHV after `Extreme + TP Wajib`;
+- Finale V04/V05 define the normal Extreme TP-Wajib objective around the opposite MA5/MA10 area, with Mid BB as a farther/maximum possibility;
+- the source describes a market sequence, not a requirement that a broker-side trade must have existed.
+
+The software state `TP-WAJIB STRUCTURALLY COMPLETED` is therefore a deterministic project representation of the source-described market progression, not an order-management event.
+
 ## Rejected alternatives
 - single-candle MHV/MLV detector as the complete source model;
 - mandatory exact double/triple-top or bottom formula;
@@ -58,15 +81,19 @@ The same-timeframe / same-owner-cycle provenance requirement is the project's de
 - treating MHV as merely another name for Extreme reversal;
 - keeping independent MHV and MLV detector families that can disagree for the same structure;
 - treating prior Extreme as merely preferred rather than required for the canonical MHV/MLV lifecycle;
-- allowing any generic loss-of-momentum/consolidation to become MHV without a provable prior Extreme owner-chain.
+- allowing any generic loss-of-momentum/consolidation to become MHV without a provable prior Extreme owner-chain;
+- allowing canonical MHV/MLV formation before the normal TP-Wajib structural area has been reached;
+- treating Mid BB as the sole/universal TP-Wajib prerequisite;
+- requiring a real broker order to have closed at TP before market structure may progress;
+- using the unresolved advanced-Extreme/no-TP-Wajib exception to bypass the canonical normal-cycle rule.
 
 ## Remaining specification before code
-The structural lifecycle and mandatory prior-Extreme provenance are locked, but deterministic sub-rules still need one-by-one review before M09 is patched:
-- whether TP Wajib must be actually reached/completed before MHV/MLV formation can begin, and the exact minimum F2 Extreme maturity required for the provenance link;
-- what exact BBMA condition proves `LOSS OF PRIOR MOMENTUM` without inventing ATR/ADX/pip thresholds;
-- how the marked highest/lowest body reference is owned and frozen;
-- what constitutes the retest/active-setup interaction;
-- lifecycle supersession/void rules beyond the explicit outer-BB close;
-- migration/removal of legacy duplicate detector semantics after the canonical contract is complete.
+The structural lifecycle, mandatory prior-Extreme provenance and mandatory TP-Wajib completion are locked, but deterministic sub-rules still need one-by-one review before M09 is patched:
+- define the minimum F2 Extreme maturity required for the prior-Extreme provenance link;
+- define what exact BBMA condition proves `LOSS OF PRIOR MOMENTUM` without inventing ATR/ADX/pip thresholds;
+- define how the marked highest/lowest body reference is owned and frozen;
+- define what constitutes the retest/active-setup interaction;
+- define lifecycle supersession/void rules beyond the explicit outer-BB close;
+- migrate/remove legacy duplicate detector semantics after the canonical contract is complete.
 
 No EA code change is authorized by these decisions alone.

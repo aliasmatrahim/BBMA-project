@@ -1,7 +1,7 @@
 # CORE-V2-F1 — MHV/MLV Canonical Lifecycle
 
 Date: 2026-08-22
-Status: **PARTIALLY RESOLVED — STRUCTURAL LIFECYCLE MODEL USER APPROVED; CONTEXT/FORMATION/ANCHOR/RETEST DETAILS STILL PENDING**
+Status: **PARTIALLY RESOLVED — STRUCTURAL LIFECYCLE + MANDATORY PRIOR EXTREME CONTEXT USER APPROVED; TP/LOSS-OF-MOMENTUM/ANCHOR/RETEST DETAILS STILL PENDING**
 Branch: `blueprint-dev`
 
 ## User-approved decision 1 — MHV/MLV is a structural lifecycle, not a one-candle detector
@@ -21,7 +21,7 @@ Operational meaning:
 - MHV/MLV remains a setup/context stage and does not become direct entry authority merely because its lifecycle is modeled explicitly;
 - implementation must converge on one canonical owner-state result so legacy `DetectMHV()` and any MLV path cannot maintain contradictory semantics.
 
-## Evidence classification
+### Evidence classification
 This decision is **DIRECT SOURCE STRUCTURAL CONCEPT + PROJECT STATE-MACHINE MAPPING**.
 
 Source support:
@@ -32,20 +32,41 @@ Source support:
 
 The exact software state-machine names and transitions are project engineering semantics. They must preserve the source sequence and invalidation behavior and must not be presented as verbatim Oma Ally software rules.
 
+## User-approved decision 2 — canonical MHV/MLV requires prior Extreme context
+The project adopts **A PRIOR SOURCE-VALID EXTREME IN THE SAME SOURCE-TIMEFRAME / OWNER-CYCLE AS A MANDATORY PRECONDITION FOR A CANONICAL MHV/MLV CANDIDATE**.
+
+Accepted operational rule:
+- a generic inside-BB consolidation, loss of impulse, or local double/triple-top/bottom is not sufficient by itself to create a canonical MHV/MLV owner;
+- the MHV/MLV lifecycle must be traceable to a prior Extreme context belonging to the same structural cycle on that source timeframe;
+- if no such prior Extreme can be established from the authoritative closed-candle lifecycle/history, the result is `NO CANONICAL MHV/MLV OWNER` rather than inferring MHV from morphology alone;
+- a new/opposite cycle that supersedes the relevant prior Extreme also breaks the old provenance chain; the old Extreme cannot be reused indefinitely to authorize unrelated later consolidations;
+- this decision does **not yet decide** whether TP Wajib must have been actually reached/completed before MHV formation is allowed, nor does it yet decide the minimum F2 Extreme maturity required for the provenance link. Those are intentionally left for the next focused review rather than silently inferred here.
+
+### Evidence classification
+This decision is **DIRECT SOURCE SEQUENCE + SOURCE-FAITHFUL PROJECT OWNER/PROVENANCE GUARD**.
+
+Source support:
+- Finale V05 OA-F-V05-006 explicitly teaches MHV after Extreme + TP Wajib;
+- the accepted BBMA cycle also places MHV/MLV after the Extreme / TP phase rather than as a generic standalone consolidation setup.
+
+The same-timeframe / same-owner-cycle provenance requirement is the project's deterministic state-management encoding of that source sequence and is not claimed as verbatim software wording from Oma Ally.
+
 ## Rejected alternatives
 - single-candle MHV/MLV detector as the complete source model;
 - mandatory exact double/triple-top or bottom formula;
 - mandatory H&S morphology;
 - treating MHV as merely another name for Extreme reversal;
-- keeping independent MHV and MLV detector families that can disagree for the same structure.
+- keeping independent MHV and MLV detector families that can disagree for the same structure;
+- treating prior Extreme as merely preferred rather than required for the canonical MHV/MLV lifecycle;
+- allowing any generic loss-of-momentum/consolidation to become MHV without a provable prior Extreme owner-chain.
 
 ## Remaining specification before code
-The structural lifecycle model is locked, but deterministic sub-rules still need one-by-one review before M09 is patched:
-- whether a source-valid prior Extreme/TP-Wajib context is mandatory for every canonical MHV/MLV candidate or merely the normal taught sequence;
+The structural lifecycle and mandatory prior-Extreme provenance are locked, but deterministic sub-rules still need one-by-one review before M09 is patched:
+- whether TP Wajib must be actually reached/completed before MHV/MLV formation can begin, and the exact minimum F2 Extreme maturity required for the provenance link;
 - what exact BBMA condition proves `LOSS OF PRIOR MOMENTUM` without inventing ATR/ADX/pip thresholds;
 - how the marked highest/lowest body reference is owned and frozen;
 - what constitutes the retest/active-setup interaction;
 - lifecycle supersession/void rules beyond the explicit outer-BB close;
 - migration/removal of legacy duplicate detector semantics after the canonical contract is complete.
 
-No EA code change is authorized by this decision alone.
+No EA code change is authorized by these decisions alone.

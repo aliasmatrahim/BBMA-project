@@ -44,26 +44,23 @@ Remaining dependency before code: define a deterministic source-faithful reversa
 
 #### CORE-V2-F3 — Re-Entry Type 1 context
 Priority: **HIGH**
-Status: **PARTIALLY RESOLVED — USER APPROVED CORE PHILOSOPHY; INVALIDATION/OWNER-LIFETIME PREDICATE STILL PENDING**
+Status: **SPECIFICATION PHILOSOPHY RESOLVED — USER APPROVED; CODE PATCH/AUDIT STILL PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-09
 Decision record: `blueprint/decisions/CORE_V2_F3_TYPE1_CONTEXT_DECISION.md`
 Locked decisions:
 - Type 1 requires `prior rise/fall -> sideways/ranging -> MA5/MA10 retest -> valid close-side`;
 - MA5/MA10 touch alone is insufficient;
-- sideways/ranging is interpreted as BBMA structural ranging, not `BB_FLAT` alone;
+- sideways/ranging is BBMA structural ranging, not `BB_FLAT` alone;
 - `BB_FLAT` may be supporting evidence only;
-- no fixed minimum candle count is required for Type 1; structural completion governs maturity;
-- qualifying prior rise/fall must be evidenced by a source-valid BBMA direction/momentum state (`eCSD`, `CSD`, or `CSM/Momentum`) under its own contract;
-- transition into ranging uses BBMA state change: prior direction/momentum -> active momentum ceases/pauses -> retrace/consolidation toward the relevant MA5/MA10;
+- no fixed minimum candle count is required; structural completion governs maturity;
+- qualifying prior rise/fall must be evidenced by source-valid BBMA direction/momentum state (`eCSD`, `CSD`, or `CSM/Momentum`) under its own contract;
+- transition into ranging is owner/state based: prior direction/momentum -> active momentum ceases/pauses -> retrace/consolidation toward relevant MA5/MA10;
 - one non-CSM candle alone is insufficient proof of ranging;
-- resumed same-direction CSM/Momentum forces re-evaluation of the pending ranging phase;
-- Type 3/Type 4 retain their specific precursor ownership and must not be relabelled generic Type 1.
-Remaining specification before code:
-- exact invalidation events for a pending Type 1 setup;
-- handling of MA5/MA10 cluster break before validation;
-- opposite-direction state termination;
-- owner-state lifetime/freshness without generic candle-count expiry.
-Constraint: use BBMA-owned state where possible; no RSI/ADX/ATR/fixed-pip heuristics as disguised Core rules.
+- pending Type 1 uses structural invalidation: MA5/MA10 close-side failure, same-direction momentum resumption/reset, opposite source-valid direction/momentum, or transfer to exact Type 3/Type 4 ownership;
+- owner lifetime has **no generic fixed candle expiry** and remains valid only while the same authoritative BBMA structure/cycle survives;
+- age may be logged but is not a BBMA validity rule.
+Constraint: implementation must use BBMA-owned state/owner transitions; no RSI/ADX/ATR/fixed-pip or timer heuristics as disguised Core rules.
+Next action for F3: patch/audit M12 only after the remaining higher-priority Core specification closures are reconciled; do not alter code during specification review.
 
 #### CORE-V2-F4 — Higher-timeframe context for standalone H1 Re-Entry
 Priority: **HIGH**
@@ -87,7 +84,7 @@ Scope:
 - M13 -> M14 -> M15 -> M16 selection/invalidation integrity;
 - ensure no non-compliant Re-Entry can reach M17/M21/M19/M20/M22.
 Rule: audit first; only create strategy fixes from evidence-backed deviations. Do not introduce win-rate heuristics or non-BBMA filters.
-Dependency: CORE-V2-F3/F4 must be resolved before Mode 1 can be declared source-compliant.
+Dependency: CORE-V2-F4 must be resolved and F3 implemented/audited before Mode 1 can be declared source-compliant.
 
 ### P1 — Core support / semantic verification
 
@@ -151,9 +148,9 @@ Before declaring P3 complete, preserve the existing Step 5 closure rule in `P3_S
 
 ## Execution order
 1. Keep `CURRENT.md` + this queue reconciled.
-2. Finish CORE-V2-F3 invalidation/owner-lifetime predicate, then resolve CORE-V2-F4 higher-timeframe H1 Re-Entry context.
+2. Resolve CORE-V2-F4 higher-timeframe H1 Re-Entry context.
 3. Define deterministic reversal-confirmation semantics required to implement the already-approved CORE-V2-F2 maturity decision.
-4. Repair CORE-V2-F1 M09 MHV/MLV against the resolved canonical Core contract.
+4. Implement/audit CORE-V2-F3 Type 1 state/owner contract and repair CORE-V2-F1 M09 MHV/MLV against the resolved canonical Core contract.
 5. Repair CORE-V2-F5 BB-flat classification and run CORE-V2-F6 timing verification.
 6. Re-run Core V2 static audit until no critical/high Strategy-Core mismatch remains.
 7. Complete P3-M1 Mode 1 end-to-end compliance closure and opposite-direction cycle audit.

@@ -147,21 +147,135 @@ Implementation guard: implementation must reproduce this approved lifecycle with
 
 ## 6. MHV / MLV
 
-### 6.1 Terminology
+### 6.1 Terminology and role
 `MHV` (Market Hilang Volume) and `MLV` are treated as source-terminology aliases for the same loss-of-volume setup family unless future source evidence explicitly distinguishes them.
 
 Do not create two separate Strategy-Core setup types merely because the source documents use different abbreviations.
 
-### 6.2 Structural rule
-- MHV/MLV normally forms after Extreme / TP phase in the BBMA cycle.
-- It represents loss of prior momentum/volume.
-- It becomes invalid/void when price breaks and closes outside the relevant outer BB.
-- Highest/lowest candle body or equivalent marked reference is used for possible retest context.
+MHV/MLV remains a **setup/context structure**, not standalone direct execution authority.
+
+### 6.2 Parent provenance and eligibility
+Canonical MHV/MLV requires a prior source-valid Extreme in the **same source timeframe / owner-cycle**.
+
+Accepted parent chain:
+
+`RAW EXTREME -> REVERSAL-CONFIRMED EXTREME -> NORMAL TP-WAJIB STRUCTURALLY COMPLETED -> ELIGIBLE MHV/MLV PARENT CONTEXT`
+
+Rules:
+- RAW Extreme alone is insufficient;
+- the prior Extreme does not have to reach standalone `RETEST/ENTRY-READY` merely to provide MHV cycle provenance;
+- normal TP-Wajib structural completion must actually occur before canonical MHV formation begins;
+- prior Extreme SELL -> opposite MA5/MA10 Low area;
+- prior Extreme BUY -> opposite MA5/MA10 High area;
+- Mid BB remains farther/maximum context rather than the canonical first TP prerequisite;
+- TP-Wajib completion is market-structure evidence, not broker/order status;
+- advanced Extreme without normal TP Wajib remains `HOLD / UNCERTAIN` and cannot bypass this canonical rule;
+- a generic consolidation, local double/triple top/bottom or loss of impulse without a provable prior Extreme chain is not canonical MHV/MLV.
+
+### 6.3 Loss-of-momentum state and concrete formation
+After eligible parent context, `LOSS OF PRIOR MOMENTUM` is interpreted as a **developing post-TP structural failed-continuation state inside the relevant outer BB without source-valid Momentum/CSM continuation**.
+
+Rules:
+- one ordinary/non-Momentum candle is insufficient;
+- absence of Momentum/CSM is necessary but not sufficient; a same-cycle post-TP structure must actually develop;
+- `BB_FLAT`, ATR, ADX, fixed pip displacement, fixed body-size thresholds and fixed 2/3-candle minimums are not canonical proof.
+
+Concrete deterministic formation mapping:
+- prior Extreme SELL / bottom-side MHV:
+  - `BodyBottom = min(Open,Close)`;
+  - track the lowest `BodyBottom` across the active loss-of-momentum phase;
+  - first later closed candle with `CurrentClose > PreviousClose` establishes MHV/MLV formation;
+- prior Extreme BUY / top-side MHV:
+  - `BodyTop = max(Open,Close)`;
+  - track the highest `BodyTop` across the active loss-of-momentum phase;
+  - first later closed candle with `CurrentClose < PreviousClose` establishes MHV/MLV formation;
+- the move-away trigger candle is excluded from the accumulated body-extreme reference;
+- wick `High/Low` is not substituted for the source-described marked body;
+- no mandatory second touch, exact double/triple morphology, H&S, named candlestick pattern, eCSD/CSD, breakout or fixed candle count is required merely to establish initial formation.
+
+### 6.4 Frozen marked body and retest
+The marked body **freezes immediately when formation is established**.
+
+Frozen reference:
+- bottom-side MHV = lowest `BodyBottom` accumulated through the candle immediately before the move-away trigger;
+- top-side MHV = highest `BodyTop` accumulated through the candle immediately before the move-away trigger.
+
+Later candles cannot drag/recalculate the frozen reference merely because a new body extreme appears.
+
+Retest completion:
+- bottom-side MHV: a later source-timeframe candle with `Low <= FrozenMarkedBody`;
+- top-side MHV: a later source-timeframe candle with `High >= FrozenMarkedBody`.
+
+Price-range/wick interaction is sufficient for the project deterministic retest mapping. No universal body-close-at-line, extra close-away confirmation, named reversal pattern, mandatory double/triple touch or eCSD/CSD prerequisite is added merely to complete retest.
+
+The formation-establishing move-away candle cannot simultaneously count as the later retest candle.
+
+`RETEST COMPLETE / ACTIVE MHV SETUP` remains setup/context maturity only and does not become standalone direct entry authority.
+
+### 6.5 M15 MHV/MLV maturity inside REM
+The exact REM signature remains:
+
+`H4 Re-Entry + H1 Extreme + M15 MHV/MLV`
+
+Minimum M15 MHV/MLV maturity for REM is:
+
+`MHV/MLV FORMATION ESTABLISHED + FROZEN MARKED BODY`
+
+Rules:
+- eligible parent context, pending loss-of-momentum or unfrozen provisional formation is insufficient;
+- later MHV `RETEST COMPLETE` is **not mandatory merely to satisfy the REM component**;
+- no eCSD/CSD, second retest, double/triple morphology, fixed wait or broker execution event is added as an extra REM requirement;
+- a void/superseded M15 MHV/MLV cannot satisfy REM.
+
+This is a **SOURCE-INFERRED COMPONENT-MATURITY MAPPING** over the PDF-explicit REM signature.
+
+### 6.6 Stage-bounded invalidation and same-cycle progression
+While MHV/MLV is still the pending/current authoritative stage, source-valid outside-outer-BB close / Momentum/CSM can void the MHV interpretation.
+
+Rules:
+- invalidation has priority if the same candle/structure also satisfies a competing MHV promotion/retest event;
+- source-valid same-cycle `eCSD` or `CSD` is the normal next direction stage and does **not** retroactively void an already-completed MHV/MLV;
+- once valid same-cycle eCSD/CSD structurally takes direction ownership, the active MHV invalidation window closes;
+- later same-cycle Re-Entry and CSM/Momentum are normal cycle progression and cannot retroactively convert completed MHV provenance into `VOID`;
+- distinguish **current active stage ownership** from **completed structural provenance**: direction may become active while completed MHV/MLV remains immutable same-cycle history;
+- the frozen marked body remains frozen;
+- no fixed candle/session/day expiry or generic “new signal erases old setup” rule is added.
+
+Canonical stage progression:
+
+`MHV PENDING / FORMATION / ACTIVE MHV -> SAME-CYCLE eCSD/CSD DIRECTION TAKEOVER -> RE-ENTRY -> SAME-CYCLE CSM/MOMENTUM`
+
+### 6.7 New-cycle supersession
+An opposite `RAW EXTREME` is a **new-cycle candidate only**. It does not by itself erase the current cycle or completed MHV provenance.
+
+The old cycle is atomically superseded when the opposite Extreme reaches the F2 minimum maturity:
+
+`OPPOSITE REVERSAL-CONFIRMED EXTREME`
+
+At that closed-candle transition:
+- old-cycle MHV/MLV provenance and its frozen marked-body reference become historical-only;
+- they can no longer satisfy new REM construction, current-cycle validation, inherited setup authority or future MHV retest authority;
+- superseded provenance may remain in diagnostics/history;
+- standalone opposite Extreme `RETEST/ENTRY-READY` maturity is not required merely for the cycle boundary;
+- if the opposite RAW Extreme becomes VOID before reversal confirmation, the old cycle is not superseded by that failed candidate;
+- opposite eCSD/CSD alone does not replace this explicit F1 cycle-restart event;
+- no fixed candle count, timer, session/day reset or generic age expiry is used.
+
+Canonical lifecycle:
+
+`REVERSAL-CONFIRMED PRIOR EXTREME -> TP-WAJIB COMPLETE -> LOSS OF PRIOR MOMENTUM -> MOST-EXTREME BODY -> FIRST CLOSED MOVE AWAY -> MHV/MLV FORMATION + FROZEN BODY -> OPTIONAL RETEST -> SAME-CYCLE DIRECTION -> RE-ENTRY / CSM CONTINUATION -> OPPOSITE RAW EXTREME CANDIDATE -> OPPOSITE REVERSAL-CONFIRMED EXTREME -> ATOMIC OLD-CYCLE SUPERSESSION`
+
+### 6.8 Morphology and evidence classification
 - Double/triple top or bottom morphology is supported.
 - H&S-like morphology shown in Finale is an example, not a mandatory condition.
-- MHV/MLV is a setup/context structure, not a raw execution signal by itself.
+- Highest/lowest body marking and retest are source-supported structural concepts.
+- Exact software states, body-edge formulas, close-to-close turning predicate, immediate freeze, range-touch retest, REM component threshold, stage-bounded invalidation and atomic cycle supersession are **project deterministic mappings**, not verbatim Oma Ally Boolean formulas.
 
-Source basis: primary PDF pages 7–8; historical PDF pages 31–34; Finale V05 00:18:07–00:28:12 and V01 00:59:18–01:00:05.
+Source basis: primary PDF pages 2 and 7–8; historical PDF pages 31–34; primary PDF pages 12–13 for REM; Finale V05 00:18:07–00:28:12, OA-F-V05-006 to OA-F-V05-019, and V01 00:59:18–01:00:05.
+
+Decision provenance: `blueprint/decisions/CORE_V2_F1_MHV_MLV_LIFECYCLE_DECISION.md`.
+
+Implementation guard: M09 must ultimately use one canonical lifecycle/owner result. Independent legacy `DetectMHV()`/MLV semantics, synthetic fixed-point necklines, moving anchors, fixed-N expiry and generic consolidation heuristics must not override this resolved contract.
 
 ---
 
@@ -299,11 +413,14 @@ The authoritative project signatures remain PDF-derived:
 
 All three components must be interpreted consistently with their own source-defined validity and direction contracts. Finale corroborates the higher-to-lower timeframe principle but does not provide sufficient transcript-only chart detail to redefine these signatures.
 
-Additional maturity rule from Section 5.4:
+Additional maturity rules:
 - every Extreme component in executable REM/REE must be at least reversal-confirmed;
-- retest/standalone-entry readiness is not required merely because the Extreme is serving as an MTF combination component.
+- retest/standalone-entry readiness is not required merely because the Extreme is serving as an MTF combination component;
+- the M15 MHV/MLV component in REM must be at least `FORMATION ESTABLISHED + FROZEN MARKED BODY`;
+- M15 MHV/MLV retest completion is not mandatory merely to satisfy the REM component signature;
+- a void/superseded or old-cycle historical-only M15 MHV/MLV cannot satisfy a new/current REM decision.
 
-Source basis: primary PDF pages 12–13; Finale treated as corroboration plus the user-approved source-inferred maturity decision recorded in `blueprint/decisions/CORE_V2_F2_EXTREME_MATURITY_DECISION.md`.
+Source basis: primary PDF pages 12–13; Finale treated as corroboration plus the approved deterministic maturity decisions recorded in `blueprint/decisions/CORE_V2_F2_EXTREME_MATURITY_DECISION.md` and `blueprint/decisions/CORE_V2_F1_MHV_MLV_LIFECYCLE_DECISION.md`.
 
 ---
 
@@ -342,12 +459,13 @@ Accepted material changes the project knowledge in these specific ways:
 - clarifies that normal Extreme retest can span multiple candles and raw MA-outside condition is not entry authority;
 - refines normal Extreme TP Wajib toward the opposite MA5/MA10 area as the first mandatory objective, with Mid BB as farther context;
 - standardizes MHV/MLV as terminology aliases rather than separate setup types;
-- enriches MHV/MLV retest/morphology interpretation without making H&S mandatory;
+- closes the deterministic MHV/MLV lifecycle: mandatory reversal-confirmed prior Extreme provenance, normal TP-Wajib completion, structural loss-of-momentum, most-extreme body + first move-away formation, immediate frozen marked body, range-touch retest, REM component maturity, stage-bounded invalidation, same-cycle direction progression and opposite reversal-confirmed Extreme atomic cycle supersession;
+- keeps double/triple and H&S-like MHV morphology as supported examples rather than mandatory universal formulas;
 - strengthens the existing expanding-BB requirement for Momentum/CSM;
 - strengthens the interpretation that eCSD/CSD is direction information and Re-Entry is the entry setup;
 - clarifies higher-timeframe ownership/context of lower-timeframe signals;
 - records the first-validation-candle / second-entry-candle phrase as a timing semantic that still requires runtime mapping;
-- closes the user-approved Extreme maturity/reversal/retest lifecycle: reversal-confirmed is sufficient for REM/REE components; standalone Extreme requires later body-or-MA5 retest; deterministic reversal direction, phase transition, frozen body anchor, first-valid-reference retest and invalidation precedence are now specified;
+- closes the user-approved Extreme maturity/reversal/retest lifecycle: reversal-confirmed is sufficient for REM/REE components; standalone Extreme requires later body-or-MA5 retest; deterministic reversal direction, phase transition, frozen body anchor, first-valid-reference retest and invalidation precedence are specified;
 - closes the Type 1 structural-ranging contract, including prior BBMA-state proof, structural invalidation and no fixed minimum/expiry count;
 - closes the standalone H1 Re-Entry H4-parent contract, including inherited H4 owner semantics, eCSD owner authority, atomic opposite handover, no-owner block and structural owner lifetime;
 - records verified checkpoint + deterministic replay as engineering-only restart/recovery policy to preserve the H4 owner contract.

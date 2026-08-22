@@ -1,7 +1,7 @@
 # CORE-V2-F2 — Extreme Maturity inside REM / REE
 
 Date: 2026-08-22
-Status: **PARTIALLY RESOLVED — MATURITY + REVERSAL-DIRECTION + FIRST-QUALIFYING-CANDLE PROMOTION USER APPROVED; REVERSAL-PHASE ANCHOR/RETEST TRANSITION STILL PENDING**
+Status: **PARTIALLY RESOLVED — MATURITY + REVERSAL-DIRECTION + FIRST-QUALIFYING-CANDLE PROMOTION + STRUCTURAL REVERSAL-PHASE ANCHOR FREEZE USER APPROVED; EXACT RETEST-START/BODY-REFERENCE PREDICATE STILL PENDING**
 Branch: `blueprint-dev`
 
 ## Decision 1 — Extreme maturity inside REM / REE
@@ -66,6 +66,33 @@ This rule is **SOURCE-FAITHFUL ABSENCE OF A FIXED MINIMUM + MINIMAL DETERMINISTI
 
 The sources clearly separate RAW Extreme, reversal confirmation and later retest, but do not impose a universal two-/three-candle minimum before reversal confirmation exists. Therefore the first qualifying closed reversal-direction candle is the minimal deterministic promotion point, while any subsequent multi-candle reversal behavior is handled as lifecycle continuation rather than a prerequisite to basic reversal-confirmed maturity.
 
+## Decision 4 — structural reversal-phase continuation and anchor freeze
+The project adopts **STRUCTURAL REVERSAL-PHASE CONTINUATION WITH ANCHOR FREEZE AT THE TRANSITION INTO RETEST**.
+
+Accepted lifecycle concept:
+
+`FIRST REVERSAL CONFIRMATION -> OPTIONAL CONTINUED SAME-DIRECTION REVERSAL PHASE -> STRUCTURAL RETEST BEGINS -> BODY/REFERENCE ANCHOR FREEZES -> RETEST IS EVALUATED AGAINST THE FROZEN REFERENCE / RELEVANT MA5 CONTEXT`
+
+Operational meaning:
+- the first qualifying reversal-direction candle already establishes `REVERSAL-CONFIRMED` maturity under Decision 3;
+- one or more later closed candles may continue the same reversal phase rather than forcing an artificial one-candle reversal model;
+- while the reversal phase is still structurally extending away from the original Extreme, the source-derived highest/lowest-body reference candidate may continue to be updated as part of the same reversal structure;
+- once price structurally transitions from reversal extension into the later retest movement back toward the Extreme/body-reference/MA5 area, the body/reference anchor is **frozen**;
+- after the retest phase begins, the frozen anchor must not keep drifting with newer candles merely to make a later retest easier to satisfy;
+- REM/REE component maturity remains reversal-confirmed from the first qualifying reversal candle; freezing the later retest anchor is primarily required for the standalone Extreme retest lifecycle;
+- no fixed 2-/3-candle duration is imposed on the reversal phase merely because Finale examples sometimes show a multi-candle development;
+- the exact deterministic Boolean that declares “retest has begun” and the exact numeric representation of the highest/lowest body reference are intentionally left for the next focused sub-review rather than silently invented here.
+
+### Evidence classification
+This decision is **SOURCE-DERIVED BODY/RETEST CONCEPT + SOURCE-INFERRED STRUCTURAL PHASE TRANSITION**.
+
+Source support:
+- the accepted Extreme lifecycle separates reversal confirmation from the later retest;
+- Finale V04 allows the retest to revisit a marked highest/lowest-body/reference line or the relevant MA5;
+- the source allows multi-candle development and does not provide a fixed candle-count rule for freezing the reference.
+
+The software concept of keeping a provisional reference during reversal continuation and freezing it at the reversal-to-retest transition is the project's deterministic lifecycle mapping. It is not claimed as a verbatim Oma Ally state-machine instruction.
+
 ## Rejected alternatives
 - Raw Extreme alone as executable REM/REE component: rejected as too immature relative to the accepted Extreme lifecycle.
 - Reversal + retest required for every REM/REE Extreme component: rejected because the source ties retest specifically to standalone Extreme entry and does not clearly require it for supporting MTF components.
@@ -75,12 +102,15 @@ The sources clearly separate RAW Extreme, reversal confirmation and later retest
 - Mandatory close-back-inside-BB for every reversal candle: rejected as stricter than the accepted source wording.
 - Waiting for eCSD/CSD before calling Extreme reversal-confirmed: rejected because direction confirmation is a later BBMA cycle stage, not the Extreme reversal-candle stage itself.
 - Requiring two or more qualifying reversal candles before `REVERSAL-CONFIRMED`: rejected because the source provides no universal minimum count for this stage.
+- Freezing the retest anchor after an arbitrary fixed candle count: rejected as unsupported.
+- Allowing the retest anchor to drift indefinitely after retest has begun: rejected because it destroys deterministic retest ownership.
+- Using MA5 alone and discarding the source-marked body/reference concept: rejected.
 
 ## Remaining sub-specification before code
-The reversal **direction** and basic maturity-promotion point are now locked. One focused lifecycle review remains before M08/Extreme lifecycle code is patched:
-- when the multi-candle reversal phase stops extending the highest/lowest body reference;
-- which body reference is frozen for the later retest when reversal spans multiple candles;
-- when the lifecycle transitions from reversal-confirmed into the later retest phase without moving the reference indefinitely;
-- how the existing outside-BB/Momentum invalidation is applied during that transition.
+The reversal direction, basic maturity-promotion point and structural anchor-freeze philosophy are now locked. One focused deterministic review remains before M08/Extreme lifecycle code is patched:
+- define the exact closed-candle predicate that marks the transition from reversal extension into retest;
+- define the exact numeric highest/lowest-body reference used as the frozen anchor when reversal spans multiple candles;
+- preserve the relevant MA5 as a source-supported alternate/confluent retest reference without letting it replace the body-reference concept universally;
+- apply the existing outside-BB/Momentum invalidation cleanly before and during the reversal-to-retest transition.
 
-Until the reversal-phase anchor/retest-transition details are closed, active Mode 2 REM/REE cannot yet be declared fully Core-V2-compliant merely because a raw M08 Extreme plus one colour condition is present.
+Until those exact retest-start/body-anchor details are closed, active Mode 2 REM/REE cannot yet be declared fully Core-V2-compliant merely because a raw M08 Extreme plus one colour condition is present.

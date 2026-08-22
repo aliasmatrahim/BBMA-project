@@ -2,7 +2,7 @@
 
 Date: 2026-08-22
 Branch: `blueprint-dev`
-Status: **INITIALIZATION PASS / PAIR-MAP PASS / P3S5 TEST A PASS — TEST B/C/D PENDING**
+Status: **INITIALIZATION PASS / PAIR-MAP PASS / P3S5 TEST A PASS — TEST B/C/D PENDING (MARKET-CLOSED PAUSE)**
 
 ## Evidence source
 User-provided native MT4 screenshots after attaching the current compile-clean EA build.
@@ -45,7 +45,12 @@ The current source also confirms that, after geometry/lot validation and classif
 - P3S5 Test C: **PENDING**.
 - P3S5 Test D: **PENDING**.
 
+## Market-closed pause — 2026-08-22 (Saturday)
+The user confirmed the FX market is closed for the weekend. Tests B–D require meaningful subsequent market cycles and, for C/D, a genuine new EA execution. They are therefore intentionally deferred until the market reopens.
+
+No EA source change will be made solely to fill the weekend gap, so the already compiled/runtime-tested candidate remains stable and the Test A evidence stays attributable to the same build.
+
 ## Next evidence capture
-Leave the EA attached and running through several subsequent cycles without restarting it. Then capture the Experts log at a later timestamp. The evidence target for Test B is that the earlier `[P3S5][RECOVERY]` burst does not keep repeating every cycle.
+When the FX market reopens, leave the same current build attached and running. First capture a later Experts-log window to close Test B (no repeated recovery spam). Then wait for one genuine current-build M22 execution for Test C; if that fresh hashed trade remains open, restart/re-attach to capture Test D.
 
 No strategy, risk, execution or dashboard code is changed by this evidence record.

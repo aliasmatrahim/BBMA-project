@@ -1,0 +1,206 @@
+name: One-shot dead-symbol prune
+
+on:
+  push:
+    branches: [ blueprint-dev ]
+    paths:
+      - '.github/workflows/one-shot-dead-symbol-prune.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  prune:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+
+      - name: Iteratively prune unreachable functions and definition-only fields/types
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('blueprint/source/BBMA_EA.mq4')
+          s = p.read_text(encoding='utf-8')
+          before = s
+          removed_functions = []
+          removed_fields = []
+          removed_types = []
+          removed_enum_tail = []
+
+          protected_functions = {
+              # MQL4 runtime callbacks: referenced by terminal, not text callers.
+              'OnInit','OnDeinit','OnTick','OnTimer',
+              # M18 is an intentionally retained observability compatibility surface.
+              'CalculateSignalScore','GetSignalLevelString'
+          }
+
+          def find_function_defs(src):
+              pat = re.compile(r'(?m)^[\t ]*(?:bool|int|double|string|datetime|void|ulong|long|ENUM_[A-Za-z0-9_]+|[A-Za-z_][A-Za-z0-9_]*)[\t ]+([A-Za-z_][A-Za-z0-9_]*)\s*\(')
+              return [(m.group(1), m.start(), m.end()) for m in pat.finditer(src)]
+
+          def remove_named_function(src, name):
+              pat = re.compile(r'(?m)^[\t ]*(?:bool|int|double|string|datetime|void|ulong|long|ENUM_[A-Za-z0-9_]+|[A-Za-z_][A-Za-z0-9_]*)[\t ]+' + re.escape(name) + r'\s*\(')
+              m = pat.search(src)
+              if not m: return src, False
+              start = m.start()
+              brace = src.find('{', m.end())
+              if brace < 0: raise SystemExit(f'{name}: opening brace not found')
+              depth = 0; i = brace; in_str = False; esc = False
+              while i < len(src):
+                  ch = src[i]
+                  if in_str:
+                      if esc: esc = False
+                      elif ch == '\\': esc = True
+                      elif ch == '"': in_str = False
+                  else:
+                      if ch == '"': in_str = True
+                      elif ch == '{': depth += 1
+                      elif ch == '}':
+                          depth -= 1
+                          if depth == 0:
+                              end = i + 1
+                              while end < len(src) and src[end] in ' \t\r\n': end += 1
+                              return src[:start] + src[end:], True
+                  i += 1
+              raise SystemExit(f'{name}: unbalanced body')
+
+          # Fixed-point dead-function pass. A name(args) token count of one means
+          # only the definition remains. Removing one dead wrapper can expose its
+          # formerly-private helper as dead on the next iteration.
+          changed = True
+          while changed:
+              changed = False
+              names = []
+              for name, _, _ in find_function_defs(s):
+                  if name not in names: names.append(name)
+              for name in names:
+                  if name in protected_functions: continue
+                  if s.count(name + '(') != 1: continue
+                  s2, did = remove_named_function(s, name)
+                  if did:
+                      s = s2
+                      removed_functions.append(name + '()')
+                      changed = True
+                      break
+
+          # Remove field declarations whose identifier occurs nowhere except its
+          # own declaration. This is runtime-neutral by construction.
+          def prune_definition_only_fields(src):
+              out = src
+              removed = []
+              struct_pat = re.compile(r'(?ms)^struct\s+([A-Za-z_][A-Za-z0-9_]*)\s*\{(.*?)^\};')
+              for sm in list(struct_pat.finditer(src)):
+                  body = sm.group(2)
+                  for line in body.splitlines(True):
+                      # simple MQL4 field declaration, optionally an array
+                      fm = re.match(r'^(\s*)(?:[A-Za-z_][A-Za-z0-9_]*)(?:\s+)([A-Za-z_][A-Za-z0-9_]*)\s*(?:\[[^\]]+\])?\s*;.*(?:\n|$)', line)
+                      if not fm: continue
+                      field = fm.group(2)
+                      if out.count(field) != 1: continue
+                      # Re-locate exact line globally only if unique.
+                      if out.count(line) != 1: continue
+                      out = out.replace(line, '', 1)
+                      removed.append(field)
+              return out, removed
+
+          s, removed_fields = prune_definition_only_fields(s)
+
+          # Remove struct types that became definition-only after field pruning.
+          changed = True
+          while changed:
+              changed = False
+              pat = re.compile(r'(?ms)^struct\s+([A-Za-z_][A-Za-z0-9_]*)\s*\{.*?^\};\s*\n')
+              for m in list(pat.finditer(s)):
+                  name = m.group(1)
+                  if s.count(name) == 1:
+                      s = s[:m.start()] + s[m.end():]
+                      removed_types.append('struct ' + name)
+                      changed = True
+                      break
+
+          # Remove two whole legacy enum families only if both type and every
+          # constant are unused outside their own declarations.
+          for enum_name in ['ENUM_SIGNAL_MODE','ENUM_SIGNAL_REQUIREMENT','ENUM_CYCLE_STATE']:
+              pat = re.compile(r'(?ms)^enum\s+' + re.escape(enum_name) + r'\s*\{(.*?)\};\s*\n')
+              m = pat.search(s)
+              if not m: continue
+              if s.count(enum_name) != 1: continue
+              constants = re.findall(r'\b([A-Z][A-Z0-9_]+)\b', m.group(1))
+              if any(s.count(c) != 1 for c in constants): continue
+              s = s[:m.start()] + s[m.end():]
+              removed_types.append('enum ' + enum_name)
+
+          # Remove only the known unused tail members of ENUM_SIGNAL_TYPE. They
+          # are after all active values, so active numeric identities do not shift.
+          for const in ['SIGNAL_REVERSAL','SIGNAL_CONTINUATION','SIGNAL_MAJOR_REVERSAL']:
+              if s.count(const) == 1:
+                  s2, n = re.subn(r'(?m)^\s*' + re.escape(const) + r'\s*,?\s*\n', '', s, count=1)
+                  if n == 1:
+                      s = s2
+                      removed_enum_tail.append(const)
+
+          # Definition-only top-level globals are removable. Restrict to g_* names
+          # and declarations with no initializer to avoid changing initialization semantics.
+          global_pat = re.compile(r'(?m)^\s*(?:bool|int|double|string|datetime|ENUM_[A-Za-z0-9_]+)\s+(g_[A-Za-z0-9_]+)(?:\[[^\]]*\])?\s*;\s*\n')
+          for m in list(global_pat.finditer(s)):
+              name = m.group(1)
+              if s.count(name) == 1:
+                  line = m.group(0)
+                  if s.count(line) == 1:
+                      s = s.replace(line, '', 1)
+                      removed_fields.append(name)
+
+          if s == before:
+              raise SystemExit('No additional dead symbols found')
+
+          anchors = [
+              'bool DetectExtreme(', 'ENUM_MLV_STATE UpdateCanonicalMLVState(',
+              'ENUM_RE_STATE UpdateReEntryState(', 'void PriorityEngine_Atomic(',
+              'void InvalidationEngine_Atomic(', 'bool ResolveApprovedInitialSLTP(',
+              'RiskStatus CheckRiskBeforeTrade(', 'double CalculateLotSize(',
+              'void ProcessEntry(', 'void ProcessPair(', 'int OnInit()', 'void OnTick()'
+          ]
+          for a in anchors:
+              if before.count(a) != 1 or s.count(a) != 1:
+                  raise SystemExit('Critical anchor changed/missing: ' + a)
+
+          # Basic brace sanity before write.
+          if s.count('{') != s.count('}'):
+              raise SystemExit('Brace count changed to unbalanced source')
+
+          p.write_text(s, encoding='utf-8')
+
+          record = Path('blueprint/P3_CODE_CLEANUP_DEAD_CODE_AUDIT.md')
+          old = record.read_text(encoding='utf-8') if record.exists() else ''
+          old += '\n## Pass 2 — fixed-point dead-symbol prune\n'
+          old += '\n### Additional dead functions removed\n'
+          old += ''.join(f'- `{x}`\n' for x in removed_functions) or '- None\n'
+          old += '\n### Definition-only fields/globals removed\n'
+          old += ''.join(f'- `{x}`\n' for x in removed_fields) or '- None\n'
+          old += '\n### Types removed after becoming unused\n'
+          old += ''.join(f'- `{x}`\n' for x in removed_types) or '- None\n'
+          old += '\n### Unused tail signal constants removed\n'
+          old += ''.join(f'- `{x}`\n' for x in removed_enum_tail) or '- None\n'
+          old += '\nPass-2 rule: only textually unreachable functions, declaration-only fields/globals, and fully unused types were removed. MQL4 event callbacks and M18 compatibility label functions were protected explicitly. No strategy/risk/execution condition was rewritten.\n'
+          record.write_text(old, encoding='utf-8')
+
+          print('Functions:', ', '.join(removed_functions))
+          print('Fields/globals:', ', '.join(removed_fields))
+          print('Types:', ', '.join(removed_types))
+          print('Enum tail:', ', '.join(removed_enum_tail))
+          PY
+
+          git diff --check
+          git diff --stat
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- blueprint/source/BBMA_EA.mq4 blueprint/P3_CODE_CLEANUP_DEAD_CODE_AUDIT.md
+          git rm -- .github/workflows/one-shot-dead-symbol-prune.yml
+          git commit -m "P3 cleanup: prune unreachable symbols and dead fields"
+          git push origin HEAD:blueprint-dev

@@ -48,17 +48,19 @@ GitHub remains the project source of truth. Source material is used to validate 
 - Processing status: part-by-part original, corrected, extracted-rule and summary artifacts prepared; derived Markdown analysis committed under `docs/references/video/oma_ally_finale/`.
 - Raw/corrected SRT hashes and synchronization status are recorded in `docs/references/video/oma_ally_finale/VIDEO_SOURCE_INDEX.md`.
 
-### High-value Finale findings pending formal Core reconciliation
-- BB state qualifies momentum: an outside-BB close under flat/horizontal BB is explicitly distinguished from true expanding-BB momentum.
-- Normal standalone Extreme is taught as a three-stage lifecycle: MA extension → reversal candle → retest before entry.
-- Normal Extreme TP Wajib is clarified toward the opposite MA5/MA10 area, with Mid BB as farther context.
-- MHV/MLV retest and inside-BB validity are explained more explicitly.
-- Early candle direction vs strong candle direction is clarified; raw direction remains signal-only, not entry.
-- Re-Entry receives a possible new deterministic timing rule: first Re-Entry candle validates, second Re-Entry candle is the entry candle.
-- Higher-timeframe Re-Entry / lower-timeframe completion context is emphasized.
-- Several statements remain intentionally unresolved and are tracked in `BBMA_FINALE_SOURCE_CONFLICT_REGISTER.md` rather than being silently merged.
+### Reconciled Finale findings
+After comparing Finale against the **current** PDF-derived Core contracts, most important Finale statements are corroboration/clarification rather than brand-new Core rules:
+- expanding/directional BB is already part of current momentum/CSM semantics; Finale strongly confirms that flat-BB outside closes are not momentum;
+- the existing Extreme source contract already knows reversal + retest before standalone entry; Finale adds richer timing/context but leaves several exceptions unresolved;
+- normal Extreme TP Wajib is clarified more specifically toward the opposite MA5/MA10 area, with Mid BB as farther context;
+- MHV/MLV retest, validity and morphology are explained more richly and expose active M09 implementation gaps;
+- eCSD vs CSD and the non-executability of raw direction signals are strongly corroborated;
+- first-Re-Entry-candle validation / second-candle entry is treated as a **semantic/timing verification item**, because the current closed-candle architecture may already execute at the beginning of the next candle;
+- higher-timeframe Re-Entry / lower-timeframe completion context is emphasized without changing the exact PDF-derived REM/RRE/REE signatures.
 
-The Finale material does **not automatically override** the established PDF contracts. Any ADD/CORRECT candidate must go through explicit Core/Blueprint reconciliation before implementation.
+Unresolved items remain in `BBMA_FINALE_SOURCE_CONFLICT_REGISTER.md`. Active code mismatches are separated into `BBMA_FINALE_CORE_IMPLEMENTATION_GAP_REGISTER.md`.
+
+The Finale material does **not automatically override** the established PDF contracts. A source clarification and an implementation fix are deliberately treated as separate decisions.
 
 ## Source precedence / conflict policy
 1. `PROJECT_INSTRUCTIONS.md` governs project scope and change-control rules.

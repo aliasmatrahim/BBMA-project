@@ -3597,6 +3597,16 @@ void BuildConfirmedReEntryCandidate(ReEntryData &reEntry,
 {
    ZeroMemory(candidate);
 
+   if(EntryMode == 1 && reEntry.State == RE_STATE_CONFIRMED)
+      Print("[P3M1][RE_EVAL] Type=", EnumToString(reEntry.Type),
+            " Dir=", EnumToString(reEntry.Direction),
+            " Valid=", reEntry.IsValid ? "Y" : "N",
+            " Confirm=", TimeToString(reEntry.ConfirmationCandle),
+            " H4State=", EnumToString(h4Owner.State),
+            " H4Dir=", EnumToString(h4Owner.Direction),
+            " H4Valid=", h4Owner.IsValid ? "Y" : "N",
+            " H4Recovery=", h4Owner.RecoveryComplete ? "Y" : "N");
+
    if(reEntry.State != RE_STATE_CONFIRMED || !reEntry.IsValid) return;
    if(reEntry.Direction != DIR_BUY && reEntry.Direction != DIR_SELL) return;
    if(reEntry.Timeframe != PERIOD_H1) return;
@@ -3632,6 +3642,11 @@ void BuildConfirmedReEntryCandidate(ReEntryData &reEntry,
    candidate.SequenceCompleteness = 1;
    candidate.PatternStrength = 0;
    candidate.Valid = true;
+   if(EntryMode == 1)
+      Print("[P3M1][RE_ADMIT] Type=", EnumToString(reEntry.Type),
+            " Dir=", EnumToString(reEntry.Direction),
+            " Confirm=", TimeToString(reEntry.ConfirmationCandle),
+            " Hash=", candidate.SequenceHash);
 }
 
 void AppendValidatedCandidate(ValidatedSequenceCandidate &candidate,
@@ -3714,12 +3729,18 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
       else if(candidates[i].Direction == DIR_SELL) sellCount++;
    }
 
+   if(EntryMode == 1 && (buyCount > 0 || sellCount > 0))
+      Print("[P3M1][M15_COUNTS] Buy=", buyCount, " Sell=", sellCount,
+            " Pool=", count, " Time=", TimeToString(g_processing_time));
+
    if(buyCount > 0 && sellCount > 0)
    {
       conflict.Exists = true;
       conflict.ConflictType = CONFLICT_DIRECTION_VIOLATION;
       conflict.ConflictReason = "Opposite validated BBMA entries coexist";
       conflict.FrozenSnapshotTime = g_processing_time;
+      if(EntryMode == 1)
+         Print("[P3M1][M15_CONFLICT] Opposite eligible RE candidates; no winner selected");
       return;
    }
 
@@ -3767,6 +3788,12 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
                                              decision.Direction,
                                              decision.SignalType,
                                              decision.SequenceHash);
+   if(EntryMode == 1)
+      Print("[P3M1][M15_SELECT] Pair=", decision.Pair,
+            " Signal=", EnumToString(decision.SignalType),
+            " Dir=", EnumToString(decision.Direction),
+            " Candle=", TimeToString(decision.CandleTime),
+            " DecisionID=", decision.DecisionID);
 }
 
 //+------------------------------------------------------------------+
@@ -3939,6 +3966,9 @@ void InvalidationEngine_Atomic(int pairIndex, BBMA_Decision &decision,
    {
       decision.DecisionState = DEC_INVALIDATED;
       decision.RejectionReason = REJ_OPPOSITE_SIGNAL;
+      if(EntryMode == 1)
+         Print("[P3M1][M16_REJECT] DecisionID=", decision.DecisionID,
+               " Reason=", EnumToString(decision.RejectionReason));
       return;
    }
 
@@ -3967,6 +3997,10 @@ void InvalidationEngine_Atomic(int pairIndex, BBMA_Decision &decision,
 
    decision.DecisionState = DEC_VALIDATED;
    decision.RejectionReason = REJ_NONE;
+   if(EntryMode == 1)
+      Print("[P3M1][M16_PASS] DecisionID=", decision.DecisionID,
+            " Signal=", EnumToString(decision.SignalType),
+            " Candle=", TimeToString(decision.CandleTime));
 }
 
 //+------------------------------------------------------------------+
@@ -5094,6 +5128,14 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
          MarkDecisionExecuted(decision.DecisionID, ticket);
          decision.DecisionState = DEC_EXECUTED;
          decision.RejectionReason = REJ_NONE;
+         if(EntryMode == 1)
+            Print("[P3M1][EXEC] Ticket=", ticket,
+                  " Pair=", pair,
+                  " DecisionID=", decision.DecisionID,
+                  " Signal=", EnumToString(decision.SignalType),
+                  " Dir=", EnumToString(decision.Direction),
+                  " ValidateCandle=", TimeToString(decision.CandleTime),
+                  " OrderOpen=", TimeToString(OrderOpenTime()));
          return;
       }
 
@@ -5117,6 +5159,13 @@ bool RunEntryPreflightAndExecute(BBMA_Decision &decision, string pair)
 {
    if(decision.DecisionState != DEC_VALIDATED) return false;
    if(pair == "" || decision.Pair != pair) return false;
+   if(EntryMode == 1)
+      Print("[P3M1][PREFLIGHT_START] Pair=", pair,
+            " DecisionID=", decision.DecisionID,
+            " Signal=", EnumToString(decision.SignalType),
+            " Dir=", EnumToString(decision.Direction),
+            " ValidateCandle=", TimeToString(decision.CandleTime),
+            " ProcessTime=", TimeToString(g_processing_time));
 
    // One frozen execution/risk snapshot for this decision. Strategy semantics
    // are already frozen by the closed-M15 M15/M16/M17 path; only broker/account
@@ -5181,7 +5230,20 @@ bool RunEntryPreflightAndExecute(BBMA_Decision &decision, string pair)
    }
 
    FinalPortfolioGuard(decision);
-   if(decision.DecisionState != DEC_VALIDATED) return false;
+   if(decision.DecisionState != DEC_VALIDATED)
+   {
+      if(EntryMode == 1)
+         Print("[P3M1][PORTFOLIO_REJECT] DecisionID=", decision.DecisionID,
+               " Reason=", EnumToString(decision.RejectionReason));
+      return false;
+   }
+
+   if(EntryMode == 1)
+      Print("[P3M1][PREFLIGHT_PASS] DecisionID=", decision.DecisionID,
+            " Entry=", DoubleToString(decision.EntryPrice, snapshot.Digits),
+            " SL=", DoubleToString(decision.StopLoss, snapshot.Digits),
+            " TP=", DoubleToString(decision.TakeProfit, snapshot.Digits),
+            " Lot=", DoubleToString(lot, snapshot.LotDigits));
 
    ProcessEntry(decision, pair, snapshot, lot);
    return (decision.DecisionState == DEC_EXECUTED);

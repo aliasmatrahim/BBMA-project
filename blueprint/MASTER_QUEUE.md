@@ -151,9 +151,10 @@ Next action for F5: native MetaEditor compile and focused runtime BB-shape trace
 
 #### CORE-V2-F6 — Re-Entry validation-candle / entry-candle timestamp audit
 Priority: MEDIUM
-Status: VERIFY, NO CODE CHANGE YET
-Evidence required: Re-Entry confirmation candle time, M15 decision time, and actual `OrderOpenTime()`.
-Goal: prove whether current closed-candle processing already means “first Re-Entry candle validates, next candle executes.” Do not insert an extra full-candle delay without evidence.
+Status: **STATIC TIMING VERIFIED / METADATA REPAIRED — NATIVE METAEDITOR + RUNTIME ORDER-TIME TRACE PENDING**
+Implementation/audit record: `blueprint/CORE_V2_F6_TIMING_VERIFICATION_AUDIT.md`
+Resolved mapping: the closed source-TF Re-Entry candle is the validation candle; M27 may execute during the immediately following live source-TF candle. No extra full-candle delay is added. `ReEntryData.EntryCandle` metadata now identifies that immediately following candle rather than duplicating `ConfirmationCandle`.
+Runtime closure evidence still required: `ConfirmationCandle`, processing/decision time and actual `OrderOpenTime()`.
 
 #### CORE-V2-F7 — M17 SL/TP provenance decision
 Priority: MEDIUM / SOURCE GOVERNANCE

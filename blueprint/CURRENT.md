@@ -237,3 +237,12 @@ This reconciliation changes project tracking/specification records only. It does
 - M10 CSM logic is unchanged; F5 is a Core-support state repair, not a new execution filter.
 - F1-F5 integrated native MetaEditor compile/runtime verification remains pending.
 - **Highest-priority next Core gate: CORE-V2-F6 Re-Entry validation/entry timing verification, then rerun Strategy Core V2 audit.**
+
+
+# 2026-08-22 CORE-V2-F6 Timing Verification Overlay
+- **CORE-V2-F6 static timing verification: PASS; metadata repair applied.**
+- Closed Re-Entry source candle is the validation candle; execution remains eligible in the immediately following live source-TF candle.
+- No additional full-candle delay was introduced.
+- `ReEntryData.EntryCandle` no longer duplicates `ConfirmationCandle`; it points to the immediately following source-TF candle for observability.
+- Native MetaEditor compile and runtime `OrderOpenTime()` evidence remain required for final runtime closure.
+- **Next Core action: rerun Strategy Core V2 static audit against integrated F1-F6 source.**

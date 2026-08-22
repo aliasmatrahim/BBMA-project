@@ -3268,7 +3268,14 @@ void ConfirmReEntryState(ReEntryData &reEntry, TimeframeData &data, string reaso
    reEntry.State = RE_STATE_CONFIRMED;
    reEntry.ConfirmationBar = data.barIndex;
    reEntry.ConfirmationCandle = data.candle_time;
-   reEntry.EntryCandle = data.candle_time;
+
+   // CORE-V2-F6 metadata correction only: the closed source-TF candle is the
+   // validation candle; execution is eligible in the immediately following
+   // source-TF candle.  No extra candle delay is introduced.
+   int sourceTfSeconds = GetTimeframeSeconds(data.timeframe);
+   reEntry.EntryCandle = (sourceTfSeconds > 0)
+                         ? data.candle_time + sourceTfSeconds
+                         : 0;
    reEntry.EntryPrice = data.close;
    reEntry.IsValid = true;
    reEntry.LastUpdateBar = data.barIndex;

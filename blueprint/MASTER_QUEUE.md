@@ -17,7 +17,7 @@ This file is the canonical work queue for active development. It complements `bl
 ## Priority queue
 
 ### CORE-V2 integrated re-audit after F1–F6
-Status: **STATIC RE-AUDIT PASS — METAEDITOR/RUNTIME EVIDENCE PENDING**
+Status: **STATIC RE-AUDIT PASS / NATIVE METAEDITOR 0E0W PASS — RUNTIME EVIDENCE PENDING**
 Record: `blueprint/P3_CORE_V2_STRATEGY_REAUDIT_20260822.md`
 Result: original CV2-01..CV2-15 findings are either MATCH/DORMANT or statically resolved by F1–F6. CV2-16 remains F7 source-governance only, not a proven Strategy-Core code defect.
 Next strategy gate: **P3-M1 Mode 1 Official BBMA Compliance Audit**.
@@ -27,7 +27,7 @@ Next strategy gate: **P3-M1 Mode 1 Official BBMA Compliance Audit**.
 
 #### CORE-V2-F1 — M09 MHV/MLV source alignment
 Priority: **CRITICAL**
-Status: **CODE IMPLEMENTED / STATIC REGRESSION PASS — NATIVE METAEDITOR COMPILE + RUNTIME TRACE PENDING**
+Status: **CODE IMPLEMENTED / STATIC REGRESSION PASS / NATIVE METAEDITOR 0E0W PASS — RUNTIME TRACE PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-04/CV2-05/CV2-06
 Decision record: `blueprint/decisions/CORE_V2_F1_MHV_MLV_LIFECYCLE_DECISION.md`
 Locked decisions:
@@ -58,7 +58,7 @@ Next action for F1: native MetaEditor compile and runtime lifecycle traces; stat
 
 #### CORE-V2-F2 — Extreme maturity inside REM/REE
 Priority: **HIGH**
-Status: **CODE IMPLEMENTED / STATIC REGRESSION PASS — NATIVE METAEDITOR COMPILE + RUNTIME TRACE PENDING**
+Status: **CODE IMPLEMENTED / STATIC REGRESSION PASS / NATIVE METAEDITOR 0E0W PASS — RUNTIME TRACE PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-03
 Decision record: `blueprint/decisions/CORE_V2_F2_EXTREME_MATURITY_DECISION.md`
 Locked decisions:
@@ -84,7 +84,7 @@ Next action for F2: native MetaEditor compile and runtime lifecycle traces; stat
 
 #### CORE-V2-F3 — Re-Entry Type 1 context
 Priority: **HIGH**
-Status: **CODE IMPLEMENTED / STATIC REGRESSION PASS — NATIVE METAEDITOR COMPILE + RUNTIME TRACE PENDING**
+Status: **CODE IMPLEMENTED / STATIC REGRESSION PASS / NATIVE METAEDITOR 0E0W PASS — RUNTIME TRACE PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-09
 Decision record: `blueprint/decisions/CORE_V2_F3_TYPE1_CONTEXT_DECISION.md`
 Locked decisions:
@@ -104,7 +104,7 @@ Next action for F3: native MetaEditor compile and runtime Type1 lifecycle traces
 
 #### CORE-V2-F4 — Higher-timeframe context for standalone H1 Re-Entry
 Priority: **HIGH**
-Status: **CODE IMPLEMENTED / STATIC REGRESSION PASS — NATIVE METAEDITOR COMPILE + RUNTIME TRACE PENDING**
+Status: **CODE IMPLEMENTED / STATIC REGRESSION PASS / NATIVE METAEDITOR 0E0W PASS — RUNTIME TRACE PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-12
 Decision record: `blueprint/decisions/CORE_V2_F4_H1_RE_HTF_CONTEXT_DECISION.md`
 Locked decisions:
@@ -134,7 +134,7 @@ Next action for F4: native MetaEditor compile and H4 owner/recovery runtime trac
 
 #### P3-M1 — Mode 1 Official BBMA Compliance Audit
 Priority: CRITICAL / STRATEGY GATE
-Status: **STATIC END-TO-END COMPLIANCE PASS — NATIVE METAEDITOR + RUNTIME MODE1 TRACE PENDING**
+Status: **STATIC END-TO-END COMPLIANCE PASS / NATIVE METAEDITOR 0E0W PASS — RUNTIME MODE1 TRACE PENDING**
 Audit record: `blueprint/P3_M1_MODE1_OFFICIAL_BBMA_COMPLIANCE_AUDIT.md`
 Scope:
 - EntryMode 1 (`RE_ENTRY_ONLY`) end-to-end compliance against `BBMA_STRATEGY_CORE_SOURCE_OF_TRUTH_V2.md`;
@@ -151,7 +151,7 @@ Dependency: CORE-V2-F4 must be implemented/audited and F3 implemented/audited be
 
 #### CORE-V2-F5 — M07 flat/horizontal BB state
 Priority: MEDIUM
-Status: **CODE IMPLEMENTED / STATIC REGRESSION PASS — NATIVE METAEDITOR COMPILE + RUNTIME TRACE PENDING**
+Status: **CODE IMPLEMENTED / STATIC REGRESSION PASS / NATIVE METAEDITOR 0E0W PASS — RUNTIME TRACE PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-02
 Implementation record: `blueprint/CORE_V2_F5_IMPLEMENTATION_AUDIT.md`
 Resolved mapping: `BB_FLAT` is now a reachable geometric three-line horizontal state using one broker point only as numerical equality tolerance. Existing squeeze/expanding width thresholds are preserved; remaining non-flat valid near-width states remain contracting. M10 CSM remains independently source-aligned and was not changed by F5.
@@ -159,7 +159,7 @@ Next action for F5: native MetaEditor compile and focused runtime BB-shape trace
 
 #### CORE-V2-F6 — Re-Entry validation-candle / entry-candle timestamp audit
 Priority: MEDIUM
-Status: **STATIC TIMING VERIFIED / METADATA REPAIRED — NATIVE METAEDITOR + RUNTIME ORDER-TIME TRACE PENDING**
+Status: **STATIC TIMING VERIFIED / METADATA REPAIRED / NATIVE METAEDITOR 0E0W PASS — RUNTIME ORDER-TIME TRACE PENDING**
 Implementation/audit record: `blueprint/CORE_V2_F6_TIMING_VERIFICATION_AUDIT.md`
 Resolved mapping: the closed source-TF Re-Entry candle is the validation candle; M27 may execute during the immediately following live source-TF candle. No extra full-candle delay is added. `ReEntryData.EntryCandle` metadata now identifies that immediately following candle rather than duplicating `ConfirmationCandle`.
 Runtime closure evidence still required: `ConfirmationCandle`, processing/decision time and actual `OrderOpenTime()`.
@@ -172,7 +172,7 @@ Current contract explicitly separates `FORUM_SUPPORTED` TP and `EA_SAFETY` hard 
 
 ### P1 — Opposite-direction / same-pair cycle integrity
 Priority: HIGH
-Status: **BUG CONFIRMED / FIX IMPLEMENTED / STATIC REGRESSION PASS — METAEDITOR + RUNTIME TRACE PENDING**
+Status: **BUG CONFIRMED / FIX IMPLEMENTED / STATIC REGRESSION PASS / NATIVE METAEDITOR 0E0W PASS — RUNTIME TRACE PENDING**
 Audit record: `blueprint/P3_OPPOSITE_DIRECTION_PAIR_INTEGRITY_AUDIT.md`
 Finding: M15 already rejects contradictory eligible BUY/SELL candidates in one atomic scan. The observed BUY+SELL coexistence under `TradeLockMode=1` came from a reversed M22 lock predicate: mode 1 blocked same-direction adds and allowed opposite-direction orders.
 Fix: `LOCK_SAME_DIRECTION` now means same-direction-only coexistence on the pair; an existing live EA-owned opposite direction rejects the new order with `REJ_TRADE_LOCK`. Mode 0 and mode 2 semantics remain unchanged.

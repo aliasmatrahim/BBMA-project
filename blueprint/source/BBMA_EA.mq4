@@ -129,9 +129,6 @@ enum ENUM_SIGNAL_TYPE
    SIGNAL_REM,
    SIGNAL_RRE,
    SIGNAL_REE,
-   SIGNAL_REVERSAL,
-   SIGNAL_CONTINUATION,
-   SIGNAL_MAJOR_REVERSAL
 };
 
 enum ENUM_DIRECTION { DIR_NONE, DIR_BUY, DIR_SELL };
@@ -186,11 +183,6 @@ enum ENUM_SIGNAL_LEVEL { LEVEL_NONE, LEVEL_D, LEVEL_C, LEVEL_B, LEVEL_A, LEVEL_A
 enum ENUM_PRIORITY_TIER { TIER_NONE, TIER_C, TIER_B, TIER_A, TIER_A_PLUS };
 
 enum ENUM_TRADE_LOCK { LOCK_OFF, LOCK_SAME_DIRECTION, LOCK_ONE_POSITION };
-
-enum ENUM_SIGNAL_MODE { MODE_SAFE, MODE_NORMAL, MODE_AGGRESSIVE, MODE_MANUAL };
-
-enum ENUM_CYCLE_STATE { CYCLE_NONE, CYCLE_WAITING, CYCLE_EXTREME, CYCLE_MHV, 
-                        CYCLE_MLV, CYCLE_CSD, CYCLE_RE_ENTRY, CYCLE_COMPLETE, CYCLE_INVALID };
 
 enum ENUM_SIGNAL_REQUIREMENT { REQ_STANDALONE, REQ_COMBINATION, REQ_SEQUENCE };
 
@@ -441,27 +433,6 @@ struct H4DirectionalOwner
    string               Reason;
 };
 
-struct SignalMemory
-{
-   ENUM_SIGNAL_TYPE     Extreme;
-   ENUM_SIGNAL_TYPE     MHV;
-   ENUM_SIGNAL_TYPE     CSD;
-   ENUM_SIGNAL_TYPE     ECSD;
-   ENUM_SIGNAL_TYPE     CSM;
-   ENUM_SIGNAL_TYPE     REM;
-   ENUM_SIGNAL_TYPE     RRE;
-   ENUM_SIGNAL_TYPE     REE;
-   ENUM_SIGNAL_TYPE     MLV;
-   ENUM_SIGNAL_TYPE     ReEntry;
-   ENUM_CYCLE_STATE     CycleState;
-   ENUM_DIRECTION       Direction;
-   ENUM_EXTREME_TYPE    ExtremeType;
-   datetime             CycleStartBar;
-   datetime             CycleStartCandleTime;
-   datetime             LastUpdateBar;
-   bool                 IsValid;
-};
-
 struct TimeframeSnapshot
 {
    datetime ProcessingServerTime;
@@ -629,8 +600,6 @@ struct PairState
    double               current_ema50;
    double               prev_daily_ema50;
    double               current_daily_ema50;
-   SignalMemory         buy_signal_memory;
-   SignalMemory         sell_signal_memory;
    // F2 source-aligned Extreme maturity lifecycle.
    ExtremeLifecycleData extreme_h1_buy_lifecycle;
    ExtremeLifecycleData extreme_h1_sell_lifecycle;
@@ -1294,14 +1263,6 @@ int GetTimeframeSeconds(int timeframe)
       case 43200: return 2592000;
       default: return 0;
    }
-}
-
-datetime GetEffectiveExpiry(datetime individual, datetime combined, datetime global)
-{
-   datetime min = individual;
-   if(combined < min) min = combined;
-   if(global < min) min = global;
-   return min;
 }
 
 bool IsValidLotStep(double lot, string pair)

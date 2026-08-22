@@ -32,7 +32,7 @@ Constraint: audit/spec first, then patch. Do not invent arbitrary pip thresholds
 
 #### CORE-V2-F2 — Extreme maturity inside REM/REE
 Priority: **HIGH**
-Status: **PARTIALLY RESOLVED — USER APPROVED MATURITY + REVERSAL DIRECTION + FIRST-QUALIFYING-CANDLE PROMOTION; ANCHOR/RETEST TRANSITION PENDING**
+Status: **PARTIALLY RESOLVED — USER APPROVED MATURITY + REVERSAL DIRECTION + FIRST-QUALIFYING-CANDLE PROMOTION + STRUCTURAL ANCHOR FREEZE + RETEST-START TRIGGER; BODY-ANCHOR/RETEST VALIDATION PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-03
 Decision record: `blueprint/decisions/CORE_V2_F2_EXTREME_MATURITY_DECISION.md`
 Locked decisions:
@@ -44,11 +44,15 @@ Locked decisions:
 - close-back-inside-BB is supporting/preferred rather than a universal hard requirement under the accepted source wording;
 - the **first qualifying closed reversal-direction candle** promotes `RAW EXTREME -> REVERSAL-CONFIRMED`, provided the candidate has not already been voided by accepted outside-BB/Momentum invalidation;
 - later same-direction reversal candles may continue the reversal phase but are not required merely to reach REM/REE component maturity;
-- classification: maturity decision **SOURCE-INFERRED / STRONG HINT**; reversal direction/promotion is **DIRECT SOURCE REQUIREMENT / SOURCE-FAITHFUL ABSENCE OF FIXED MINIMUM + MINIMAL DETERMINISTIC PROJECT MAPPING**.
+- the provisional body/reference anchor may extend during the same reversal phase but is frozen when the retest phase begins;
+- deterministic retest-start trigger: SELL Extreme begins retest when first later closed candle has `CurrentClose > PreviousClose`; BUY Extreme begins retest when first later closed candle has `CurrentClose < PreviousClose`;
+- the retest-start candle is excluded from the reversal-phase anchor and is the first retest-phase candle;
+- candle colour alone, fixed-N delay, previous-high/low breakout or waiting for an actual body/MA5 touch are not used merely to declare retest phase start;
+- classification: maturity decision **SOURCE-INFERRED / STRONG HINT**; reversal direction/promotion/retest-start predicates are **DIRECT SOURCE REQUIREMENT / SOURCE-DERIVED SEQUENCE + MINIMAL DETERMINISTIC PROJECT MAPPING**.
 Remaining dependency before code:
-- define when the multi-candle reversal phase stops extending the highest/lowest body reference;
-- freeze the source-faithful body/retest anchor;
-- define transition into the later standalone retest phase and apply outside-BB/Momentum invalidation across that transition.
+- define the exact numeric highest/lowest-body anchor across the completed reversal structure;
+- define valid standalone retest interaction with the frozen body reference and/or relevant MA5;
+- apply accepted outside-BB/Momentum invalidation cleanly through the retest phase.
 Constraint: do not invent arbitrary candle counts, named patterns, EMA/ATR/RSI filters, or a moving anchor that can drift indefinitely.
 
 #### CORE-V2-F3 — Re-Entry Type 1 context
@@ -177,7 +181,7 @@ Before declaring P3 complete, preserve the existing Step 5 closure rule in `P3_S
 
 ## Execution order
 1. Keep `CURRENT.md` + this queue reconciled.
-2. Finish CORE-V2-F2 reversal-phase anchor/retest-transition specification.
+2. Finish CORE-V2-F2 body-anchor/retest-validation specification.
 3. Implement/audit CORE-V2-F3 Type 1 state/owner contract and CORE-V2-F4 H4 parent/owner/recovery contract.
 4. Repair CORE-V2-F1 M09 MHV/MLV against the resolved canonical Core contract.
 5. Repair CORE-V2-F5 BB-flat classification and run CORE-V2-F6 timing verification.

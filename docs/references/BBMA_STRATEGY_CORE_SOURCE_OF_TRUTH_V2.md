@@ -98,6 +98,24 @@ The following are **not authoritative Core rules yet**:
 
 These remain governed by `BBMA_FINALE_SOURCE_CONFLICT_REGISTER.md`.
 
+### 5.4 Extreme maturity when used inside REM / REE
+**User-approved project Core decision:** an Extreme used as a component of an executable REM or REE must be at least **reversal-confirmed**.
+
+Maturity distinction:
+- `RAW EXTREME` = strict MA5/MA10-outside-BB condition only. Not sufficient for executable REM/REE.
+- `REVERSAL-CONFIRMED EXTREME` = raw Extreme plus source-valid reversal confirmation. Eligible as an Extreme component of REM/REE.
+- `RETEST / ENTRY-READY EXTREME` = reversal-confirmed Extreme plus the later retest. Required for standalone Extreme entry eligibility.
+
+Evidence classification: **SOURCE-INFERRED / STRONG HINT**, not a verbatim Oma Ally statement specifically defining REM/REE component maturity.
+
+Reasoning basis:
+- V04 separates raw Extreme, reversal confirmation and retest, and ties the retest to standalone Extreme entry.
+- V05 teaches lower-timeframe Extreme/MHV/direction structures as supporting completion for higher-timeframe Re-Entry, indicating that supporting MTF Extreme context is not identical to standalone Extreme entry maturity.
+
+Decision provenance: `blueprint/decisions/CORE_V2_F2_EXTREME_MATURITY_DECISION.md`.
+
+Implementation guard: this decision does **not** authorize inventing a reversal-candle algorithm. A deterministic source-faithful reversal-confirmation contract must still be specified before patching M08/M13/M14/M15 behavior.
+
 ---
 
 ## 6. MHV / MLV
@@ -207,7 +225,11 @@ The authoritative project signatures remain PDF-derived:
 
 All three components must be interpreted consistently with their own source-defined validity and direction contracts. Finale corroborates the higher-to-lower timeframe principle but does not provide sufficient transcript-only chart detail to redefine these signatures.
 
-Source basis: primary PDF pages 12–13; Finale treated as corroboration only.
+Additional maturity rule from Section 5.4:
+- every Extreme component in executable REM/REE must be at least reversal-confirmed;
+- retest/standalone-entry readiness is not required merely because the Extreme is serving as an MTF combination component.
+
+Source basis: primary PDF pages 12–13; Finale treated as corroboration plus the user-approved source-inferred maturity decision recorded in `blueprint/decisions/CORE_V2_F2_EXTREME_MATURITY_DECISION.md`.
 
 ---
 
@@ -250,6 +272,7 @@ Accepted material changes the project knowledge in these specific ways:
 - strengthens the existing expanding-BB requirement for Momentum/CSM;
 - strengthens the interpretation that eCSD/CSD is direction information and Re-Entry is the entry setup;
 - clarifies higher-timeframe ownership/context of lower-timeframe signals;
-- records the first-validation-candle / second-entry-candle phrase as a timing semantic that still requires runtime mapping.
+- records the first-validation-candle / second-entry-candle phrase as a timing semantic that still requires runtime mapping;
+- adds the user-approved source-inferred maturity distinction that REM/REE Extreme components must be reversal-confirmed, while standalone Extreme entry still requires the later retest.
 
 The unresolved Extreme exceptions and personal/workflow material remain outside authoritative Core.

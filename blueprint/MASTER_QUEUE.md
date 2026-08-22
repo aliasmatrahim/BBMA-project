@@ -20,13 +20,13 @@ This file is the canonical work queue for active development. It complements `bl
 
 #### CORE-V2-F1 — M09 MHV/MLV source alignment
 Priority: **CRITICAL**
-Status: **PARTIALLY RESOLVED — USER APPROVED STRUCTURAL LIFECYCLE + MANDATORY PRIOR EXTREME PROVENANCE + TP-WAJIB COMPLETION + REVERSAL-CONFIRMED PARENT MATURITY + STRUCTURAL LOSS-OF-MOMENTUM + TURNING-BODY FORMATION + IMMEDIATE BODY FREEZE + RANGE-TOUCH RETEST + REM COMPONENT MATURITY; SUPERSESSION DETAILS PENDING**
+Status: **PARTIALLY RESOLVED — USER APPROVED STRUCTURAL LIFECYCLE + MANDATORY PRIOR EXTREME PROVENANCE + TP-WAJIB COMPLETION + REVERSAL-CONFIRMED PARENT MATURITY + STRUCTURAL LOSS-OF-MOMENTUM + TURNING-BODY FORMATION + IMMEDIATE BODY FREEZE + RANGE-TOUCH RETEST + REM COMPONENT MATURITY + SAME-CYCLE DIRECTION PROGRESSION; FINAL SUPERSESSION WINDOW/RULES PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-04/CV2-05/CV2-06
 Decision record: `blueprint/decisions/CORE_V2_F1_MHV_MLV_LIFECYCLE_DECISION.md`
 Locked decisions:
 - MHV/MLV is one canonical structural lifecycle/owner-state model, not a one-candle detector;
 - MHV and MLV remain terminology aliases for one setup family unless stronger source evidence later distinguishes them;
-- accepted high-level lifecycle is `PRIOR EXTREME / TP CONTEXT -> LOSS OF PRIOR MOMENTUM -> MHV/MLV FORMATION -> MARKED BODY/REFERENCE -> RETEST / ACTIVE SETUP -> VALID CONTINUATION OR VOID/SUPERSESSION`;
+- accepted high-level lifecycle is `PRIOR EXTREME / TP CONTEXT -> LOSS OF PRIOR MOMENTUM -> MHV/MLV FORMATION -> MARKED BODY/REFERENCE -> RETEST / ACTIVE SETUP -> DIRECTION / CONTINUATION OR VOID/SUPERSESSION`;
 - a **prior source-valid Extreme in the same source-timeframe / owner-cycle is mandatory** for a canonical MHV/MLV candidate;
 - generic inside-BB consolidation, morphology, or loss of impulse without a provable prior Extreme owner-chain must resolve to `NO CANONICAL MHV/MLV OWNER`;
 - after the prior Extreme, the **normal TP-Wajib structural area must actually be reached before canonical MHV/MLV formation may begin**;
@@ -48,17 +48,21 @@ Locked decisions:
 - `RETEST COMPLETE / ACTIVE MHV SETUP` remains setup/context maturity only and does not become direct trade-entry authority;
 - for the **M15 MHV/MLV leg of REM**, minimum maturity is `FORMATION ESTABLISHED + FROZEN MARKED BODY`; a merely pending loss-of-momentum state is insufficient, while later `RETEST COMPLETE` is not mandatory merely to satisfy the REM component;
 - exact REM signature remains `H4 Re-Entry + H1 Extreme + M15 MHV/MLV`; this maturity mapping does not add eCSD/CSD, second retest, double/triple morphology or fixed waiting periods;
-- if source-valid outer-BB close / Momentum/CSM occurs before or during a competing promotion, invalidation has priority and the pending/active MHV/MLV interpretation is void/superseded; a void/superseded M15 MHV/MLV cannot satisfy REM;
+- same-cycle source-valid `eCSD/CSD` is normal progression into the direction stage and does **not** retroactively void an already-completed MHV/MLV;
+- after same-cycle direction progression, distinguish the current active stage from completed structural provenance: direction may become active while the completed MHV/MLV + frozen reference remain immutable same-cycle history until a separately approved structural termination occurs;
+- no generic fixed candle/session/day expiry or "new signal erases old setup" rule is introduced;
+- if source-valid outer-BB close / Momentum/CSM occurs before or during a competing MHV promotion under the applicable invalidation window, invalidation has priority and a void/superseded M15 MHV/MLV cannot satisfy REM;
 - advanced Extreme without normal TP-Wajib remains HOLD/UNCERTAIN and cannot bypass the canonical sequence;
 - an old Extreme cannot be reused indefinitely after the relevant cycle is superseded/restarted;
 - marked body/reference + retest belong to the same lifecycle; synthetic fixed-point neckline logic must not replace the source body/retest concept;
 - double/triple top/bottom and H&S-like forms are morphology/examples, not mandatory universal formulas;
 - independent legacy `DetectMHV()`/MLV semantics must ultimately converge into one canonical owner-state result.
-Classification: **DIRECT SOURCE STRUCTURAL/SEQUENCE/REVERSAL/LOSS-OF-MOMENTUM/BODY-MARKING/RETEST/REM-SIGNATURE CONCEPT + PROJECT STATE-MACHINE / PROVENANCE / STRUCTURAL-COMPLETION / TURNING-POINT / FIXED-REFERENCE / RANGE-INTERACTION / COMPONENT-MATURITY MAPPING; ENTRY-MATURITY-vs-CYCLE-PROVENANCE, FAILED-CONTINUATION STATE AND REM COMPONENT MATURITY ARE SOURCE-INFERRED**.
+Classification: **DIRECT SOURCE STRUCTURAL/SEQUENCE/REVERSAL/LOSS-OF-MOMENTUM/BODY-MARKING/RETEST/REM-SIGNATURE/CYCLE-ORDER CONCEPT + PROJECT STATE-MACHINE / PROVENANCE / STRUCTURAL-COMPLETION / TURNING-POINT / FIXED-REFERENCE / RANGE-INTERACTION / COMPONENT-MATURITY / ACTIVE-STAGE-vs-PROVENANCE MAPPING; ENTRY-MATURITY-vs-CYCLE-PROVENANCE, FAILED-CONTINUATION STATE, REM COMPONENT MATURITY AND DIRECTION-STAGE BOOKKEEPING ARE SOURCE-INFERRED**.
 Remaining specification before code:
-- define further lifecycle supersession/void rules beyond the explicit outer-BB/Momentum invalidation;
+- define the exact lifecycle window for outer-BB/Momentum invalidation after formation/retest and after later stage progression;
+- define the structural event that finally terminates/supersedes same-cycle MHV/MLV provenance;
 - then migrate/remove duplicate legacy detector semantics.
-Constraint: audit/spec first, then patch. Do not invent arbitrary pip thresholds, fixed candle counts, generic consolidation heuristics, broker-order prerequisites, mandatory morphology, moving anchors, extra retest confirmation patterns, extra REM component gates, or advanced-Extreme exceptions and present them as canonical BBMA rules.
+Constraint: audit/spec first, then patch. Do not invent arbitrary pip thresholds, fixed candle counts, generic consolidation heuristics, broker-order prerequisites, mandatory morphology, moving anchors, extra retest confirmation patterns, extra REM component gates, generic new-signal expiry, or advanced-Extreme exceptions and present them as canonical BBMA rules.
 
 #### CORE-V2-F2 — Extreme maturity inside REM/REE
 Priority: **HIGH**

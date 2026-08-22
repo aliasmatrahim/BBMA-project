@@ -167,11 +167,20 @@ Finale mainly corroborates the existing close-side validity already present in t
 Source basis: primary PDF pages 9–10; Finale V05 00:37:25–00:41:16.
 
 ### 8.2 Type 1
-- Re-Entry forms after rise/fall and sideways/ranging behaviour.
-- Uptrend context: MA5/10 High acts as resistance; sell Re-Entry is considered when price finds MA5/10 High and candles remain below the relevant cluster.
-- Downtrend context: MA5/10 Low acts as support; buy Re-Entry is considered when price finds MA5/10 Low and candles remain above the relevant cluster.
+Accepted source/project interpretation:
+- Re-Entry Type 1 forms after a prior rise/fall followed by a sideways/ranging phase.
+- Type 1 must not be reduced to an arbitrary MA5/MA10 touch alone.
+- The project interprets the ranging phase structurally: prior directional movement has occurred, active momentum has paused/ended, price consolidates/retraces rather than continuing impulsively, and the relevant MA5/MA10 cluster begins acting as support/resistance.
+- `BB_FLAT`/horizontal BB may support the ranging interpretation but is not by itself a universal mandatory Type 1 condition.
+- There is **no fixed minimum candle count** for Type 1 ranging. Structural completion, not an invented 2-candle/3-candle threshold, governs maturity.
+- SELL context: MA5/10 High acts as resistance; sell Re-Entry is considered when price finds the relevant cluster and the validating candle remains/closes on the permitted SELL side.
+- BUY context: MA5/10 Low acts as support; buy Re-Entry is considered when price finds the relevant cluster and the validating candle remains/closes on the permitted BUY side.
 
-Source basis: primary PDF page 9.
+Source basis: primary PDF page 9; Finale supporting context V01/V02/V03/V05/V06. The structural-ranging interpretation is **SOURCE-INFERRED / STRONG HINT** around the PDF-explicit sideways/ranging requirement. The no-fixed-candle rule is a source-faithful project specification because the source provides no universal Type 1 candle count.
+
+Decision provenance: `blueprint/decisions/CORE_V2_F3_TYPE1_CONTEXT_DECISION.md`.
+
+Implementation guard: a deterministic BBMA-state predicate for prior movement, momentum pause, consolidation/retrace and invalidation still requires specification before M12 is patched. Do not introduce RSI/ADX/ATR/fixed-pip thresholds as disguised Core rules.
 
 ### 8.3 Type 2 — Powerful Re-Entry
 - MA5/MA10 and Mid BB meet/collide.
@@ -273,6 +282,7 @@ Accepted material changes the project knowledge in these specific ways:
 - strengthens the interpretation that eCSD/CSD is direction information and Re-Entry is the entry setup;
 - clarifies higher-timeframe ownership/context of lower-timeframe signals;
 - records the first-validation-candle / second-entry-candle phrase as a timing semantic that still requires runtime mapping;
-- adds the user-approved source-inferred maturity distinction that REM/REE Extreme components must be reversal-confirmed, while standalone Extreme entry still requires the later retest.
+- adds the user-approved source-inferred maturity distinction that REM/REE Extreme components must be reversal-confirmed, while standalone Extreme entry still requires the later retest;
+- adds the user-approved Type 1 structural-ranging interpretation and explicitly rejects inventing a fixed Type 1 minimum candle count.
 
 The unresolved Extreme exceptions and personal/workflow material remain outside authoritative Core.

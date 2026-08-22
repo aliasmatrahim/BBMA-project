@@ -206,20 +206,26 @@ This section is the authoritative current-status overlay and supersedes stale ph
 - **P2:** functional/cross-module audit and re-audit records exist through Step 18, with recorded fixes/workflows in repository. Individual P2 record files remain authoritative for their exact pass/fix status.
 - **P3:** ACTIVE runtime-validation phase. Step 1–4 closure records exist. Step 5 source/compile/deployment records exist, but final live MT4 runtime closure remains pending under `blueprint/P3_STEP5_RUNTIME_CLOSURE_CHECKLIST.md` until Tests A–D are directly evidenced and E–F remain satisfied.
 - **P3 PairID/Magic:** static validation PASS; local MetaEditor compile reported 0 errors / 0 warnings in `P3_PAIRID_VERIFICATION_RECORD.md`.
-- **Latest runtime source state observed during reconciliation:** branch head before this tracking-only update was commit `cdcaf8f849f357512be23f91bbb9184098fce574` — `P3 runtime fix: wire M17 market price before SLTP validation`.
+- **Strategy Core V2 specification:** CORE-V2-F1 MHV/MLV, F2 Extreme maturity, F3 Re-Entry Type 1 and F4 standalone H1/H4 parent-owner contracts are resolved at specification level; their code patch/audit work remains pending.
+- **F1 resolved lifecycle:** prior reversal-confirmed Extreme + TP-Wajib provenance -> structural loss of momentum -> most-extreme body + first move-away -> frozen body -> optional range-touch retest -> same-cycle direction progression; opposite reversal-confirmed Extreme atomically supersedes old-cycle MHV provenance.
+- **Latest runtime source state observed during reconciliation:** branch head before the source-review tracking updates was commit `cdcaf8f849f357512be23f91bbb9184098fce574` — `P3 runtime fix: wire M17 market price before SLTP validation`.
 
 ## Canonical active queue
-The authoritative work queue is now:
+The authoritative work queue is:
 `blueprint/MASTER_QUEUE.md`
 
-Highest-priority next strategy gate:
-**P3-M1 — Mode 1 Official BBMA Compliance Audit**
+Highest-priority next engineering gate:
+**Implement/audit the resolved CORE-V2-F1/F2/F3/F4 contracts in dependency-safe order.**
 
-Queued alongside it:
+After Core implementation/audit and re-run static Core verification:
+**P3-M1 — Mode 1 Official BBMA Compliance Audit** remains the next end-to-end strategy gate.
+
+Queued alongside/later according to `MASTER_QUEUE.md`:
+- CORE-V2-F5 BB-flat classification repair and CORE-V2-F6 timing verification;
 - opposite-direction / same-pair cycle integrity audit;
 - sequential cumulative risk-budget admission verification;
 - `REJ_INVALID_LOT` diagnostics (observability only);
 - dashboard active-trade count refresh.
 
 ## Change control
-This reconciliation changes project tracking only. It does not change BBMA strategy logic, execution logic, risk logic, lot sizing, dashboard code, or broker behavior.
+This reconciliation changes project tracking/specification records only. It does not change EA strategy code, execution logic, risk logic, lot sizing, dashboard code, or broker behavior.

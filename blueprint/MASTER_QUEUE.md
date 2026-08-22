@@ -32,15 +32,24 @@ Constraint: audit/spec first, then patch. Do not invent arbitrary pip thresholds
 
 #### CORE-V2-F2 — Extreme maturity inside REM/REE
 Priority: **HIGH**
-Status: **RESOLVED — USER APPROVED**
+Status: **PARTIALLY RESOLVED — USER APPROVED MATURITY + REVERSAL DIRECTION + FIRST-QUALIFYING-CANDLE PROMOTION; ANCHOR/RETEST TRANSITION PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-03
 Decision record: `blueprint/decisions/CORE_V2_F2_EXTREME_MATURITY_DECISION.md`
-Decision:
+Locked decisions:
 - raw Extreme alone is not sufficient for executable REM/REE;
 - Extreme used as REM/REE component must be **reversal-confirmed**;
 - standalone Extreme entry still requires the later **retest** stage;
-- classification: **SOURCE-INFERRED / STRONG HINT**, not a verbatim source rule specifically defining REM/REE maturity.
-Remaining dependency before code: define a deterministic source-faithful reversal-confirmation contract. Do not invent a candle pattern.
+- reversal confirmation uses the minimum source-faithful directional mapping on closed source-TF candles: SELL `Close < Open`, BUY `Close > Open`;
+- no mandatory previous-candle colour flip, named candlestick pattern, fixed two-/three-candle template, or eCSD/CSD prerequisite is added;
+- close-back-inside-BB is supporting/preferred rather than a universal hard requirement under the accepted source wording;
+- the **first qualifying closed reversal-direction candle** promotes `RAW EXTREME -> REVERSAL-CONFIRMED`, provided the candidate has not already been voided by accepted outside-BB/Momentum invalidation;
+- later same-direction reversal candles may continue the reversal phase but are not required merely to reach REM/REE component maturity;
+- classification: maturity decision **SOURCE-INFERRED / STRONG HINT**; reversal direction/promotion is **DIRECT SOURCE REQUIREMENT / SOURCE-FAITHFUL ABSENCE OF FIXED MINIMUM + MINIMAL DETERMINISTIC PROJECT MAPPING**.
+Remaining dependency before code:
+- define when the multi-candle reversal phase stops extending the highest/lowest body reference;
+- freeze the source-faithful body/retest anchor;
+- define transition into the later standalone retest phase and apply outside-BB/Momentum invalidation across that transition.
+Constraint: do not invent arbitrary candle counts, named patterns, EMA/ATR/RSI filters, or a moving anchor that can drift indefinitely.
 
 #### CORE-V2-F3 — Re-Entry Type 1 context
 Priority: **HIGH**
@@ -168,7 +177,7 @@ Before declaring P3 complete, preserve the existing Step 5 closure rule in `P3_S
 
 ## Execution order
 1. Keep `CURRENT.md` + this queue reconciled.
-2. Define deterministic source-faithful Extreme reversal-confirmation semantics required to implement the already-approved CORE-V2-F2 maturity decision.
+2. Finish CORE-V2-F2 reversal-phase anchor/retest-transition specification.
 3. Implement/audit CORE-V2-F3 Type 1 state/owner contract and CORE-V2-F4 H4 parent/owner/recovery contract.
 4. Repair CORE-V2-F1 M09 MHV/MLV against the resolved canonical Core contract.
 5. Repair CORE-V2-F5 BB-flat classification and run CORE-V2-F6 timing verification.

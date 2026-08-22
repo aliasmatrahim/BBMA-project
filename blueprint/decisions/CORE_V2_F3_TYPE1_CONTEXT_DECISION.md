@@ -1,7 +1,7 @@
 # CORE-V2-F3 — Re-Entry Type 1 Context
 
 Date: 2026-08-22
-Status: **PARTIALLY RESOLVED — USER-APPROVED CORE PHILOSOPHY + STRUCTURAL RANGING; MINIMUM-CANDLE SUB-SPEC STILL PENDING**
+Status: **PARTIALLY RESOLVED — USER-APPROVED CORE PHILOSOPHY + STRUCTURAL RANGING + NO FIXED MINIMUM CANDLE; IMPLEMENTATION PREDICATE STILL PENDING**
 Branch: `blueprint-dev`
 
 ## User-approved decision 1 — Type 1 context
@@ -27,6 +27,19 @@ Accepted interpretation:
 
 `BB_FLAT` / horizontal BB may be **supporting evidence** for the ranging phase, but it is not by itself a universal or mandatory definition of Type 1 sideways.
 
+## User-approved decision 3 — no fixed minimum candle count
+The project adopts **NO FIXED MINIMUM CANDLE COUNT** for Type 1 ranging.
+
+The source does not define a universal Type 1 requirement such as 2 candles, 3 candles, or any other fixed number. Therefore Type 1 maturity is governed by completion of the accepted structural conditions rather than by an invented candle-count threshold.
+
+Consequences:
+- do not copy the Type 2 three-candle rule into Type 1;
+- do not reject a structurally valid Type 1 solely because it formed in fewer than an arbitrary project candle count;
+- do not accept Type 1 solely because an arbitrary minimum candle count was reached;
+- candle count may be recorded as metadata/observability, but it is not a BBMA Type 1 eligibility rule.
+
+Evidence classification: **SOURCE-FAITHFUL ABSENCE OF NUMERIC RULE / USER-APPROVED PROJECT SPECIFICATION**. The source is explicit about the Type 1 structural context but silent on a universal minimum candle count.
+
 ## Evidence classification
 The requirement for **rise/fall + sideways/ranging + MA5/MA10 support/resistance behavior** is directly source-backed by the primary PDF page-9 Type 1 description.
 
@@ -39,30 +52,29 @@ Finale provides supporting context rather than a dedicated numeric Type 1 formul
 
 Therefore:
 - `MA touch alone = Type 1` is rejected as too broad;
-- `BB_FLAT alone = Type 1 sideways` is also rejected as too narrow/unsupported.
+- `BB_FLAT alone = Type 1 sideways` is rejected as too narrow/unsupported;
+- a fixed minimum Type 1 candle count is rejected as unsupported.
 
 The structural-ranging interpretation is classified as **SOURCE-INFERRED / STRONG HINT** built on an explicit PDF requirement for sideways/ranging.
 
-## Important unresolved sub-specification
-The source uses natural-language `sideways/ranging` but does **not** provide a universal numeric minimum-candle algorithm.
+## Remaining implementation sub-specification
+The Core philosophy is now substantially resolved, but code still needs a deterministic state/predicate that expresses the structural conditions without inventing non-source indicators or thresholds.
 
-It does not explicitly state:
-- exact candle count for Type 1 ranging;
-- exact pip/range width;
-- exact Bollinger width ratio;
-- RSI/ADX threshold;
-- fixed ATR threshold.
+Remaining questions to resolve before patching M12 include:
+- how to recognize that a qualifying prior rise/fall has occurred using existing BBMA state;
+- how to recognize that active momentum has paused/ended without equating all ranging to `BB_FLAT`;
+- how to distinguish consolidation/retrace from continued impulsive movement using source-owned BBMA states;
+- how the state is invalidated when momentum resumes or the MA5/MA10 close-side rule is broken.
 
-None of those may be silently invented and represented as Oma Ally rules.
-
-A separate sub-review must decide whether the executable specification should use no fixed candle count or an explicitly-labelled project/engineering minimum before M12 Type 1 code is patched.
+These must be resolved using existing BBMA structure/state where possible, not RSI/ADX/ATR/pip-width heuristics.
 
 ## Rejected alternatives
 - MA5/MA10 touch + close-side only: rejected as incomplete.
 - `BB_FLAT` alone as the ranging definition: rejected.
 - fixed ATR/pip/range threshold as a Core rule: rejected as unsupported.
+- fixed 2-candle or 3-candle minimum for Type 1: rejected as unsupported.
 - requiring CSD/CSM as a universal Type 1 precursor: not accepted; this risks collapsing Type 1 into the source-defined Type 3/Type 4 families.
 - disabling Type 1 indefinitely: not selected.
 
 ## Implementation guard
-No code patch is authorized until the remaining deterministic Type 1 sub-specification is resolved. The current active implementation remains subject to this known Core gap.
+No M12 code patch is authorized until the remaining structural state/predicate sub-specification is resolved. The current active implementation remains subject to this known Core gap.

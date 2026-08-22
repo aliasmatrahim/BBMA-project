@@ -97,7 +97,7 @@ Next action for F3: native MetaEditor compile and runtime Type1 lifecycle traces
 
 #### CORE-V2-F4 — Higher-timeframe context for standalone H1 Re-Entry
 Priority: **HIGH**
-Status: **SPECIFICATION RESOLVED — USER APPROVED; CODE PATCH/AUDIT STILL PENDING**
+Status: **CODE IMPLEMENTED / STATIC REGRESSION PASS — NATIVE METAEDITOR COMPILE + RUNTIME TRACE PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-12
 Decision record: `blueprint/decisions/CORE_V2_F4_H1_RE_HTF_CONTEXT_DECISION.md`
 Locked decisions:
@@ -123,7 +123,7 @@ Classification:
 - H4 MTF/owner semantics: direct source principle + source-inferred/strong-hint project mapping;
 - restart/recovery mechanics: EA engineering policy only, preserving the approved Core semantics.
 Constraint: implementation must not invent EMA-only, score-based, timer-based, D1-fallback, or current-snapshot shortcuts.
-Next action for F4: patch/audit H4 owner consumption and M24 recovery after the specification gates are closed.
+Next action for F4: native MetaEditor compile and H4 owner/recovery runtime traces; static implementation/regression is complete.
 
 #### P3-M1 — Mode 1 Official BBMA Compliance Audit
 Priority: CRITICAL / NEXT STRATEGY GATE AFTER CORE-V2 SPEC CLOSURE

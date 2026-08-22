@@ -5708,7 +5708,7 @@ void SaveH4OwnerCheckpoint(PairState &state)
    GlobalVariablesFlush();
 }
 
-ENUM_SIGNAL_TYPE ClassifyH4AuthoritativeSignalENUM_SIGNAL_TYPE ClassifyH4AuthoritativeSignal(string pair,
+ENUM_SIGNAL_TYPE ClassifyH4AuthoritativeSignal(string pair,
                                                 ENUM_DIRECTION direction,
                                                 TimeframeData &data)
 {
@@ -5761,7 +5761,7 @@ void ApplyH4AuthoritativeEvent(PairState &state,
       : "H4 authoritative directional owner established/advanced";
 }
 
-bool VerifyH4OwnerCheckpointbool VerifyH4OwnerCheckpoint(PairState &state,
+bool VerifyH4OwnerCheckpoint(PairState &state,
                              ENUM_DIRECTION direction,
                              ENUM_SIGNAL_TYPE signalType,
                              datetime candleTime)
@@ -5917,7 +5917,7 @@ void RecoverH4DirectionalOwnerForPair(int pairIndex)
    SaveH4OwnerCheckpoint(g_pair_states[pairIndex]);
 }
 
-void RecoverH4DirectionalOwners()void RecoverH4DirectionalOwners()
+void RecoverH4DirectionalOwners()
 {
    for(int i = 0; i < g_pair_count; i++)
       RecoverH4DirectionalOwnerForPair(i);
@@ -5970,7 +5970,7 @@ void UpdateRuntimeH4DirectionalOwner(int pairIndex)
       SaveH4OwnerCheckpoint(g_pair_states[pairIndex]);
 }
 
-void NoteH4ReEntryInheritancevoid NoteH4ReEntryInheritance(int pairIndex, ReEntryData &reEntry)
+void NoteH4ReEntryInheritance(int pairIndex, ReEntryData &reEntry)
 {
    if(pairIndex < 0 || pairIndex >= g_pair_count) return;
 
@@ -5990,7 +5990,7 @@ void NoteH4ReEntryInheritancevoid NoteH4ReEntryInheritance(int pairIndex, ReEntr
       "Same-direction H4 Re-Entry inherited existing directional owner";
 }
 
-void RecoverExistingOrders()void RecoverExistingOrders()
+void RecoverExistingOrders()
 {
    int total = OrdersTotal();
    

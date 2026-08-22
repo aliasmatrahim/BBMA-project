@@ -12,7 +12,7 @@ def replace_between(start, end, replacement, label):
     b = s.find(end, a)
     if b < 0:
         raise SystemExit(f'{label}: end not found')
-    s = s[:a] + replacement + s[b:]
+    s = s[:a] + replacement + s[b + len(end):]
 
 replace_between(
 '''void SaveH4OwnerCheckpoint(PairState &state)

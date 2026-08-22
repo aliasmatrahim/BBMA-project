@@ -60,9 +60,9 @@ if 'BB_FLAT' in s[m10_a:m10_b]:
 
 # Basic lexical balance, ignoring comments/strings approximately.
 def strip_cpp(text):
-    text = re.sub(r'/\\*.*?\\*/', '', text, flags=re.S)
+    text = re.sub(r'/\*.*?\*/', '', text, flags=re.S)
     text = re.sub(r'//.*', '', text)
-    text = re.sub(r'"(?:\\\\.|[^"\\\\])*"', '""', text)
+    text = re.sub(r'"(?:\\.|[^"\\])*"', '""', text)
     return text
 
 clean = strip_cpp(s)

@@ -1,0 +1,45 @@
+name: CORE-V2-F4 PR dispatch
+
+on:
+  pull_request:
+    branches: [ blueprint-dev ]
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'blueprint/.f4-dispatch'
+
+permissions:
+  contents: write
+
+jobs:
+  apply-f4:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+          fetch-depth: 0
+
+      - name: Apply CORE-V2-F4 H4 owner/recovery and static regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/apply_core_v2_f4.py
+          git diff --check
+
+      - name: Commit F4 implementation to blueprint-dev
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- blueprint/source/BBMA_EA.mq4 \
+                     blueprint/CORE_V2_F4_IMPLEMENTATION_AUDIT.md \
+                     blueprint/MASTER_QUEUE.md \
+                     blueprint/CURRENT.md
+          if git diff --cached --quiet; then
+            echo 'No F4 source changes to commit.'
+            exit 0
+          fi
+          git commit -m "CORE-V2-F4: implement H4 parent owner recovery"
+          git push origin HEAD:blueprint-dev

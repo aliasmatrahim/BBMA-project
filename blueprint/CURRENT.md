@@ -246,3 +246,11 @@ This reconciliation changes project tracking/specification records only. It does
 - `ReEntryData.EntryCandle` no longer duplicates `ConfirmationCandle`; it points to the immediately following source-TF candle for observability.
 - Native MetaEditor compile and runtime `OrderOpenTime()` evidence remain required for final runtime closure.
 - **Next Core action: rerun Strategy Core V2 static audit against integrated F1-F6 source.**
+
+
+# 2026-08-22 Strategy Core V2 Integrated Re-Audit Overlay
+- **Integrated F1–F6 static Strategy-Core re-audit: PASS.**
+- Original CV2-01..CV2-15 findings are now MATCH/DORMANT or statically resolved; native MetaEditor compile and runtime traces remain pending.
+- CV2-16/F7 remains a source-governance decision only and is not treated as a proven Core code defect.
+- **Next strategy gate: P3-M1 Mode 1 Official BBMA Compliance Audit.**
+- Audit record: `blueprint/P3_CORE_V2_STRATEGY_REAUDIT_20260822.md`.

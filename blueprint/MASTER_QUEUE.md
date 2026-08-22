@@ -16,6 +16,13 @@ This file is the canonical work queue for active development. It complements `bl
 
 ## Priority queue
 
+### CORE-V2 integrated re-audit after F1–F6
+Status: **STATIC RE-AUDIT PASS — METAEDITOR/RUNTIME EVIDENCE PENDING**
+Record: `blueprint/P3_CORE_V2_STRATEGY_REAUDIT_20260822.md`
+Result: original CV2-01..CV2-15 findings are either MATCH/DORMANT or statically resolved by F1–F6. CV2-16 remains F7 source-governance only, not a proven Strategy-Core code defect.
+Next strategy gate: **P3-M1 Mode 1 Official BBMA Compliance Audit**.
+
+
 ### P0 — Strategy correctness gate
 
 #### CORE-V2-F1 — M09 MHV/MLV source alignment

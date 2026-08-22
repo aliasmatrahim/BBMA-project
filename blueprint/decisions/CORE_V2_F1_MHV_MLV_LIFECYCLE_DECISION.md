@@ -1,187 +1,141 @@
 # CORE-V2-F1 — MHV/MLV Canonical Lifecycle
 
 Date: 2026-08-22
-Status: **PARTIALLY RESOLVED — STRUCTURAL LIFECYCLE + MANDATORY PRIOR EXTREME + TP-WAJIB COMPLETION + REVERSAL-CONFIRMED PARENT MATURITY + STRUCTURAL LOSS-OF-MOMENTUM + TURNING-BODY FORMATION PREDICATE USER APPROVED; REFERENCE-FREEZE/RETEST/SUPERSESSION DETAILS STILL PENDING**
+Status: **PARTIALLY RESOLVED — LIFECYCLE + PARENT PROVENANCE + TP-WAJIB + PARENT MATURITY + LOSS-OF-MOMENTUM + TURNING-BODY FORMATION + IMMEDIATE BODY-FREEZE USER APPROVED; RETEST/SUPERSESSION DETAILS STILL PENDING**
 Branch: `blueprint-dev`
 
-## User-approved decision 1 — MHV/MLV is a structural lifecycle, not a one-candle detector
-The project adopts **ONE CANONICAL MHV/MLV STRUCTURAL LIFECYCLE / OWNER-STATE MODEL**.
+## Decision 1 — MHV/MLV is one structural lifecycle
+The project adopts **one canonical MHV/MLV lifecycle / owner-state model**, not independent one-candle detectors.
 
-Accepted high-level lifecycle:
+Canonical high-level lifecycle:
 
 `PRIOR EXTREME / TP CONTEXT -> LOSS OF PRIOR MOMENTUM -> MHV/MLV FORMATION -> MARKED BODY/REFERENCE -> RETEST / ACTIVE SETUP -> VALID CONTINUATION OR VOID/SUPERSESSION`
 
-Operational meaning:
-- `MHV` and `MLV` remain terminology aliases for one setup family unless stronger source evidence later distinguishes them;
-- MHV/MLV must not be represented as several independent Boolean detectors that can disagree about the same source-timeframe structure;
-- the setup may develop over multiple closed candles and therefore requires state/owner continuity rather than a current-candle-only classification;
-- the source-described marked body/reference and later retest belong to the same lifecycle and must not be replaced by a synthetic fixed-point neckline merely because the legacy detector currently uses one;
-- double/triple-top or bottom and H&S-like shapes are permitted morphology/examples, not mandatory universal formulas;
-- a source-valid close beyond the relevant outer Bollinger Band voids the MHV/MLV interpretation and returns authority to Momentum/CSM rather than allowing MHV to remain simultaneously valid;
-- MHV/MLV remains a setup/context stage and does not become direct entry authority merely because its lifecycle is modeled explicitly;
-- implementation must converge on one canonical owner-state result so legacy `DetectMHV()` and any MLV path cannot maintain contradictory semantics.
+Locked semantics:
+- `MHV` and `MLV` are terminology aliases for the same loss-of-volume setup family unless stronger source evidence later distinguishes them;
+- the setup may develop over multiple closed candles and therefore requires state/owner continuity;
+- marked body/reference and retest belong to the same lifecycle;
+- double/triple-top or bottom and H&S-like forms are morphology/examples, not mandatory universal formulas;
+- source-valid close beyond the relevant outer BB voids MHV/MLV and returns authority to Momentum/CSM;
+- MHV/MLV remains setup/context, not direct entry authority merely because the lifecycle is modeled explicitly;
+- legacy `DetectMHV()`/MLV semantics must ultimately converge into one canonical owner-state result.
 
-### Evidence classification
-This decision is **DIRECT SOURCE STRUCTURAL CONCEPT + PROJECT STATE-MACHINE MAPPING**.
+Classification: **DIRECT SOURCE STRUCTURAL CONCEPT + PROJECT STATE-MACHINE MAPPING**.
 
-Source support:
-- Finale V05 OA-F-V05-006 teaches MHV after Extreme + TP Wajib and describes loss of prior momentum;
-- OA-F-V05-007 states that an outside-outer-BB close voids MHV and is treated as Momentum;
-- OA-F-V05-008 teaches marked body/line plus retest structure and shows double/triple/H&S-like morphology;
-- OA-F-V05-009 describes MHV as a setup / early new-trend stage rather than a direct entry signal.
+## Decision 2 — prior Extreme provenance is mandatory
+A canonical MHV/MLV candidate requires a **prior source-valid Extreme in the same source timeframe / owner-cycle**.
 
-The exact software state-machine names and transitions are project engineering semantics. They must preserve the source sequence and invalidation behavior and must not be presented as verbatim Oma Ally software rules.
+Locked semantics:
+- generic inside-BB consolidation, local double/triple morphology or loss of impulse is insufficient by itself;
+- if no authoritative prior Extreme chain can be proved, resolve to `NO CANONICAL MHV/MLV OWNER`;
+- a superseded/restarted cycle breaks the old provenance chain; an old Extreme cannot authorize unrelated later consolidations indefinitely.
 
-## User-approved decision 2 — canonical MHV/MLV requires prior Extreme context
-The project adopts **A PRIOR SOURCE-VALID EXTREME IN THE SAME SOURCE-TIMEFRAME / OWNER-CYCLE AS A MANDATORY PRECONDITION FOR A CANONICAL MHV/MLV CANDIDATE**.
+Classification: **DIRECT SOURCE SEQUENCE + SOURCE-FAITHFUL PROJECT OWNER/PROVENANCE GUARD**.
 
-Accepted operational rule:
-- a generic inside-BB consolidation, loss of impulse, or local double/triple-top/bottom is not sufficient by itself to create a canonical MHV/MLV owner;
-- the MHV/MLV lifecycle must be traceable to a prior Extreme context belonging to the same structural cycle on that source timeframe;
-- if no such prior Extreme can be established from the authoritative closed-candle lifecycle/history, the result is `NO CANONICAL MHV/MLV OWNER` rather than inferring MHV from morphology alone;
-- a new/opposite cycle that supersedes the relevant prior Extreme also breaks the old provenance chain; the old Extreme cannot be reused indefinitely to authorize unrelated later consolidations.
+## Decision 3 — normal TP-Wajib structural completion is mandatory before MHV formation
+After the valid prior Extreme, price must actually reach the accepted normal TP-Wajib structural area before canonical MHV/MLV formation can begin.
 
-### Evidence classification
-This decision is **DIRECT SOURCE SEQUENCE + SOURCE-FAITHFUL PROJECT OWNER/PROVENANCE GUARD**.
+Locked semantics:
+- prior Extreme SELL -> opposite MA5/MA10 Low area;
+- prior Extreme BUY -> opposite MA5/MA10 High area;
+- Mid BB is farther/maximum context, not the canonical first TP prerequisite;
+- TP-Wajib completion is a market-structure state, not broker/order status;
+- no actual trade or broker TP-close is required;
+- advanced Extreme without normal TP-Wajib remains `HOLD / UNCERTAIN` and cannot bypass this canonical rule.
 
-Source support:
-- Finale V05 OA-F-V05-006 explicitly teaches MHV after Extreme + TP Wajib;
-- the accepted BBMA cycle also places MHV/MLV after the Extreme / TP phase rather than as a generic standalone consolidation setup.
+Classification: **DIRECT SOURCE SEQUENCE + MINIMAL STRUCTURAL PROJECT MAPPING**.
 
-The same-timeframe / same-owner-cycle provenance requirement is the project's deterministic state-management encoding of that source sequence and is not claimed as verbatim software wording from Oma Ally.
+## Decision 4 — minimum parent Extreme maturity is reversal-confirmed
+The minimum F2 maturity for the prior-Extreme provenance link is **`REVERSAL-CONFIRMED EXTREME`**, together with Decision 3 TP-Wajib structural completion.
 
-## User-approved decision 3 — normal TP-Wajib structural move must complete before MHV/MLV formation
-The project adopts **NORMAL TP-WAJIB STRUCTURAL COMPLETION AS A MANDATORY PRECONDITION BEFORE CANONICAL MHV/MLV FORMATION MAY BEGIN**.
-
-Accepted operational rule:
-- after a valid prior Extreme exists, price must first reach the accepted normal TP-Wajib structural area for that Extreme before the lifecycle may advance into MHV/MLV formation;
-- for a prior Extreme SELL, normal TP-Wajib completion is price reaching the opposite MA5/MA10 Low area under the accepted Extreme contract;
-- for a prior Extreme BUY, normal TP-Wajib completion is price reaching the opposite MA5/MA10 High area;
-- Mid BB remains farther/maximum context and does not replace the normal first TP-Wajib area as the canonical prerequisite;
-- `TP-Wajib completed` is a **market-structure state**, not an execution/broker state: no actual EA order, filled position, or broker TP-close event is required to prove the structural sequence;
-- a mere configured TP level, unfilled target, or assumption that price was “likely headed there” is insufficient; the authoritative closed-candle/price history must show the accepted target area was actually reached;
-- the advanced-Extreme-without-normal-TP-Wajib exception remains `HOLD / UNCERTAIN` and cannot be used to bypass this canonical rule.
-
-### Evidence classification
-This decision is **DIRECT SOURCE SEQUENCE + MINIMAL STRUCTURAL PROJECT MAPPING**.
-
-Source support:
-- Finale V05 OA-F-V05-006 explicitly teaches MHV after `Extreme + TP Wajib`;
-- Finale V04/V05 define the normal Extreme TP-Wajib objective around the opposite MA5/MA10 area, with Mid BB as a farther/maximum possibility;
-- the source describes a market sequence, not a requirement that a broker-side trade must have existed.
-
-The software state `TP-WAJIB STRUCTURALLY COMPLETED` is therefore a deterministic project representation of the source-described market progression, not an order-management event.
-
-## User-approved decision 4 — minimum parent Extreme maturity is reversal-confirmed
-The project adopts **`REVERSAL-CONFIRMED EXTREME` AS THE MINIMUM F2 MATURITY REQUIRED FOR THE PRIOR-EXTREME PROVENANCE LINK INTO CANONICAL MHV/MLV**, together with the separately required TP-Wajib structural completion from Decision 3.
-
-Accepted operational rule:
-- a `RAW EXTREME` that has never received the accepted source-valid reversal confirmation cannot become the parent of a canonical MHV/MLV lifecycle merely because price later reaches a TP-Wajib area;
-- once the prior Extreme has reached `REVERSAL-CONFIRMED` maturity, and its normal TP-Wajib structural move has completed, that Extreme is sufficiently mature to provide canonical parent-cycle provenance for MHV/MLV formation;
-- the prior Extreme does **not** have to reach the later standalone `RETEST/ENTRY-READY` maturity merely to serve as the MHV/MLV parent;
-- standalone Extreme retest remains an **Extreme-entry maturity** requirement under CORE-V2-F2, not a universal prerequisite for downstream cycle-state provenance;
-- no actual Extreme trade needs to have been executed; the provenance is derived from the authoritative market-structure lifecycle;
-- an invalidated/void Extreme cannot be reused as the parent after its lifecycle has been structurally cancelled or superseded.
-
-Canonical parent sequence therefore becomes:
+Canonical parent chain:
 
 `RAW EXTREME -> REVERSAL-CONFIRMED EXTREME -> TP-WAJIB STRUCTURALLY COMPLETED -> ELIGIBLE MHV/MLV PARENT CONTEXT`
 
-### Evidence classification
-This decision is **DIRECT SOURCE EXTREME-REVERSAL REQUIREMENT + SOURCE-INFERRED SEPARATION OF ENTRY MATURITY FROM MHV CYCLE PROVENANCE**.
+Locked semantics:
+- RAW Extreme with no reversal confirmation is insufficient;
+- standalone `RETEST/ENTRY-READY` maturity is not required merely for downstream MHV/MLV provenance;
+- no actual Extreme trade needs to have been executed;
+- void/superseded Extreme cannot remain a parent.
 
-Source support:
-- the accepted Extreme contract requires reversal confirmation before the Extreme context is mature beyond raw condition 1;
-- Finale V04 identifies the later retest as the condition for standalone Extreme entry;
-- Finale V05 teaches the downstream cycle as `Extreme -> TP Wajib -> MHV` but does not state that the prior Extreme must first become a standalone retest/entry-ready setup or actual executed trade.
+Classification: **DIRECT SOURCE EXTREME-REVERSAL REQUIREMENT + SOURCE-INFERRED SEPARATION OF ENTRY MATURITY FROM MHV CYCLE PROVENANCE**.
 
-Therefore the project keeps entry readiness and downstream cycle provenance separate rather than silently imposing the standalone retest requirement on MHV formation.
+## Decision 5 — loss of prior momentum is a structural failed-continuation state
+After eligible parent context, `LOSS OF PRIOR MOMENTUM` means a **developing post-TP structure inside the relevant outer BB that fails to produce source-valid Momentum/CSM continuation**.
 
-## User-approved decision 5 — loss of prior momentum is a structural failed-continuation state
-The project adopts **STRUCTURAL FAILED CONTINUATION AFTER THE ELIGIBLE EXTREME/TP PARENT CONTEXT** as the deterministic meaning of `LOSS OF PRIOR MOMENTUM` for canonical MHV/MLV formation.
+Locked semantics:
+- one ordinary/non-Momentum candle is insufficient;
+- absence of Momentum/CSM is necessary but not sufficient; a same-cycle structure must actually develop;
+- `BB_FLAT`, ATR, ADX, fixed pip displacement, fixed body-size percentages and fixed 2/3-candle minimums are not canonical proof;
+- if source-valid outer-BB close / Momentum/CSM appears before formation matures, pending MHV/MLV is void/superseded.
 
-Accepted operational rule:
-- evaluation begins only after Decision 2–4 have produced an eligible same-timeframe MHV/MLV parent context;
-- the market must begin developing a post-TP structure that remains within the relevant outer Bollinger Band and does **not** produce a source-valid Momentum/CSM continuation;
-- a single ordinary/non-Momentum candle is **not sufficient** by itself to prove loss of prior momentum or to create a canonical MHV/MLV formation state;
-- absence of Momentum/CSM is therefore necessary but not sufficient: there must also be an actually developing post-TP structure in the same owner-cycle;
-- `BB_FLAT` may be observed elsewhere by the EA but is **not** the universal definition of MHV/MLV loss of momentum;
-- no ATR, ADX, fixed pip displacement, fixed body-size percentage, body-smaller-than-previous rule, or fixed 2-/3-candle minimum is introduced as BBMA Core evidence;
-- if a source-valid close beyond the relevant outer BB / source-valid Momentum/CSM appears before MHV/MLV formation matures, the pending MHV/MLV interpretation is void/superseded rather than coexisting with Momentum.
+Classification: **DIRECT SOURCE LOSS-OF-MOMENTUM + OUTER-BB/MOMENTUM INVALIDATION PRINCIPLE, WITH SOURCE-INFERRED STRUCTURAL STATE MAPPING**.
 
-Canonical transition therefore becomes:
+## Decision 6 — most-extreme body + first closed move-away establishes formation
+Concrete MHV/MLV formation is established by the **most-extreme candle-body reference during the loss-of-momentum phase followed by the first closed move away from that side**.
 
-`ELIGIBLE MHV/MLV PARENT CONTEXT -> POST-TP STRUCTURE DEVELOPS INSIDE RELEVANT OUTER BB WITHOUT SOURCE-VALID MOMENTUM/CSM -> LOSS-OF-PRIOR-MOMENTUM STATE`
+For lifecycle descending from prior Extreme SELL (bottom-side MHV/MLV):
+- `BodyBottom = min(Open, Close)`;
+- track lowest `BodyBottom` across the active loss-of-momentum phase;
+- first later closed candle with `CurrentClose > PreviousClose` establishes `MHV/MLV FORMATION ESTABLISHED`.
 
-### Evidence classification
-This decision is **DIRECT SOURCE LOSS-OF-MOMENTUM + OUTER-BB/MOMENTUM INVALIDATION PRINCIPLE, WITH SOURCE-INFERRED STRUCTURAL STATE MAPPING**.
+For lifecycle descending from prior Extreme BUY (top-side MHV/MLV):
+- `BodyTop = max(Open, Close)`;
+- track highest `BodyTop` across the active loss-of-momentum phase;
+- first later closed candle with `CurrentClose < PreviousClose` establishes `MHV/MLV FORMATION ESTABLISHED`.
 
-Source support:
-- Finale V05 OA-F-V05-006 describes MHV after Extreme + TP Wajib as loss of the prior momentum/volume strength;
-- OA-F-V05-007 states that a close outside the relevant outer BB voids MHV and is treated as Momentum;
-- OA-F-V05-008 presents MHV as a developing marked-body/retest structure rather than a one-candle absence-of-momentum label;
-- the primary PDF digest likewise describes MLV as a multi-candle structural setup with highest/lowest body marking and later retest.
+Additional rules:
+- move-away trigger candle is excluded from accumulated body-extreme reference;
+- wick `High/Low` is not substituted for the marked body;
+- no mandatory second touch, exact double/triple morphology, H&S, named candlestick pattern, eCSD/CSD, previous-high/low breakout or fixed candle count is required merely to establish initial formation;
+- outer-BB/Momentum invalidation has priority.
 
-The requirement for a developing same-cycle post-TP structure, and the refusal to promote one ordinary candle into MHV, are deterministic project state-management mappings of those source concepts rather than verbatim candle-count rules.
+Classification: **DIRECT SOURCE BODY-MARKING / RETEST CONCEPT + MINIMAL STRUCTURAL TURNING-POINT PROJECT MAPPING**.
 
-## User-approved decision 6 — most-extreme body plus first closed move-away establishes concrete MHV/MLV formation
-The project adopts **MOST-EXTREME CANDLE-BODY REFERENCE DURING THE ACTIVE LOSS-OF-MOMENTUM PHASE, FOLLOWED BY THE FIRST CLOSED MOVE AWAY FROM THAT SIDE, AS THE MINIMUM DETERMINISTIC PREDICATE THAT ESTABLISHES A CONCRETE MHV/MLV FORMATION**.
+## Decision 7 — marked body freezes immediately when formation is established
+The project adopts **IMMEDIATE FREEZE OF THE MARKED HIGHEST/LOWEST BODY REFERENCE AT THE SAME CLOSED-CANDLE TRANSITION THAT ESTABLISHES MHV/MLV FORMATION**.
 
-Accepted operational rule:
-- Decision 6 is evaluated only after the same-timeframe eligible parent context and Decision 5 loss-of-prior-momentum state already exist;
-- for a lifecycle descending from a prior **Extreme SELL**, the post-TP structure is the bottom-side MHV/MLV formation context:
-  - for each qualifying closed candle in the active loss-of-momentum phase, `BodyBottom = min(Open, Close)`;
-  - track the **lowest `BodyBottom`** reached by that phase as the provisional marked-body candidate;
-  - the first later closed candle with `CurrentClose > PreviousClose` establishes that price has begun moving away from the bottom-side body extreme and promotes the structure to `MHV/MLV FORMATION ESTABLISHED`;
-- for a lifecycle descending from a prior **Extreme BUY**, the post-TP structure is the top-side MHV/MLV formation context:
-  - for each qualifying closed candle in the active loss-of-momentum phase, `BodyTop = max(Open, Close)`;
-  - track the **highest `BodyTop`** reached by that phase as the provisional marked-body candidate;
-  - the first later closed candle with `CurrentClose < PreviousClose` establishes that price has begun moving away from the top-side body extreme and promotes the structure to `MHV/MLV FORMATION ESTABLISHED`;
-- the move-away trigger candle is treated as the first candle after the completed body-extreme formation segment; the provisional marked-body value is finalized from the loss-of-momentum structure **through the immediately preceding closed candle**, not redefined by the trigger candle itself;
-- wick `High/Low` is not substituted for the source-described candle-body reference;
-- no mandatory second touch, exact double/triple-top or bottom, H&S, named candlestick pattern, eCSD/CSD, previous-high/low breakout, or fixed candle count is added merely to establish initial MHV/MLV formation;
-- double/triple and H&S-like morphology remain possible later visual forms of the same structural family, not prerequisites to initial formation maturity;
-- the marked body created here is **provisional for the next lifecycle step**. Whether it freezes immediately at formation or may still evolve before the formal retest stage is intentionally left to the next focused review;
-- accepted outer-BB/Momentum invalidation has priority: if the trigger candle/structure is source-valid Momentum/CSM or closes beyond the relevant outer BB under the canonical rule, the pending MHV/MLV interpretation is `VOID/SUPERSEDED`, not formation-established.
+Locked operational rule:
+- once Decision 6 first closed move-away establishes MHV/MLV formation, the accumulated body extreme from the completed formation segment becomes the **frozen marked-body reference**;
+- prior Extreme SELL / bottom-side MHV: freeze the lowest `BodyBottom` accumulated through the candle immediately preceding the move-away trigger;
+- prior Extreme BUY / top-side MHV: freeze the highest `BodyTop` accumulated through the candle immediately preceding the move-away trigger;
+- all later candles are evaluated against that frozen reference and must not move it merely because price creates a later body extreme;
+- the move-away trigger candle itself does not redefine the frozen reference;
+- later price action that creates another body extreme must be classified by the later lifecycle rules as retest, continuation, invalidation/supersession or a new formation/cycle; it must not silently drag the existing anchor;
+- no fixed-N waiting period, eCSD/CSD prerequisite, wick substitution or moving-neckline/chasing behavior is added;
+- source-valid outer-BB/Momentum invalidation remains higher priority and can void/supersede the lifecycle.
 
-Canonical transition therefore becomes:
+Canonical transition:
 
-`LOSS-OF-PRIOR-MOMENTUM STATE -> MOST-EXTREME BODY DEVELOPS -> FIRST CLOSED MOVE AWAY -> MHV/MLV FORMATION ESTABLISHED -> PROVISIONAL MARKED BODY/REFERENCE`
+`LOSS OF MOMENTUM -> BODY EXTREME -> FIRST CLOSED MOVE AWAY -> MHV/MLV FORMATION ESTABLISHED + MARKED BODY FROZEN -> WAIT FOR RETEST / LATER LIFECYCLE EVENT`
 
-### Evidence classification
-This decision is **DIRECT SOURCE BODY-MARKING / RETEST CONCEPT + MINIMAL STRUCTURAL TURNING-POINT PROJECT MAPPING**.
+Classification: **DIRECT SOURCE MARKED-BODY / RETEST CONCEPT + MINIMAL FIXED-REFERENCE PROJECT MAPPING**.
 
-Source support:
-- the primary PDF digest states that the highest/lowest body is marked because price may later retrace for a retest;
-- Finale V05 OA-F-V05-008 reinforces marked body/line plus retest structure and shows multiple possible morphologies without prescribing one mandatory formula.
+Source support for Decisions 1–7:
+- primary PDF digest pages 2 and 7–8: MLV normally follows Extreme/TP phase, highest/lowest body is marked because price may retest, MLV may show double/triple morphology, and outside-BB close voids the setup;
+- Finale V05 OA-F-V05-006 to OA-F-V05-009: MHV follows Extreme + TP Wajib, represents loss of prior momentum, must remain inside relevant outer BB, uses marked body/line plus retest structure, and is a setup stage.
 
-The exact `BodyBottom`/`BodyTop` formulas and `CurrentClose` move-away predicates are project-level deterministic encodings of a source-described body-marking/turning structure. They are not claimed as verbatim Oma Ally Boolean formulas.
+The exact software states, body-edge formulas, close-to-close turning predicates and immediate freeze transition are project-level deterministic encodings of the source concepts and are not claimed as verbatim Oma Ally Boolean formulas.
 
 ## Rejected alternatives
-- single-candle MHV/MLV detector as the complete source model;
-- mandatory exact double/triple-top or bottom formula;
-- mandatory H&S morphology;
-- treating MHV as merely another name for Extreme reversal;
-- keeping independent MHV and MLV detector families that can disagree for the same structure;
-- treating prior Extreme as merely preferred rather than required for the canonical MHV/MLV lifecycle;
-- allowing any generic loss-of-momentum/consolidation to become MHV without a provable prior Extreme owner-chain;
-- allowing canonical MHV/MLV formation before the normal TP-Wajib structural area has been reached;
-- treating Mid BB as the sole/universal TP-Wajib prerequisite;
-- requiring a real broker order to have closed at TP before market structure may progress;
-- using the unresolved advanced-Extreme/no-TP-Wajib exception to bypass the canonical normal-cycle rule;
-- allowing a RAW Extreme with no reversal confirmation to become MHV/MLV parent solely because price later reached the TP zone;
-- requiring the prior Extreme to become standalone `RETEST/ENTRY-READY` before it can provide downstream MHV/MLV provenance;
-- treating the first non-Momentum candle after TP as sufficient proof of MHV/MLV;
-- defining loss of momentum through `BB_FLAT` alone;
-- using ATR/ADX/fixed-pip/body-size or fixed-N-candle heuristics as canonical BBMA proof of MHV/MLV;
-- using the first post-TP candle as the marked MHV/MLV body without a structural move-away;
-- requiring a mandatory second touch/double top-bottom before initial MHV/MLV formation can exist;
-- waiting for eCSD/CSD before recognizing MHV/MLV formation.
+- one-candle detector as the complete MHV/MLV model;
+- generic consolidation without prior Extreme provenance;
+- MHV formation before normal TP-Wajib completion;
+- RAW Extreme as sufficient parent;
+- requiring standalone Extreme retest/entry-ready state merely for MHV provenance;
+- first non-Momentum candle as sufficient loss-of-momentum proof;
+- `BB_FLAT`, ATR, ADX, fixed pip/body-size or fixed-N heuristics as canonical proof;
+- first post-TP candle as marked body without a structural move-away;
+- mandatory second touch/double/triple/H&S before initial formation;
+- waiting for eCSD/CSD before recognizing formation;
+- keeping the marked body moving after formation is established;
+- wick High/Low as replacement for the source-described body reference;
+- fixed 2/3-candle delay before freezing the reference.
 
 ## Remaining specification before code
-The structural lifecycle, mandatory prior-Extreme provenance, mandatory TP-Wajib completion, minimum parent-Extreme maturity, structural loss-of-momentum state and initial turning-body formation predicate are locked. Deterministic sub-rules still need one-by-one review before M09 is patched:
-- decide whether the provisional highest/lowest body reference freezes immediately at formation or can still evolve before the formal retest stage;
+The lifecycle, parent provenance, TP-Wajib prerequisite, parent maturity, loss-of-momentum state, turning-body formation predicate and immediate frozen-reference policy are locked. Remaining one-by-one review before M09 patching:
 - define the exact retest/active-setup interaction with the frozen marked body/reference;
+- decide what maturity of MHV/MLV is required when it serves as the M15 component of REM;
 - define lifecycle supersession/void rules beyond the explicit outer-BB/Momentum invalidation;
 - migrate/remove legacy duplicate detector semantics after the canonical contract is complete.
 

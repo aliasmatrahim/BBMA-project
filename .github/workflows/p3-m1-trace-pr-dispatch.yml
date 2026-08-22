@@ -1,0 +1,30 @@
+name: P3-M1 trace PR dispatcher
+
+on:
+  pull_request:
+    branches: [ blueprint-dev ]
+    types: [ opened, reopened, synchronize ]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.pull_request.head.ref == 'p3-m1-runtime-trace'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - name: Apply trace patch
+        run: python3 blueprint/tools/apply_p3_m1_trace.py
+      - name: Commit trace source
+        run: |
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- blueprint/source/BBMA_EA.mq4 blueprint/P3_M1_RUNTIME_TRACE_PATCH.md
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "P3-M1: add trace-only runtime diagnostics"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}

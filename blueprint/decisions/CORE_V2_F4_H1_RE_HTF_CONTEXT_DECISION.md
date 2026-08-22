@@ -1,7 +1,7 @@
 # CORE-V2-F4 — Higher-Timeframe Context for Standalone H1 Re-Entry
 
 Date: 2026-08-22
-Status: **PARTIALLY RESOLVED — USER-APPROVED H4 PARENT + AUTHORITATIVE CYCLE-STATE ALIGNMENT + INHERITED DIRECTIONAL OWNER + eCSD AUTHORITY; OPPOSITE TRANSITION/FRESHNESS DETAILS STILL PENDING**
+Status: **PARTIALLY RESOLVED — USER-APPROVED H4 PARENT + AUTHORITATIVE CYCLE-STATE ALIGNMENT + INHERITED DIRECTIONAL OWNER + eCSD AUTHORITY + ATOMIC OPPOSITE OWNER HANDOVER; NEUTRAL/FRESHNESS DETAILS STILL PENDING**
 Branch: `blueprint-dev`
 
 ## User-approved decision 1 — immediate higher-timeframe owner
@@ -62,6 +62,25 @@ Accepted interpretation:
 
 Evidence classification: **DIRECT SOURCE FUNCTION + SOURCE-INFERRED OWNER APPLICATION**. The source explicitly treats eCSD as early directional information and CSD as stronger directional information, while the software owner role is the project's deterministic mapping of that source function.
 
+## User-approved decision 5 — atomic opposite-direction owner handover
+The project adopts **ATOMIC H4 OWNER HANDOVER** when a source-valid opposite H4 direction/momentum state appears.
+
+Accepted transition:
+
+`OLD H4 DIRECTIONAL OWNER -> VALID OPPOSITE eCSD/CSD/CSM -> OLD OWNER SUPERSEDED -> NEW OPPOSITE OWNER ACTIVE`
+
+Operational meaning:
+- a valid opposite H4 `eCSD` is sufficient to supersede the old H4 directional owner and establish the new opposite owner, consistent with decision 4 that valid eCSD can establish ownership;
+- a valid opposite H4 `CSD` likewise supersedes the old owner and establishes/advances the new opposite owner;
+- a valid opposite H4 `CSM/Momentum` likewise cannot coexist with the old opposite directional owner as if both remained authoritative;
+- owner transfer is atomic at the closed-candle state transition: the old owner loses authority when the new source-valid opposite state becomes authoritative;
+- the project does **not** keep simultaneous BUY and SELL H4 directional owners for standalone H1 alignment;
+- the handover applies only to source-valid BBMA direction/momentum states, not to an ordinary opposite-colored candle, a raw MA touch, or generic price movement;
+- an opposite raw Extreme or raw MHV/MLV alone still does not automatically establish a new directional owner because those stages are not directional authority by themselves;
+- this owner-handover rule is a deterministic project mapping of source-defined directional states, not a verbatim source software instruction.
+
+Evidence classification: **SOURCE-INFERRED / STRONG HINT + INTERNAL CONSISTENCY WITH THE USER-APPROVED eCSD OWNER RULE**. The source explicitly treats eCSD/CSD as direction information and CSM/Momentum as continuation/directional movement, but does not publish an owner-state handover algorithm.
+
 ## Evidence classification
 The source explicitly requires multi-timeframe reading and instructs that Re-Entry direction be checked against higher timeframes. The primary PDF also gives intraday H4/H1/M15 alignment guidance.
 
@@ -71,9 +90,9 @@ Finale strongly corroborates parent/child timeframe ownership and inherited cycl
 - V05 explicitly distinguishes early direction (eCSD), stronger direction (CSD), Re-Entry setup and later Momentum/continuation;
 - V06 repeats the cycle `Extreme -> MHV -> direction -> Re-Entry -> Momentum/continuation` across timeframes.
 
-Classification: **DIRECT SOURCE PRINCIPLE + SOURCE-INFERRED / STRONG HINT FOR H4 AS THE IMMEDIATE PARENT AND FOR OWNER/STATE-BASED ALIGNMENT/INHERITANCE**.
+Classification: **DIRECT SOURCE PRINCIPLE + SOURCE-INFERRED / STRONG HINT FOR H4 AS THE IMMEDIATE PARENT AND FOR OWNER/STATE-BASED ALIGNMENT/INHERITANCE/HANDOVER**.
 
-The source does not provide a single verbatim Boolean formula or software state-machine for every standalone H1 Re-Entry. Exact supersession/freshness details remain project specification.
+The source does not provide a single verbatim Boolean formula or software state-machine for every standalone H1 Re-Entry. Exact neutral/no-owner and freshness details remain project specification.
 
 ## Rejected alternatives
 - H1-only execution with no higher-timeframe context: rejected as inconsistent with the source's MTF requirement.
@@ -84,14 +103,15 @@ The source does not provide a single verbatim Boolean formula or software state-
 - raw H4 Extreme-only or raw H4 MHV/MLV-only ownership: rejected because those stages do not by themselves establish authoritative direction.
 - treating every H4 eCSD/CSD/Re-Entry/CSM occurrence as an unrelated independent owner: rejected in favor of inherited same-cycle directional ownership.
 - requiring CSD/Re-Entry/CSM before a valid H4 eCSD may establish directional ownership: rejected as an unsupported extra hard filter.
+- keeping the old H4 owner alive after a valid opposite eCSD while waiting for stronger confirmation: rejected as inconsistent with the accepted rule that valid eCSD itself can establish directional ownership.
+- allowing simultaneous authoritative H4 BUY and SELL owners: rejected.
 
 ## Remaining sub-specification
 Before code is patched, define the remaining H4 authorization/transition details.
 
 The next review must decide:
-- how opposite H4 eCSD/CSD/CSM or cycle restart terminates or supersedes the old owner;
 - how a neutral/transitional H4 state with **no active authoritative owner** affects H1 eligibility;
 - owner freshness/supersession so stale H4 context cannot authorize a new H1 Re-Entry;
-- whether an opposite early eCSD is enough to kill the old owner immediately or should create a transitional/no-owner state until stronger opposite confirmation appears.
+- whether owner lifetime should be purely structural with no generic expiry, or whether an engineering-only stale timeout should exist outside Strategy Core.
 
 No M12/M15 code patch is authorized until this H4 owner-state contract is fully resolved.

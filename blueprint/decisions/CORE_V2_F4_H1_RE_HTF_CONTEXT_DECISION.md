@@ -1,7 +1,7 @@
 # CORE-V2-F4 — Higher-Timeframe Context for Standalone H1 Re-Entry
 
 Date: 2026-08-22
-Status: **PARTIALLY RESOLVED — USER-APPROVED H4 PARENT + AUTHORITATIVE CYCLE-STATE ALIGNMENT + INHERITED DIRECTIONAL OWNER; eCSD AUTHORITY/TRANSITION DETAILS STILL PENDING**
+Status: **PARTIALLY RESOLVED — USER-APPROVED H4 PARENT + AUTHORITATIVE CYCLE-STATE ALIGNMENT + INHERITED DIRECTIONAL OWNER + eCSD AUTHORITY; OPPOSITE TRANSITION/FRESHNESS DETAILS STILL PENDING**
 Branch: `blueprint-dev`
 
 ## User-approved decision 1 — immediate higher-timeframe owner
@@ -49,18 +49,31 @@ Operational meaning:
 
 Evidence classification: **SOURCE-INFERRED / STRONG HINT**. V05/V06 explicitly teach direction -> Re-Entry -> Momentum/continuation as one BBMA cycle progression, but do not provide a verbatim software-owner-state algorithm.
 
+## User-approved decision 4 — valid H4 eCSD can establish directional ownership
+The project adopts **VALID H4 eCSD IS SUFFICIENT TO ESTABLISH H4 DIRECTIONAL OWNER** for higher-timeframe compatibility with a same-direction standalone H1 Re-Entry.
+
+Accepted interpretation:
+- a source-valid H4 `eCSD` is already a directional signal under the accepted BBMA source contract;
+- therefore a valid H4 eCSD may establish the H4 directional owner without waiting for a later H4 CSD/Re-Entry/CSM solely to satisfy parent alignment;
+- later same-direction `CSD`, `Re-Entry`, and `CSM/Momentum` strengthen/advance/inherit the same owner rather than being mandatory prerequisites for ownership;
+- H4 eCSD does **not** become entry authority by this decision; the executable trade still requires a source-valid standalone H1 Re-Entry under its own H1 contract;
+- a raw H4 Extreme or MHV/MLV still cannot substitute for eCSD/CSD directional authority;
+- do not add an EMA50/Mid-BB hard gate merely to "upgrade" eCSD unless separately source-supported.
+
+Evidence classification: **DIRECT SOURCE FUNCTION + SOURCE-INFERRED OWNER APPLICATION**. The source explicitly treats eCSD as early directional information and CSD as stronger directional information, while the software owner role is the project's deterministic mapping of that source function.
+
 ## Evidence classification
 The source explicitly requires multi-timeframe reading and instructs that Re-Entry direction be checked against higher timeframes. The primary PDF also gives intraday H4/H1/M15 alignment guidance.
 
 Finale strongly corroborates parent/child timeframe ownership and inherited cycle progression:
 - V05 teaches that a lower-timeframe direction signal may actually be completing a higher-timeframe Re-Entry and therefore must not be interpreted atomically;
 - V05 teaches higher-TF Re-Entry with lower-TF completion across chains including H4/H1/M15;
-- V05 separates direction signal from Re-Entry setup and then describes Momentum/continuation generating later Re-Entry opportunities;
+- V05 explicitly distinguishes early direction (eCSD), stronger direction (CSD), Re-Entry setup and later Momentum/continuation;
 - V06 repeats the cycle `Extreme -> MHV -> direction -> Re-Entry -> Momentum/continuation` across timeframes.
 
 Classification: **DIRECT SOURCE PRINCIPLE + SOURCE-INFERRED / STRONG HINT FOR H4 AS THE IMMEDIATE PARENT AND FOR OWNER/STATE-BASED ALIGNMENT/INHERITANCE**.
 
-The source does not provide a single verbatim Boolean formula or software state-machine for every standalone H1 Re-Entry. Exact compatibility and supersession details remain project specification.
+The source does not provide a single verbatim Boolean formula or software state-machine for every standalone H1 Re-Entry. Exact supersession/freshness details remain project specification.
 
 ## Rejected alternatives
 - H1-only execution with no higher-timeframe context: rejected as inconsistent with the source's MTF requirement.
@@ -70,14 +83,15 @@ The source does not provide a single verbatim Boolean formula or software state-
 - current-H4-candle-only directional gating: rejected as too atomic for the source's cycle/state teaching.
 - raw H4 Extreme-only or raw H4 MHV/MLV-only ownership: rejected because those stages do not by themselves establish authoritative direction.
 - treating every H4 eCSD/CSD/Re-Entry/CSM occurrence as an unrelated independent owner: rejected in favor of inherited same-cycle directional ownership.
+- requiring CSD/Re-Entry/CSM before a valid H4 eCSD may establish directional ownership: rejected as an unsupported extra hard filter.
 
 ## Remaining sub-specification
 Before code is patched, define the remaining H4 authorization/transition details.
 
 The next review must decide:
-- whether a valid H4 `eCSD` by itself is sufficient to authorize a same-direction standalone H1 Re-Entry, or whether stronger H4 confirmation (`CSD`, Re-Entry, or CSM/Momentum) is required;
-- how opposite H4 eCSD/CSD/CSM or cycle restart terminates the old owner;
+- how opposite H4 eCSD/CSD/CSM or cycle restart terminates or supersedes the old owner;
 - how a neutral/transitional H4 state with **no active authoritative owner** affects H1 eligibility;
-- owner freshness/supersession so stale H4 context cannot authorize a new H1 Re-Entry.
+- owner freshness/supersession so stale H4 context cannot authorize a new H1 Re-Entry;
+- whether an opposite early eCSD is enough to kill the old owner immediately or should create a transitional/no-owner state until stronger opposite confirmation appears.
 
 No M12/M15 code patch is authorized until this H4 owner-state contract is fully resolved.

@@ -1,10 +1,10 @@
 # CORE-V2-F2 — Extreme Maturity inside REM / REE
 
 Date: 2026-08-22
-Status: **RESOLVED — USER-APPROVED PROJECT CORE DECISION**
+Status: **PARTIALLY RESOLVED — MATURITY DECISION + MINIMAL REVERSAL-DIRECTION CONTRACT USER APPROVED; MULTI-CANDLE PHASE/ANCHOR DETAILS STILL PENDING**
 Branch: `blueprint-dev`
 
-## Decision
+## Decision 1 — Extreme maturity inside REM / REE
 For an Extreme to be eligible as a component of an executable REM or REE combination, it must be at least **reversal-confirmed**.
 
 A standalone Extreme entry remains a different maturity level and requires the later **retest** entry stage.
@@ -17,20 +17,53 @@ Operational maturity distinction:
 - REVERSAL-CONFIRMED EXTREME: raw Extreme plus source-valid reversal confirmation. Eligible as an Extreme component of REM/REE.
 - RETEST/ENTRY-READY EXTREME: reversal-confirmed Extreme plus the later retest. Required for standalone Extreme entry eligibility.
 
-## Evidence classification
-This decision is **SOURCE-INFERRED / STRONG HINT**, not an explicit verbatim Oma Ally rule for REM/REE component maturity.
+### Evidence classification
+This maturity decision is **SOURCE-INFERRED / STRONG HINT**, not an explicit verbatim Oma Ally rule for REM/REE component maturity.
 
 Evidence:
 - Finale V04 00:27:23–00:31:55 distinguishes raw Extreme condition, reversal confirmation and retest, and states that the retest is the point of standalone Extreme entry.
 - Finale V05 00:46:16–00:53:55 teaches higher-timeframe Re-Entry being completed/read through lower-timeframe Extreme/MHV/direction structures, supporting a distinction between supporting Extreme context and standalone Extreme entry.
 - Finale V05 00:54:12–00:54:40 mentions some Extreme occurrences embedded in higher-timeframe Re-Entry context behaving differently from normal standalone Extreme TP-Wajib treatment; this remains HOLD for TP semantics but reinforces that MTF component use is not identical to standalone Extreme entry.
 
+## Decision 2 — minimal deterministic reversal-direction mapping
+The project adopts **DIRECTIONAL REVERSAL CANDLE / REVERSAL PHASE** as the minimum deterministic interpretation of the source requirement for a reversal candle after RAW Extreme.
+
+Accepted mapping:
+- after a valid RAW Extreme, reversal confirmation must come from one or more **closed candles on the same source timeframe** that show movement away from the Extreme direction;
+- for a SELL Extreme, a qualifying reversal-direction candle is bearish: `Close < Open`;
+- for a BUY Extreme, a qualifying reversal-direction candle is bullish: `Close > Open`;
+- the previous candle is **not** required to have the opposite colour merely to manufacture a two-candle colour-flip pattern;
+- no named candlestick pattern such as engulfing, pin bar, hammer, morning/evening star or similar is required unless future source evidence explicitly establishes it;
+- reversal confirmation must not be reduced to a fixed one-candle or two-candle template because the source allows reversal-candle behaviour to span more than one candle;
+- closing back inside the Bollinger Band is **supporting/preferred evidence**, not a universal hard requirement, because Finale V04 describes it as preferable and V05 contains nuance around a reversal candle that may remain outside BB while closing inside the relevant MA5;
+- the accepted strict Extreme detector rule itself is unchanged; the HOLD around touch-only Extreme and outside-BB-but-inside-MA5 universal acceptance remains unresolved;
+- if the candidate becomes source-valid Momentum/CSM or otherwise satisfies the accepted outside-BB Extreme invalidation rule before reversal confirmation is established, the RAW Extreme candidate is void rather than being promoted to reversal-confirmed.
+
+### Evidence classification
+This reversal contract is **DIRECT SOURCE REQUIREMENT + MINIMAL DETERMINISTIC PROJECT MAPPING**.
+
+Direct source support:
+- the primary reference requires reversal-candle behaviour as part of Extreme and does not prescribe a named candlestick pattern;
+- the primary wording allows reversal candles to involve more than a fixed one/two-candle pattern;
+- Finale V04 explicitly identifies a reversal candle as the second Extreme condition and says closing inside BB is preferable rather than a universal mandatory condition;
+- Finale V05 preserves nuance that an outside-BB reversal may still matter if it has moved inside the relevant MA5, while a structure that remains outside/beyond MA5 and behaves as Momentum invalidates the Extreme interpretation.
+
+The exact software mapping `SELL: Close < Open` / `BUY: Close > Open` is intentionally the smallest deterministic encoding of reversal direction. It is not claimed as a verbatim Oma Ally Boolean formula.
+
 ## Rejected alternatives
 - Raw Extreme alone as executable REM/REE component: rejected as too immature relative to the accepted Extreme lifecycle.
 - Reversal + retest required for every REM/REE Extreme component: rejected because the source ties retest specifically to standalone Extreme entry and does not clearly require it for supporting MTF components.
 - Disable REM/REE indefinitely: rejected as a safety-only engineering choice, not the selected Core interpretation.
+- Previous-candle colour flip as the mandatory reversal algorithm: rejected as an invented pattern not stated by the source.
+- Mandatory named candlestick pattern: rejected as unsupported.
+- Mandatory close-back-inside-BB for every reversal candle: rejected as stricter than the accepted source wording.
+- Waiting for eCSD/CSD before calling Extreme reversal-confirmed: rejected because direction confirmation is a later BBMA cycle stage, not the Extreme reversal-candle stage itself.
 
-## Implementation guard
-This decision does **not** authorize inventing a reversal-candle algorithm. The project must separately define a deterministic source-faithful reversal-confirmation contract before code is patched.
+## Remaining sub-specification before code
+The minimum reversal **direction** is now locked, but deterministic multi-candle handling still needs one focused review before M08/Extreme lifecycle code is patched:
+- when one qualifying reversal candle is enough to promote RAW -> REVERSAL-CONFIRMED versus when a multi-candle reversal phase remains open;
+- how the highest/lowest body reference is finalized when reversal spans multiple candles;
+- when the lifecycle transitions from reversal-confirmed into the later retest phase without moving the reference indefinitely;
+- how the existing outside-BB/Momentum invalidation is applied during that transition.
 
-Until that contract exists, active Mode 2 REM/REE cannot be declared fully Core-V2-compliant merely because raw M08 Extreme is present.
+Until those phase/anchor details are closed, active Mode 2 REM/REE cannot yet be declared fully Core-V2-compliant merely because a raw M08 Extreme plus one colour condition is present.

@@ -83,3 +83,14 @@ Capture the smallest Experts-log window containing:
 P3 Step 5 may be marked PASS only after Tests A-D are directly evidenced and safety invariants E-F remain satisfied. Until then, status remains:
 
 `IN PROGRESS — SOURCE/COMPILE PASS; LIVE MT4 RUNTIME CLOSURE PENDING`
+
+---
+
+## 2026-08-22 live evidence status
+Evidence record: `blueprint/P3_RUNTIME_INITIALIZATION_EVIDENCE_20260822.md`
+
+- **Test A: PASS.** User-supplied MT4 Experts captures show multiple exact-owned orders reconstructed as `REC_IDENTITY_MISSING_FROZEN` with `Cause=MISSING_EXECUTION_HASH HashFound=N FullMeta=N`. Current source adds each recovered `TradeInfo` to monitored ownership before printing the diagnostic.
+- **Test B: PENDING.** Need a later Experts-log window after several ticks/timer cycles proving the recovery lines are reconstruction-only and do not spam.
+- **Test C: PENDING.** Need one genuine fresh current-build M22 execution with `[P3S5][EXEC_ID] ... Persist=PASS HashFound=Y HashMatch=Y ...`.
+- **Test D: PENDING.** After Test C, restart/re-attach while that fresh hashed trade remains open and verify hash recovery without duplicate execution.
+- Tests E/F remain safety invariants; do not manufacture harmful live conditions solely to produce evidence.

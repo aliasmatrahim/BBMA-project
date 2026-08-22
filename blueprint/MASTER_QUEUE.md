@@ -44,12 +44,22 @@ Remaining dependency before code: define a deterministic source-faithful reversa
 
 #### CORE-V2-F3 — Re-Entry Type 1 context
 Priority: **HIGH**
-Status: SPECIFICATION CLOSURE REQUIRED BEFORE CODE
+Status: **PARTIALLY RESOLVED — USER APPROVED CORE PHILOSOPHY; IMPLEMENTATION PREDICATE STILL PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-09
-Problem:
-- Core V2 says Type 1 forms after rise/fall + sideways/ranging behaviour;
-- active `DetectReEntry_Type1()` currently confirms from MA5/10 cluster touch/close-side only.
-Required action: define a deterministic source-faithful context contract without adding RSI/ADX/range heuristics or arbitrary non-source filters; then patch M12 if required.
+Decision record: `blueprint/decisions/CORE_V2_F3_TYPE1_CONTEXT_DECISION.md`
+Locked decisions:
+- Type 1 requires `prior rise/fall -> sideways/ranging -> MA5/MA10 retest -> valid close-side`;
+- MA5/MA10 touch alone is insufficient;
+- sideways/ranging is interpreted as BBMA structural ranging, not `BB_FLAT` alone;
+- `BB_FLAT` may be supporting evidence only;
+- **no fixed minimum candle count** is required for Type 1; structural completion governs maturity;
+- do not import Type 2's 3-candle requirement into Type 1.
+Remaining specification before code:
+- deterministic BBMA-state predicate for prior move;
+- momentum pause/end;
+- consolidation/retrace vs continued impulse;
+- invalidation when momentum resumes or MA5/MA10 close-side breaks.
+Constraint: use BBMA-owned state where possible; no RSI/ADX/ATR/fixed-pip heuristics as disguised Core rules.
 
 #### CORE-V2-F4 — Higher-timeframe context for standalone H1 Re-Entry
 Priority: **HIGH**
@@ -137,7 +147,7 @@ Before declaring P3 complete, preserve the existing Step 5 closure rule in `P3_S
 
 ## Execution order
 1. Keep `CURRENT.md` + this queue reconciled.
-2. Resolve remaining Core V2 specification closures: CORE-V2-F3 (Type 1 context), then CORE-V2-F4 (higher-timeframe H1 Re-Entry context).
+2. Finish CORE-V2-F3 deterministic Type 1 BBMA-state predicate, then resolve CORE-V2-F4 higher-timeframe H1 Re-Entry context.
 3. Define deterministic reversal-confirmation semantics required to implement the already-approved CORE-V2-F2 maturity decision.
 4. Repair CORE-V2-F1 M09 MHV/MLV against the resolved canonical Core contract.
 5. Repair CORE-V2-F5 BB-flat classification and run CORE-V2-F6 timing verification.

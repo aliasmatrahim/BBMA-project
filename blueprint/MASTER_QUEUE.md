@@ -64,7 +64,7 @@ Next action for F3: patch/audit M12 only after the remaining higher-priority Cor
 
 #### CORE-V2-F4 — Higher-timeframe context for standalone H1 Re-Entry
 Priority: **HIGH**
-Status: **PARTIALLY RESOLVED — USER APPROVED H4 PARENT + AUTHORITATIVE CYCLE-STATE ALIGNMENT + INHERITED DIRECTIONAL OWNER + eCSD AUTHORITY + ATOMIC OPPOSITE HANDOVER; NEUTRAL/FRESHNESS PENDING**
+Status: **PARTIALLY RESOLVED — USER APPROVED H4 PARENT + AUTHORITATIVE CYCLE-STATE ALIGNMENT + INHERITED DIRECTIONAL OWNER + eCSD AUTHORITY + ATOMIC OPPOSITE HANDOVER + NO-OWNER BLOCK; FRESHNESS/LIFETIME PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-12
 Decision record: `blueprint/decisions/CORE_V2_F4_H1_RE_HTF_CONTEXT_DECISION.md`
 Locked decisions:
@@ -79,15 +79,17 @@ Locked decisions:
 - a valid opposite H4 `eCSD`, `CSD`, or `CSM/Momentum` causes **atomic owner handover**: the old H4 owner is superseded and the new opposite owner becomes authoritative on that closed-candle state transition;
 - simultaneous authoritative H4 BUY and SELL owners are not allowed;
 - opposite raw Extreme/MHV alone do not establish the new directional owner;
+- a neutral H4 candle does not erase an already-valid inherited H4 owner if that owner remains structurally valid;
+- when H4 is truly **NO OWNER**, standalone H1 Re-Entry execution is blocked until a compatible H4 owner exists;
+- no-owner must not silently fall back to D1, Mid-BB/MA50, candle color, generic price position or absence of opposite signal;
 - same-direction H4 ownership does not require a fresh eCSD/CSD on every H4 candle;
-- a neutral H4 candle does not automatically erase an already-valid H4 owner if the underlying cycle/state has not been invalidated or superseded;
 - Mid-BB/MA50 may support context but cannot substitute as the sole owner;
 - this does not redefine REM/RRE/REE or turn standalone H1 Re-Entry into a three-timeframe combination;
 - H4 compatibility must not be reduced to an invented EMA50-only, score-based, or generic trend filter.
 Remaining specification before code:
-- define neutral/no-active-owner H4 behavior;
-- define owner freshness/supersession so stale H4 context cannot authorize a new H1 Re-Entry;
-- decide whether freshness is purely structural with no fixed expiry or whether an engineering-only stale timeout exists outside Strategy Core.
+- define H4 owner freshness/lifetime so stale H4 context cannot authorize a new H1 Re-Entry;
+- decide whether freshness is purely structural with no fixed expiry or whether an engineering-only stale timeout exists outside Strategy Core;
+- define restart/recovery reconstruction of an authoritative owner without inventing direction from incomplete state.
 
 #### P3-M1 — Mode 1 Official BBMA Compliance Audit
 Priority: CRITICAL / NEXT STRATEGY GATE AFTER CORE-V2 SPEC CLOSURE
@@ -165,7 +167,7 @@ Before declaring P3 complete, preserve the existing Step 5 closure rule in `P3_S
 
 ## Execution order
 1. Keep `CURRENT.md` + this queue reconciled.
-2. Finish CORE-V2-F4 H4 neutral/freshness specification.
+2. Finish CORE-V2-F4 H4 freshness/lifetime/recovery specification.
 3. Define deterministic reversal-confirmation semantics required to implement the already-approved CORE-V2-F2 maturity decision.
 4. Implement/audit CORE-V2-F3 Type 1 state/owner contract and repair CORE-V2-F1 M09 MHV/MLV against the resolved canonical Core contract.
 5. Repair CORE-V2-F5 BB-flat classification and run CORE-V2-F6 timing verification.

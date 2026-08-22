@@ -24,6 +24,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          sed -i 's/owner.Direction != reEntry.Direction/h4Owner.Direction != reEntry.Direction/' .github/scripts/apply_core_v2_f4.py
           python3 .github/scripts/apply_core_v2_f4.py
           git diff --check
 

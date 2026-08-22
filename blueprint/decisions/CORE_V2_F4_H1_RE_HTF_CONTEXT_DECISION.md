@@ -1,7 +1,7 @@
 # CORE-V2-F4 — Higher-Timeframe Context for Standalone H1 Re-Entry
 
 Date: 2026-08-22
-Status: **PARTIALLY RESOLVED — USER-APPROVED H4 PARENT + AUTHORITATIVE CYCLE-STATE ALIGNMENT + INHERITED DIRECTIONAL OWNER + eCSD AUTHORITY + ATOMIC OPPOSITE OWNER HANDOVER; NEUTRAL/FRESHNESS DETAILS STILL PENDING**
+Status: **PARTIALLY RESOLVED — USER-APPROVED H4 PARENT + AUTHORITATIVE CYCLE-STATE ALIGNMENT + INHERITED DIRECTIONAL OWNER + eCSD AUTHORITY + ATOMIC OPPOSITE OWNER HANDOVER + NO-OWNER BLOCK; FRESHNESS/LIFETIME STILL PENDING**
 Branch: `blueprint-dev`
 
 ## User-approved decision 1 — immediate higher-timeframe owner
@@ -81,6 +81,27 @@ Operational meaning:
 
 Evidence classification: **SOURCE-INFERRED / STRONG HINT + INTERNAL CONSISTENCY WITH THE USER-APPROVED eCSD OWNER RULE**. The source explicitly treats eCSD/CSD as direction information and CSM/Momentum as continuation/directional movement, but does not publish an owner-state handover algorithm.
 
+## User-approved decision 6 — neutral candle versus true no-owner H4 state
+The project adopts **NEUTRAL-CANDLE PRESERVATION + TRUE NO-OWNER EXECUTION BLOCK**.
+
+Accepted distinction:
+
+`NEUTRAL H4 CANDLE + VALID INHERITED OWNER -> OWNER REMAINS AUTHORITATIVE`
+
+but
+
+`TRUE H4 NO-OWNER STATE -> STANDALONE H1 RE-ENTRY NOT EXECUTABLE`
+
+Operational meaning:
+- an ordinary neutral/transitional H4 candle does not erase an already-valid inherited H4 directional owner when that owner has not been invalidated or superseded;
+- if H4 genuinely has **no active authoritative directional owner**, a standalone H1 Re-Entry must not be authorized merely because its own H1 pattern is valid;
+- `NO OWNER` includes startup/recovery before any valid owner is reconstructed, a prior owner that has been explicitly invalidated/superseded without a replacement, or a structural transition where no source-valid eCSD/CSD/CSM/current inherited directional owner exists yet;
+- do not fall back to D1 as an `OR` substitute when H4 has no owner;
+- do not invent temporary direction from H4 Mid-BB/MA50 position, candle color, generic price position, or absence of an opposite signal;
+- the H1 detector may still observe/build its setup while H4 is no-owner, but final standalone H1 execution eligibility remains blocked until a compatible H4 owner exists.
+
+Evidence classification: **DIRECT MTF PRINCIPLE + SOURCE-INFERRED NO-OWNER EXECUTION GUARD**. The source requires higher-timeframe context/alignment but does not publish a verbatim software `NO_OWNER` state rule.
+
 ## Evidence classification
 The source explicitly requires multi-timeframe reading and instructs that Re-Entry direction be checked against higher timeframes. The primary PDF also gives intraday H4/H1/M15 alignment guidance.
 
@@ -92,7 +113,7 @@ Finale strongly corroborates parent/child timeframe ownership and inherited cycl
 
 Classification: **DIRECT SOURCE PRINCIPLE + SOURCE-INFERRED / STRONG HINT FOR H4 AS THE IMMEDIATE PARENT AND FOR OWNER/STATE-BASED ALIGNMENT/INHERITANCE/HANDOVER**.
 
-The source does not provide a single verbatim Boolean formula or software state-machine for every standalone H1 Re-Entry. Exact neutral/no-owner and freshness details remain project specification.
+The source does not provide a single verbatim Boolean formula or software state-machine for every standalone H1 Re-Entry. Exact owner freshness/lifetime remains project specification.
 
 ## Rejected alternatives
 - H1-only execution with no higher-timeframe context: rejected as inconsistent with the source's MTF requirement.
@@ -105,13 +126,15 @@ The source does not provide a single verbatim Boolean formula or software state-
 - requiring CSD/Re-Entry/CSM before a valid H4 eCSD may establish directional ownership: rejected as an unsupported extra hard filter.
 - keeping the old H4 owner alive after a valid opposite eCSD while waiting for stronger confirmation: rejected as inconsistent with the accepted rule that valid eCSD itself can establish directional ownership.
 - allowing simultaneous authoritative H4 BUY and SELL owners: rejected.
+- allowing standalone H1 execution when H4 has no active authoritative owner: rejected because it defeats the accepted higher-timeframe context requirement.
+- using D1, Mid-BB/MA50 or absence-of-opposite as a silent fallback owner when H4 is no-owner: rejected.
 
 ## Remaining sub-specification
-Before code is patched, define the remaining H4 authorization/transition details.
+Before code is patched, define the remaining H4 owner freshness/lifetime rule.
 
 The next review must decide:
-- how a neutral/transitional H4 state with **no active authoritative owner** affects H1 eligibility;
-- owner freshness/supersession so stale H4 context cannot authorize a new H1 Re-Entry;
-- whether owner lifetime should be purely structural with no generic expiry, or whether an engineering-only stale timeout should exist outside Strategy Core.
+- whether H4 owner lifetime should be purely structural with no generic fixed expiry;
+- or whether an engineering-only stale timeout should exist outside Strategy Core;
+- how restart/recovery reconstructs a still-valid owner without inventing direction from incomplete state.
 
 No M12/M15 code patch is authorized until this H4 owner-state contract is fully resolved.

@@ -146,6 +146,16 @@ enum ENUM_RE_STATE { RE_STATE_NONE, RE_STATE_CANDIDATE, RE_STATE_CONFIRMED, RE_S
 
 enum ENUM_EXTREME_TYPE { EXT_NONE, EXT_SIDEWAYS, EXT_WITH_MOMENTUM, EXT_WITHOUT_MOMENTUM };
 
+enum ENUM_EXTREME_MATURITY
+{
+   EXT_MAT_NONE,
+   EXT_MAT_RAW,
+   EXT_MAT_REVERSAL_CONFIRMED,
+   EXT_MAT_RETEST_PHASE,
+   EXT_MAT_RETEST_READY,
+   EXT_MAT_VOID
+};
+
 enum ENUM_SIGNAL_LEVEL { LEVEL_NONE, LEVEL_D, LEVEL_C, LEVEL_B, LEVEL_A, LEVEL_A_PLUS };
 
 enum ENUM_PRIORITY_TIER { TIER_NONE, TIER_C, TIER_B, TIER_A, TIER_A_PLUS };
@@ -285,6 +295,30 @@ struct Signal
    datetime             Timestamp;
    datetime             CandleTime;
    double               Close;
+};
+
+struct ExtremeLifecycleData
+{
+   ENUM_EXTREME_MATURITY Maturity;
+   ENUM_DIRECTION        Direction;
+   int                   Timeframe;
+   int                   RawBar;
+   datetime              RawCandleTime;
+   int                   ConfirmationBar;
+   datetime              ConfirmationCandleTime;
+   double                ConfirmationClose;
+   int                   LastUpdateBar;
+   datetime              LastUpdateCandleTime;
+   double                PreviousClose;
+   double                ProvisionalBodyAnchor;
+   double                FrozenBodyAnchor;
+   double                RelevantMA5;
+   int                   RetestStartBar;
+   datetime              RetestStartCandleTime;
+   int                   RetestCompletionBar;
+   datetime              RetestCompletionCandleTime;
+   bool                  IsValid;
+   string                Reason;
 };
 
 struct MLVData
@@ -532,6 +566,11 @@ struct PairState
    double               current_daily_ema50;
    SignalMemory         buy_signal_memory;
    SignalMemory         sell_signal_memory;
+   // F2 source-aligned Extreme maturity lifecycle.
+   ExtremeLifecycleData extreme_h1_buy_lifecycle;
+   ExtremeLifecycleData extreme_h1_sell_lifecycle;
+   ExtremeLifecycleData extreme_h4_buy_lifecycle;
+   ExtremeLifecycleData extreme_h4_sell_lifecycle;
    // M16 persistent validity overlay for source-detected Extremes.
    // M08 remains the detector; M16 owns temporal invalidation/expiry only.
    Signal               extreme_h1_buy_state;
@@ -1936,8 +1975,10 @@ string GetBBStateString(ENUM_BB_STATE state)
 
 bool DetectExtreme(string pair, ENUM_DIRECTION direction, TimeframeData &data, BollingerBand &band)
 {
+   // F2 RAW detector only. Reversal confirmation and retest maturity are
+   // handled by UpdateExtremeLifecycle(); RAW alone is never a combo component.
    if(!data.is_valid || !data.is_closed) return false;
-   if(data.close <= 0 || band.TOP_BB <= 0 || band.LOW_BB <= 0) return false;
+   if(band.TOP_BB <= 0 || band.LOW_BB <= 0) return false;
    if(direction != DIR_BUY && direction != DIR_SELL) return false;
 
    if(direction == DIR_SELL)
@@ -1945,20 +1986,308 @@ bool DetectExtreme(string pair, ENUM_DIRECTION direction, TimeframeData &data, B
       double ma5High = data.ma[0];
       double ma10High = data.ma[1];
       if(ma5High <= 0 || ma10High <= 0) return false;
-
-      bool maOutside = (ma5High > band.TOP_BB || ma10High > band.TOP_BB);
-      if(!maOutside) return false;
-      if(data.close > band.TOP_BB) return false;
-      return true;
+      return (ma5High > band.TOP_BB || ma10High > band.TOP_BB);
    }
 
    double ma5Low = data.ma[2];
    double ma10Low = data.ma[3];
    if(ma5Low <= 0 || ma10Low <= 0) return false;
+   return (ma5Low < band.LOW_BB || ma10Low < band.LOW_BB);
+}
 
-   bool maOutside = (ma5Low < band.LOW_BB || ma10Low < band.LOW_BB);
-   if(!maOutside) return false;
-   if(data.close < band.LOW_BB) return false;
+void ResetExtremeLifecycle(ExtremeLifecycleData &extreme,
+                           ENUM_DIRECTION direction, int timeframe)
+{
+   ZeroMemory(extreme);
+   extreme.Maturity = EXT_MAT_NONE;
+   extreme.Direction = direction;
+   extreme.Timeframe = timeframe;
+}
+
+double GetExtremeRelevantMA5(TimeframeData &data, ENUM_DIRECTION direction)
+{
+   if(direction == DIR_SELL) return data.ma[0]; // MA5 High
+   if(direction == DIR_BUY)  return data.ma[2]; // MA5 Low
+   return 0.0;
+}
+
+double GetExtremeReversalBodyEdge(TimeframeData &data, ENUM_DIRECTION direction)
+{
+   if(direction == DIR_SELL) return MathMax(data.open, data.close);
+   if(direction == DIR_BUY)  return MathMin(data.open, data.close);
+   return 0.0;
+}
+
+bool IsExtremeReversalDirection(TimeframeData &data, ENUM_DIRECTION direction)
+{
+   if(data.open <= 0 || data.close <= 0) return false;
+   if(direction == DIR_SELL) return (data.close < data.open);
+   if(direction == DIR_BUY)  return (data.close > data.open);
+   return false;
+}
+
+bool IsExtremeMomentumInvalidation(string pair, TimeframeData &data,
+                                   BollingerBand &currentBand)
+{
+   if(data.barIndex < 1 || data.close <= 0 || currentBand.Width <= 0) return false;
+
+   BollingerBand previousBand;
+   ZeroMemory(previousBand);
+   CalculateBollinger(pair, data.timeframe, data.barIndex + 1, previousBand);
+   if(previousBand.Width <= 0 || previousBand.MID_BB <= 0 ||
+      previousBand.TOP_BB <= 0 || previousBand.LOW_BB <= 0)
+      return false;
+
+   bool bbExpanding = (currentBand.Width > previousBand.Width);
+   bool buyMomentum = bbExpanding &&
+                      currentBand.MID_BB > previousBand.MID_BB &&
+                      currentBand.TOP_BB > previousBand.TOP_BB &&
+                      data.close > currentBand.TOP_BB;
+   bool sellMomentum = bbExpanding &&
+                       currentBand.MID_BB < previousBand.MID_BB &&
+                       currentBand.LOW_BB < previousBand.LOW_BB &&
+                       data.close < currentBand.LOW_BB;
+   return (buyMomentum || sellMomentum);
+}
+
+bool IsExtremeLifecycleInvalidation(string pair, ENUM_DIRECTION direction,
+                                    TimeframeData &data, BollingerBand &band)
+{
+   if(data.close <= 0 || band.TOP_BB <= 0 || band.LOW_BB <= 0) return false;
+
+   // A continuation close through the original Extreme-side outer BB is void.
+   // An opposite-side outside close is not made a universal hard failure here;
+   // it is invalid only when it qualifies as accepted directional Momentum.
+   bool relevantOuterBreak = (direction == DIR_SELL)
+                             ? (data.close > band.TOP_BB)
+                             : (data.close < band.LOW_BB);
+
+   return (relevantOuterBreak || IsExtremeMomentumInvalidation(pair, data, band));
+}
+
+void MarkExtremeLifecycleVoid(ExtremeLifecycleData &extreme,
+                              TimeframeData &data, string reason)
+{
+   extreme.Maturity = EXT_MAT_VOID;
+   extreme.IsValid = false;
+   extreme.LastUpdateBar = data.barIndex;
+   extreme.LastUpdateCandleTime = data.candle_time;
+   extreme.PreviousClose = data.close;
+   extreme.Reason = reason;
+}
+
+void UpdateExtremeProvisionalAnchor(ExtremeLifecycleData &extreme,
+                                    TimeframeData &data)
+{
+   double edge = GetExtremeReversalBodyEdge(data, extreme.Direction);
+   if(edge <= 0) return;
+
+   if(extreme.ProvisionalBodyAnchor <= 0)
+      extreme.ProvisionalBodyAnchor = edge;
+   else if(extreme.Direction == DIR_SELL)
+      extreme.ProvisionalBodyAnchor = MathMax(extreme.ProvisionalBodyAnchor, edge);
+   else if(extreme.Direction == DIR_BUY)
+      extreme.ProvisionalBodyAnchor = MathMin(extreme.ProvisionalBodyAnchor, edge);
+}
+
+bool IsExtremeRetestStart(ExtremeLifecycleData &extreme, TimeframeData &data)
+{
+   if(extreme.PreviousClose <= 0 || data.close <= 0) return false;
+   if(extreme.Direction == DIR_SELL) return (data.close > extreme.PreviousClose);
+   if(extreme.Direction == DIR_BUY)  return (data.close < extreme.PreviousClose);
+   return false;
+}
+
+bool IsExtremeRetestInteraction(ExtremeLifecycleData &extreme,
+                                TimeframeData &data)
+{
+   if(data.high <= 0 || data.low <= 0) return false;
+
+   bool bodyTouch = false;
+   if(extreme.FrozenBodyAnchor > 0)
+   {
+      if(extreme.Direction == DIR_SELL)
+         bodyTouch = (data.high >= extreme.FrozenBodyAnchor);
+      else if(extreme.Direction == DIR_BUY)
+         bodyTouch = (data.low <= extreme.FrozenBodyAnchor);
+   }
+
+   double ma5 = GetExtremeRelevantMA5(data, extreme.Direction);
+   extreme.RelevantMA5 = ma5;
+   bool ma5Touch = (ma5 > 0 && data.low <= ma5 && data.high >= ma5);
+
+   return (bodyTouch || ma5Touch);
+}
+
+ENUM_EXTREME_MATURITY UpdateExtremeLifecycle(ExtremeLifecycleData &extreme,
+                                             string pair,
+                                             ENUM_DIRECTION direction,
+                                             TimeframeData &data,
+                                             BollingerBand &band,
+                                             bool rawDetected)
+{
+   if(direction != DIR_BUY && direction != DIR_SELL) return extreme.Maturity;
+   if(!data.is_valid || !data.is_closed || data.candle_time <= 0) return extreme.Maturity;
+
+   if(extreme.Direction != direction || extreme.Timeframe != data.timeframe)
+      ResetExtremeLifecycle(extreme, direction, data.timeframe);
+
+   // F2 maturity has NO fixed candle/session expiry. MaxWaitBars_Extreme stays
+   // downstream as a project component-freshness overlay only; it must not
+   // erase lifecycle provenance needed by later structural stages such as F1.
+
+   if(extreme.Maturity == EXT_MAT_VOID)
+   {
+      if(!rawDetected || data.candle_time <= extreme.LastUpdateCandleTime)
+         return EXT_MAT_VOID;
+      ResetExtremeLifecycle(extreme, direction, data.timeframe);
+   }
+
+   if(extreme.Maturity == EXT_MAT_NONE)
+   {
+      if(!rawDetected) return EXT_MAT_NONE;
+
+      extreme.Maturity = EXT_MAT_RAW;
+      extreme.Direction = direction;
+      extreme.Timeframe = data.timeframe;
+      extreme.RawBar = data.barIndex;
+      extreme.RawCandleTime = data.candle_time;
+      extreme.LastUpdateBar = data.barIndex;
+      extreme.LastUpdateCandleTime = data.candle_time;
+      extreme.PreviousClose = data.close;
+      extreme.RelevantMA5 = GetExtremeRelevantMA5(data, direction);
+      extreme.IsValid = false;
+      extreme.Reason = "RAW Extreme detected; awaiting reversal confirmation";
+
+      if(IsExtremeLifecycleInvalidation(pair, direction, data, band))
+         MarkExtremeLifecycleVoid(extreme, data,
+                                  "RAW Extreme void: outside-BB/Momentum invalidation");
+      return extreme.Maturity;
+   }
+
+   if(data.candle_time <= extreme.LastUpdateCandleTime)
+      return extreme.Maturity;
+
+   // Invalidation is evaluated before every pre-entry maturity promotion.
+   if(IsExtremeLifecycleInvalidation(pair, direction, data, band))
+   {
+      MarkExtremeLifecycleVoid(extreme, data,
+                               "Extreme void: outside-BB/Momentum invalidation");
+      return EXT_MAT_VOID;
+   }
+
+   if(extreme.Maturity == EXT_MAT_RAW)
+   {
+      // RAW confirmation is necessarily a SUBSEQUENT closed source-TF candle:
+      // the RAW candle was already stored as LastUpdateCandleTime above.
+      if(IsExtremeReversalDirection(data, direction))
+      {
+         extreme.Maturity = EXT_MAT_REVERSAL_CONFIRMED;
+         extreme.ConfirmationBar = data.barIndex;
+         extreme.ConfirmationCandleTime = data.candle_time;
+         extreme.ConfirmationClose = data.close;
+         extreme.ProvisionalBodyAnchor = 0.0;
+         UpdateExtremeProvisionalAnchor(extreme, data);
+         extreme.IsValid = true;
+         extreme.Reason = "Extreme reversal-confirmed; component maturity reached";
+      }
+
+      extreme.LastUpdateBar = data.barIndex;
+      extreme.LastUpdateCandleTime = data.candle_time;
+      extreme.PreviousClose = data.close;
+      extreme.RelevantMA5 = GetExtremeRelevantMA5(data, direction);
+      return extreme.Maturity;
+   }
+
+   if(extreme.Maturity == EXT_MAT_REVERSAL_CONFIRMED)
+   {
+      bool retestStarts = IsExtremeRetestStart(extreme, data);
+      if(retestStarts)
+      {
+         // Trigger candle belongs to retest phase and is excluded from anchor.
+         extreme.FrozenBodyAnchor = extreme.ProvisionalBodyAnchor;
+         extreme.RetestStartBar = data.barIndex;
+         extreme.RetestStartCandleTime = data.candle_time;
+         extreme.Maturity = EXT_MAT_RETEST_PHASE;
+         extreme.LastUpdateBar = data.barIndex;
+         extreme.LastUpdateCandleTime = data.candle_time;
+         extreme.PreviousClose = data.close;
+         extreme.RelevantMA5 = GetExtremeRelevantMA5(data, direction);
+         extreme.Reason = "Extreme retest phase started; body anchor frozen";
+
+         // The retest-start candle is excluded from anchor construction but may
+         // itself be the first valid revisit of the already-frozen reference.
+         if(IsExtremeRetestInteraction(extreme, data))
+         {
+            extreme.Maturity = EXT_MAT_RETEST_READY;
+            extreme.RetestCompletionBar = data.barIndex;
+            extreme.RetestCompletionCandleTime = data.candle_time;
+            extreme.Reason = "Extreme retest complete: body anchor or MA5 interaction";
+         }
+         return extreme.Maturity;
+      }
+
+      // No close progression back toward the original Extreme yet: the
+      // structural reversal phase continues and its provisional body edge may
+      // update. No fixed candle count is imposed.
+      UpdateExtremeProvisionalAnchor(extreme, data);
+      extreme.LastUpdateBar = data.barIndex;
+      extreme.LastUpdateCandleTime = data.candle_time;
+      extreme.PreviousClose = data.close;
+      extreme.RelevantMA5 = GetExtremeRelevantMA5(data, direction);
+      return EXT_MAT_REVERSAL_CONFIRMED;
+   }
+
+   if(extreme.Maturity == EXT_MAT_RETEST_PHASE)
+   {
+      extreme.LastUpdateBar = data.barIndex;
+      extreme.LastUpdateCandleTime = data.candle_time;
+      extreme.PreviousClose = data.close;
+      extreme.RelevantMA5 = GetExtremeRelevantMA5(data, direction);
+
+      if(IsExtremeRetestInteraction(extreme, data))
+      {
+         extreme.Maturity = EXT_MAT_RETEST_READY;
+         extreme.RetestCompletionBar = data.barIndex;
+         extreme.RetestCompletionCandleTime = data.candle_time;
+         extreme.Reason = "Extreme retest complete: body anchor or MA5 interaction";
+      }
+      return extreme.Maturity;
+   }
+
+   if(extreme.Maturity == EXT_MAT_RETEST_READY)
+   {
+      extreme.LastUpdateBar = data.barIndex;
+      extreme.LastUpdateCandleTime = data.candle_time;
+      extreme.PreviousClose = data.close;
+      extreme.RelevantMA5 = GetExtremeRelevantMA5(data, direction);
+      extreme.IsValid = true;
+   }
+
+   return extreme.Maturity;
+}
+
+bool ExportReversalConfirmedExtremeSignal(ExtremeLifecycleData &extreme,
+                                          Signal &signal)
+{
+   ZeroMemory(signal);
+   bool mature = (extreme.Maturity == EXT_MAT_REVERSAL_CONFIRMED ||
+                  extreme.Maturity == EXT_MAT_RETEST_PHASE ||
+                  extreme.Maturity == EXT_MAT_RETEST_READY);
+   if(!mature || !extreme.IsValid) return false;
+   if(extreme.ConfirmationCandleTime <= 0 || extreme.Timeframe <= 0) return false;
+
+   signal.Type = SIGNAL_EXTREME;
+   signal.Direction = extreme.Direction;
+   signal.Valid = true;
+   signal.Timeframe = extreme.Timeframe;
+   signal.BarIndex = extreme.ConfirmationBar;
+   signal.ExpiryBar = MaxWaitBars_Extreme;
+   signal.Timestamp = extreme.ConfirmationCandleTime;
+   signal.CandleTime = extreme.ConfirmationCandleTime;
+   signal.Close = extreme.ConfirmationClose;
+   signal.MA5_Level = extreme.RelevantMA5;
+   signal.Reason = extreme.Reason;
    return true;
 }
 
@@ -3167,28 +3496,21 @@ bool IsExtremeStateExpired(Signal &extreme, datetime currentTime)
    return (currentTime > expiry);
 }
 
-void UpdatePersistentExtremeState(Signal &detectedExtreme, Signal &csmSnapshot,
-                                  Signal &state)
+void UpdatePersistentExtremeState(Signal &matureExtreme, Signal &state)
 {
-   if(detectedExtreme.Valid)
+   // M08 lifecycle owns RAW/reversal/retest/invalidation semantics. M16 keeps
+   // only the existing project component-freshness overlay.
+   if(!matureExtreme.Valid)
    {
-      if(!state.Valid || detectedExtreme.CandleTime >= state.CandleTime)
-         state = detectedExtreme;
+      ZeroMemory(state);
+      return;
    }
 
-   if(state.Valid && IsExtremeStateExpired(state, g_processing_time))
+   state = matureExtreme;
+   if(IsExtremeStateExpired(state, g_processing_time))
    {
       state.Valid = false;
-      state.Reason = "Extreme expired by timeframe-aware project window";
-   }
-
-   if(state.Valid && csmSnapshot.Valid &&
-      csmSnapshot.Type == SIGNAL_CSM &&
-      csmSnapshot.Timeframe == state.Timeframe &&
-      csmSnapshot.CandleTime > state.CandleTime)
-   {
-      state.Valid = false;
-      state.Reason = "Extreme invalidated by later same-TF CSM";
+      state.Reason = "Extreme component expired by timeframe-aware project window";
    }
 }
 
@@ -5154,35 +5476,6 @@ void ProcessPair(int pairIndex)
    g_pair_states[pairIndex].current_bollinger = h1Band;
    g_pair_states[pairIndex].prev_bollinger = h1PrevBand;
 
-   Signal h1AnyCSMSnapshot, h4AnyCSMSnapshot;
-   ZeroMemory(h1AnyCSMSnapshot); ZeroMemory(h4AnyCSMSnapshot);
-
-   int h1ShiftForCSM = g_pair_states[pairIndex].h1_data.barIndex;
-   if(DetectCSM(actual, PERIOD_H1, DIR_BUY, h1ShiftForCSM) ||
-      DetectCSM(actual, PERIOD_H1, DIR_SELL, h1ShiftForCSM))
-   {
-      h1AnyCSMSnapshot.Type = SIGNAL_CSM;
-      h1AnyCSMSnapshot.Valid = true;
-      h1AnyCSMSnapshot.Timeframe = PERIOD_H1;
-      h1AnyCSMSnapshot.BarIndex = h1ShiftForCSM;
-      h1AnyCSMSnapshot.CandleTime = g_pair_states[pairIndex].h1_data.candle_time;
-      h1AnyCSMSnapshot.Timestamp = h1AnyCSMSnapshot.CandleTime;
-      h1AnyCSMSnapshot.Close = g_pair_states[pairIndex].h1_data.close;
-   }
-
-   int h4ShiftForCSM = g_pair_states[pairIndex].h4_data.barIndex;
-   if(DetectCSM(actual, PERIOD_H4, DIR_BUY, h4ShiftForCSM) ||
-      DetectCSM(actual, PERIOD_H4, DIR_SELL, h4ShiftForCSM))
-   {
-      h4AnyCSMSnapshot.Type = SIGNAL_CSM;
-      h4AnyCSMSnapshot.Valid = true;
-      h4AnyCSMSnapshot.Timeframe = PERIOD_H4;
-      h4AnyCSMSnapshot.BarIndex = h4ShiftForCSM;
-      h4AnyCSMSnapshot.CandleTime = g_pair_states[pairIndex].h4_data.candle_time;
-      h4AnyCSMSnapshot.Timestamp = h4AnyCSMSnapshot.CandleTime;
-      h4AnyCSMSnapshot.Close = g_pair_states[pairIndex].h4_data.close;
-   }
-
    ValidatedSequenceCandidate allCandidates[];
    int allCandidateCount = 0;
 
@@ -5199,16 +5492,23 @@ void ProcessPair(int pairIndex)
       Signal detectedH1Extreme, detectedH4Extreme;
       ZeroMemory(detectedH1Extreme); ZeroMemory(detectedH4Extreme);
 
-      if(DetectExtreme(actual, direction, g_pair_states[pairIndex].h1_data, h1Band))
+      bool h1RawExtreme = DetectExtreme(actual, direction,
+                                        g_pair_states[pairIndex].h1_data, h1Band);
+      if(direction == DIR_BUY)
       {
-         detectedH1Extreme.Type = SIGNAL_EXTREME;
-         detectedH1Extreme.Direction = direction;
-         detectedH1Extreme.Valid = true;
-         detectedH1Extreme.Timeframe = PERIOD_H1;
-         detectedH1Extreme.BarIndex = g_pair_states[pairIndex].h1_data.barIndex;
-         detectedH1Extreme.CandleTime = g_pair_states[pairIndex].h1_data.candle_time;
-         detectedH1Extreme.Timestamp = detectedH1Extreme.CandleTime;
-         detectedH1Extreme.Close = g_pair_states[pairIndex].h1_data.close;
+         UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_h1_buy_lifecycle,
+                                actual, direction,
+                                g_pair_states[pairIndex].h1_data, h1Band, h1RawExtreme);
+         ExportReversalConfirmedExtremeSignal(
+            g_pair_states[pairIndex].extreme_h1_buy_lifecycle, detectedH1Extreme);
+      }
+      else
+      {
+         UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_h1_sell_lifecycle,
+                                actual, direction,
+                                g_pair_states[pairIndex].h1_data, h1Band, h1RawExtreme);
+         ExportReversalConfirmedExtremeSignal(
+            g_pair_states[pairIndex].extreme_h1_sell_lifecycle, detectedH1Extreme);
       }
 
       if(DetectMHV(actual, direction, g_pair_states[pairIndex].m15_data))
@@ -5307,13 +5607,13 @@ void ProcessPair(int pairIndex)
 
       if(direction == DIR_BUY)
       {
-         UpdatePersistentExtremeState(detectedH1Extreme, h1AnyCSMSnapshot,
+         UpdatePersistentExtremeState(detectedH1Extreme,
                                       g_pair_states[pairIndex].extreme_h1_buy_state);
          h1ExtremeSnapshot = g_pair_states[pairIndex].extreme_h1_buy_state;
       }
       else
       {
-         UpdatePersistentExtremeState(detectedH1Extreme, h1AnyCSMSnapshot,
+         UpdatePersistentExtremeState(detectedH1Extreme,
                                       g_pair_states[pairIndex].extreme_h1_sell_state);
          h1ExtremeSnapshot = g_pair_states[pairIndex].extreme_h1_sell_state;
       }
@@ -5333,30 +5633,31 @@ void ProcessPair(int pairIndex)
       ExportConfirmedReEntrySignal(h4ReEntryState, h4_reEntry);
       ExportConfirmedReEntrySignal(d1ReEntryState, d1_reEntry);
 
-      if(DetectExtreme(actual, direction, g_pair_states[pairIndex].h4_data, h4Band))
-      {
-         detectedH4Extreme.Type = SIGNAL_EXTREME;
-         detectedH4Extreme.Direction = direction;
-         detectedH4Extreme.Valid = true;
-         detectedH4Extreme.Timeframe = PERIOD_H4;
-         detectedH4Extreme.BarIndex = g_pair_states[pairIndex].h4_data.barIndex;
-         detectedH4Extreme.CandleTime = g_pair_states[pairIndex].h4_data.candle_time;
-         detectedH4Extreme.Timestamp = detectedH4Extreme.CandleTime;
-         detectedH4Extreme.Close = g_pair_states[pairIndex].h4_data.close;
-      }
-
+      bool h4RawExtreme = DetectExtreme(actual, direction,
+                                        g_pair_states[pairIndex].h4_data, h4Band);
       if(direction == DIR_BUY)
       {
-         UpdatePersistentExtremeState(detectedH4Extreme, h4AnyCSMSnapshot,
+         UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_h4_buy_lifecycle,
+                                actual, direction,
+                                g_pair_states[pairIndex].h4_data, h4Band, h4RawExtreme);
+         ExportReversalConfirmedExtremeSignal(
+            g_pair_states[pairIndex].extreme_h4_buy_lifecycle, detectedH4Extreme);
+         UpdatePersistentExtremeState(detectedH4Extreme,
                                       g_pair_states[pairIndex].extreme_h4_buy_state);
          h4ExtremeSnapshot = g_pair_states[pairIndex].extreme_h4_buy_state;
       }
       else
       {
-         UpdatePersistentExtremeState(detectedH4Extreme, h4AnyCSMSnapshot,
+         UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_h4_sell_lifecycle,
+                                actual, direction,
+                                g_pair_states[pairIndex].h4_data, h4Band, h4RawExtreme);
+         ExportReversalConfirmedExtremeSignal(
+            g_pair_states[pairIndex].extreme_h4_sell_lifecycle, detectedH4Extreme);
+         UpdatePersistentExtremeState(detectedH4Extreme,
                                       g_pair_states[pairIndex].extreme_h4_sell_state);
          h4ExtremeSnapshot = g_pair_states[pairIndex].extreme_h4_sell_state;
       }
+      h4_extreme = h4ExtremeSnapshot;
       h4_extreme = h4ExtremeSnapshot;
 
       ComponentSet rem, rre, ree;

@@ -64,19 +64,24 @@ Next action for F3: patch/audit M12 only after the remaining higher-priority Cor
 
 #### CORE-V2-F4 — Higher-timeframe context for standalone H1 Re-Entry
 Priority: **HIGH**
-Status: **PARTIALLY RESOLVED — USER APPROVED H4 PARENT OWNERSHIP; H4 ALIGNMENT CONTRACT PENDING**
+Status: **PARTIALLY RESOLVED — USER APPROVED H4 PARENT + AUTHORITATIVE CYCLE-STATE ALIGNMENT; EXACT H4 OWNER FAMILIES/TRANSITIONS PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-12
 Decision record: `blueprint/decisions/CORE_V2_F4_H1_RE_HTF_CONTEXT_DECISION.md`
 Locked decisions:
 - standalone H1 Re-Entry must not be treated as autonomous from higher-timeframe BBMA context;
 - **H4 is the immediate parent/context owner** for standalone H1 Re-Entry in the approved intraday chain;
 - D1 remains broader structural context but is not a universal hard gate for every standalone H1 Re-Entry;
+- H4 compatibility is based on an **active authoritative BBMA directional/cycle state**, not the current H4 candle alone;
+- raw H4 Extreme alone and raw H4 MHV/MLV alone are insufficient as directional authority;
+- a neutral H4 candle does not automatically erase an already-valid H4 owner if the underlying cycle/state has not been invalidated or superseded;
+- Mid-BB/MA50 may support context but cannot substitute as the sole owner;
 - this does not redefine REM/RRE/REE or turn standalone H1 Re-Entry into a three-timeframe combination;
 - H4 compatibility must not be reduced to an invented EMA50-only, score-based, or generic trend filter.
 Remaining specification before code:
-- define the exact source-faithful H4 compatible/aligned BBMA state for an H1 Re-Entry;
-- define how opposite/neutral/transitional H4 states affect H1 eligibility;
-- define ownership/invalidation so stale H4 context cannot authorize a new H1 Re-Entry.
+- define which H4 states (`eCSD`, `CSD`, `Re-Entry`, `CSM/Momentum`) can own directional authority;
+- define state inheritance/priority when multiple same-direction states are active;
+- define opposite/superseding H4 transitions and neutral/no-owner behavior;
+- define owner freshness so stale H4 context cannot authorize a new H1 Re-Entry.
 
 #### P3-M1 — Mode 1 Official BBMA Compliance Audit
 Priority: CRITICAL / NEXT STRATEGY GATE AFTER CORE-V2 SPEC CLOSURE
@@ -154,7 +159,7 @@ Before declaring P3 complete, preserve the existing Step 5 closure rule in `P3_S
 
 ## Execution order
 1. Keep `CURRENT.md` + this queue reconciled.
-2. Finish CORE-V2-F4 H4 compatibility/alignment/ownership specification.
+2. Finish CORE-V2-F4 H4 owner-family/transition/alignment specification.
 3. Define deterministic reversal-confirmation semantics required to implement the already-approved CORE-V2-F2 maturity decision.
 4. Implement/audit CORE-V2-F3 Type 1 state/owner contract and repair CORE-V2-F1 M09 MHV/MLV against the resolved canonical Core contract.
 5. Repair CORE-V2-F5 BB-flat classification and run CORE-V2-F6 timing verification.

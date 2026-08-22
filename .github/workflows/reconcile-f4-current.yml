@@ -1,0 +1,50 @@
+name: Reconcile F4 CURRENT status
+
+on:
+  pull_request:
+    branches: [ blueprint-dev ]
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'blueprint/.f4-current-reconcile'
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile-current:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+          fetch-depth: 0
+
+      - name: Reconcile CURRENT overlay after F4 implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('blueprint/CURRENT.md')
+          s = p.read_text(encoding='utf-8')
+          old1 = '- **Strategy Core V2:** F1 MHV/MLV, F2 Extreme maturity and F3 Re-Entry Type 1 are implemented with static regression PASS; F4 standalone H1/H4 parent-owner remains specification-resolved with code patch/audit pending. Native MetaEditor compile/runtime traces remain pending for the new F1/F2/F3 code.'
+          new1 = '- **Strategy Core V2:** F1 MHV/MLV, F2 Extreme maturity, F3 Re-Entry Type 1, and F4 standalone H1/H4 parent-owner are implemented with static regression PASS. Native MetaEditor compile/runtime traces remain pending for the integrated F1-F4 code.'
+          old2 = '**Implement/audit CORE-V2-F4 H4 parent-owner next; preserve the implemented F1/F2/F3 lifecycle contracts.**'
+          new2 = '**Proceed to CORE-V2-F5 BB-flat classification repair and CORE-V2-F6 timing verification, then re-run the Strategy Core audit; preserve the implemented F1-F4 lifecycle/owner contracts.**'
+          if old1 not in s or old2 not in s:
+              raise SystemExit('CURRENT F4 reconciliation marker missing')
+          s = s.replace(old1, new1, 1).replace(old2, new2, 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+          git diff --check
+
+      - name: Commit reconciled CURRENT
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- blueprint/CURRENT.md
+          git commit -m "CORE-V2-F4: reconcile current project status"
+          git push origin HEAD:blueprint-dev

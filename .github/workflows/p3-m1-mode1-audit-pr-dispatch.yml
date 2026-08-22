@@ -1,0 +1,44 @@
+name: P3-M1 Mode1 audit dispatch
+
+on:
+  pull_request:
+    branches: [ blueprint-dev ]
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'blueprint/.p3-m1-dispatch'
+
+permissions:
+  contents: write
+
+jobs:
+  audit-mode1:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+          fetch-depth: 0
+
+      - name: Audit P3-M1 Mode1 end-to-end BBMA compliance
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/apply_p3_m1_mode1_audit.py
+          git diff --check
+
+      - name: Commit P3-M1 audit to blueprint-dev
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- blueprint/P3_M1_MODE1_OFFICIAL_BBMA_COMPLIANCE_AUDIT.md \
+                     blueprint/MASTER_QUEUE.md \
+                     blueprint/CURRENT.md
+          if git diff --cached --quiet; then
+            echo 'No P3-M1 audit changes to commit.'
+            exit 0
+          fi
+          git commit -m "P3-M1: audit Mode1 official BBMA compliance"
+          git push origin HEAD:blueprint-dev

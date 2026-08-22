@@ -238,3 +238,22 @@ The final goal is one coherent system where **Blueprint → implementation → t
 The immediate goal is therefore:
 
 > Build a complete, internally consistent and implementation-ready Master Blueprint for BBMA Professional EA M01–M27, then lock it before full production coding begins.
+
+---
+
+## 16. Mandatory EA Patch / Build Identification
+
+This rule is mandatory for every future EA source-code change, patch, fix, diagnostic build, cleanup, or functional modification.
+
+- Every code change that produces a new EA build MUST update a visible identifier in the EA **About/header metadata**.
+- The identifier MUST contain a clear **patch/build name or patch/build number** that uniquely distinguishes the build being compiled or tested.
+- The identifier must be updated in the same code change; do not postpone it to a later patch.
+- Diagnostic-only and trace-only builds are included in this requirement.
+- The identifier must make it possible to match the running/tested EA to the corresponding **source file, compile result, runtime log, and GitHub commit/PR**.
+- Never reuse an old patch/build identifier for code that has changed.
+- Documentation-only changes that do not alter the EA source do not require a new EA build identifier.
+- Before declaring a code patch complete, verify that the About/header identifier matches that patch/build.
+
+**Required development check:**
+
+> EA source changed → About/header patch/build identifier updated → compile verification → runtime/test evidence → GitHub traceability.

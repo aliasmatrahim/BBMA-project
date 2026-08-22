@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  apply-f2:
+  audit-f2:
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
@@ -20,14 +20,14 @@ jobs:
           ref: blueprint-dev
           fetch-depth: 0
 
-      - name: Apply CORE-V2-F2 patch and static invariants
+      - name: Run CORE-V2-F2 post-fix and static regression
         shell: bash
         run: |
           set -euo pipefail
-          python3 .github/scripts/apply_core_v2_f2.py
+          python3 .github/scripts/postfix_audit_core_v2_f2.py
           git diff --check
 
-      - name: Commit F2 implementation to blueprint-dev
+      - name: Commit F2 post-fix/static regression record
         shell: bash
         run: |
           set -euo pipefail
@@ -35,8 +35,8 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -- blueprint/source/BBMA_EA.mq4 blueprint/CORE_V2_F2_IMPLEMENTATION_AUDIT.md
           if git diff --cached --quiet; then
-            echo 'No source changes to commit.'
+            echo 'No post-fix changes to commit.'
             exit 0
           fi
-          git commit -m "CORE-V2-F2: implement Extreme maturity lifecycle"
+          git commit -m "CORE-V2-F2: close static regression audit"
           git push origin HEAD:blueprint-dev

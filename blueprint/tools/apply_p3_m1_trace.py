@@ -35,10 +35,14 @@ rep('''void BuildConfirmedReEntryCandidate(ReEntryData &reEntry,
             " H4Recovery=", h4Owner.RecoveryComplete ? "Y" : "N");
 ''','re_eval')
 
-rep('''   candidate.PatternStrength = 0;
+rep('''   candidate.RequirementCompleteness = 1;
+   candidate.SequenceCompleteness = 1;
+   candidate.PatternStrength = 0;
    candidate.Valid = true;
 }
-''','''   candidate.PatternStrength = 0;
+''','''   candidate.RequirementCompleteness = 1;
+   candidate.SequenceCompleteness = 1;
+   candidate.PatternStrength = 0;
    candidate.Valid = true;
    if(EntryMode == 1)
       Print("[P3M1][RE_ADMIT] Type=", EnumToString(reEntry.Type),

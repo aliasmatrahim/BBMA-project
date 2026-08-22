@@ -1,0 +1,179 @@
+name: One-shot dead-code cleanup
+
+on:
+  push:
+    branches: [ blueprint-dev ]
+    paths:
+      - '.github/workflows/one-shot-dead-code-cleanup.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+
+      - name: Remove proven dead legacy code
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('blueprint/source/BBMA_EA.mq4')
+          s = p.read_text(encoding='utf-8')
+          before = s
+          removed = []
+          skipped = []
+
+          # Conservative rule: a function is removable only when its call-form
+          # token occurs exactly once in the whole source, i.e. its definition
+          # exists but no caller exists. Anything referenced is automatically kept.
+          function_candidates = [
+              'NormalizePrice', 'RoundToLotStep', 'ValidatePrice', 'IsSymbolAllowed',
+              'GetTolerance', 'FormatNumber', 'RefreshPrices', 'GetPairState',
+              'StorePairState', 'CopyPairState', 'CopyTimeframeData',
+              'GetCandleTimeFromBarIndex', 'GetExpiryTime', 'GetGlobalExpiryTime',
+              'GetCombinedExpiry', 'GetEffectiveExpiry', 'GetEffectiveMaxLot',
+              'ConvertSpreadToPoints', 'CreateCandleFromData', 'GetHighestHigh3',
+              'GetLowestLow3', 'AverageBodySize', 'CalculateBollingerArray',
+              'GetBBStateString', 'IsReversalCandle', 'IsCandleCloseOutsideBB',
+              'IsCandleCloseInsideBB', 'IsCandleCloseAbove', 'IsCandleCloseBelow',
+              'IsCandleCloseNear', 'IsDoubleTopPattern', 'IsDoubleBottomPattern',
+              'HasRecentCSD', 'HasRecentCSM', 'GetTrend', 'GetTrendFromMA50',
+              'BuildSLTP_Extreme', 'BuildSLTP_CSD', 'BuildReEntrySignal',
+              'CheckEffectiveExpiry', 'CalculateBasketProfitPercent_EA'
+          ]
+
+          def remove_function(src, name):
+              token_count = src.count(name + '(')
+              if token_count != 1:
+                  return src, False, f'{name}: kept (occurrences={token_count})'
+
+              # Find definition start at line beginning. MQL4 functions here are
+              # top-level and use a balanced-brace body.
+              pat = re.compile(r'(?m)^[\t ]*[A-Za-z_][A-Za-z0-9_<>\[\] &*]*\s+' + re.escape(name) + r'\s*\(')
+              m = pat.search(src)
+              if not m:
+                  return src, False, f'{name}: kept (definition not uniquely recognized)'
+
+              start = m.start()
+              brace = src.find('{', m.end())
+              if brace < 0:
+                  raise SystemExit(f'{name}: opening brace not found')
+              depth = 0
+              i = brace
+              in_str = False
+              esc = False
+              while i < len(src):
+                  ch = src[i]
+                  if in_str:
+                      if esc:
+                          esc = False
+                      elif ch == '\\':
+                          esc = True
+                      elif ch == '"':
+                          in_str = False
+                  else:
+                      if ch == '"':
+                          in_str = True
+                      elif ch == '{':
+                          depth += 1
+                      elif ch == '}':
+                          depth -= 1
+                          if depth == 0:
+                              end = i + 1
+                              while end < len(src) and src[end] in ' \t':
+                                  end += 1
+                              if end < len(src) and src[end] == '\r': end += 1
+                              if end < len(src) and src[end] == '\n': end += 1
+                              if end < len(src) and src[end] == '\r': end += 1
+                              if end < len(src) and src[end] == '\n': end += 1
+                              return src[:start] + src[end:], True, name
+                  i += 1
+              raise SystemExit(f'{name}: unbalanced function body')
+
+          for name in function_candidates:
+              s2, did, msg = remove_function(s, name)
+              if did:
+                  removed.append(name + '()')
+                  s = s2
+              else:
+                  skipped.append(msg)
+
+          # Remove structs only when the type name occurs exactly once in source,
+          # proving there are no variables/parameters/usages of that type.
+          struct_candidates = ['TradeRequest', 'OrderResult', 'ExecutionSnapshot']
+          for name in struct_candidates:
+              if s.count(name) != 1:
+                  skipped.append(f'struct {name}: kept (occurrences={s.count(name)})')
+                  continue
+              pat = re.compile(r'(?ms)^struct\s+' + re.escape(name) + r'\s*\{.*?^\};\s*\n')
+              m = pat.search(s)
+              if not m:
+                  skipped.append(f'struct {name}: kept (definition not uniquely recognized)')
+                  continue
+              s = s[:m.start()] + s[m.end():]
+              removed.append('struct ' + name)
+
+          if s == before:
+              raise SystemExit('No proven dead code found; refusing empty cleanup')
+
+          # Hard guards: cleanup must not touch critical source/strategy/execution anchors.
+          anchors = [
+              'bool DetectExtreme(', 'ENUM_MLV_STATE UpdateCanonicalMLVState(',
+              'ENUM_RE_STATE UpdateReEntryState(', 'void PriorityEngine_Atomic(',
+              'void InvalidationEngine_Atomic(', 'bool ResolveApprovedInitialSLTP(',
+              'RiskStatus CheckRiskBeforeTrade(', 'double CalculateLotSize(',
+              'void ProcessEntry(', 'void ProcessPair('
+          ]
+          for a in anchors:
+              if before.count(a) != 1 or s.count(a) != 1:
+                  raise SystemExit('Critical anchor changed/missing: ' + a)
+
+          # No surviving reference may exist to any item we removed.
+          for item in removed:
+              if item.endswith('()'):
+                  n = item[:-2]
+                  if n + '(' in s:
+                      raise SystemExit('Removed function still referenced: ' + n)
+
+          p.write_text(s, encoding='utf-8')
+
+          record = Path('blueprint/P3_CODE_CLEANUP_DEAD_CODE_AUDIT.md')
+          record.write_text(
+              '# P3 Code Cleanup — Proven Dead/Legacy Code Audit\n\n'
+              'Status: **CLEANUP APPLIED — BEHAVIOR-PRESERVING STATIC PASS; NATIVE METAEDITOR RECOMPILE REQUIRED**\n\n'
+              '## Safety rule\n'
+              'A function was removed only when its `name(` token occurred exactly once in the canonical source, proving the definition had no caller. Structs were removed only when the type name occurred exactly once, proving no use site existed. Public compatibility inputs and active BBMA/risk/execution gates were intentionally retained.\n\n'
+              '## Removed\n' + ''.join(f'- `{x}`\n' for x in removed) + '\n'
+              '## Candidates retained automatically\n' + (''.join(f'- {x}\n' for x in skipped) if skipped else '- None\n') + '\n'
+              '## Explicit non-changes\n'
+              '- No BBMA detector, lifecycle, Re-Entry, MTF owner, REM/RRE/REE, M15/M16 authority, or M17 SL/TP behavior changed.\n'
+              '- No risk, portfolio, lot-sizing, trade-lock, broker execution, recovery, or dashboard behavior changed.\n'
+              '- Compatibility/display inputs were not removed in this pass even when non-authoritative.\n'
+              '- No new strategy condition, threshold, score, filter, or indicator was introduced.\n\n'
+              '## Verification\n'
+              '- Critical function anchors verified exactly once before/after cleanup.\n'
+              '- Removed functions verified to have zero surviving call-form references.\n'
+              '- `git diff --check` required before commit.\n'
+              '- Native MetaEditor compile remains required before this cleanup can be called compile-verified.\n',
+              encoding='utf-8'
+          )
+          print('Removed:', ', '.join(removed))
+          print('Skipped:', '; '.join(skipped))
+          PY
+
+          git diff --check
+          git diff --stat
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- blueprint/source/BBMA_EA.mq4 blueprint/P3_CODE_CLEANUP_DEAD_CODE_AUDIT.md
+          git rm -- .github/workflows/one-shot-dead-code-cleanup.yml
+          git commit -m "P3 cleanup: remove proven dead legacy code"
+          git push origin HEAD:blueprint-dev

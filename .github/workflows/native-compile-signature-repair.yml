@@ -1,0 +1,92 @@
+name: Native compile signature repair
+
+on:
+  pull_request:
+    branches: [ blueprint-dev ]
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'blueprint/.native-compile-signature-repair'
+
+permissions:
+  contents: write
+
+jobs:
+  repair-signatures:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+          fetch-depth: 0
+
+      - name: Repair duplicated F4 function signatures and harden repair script
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          src = Path('blueprint/source/BBMA_EA.mq4')
+          s = src.read_text(encoding='utf-8')
+
+          replacements = {
+              'ENUM_SIGNAL_TYPE ClassifyH4AuthoritativeSignalENUM_SIGNAL_TYPE ClassifyH4AuthoritativeSignal':
+                  'ENUM_SIGNAL_TYPE ClassifyH4AuthoritativeSignal',
+              'bool VerifyH4OwnerCheckpointbool VerifyH4OwnerCheckpoint':
+                  'bool VerifyH4OwnerCheckpoint',
+              'void RecoverH4DirectionalOwners()void RecoverH4DirectionalOwners()':
+                  'void RecoverH4DirectionalOwners()',
+              'void NoteH4ReEntryInheritancevoid NoteH4ReEntryInheritance':
+                  'void NoteH4ReEntryInheritance',
+              'void RecoverExistingOrders()void RecoverExistingOrders()':
+                  'void RecoverExistingOrders()',
+          }
+
+          for old, new in replacements.items():
+              count = s.count(old)
+              if count != 1:
+                  raise SystemExit(f'compile signature repair: expected exactly 1 occurrence of {old!r}, found {count}')
+              s = s.replace(old, new, 1)
+
+          for bad in replacements:
+              if bad in s:
+                  raise SystemExit(f'corrupted duplicate signature still present: {bad}')
+
+          src.write_text(s, encoding='utf-8')
+
+          helper = Path('.github/scripts/fix_core_v2_f4_mql4_refs.py')
+          h = helper.read_text(encoding='utf-8')
+          old = "    s = s[:a] + replacement + s[b:]"
+          new = "    s = s[:a] + replacement + s[b + len(end):]"
+          if h.count(old) != 1:
+              raise SystemExit('F4 repair helper hardening target missing/ambiguous')
+          h = h.replace(old, new, 1)
+          helper.write_text(h, encoding='utf-8')
+
+          audit = Path('blueprint/P3_NATIVE_METAEDITOR_COMPILE_REPAIR_20260822.md')
+          audit.write_text('''# P3 — Native MetaEditor Compile Repair\n\nDate: 2026-08-22\nBranch: `blueprint-dev`\nStatus: **SCREENSHOT-DERIVED SYNTAX DEFECT CONFIRMED / FIX IMPLEMENTED / RECOMPILE REQUIRED**\n\n## Evidence\nNative MetaEditor screenshot showed a cascade beginning around the F4 H4-owner block, including `semicolon expected`, identifiers reported as already used, global-scope expression errors, and undefined-function fallout.\n\n## Root cause\nThe earlier F4 MQL4 reference-repair helper used `replace_between()` that retained the end marker while also embedding the same end marker inside the replacement text. That duplicated five function signatures and broke parser synchronization.\n\nConfirmed corrupted signatures repaired:\n1. `ClassifyH4AuthoritativeSignal`\n2. `VerifyH4OwnerCheckpoint`\n3. `RecoverH4DirectionalOwners`\n4. `NoteH4ReEntryInheritance`\n5. `RecoverExistingOrders`\n\n## Preventive fix\n`.github/scripts/fix_core_v2_f4_mql4_refs.py` now consumes the original end marker with `b + len(end)` instead of appending from `b`, preventing the same duplication if the helper is ever re-run.\n\n## Strategy boundary\nNo BBMA strategy rule, signal condition, owner semantics, entry signature, SL/TP, risk logic, or TradeLock policy was changed. This patch is syntax/parser repair only.\n\n## Required verification\nCompile the updated `blueprint/source/BBMA_EA.mq4` in native MT4 MetaEditor. Target remains **0 errors / 0 warnings**. Any remaining compiler diagnostics must be treated as the next compile-fix loop.\n''', encoding='utf-8')
+          PY
+
+          git diff --check
+          ! grep -Fq 'ClassifyH4AuthoritativeSignalENUM_SIGNAL_TYPE' blueprint/source/BBMA_EA.mq4
+          ! grep -Fq 'VerifyH4OwnerCheckpointbool' blueprint/source/BBMA_EA.mq4
+          ! grep -Fq 'RecoverH4DirectionalOwners()void' blueprint/source/BBMA_EA.mq4
+          ! grep -Fq 'NoteH4ReEntryInheritancevoid' blueprint/source/BBMA_EA.mq4
+          ! grep -Fq 'RecoverExistingOrders()void' blueprint/source/BBMA_EA.mq4
+
+      - name: Commit native compile repair to blueprint-dev
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- blueprint/source/BBMA_EA.mq4 \
+                     .github/scripts/fix_core_v2_f4_mql4_refs.py \
+                     blueprint/P3_NATIVE_METAEDITOR_COMPILE_REPAIR_20260822.md
+          if git diff --cached --quiet; then
+            echo 'No compile-repair changes to commit.'
+            exit 0
+          fi
+          git commit -m "P3: repair F4 duplicated signatures from native compile"
+          git push origin HEAD:blueprint-dev

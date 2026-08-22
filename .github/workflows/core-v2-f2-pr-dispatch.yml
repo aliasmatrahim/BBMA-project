@@ -1,0 +1,45 @@
+name: CORE-V2-F2 PR dispatch
+
+on:
+  pull_request:
+    branches: [ blueprint-dev ]
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'blueprint/.f2-dispatch'
+
+permissions:
+  contents: write
+
+jobs:
+  apply-f2:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: blueprint-dev
+          fetch-depth: 0
+
+      - name: Execute canonical F2 one-shot run block
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          src = Path('.github/workflows/one-shot-core-v2-f2-extreme-lifecycle.yml')
+          lines = src.read_text(encoding='utf-8').splitlines()
+          marker = '        run: |'
+          idx = lines.index(marker)
+          body = []
+          for line in lines[idx + 1:]:
+              if line.startswith('          '):
+                  body.append(line[10:])
+              elif line.strip() == '':
+                  body.append('')
+              else:
+                  break
+          if not body:
+              raise SystemExit('canonical F2 run block empty')
+          Path('/tmp/run-f2.sh').write_text('\n'.join(body) + '\n', encoding='utf-8')
+          PY
+          bash /tmp/run-f2.sh

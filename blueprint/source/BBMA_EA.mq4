@@ -1991,19 +1991,41 @@ double GetLowestLow3(string pair, int timeframe, int shift)
 //| LEVEL: INTERMEDIATE                                              |
 //+------------------------------------------------------------------+
 
-ENUM_BB_STATE DetectBBState(BollingerBand &current, BollingerBand &previous)
+ENUM_BB_STATE DetectBBState(BollingerBand &current, BollingerBand &previous,
+                            double horizontalTolerance)
 {
    if(current.Width <= 0 || previous.Width <= 0) return BB_NONE;
-   
+   if(current.TOP_BB <= 0 || current.MID_BB <= 0 || current.LOW_BB <= 0 ||
+      previous.TOP_BB <= 0 || previous.MID_BB <= 0 || previous.LOW_BB <= 0)
+      return BB_NONE;
+
+   // CORE-V2-F5: flat/horizontal is a geometric BB-line state, not the
+   // leftover branch of width-ratio classification.  Tolerance is exactly one
+   // broker point supplied by BuildBBShapeState(), used only as numerical
+   // equality tolerance rather than a trading/strategy threshold.
+   if(horizontalTolerance > 0)
+   {
+      bool topHorizontal =
+         (MathAbs(current.TOP_BB - previous.TOP_BB) <= horizontalTolerance);
+      bool midHorizontal =
+         (MathAbs(current.MID_BB - previous.MID_BB) <= horizontalTolerance);
+      bool lowHorizontal =
+         (MathAbs(current.LOW_BB - previous.LOW_BB) <= horizontalTolerance);
+
+      if(topHorizontal && midHorizontal && lowHorizontal)
+         return BB_FLAT;
+   }
+
    double widthRatio = current.Width / previous.Width;
-   
+
+   // Preserve the pre-existing project shape thresholds outside the repaired
+   // flat branch; F5 does not redefine squeeze/expansion strategy semantics.
    if(widthRatio < 0.9)
       return BB_SQUEEZE;
-   else if(widthRatio > 1.1)
+   if(widthRatio > 1.1)
       return BB_EXPANDING;
-   else if(widthRatio >= 0.9 && widthRatio <= 1.1)
-      return BB_CONTRACTING;
-   return BB_FLAT;
+
+   return BB_CONTRACTING;
 }
 
 bool BuildBBShapeState(string pair, TimeframeData &data,
@@ -2028,7 +2050,14 @@ bool BuildBBShapeState(string pair, TimeframeData &data,
       return false;
    }
    
-   current.State = DetectBBState(current, previous);
+   double pointTolerance = GetPointSize(pair);
+   if(pointTolerance <= 0)
+   {
+      current.State = BB_NONE;
+      return false;
+   }
+
+   current.State = DetectBBState(current, previous, pointTolerance);
    return (current.State != BB_NONE);
 }
 

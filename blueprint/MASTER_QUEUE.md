@@ -143,9 +143,11 @@ Dependency: CORE-V2-F4 must be implemented/audited and F3 implemented/audited be
 
 #### CORE-V2-F5 — M07 flat/horizontal BB state
 Priority: MEDIUM
-Status: QUEUED
+Status: **CODE IMPLEMENTED / STATIC REGRESSION PASS — NATIVE METAEDITOR COMPILE + RUNTIME TRACE PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-02
-Current issue: `BB_FLAT` is effectively unreachable in the current ratio branching. M10 CSM remains independently source-aligned, so this is not currently a proven entry leak, but the state classification must be repaired before other modules depend on it.
+Implementation record: `blueprint/CORE_V2_F5_IMPLEMENTATION_AUDIT.md`
+Resolved mapping: `BB_FLAT` is now a reachable geometric three-line horizontal state using one broker point only as numerical equality tolerance. Existing squeeze/expanding width thresholds are preserved; remaining non-flat valid near-width states remain contracting. M10 CSM remains independently source-aligned and was not changed by F5.
+Next action for F5: native MetaEditor compile and focused runtime BB-shape trace; proceed to F6 timing verification before full Core re-audit.
 
 #### CORE-V2-F6 — Re-Entry validation-candle / entry-candle timestamp audit
 Priority: MEDIUM

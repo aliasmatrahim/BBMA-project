@@ -229,3 +229,11 @@ Queued alongside/later according to `MASTER_QUEUE.md`:
 
 ## Change control
 This reconciliation changes project tracking/specification records only. It does not change EA strategy code, execution logic, risk logic, lot sizing, dashboard code, or broker behavior.
+
+
+# 2026-08-22 CORE-V2-F5 Implementation Overlay
+- **CORE-V2-F5 M07 BB-flat classification: CODE IMPLEMENTED / STATIC REGRESSION PASS.**
+- `BB_FLAT` is no longer an unreachable leftover branch; it is a geometric Top/Mid/Low horizontal state with one broker point used only as numerical equality tolerance.
+- M10 CSM logic is unchanged; F5 is a Core-support state repair, not a new execution filter.
+- F1-F5 integrated native MetaEditor compile/runtime verification remains pending.
+- **Highest-priority next Core gate: CORE-V2-F6 Re-Entry validation/entry timing verification, then rerun Strategy Core V2 audit.**

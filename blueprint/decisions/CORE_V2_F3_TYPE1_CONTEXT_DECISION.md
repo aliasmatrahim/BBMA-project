@@ -1,7 +1,7 @@
 # CORE-V2-F3 — Re-Entry Type 1 Context
 
 Date: 2026-08-22
-Status: **PARTIALLY RESOLVED — USER-APPROVED CONTEXT/RANGING/PRIOR-MOVE/MOMENTUM-PAUSE PHILOSOPHY; INVALIDATION/OWNER-LIFETIME PREDICATE STILL PENDING**
+Status: **PARTIALLY RESOLVED — USER-APPROVED CONTEXT/RANGING/PRIOR-MOVE/MOMENTUM-PAUSE/INVALIDATION PHILOSOPHY; OWNER-LIFETIME PREDICATE STILL PENDING**
 Branch: `blueprint-dev`
 
 ## User-approved decision 1 — Type 1 context
@@ -76,6 +76,34 @@ Operational meaning:
 
 Evidence classification: **SOURCE-INFERRED / STRONG HINT**. Finale V02 explicitly distinguishes expanding-BB momentum from flat/no-momentum conditions, while V05/V06 repeatedly teach direction/momentum followed by retrace/Re-Entry. The exact state-machine encoding is a project specification, not a verbatim source algorithm.
 
+## User-approved decision 6 — structural invalidation before Type 1 validation
+The project adopts **STRUCTURAL INVALIDATION** for a pending Type 1 setup rather than a fixed candle expiry or a single-condition invalidation.
+
+A pending Type 1 setup is invalidated, reset, or reclassified when any of the following occurs before Type 1 validation:
+
+1. **MA5/MA10 close-side failure**
+   - price closes through/clears the relevant MA5/MA10 cluster against the intended Re-Entry direction;
+   - the pending Type 1 setup is invalid.
+
+2. **Same-direction CSM/Momentum resumes**
+   - the prior ranging/pause phase is no longer the same structural setup;
+   - the pending Type 1 ranging state must be reset/re-evaluated;
+   - this does **not** mean the market direction is wrong; it means the old pending Type 1 ranging structure is no longer current.
+
+3. **Opposite source-valid direction/momentum appears**
+   - the old Type 1 directional context loses authority;
+   - do not carry the old direction forward as if nothing changed.
+
+4. **A more specific Re-Entry family becomes the correct owner**
+   - if the structure now specifically satisfies Type 3 (`CSM -> MA5/MA50 retrace`) or Type 4 (`CSD -> MA5/10 retrace`), reclassify to that source-defined family instead of forcing the setup to remain Type 1.
+
+Evidence classification:
+- MA5/MA10 close-side invalidation is directly supported by the accepted Re-Entry source contract;
+- momentum-resumption and opposite-direction invalidation are **SOURCE-INFERRED / STRONG HINT** from the BBMA cycle/state teaching;
+- Type 3/4 reclassification is a deterministic project ownership rule to prevent duplicate or stale setup labels, not a source claim of quality ranking.
+
+The project rejects arbitrary `N`-candle expiry as a BBMA Type 1 rule because the source provides no universal Type 1 lifetime count.
+
 ## Evidence classification
 The requirement for **rise/fall + sideways/ranging + MA5/MA10 support/resistance behavior** is directly source-backed by the primary PDF page-9 Type 1 description.
 
@@ -91,20 +119,18 @@ Therefore:
 - `BB_FLAT alone = Type 1 sideways` is rejected as too narrow/unsupported;
 - a fixed minimum Type 1 candle count is rejected as unsupported;
 - generic EMA/ATR/pip movement is rejected as proof of the required prior BBMA move;
-- one isolated non-CSM candle is rejected as proof that momentum has ended.
+- one isolated non-CSM candle is rejected as proof that momentum has ended;
+- fixed `N`-candle expiry is rejected as an unsupported BBMA Type 1 rule.
 
-The structural-ranging, prior-BBMA-state and state-transition interpretations are classified as **SOURCE-INFERRED / STRONG HINT** built on explicit PDF requirements plus Finale cycle/context teaching.
+The structural-ranging, prior-BBMA-state, state-transition and invalidation interpretations are classified as **SOURCE-INFERRED / STRONG HINT** built on explicit PDF requirements plus Finale cycle/context teaching, except where direct source support is stated above.
 
 ## Remaining implementation sub-specification
-The Core philosophy is now substantially resolved, but code still needs a deterministic invalidation/ownership predicate.
+The Core philosophy is now nearly resolved. The remaining pre-code question is **owner lifetime / freshness** for the prior direction/momentum evidence and pending Type 1 state.
 
-Remaining questions to resolve before patching M12 include:
-- exactly which structural events invalidate a pending Type 1 setup before the validating Re-Entry candle;
-- how to treat a break/close through the relevant MA5/MA10 cluster before validation;
-- how an opposite source-valid direction/momentum state terminates the old Type 1 direction context;
-- how long the prior direction/momentum state remains structurally relevant, using owner-state validity rather than an invented generic candle-count window.
+Remaining question:
+- should the prior direction/momentum owner remain structurally relevant until one of the accepted invalidation/supersession events occurs, with no arbitrary generic candle expiry; or should the project add an explicitly engineering-only stale-state timeout?
 
-These must be resolved using existing BBMA structure/state where possible, not RSI/ADX/ATR/pip-width heuristics.
+This must be resolved without presenting an invented candle-count window as an Oma Ally rule.
 
 ## Rejected alternatives
 - MA5/MA10 touch + close-side only: rejected as incomplete.
@@ -114,7 +140,8 @@ These must be resolved using existing BBMA structure/state where possible, not R
 - EMA50 slope or raw price displacement alone as proof of prior rise/fall: rejected.
 - requiring only CSM or only CSD as the universal prior move: rejected as unnecessarily narrow; valid BBMA direction/momentum state is the accepted family-level proof.
 - one non-CSM candle as sufficient proof of momentum pause: rejected.
+- fixed `N`-candle expiry as a BBMA Type 1 rule: rejected as unsupported.
 - disabling Type 1 indefinitely: not selected.
 
 ## Implementation guard
-No M12 code patch is authorized until the remaining invalidation/owner-lifetime predicate is resolved. The current active implementation remains subject to this known Core gap.
+No M12 code patch is authorized until the remaining owner-lifetime/freshness predicate is resolved. The current active implementation remains subject to this known Core gap.

@@ -180,7 +180,8 @@ Next action: native compile + focused TradeLock runtime trace; proceed to sequen
 
 ### P1 — Sequential risk-budget admission
 Priority: HIGH
-Status: QUEUED
+Status: **STATIC PASS — NO CODE FIX REQUIRED; RUNTIME MULTI-DECISION TRACE PENDING**
+Audit record: `blueprint/P3_SEQUENTIAL_RISK_BUDGET_ADMISSION_AUDIT.md`
 Purpose:
 - confirm that when multiple valid decisions compete, higher-authority/selected decision consumes prospective risk budget first;
 - subsequent trades are admitted only if cumulative prospective risk remains within M19/M20 limits;

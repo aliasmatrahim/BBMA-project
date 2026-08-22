@@ -20,7 +20,7 @@ This file is the canonical work queue for active development. It complements `bl
 
 #### CORE-V2-F1 — M09 MHV/MLV source alignment
 Priority: **CRITICAL**
-Status: **PARTIALLY RESOLVED — USER APPROVED STRUCTURAL LIFECYCLE + MANDATORY PRIOR EXTREME PROVENANCE; TP/FORMATION/ANCHOR/RETEST DETAILS PENDING**
+Status: **PARTIALLY RESOLVED — USER APPROVED STRUCTURAL LIFECYCLE + MANDATORY PRIOR EXTREME PROVENANCE + TP-WAJIB COMPLETION; EXTREME MATURITY/FORMATION/ANCHOR/RETEST DETAILS PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-04/CV2-05/CV2-06
 Decision record: `blueprint/decisions/CORE_V2_F1_MHV_MLV_LIFECYCLE_DECISION.md`
 Locked decisions:
@@ -29,18 +29,22 @@ Locked decisions:
 - accepted high-level lifecycle is `PRIOR EXTREME / TP CONTEXT -> LOSS OF PRIOR MOMENTUM -> MHV/MLV FORMATION -> MARKED BODY/REFERENCE -> RETEST / ACTIVE SETUP -> VALID CONTINUATION OR VOID/SUPERSESSION`;
 - a **prior source-valid Extreme in the same source-timeframe / owner-cycle is mandatory** for a canonical MHV/MLV candidate;
 - generic inside-BB consolidation, morphology, or loss of impulse without a provable prior Extreme owner-chain must resolve to `NO CANONICAL MHV/MLV OWNER`;
+- after the prior Extreme, the **normal TP-Wajib structural area must actually be reached before canonical MHV/MLV formation may begin**;
+- prior Extreme SELL TP-Wajib prerequisite = opposite MA5/MA10 Low area; prior Extreme BUY = opposite MA5/MA10 High area; Mid BB remains farther/maximum context rather than the canonical first TP prerequisite;
+- TP-Wajib completion is market-structure evidence, not a broker/order-status requirement;
+- advanced Extreme without normal TP-Wajib remains HOLD/UNCERTAIN and cannot bypass the canonical sequence;
 - an old Extreme cannot be reused indefinitely after the relevant cycle is superseded/restarted;
 - source-timeframe close beyond the relevant outer BB voids MHV/MLV and returns authority to Momentum/CSM;
 - marked body/reference + retest belong to the same lifecycle; synthetic fixed-point neckline logic must not replace the source body/retest concept;
 - double/triple top/bottom and H&S-like forms are morphology/examples, not mandatory universal formulas;
 - independent legacy `DetectMHV()`/MLV semantics must ultimately converge into one canonical owner-state result.
-Classification: **DIRECT SOURCE STRUCTURAL/SEQUENCE CONCEPT + PROJECT STATE-MACHINE / PROVENANCE MAPPING**.
+Classification: **DIRECT SOURCE STRUCTURAL/SEQUENCE CONCEPT + PROJECT STATE-MACHINE / PROVENANCE / STRUCTURAL-COMPLETION MAPPING**.
 Remaining specification before code:
-- decide whether TP Wajib must actually be reached/completed before MHV formation and what minimum F2 Extreme maturity is required for the provenance link;
+- decide the minimum F2 Extreme maturity required for the provenance link;
 - define deterministic BBMA proof of `LOSS OF PRIOR MOMENTUM` without ATR/ADX/pip thresholds;
 - define body-reference ownership/freeze, retest interaction, and further supersession/void rules;
 - then migrate/remove duplicate legacy detector semantics.
-Constraint: audit/spec first, then patch. Do not invent arbitrary pip thresholds, fixed candle counts or generic consolidation heuristics and present them as BBMA rules.
+Constraint: audit/spec first, then patch. Do not invent arbitrary pip thresholds, fixed candle counts, generic consolidation heuristics, broker-order prerequisites, or advanced-Extreme exceptions and present them as canonical BBMA rules.
 
 #### CORE-V2-F2 — Extreme maturity inside REM/REE
 Priority: **HIGH**

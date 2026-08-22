@@ -32,13 +32,15 @@ Constraint: audit/spec first, then patch. Do not invent arbitrary pip thresholds
 
 #### CORE-V2-F2 — Extreme maturity inside REM/REE
 Priority: **HIGH**
-Status: SPECIFICATION CLOSURE REQUIRED BEFORE CODE
+Status: **RESOLVED — USER APPROVED**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-03
-Problem:
-- Source of Truth V2 requires reversal-candle confirmation for the normal Extreme context;
-- active M08 raw Extreme is safely withheld from standalone execution but is still usable as a REM/REE component;
-- project lacks a deterministic reversal-candle maturity algorithm.
-Required action: define what maturity level an `Extreme` must reach before it can satisfy executable REM/REE. Do not invent a candle pattern from unsupported assumptions.
+Decision record: `blueprint/decisions/CORE_V2_F2_EXTREME_MATURITY_DECISION.md`
+Decision:
+- raw Extreme alone is not sufficient for executable REM/REE;
+- Extreme used as REM/REE component must be **reversal-confirmed**;
+- standalone Extreme entry still requires the later **retest** stage;
+- classification: **SOURCE-INFERRED / STRONG HINT**, not a verbatim source rule specifically defining REM/REE maturity.
+Remaining dependency before code: define a deterministic source-faithful reversal-confirmation contract. Do not invent a candle pattern.
 
 #### CORE-V2-F3 — Re-Entry Type 1 context
 Priority: **HIGH**
@@ -135,15 +137,16 @@ Before declaring P3 complete, preserve the existing Step 5 closure rule in `P3_S
 
 ## Execution order
 1. Keep `CURRENT.md` + this queue reconciled.
-2. Resolve Core V2 specification closures: CORE-V2-F2 (Extreme maturity), CORE-V2-F3 (Type 1 context), CORE-V2-F4 (higher-timeframe H1 Re-Entry context).
-3. Repair CORE-V2-F1 M09 MHV/MLV against the resolved canonical Core contract.
-4. Repair CORE-V2-F5 BB-flat classification and run CORE-V2-F6 timing verification.
-5. Re-run Core V2 static audit until no critical/high Strategy-Core mismatch remains.
-6. Complete P3-M1 Mode 1 end-to-end compliance closure and opposite-direction cycle audit.
-7. Verify sequential risk-budget admission.
-8. Complete P3 Step 5 live runtime closure evidence.
-9. Address observability/UI items: invalid-lot diagnostics and dashboard active-count refresh.
-10. Recompile and run regression/backtest gates before optimization or win-rate based analysis.
+2. Resolve remaining Core V2 specification closures: CORE-V2-F3 (Type 1 context), then CORE-V2-F4 (higher-timeframe H1 Re-Entry context).
+3. Define deterministic reversal-confirmation semantics required to implement the already-approved CORE-V2-F2 maturity decision.
+4. Repair CORE-V2-F1 M09 MHV/MLV against the resolved canonical Core contract.
+5. Repair CORE-V2-F5 BB-flat classification and run CORE-V2-F6 timing verification.
+6. Re-run Core V2 static audit until no critical/high Strategy-Core mismatch remains.
+7. Complete P3-M1 Mode 1 end-to-end compliance closure and opposite-direction cycle audit.
+8. Verify sequential risk-budget admission.
+9. Complete P3 Step 5 live runtime closure evidence.
+10. Address observability/UI items: invalid-lot diagnostics and dashboard active-count refresh.
+11. Recompile and run regression/backtest gates before optimization or win-rate based analysis.
 
 ## Governance
 - GitHub records are authoritative over chat recollection.

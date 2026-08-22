@@ -1,7 +1,7 @@
 # CORE-V2-F1 — MHV/MLV Canonical Lifecycle
 
 Date: 2026-08-22
-Status: **PARTIALLY RESOLVED — DECISIONS 1–11 USER APPROVED; FINAL SAME-CYCLE PROVENANCE TERMINATION/SUPERSESSION EVENT STILL PENDING**
+Status: **RESOLVED — USER-DELEGATED BEST-RECOMMENDATION REVIEW COMPLETE; SPECIFICATION CLOSED; CODE PATCH/AUDIT STILL PENDING**
 Branch: `blueprint-dev`
 
 ## Decision 1 — MHV/MLV is one structural lifecycle
@@ -151,7 +151,7 @@ Locked semantics:
 
 Canonical progression:
 
-`MHV/MLV FORMATION / RETEST -> SAME-CYCLE eCSD/CSD -> DIRECTION STAGE ACTIVE`, with completed MHV/MLV retained as same-cycle provenance until a separately approved structural supersession event occurs.
+`MHV/MLV FORMATION / RETEST -> SAME-CYCLE eCSD/CSD -> DIRECTION STAGE ACTIVE`, with completed MHV/MLV retained as same-cycle provenance until structural cycle supersession.
 
 Classification: **DIRECT SOURCE CYCLE ORDER + SOURCE-INFERRED STATE-PROGRESSION / ACTIVE-STAGE-vs-PROVENANCE MAPPING**.
 
@@ -163,9 +163,8 @@ Locked operational rule:
 - if a candle simultaneously satisfies an MHV promotion/retest event and the applicable source-valid Momentum/outer-BB invalidation contract, invalidation has priority;
 - once a valid same-cycle `eCSD` or `CSD` has structurally taken ownership as the direction stage, the active MHV invalidation window closes;
 - later same-cycle Re-Entry and CSM/Momentum are normal cycle progression and must **not retroactively convert the completed MHV/MLV provenance into `VOID`**;
-- after direction-stage takeover, MHV/MLV is historical same-cycle provenance rather than the current active setup stage; its frozen marked body remains immutable historical/reference data until the separately defined cycle-supersession event terminates that provenance;
-- no fixed-N expiry, session/day reset or "first later Momentum erases MHV" rule is introduced;
-- this decision governs the **invalidation window only**. The exact new-cycle event that finally terminates/supersedes historical MHV provenance remains pending Review 5L.
+- after direction-stage takeover, MHV/MLV is historical same-cycle provenance rather than the current active setup stage; its frozen marked body remains immutable historical/reference data until cycle supersession;
+- no fixed-N expiry, session/day reset or "first later Momentum erases MHV" rule is introduced.
 
 Canonical stage boundary:
 
@@ -177,16 +176,55 @@ but
 
 Classification: **DIRECT SOURCE MHV INVALIDATION + CYCLE-PROGRESSION PRINCIPLE, WITH SOURCE-INFERRED INVALIDATION-WINDOW MAPPING**.
 
-## Source support for Decisions 1–11
-- primary PDF digest page 2: cycle proceeds `Extreme -> TP -> MLV/MHV -> eCSD/CSD -> Re-Entry -> CSM/Momentum -> later opposite Extreme/cycle restart`;
-- primary PDF digest pages 5–6: Extreme requires reversal behaviour and an isolated Extreme does not by itself prove a trend reversal;
-- primary PDF digest pages 7–8: MLV normally forms after Extreme, uses highest/lowest body marking for possible retest, and is void when price breaks/closes outside the relevant outer BB during MLV context;
-- primary PDF digest pages 12–13: exact REM signature is `H4 Re-Entry + H1 Extreme + M15 MLV/MHV`;
-- Finale V05 OA-F-V05-006 to 009: MHV follows Extreme + TP Wajib, represents loss of prior momentum, must remain inside relevant outer BB, and uses marked body/retest structure;
-- Finale V05 OA-F-V05-010 to 016: eCSD/CSD provide subsequent direction, followed by Re-Entry and continuation; direction is a signal rather than direct entry;
+## Decision 12 — opposite reversal-confirmed Extreme atomically supersedes old-cycle MHV/MLV provenance
+Following the user's instruction to continue remaining choices using the strongest source-faithful recommendation without asking again, the project adopts **OPPOSITE `REVERSAL-CONFIRMED EXTREME` ON THE SAME SOURCE TIMEFRAME AS THE NEW-CYCLE SUPERSESSION EVENT**.
+
+Locked operational rule:
+- an opposite `RAW EXTREME` is a **new-cycle candidate only** and does not by itself erase or supersede the current cycle or its completed MHV/MLV provenance;
+- if that opposite RAW Extreme becomes `VOID` before reversal confirmation, the old cycle remains structurally unsuperseded by that failed candidate;
+- when the opposite Extreme reaches the F2 minimum maturity `REVERSAL-CONFIRMED EXTREME`, the project performs an **atomic cycle supersession** on that closed-candle transition;
+- the old cycle's MHV/MLV provenance and frozen marked-body reference cease to be eligible for current-cycle ownership, new REM construction, current validation, inherited setup authority or future MHV retest authority;
+- superseded provenance may remain available for immutable diagnostics/history only;
+- the opposite Extreme does **not** have to reach standalone `RETEST/ENTRY-READY` maturity merely to establish the new structural cycle boundary, because standalone retest is entry maturity rather than the minimum reversal-confirmed cycle proof;
+- opposite eCSD/CSD without the approved opposite Extreme cycle transition does not by itself replace this explicit cycle-restart event for F1 provenance termination;
+- no fixed candle count, timer, session/day reset or generic age expiry is used for cycle supersession.
+
+Canonical supersession transition:
+
+`OLD CYCLE + COMPLETED MHV/MLV PROVENANCE -> OPPOSITE RAW EXTREME = NEW-CYCLE CANDIDATE -> OPPOSITE REVERSAL-CONFIRMED EXTREME -> ATOMIC OLD-CYCLE SUPERSESSION -> OLD MHV/MLV PROVENANCE HISTORICAL-ONLY`
+
+Classification: **DIRECT SOURCE OPPOSITE-EXTREME CYCLE-RESTART PRINCIPLE + F2 REVERSAL REQUIREMENT + SOURCE-INFERRED ATOMIC SUPERSESSION MAPPING**.
+
+## Consolidated canonical F1 lifecycle
+
+`REVERSAL-CONFIRMED PRIOR EXTREME`
+`-> NORMAL TP-WAJIB STRUCTURALLY COMPLETED`
+`-> ELIGIBLE MHV/MLV PARENT CONTEXT`
+`-> POST-TP STRUCTURAL FAILED CONTINUATION / LOSS OF PRIOR MOMENTUM`
+`-> MOST-EXTREME BODY DEVELOPS`
+`-> FIRST CLOSED MOVE AWAY`
+`-> MHV/MLV FORMATION ESTABLISHED + MARKED BODY FROZEN`
+`-> OPTIONAL LATER RANGE/WICK RETEST -> RETEST COMPLETE / ACTIVE MHV SETUP`
+`-> SAME-CYCLE eCSD/CSD DIRECTION TAKEOVER`
+`-> RE-ENTRY / SAME-CYCLE CSM-MOMENTUM CONTINUATION`
+`-> OPPOSITE RAW EXTREME = NEW-CYCLE CANDIDATE ONLY`
+`-> OPPOSITE REVERSAL-CONFIRMED EXTREME = ATOMIC OLD-CYCLE SUPERSESSION`
+
+Invalidation window:
+- before same-cycle eCSD/CSD direction takeover, applicable source-valid outside-outer-BB close / Momentum has priority and can void pending/current MHV;
+- after valid direction takeover, later same-cycle Re-Entry/CSM/Momentum cannot retroactively void completed MHV provenance;
+- final historical-provenance termination occurs on the opposite reversal-confirmed Extreme cycle transition.
+
+## Source support for Decisions 1–12
+- primary PDF page 2: cycle proceeds `Extreme -> TP -> MLV/MHV -> eCSD/CSD -> Re-Entry -> CSM/Momentum -> opposite Extreme / cycle restart`;
+- primary PDF pages 5–6: Extreme requires reversal behaviour and an isolated/raw Extreme does not itself establish trend reversal;
+- primary PDF pages 7–8: MLV normally forms after Extreme, uses highest/lowest body marking for possible retest, and is void when price breaks/closes outside the relevant outer BB during MLV context;
+- primary PDF pages 12–13: exact REM signature is `H4 Re-Entry + H1 Extreme + M15 MLV/MHV`;
+- Finale V05 OA-F-V05-006 to 009: MHV follows Extreme + TP Wajib, represents loss of prior momentum, must remain inside the relevant outer BB during its stage, and uses marked body/retest structure;
+- Finale V05 OA-F-V05-010 to 016: eCSD/CSD provide subsequent direction, followed by Re-Entry and continuation;
 - Finale V05 OA-F-V05-017/019 corroborate the multi-timeframe family relationship while the PDF governs exact REM signatures.
 
-The exact software states, body-edge formulas, close-to-close turning predicates, fixed-anchor rule, range-interaction retest predicate, REM component-maturity threshold, active-stage/provenance bookkeeping, and invalidation-window boundary are project-level deterministic mappings and are not claimed as verbatim Oma Ally Boolean formulas.
+The software owner states, body-edge formulas, close-to-close turning predicates, fixed-anchor rule, range-interaction retest predicate, REM component-maturity threshold, active-stage/provenance bookkeeping, stage-bounded invalidation window and atomic cycle-supersession transition are **project deterministic mappings** of the supported source structure and are not claimed as verbatim Oma Ally Boolean formulas.
 
 ## Rejected alternatives
 - one-candle detector as the complete MHV/MLV model;
@@ -204,16 +242,21 @@ The exact software states, body-edge formulas, close-to-close turning predicates
 - pending loss-of-momentum as sufficient M15 REM component;
 - mandatory MHV retest completion merely for REM component maturity;
 - same-cycle eCSD/CSD as retroactive MHV invalidation;
-- allowing later same-cycle Re-Entry/CSM/Momentum to retroactively erase a completed MHV after direction-stage takeover;
+- allowing later same-cycle Re-Entry/CSM/Momentum to retroactively erase completed MHV after direction-stage takeover;
+- opposite RAW Extreme as immediate cycle supersession;
+- requiring opposite Extreme standalone retest/entry-ready maturity merely to supersede the old cycle;
+- opposite eCSD/CSD alone as the canonical F1 new-cycle termination event;
 - generic fixed candle/session/day expiry.
 
-## Remaining specification before code
-Decisions 1–11 are locked. One Core semantic decision remains before F1 specification closure:
-- define the structural **new-cycle event that finally terminates/supersedes completed same-cycle MHV/MLV provenance** (Review 5L).
+## Specification closure
+**CORE-V2-F1 is fully resolved at the Strategy-Core specification level.**
 
-After that:
-- reconcile `MASTER_QUEUE.md` and Strategy Core Source of Truth V2;
-- migrate/remove legacy duplicate detector semantics;
-- patch/audit M09 only after the complete canonical contract is closed.
+No further user choice is required for F1 unless stronger/new source evidence materially conflicts with this contract.
 
-No EA code change is authorized by these decisions alone.
+Next engineering work:
+- migrate/remove independent legacy duplicate `DetectMHV()`/MLV semantics;
+- implement one canonical M09 owner-state lifecycle matching Decisions 1–12;
+- audit REM M15 component maturity, invalidation and stale-provenance rejection end-to-end;
+- compile/regression/runtime validation after implementation.
+
+No EA code change is authorized by this review record alone.

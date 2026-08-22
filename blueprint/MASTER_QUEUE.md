@@ -20,49 +20,34 @@ This file is the canonical work queue for active development. It complements `bl
 
 #### CORE-V2-F1 — M09 MHV/MLV source alignment
 Priority: **CRITICAL**
-Status: **PARTIALLY RESOLVED — USER APPROVED STRUCTURAL LIFECYCLE + MANDATORY PRIOR EXTREME PROVENANCE + TP-WAJIB COMPLETION + REVERSAL-CONFIRMED PARENT MATURITY + STRUCTURAL LOSS-OF-MOMENTUM + TURNING-BODY FORMATION + IMMEDIATE BODY FREEZE + RANGE-TOUCH RETEST + REM COMPONENT MATURITY + SAME-CYCLE DIRECTION PROGRESSION; FINAL SUPERSESSION WINDOW/RULES PENDING**
+Status: **SPECIFICATION RESOLVED — BEST-RECOMMENDATION REVIEW COMPLETE; CODE PATCH/AUDIT STILL PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-04/CV2-05/CV2-06
 Decision record: `blueprint/decisions/CORE_V2_F1_MHV_MLV_LIFECYCLE_DECISION.md`
 Locked decisions:
 - MHV/MLV is one canonical structural lifecycle/owner-state model, not a one-candle detector;
-- MHV and MLV remain terminology aliases for one setup family unless stronger source evidence later distinguishes them;
-- accepted high-level lifecycle is `PRIOR EXTREME / TP CONTEXT -> LOSS OF PRIOR MOMENTUM -> MHV/MLV FORMATION -> MARKED BODY/REFERENCE -> RETEST / ACTIVE SETUP -> DIRECTION / CONTINUATION OR VOID/SUPERSESSION`;
-- a **prior source-valid Extreme in the same source-timeframe / owner-cycle is mandatory** for a canonical MHV/MLV candidate;
-- generic inside-BB consolidation, morphology, or loss of impulse without a provable prior Extreme owner-chain must resolve to `NO CANONICAL MHV/MLV OWNER`;
-- after the prior Extreme, the **normal TP-Wajib structural area must actually be reached before canonical MHV/MLV formation may begin**;
-- prior Extreme SELL TP-Wajib prerequisite = opposite MA5/MA10 Low area; prior Extreme BUY = opposite MA5/MA10 High area; Mid BB remains farther/maximum context rather than the canonical first TP prerequisite;
-- TP-Wajib completion is market-structure evidence, not a broker/order-status requirement;
-- minimum parent maturity is **REVERSAL-CONFIRMED EXTREME**; `RAW EXTREME` is insufficient and standalone `RETEST/ENTRY-READY` maturity is not required solely for downstream MHV/MLV provenance;
-- canonical parent chain is `RAW EXTREME -> REVERSAL-CONFIRMED -> TP-WAJIB STRUCTURALLY COMPLETED -> ELIGIBLE MHV/MLV PARENT CONTEXT`;
-- after eligible parent context, `LOSS OF PRIOR MOMENTUM` is a **structural failed-continuation state**: a post-TP structure must actually develop inside the relevant outer BB without producing source-valid Momentum/CSM;
-- one ordinary/non-Momentum candle alone is insufficient; absence of Momentum is necessary but not sufficient;
-- `BB_FLAT`, ATR, ADX, fixed pip displacement, fixed body-size rules and fixed 2-/3-candle minimums are not canonical MHV/MLV loss-of-momentum proof;
-- concrete initial MHV/MLV formation uses the most-extreme candle-body edge accumulated during the loss-of-momentum phase plus the first closed move away from that side;
-- after prior Extreme SELL: track lowest `BodyBottom=min(Open,Close)` and establish bottom-side formation on first later `CurrentClose > PreviousClose`;
-- after prior Extreme BUY: track highest `BodyTop=max(Open,Close)` and establish top-side formation on first later `CurrentClose < PreviousClose`;
-- the move-away trigger candle is excluded from the accumulated body-extreme reference; wick High/Low is not substituted for the body mark;
-- the marked body **freezes immediately when formation is established** and must not drift with later candles;
-- bottom-side MHV retest completes on a later candle with `Low <= FrozenMarkedBody`; top-side MHV retest completes on a later candle with `High >= FrozenMarkedBody`;
-- price-range/wick interaction with the frozen marked body is sufficient for retest completion; no universal body-close-at-anchor, named-pattern, extra close-away, mandatory second/third touch, double/triple morphology or eCSD/CSD prerequisite is added;
-- the formation-establishing move-away candle cannot also count as the later retest candle;
-- `RETEST COMPLETE / ACTIVE MHV SETUP` remains setup/context maturity only and does not become direct trade-entry authority;
-- for the **M15 MHV/MLV leg of REM**, minimum maturity is `FORMATION ESTABLISHED + FROZEN MARKED BODY`; a merely pending loss-of-momentum state is insufficient, while later `RETEST COMPLETE` is not mandatory merely to satisfy the REM component;
-- exact REM signature remains `H4 Re-Entry + H1 Extreme + M15 MHV/MLV`; this maturity mapping does not add eCSD/CSD, second retest, double/triple morphology or fixed waiting periods;
-- same-cycle source-valid `eCSD/CSD` is normal progression into the direction stage and does **not** retroactively void an already-completed MHV/MLV;
-- after same-cycle direction progression, distinguish the current active stage from completed structural provenance: direction may become active while the completed MHV/MLV + frozen reference remain immutable same-cycle history until a separately approved structural termination occurs;
-- no generic fixed candle/session/day expiry or "new signal erases old setup" rule is introduced;
-- if source-valid outer-BB close / Momentum/CSM occurs before or during a competing MHV promotion under the applicable invalidation window, invalidation has priority and a void/superseded M15 MHV/MLV cannot satisfy REM;
-- advanced Extreme without normal TP-Wajib remains HOLD/UNCERTAIN and cannot bypass the canonical sequence;
-- an old Extreme cannot be reused indefinitely after the relevant cycle is superseded/restarted;
-- marked body/reference + retest belong to the same lifecycle; synthetic fixed-point neckline logic must not replace the source body/retest concept;
-- double/triple top/bottom and H&S-like forms are morphology/examples, not mandatory universal formulas;
-- independent legacy `DetectMHV()`/MLV semantics must ultimately converge into one canonical owner-state result.
-Classification: **DIRECT SOURCE STRUCTURAL/SEQUENCE/REVERSAL/LOSS-OF-MOMENTUM/BODY-MARKING/RETEST/REM-SIGNATURE/CYCLE-ORDER CONCEPT + PROJECT STATE-MACHINE / PROVENANCE / STRUCTURAL-COMPLETION / TURNING-POINT / FIXED-REFERENCE / RANGE-INTERACTION / COMPONENT-MATURITY / ACTIVE-STAGE-vs-PROVENANCE MAPPING; ENTRY-MATURITY-vs-CYCLE-PROVENANCE, FAILED-CONTINUATION STATE, REM COMPONENT MATURITY AND DIRECTION-STAGE BOOKKEEPING ARE SOURCE-INFERRED**.
-Remaining specification before code:
-- define the exact lifecycle window for outer-BB/Momentum invalidation after formation/retest and after later stage progression;
-- define the structural event that finally terminates/supersedes same-cycle MHV/MLV provenance;
-- then migrate/remove duplicate legacy detector semantics.
-Constraint: audit/spec first, then patch. Do not invent arbitrary pip thresholds, fixed candle counts, generic consolidation heuristics, broker-order prerequisites, mandatory morphology, moving anchors, extra retest confirmation patterns, extra REM component gates, generic new-signal expiry, or advanced-Extreme exceptions and present them as canonical BBMA rules.
+- a prior source-valid Extreme in the same source timeframe/owner-cycle is mandatory;
+- minimum parent maturity = `REVERSAL-CONFIRMED EXTREME`;
+- normal TP-Wajib structural completion is mandatory before canonical MHV formation;
+- loss of prior momentum is a developing structural failed-continuation state inside the relevant outer BB without source-valid Momentum/CSM; one ordinary non-Momentum candle is insufficient;
+- concrete formation uses the most-extreme body during that phase plus the first closed move away from that side;
+- prior Extreme SELL -> track lowest `BodyBottom=min(Open,Close)`; first later `CurrentClose > PreviousClose` establishes bottom-side MHV;
+- prior Extreme BUY -> track highest `BodyTop=max(Open,Close)`; first later `CurrentClose < PreviousClose` establishes top-side MHV;
+- move-away trigger candle is excluded from the accumulated body extreme;
+- marked body freezes immediately at formation and cannot drift;
+- retest completes on a later price-range/wick interaction with the frozen marked body: bottom-side `Low <= FrozenMarkedBody`, top-side `High >= FrozenMarkedBody`;
+- no universal extra close-away, named pattern, mandatory double/triple morphology, eCSD/CSD or fixed candle count is added for formation/retest;
+- MHV remains setup/context, not standalone direct entry authority;
+- M15 MHV/MLV used in REM requires minimum `FORMATION ESTABLISHED + FROZEN MARKED BODY`; later MHV retest completion is not mandatory merely for the REM component;
+- same-cycle eCSD/CSD advances the cycle and does not retroactively void completed MHV provenance;
+- active MHV outer-BB/Momentum invalidation window closes when valid same-cycle eCSD/CSD takes direction ownership; later same-cycle Re-Entry/CSM/Momentum cannot retroactively erase completed MHV provenance;
+- opposite RAW Extreme is only a new-cycle candidate;
+- **opposite `REVERSAL-CONFIRMED EXTREME` on the same source timeframe atomically supersedes the old cycle**, after which old MHV/MLV provenance/frozen reference are historical-only and cannot satisfy new REM/current-cycle authority;
+- no generic fixed candle/session/day expiry is used;
+- double/triple top/bottom and H&S-like forms remain morphology/examples, not mandatory formulas;
+- independent legacy `DetectMHV()`/MLV semantics must converge into one canonical M09 owner-state result.
+Classification: **DIRECT SOURCE STRUCTURAL/SEQUENCE/LOSS-OF-MOMENTUM/BODY-RETEST/REM/CYCLE-RESTART CONCEPT + PROJECT DETERMINISTIC STATE-MACHINE / PROVENANCE / TURNING-POINT / FIXED-REFERENCE / COMPONENT-MATURITY / STAGE-BOUNDARY / ATOMIC-SUPERSESSION MAPPING**.
+Constraint: implementation must reproduce the resolved contract without arbitrary pip thresholds, fixed-N expiry, generic consolidation heuristics, broker-order prerequisites, mandatory morphology, moving anchors, or unsupported extra REM gates.
+Next action for F1: migrate/remove duplicate MHV detector semantics, implement/audit one canonical M09 lifecycle, verify REM stale-provenance rejection, then compile/regression/runtime-test. No EA code was changed during specification review.
 
 #### CORE-V2-F2 — Extreme maturity inside REM/REE
 Priority: **HIGH**
@@ -215,15 +200,14 @@ Before declaring P3 complete, preserve the existing Step 5 closure rule in `P3_S
 
 ## Execution order
 1. Keep `CURRENT.md` + this queue reconciled.
-2. Finish CORE-V2-F1 MHV/MLV lifecycle specification.
-3. Implement/audit resolved CORE-V2-F1/F2/F3/F4 contracts in dependency-safe order.
-4. Repair CORE-V2-F5 BB-flat classification and run CORE-V2-F6 timing verification.
-5. Re-run Core V2 static audit until no critical/high Strategy-Core mismatch remains.
-6. Complete P3-M1 Mode 1 end-to-end compliance closure and opposite-direction cycle audit.
-7. Verify sequential risk-budget admission.
-8. Complete P3 Step 5 live runtime closure evidence.
-9. Address observability/UI items: invalid-lot diagnostics and dashboard active-count refresh.
-10. Recompile and run regression/backtest gates before optimization or win-rate based analysis.
+2. Implement/audit resolved CORE-V2-F1/F2/F3/F4 contracts in dependency-safe order.
+3. Repair CORE-V2-F5 BB-flat classification and run CORE-V2-F6 timing verification.
+4. Re-run Core V2 static audit until no critical/high Strategy-Core mismatch remains.
+5. Complete P3-M1 Mode 1 end-to-end compliance closure and opposite-direction cycle audit.
+6. Verify sequential risk-budget admission.
+7. Complete P3 Step 5 live runtime closure evidence.
+8. Address observability/UI items: invalid-lot diagnostics and dashboard active-count refresh.
+9. Recompile and run regression/backtest gates before optimization or win-rate based analysis.
 
 ## Governance
 - GitHub records are authoritative over chat recollection.

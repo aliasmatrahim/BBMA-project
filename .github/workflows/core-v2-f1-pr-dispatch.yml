@@ -24,7 +24,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 .github/scripts/apply_core_v2_f1.py
+          python3 .github/scripts/run_core_v2_f1.py
           git diff --check
 
       - name: Commit F1 implementation to blueprint-dev

@@ -20,7 +20,7 @@ This file is the canonical work queue for active development. It complements `bl
 
 #### CORE-V2-F1 — M09 MHV/MLV source alignment
 Priority: **CRITICAL**
-Status: **PARTIALLY RESOLVED — USER APPROVED STRUCTURAL LIFECYCLE + MANDATORY PRIOR EXTREME PROVENANCE + TP-WAJIB COMPLETION + REVERSAL-CONFIRMED PARENT MATURITY; FORMATION/ANCHOR/RETEST DETAILS PENDING**
+Status: **PARTIALLY RESOLVED — USER APPROVED STRUCTURAL LIFECYCLE + MANDATORY PRIOR EXTREME PROVENANCE + TP-WAJIB COMPLETION + REVERSAL-CONFIRMED PARENT MATURITY + STRUCTURAL LOSS-OF-MOMENTUM STATE; ANCHOR/RETEST/SUPERSESSION DETAILS PENDING**
 Source: `blueprint/P3_CORE_V2_STRATEGY_AUDIT.md` CV2-04/CV2-05/CV2-06
 Decision record: `blueprint/decisions/CORE_V2_F1_MHV_MLV_LIFECYCLE_DECISION.md`
 Locked decisions:
@@ -34,15 +34,19 @@ Locked decisions:
 - TP-Wajib completion is market-structure evidence, not a broker/order-status requirement;
 - minimum parent maturity is **REVERSAL-CONFIRMED EXTREME**; `RAW EXTREME` is insufficient and standalone `RETEST/ENTRY-READY` maturity is not required solely for downstream MHV/MLV provenance;
 - canonical parent chain is `RAW EXTREME -> REVERSAL-CONFIRMED -> TP-WAJIB STRUCTURALLY COMPLETED -> ELIGIBLE MHV/MLV PARENT CONTEXT`;
+- after eligible parent context, `LOSS OF PRIOR MOMENTUM` is a **structural failed-continuation state**: a post-TP structure must actually develop inside the relevant outer BB without producing source-valid Momentum/CSM;
+- one ordinary/non-Momentum candle alone is insufficient; absence of Momentum is necessary but not sufficient;
+- `BB_FLAT`, ATR, ADX, fixed pip displacement, fixed body-size rules and fixed 2-/3-candle minimums are not canonical MHV/MLV loss-of-momentum proof;
+- if source-valid outer-BB close / Momentum/CSM occurs before formation matures, the pending MHV/MLV interpretation is void/superseded;
 - advanced Extreme without normal TP-Wajib remains HOLD/UNCERTAIN and cannot bypass the canonical sequence;
 - an old Extreme cannot be reused indefinitely after the relevant cycle is superseded/restarted;
 - source-timeframe close beyond the relevant outer BB voids MHV/MLV and returns authority to Momentum/CSM;
 - marked body/reference + retest belong to the same lifecycle; synthetic fixed-point neckline logic must not replace the source body/retest concept;
 - double/triple top/bottom and H&S-like forms are morphology/examples, not mandatory universal formulas;
 - independent legacy `DetectMHV()`/MLV semantics must ultimately converge into one canonical owner-state result.
-Classification: **DIRECT SOURCE STRUCTURAL/SEQUENCE/REVERSAL CONCEPT + PROJECT STATE-MACHINE / PROVENANCE / STRUCTURAL-COMPLETION MAPPING; ENTRY-MATURITY-vs-CYCLE-PROVENANCE SEPARATION IS SOURCE-INFERRED**.
+Classification: **DIRECT SOURCE STRUCTURAL/SEQUENCE/REVERSAL/LOSS-OF-MOMENTUM CONCEPT + PROJECT STATE-MACHINE / PROVENANCE / STRUCTURAL-COMPLETION MAPPING; ENTRY-MATURITY-vs-CYCLE-PROVENANCE AND FAILED-CONTINUATION STATE ARE SOURCE-INFERRED**.
 Remaining specification before code:
-- define deterministic BBMA proof of `LOSS OF PRIOR MOMENTUM` without ATR/ADX/pip thresholds;
+- define the exact body/pivot/reference predicate that matures the loss-of-momentum state into a concrete MHV/MLV formation;
 - define body-reference ownership/freeze, retest interaction, and further supersession/void rules;
 - then migrate/remove duplicate legacy detector semantics.
 Constraint: audit/spec first, then patch. Do not invent arbitrary pip thresholds, fixed candle counts, generic consolidation heuristics, broker-order prerequisites, or advanced-Extreme exceptions and present them as canonical BBMA rules.
@@ -111,7 +115,7 @@ Locked decisions:
 - simultaneous authoritative H4 BUY and SELL owners are not allowed;
 - opposite raw Extreme/MHV alone do not establish the new directional owner;
 - a neutral H4 candle does not erase an already-valid inherited H4 owner if that owner remains structurally valid;
-- when H4 is truly **NO OWNER**, standalone H1 Re-Entry execution is blocked until a compatible H4 owner exists;
+- when H4 is truly **NO_OWNER**, standalone H1 Re-Entry execution is blocked until a compatible H4 owner exists;
 - no-owner must not silently fall back to D1, Mid-BB/MA50, candle color, generic price position or absence of opposite signal;
 - H4 owner lifetime is **purely structural with no generic fixed candle/time/session expiry**;
 - restart/recovery uses **verified persisted checkpoint + deterministic closed-H4 replay**; checkpoint is cache/provenance aid, not unquestioned truth;

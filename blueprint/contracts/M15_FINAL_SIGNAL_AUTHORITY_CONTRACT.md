@@ -1,123 +1,189 @@
 # M15 Final Signal / Entry Authority Contract
 
 ## Status
-P0 Step 6 architecture contract for Module 15, with M27 atomic routing support.
+P0 Step 6 architecture contract for Module 15, reconciled 2026-08-24 with the D1 major-trend strategic-owner decision.
 
-The user-supplied BBMA PDFs govern BBMA strategy semantics. `Oma ally BBMA - AL.pdf` is the primary operational reference. The locked project `ENTRY_MODE_CONTRACT.md` governs the meaning of Entry Mode 1 and Entry Mode 2.
+The BBMA source hierarchy governs strategy semantics. `Oma ally BBMA - AL.pdf` remains the primary operational reference. The locked `ENTRY_MODE_CONTRACT.md` governs Entry Mode 1 and Entry Mode 2. D1 strategic-owner semantics are supplied by `M11_D1_MAJOR_TREND_OWNER_CONTRACT.md`.
 
 ## Final-authority ownership
-M15 is the single final BBMA direction/entry-eligibility authority for one pair on one closed-M15 processing cycle.
+M15 is the single final **new-entry direction / entry-eligibility authority** for one pair on one closed-M15 processing cycle.
 
-M15 does not detect Extreme, MLV, CSD/eCSD, CSM or Re-Entry. It consumes only candidates that have already been made valid by their owning modules:
+M15 does not detect Extreme, MHV/MLV, CSD/eCSD, CSM, Re-Entry or D1 major trend. It consumes only owner-produced snapshots/candidates:
+- M11 D1 major-trend owner snapshot;
 - M12 confirmed H1 Re-Entry snapshot;
 - M14 validated REM/RRE/REE combination candidates.
 
 Raw detector `Valid=true` is never sufficient to create an M15 execution candidate.
 
+## D1 strategic-direction gate — canonical first eligibility layer
+Before a structurally valid candidate may participate in final new-entry selection, it must pass the M11 D1 strategic-owner gate.
+
+Accepted M11 states:
+- `D1_OWNER_BUY_CONFIRMED`;
+- `D1_OWNER_SELL_CONFIRMED`;
+- `D1_TRANSITION`;
+- `D1_OWNER_UNRESOLVED`.
+
+Eligibility:
+- confirmed BUY -> only BUY candidates survive;
+- confirmed SELL -> only SELL candidates survive;
+- transition -> no candidate survives for new entry;
+- unresolved -> no candidate survives for new entry.
+
+A previous/last-confirmed D1 direction retained for diagnostics during transition must not be used as current execution authority.
+
+M15 must not derive D1 direction independently from price/MA50. It consumes the M11 result.
+
+### Gate order
+The canonical order inside M15 is:
+
+`STRUCTURALLY VALID CANDIDATES -> D1 STRATEGIC DIRECTION FILTER -> ATOMIC SURVIVING-DIRECTION CHECK -> CANONICAL SAME-DIRECTION SELECTION`
+
+This means the old conservative simultaneous BUY+SELL conflict rule applies **after** source-authorized D1 strategic filtering. D1 is not an invented tie-break; it is the higher-timeframe strategic authority established by the reconciled source contract.
+
+If malformed data somehow leaves both BUY and SELL eligible after a single confirmed D1 direction has been applied, fail closed and create no trade decision.
+
 ## Entry Mode implementation
 ### EntryMode 1 — RE_ENTRY_ONLY
-Eligible candidate type:
+Eligible structural candidate type:
 - `SIGNAL_RE_ENTRY` only.
 
-The standalone project candidate is the authoritative **confirmed H1 Re-Entry** snapshot from M12. H4 and D1 Re-Entry remain higher-timeframe context/components for REM/RRE/REE in the current D1/H4/H1/M15 architecture.
+The standalone candidate is the authoritative confirmed **H1 Re-Entry** snapshot from M12.
+
+Final eligibility additionally requires:
+1. source-valid confirmed H1 Re-Entry;
+2. active compatible H4 structural/directional owner under F4;
+3. confirmed same-direction D1 strategic owner under M11.
+
+H4 alone is no longer sufficient after the Home Course/D1 reconciliation.
 
 Candidate/unconfirmed/expired Re-Entry is not eligible.
 
 ### EntryMode 2 — ALL_VALIDATED_BBMA_ENTRIES
-Currently implemented eligible candidate types:
+Structurally eligible candidate types:
 - confirmed H1 `SIGNAL_RE_ENTRY`;
 - validated `SIGNAL_REM`;
 - validated `SIGNAL_RRE`;
 - validated `SIGNAL_REE`.
 
-This does not make raw Extreme, CSD, eCSD, CSM or MLV directly executable.
+All still require the same-direction confirmed D1 strategic owner before final new-entry authority.
 
-Standalone Extreme is intentionally still withheld because the supplied source requires reversal-candle confirmation/retest and the project has not yet locked a deterministic standalone Extreme entry lifecycle. Mode 2 can only expand when another source-valid entry contract is explicitly completed.
+This does not make raw Extreme, CSD, eCSD, CSM or MHV/MLV directly executable.
+
+## REM / RRE / REE boundary
+M15 must preserve exact source signatures produced/validated by M13/M14:
+- REM = H4 Re-Entry + H1 Extreme + M15 MHV/MLV;
+- RRE = D1 Re-Entry + H4 Re-Entry + H1 Extreme;
+- REE = D1 Re-Entry + H4 Extreme + H1 Extreme.
+
+D1 major trend is **not** inserted as a fourth REM component.
+
+Instead, M15 applies it as a separate strategic-direction gate to the already validated candidate.
+
+A D1 Re-Entry component inside RRE/REE is setup/component identity and does not replace M11 D1 MA50 owner confirmation.
 
 ## Atomic BUY / SELL rule
-M27 must collect both BUY and SELL candidates first, then call M15 **once** for the pair.
+M27 must collect candidate snapshots first and M15 must make one pair-level final-authority decision per closed M15 processing cycle.
 
-The old architecture called final authority separately inside the BUY loop and SELL loop, which could create two independent decisions from the same closed M15 processing cycle.
+After D1 filtering:
+- if no candidate survives -> no trade decision;
+- if surviving candidates contain contradictory directions -> fail closed / no trade decision;
+- if one direction survives -> canonicalize within that direction only.
 
-Step 6 removes that path.
-
-### Opposite validated candidates
-If at least one eligible BUY candidate and at least one eligible SELL candidate coexist in the same atomic pool:
-- M15 creates **no trade decision**;
-- an opposite-direction conflict package is recorded;
-- M15 does not invent a winner.
-
-This is a conservative project safety policy, not a claimed BBMA source rule. The supplied references do not define a universal deterministic tie-break between simultaneous opposite validated setups.
+This preserves at most one final new-entry decision path per pair per closed M15 cycle.
 
 ## No arbitrary BBMA tier ranking
-Step 5 deliberately left M14 candidates at `TIER_NONE` because the supplied REM/RRE/REE source does not define a quality ranking such as REM > RRE > REE.
+M15 does not use `SignalMode`, SAFE/NORMAL/AGGRESSIVE labels or invented REM/RRE/REE superiority as strategy authority.
 
-Therefore Step 6 removes `SignalMode` / SAFE / NORMAL / AGGRESSIVE priority-tier gating from M15 final entry authority.
+`SignalMode` remains compatibility/display only.
 
-`SignalMode` is retained as a compatibility/display input only; it no longer decides whether a validated BBMA candidate may trade.
-
-M15 assigns no invented BBMA quality tier to the selected decision.
+The D1 direction filter is not a quality score. It is the source-reconciled strategic-direction gate.
 
 ## Multiple candidates in the same direction
-If several eligible candidates exist but all point in the same direction, they do not conflict.
-
-M15 selects one **canonical candidate** only so the decision has one stable identity/hash. This canonicalization is engineering bookkeeping, not strategy ranking:
-1. candidate with the latest component candle anchor;
+If several surviving candidates point in the same direction, M15 selects one canonical candidate for stable identity/hash using engineering bookkeeping only:
+1. latest component candle anchor;
 2. then latest `SequenceStartTime`;
 3. then deterministic `SequenceHash` tie-break.
 
-The rule must never be described as REM/RRE/REE quality superiority.
+This must not be described as REM/RRE/REE quality superiority.
 
 ## Candidate freshness / expiry ownership
-The old downstream formula derived every combination expiry from `Comp1.CandleTime` using a generic `* 900` M15 multiplier. That formula is removed from M27 candidate construction.
+Candidates are rebuilt from current owner-valid snapshots every closed M15 cycle.
 
-New ownership rule:
-- candidates are rebuilt from current owner-valid snapshots every closed M15 cycle;
-- persistent owner state decides whether the underlying setup still exists;
-- confirmed standalone Re-Entry carries the explicit M12 `ExpiryCandleTime` into M15;
-- REM/RRE/REE candidates are current-cycle assemblies of owner-valid components and do not receive an invented generic Comp1/M15 expiry.
+Freshness ownership remains:
+- confirmed standalone Re-Entry carries explicit M12 owner validity/expiry;
+- REM/RRE/REE are assemblies of owner-valid current components;
+- no generic Comp1/M15 expiry is invented.
 
-M16 still contains legacy generic decision-expiry logic and is the next repair target. Step 6 does not falsely certify M16 freshness semantics.
+D1 strategic validity is a separate M11 snapshot and must be current for the same processing decision.
+
+## D1 snapshot in decision payload
+When M15 creates a decision, it must preserve enough frozen M11 identity for downstream M16 verification.
+
+Required conceptual fields:
+- D1 owner state;
+- D1 owner direction;
+- latest closed D1 candle time;
+- D1 `Close1`;
+- `MA50_1`;
+- `MA50_2`;
+- D1 owner validity/reason where represented.
+
+Exact struct field names are implementation detail, but M16 must be able to verify that the decision passed the same M11 state rather than recomputing an independent formula.
 
 ## Decision payload
-When exactly one direction survives:
-- `Direction` = surviving direction;
+When one direction survives:
+- `Direction` = surviving D1-compatible direction;
 - `SignalType` = canonical validated candidate type;
 - `SequenceHash` = canonical candidate hash;
 - `CandleTime` = latest component candle anchor;
 - `CycleStartTime` = candidate metadata start time;
 - `PriorityTier = TIER_NONE`;
-- `SLTPSource = SIGNAL_NONE`.
+- D1 strategic-owner snapshot/identity = frozen into the decision for M16 verification.
 
-M15 does not invent SL/TP source. M17+ must resolve entry/SL/TP under the later source-governed contract.
+M15 does not invent SL/TP, lot, risk or broker execution parameters.
 
 ## M27 orchestration consequence
-M27 now:
-1. builds frozen D1/H4/H1/M15 data;
-2. runs signal/state owners for BUY and SELL;
-3. builds confirmed H1 Re-Entry and validated REM/RRE/REE candidates for both directions;
-4. appends them into one pair-level candidate pool;
-5. calls M15 once;
-6. only after final atomic direction authority passes does the decision proceed to M16/M17/risk/execution.
+Conceptual order becomes:
+1. build frozen D1/H4/H1/M15 market data;
+2. M11 classify D1 strategic owner from closed D1 + MA50 slope;
+3. run signal/state owners for BUY/SELL;
+4. build confirmed H1 Re-Entry and validated REM/RRE/REE candidates;
+5. collect one pair-level candidate pool;
+6. M15 apply D1 strategic gate + final atomic authority once;
+7. M16 revalidate exact component/D1-owner identity;
+8. only then proceed to M17/risk/execution.
 
-This guarantees at most one final decision path per pair per closed M15 processing cycle before downstream validation.
+M11 produces D1 strategy context; M15 remains final new-entry authority.
+
+## D1 transition semantics
+`D1_TRANSITION` and `D1_OWNER_UNRESOLVED` block **new entries only** at this contract boundary.
+
+M15 must not reinterpret them as broker-close instructions for existing trades.
 
 ## Input validation
 `EntryMode` is valid only when:
 - `1 = RE_ENTRY_ONLY`; or
 - `2 = ALL_VALIDATED_BBMA_ENTRIES`.
 
-The old comment `2=AllSignals` is removed.
+## Scope guard
+M15 does not own:
+- D1 MA50 calculation or owner-state production;
+- H4 owner detection/recovery;
+- Re-Entry/Extreme/MHV/CSM detection;
+- REM/RRE/REE signature construction;
+- SL/TP;
+- lot/risk;
+- position lifecycle / broker close.
 
-## Scope guard / next blockers
-Step 6 does not certify or repair:
-- M16 legacy generic decision expiry;
-- temporal CSM invalidation of an existing Extreme;
-- standalone Extreme reversal/retest lifecycle;
-- M17 entry/SL/TP resolver and direction-aware validation;
-- risk / portfolio / execution logic.
+## Current implementation gap
+The active EA still reflects the earlier H4-only standalone-H1 gate and does not yet consume a canonical M11 D1 owner snapshot.
 
-## Implementation record
+Therefore the 2026-08-24 D1 portion of this contract is **SPECIFICATION-ONLY / NOT IMPLEMENTED** while the P3 runtime candidate remains frozen.
+
+Previous Step 6 implementation records remain historical evidence for the atomic M15 architecture, but they do not prove implementation of the newly reconciled D1 strategic gate.
+
+## Implementation record — historical Step 6 baseline
 Patch:
 `blueprint/patches/0013-p0-step6-m15-final-authority-atomic-entry-mode.patch`
 
@@ -127,22 +193,4 @@ Patch commit:
 Focused patch SHA-256:
 `9933e041a1999b865c18f340454536ae5371a777d2a6af5d28f2e0d561258b0e`
 
-## Verification
-Focused post-Step5 verification:
-- patch dry-run: clean;
-- patch apply: clean;
-- applied output exact-match to generated Step 6 target;
-- braces balanced: 484 / 484;
-- parentheses balanced: 1467 / 1467;
-- brackets balanced: 334 / 334;
-- `IsTierAllowed()` removed from M15 authority path;
-- legacy `CompareCandidates()` quality-tier comparison removed;
-- generic `Comp1.CandleTime + ... * 900` combination expiry assignment removed from M27 candidate construction;
-- `PriorityEngine_Atomic(allCandidates, ...)` is called once at pair level;
-- old per-direction final-authority call absent;
-- Entry Mode candidate guard present;
-- standalone confirmed Re-Entry candidate builder present.
-
-This verification is focused on the current Step 5/Step 6 affected regions. It does not reinstate a full-chain working-source SHA claim until the entire ordered patch chain is exactly materialized.
-
-Do not merge to `main` until the full blueprint audit is clean and explicitly approved as MASTER BLUEPRINT LOCKED.
+Do not merge to `main` until the current source/spec/runtime gates are reconciled and explicitly approved.

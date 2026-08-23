@@ -5,6 +5,24 @@ This directory defines the source hierarchy used when auditing and repairing the
 
 GitHub remains the project source of truth. Source material is used to validate BBMA Core semantics; it must not be silently reinterpreted to fit existing code.
 
+## Mandatory retrieval map
+This index is the **first stop** for every BBMA Strategy-Core review. Do not infer that a source is absent merely because GitHub code search returns zero matches.
+
+Canonical retrieval sequence:
+
+1. `docs/references/SOURCE_INDEX.md` — this source map and precedence policy.
+2. `docs/references/BBMA_STRATEGY_CORE_SOURCE_OF_TRUTH_V2.md` — active accepted Core consolidation.
+3. `docs/references/video/oma_ally_finale/BBMA_FINALE_MASTER_RULE_INDEX.md` — reconciled Finale synthesis.
+4. `docs/references/video/oma_ally_finale/V01` through `V07` — episode-level `extracted_rules.md` / `summary.md` evidence when needed.
+5. `docs/references/BBMA_OMA_ALLY_RULE_INDEX.md` — PDF-derived rule index.
+6. Primary PDF evidence: `Oma ally BBMA - AL.pdf` (recorded below).
+7. Secondary PDF evidence: `BBMA technique.pdf` (recorded below).
+8. `docs/references/video/oma_ally_finale/BBMA_FINALE_SOURCE_CONFLICT_REGISTER.md` — unresolved source conflicts/HOLD items.
+9. `docs/references/video/oma_ally_finale/BBMA_FINALE_CORE_IMPLEMENTATION_GAP_REGISTER.md` — known implementation mismatches.
+10. Relevant module source contracts and then the active Master Blueprint / EA implementation.
+
+**Existence rule:** zero-result code search is not proof of absence. For an expected source, use this index and known path/directories before reporting it missing.
+
 ## Canonical derived Strategy-Core reference
 ### `BBMA_STRATEGY_CORE_SOURCE_OF_TRUTH_V2.md`
 - Project role: **ACTIVE / AUTHORITATIVE CONSOLIDATED BBMA STRATEGY-CORE SPECIFICATION**.
@@ -90,11 +108,21 @@ The canonical V2 Core preserves the previously reconciled contracts, including:
 - Type 2: MA5/10 and MID BB meet/collide; strongest when MA50 also meets; minimum 3 candles per timeframe.
 - Type 3: CSM forms, then price reverses/retraces to MA5 or MA50 for Re-Entry setup.
 - Type 4: CSD forms, then price gyrates/retraces toward MA5/10; direction follows the relevant MA5/10 High/Low context.
-- REM: H4 Re-Entry + H1 Extreme + M15 MHV/MLV.
+- REM: H4 Re-Entry + H1 Extreme + M15 MHV/MLV structure.
 - RRE: D1 Re-Entry + H4 Re-Entry + H1 Extreme.
 - REE: D1 Re-Entry + H4 Extreme + H1 Extreme.
 
 Post-Finale implementation mismatches must be handled through the separate implementation-gap register and subsequent blueprint/code audit. They must not be confused with source-of-truth changes.
+
+## Source-integrity controls
+For every material Strategy-Core change or compliance audit:
+
+- begin from this index rather than ad-hoc search;
+- retrieve the canonical V2 Core and relevant original/Finale evidence;
+- check conflict/HOLD status before encoding logic;
+- distinguish source clarification from implementation correction;
+- trace the accepted rule to its owning module and code behaviour;
+- do not ask the user to repeatedly re-establish that BBMA/Oma Ally fidelity is required — it is permanent project governance under `PROJECT_INSTRUCTIONS.md`.
 
 ## File-storage note
 The GitHub connector used by ChatGPT exposes UTF-8 text writes but no mounted/local-file upload parameter. The exact raw PDF filenames/hashes remain recorded here. For the BBMA Finale series, full original/corrected SRT files are preserved in the generated source pack; GitHub synchronization state and hashes are recorded in `VIDEO_SOURCE_INDEX.md`. Derived analysis Markdown is committed directly to GitHub.

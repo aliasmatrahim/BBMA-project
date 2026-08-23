@@ -257,3 +257,72 @@ This rule is mandatory for every future EA source-code change, patch, fix, diagn
 **Required development check:**
 
 > EA source changed → About/header patch/build identifier updated → compile verification → runtime/test evidence → GitHub traceability.
+
+---
+
+## 17. Mandatory BBMA Source Retrieval Protocol
+
+This protocol is **MANDATORY** before any Strategy-Core interpretation, detector/entry/exit change, Blueprint strategy repair, source-compliance claim, or conclusion that a BBMA rule/source is missing.
+
+### 17.1 Required retrieval order
+Always inspect the authoritative project sources in this order:
+
+1. `docs/references/SOURCE_INDEX.md` — source map, hierarchy and conflict policy.
+2. `docs/references/BBMA_STRATEGY_CORE_SOURCE_OF_TRUTH_V2.md` — active consolidated developer-facing Core specification.
+3. `docs/references/video/oma_ally_finale/BBMA_FINALE_MASTER_RULE_INDEX.md` — reconciled Finale V01–V07 evidence.
+4. Relevant `docs/references/video/oma_ally_finale/V01` … `V07` `extracted_rules.md` and/or `summary.md` when the rule requires timestamped or episode-level evidence.
+5. `docs/references/BBMA_OMA_ALLY_RULE_INDEX.md` and the recorded primary/secondary PDF evidence.
+6. Relevant source-conflict, implementation-gap and source-contract files.
+7. Current Master Blueprint / active EA implementation only **after** the Strategy-Core evidence has been established.
+
+### 17.2 No search-empty inference
+A GitHub code-search result of zero matches is **NOT evidence that a project source does not exist**.
+
+Before declaring any expected BBMA source, Finale episode, rule index, contract or evidence file missing:
+
+- inspect `SOURCE_INDEX.md`;
+- inspect the known canonical directory/path;
+- inspect the repository tree/directory listing when necessary;
+- only then report a genuinely missing artifact.
+
+Search is a discovery aid, not the authority for file existence.
+
+### 17.3 Strategy-Core compliance gate
+Before modifying strategy behaviour, explicitly determine:
+
+- which accepted Core rule governs the behaviour;
+- which source evidence supports it;
+- whether the proposed change is `KEEP`, `CLARIFY`, an implementation-gap fix, or a genuine Core change;
+- whether any conflict/HOLD item exists;
+- whether the change would silently reinterpret Oma Ally/BBMA methodology.
+
+If evidence is unresolved or marked `HOLD`, do not invent deterministic trading logic. Preserve the stricter/current accepted contract until explicit resolution.
+
+### 17.4 Source versus implementation separation
+Never treat current code behaviour as proof of the BBMA rule. The evidence hierarchy establishes Strategy-Core semantics; Blueprint/code is audited **against** that semantics.
+
+A mismatch must be classified as one of:
+
+- source clarification;
+- Blueprint/specification defect;
+- implementation defect;
+- unresolved source conflict.
+
+Do not silently rewrite the source interpretation merely to fit existing code.
+
+### 17.5 Mandatory audit trace
+For material BBMA strategy reviews/fixes, retain enough traceability to identify:
+
+> source rule → evidence/reference → Core contract → owning module(s) → Blueprint/code behaviour → finding/fix → verification.
+
+This trace may live in the existing source contract, audit, gap register or commit documentation; avoid duplicate documents when an existing authoritative artifact already serves the purpose.
+
+### 17.6 User re-verification must not be the control mechanism
+The user must not be required to repeatedly remind the project that the EA must follow BBMA/Oma Ally rules. Source compliance is a standing project governance requirement and must be checked automatically whenever Strategy-Core behaviour is touched.
+
+### 17.7 Conflict precedence
+Apply the source precedence and conflict policy defined in `docs/references/SOURCE_INDEX.md`. Finale clarification must not silently overwrite an established PDF rule, and implementation behaviour must never outrank clearly supported source evidence.
+
+**Required Strategy-Core development check:**
+
+> Retrieve canonical sources → establish accepted rule/evidence → compare Blueprint/code → classify mismatch → fix only if authorized by evidence → cross-module verification → preserve traceability.

@@ -58,6 +58,7 @@ The pre-compile-repair Step 3 materialized SHA `e81b91a96d95b4446531b445a54c7d60
 - `blueprint/contracts/M06_MA_SOURCE_CONTRACT.md`
 - `blueprint/contracts/M08_EXTREME_SOURCE_CONTRACT.md`
 - `blueprint/contracts/M10_DIRECTION_MOMENTUM_SOURCE_CONTRACT.md`
+- `blueprint/contracts/M11_D1_MAJOR_TREND_OWNER_CONTRACT.md`
 - `blueprint/contracts/M12_REENTRY_SOURCE_CONTRACT.md`
 - `blueprint/contracts/M13_COMBINATION_COLLECTOR_CONTRACT.md`
 - `blueprint/contracts/M14_COMBINATION_VALIDATION_CONTRACT.md`
@@ -288,3 +289,41 @@ This reconciliation changes project tracking/specification records only. It does
 - Native compile is therefore closed for the integrated F1-F6 / Mode1 / TradeLock / sequential-risk source state at this revision.
 - Remaining gates are runtime evidence only unless a runtime trace exposes a new defect.
 - P3 Step 5 remains open until its runtime Tests A-D are directly evidenced.
+
+
+# 2026-08-24 D1 Canonical Contract Reconciliation Overlay
+- **D1 major-trend strategic-owner semantics: RESOLVED AT STRATEGY/SPECIFICATION LEVEL.**
+- Canonical hierarchy is now `D1 strategic owner -> H4 structural/setup parent -> H1/M15 execution structure`.
+- Core V2 now requires confirmed closed-D1 price-side + MA50-slope agreement for new-entry strategic authority.
+- `D1_TRANSITION` and `D1_OWNER_UNRESOLVED` block all new strategy entries; the last confirmed D1 direction may remain diagnostic only and is not executable authority.
+- H4 remains the immediate structural parent for standalone H1 Re-Entry but can no longer authorize execution against an opposite/transition/unresolved D1 strategic state.
+- Exact REM/RRE/REE component signatures are unchanged. D1 strategic gating is separate from component identity; D1 Re-Entry inside RRE/REE does not replace D1 MA50 owner confirmation.
+- New canonical contract: `blueprint/contracts/M11_D1_MAJOR_TREND_OWNER_CONTRACT.md`.
+- F4 decision reconciled: `blueprint/decisions/CORE_V2_F4_H1_RE_HTF_CONTEXT_DECISION.md`.
+- M15/M16 contracts now specify D1 strategic gating and frozen-owner revalidation.
+- Audit record: `blueprint/CORE_V2_D1_CANONICAL_CONTRACT_RECONCILIATION_AUDIT_20260824.md`.
+- **No EA source change was made.** Current P3 runtime candidate remains frozen.
+
+## Reopened implementation/compliance status
+The stronger D1 evidence means two older statuses are now historical rather than current-final:
+- F4's previous **CODE IMPLEMENTED / STATIC PASS** applied to the older H4-only parent contract; it does not implement the new D1 strategic gate.
+- P3-M1's previous static compliance PASS applied to the pre-Home-Course D1 interpretation and must be re-audited after D1 implementation.
+
+Confirmed current code gaps:
+- M11 has no dedicated D1 strategic-owner state;
+- current `TimeframeData.trend` uses price-vs-EMA50 only and lacks MA50-slope confirmation;
+- standalone H1 final eligibility is H4-only in code;
+- REM lacks separate D1 strategic gating;
+- RRE/REE do not separately verify D1 MA50 owner compatibility through M11/M15/M16.
+
+## Next engineering action after P3 runtime freeze
+1. implement M11 closed-D1 strategic-owner classification;
+2. pass/freeze M11 owner identity into M15 decisions;
+3. apply D1 gate in M15 without changing REM/RRE/REE signatures;
+4. revalidate frozen D1 owner in M16;
+5. assign a new unique left-aligned EA build identifier;
+6. native MetaEditor compile 0E0W + static cross-module regression;
+7. rerun P3-M1 Mode 1 compliance under the reconciled Core;
+8. run focused runtime traces for D1 BUY/SELL/TRANSITION/UNRESOLVED and D1/H4 disagreement cases.
+
+Until that implementation series is deliberately started, **documentation/specification is ahead of code by design** and the existing runtime candidate must not be relabelled as compliant with the new D1 strategic-owner contract.

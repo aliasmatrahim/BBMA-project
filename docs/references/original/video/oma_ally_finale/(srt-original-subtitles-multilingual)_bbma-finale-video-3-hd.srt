@@ -1,0 +1,5532 @@
+1
+00:00:00,600 --> 00:00:03,960
+Okay.
+
+2
+00:00:04,140 --> 00:00:06,000
+Tempat yang sama, eh.
+
+3
+00:00:06,200 --> 00:00:09,180
+Ini adalah MA5 HIGH.
+
+4
+00:00:09,380 --> 00:00:13,060
+Ini adalah MA5 LOW.
+
+5
+00:00:13,060 --> 00:00:17,040
+Ingat balik, tadi saya cakap, bila memabitkan moving average, buka
+
+6
+00:00:17,040 --> 00:00:20,940
+aje chart, kita kena ingat ni.
+
+7
+00:00:21,120 --> 00:00:23,000
+Kita kena ingat yang ni.
+
+8
+00:00:23,040 --> 00:00:26,000
+Semua moving average, bila buka chart, kita kena ingat.
+
+9
+00:00:26,700 --> 00:00:31,280
+Dia condom ke bawah ke, tegak ke atas ataupun dia
+
+10
+00:00:31,280 --> 00:00:33,540
+mendata.
+
+11
+00:00:33,540 --> 00:00:37,020
+Yang ini kita kena sentiasa ingat.
+
+12
+00:00:37,280 --> 00:00:41,180
+Instill dekat dalam kita punya brain.
+
+13
+00:00:41,240 --> 00:00:46,680
+Anytime bila kita buka chart, bowling jempen dua.
+
+14
+00:00:46,760 --> 00:00:49,120
+Kembang tak kembang.
+
+15
+00:00:49,560 --> 00:00:55,000
+MA moving average, tegak, condom atau mendata.
+
+16
+00:00:55,000 --> 00:00:56,480
+Ingat tu.
+
+17
+00:00:56,480 --> 00:00:57,760
+Mesti kena ingat.
+
+18
+00:00:57,760 --> 00:00:59,820
+Buka aje chart.
+
+19
+00:00:59,820 --> 00:01:00,500
+Bollinger band.
+
+20
+00:01:00,500 --> 00:01:02,960
+Oh kembang tak kembang.
+
+21
+00:01:03,020 --> 00:01:05,240
+Balik ni jangan mengigaw lah kembang kembang kembang kembang kembang
+
+22
+00:01:05,240 --> 00:01:06,560
+kembang belahan.
+
+23
+00:01:06,560 --> 00:01:07,720
+Tapi kena memorise.
+
+24
+00:01:07,720 --> 00:01:08,760
+Ingat.
+
+25
+00:01:08,780 --> 00:01:13,080
+Keadaan Bollinger band, dua keadaan kembang dengan tak kembang.
+
+26
+00:01:13,140 --> 00:01:15,740
+Moving average pula ada tiga keadaan.
+
+27
+00:01:15,760 --> 00:01:19,620
+Keadaan dia flat, mendata atau pun dia tengah ke atas.
+
+28
+00:01:19,620 --> 00:01:21,940
+Ataupun dia condom ke bawah.
+
+29
+00:01:22,380 --> 00:01:26,340
+Moving average yang ada, middle BB tu adalah moving average.
+
+30
+00:01:26,340 --> 00:01:27,660
+MA50.
+
+31
+00:01:27,940 --> 00:01:31,040
+Sekarang kita masukkan MA5.
+
+32
+00:01:31,040 --> 00:01:34,260
+So dia, still kita kena tengok macam ni.
+
+33
+00:01:34,260 --> 00:01:38,660
+Bila kita buka chart, MA5 tadi tu kita kena tengok
+
+34
+00:01:38,660 --> 00:01:39,320
+macam ni.
+
+35
+00:01:39,320 --> 00:01:40,920
+Adakah dia macam ni?
+
+36
+00:01:40,920 --> 00:01:41,980
+Adakah dia macam ni?
+
+37
+00:01:41,980 --> 00:01:43,520
+Adakah dia macam ni?
+
+38
+00:01:43,520 --> 00:01:46,180
+Bila kita buka chart.
+
+39
+00:01:46,180 --> 00:01:48,060
+Faham tu?
+
+40
+00:01:48,100 --> 00:01:49,240
+Say I.
+
+41
+00:01:49,460 --> 00:01:49,820
+I.
+
+42
+00:01:50,180 --> 00:01:51,660
+Good.
+
+43
+00:01:51,920 --> 00:01:55,240
+Okay.
+
+44
+00:01:55,540 --> 00:01:58,240
+Ini keadaan downtrend.
+
+45
+00:01:58,240 --> 00:01:59,300
+Keadaan downtrend.
+
+46
+00:01:59,300 --> 00:02:01,120
+Ini pun keadaan downtrend.
+
+47
+00:02:01,120 --> 00:02:03,640
+Ini adalah MA5 high.
+
+48
+00:02:03,720 --> 00:02:05,620
+Ini adalah MA5 low.
+
+49
+00:02:05,620 --> 00:02:10,880
+Selalunya dalam dalam grup eh, kadang-kadang kita sebut line merah,
+
+50
+00:02:10,880 --> 00:02:12,060
+line magenta.
+
+51
+00:02:12,060 --> 00:02:15,520
+Kalau line merah tu dia represent MA5 high.
+
+52
+00:02:15,560 --> 00:02:18,580
+Kalau line magenta tu dia represent MA5 low.
+
+53
+00:02:19,180 --> 00:02:22,800
+Jadi sebab tu kita pakai standard kan colour tu.
+
+54
+00:02:22,820 --> 00:02:24,200
+Untuk mudah belajarlah.
+
+55
+00:02:24,260 --> 00:02:27,500
+Untuk bila dalam grup ada yang bertanya, ni MA5 ni
+
+56
+00:02:27,500 --> 00:02:31,180
+ataupun line merah tu tak berdabar kepit dengan line magenta.
+
+57
+00:02:31,180 --> 00:02:33,360
+Bila kita sebut line merah tu, kita oh understand.
+
+58
+00:02:33,360 --> 00:02:34,960
+Itu MA5 high.
+
+59
+00:02:34,960 --> 00:02:38,120
+Bila sebut magenta, kita tahu itu adalah MA5 low.
+
+60
+00:02:38,120 --> 00:02:39,440
+Okay.
+
+61
+00:02:39,440 --> 00:02:44,520
+Kita boleh nampak tak, semasa turun ni tadi, di dua
+
+62
+00:02:44,520 --> 00:02:45,220
+ni tadi,
+
+63
+00:02:45,220 --> 00:02:47,580
+ada beza tak line merah ni dengan line magenta ni?
+
+64
+00:02:47,580 --> 00:02:53,280
+Dari segi kedudukan candle tu dengan line tu.
+
+65
+00:02:53,440 --> 00:02:54,760
+Ada beza tak?
+
+66
+00:02:54,760 --> 00:02:57,900
+Boleh nampak tak perbezaan dua ni?
+
+67
+00:02:58,020 --> 00:02:58,880
+Apa yang berbeza?
+
+68
+00:02:58,880 --> 00:03:01,500
+Tolong cerita sikit.
+
+69
+00:03:01,500 --> 00:03:04,360
+Apa yang boleh kita buat ayat?
+
+70
+00:03:04,380 --> 00:03:08,820
+Atau nak buat karangan ke sebagainya?
+
+71
+00:03:09,100 --> 00:03:10,360
+Eh?
+
+72
+00:03:10,360 --> 00:03:11,740
+Candle bawah line.
+
+73
+00:03:11,740 --> 00:03:14,000
+Yang mana candle bawah line?
+
+74
+00:03:14,120 --> 00:03:15,270
+Ni?
+
+75
+00:03:15,270 --> 00:03:15,580
+Okay
+
+76
+00:03:15,580 --> 00:03:19,300
+Kau punya bahasa Malaysia tak bagus lah.
+
+77
+00:03:19,360 --> 00:03:20,600
+Down trend semua bawah line.
+
+78
+00:03:20,600 --> 00:03:22,880
+Down trend semua bawah line.
+
+79
+00:03:22,880 --> 00:03:23,580
+Okay.
+
+80
+00:03:23,660 --> 00:03:26,280
+B minus.
+
+81
+00:03:26,400 --> 00:03:28,720
+Apa lagi kita boleh cakap?
+
+82
+00:03:28,740 --> 00:03:30,960
+Apa yang kita nampak kat sini yang kita boleh jadikan
+
+83
+00:03:30,960 --> 00:03:35,080
+satu, satu, apa orang selalu cakap?
+
+84
+00:03:35,080 --> 00:03:36,420
+Punchline.
+
+85
+00:03:36,560 --> 00:03:39,000
+Punchline yang boleh kita record dalam kepala kita.
+
+86
+00:03:39,000 --> 00:03:40,180
+Kita nak ingat.
+
+87
+00:03:40,200 --> 00:03:40,760
+Punchline tu.
+
+88
+00:03:40,760 --> 00:03:42,520
+Apa punchline tu?
+
+89
+00:03:42,580 --> 00:03:44,200
+Candle yang berada di bawah.
+
+90
+00:03:46,920 --> 00:03:50,420
+Okay candle di bawah line merah.
+
+91
+00:03:50,420 --> 00:03:52,580
+Betul?
+
+92
+00:03:53,740 --> 00:03:55,240
+Ah, cundung.
+
+93
+00:03:55,400 --> 00:03:57,020
+Kita jangan lupa ni.
+
+94
+00:03:57,040 --> 00:03:59,420
+Di cundung.
+
+95
+00:03:59,520 --> 00:04:01,560
+Yang ini pun bawah line merah juga.
+
+96
+00:04:01,580 --> 00:04:02,320
+Tapi mendata.
+
+97
+00:04:02,320 --> 00:04:03,860
+Nampak?
+
+98
+00:04:03,860 --> 00:04:04,520
+Ini mendata.
+
+99
+00:04:04,520 --> 00:04:05,140
+Ini mendata.
+
+100
+00:04:05,140 --> 00:04:08,860
+Di bawah juga line merah.
+
+101
+00:04:08,880 --> 00:04:11,580
+Dia di bawah line merah juga.
+
+102
+00:04:11,580 --> 00:04:13,500
+Tapi yang ini cundung.
+
+103
+00:04:13,500 --> 00:04:14,820
+Semasa cundung ni nampak?
+
+104
+00:04:14,820 --> 00:04:16,580
+Ada tak?
+
+105
+00:04:16,600 --> 00:04:19,580
+Kalau boleh cunting kat sini, kesini aku nak cunting.
+
+106
+00:04:19,700 --> 00:04:20,400
+Ni ni ni ni ni.
+
+107
+00:04:20,400 --> 00:04:22,000
+Tak kena pun.
+
+108
+00:04:22,000 --> 00:04:22,580
+Tak kena.
+
+109
+00:04:22,820 --> 00:04:25,840
+Tapi bila dia mendata, jarum ni cucuk.
+
+110
+00:04:25,840 --> 00:04:30,820
+Bila dia cundung, cuit pun tak.
+
+111
+00:04:30,900 --> 00:04:31,920
+Langsung tak sentuh.
+
+112
+00:04:31,920 --> 00:04:33,420
+Masa dia betul-betul cundung.
+
+113
+00:04:33,420 --> 00:04:35,900
+Bila dia mendata, dia cuit.
+
+114
+00:04:35,900 --> 00:04:37,540
+Dia pergi usik.
+
+115
+00:04:37,540 --> 00:04:39,580
+Dia mendata, dia pergi usik.
+
+116
+00:04:39,580 --> 00:04:42,220
+Itu tak kena langsung.
+
+117
+00:04:42,220 --> 00:04:42,800
+Nampak tak?
+
+118
+00:04:42,800 --> 00:04:44,580
+Ini MA5 High.
+
+119
+00:04:44,680 --> 00:04:49,760
+Bila kita nampak macam ni, itu apa maksud dia?
+
+120
+00:04:49,760 --> 00:04:51,800
+Apa maksud dia?
+
+121
+00:04:51,940 --> 00:04:53,260
+Down trend.
+
+122
+00:04:53,260 --> 00:04:55,260
+Itu down trend.
+
+123
+00:04:55,360 --> 00:04:58,440
+Jangan buy.
+
+124
+00:04:58,580 --> 00:05:02,300
+Sell sahaja.
+
+125
+00:05:02,300 --> 00:05:04,540
+Nampak macam ni.
+
+126
+00:05:04,540 --> 00:05:07,580
+Ni, candle duduk kat bawah, tak kena langsung line merah
+
+127
+00:05:07,580 --> 00:05:08,580
+ni.
+
+128
+00:05:09,240 --> 00:05:13,420
+Cari peluang sell.
+
+129
+00:05:13,580 --> 00:05:15,060
+Sahaja.
+
+130
+00:05:15,080 --> 00:05:20,380
+Dan bila berkadar macam ni,
+
+131
+00:05:20,460 --> 00:05:24,240
+sekarang ni dia nampak selain satu line macam ni,
+
+132
+00:05:24,240 --> 00:05:25,300
+sedang je jawabkan.
+
+133
+00:05:25,340 --> 00:05:26,580
+Down trend.
+
+134
+00:05:26,760 --> 00:05:29,580
+Masuk semua sekali sementar dengan Bollinger Band, dengan MA5,
+
+135
+00:05:29,800 --> 00:05:32,920
+MA5, MA5 High, High Low.
+
+136
+00:05:32,980 --> 00:05:34,580
+Lebuh.
+
+137
+00:05:35,300 --> 00:05:39,340
+Tujuan dia, saya buat macam ni, letak satu-satu,
+
+138
+00:05:39,340 --> 00:05:41,040
+bukan suka-suka.
+
+139
+00:05:41,120 --> 00:05:43,420
+Sebab saya belajar cara macam ni.
+
+140
+00:05:43,420 --> 00:05:46,040
+Tak tahu kalau ada cara lain lebih mudah.
+
+141
+00:05:46,040 --> 00:05:49,720
+Sebab sebelum ni tak ada cara macam ni.
+
+142
+00:05:49,720 --> 00:05:50,340
+Dekat.
+
+143
+00:05:50,340 --> 00:05:53,120
+Berapa tahun lah kita habis masa dekat Charlie Tom Yam
+
+144
+00:05:53,120 --> 00:05:56,220
+Senawang tu nak mengajar orang BBMA ni.
+
+145
+00:05:56,220 --> 00:05:57,480
+Leteh.
+
+146
+00:05:57,480 --> 00:06:01,140
+Nak memahamkan dia orang berkenaan dengan konsep MA5 dengan MA10
+
+147
+00:06:01,140 --> 00:06:01,580
+ni tadi.
+
+148
+00:06:02,340 --> 00:06:05,300
+MA5 adalah tempat entry.
+
+149
+00:06:05,300 --> 00:06:07,200
+Macam yang Cikgu Gerold cakap.
+
+150
+00:06:07,240 --> 00:06:10,980
+MA10 dia memperkukuhkan lagi entry.
+
+151
+00:06:10,980 --> 00:06:15,380
+MA5 dengan distan antara MA5 High dengan MA10 High.
+
+152
+00:06:15,380 --> 00:06:17,160
+Itu adalah zone untuk entry.
+
+153
+00:06:17,360 --> 00:06:20,460
+Tapi MA5 ni tempat entry.
+
+154
+00:06:20,460 --> 00:06:23,820
+Jadi kalau konsep dia kita tak paham,
+
+155
+00:06:23,820 --> 00:06:26,140
+sikit susah.
+
+156
+00:06:26,220 --> 00:06:29,400
+Kalau paham, senang banyak.
+
+157
+00:06:29,440 --> 00:06:30,580
+Senang banyak.
+
+158
+00:06:31,460 --> 00:06:32,280
+Trust me.
+
+159
+00:06:32,280 --> 00:06:32,820
+Senang banyak.
+
+160
+00:06:32,820 --> 00:06:34,460
+Bila kita paham konsep ni.
+
+161
+00:06:34,720 --> 00:06:36,800
+Konsep ni
+
+162
+00:06:40,260 --> 00:06:42,180
+hanya visual sahaja.
+
+163
+00:06:42,180 --> 00:06:43,000
+Secara visual.
+
+164
+00:06:43,020 --> 00:06:45,240
+Kita boleh paham secara visual.
+
+165
+00:06:45,380 --> 00:06:48,320
+Dengan berulang-ulang kali tengok.
+
+166
+00:06:48,380 --> 00:06:49,420
+Saya buat.
+
+167
+00:06:49,420 --> 00:06:50,480
+Saya tak cakap lelak.
+
+168
+00:06:50,560 --> 00:06:51,700
+Saya habis 2-3 minggu.
+
+169
+00:06:51,700 --> 00:06:52,580
+Tak percaya kalau saya bohong,
+
+170
+00:06:52,640 --> 00:06:54,760
+bini saya ada kat belakang.
+
+171
+00:06:54,780 --> 00:06:59,080
+2-3 minggu saya buka chart kosong,
+
+172
+00:06:59,200 --> 00:06:59,580
+masukkan MA1.
+
+173
+00:06:59,580 --> 00:07:01,280
+MA5.
+
+174
+00:07:01,400 --> 00:07:02,260
+Dekat belakang.
+
+175
+00:07:02,320 --> 00:07:03,000
+Beri test.
+
+176
+00:07:03,020 --> 00:07:03,760
+Dekat belakang.
+
+177
+00:07:03,760 --> 00:07:04,860
+Dekat belakang.
+
+178
+00:07:04,940 --> 00:07:06,720
+Satu hari, sejam, dua jam.
+
+179
+00:07:06,720 --> 00:07:07,520
+Nak tengok benda tu.
+
+180
+00:07:07,520 --> 00:07:09,300
+Nak cari apa.
+
+181
+00:07:09,600 --> 00:07:10,920
+Apa sebenarnya MA5 ni?
+
+182
+00:07:10,920 --> 00:07:13,280
+Macam mana nak ajar orang bagi orang paham sebenarnya?
+
+183
+00:07:13,380 --> 00:07:15,260
+Baru saya nampak bila letak dua-dua macam ni.
+
+184
+00:07:15,260 --> 00:07:18,180
+Baru kita nampak beza dia.
+
+185
+00:07:18,180 --> 00:07:20,780
+Nampak beza masa tengah turun
+
+186
+00:07:21,300 --> 00:07:23,360
+dengan MA5 High.
+
+187
+00:07:23,380 --> 00:07:27,060
+Masa turun dengan MA5 Low.
+
+188
+00:07:27,060 --> 00:07:27,580
+Baru kita nampak perbezaan dia.
+
+189
+00:07:28,320 --> 00:07:30,300
+Jadi, yang ini,
+
+190
+00:07:30,300 --> 00:07:32,300
+bila kita buka chart kosong,
+
+191
+00:07:32,300 --> 00:07:36,900
+masukkan MA5 High sahaja.
+
+192
+00:07:36,900 --> 00:07:39,600
+Chart kosong tadi tu ada MA5 High sahaja.
+
+193
+00:07:39,600 --> 00:07:40,460
+Scroll depan belakang.
+
+194
+00:07:40,460 --> 00:07:42,120
+Scroll depan belakang.
+
+195
+00:07:42,140 --> 00:07:44,560
+Kita nak bagi mata kita
+
+196
+00:07:44,940 --> 00:07:45,880
+cam.
+
+197
+00:07:45,940 --> 00:07:48,360
+Keadaan masa downtrend.
+
+198
+00:07:48,520 --> 00:07:51,500
+MA5 ni macam ni rupa dia.
+
+199
+00:07:51,520 --> 00:07:53,580
+Kita nak ajar mata kita
+
+200
+00:07:54,220 --> 00:07:55,580
+bagi signal kat kepala kita
+
+201
+00:07:55,580 --> 00:07:59,860
+supaya kepala otak kita record.
+
+202
+00:07:59,900 --> 00:08:01,560
+Dan simpan.
+
+203
+00:08:01,560 --> 00:08:04,140
+Cukup-cukup kema-kema simpan.
+
+204
+00:08:04,140 --> 00:08:05,820
+Supaya kita boleh ingat,
+
+205
+00:08:05,900 --> 00:08:08,380
+ini keadaan semasa downtrend
+
+206
+00:08:08,740 --> 00:08:10,940
+dengan MA5 High.
+
+207
+00:08:11,100 --> 00:08:13,100
+Yang ni pula,
+
+208
+00:08:13,100 --> 00:08:14,580
+downtrend semasa
+
+209
+00:08:14,600 --> 00:08:15,840
+keadaan downtrend
+
+210
+00:08:16,200 --> 00:08:18,780
+dengan MA5 Low.
+
+211
+00:08:18,780 --> 00:08:20,200
+Yang ni tak kena.
+
+212
+00:08:20,200 --> 00:08:21,840
+Masa dia tengah betul-betul turun tadi,
+
+213
+00:08:21,860 --> 00:08:23,320
+tak kena pun line.
+
+214
+00:08:23,440 --> 00:08:24,580
+Tapi sekarang ni line dia duduk
+
+215
+00:08:24,920 --> 00:08:27,160
+di tengah-tengah candle.
+
+216
+00:08:27,160 --> 00:08:30,680
+Itu beza dia.
+
+217
+00:08:30,760 --> 00:08:31,540
+Itu beza dia.
+
+218
+00:08:31,580 --> 00:08:35,260
+Dan lagi satu, nak bagi lagi paham.
+
+219
+00:08:35,380 --> 00:08:38,620
+Kalau candle yang close diluar bibi,
+
+220
+00:08:38,620 --> 00:08:40,300
+apa kita katakan?
+
+221
+00:08:40,400 --> 00:08:42,480
+Candle yang codong atau tegak,
+
+222
+00:08:42,600 --> 00:08:43,640
+candle ada close kat luar bibi.
+
+223
+00:08:43,660 --> 00:08:45,920
+Kita menamakan apa candle tu?
+
+224
+00:08:46,000 --> 00:08:47,580
+Itu candle momentum.
+
+225
+00:09:00,780 --> 00:09:03,080
+Saya masukkan balik bolingan band.
+
+226
+00:09:03,080 --> 00:09:06,340
+So, sekarang candle ni close diluar bibi tak?
+
+227
+00:09:06,360 --> 00:09:08,140
+Close kat luar bibi kan?
+
+228
+00:09:08,200 --> 00:09:11,200
+Itu adalah candle momentum kan?
+
+229
+00:09:11,280 --> 00:09:16,780
+Tetapi, MA5 Low pun ada dekat situ.
+
+230
+00:09:16,780 --> 00:09:17,420
+Nampak tak?
+
+231
+00:09:17,540 --> 00:09:19,940
+MA5 Low pun ada di situ.
+
+232
+00:09:19,940 --> 00:09:21,760
+Dia berkepet dengan lower bibi.
+
+233
+00:09:16,650 --> 00:09:19,580
+So, kalau dia close diluar bibi
+
+234
+00:09:19,730 --> 00:09:21,540
+dia akan berkepet
+
+235
+00:09:22,920 --> 00:09:25,720
+So, kalau dia close diluar bibi,
+
+236
+00:09:25,840 --> 00:09:28,920
+kita kata dia adalah momentum.
+
+237
+00:09:29,360 --> 00:09:32,960
+Kalau dia close diluar,
+
+238
+00:09:33,460 --> 00:09:35,660
+kita katakan dia momentum juga.
+
+239
+00:09:35,660 --> 00:09:38,320
+Dia menunjukkan itu adalah momentum.
+
+240
+00:09:38,340 --> 00:09:41,180
+Dia memberi tahu kepada kita itu adalah momentum.
+
+241
+00:09:41,180 --> 00:09:44,560
+Cuma momentum tu kuat tak kuat?
+
+242
+00:09:44,680 --> 00:09:48,580
+Kalau kuat, dia keluar dengan bibi-bibi sekali.
+
+243
+00:09:49,680 --> 00:09:53,140
+Kalau dia hanya keluar dari MA5 Low saja,
+
+244
+00:09:53,140 --> 00:09:53,960
+dia tak kuat.
+
+245
+00:09:54,000 --> 00:09:57,580
+Ataupun kita boleh kata candle arah awal candle arah kukuh.
+
+246
+00:09:57,740 --> 00:09:59,580
+Ini momentum awal, momentum kukuh.
+
+247
+00:10:00,300 --> 00:10:06,420
+Kalau dia keluar dari MA5 Low, sahaja momentum.
+
+248
+00:10:06,420 --> 00:10:07,120
+Dia momentum.
+
+249
+00:10:07,120 --> 00:10:08,220
+Dia tetap turun.
+
+250
+00:10:08,220 --> 00:10:11,000
+Dia akan cari lower BB.
+
+251
+00:10:11,080 --> 00:10:13,660
+Sampai lower BB, lower BB ni tadi kan gat.
+
+252
+00:10:13,660 --> 00:10:14,520
+Tak gat kan?
+
+253
+00:10:14,680 --> 00:10:18,260
+Dia menghalang, mengawal kejatuhan.
+
+254
+00:10:18,260 --> 00:10:19,220
+So dia kawal lah.
+
+255
+00:10:19,220 --> 00:10:21,580
+Dia berjaya kawal dengan baik.
+
+256
+00:10:21,580 --> 00:10:23,600
+Dapat bonus.
+
+257
+00:10:23,680 --> 00:10:26,800
+Tetapi lepas tu dia tak berjaya kawal.
+
+258
+00:10:27,440 --> 00:10:28,620
+Close kat lower BB.
+
+259
+00:10:28,620 --> 00:10:31,220
+So dia jadi momentum kukuh.
+
+260
+00:10:31,320 --> 00:10:34,080
+Momentum yang kukuh sebab dia close di bawah MA5 dan
+
+261
+00:10:34,080 --> 00:10:34,740
+BB sekali.
+
+262
+00:10:34,740 --> 00:10:36,300
+Lower BB sekali.
+
+263
+00:10:36,340 --> 00:10:39,980
+Tetapi dari atas ni tadi lagi dia dah beritahu yang
+
+264
+00:10:39,980 --> 00:10:42,280
+dia nak turun sebab dia dah close di bawah MA5
+
+265
+00:10:42,280 --> 00:10:42,720
+Low.
+
+266
+00:10:42,920 --> 00:10:45,600
+Momentum awal.
+
+267
+00:10:45,600 --> 00:10:46,240
+Yang ini.
+
+268
+00:10:46,240 --> 00:10:48,520
+Dia masih lagi condom ke bawah sebab kita nak tengok
+
+269
+00:10:48,520 --> 00:10:50,200
+yang ini.
+
+270
+00:10:50,200 --> 00:10:54,920
+Selagi candle condom duduk di bawah, close kat bawah macam
+
+271
+00:10:54,920 --> 00:10:55,000
+ni.
+
+272
+00:10:55,580 --> 00:10:59,880
+Itu adalah downtrend.
+
+273
+00:10:59,880 --> 00:11:03,080
+Cuma beza dia MA5 Low, MA5 High.
+
+274
+00:11:03,080 --> 00:11:06,440
+Tetapi yang ni kita boleh relatekan dia dengan BB.
+
+275
+00:11:06,460 --> 00:11:08,840
+Sebab BB ada dekat sini.
+
+276
+00:11:08,900 --> 00:11:11,900
+Line magenta ni tadi, line MA5 Merah ni tadi, kita
+
+277
+00:11:11,900 --> 00:11:15,920
+boleh jadikan dia reference untuk cell.
+
+278
+00:11:16,080 --> 00:11:18,020
+Momentum cell.
+
+279
+00:11:18,020 --> 00:11:22,800
+Dulu saya cakap reference untuk tengok cell adalah line merah.
+
+280
+00:11:22,800 --> 00:11:25,860
+Sebab kita nampak tak kena kan.
+
+281
+00:11:25,880 --> 00:11:30,080
+Tetapi bila kita combine semua, dia dah tak nampak ni.
+
+282
+00:11:30,200 --> 00:11:32,260
+Kita nampak yang ini.
+
+283
+00:11:32,260 --> 00:11:34,380
+Jadi saya ubah, saya tukar.
+
+284
+00:11:34,380 --> 00:11:37,140
+Ini ke evolution lah.
+
+285
+00:11:37,140 --> 00:11:40,380
+Nak tengok downtrend tengok MA5 Low.
+
+286
+00:11:40,440 --> 00:11:43,760
+Bila ada momentum dengan MA.
+
+287
+00:11:43,800 --> 00:11:47,000
+Ataupun kalau dia hanya close di bawah MA5 Low macam
+
+288
+00:11:47,000 --> 00:11:47,600
+ni,
+
+289
+00:11:47,600 --> 00:11:51,400
+kita namakan dia, kita beritahu dia adalah candle momentum.
+
+290
+00:11:51,820 --> 00:11:53,120
+Candle arah.
+
+291
+00:11:53,220 --> 00:11:55,660
+Candle arah itu adalah candle momentum.
+
+292
+00:11:55,780 --> 00:11:58,340
+Nama dia kita bagi arah.
+
+293
+00:11:58,560 --> 00:12:02,380
+Tapi dia memberitahu kita, dia ada momentum untuk turun.
+
+294
+00:12:02,380 --> 00:12:04,800
+Ataupun nak naik.
+
+295
+00:12:04,800 --> 00:12:07,500
+Cuma nama kita bagi dia Ahmad.
+
+296
+00:12:07,600 --> 00:12:11,580
+Tapi Ahmad adalah seorang petani.
+
+297
+00:12:11,580 --> 00:12:13,680
+Kerja dia petani.
+
+298
+00:12:13,680 --> 00:12:15,000
+Nama dia Ahmad.
+
+299
+00:12:15,000 --> 00:12:18,600
+Ada satu lagi nama dia Abu.
+
+300
+00:12:18,780 --> 00:12:22,160
+Dia perempuan juga tapi nama dia Abu.
+
+301
+00:12:22,160 --> 00:12:25,440
+Jadi yang ini dia momentum.
+
+302
+00:12:25,440 --> 00:12:27,720
+Dia namanya candle momentum.
+
+303
+00:12:27,720 --> 00:12:29,880
+Memang dia buat kerja momentum.
+
+304
+00:12:29,940 --> 00:12:32,980
+Yang ini kita tak namakan dia momentum.
+
+305
+00:12:32,980 --> 00:12:35,520
+Kita namakan dia candle arah.
+
+306
+00:12:35,640 --> 00:12:38,960
+Tapi dia buat kerja momentum juga.
+
+307
+00:12:38,960 --> 00:12:40,500
+Cuma nama dia saja berbeza.
+
+308
+00:12:40,500 --> 00:12:43,740
+Tapi dia buat kerja yang sama.
+
+309
+00:12:43,800 --> 00:12:45,800
+Wah macam blur semua.
+
+310
+00:12:45,940 --> 00:12:47,560
+Tak paham banget tangan.
+
+311
+00:12:49,260 --> 00:12:50,220
+Ya bang.
+
+312
+00:12:50,220 --> 00:12:51,500
+Itu korpor.
+
+313
+00:12:51,880 --> 00:12:53,460
+Saya nak buat lebih mudah.
+
+314
+00:12:53,460 --> 00:12:57,200
+Saya nak putar MK5 high.
+
+315
+00:12:57,200 --> 00:12:58,280
+Tak boleh?
+
+316
+00:12:58,540 --> 00:13:00,000
+Itu tergantung kepada anda.
+
+317
+00:13:00,060 --> 00:13:01,200
+Jadi lebih jelas.
+
+318
+00:13:01,620 --> 00:13:05,240
+Lebih jelas jika anda tak ada MA5 low.
+
+319
+00:13:05,540 --> 00:13:08,960
+Jika anda hanya ada MA5 high sahaja.
+
+320
+00:13:10,240 --> 00:13:11,380
+Single line kat dalam tu,
+
+321
+00:13:11,380 --> 00:13:12,960
+anda boleh lihat lebih jelas.
+
+322
+00:13:13,320 --> 00:13:15,600
+Tapi bila anda rojak semua masuk dalam ke dalam ni,
+
+323
+00:13:15,600 --> 00:13:18,460
+anda tak nampak.
+
+324
+00:13:18,620 --> 00:13:21,200
+Kalau anda boleh cium
+
+325
+00:13:21,700 --> 00:13:23,380
+masa dengan chart kosong,
+
+326
+00:13:23,380 --> 00:13:26,240
+dengan chart yang penuh dengan line,
+
+327
+00:13:26,320 --> 00:13:27,920
+itu okey.
+
+328
+00:13:27,920 --> 00:13:32,580
+Sebab reference awal dulu adalah MA5 high untuk downtrend.
+
+329
+00:13:32,580 --> 00:13:34,920
+Sebab kita nampak dia tak kena candle.
+
+330
+00:13:35,000 --> 00:13:35,660
+Very clear.
+
+331
+00:13:35,660 --> 00:13:37,440
+Bila kita letak satu line,
+
+332
+00:13:37,760 --> 00:13:38,580
+sangat clear.
+
+333
+00:13:38,580 --> 00:13:41,020
+Dia berkembang kalau MA5 high.
+
+334
+00:13:41,020 --> 00:13:43,200
+Dia berkembang kalau MA5 high.
+
+335
+00:13:43,640 --> 00:13:45,920
+Both also showing the same.
+
+336
+00:13:46,240 --> 00:13:49,220
+But the location is different.
+
+337
+00:13:49,220 --> 00:13:50,620
+Tapi depend pada siapa.
+
+338
+00:13:50,620 --> 00:13:54,360
+Pada anda sendiri.
+
+339
+00:13:54,400 --> 00:13:57,320
+Sebab saya relatekan ini.
+
+340
+00:13:57,460 --> 00:13:59,060
+Candle yang close di luar bibi
+
+341
+00:13:59,280 --> 00:14:03,000
+berserta dengan MA5 low.
+
+342
+00:14:03,180 --> 00:14:05,320
+Jadi mudah untuk kita ingat.
+
+343
+00:14:05,320 --> 00:14:07,600
+Bila dia close di luar bibi,
+
+344
+00:14:07,720 --> 00:14:12,200
+dia close juga di luar MA5 low.
+
+345
+00:14:12,460 --> 00:14:13,720
+Dia close rentak.
+
+346
+00:14:13,720 --> 00:14:23,000
+Kita masukkan bibi juga di sini.
+
+347
+00:14:23,000 --> 00:14:27,020
+Ini tempat yang sama.
+
+348
+00:14:28,480 --> 00:14:32,520
+Yang ini kita nampak candle momentum.
+
+349
+00:14:32,840 --> 00:14:35,060
+Ini clear candle momentum.
+
+350
+00:14:35,080 --> 00:14:36,540
+Yang ini juga candle momentum.
+
+351
+00:14:36,560 --> 00:14:38,600
+Tetapi ada MA5 sekali.
+
+352
+00:14:38,660 --> 00:14:40,800
+Berserta dengan MA5.
+
+353
+00:14:41,200 --> 00:14:42,960
+So, sebenarnya MA5 ni
+
+354
+00:14:42,960 --> 00:14:44,160
+bila candle close,
+
+355
+00:14:44,200 --> 00:14:46,120
+bila dia condom macam ni,
+
+356
+00:14:46,120 --> 00:14:48,200
+ataupun tegar macam ni,
+
+357
+00:14:48,200 --> 00:14:51,940
+dia menunjukkan dia ada momentum.
+
+358
+00:14:51,940 --> 00:14:53,740
+Dia ada momentum.
+
+359
+00:14:53,820 --> 00:14:57,040
+Dengan syarat, dia mesti tegak ataupun condom.
+
+360
+00:14:57,040 --> 00:15:01,260
+Dan dia lebih kuat bila dia close juga di luar
+
+361
+00:15:01,260 --> 00:15:04,100
+bibi.
+
+362
+00:15:04,140 --> 00:15:04,880
+Kita kena ingat tu.
+
+363
+00:15:04,900 --> 00:15:08,400
+Bila dia juga close di luar bibi dan MA5,
+
+364
+00:15:08,600 --> 00:15:12,160
+dia punya momentum lagi kuat.
+
+365
+00:15:12,760 --> 00:15:17,860
+Sama juga dengan MA5 high.
+
+366
+00:15:17,860 --> 00:15:20,640
+Kalau ini kita katakan kita nak refer dia untuk turun,
+
+367
+00:15:20,660 --> 00:15:23,240
+yang ini dia untuk naik.
+
+368
+00:15:23,240 --> 00:15:25,800
+Sama saja.
+
+369
+00:15:25,820 --> 00:15:28,160
+Candle close di luar bibi.
+
+370
+00:15:28,200 --> 00:15:31,800
+Dia close di luar MA5.
+
+371
+00:15:31,860 --> 00:15:33,160
+MA5 tu ada dekat situ.
+
+372
+00:15:33,200 --> 00:15:36,400
+Dia close di luar MA5 dan bibi.
+
+373
+00:15:36,660 --> 00:15:40,320
+So, kita kata momentum tu di sini saja.
+
+374
+00:15:40,320 --> 00:15:41,900
+Sebab dia candle close di luar bibi,
+
+375
+00:15:41,940 --> 00:15:42,720
+sini saja momentum.
+
+376
+00:15:42,720 --> 00:15:45,380
+Tengok, dari sini lagi dia dah keluar.
+
+377
+00:15:45,520 --> 00:15:47,420
+Ini weekly ni.
+
+378
+00:15:47,520 --> 00:15:48,520
+Ini time frame weekly.
+
+379
+00:15:48,520 --> 00:15:52,300
+Dari bawah ni sampai ke atas ni,
+
+380
+00:15:52,340 --> 00:15:55,420
+lebih daripada yang keluar di ke atas.
+
+381
+00:15:55,420 --> 00:15:57,120
+Nampak tak?
+
+382
+00:15:57,160 --> 00:15:58,520
+MA5 ni macam mana keadaan dia?
+
+383
+00:15:58,520 --> 00:16:00,600
+Macam ni kan?
+
+384
+00:16:00,700 --> 00:16:02,040
+MA5 ni berkeadaan macam ni.
+
+385
+00:16:02,140 --> 00:16:05,600
+Tapi sekarang dia close di atas MA5.
+
+386
+00:16:06,000 --> 00:16:09,480
+Line tu berada di atas body candle.
+
+387
+00:16:09,480 --> 00:16:10,600
+Sedangkan,
+
+388
+00:16:11,000 --> 00:16:13,280
+masa yang ini,
+
+389
+00:16:13,280 --> 00:16:14,800
+MA5 low yang tadi,
+
+390
+00:16:14,800 --> 00:16:20,280
+mana pula ni?
+
+391
+00:16:20,460 --> 00:16:29,040
+10 March.
+
+392
+00:16:29,120 --> 00:16:31,060
+Sedangkan pada masa ni,
+
+393
+00:16:31,120 --> 00:16:34,740
+MA5 low dia duduk macam ni.
+
+394
+00:16:35,400 --> 00:16:36,900
+Dia terbalik saja.
+
+395
+00:16:37,140 --> 00:16:37,800
+Tapi,
+
+396
+00:16:37,940 --> 00:16:38,480
+nampak?
+
+397
+00:16:38,520 --> 00:16:42,020
+Dia close di atas MA5 dan luar bibi.
+
+398
+00:16:42,100 --> 00:16:45,060
+Kita kata dia momentum bila candle close di luar bibi.
+
+399
+00:16:45,060 --> 00:16:49,120
+Sebenarnya, dia dah mula momentum bila ada candle arah.
+
+400
+00:16:49,140 --> 00:16:51,800
+Ini adalah candle arah.
+
+401
+00:16:51,800 --> 00:16:54,480
+Candle arah awal ataupun tidak.
+
+402
+00:16:54,480 --> 00:16:55,540
+Sebab dia dah lepas bibi,
+
+403
+00:16:55,540 --> 00:16:58,260
+maknanya candle arah kukur lah.
+
+404
+00:16:58,260 --> 00:17:00,400
+Candle arah kukur candle,
+
+405
+00:17:00,740 --> 00:17:04,200
+itu adalah momentum.
+
+406
+00:17:04,260 --> 00:17:06,000
+Kalau dia nak naik jauh,
+
+407
+00:17:06,220 --> 00:17:09,180
+dia kena close luar bibi.
+
+408
+00:17:09,180 --> 00:17:11,240
+Dia mesti kena keluar daripada bibi.
+
+409
+00:17:11,280 --> 00:17:14,540
+Baru dia boleh jadi momentum yang kukur lebih kuat.
+
+410
+00:17:14,540 --> 00:17:16,920
+Kalau dia hanya main,
+
+411
+00:17:16,920 --> 00:17:19,380
+keluar daripada MA5 highs saja,
+
+412
+00:17:19,460 --> 00:17:20,760
+tapi dalam bibi,
+
+413
+00:17:20,760 --> 00:17:23,560
+dia tak boleh pergi jauh.
+
+414
+00:17:23,560 --> 00:17:26,540
+Sehinggalah dia mula close di luar bibi.
+
+415
+00:17:26,540 --> 00:17:29,520
+Baru dia boleh sambung perjalanan.
+
+416
+00:17:29,520 --> 00:17:29,880
+Okay?
+
+417
+00:17:29,900 --> 00:17:32,580
+Maknanya kalau dia sampai dekat top bibi,
+
+418
+00:17:32,580 --> 00:17:33,600
+tak break.
+
+419
+00:17:33,660 --> 00:17:36,520
+Dia akan batar balik.
+
+420
+00:17:36,520 --> 00:17:38,160
+Sebab itu kandang dia.
+
+421
+00:17:38,160 --> 00:17:39,800
+Dia punya...
+
+422
+00:17:40,960 --> 00:17:43,600
+ada pengawal yang menjaga daripada dia naik atas,
+
+423
+00:17:43,600 --> 00:17:46,700
+ataupun pengawal yang menjaga daripada dia turun ke bawah.
+
+424
+00:17:46,700 --> 00:17:48,060
+Tetapi bila kita nampak,
+
+425
+00:17:48,140 --> 00:17:50,000
+mulanya ada candle arah,
+
+426
+00:17:50,020 --> 00:17:51,200
+dia jadi tegak macam ini.
+
+427
+00:17:51,480 --> 00:17:53,900
+Candle semua close ke atas.
+
+428
+00:17:54,080 --> 00:17:57,200
+Itu petanda yang ada momentum nak naik.
+
+429
+00:17:57,300 --> 00:17:59,700
+Momentum kuat nak naik.
+
+430
+00:18:00,240 --> 00:18:01,180
+Tapi,
+
+431
+00:18:01,180 --> 00:18:03,000
+selagi dia di dalam bibi,
+
+432
+00:18:03,220 --> 00:18:05,700
+dia boleh meneruskan perjalanan.
+
+433
+00:18:05,700 --> 00:18:06,500
+Nak teruskan perjalanan,
+
+434
+00:18:06,500 --> 00:18:08,300
+kena keluar daripada bibi.
+
+435
+00:18:08,300 --> 00:18:10,100
+Kena close di luar bibi.
+
+436
+00:18:10,100 --> 00:18:11,100
+Dalam bibi,
+
+437
+00:18:11,100 --> 00:18:12,400
+dia contain dalam tu je.
+
+438
+00:18:12,400 --> 00:18:13,840
+Main dalam tu je.
+
+439
+00:18:13,880 --> 00:18:15,840
+Tapi, once dia terkeluar daripada bibi,
+
+440
+00:18:15,880 --> 00:18:17,900
+baru dia boleh meneruskan perjalanan naik,
+
+441
+00:18:17,940 --> 00:18:19,760
+ataupun turun.
+
+442
+00:18:19,760 --> 00:18:22,980
+Tetapi dia bagi signal awal candle arah,
+
+443
+00:18:22,980 --> 00:18:25,720
+untuk bagitahu itu ada momentum.
+
+444
+00:18:25,780 --> 00:18:29,500
+Selagi candle itu berada di atas,
+
+445
+00:18:29,560 --> 00:18:32,200
+close-nya di atas MA5,
+
+446
+00:18:32,600 --> 00:18:35,300
+hai, yang tegak macam ini.
+
+447
+00:18:35,300 --> 00:18:36,640
+Itu adalah arah.
+
+448
+00:18:36,760 --> 00:18:40,580
+Arah adalah momentum.
+
+449
+00:18:40,660 --> 00:18:44,080
+Tapi, kita tak panggil dia candle momentum.
+
+450
+00:18:44,180 --> 00:18:46,300
+Kita panggil nama dia candle momentum,
+
+451
+00:18:46,300 --> 00:18:48,640
+bila dia terkeluar daripada bibi.
+
+452
+00:18:48,740 --> 00:18:49,740
+Tapi, kita kena faham.
+
+453
+00:18:49,740 --> 00:18:52,880
+Bila ada candle arah,
+
+454
+00:18:52,880 --> 00:18:54,700
+walaupun dia duduk di dalam bibi,
+
+455
+00:18:54,700 --> 00:18:55,620
+dan dia tegak,
+
+456
+00:18:55,860 --> 00:18:57,540
+candle close di atas,
+
+457
+00:18:57,540 --> 00:19:00,600
+dia menunjukkan arah yang ada momentum.
+
+458
+00:19:00,860 --> 00:19:05,460
+Kalau ada MA5 low candle close di bawah,
+
+459
+00:19:05,500 --> 00:19:06,540
+contoh macam ini,
+
+460
+00:19:06,540 --> 00:19:07,900
+close di bawah,
+
+461
+00:19:07,900 --> 00:19:09,520
+ini momentum.
+
+462
+00:19:09,580 --> 00:19:11,720
+Tetapi dia arah.
+
+463
+00:19:11,720 --> 00:19:14,200
+Dia juga memberitahu kita ada momentum untuk turun.
+
+464
+00:19:14,220 --> 00:19:16,400
+Tetapi sampai ke lower bibi,
+
+465
+00:19:16,640 --> 00:19:17,700
+tak lepas.
+
+466
+00:19:17,700 --> 00:19:19,520
+So, dia tendang balik ke atas.
+
+467
+00:19:19,520 --> 00:19:20,460
+Dia nak turun,
+
+468
+00:19:20,460 --> 00:19:24,740
+dia mesti break lower bibi.
+
+469
+00:19:24,880 --> 00:19:26,620
+Sampai lower bibi tak break,
+
+470
+00:19:26,620 --> 00:19:28,300
+dia tak akan pergi ke mana.
+
+471
+00:19:28,300 --> 00:19:30,400
+Dia akan patah balik.
+
+472
+00:19:30,880 --> 00:19:32,180
+Okey?
+
+473
+00:19:32,180 --> 00:19:34,120
+Konsep tu yang kita kena faham.
+
+474
+00:19:34,120 --> 00:19:36,860
+Kita kena faham konsep tu.
+
+475
+00:19:36,860 --> 00:19:38,340
+Ini bukan
+
+476
+00:19:39,020 --> 00:19:41,400
+rocket science punya teknologi.
+
+477
+00:19:41,720 --> 00:19:44,160
+Hanya visual sahaja.
+
+478
+00:19:44,220 --> 00:19:46,000
+Based on
+
+479
+00:19:46,720 --> 00:19:49,180
+logic akal semata-mata.
+
+480
+00:19:49,180 --> 00:19:51,800
+It is not a rocket science punya
+
+481
+00:19:52,320 --> 00:19:53,880
+technology.
+
+482
+00:19:54,020 --> 00:19:54,620
+Okey?
+
+483
+00:19:54,720 --> 00:19:56,000
+Logic sahaja.
+
+484
+00:19:56,000 --> 00:19:57,600
+Tetapi kita boleh nampak benda ni,
+
+485
+00:19:57,740 --> 00:19:59,000
+kita boleh dapat lebih faham,
+
+486
+00:19:59,320 --> 00:20:00,000
+bila kita rajin
+
+487
+00:20:01,640 --> 00:20:03,700
+M-A5, observe.
+
+488
+00:20:03,700 --> 00:20:07,080
+Buka chart, masukkan satu-satu.
+
+489
+00:20:07,080 --> 00:20:09,880
+Lepas belakang, M-A5 high dulu.
+
+490
+00:20:09,880 --> 00:20:14,460
+M-A5 high, kita dah boleh nampak perbezaan masa naik dan
+
+491
+00:20:14,460 --> 00:20:15,860
+masa turun.
+
+492
+00:20:15,860 --> 00:20:17,440
+Kita dah boleh faham.
+
+493
+00:20:17,440 --> 00:20:19,500
+Then masukkan M-A5 low.
+
+494
+00:20:19,500 --> 00:20:21,680
+Buat benda yang sama.
+
+495
+00:20:21,680 --> 00:20:22,940
+Lepas belakang, M-A5 high.
+
+496
+00:20:22,940 --> 00:20:24,860
+Macam orang gila.
+
+497
+00:20:24,960 --> 00:20:28,000
+Lepas itu dah faham, masukkan M-A10 low pula.
+
+498
+00:20:28,940 --> 00:20:32,740
+Satu-satu, satu-satu, satu-satu, saya buat.
+
+499
+00:20:32,740 --> 00:20:34,260
+Macam orang gila, ya.
+
+500
+00:20:34,260 --> 00:20:35,460
+Macam orang gila.
+
+501
+00:20:35,460 --> 00:20:36,500
+Saya buat.
+
+502
+00:20:36,560 --> 00:20:38,820
+Tapi lepas itu, saya nampak.
+
+503
+00:20:38,820 --> 00:20:40,360
+Saya boleh nampak.
+
+504
+00:20:40,360 --> 00:20:42,000
+Yang itu yang kita share hari ini.
+
+505
+00:20:42,100 --> 00:20:44,500
+Jadi tak perlu nak susah-susah sangat lagi sebab saya dah
+
+506
+00:20:44,500 --> 00:20:48,560
+buat berjaga jam, berminggu-minggu saya buat.
+
+507
+00:20:48,580 --> 00:20:50,320
+Jadi saya beritahu ini untuk mudah.
+
+508
+00:20:50,320 --> 00:20:52,380
+Kamu faham saja.
+
+509
+00:20:52,380 --> 00:20:53,820
+Nak backtest itu okeylah.
+
+510
+00:20:53,820 --> 00:20:55,000
+Lagi bagus.
+
+511
+00:20:55,700 --> 00:20:57,860
+Tapi konsep itu.
+
+512
+00:20:57,860 --> 00:21:02,160
+Konsep itu adalah ketika dia naik,
+
+513
+00:21:02,160 --> 00:21:05,780
+M-A tadi bila dia tegak atau condom atau mendata, dia
+
+514
+00:21:05,780 --> 00:21:08,320
+memberitahu sesuatu.
+
+515
+00:21:08,380 --> 00:21:13,060
+Semua M-A yang tegak, condom atau mendata.
+
+516
+00:21:13,060 --> 00:21:14,200
+Kita kena faham.
+
+517
+00:21:14,200 --> 00:21:15,140
+Dia memberitahu sesuatu.
+
+518
+00:21:15,140 --> 00:21:18,820
+Buka chart saja.
+
+519
+00:21:18,880 --> 00:21:21,000
+Buka saja chart, jangan terus masuk.
+
+520
+00:21:22,240 --> 00:21:23,200
+Itu masalah dia.
+
+521
+00:21:23,200 --> 00:21:26,940
+Kita buka chart saja, alamak nak cari entry.
+
+522
+00:21:28,120 --> 00:21:29,620
+Contoh, bila buka saja chart, sekarang.
+
+523
+00:21:29,620 --> 00:21:30,380
+Nampak.
+
+524
+00:21:30,420 --> 00:21:31,920
+Tegak ke atas.
+
+525
+00:21:31,920 --> 00:21:34,600
+Tegak ada candle kat atas dia.
+
+526
+00:21:34,600 --> 00:21:39,240
+Contoh, bila kita nak cari, detailnya.
+
+527
+00:21:39,240 --> 00:21:42,960
+Sebab entry, petang nanti kita akan cerita.
+
+528
+00:21:43,120 --> 00:21:47,280
+Okey, sekarang ini kita nak masukkan dia punya partner.
+
+529
+00:21:47,320 --> 00:21:48,940
+Kita buang balik bolong jebany.
+
+530
+00:21:53,960 --> 00:22:01,240
+Sini kita masukkan M-A10.
+
+531
+00:22:01,800 --> 00:22:02,820
+Warna putih.
+
+532
+00:22:02,820 --> 00:22:04,700
+Alamak, warna putih sini tak nampak.
+
+533
+00:22:04,740 --> 00:22:07,920
+Kita letak warna kelabu lah.
+
+534
+00:22:08,120 --> 00:22:08,680
+Okey.
+
+535
+00:22:08,680 --> 00:22:10,820
+Tapi originalnya kita pakai warna putih.
+
+536
+00:22:10,900 --> 00:22:13,000
+Sebab background dia warna hitam.
+
+537
+00:22:13,160 --> 00:22:16,000
+Dan sini kita masukkan M-A10.
+
+538
+00:22:16,000 --> 00:22:19,200
+Warna kuning.
+
+539
+00:22:19,200 --> 00:22:21,120
+Warna kuning ini pun takut tak berapa clear.
+
+540
+00:22:21,120 --> 00:22:26,460
+Kita masukkan warna oranye.
+
+541
+00:22:26,640 --> 00:22:29,880
+Okey, kita balik ke tempat yang asal tadi.
+
+542
+00:22:29,880 --> 00:22:31,480
+Tempat awal tadi.
+
+543
+00:22:31,480 --> 00:22:32,780
+Sama, dia mengesahkan.
+
+544
+00:22:32,780 --> 00:22:37,520
+Dia mengukuhkan lagi kita punya M-A10 tadi.
+
+545
+00:22:37,580 --> 00:22:39,520
+Dia mengukuhkan entry kita.
+
+546
+00:22:39,700 --> 00:22:41,000
+Mengukuhkan kita punya entry sebab
+
+547
+00:22:41,800 --> 00:22:46,280
+kalau kita nampak candle ini tak sentuh pun M-A5 high,
+
+548
+00:22:46,280 --> 00:22:47,700
+semasa turun,
+
+549
+00:22:47,800 --> 00:22:50,920
+M-A10 itu lagi lah tak kena.
+
+550
+00:22:50,920 --> 00:22:52,940
+Lagi lah tak kena.
+
+551
+00:22:52,940 --> 00:22:54,840
+Sama juga dengan sini.
+
+552
+00:22:54,840 --> 00:22:58,560
+Dia tetap berada pada body candle.
+
+553
+00:22:58,560 --> 00:23:00,080
+Dia tetap berada pada body candle.
+
+554
+00:23:00,080 --> 00:23:04,960
+Masa turun, candle berada pada line kedua-dua ini tadi.
+
+555
+00:23:05,000 --> 00:23:08,000
+M-A5 high, M-A5 low, dengan M-A10 low.
+
+556
+00:23:08,840 --> 00:23:13,840
+Dan point of entry kita tadi, semasa ketika mendata tadi,
+
+557
+00:23:13,840 --> 00:23:16,280
+ini mendata, dah cucuk.
+
+558
+00:23:16,420 --> 00:23:20,300
+Setulah nanti kita punya tempat-tempat untuk entry.
+
+559
+00:23:20,300 --> 00:23:24,440
+Bila kita kombinkan, kita akan nampak entry punya setup.
+
+560
+00:23:24,440 --> 00:23:28,020
+Kita akan nampak setup-setup untuk entry.
+
+561
+00:23:28,020 --> 00:23:34,260
+Okey, yang dikatakan range antara M-A5 dengan M-A10 itu adalah
+
+562
+00:23:34,520 --> 00:23:37,000
+kita punya entry zone.
+
+563
+00:23:37,000 --> 00:23:43,300
+Contoh kita besarkan sikit ini.
+
+564
+00:23:43,340 --> 00:23:48,520
+Jarak antara M-A5 high dengan M-A10 high.
+
+565
+00:23:48,680 --> 00:23:50,580
+Jarak di sini.
+
+566
+00:23:50,660 --> 00:23:53,460
+Ini adalah zone untuk entry.
+
+567
+00:23:53,460 --> 00:23:57,800
+Sebab kalau contoh macam ini re-entry, ciri-ciri dia akan cerita
+
+568
+00:23:57,800 --> 00:23:59,320
+pertang nanti.
+
+569
+00:23:59,340 --> 00:24:03,200
+Kalau kita kata kita nak ambil sebab M-A5 adalah entry,
+
+570
+00:24:03,200 --> 00:24:04,000
+tempat entry.
+
+571
+00:24:04,000 --> 00:24:07,400
+Tapi sekarang dia dah melepasi, cross M-A5.
+
+572
+00:24:07,460 --> 00:24:10,000
+Tapi tak lepasi M-A10.
+
+573
+00:24:10,340 --> 00:24:14,360
+So, ini adalah zone untuk entry daripada sini sampai ke
+
+574
+00:24:14,360 --> 00:24:15,000
+M-A5 itu.
+
+575
+00:24:15,160 --> 00:24:18,220
+Itu tempat untuk kita masuk.
+
+576
+00:24:18,220 --> 00:24:23,140
+Sama ada PO, pending order, ataupun manual order kita nak
+
+577
+00:24:23,140 --> 00:24:24,980
+masuk, manual entry.
+
+578
+00:24:24,980 --> 00:24:26,960
+Okey, ada yang suka letak PO.
+
+579
+00:24:26,960 --> 00:24:30,420
+Dia akan letak PO di antara M-A5 high, M-A10 high,
+
+580
+00:24:30,420 --> 00:24:32,960
+ke M-A5 low.
+
+581
+00:24:33,000 --> 00:24:36,320
+M-A10 high ke M-A5 high.
+
+582
+00:24:36,320 --> 00:24:37,540
+Dalam itu dia letak PO.
+
+583
+00:24:37,540 --> 00:24:40,000
+Lepas-lepas, sekejap itu dia letak.
+
+584
+00:24:40,080 --> 00:24:42,000
+Price tak sampai lagi.
+
+585
+00:24:42,020 --> 00:24:44,420
+Masa kennel tengah turun, dia letaklah sekejap.
+
+586
+00:24:44,420 --> 00:24:46,060
+Nanti ada momentum ni.
+
+587
+00:24:46,060 --> 00:24:47,380
+Sebab ini kan momentum kan?
+
+588
+00:24:47,380 --> 00:24:49,000
+Mesti ada re-entry.
+
+589
+00:24:49,020 --> 00:24:50,320
+Dia letak sekejap PO.
+
+590
+00:24:50,320 --> 00:24:53,520
+Dia sampai lah.
+
+591
+00:24:53,900 --> 00:24:57,380
+Okey, so M-A10 ni tadi tak banyak sangat cerita dia.
+
+592
+00:24:57,380 --> 00:25:01,000
+Dia mengukuhkan lagi kita punya entry-entry kita.
+
+593
+00:25:01,400 --> 00:25:04,920
+Dan daripada situ kita boleh nampak,
+
+594
+00:25:04,920 --> 00:25:10,100
+bila sama cara kita nak tengok M-A5 dengan M-A10.
+
+595
+00:25:10,100 --> 00:25:12,340
+Sebab itu ada juga yang tak nak guna M-A5, dia
+
+596
+00:25:12,340 --> 00:25:14,040
+nak guna M-A10 saja.
+
+597
+00:25:14,040 --> 00:25:16,200
+Bila kennel break,
+
+598
+00:25:16,200 --> 00:25:21,120
+okey lah yang ni, ke depan sikit.
+
+599
+00:25:21,260 --> 00:25:23,000
+Okey, macam ni kita nampak.
+
+600
+00:25:23,620 --> 00:25:29,200
+Ini semua kennel-kennel yang close di bawah M-A5 dengan M-A10.
+
+601
+00:25:29,260 --> 00:25:30,000
+Ini.
+
+602
+00:25:31,840 --> 00:25:37,980
+Ini kat sini.
+
+603
+00:25:37,980 --> 00:25:39,380
+Okey.
+
+604
+00:25:39,560 --> 00:25:42,000
+Sepanjang pendorunan, sepanjang tahun,
+
+605
+00:25:42,360 --> 00:25:46,620
+se tahun lebih, daripada bulan Jun ke macam tu,
+
+606
+00:25:46,620 --> 00:25:51,980
+dia turun, kennel semua duduk di bawah M-A5 dan M-A10
+
+607
+00:25:51,980 --> 00:25:53,960
+high.
+
+608
+00:25:54,020 --> 00:25:55,000
+Betul, ya?
+
+609
+00:25:55,120 --> 00:26:00,000
+Ada tak kennel yang break M-A10 dengan M-A5?
+
+610
+00:26:00,080 --> 00:26:04,700
+Sini baru ada satu kennel yang break.
+
+611
+00:26:04,700 --> 00:26:06,520
+Nampak?
+
+612
+00:26:06,700 --> 00:26:10,000
+Ini adalah kennel yang pertama yang berjaya break.
+
+613
+00:26:10,040 --> 00:26:13,600
+So, dia adalah sama seperti ini.
+
+614
+00:26:13,600 --> 00:26:15,820
+Ada tak, beza dia dengan ini?
+
+615
+00:26:15,900 --> 00:26:20,140
+Ini kennel yang break M-A5 dengan M-A10 low.
+
+616
+00:26:20,200 --> 00:26:24,500
+Ini adalah kennel yang break M-A5 dengan M-A10 high.
+
+617
+00:26:24,680 --> 00:26:27,000
+Ini menandakan ada momentum nak naik.
+
+618
+00:26:27,760 --> 00:26:31,720
+So, kennel yang mula-mula break M-A5 dengan M-A10, ini tak
+
+619
+00:26:31,720 --> 00:26:32,840
+ada.
+
+620
+00:26:33,040 --> 00:26:36,120
+Susah pakai ini.
+
+621
+00:26:36,120 --> 00:26:41,420
+Sini kan, turun ini, ada tak kennel terjorjol keluar?
+
+622
+00:26:41,440 --> 00:26:42,560
+Semua bawah.
+
+623
+00:26:42,560 --> 00:26:44,900
+Sini baru terjorjol keluar.
+
+624
+00:26:45,180 --> 00:26:48,920
+So, dia sama dengan keadaan masa kita scroll tadi.
+
+625
+00:26:48,920 --> 00:26:54,020
+Masa kita tengok, masa dia tengah naik.
+
+626
+00:26:54,040 --> 00:26:54,680
+Ini.
+
+627
+00:26:54,680 --> 00:26:56,000
+Apa beza dia?
+
+628
+00:26:57,160 --> 00:26:58,200
+Ini.
+
+629
+00:27:00,060 --> 00:27:03,860
+Bila dia close di luar, itu adalah momentum.
+
+630
+00:27:03,860 --> 00:27:05,640
+Beritahu kata dia nak naik.
+
+631
+00:27:05,640 --> 00:27:12,560
+So, sekarang berlaku dekat sini.
+
+632
+00:27:12,820 --> 00:27:15,580
+Itu adalah kennel arah.
+
+633
+00:27:15,620 --> 00:27:20,000
+Yang pertama sekali melepasi M-A5 dengan M-A10 high.
+
+634
+00:27:20,900 --> 00:27:26,780
+Ini adalah kennel yang pertama break M-A5 dengan M-A10 high.
+
+635
+00:27:26,780 --> 00:27:31,000
+Yang ini yang kita namakan kennel arah.
+
+636
+00:27:31,080 --> 00:27:35,120
+Arah tadi adalah momentum awal.
+
+637
+00:27:35,120 --> 00:27:36,260
+Sebab dalam bibi.
+
+638
+00:27:36,320 --> 00:27:39,140
+Tapi dia, kita tak panggil dia momentum.
+
+639
+00:27:39,220 --> 00:27:40,900
+Nama dia adalah kennel arah.
+
+640
+00:27:40,900 --> 00:27:43,960
+Tetapi dia menunjukkan ada momentum nak naik.
+
+641
+00:27:44,000 --> 00:27:46,380
+Ada momentum nak naik.
+
+642
+00:27:46,580 --> 00:27:49,000
+Ini adalah signal.
+
+643
+00:27:49,700 --> 00:27:52,300
+Tadi dia beritahu, Gerold beritahu kan.
+
+644
+00:27:52,300 --> 00:27:54,780
+Kita ada setup, kita ada signal.
+
+645
+00:27:55,020 --> 00:27:58,060
+Ini adalah signal awal.
+
+646
+00:27:58,060 --> 00:28:01,840
+Yang makin mungkin nak naik.
+
+647
+00:28:01,980 --> 00:28:04,380
+Signal saja, bukan setup.
+
+648
+00:28:04,400 --> 00:28:06,220
+Tetapi signal awal.
+
+649
+00:28:06,280 --> 00:28:07,660
+Jadi, tak jadi, itu belakang kira.
+
+650
+00:28:07,660 --> 00:28:11,880
+Dia cuma beritahu, turun itu dah habis.
+
+651
+00:28:11,980 --> 00:28:15,000
+So, kalau kita ada cell.
+
+652
+00:28:19,260 --> 00:28:23,000
+Yang ini orang selalu banyak tanya saya.
+
+653
+00:28:23,500 --> 00:28:24,240
+TP di mana?
+
+654
+00:28:24,240 --> 00:28:25,560
+BBMN ini ada tak TP?
+
+655
+00:28:25,560 --> 00:28:29,880
+Dia hanya bagi entry saja, TP tak ada.
+
+656
+00:28:29,940 --> 00:28:34,640
+So, kita masuk tadi.
+
+657
+00:28:34,640 --> 00:28:37,720
+Eh, susah juga.
+
+658
+00:28:46,800 --> 00:28:49,000
+Okay, market ini mula turun.
+
+659
+00:28:49,760 --> 00:28:53,960
+Dia mula turun pada bulan 4 atau bulan 5 tahun
+
+660
+00:28:53,960 --> 00:28:55,800
+2014.
+
+661
+00:28:55,800 --> 00:29:00,520
+Selepas ada satu kennel yang close di bawah MA5 dan
+
+662
+00:29:00,520 --> 00:29:01,900
+10 low.
+
+663
+00:29:01,900 --> 00:29:04,540
+Lalu kat sini kita tak nampak dia nak turun.
+
+664
+00:29:04,560 --> 00:29:07,640
+Kita cuma nampak dia di bawah saja.
+
+665
+00:29:07,660 --> 00:29:11,740
+Tapi sini kita nampak dia mula jadi kennel arah.
+
+666
+00:29:11,740 --> 00:29:14,000
+Ada arah maknanya ada momentum lah nak turun.
+
+667
+00:29:14,800 --> 00:29:17,980
+Dan dia turun.
+
+668
+00:29:18,180 --> 00:29:21,280
+Yang ini yang kita boleh gunakan untuk tengok dia berhenti
+
+669
+00:29:21,280 --> 00:29:22,780
+di mana.
+
+670
+00:29:22,780 --> 00:29:24,740
+Yang ini kita tahu dia mula nak turun.
+
+671
+00:29:24,740 --> 00:29:28,180
+Yang ini kita tahu di mana dia nak berhenti.
+
+672
+00:29:28,220 --> 00:29:32,220
+Dia mula turun bila ada kennel arah.
+
+673
+00:29:32,220 --> 00:29:38,340
+Bila dia mula kennel arah, dia continue turun.
+
+674
+00:29:38,340 --> 00:29:40,140
+Kita tak nampak arah di sini.
+
+675
+00:29:40,140 --> 00:29:41,380
+Kita tak nampak arah cell.
+
+676
+00:29:41,380 --> 00:29:42,000
+Ini adalah arah cell.
+
+677
+00:29:43,120 --> 00:29:47,620
+Kita tahu ada arah cell bila ada MA5 dan MA10
+
+678
+00:29:47,620 --> 00:29:48,520
+low.
+
+679
+00:29:48,520 --> 00:29:53,920
+Di sini kita nampak kennel duduk di bawah MA5, MA10
+
+680
+00:29:53,920 --> 00:29:55,040
+high.
+
+681
+00:29:55,040 --> 00:29:57,300
+So combination 2 ini tadi.
+
+682
+00:29:57,300 --> 00:29:59,000
+Yang sini kita nampak ada kennel arah.
+
+683
+00:30:00,000 --> 00:30:02,000
+untuk turun candle arah sel.
+
+684
+00:30:02,020 --> 00:30:04,780
+Di sini tak nampak sebab MA5 high.
+
+685
+00:30:04,900 --> 00:30:06,520
+Tapi kita tahu dia condom ke bawah
+
+686
+00:30:06,540 --> 00:30:08,440
+selagi candle berada di bawah
+
+687
+00:30:08,440 --> 00:30:09,980
+line merah dengan kuning ini
+
+688
+00:30:10,320 --> 00:30:12,280
+tak mungkin dia akan naik.
+
+689
+00:30:12,280 --> 00:30:14,400
+Dia hanya boleh naik apabila
+
+690
+00:30:14,520 --> 00:30:17,320
+ada candle arah untuk buy.
+
+691
+00:30:17,320 --> 00:30:18,340
+Candle arah buy maknanya
+
+692
+00:30:18,360 --> 00:30:20,240
+ada candle yang break MA5
+
+693
+00:30:20,360 --> 00:30:23,140
+dengan MA10 high.
+
+694
+00:30:23,140 --> 00:30:24,360
+Nampak?
+
+695
+00:30:24,460 --> 00:30:26,800
+So kalau kita ada sel di sini
+
+696
+00:30:27,300 --> 00:30:28,000
+selagi tak timbul
+
+697
+00:30:28,580 --> 00:30:30,000
+benda ini
+
+698
+00:30:30,700 --> 00:30:32,000
+ini tak ada
+
+699
+00:30:32,520 --> 00:30:34,560
+jangan close.
+
+700
+00:30:34,600 --> 00:30:37,520
+Jangan close sel.
+
+701
+00:30:37,620 --> 00:30:39,540
+Ada sel di sini.
+
+702
+00:30:39,540 --> 00:30:40,440
+Sini boleh masuk lagi
+
+703
+00:30:40,480 --> 00:30:42,000
+sini boleh masuk lagi, sini masuk lagi,
+
+704
+00:30:42,140 --> 00:30:44,640
+masuk, masuk, masuk, bertingkat-tingkat masuk
+
+705
+00:30:45,220 --> 00:30:46,300
+keluar condom ini
+
+706
+00:30:46,400 --> 00:30:48,000
+baru close.
+
+707
+00:30:48,040 --> 00:30:51,340
+Selagi candle arah ini tak ada
+
+708
+00:30:51,660 --> 00:30:53,080
+jangan close.
+
+709
+00:30:53,180 --> 00:30:55,620
+Ini time frame weekly.
+
+710
+00:30:55,620 --> 00:30:56,000
+Begitu juga
+
+711
+00:30:56,000 --> 00:30:58,000
+ke edah dia di time frame
+
+712
+00:30:58,400 --> 00:31:00,700
+satu minit.
+
+713
+00:31:00,700 --> 00:31:02,540
+Begitu juga ke edahnya di
+
+714
+00:31:02,560 --> 00:31:03,940
+lima belas minit.
+
+715
+00:31:03,940 --> 00:31:05,960
+Tiga puluh minit, satu jam.
+
+716
+00:31:05,960 --> 00:31:07,460
+Sama.
+
+717
+00:31:07,460 --> 00:31:08,220
+Apa yang saya
+
+718
+00:31:08,300 --> 00:31:10,380
+mencicik di depan ini bukan
+
+719
+00:31:10,900 --> 00:31:13,360
+hanya untuk weekly.
+
+720
+00:31:13,420 --> 00:31:16,040
+Semua time frame.
+
+721
+00:31:16,160 --> 00:31:18,200
+Dia tidak akan naik selagi
+
+722
+00:31:18,380 --> 00:31:22,120
+tidak ada pencuali angin ini.
+
+723
+00:31:22,120 --> 00:31:24,000
+Tak ada condom ini tak naik.
+
+724
+00:31:26,000 --> 00:31:29,620
+Dia mesti turun dulu.
+
+725
+00:31:29,660 --> 00:31:31,700
+Turun selagi ada,
+
+726
+00:31:31,720 --> 00:31:33,080
+tak ada, selagi itu
+
+727
+00:31:33,080 --> 00:31:34,000
+dia boleh turun.
+
+728
+00:31:34,020 --> 00:31:36,560
+Bila dia buat arah ini tadi,
+
+729
+00:31:36,560 --> 00:31:39,400
+nak close bolehlah close.
+
+730
+00:31:39,680 --> 00:31:40,620
+Tapi detailnya
+
+731
+00:31:40,640 --> 00:31:41,700
+ada lagi.
+
+732
+00:31:41,700 --> 00:31:45,360
+Sebab kita tahu bila ada arah, dia ada retest.
+
+733
+00:31:45,360 --> 00:31:47,140
+Tunggu lah ada retest.
+
+734
+00:31:47,140 --> 00:31:48,820
+Atau bila ada arah,
+
+735
+00:31:48,960 --> 00:31:51,200
+confirm dulu dengan time frame lebih besar.
+
+736
+00:31:51,240 --> 00:31:52,660
+Arah itu, arah yang
+
+737
+00:31:52,660 --> 00:31:54,000
+betul-betul arah ke?
+
+738
+00:31:54,160 --> 00:31:55,500
+Betul-betul arah ke?
+
+739
+00:31:55,500 --> 00:31:58,220
+Arah yang tak tentu arah.
+
+740
+00:31:58,220 --> 00:31:59,580
+Sebab ada arah yang tak tentu arah.
+
+741
+00:31:59,580 --> 00:32:01,840
+Dia keluar arah, arah baik.
+
+742
+00:32:01,840 --> 00:32:03,760
+Tapi dia continu turun.
+
+743
+00:32:03,760 --> 00:32:05,580
+Ada arah yang tak tentu arah.
+
+744
+00:32:05,580 --> 00:32:07,700
+Jadi, betang nanti kita akan cerita
+
+745
+00:32:07,700 --> 00:32:12,860
+arah yang tak tentu arah ini bagaimana nak detect.
+
+746
+00:32:12,920 --> 00:32:17,500
+So yang ini,
+
+747
+00:32:17,500 --> 00:32:19,140
+momentum untuk turun.
+
+748
+00:32:19,140 --> 00:32:20,240
+Tetapi kita tak tahu
+
+749
+00:32:20,240 --> 00:32:22,000
+di mana penghujung dia.
+
+750
+00:32:23,380 --> 00:32:26,320
+Dia nampak permulaan.
+
+751
+00:32:26,340 --> 00:32:28,380
+Tapi tak nampak ujung.
+
+752
+00:32:28,380 --> 00:32:30,420
+Yang ini, tak nampak permulaan,
+
+753
+00:32:30,520 --> 00:32:32,520
+nampak ujung.
+
+754
+00:32:32,600 --> 00:32:34,000
+Jadi bila kita combine,
+
+755
+00:32:34,020 --> 00:32:37,700
+baru kita nampak permulaan dengan ujung.
+
+756
+00:32:37,700 --> 00:32:38,420
+Kalau kita tengok
+
+757
+00:32:38,660 --> 00:32:41,400
+single-single macam ini,
+
+758
+00:32:41,400 --> 00:32:43,260
+yes, chart kita cantik.
+
+759
+00:32:43,280 --> 00:32:44,620
+Kita boleh nampak dengan jelas
+
+760
+00:32:44,680 --> 00:32:46,440
+masa turun yang ini.
+
+761
+00:32:46,440 --> 00:32:48,500
+Bila candle duduk di bawah.
+
+762
+00:32:48,500 --> 00:32:50,000
+Tapi kita tak akan nampak mana
+
+763
+00:32:50,000 --> 00:32:52,140
+punca dia nak start turun.
+
+764
+00:32:52,140 --> 00:32:54,300
+Sini boleh nampak, ada arah.
+
+765
+00:32:54,300 --> 00:32:56,600
+Tapi kalau kita pakai ini saja,
+
+766
+00:32:56,600 --> 00:32:58,220
+kita nampak momentum untuk turun itu.
+
+767
+00:32:58,260 --> 00:33:00,000
+Tapi berhenti di mana?
+
+768
+00:33:00,160 --> 00:33:03,380
+Berhenti itu tak nampak di sini, kita nampak di sini.
+
+769
+00:33:03,440 --> 00:33:07,500
+Jadi dia kena macam,
+
+770
+00:33:07,500 --> 00:33:08,300
+apa itu?
+
+771
+00:33:08,380 --> 00:33:10,320
+Yang budak-budak suka tengok itu kerjasama.
+
+772
+00:33:10,320 --> 00:33:11,780
+Kerjasama.
+
+773
+00:33:12,140 --> 00:33:14,000
+Dia kena berkerjasama dua-dua ini.
+
+774
+00:33:14,000 --> 00:33:15,440
+Dia kena combine dua-dua.
+
+775
+00:33:15,440 --> 00:33:18,000
+Baru kita nampak permulaan dia.
+
+776
+00:33:18,000 --> 00:33:19,880
+Di sini kita boleh nampak,
+
+777
+00:33:19,880 --> 00:33:22,260
+pengakhiran dia di sini.
+
+778
+00:33:22,260 --> 00:33:23,380
+Kita nampak.
+
+779
+00:33:23,380 --> 00:33:26,660
+Tapi kalau saya letak terus 44 ini tadi,
+
+780
+00:33:26,660 --> 00:33:28,940
+telah buang asap.
+
+781
+00:33:28,940 --> 00:33:29,640
+Tak faham.
+
+782
+00:33:29,640 --> 00:33:31,340
+Nanti jadi tak faham.
+
+783
+00:33:31,340 --> 00:33:33,460
+Jadi kita nak nampakkan benda ini
+
+784
+00:33:33,460 --> 00:33:36,600
+bila masuk satu-satu.
+
+785
+00:33:36,600 --> 00:33:38,720
+Faham?
+
+786
+00:33:39,700 --> 00:33:40,500
+Setakat ini faham.
+
+787
+00:33:40,540 --> 00:33:43,460
+Ini konsep, ini konsep MA5 dengan MA10.
+
+788
+00:33:43,480 --> 00:33:45,800
+Belum bab entry.
+
+789
+00:33:45,800 --> 00:33:46,000
+Entry petang nanti.
+
+790
+00:33:46,000 --> 00:33:47,400
+Tengah hari nanti.
+
+791
+00:33:47,400 --> 00:33:51,760
+Lepas waktu rehat.
+
+792
+00:33:51,960 --> 00:33:52,340
+Okay.
+
+793
+00:33:52,460 --> 00:33:53,420
+Ada persoalan.
+
+794
+00:33:53,420 --> 00:33:56,600
+Siapa nak tanya mengenai apa yang kita dah
+
+795
+00:33:56,900 --> 00:33:58,000
+go through dari
+
+796
+00:33:59,080 --> 00:34:00,660
+tadi.
+
+797
+00:34:00,660 --> 00:34:01,520
+Okay.
+
+798
+00:34:01,800 --> 00:34:06,540
+Saya nak sambung sikit candle arah ini.
+
+799
+00:34:06,760 --> 00:34:08,700
+Tapi petang nanti baru kita tahu candle arah.
+
+800
+00:34:08,700 --> 00:34:11,080
+Mana yang kukur candle arah yang tak kukur.
+
+801
+00:34:11,160 --> 00:34:12,620
+Yang itu yang datangnya
+
+802
+00:34:12,640 --> 00:34:14,000
+bila kita combinekan
+
+803
+00:34:14,000 --> 00:34:15,820
+semua
+
+804
+00:34:17,820 --> 00:34:19,360
+yang ini kita buang.
+
+805
+00:34:19,400 --> 00:34:20,240
+Kita dah tak nak pakai.
+
+806
+00:34:20,240 --> 00:34:22,000
+Kita nak pakai yang ini satu sahaja.
+
+807
+00:34:22,040 --> 00:34:24,700
+Kita combinekan
+
+808
+00:34:24,900 --> 00:34:28,160
+MA5 low.
+
+809
+00:34:28,220 --> 00:34:31,820
+MA10 low di dalam satu.
+
+810
+00:34:31,820 --> 00:34:34,700
+Low.
+
+811
+00:34:34,960 --> 00:34:37,080
+Dan MA5.
+
+812
+00:34:37,080 --> 00:34:42,180
+Warna magenta.
+
+813
+00:34:42,660 --> 00:34:42,920
+Okay.
+
+814
+00:34:42,920 --> 00:34:45,840
+So kita dah combine sekali.
+
+815
+00:34:46,120 --> 00:34:48,000
+Ini jadi pening.
+
+816
+00:34:48,040 --> 00:34:49,020
+Banyak sangat lain kan.
+
+817
+00:34:49,020 --> 00:34:50,000
+Ini baru ini
+
+818
+00:34:50,020 --> 00:34:52,520
+tak masuk bowling jemben lagi.
+
+819
+00:34:52,520 --> 00:34:54,000
+Belum masuk bowling jemben.
+
+820
+00:34:54,520 --> 00:34:56,200
+Tapi, yang recap balik
+
+821
+00:34:56,220 --> 00:34:58,000
+apa yang saya cakap tadi.
+
+822
+00:34:58,060 --> 00:35:01,860
+MA5 dengan MA10 low.
+
+823
+00:35:01,960 --> 00:35:04,000
+Bagi tahu kita permulaan untuk
+
+824
+00:35:04,080 --> 00:35:04,500
+turun.
+
+825
+00:35:04,500 --> 00:35:05,680
+Ini.
+
+826
+00:35:05,680 --> 00:35:09,480
+Ada candle arah kukur.
+
+827
+00:35:09,480 --> 00:35:10,000
+Close semua
+
+828
+00:35:10,000 --> 00:35:13,860
+di bawah MA5 low.
+
+829
+00:35:13,980 --> 00:35:15,960
+Tak ada satu batang candle pun
+
+830
+00:35:15,960 --> 00:35:17,640
+eh, sshh.
+
+831
+00:35:17,640 --> 00:35:18,120
+Duduk sini.
+
+832
+00:35:18,120 --> 00:35:19,680
+Sedap.
+
+833
+00:35:19,680 --> 00:35:21,960
+Semua duduk di bawah ini.
+
+834
+00:35:21,960 --> 00:35:22,820
+Condong.
+
+835
+00:35:22,820 --> 00:35:24,920
+Condong, condong, condong.
+
+836
+00:35:25,040 --> 00:35:26,360
+Satu batang candle pun
+
+837
+00:35:26,460 --> 00:35:28,000
+tak ada yang lepas line kuning
+
+838
+00:35:28,080 --> 00:35:30,040
+MA10 high.
+
+839
+00:35:30,040 --> 00:35:31,260
+Betul?
+
+840
+00:35:31,280 --> 00:35:33,440
+Tak ada satu batang pun.
+
+841
+00:35:33,520 --> 00:35:34,280
+Satu batang pun
+
+842
+00:35:34,280 --> 00:35:35,680
+tak ada candle yang lepas
+
+843
+00:35:35,680 --> 00:35:38,000
+daripada MA5 dengan MA10 high.
+
+844
+00:35:38,620 --> 00:35:41,200
+Line merah dengan line kuning.
+
+845
+00:35:41,280 --> 00:35:42,600
+Alih-alih, MA5 ini satu
+
+846
+00:35:42,640 --> 00:35:44,300
+boleh berani dia
+
+847
+00:35:44,320 --> 00:35:46,420
+close ke atas.
+
+848
+00:35:46,420 --> 00:35:48,000
+Dulu nama dia
+
+849
+00:35:48,200 --> 00:35:49,540
+candle gangster.
+
+850
+00:35:49,540 --> 00:35:50,320
+Dulu.
+
+851
+00:35:50,320 --> 00:35:52,480
+Dulu, masa dulu, kita namakan
+
+852
+00:35:52,580 --> 00:35:54,820
+ini adalah candle gangster.
+
+853
+00:35:54,920 --> 00:35:56,380
+Tapi budak-budak
+
+854
+00:35:56,580 --> 00:35:58,560
+dalam grup kita semua jadi gangster juga.
+
+855
+00:35:58,560 --> 00:36:00,400
+So, kita hantar dia pesat permulaan
+
+856
+00:36:00,780 --> 00:36:01,920
+dia dah jadi candle arah.
+
+857
+00:36:01,920 --> 00:36:03,760
+Dia dah jumpa arah dia.
+
+858
+00:36:03,760 --> 00:36:04,520
+Dia dah pulih.
+
+859
+00:36:04,520 --> 00:36:06,000
+Dia jadi candle arah.
+
+860
+00:36:06,000 --> 00:36:08,840
+Kita namakan dia sekarang candle arah.
+
+861
+00:36:08,840 --> 00:36:11,720
+Bukan lagi gangster.
+
+862
+00:36:11,880 --> 00:36:13,140
+Dia memberi
+
+863
+00:36:13,600 --> 00:36:14,440
+signal awal.
+
+864
+00:36:14,440 --> 00:36:15,640
+Sebab ini adalah signal.
+
+865
+00:36:15,640 --> 00:36:16,340
+Bukan setup.
+
+866
+00:36:16,340 --> 00:36:18,000
+Ini signal.
+
+867
+00:36:18,180 --> 00:36:20,420
+Signal awal yang tren mungkin
+
+868
+00:36:20,840 --> 00:36:22,740
+nak berubah.
+
+869
+00:36:22,740 --> 00:36:24,460
+Belum tentu ubah.
+
+870
+00:36:24,480 --> 00:36:27,220
+Hanya signal awal.
+
+871
+00:36:27,340 --> 00:36:28,000
+Contoh,
+
+872
+00:36:28,700 --> 00:36:30,320
+saya selalu bagi contoh beli minyak
+
+873
+00:36:30,320 --> 00:36:31,740
+kat kedai.
+
+874
+00:36:31,740 --> 00:36:34,000
+Kalau dah dengar
+
+875
+00:36:34,020 --> 00:36:37,020
+saya punya DVD ke dalam
+
+876
+00:36:37,580 --> 00:36:37,980
+webinar itu.
+
+877
+00:36:37,980 --> 00:36:40,000
+Itulah juga contoh dia.
+
+878
+00:36:40,380 --> 00:36:42,000
+Saya ada
+
+879
+00:36:42,080 --> 00:36:43,100
+tengah drive.
+
+880
+00:36:43,100 --> 00:36:44,000
+Tengok.
+
+881
+00:36:44,020 --> 00:36:46,840
+1-2 meter minyak dah nak habis.
+
+882
+00:36:46,840 --> 00:36:47,920
+Minyak dah nak habis.
+
+883
+00:36:47,920 --> 00:36:50,000
+Lagi 2 kilometer ada
+
+884
+00:36:50,260 --> 00:36:51,900
+petropump dekat belakangan
+
+885
+00:36:51,900 --> 00:36:53,700
+petronas.
+
+886
+00:36:53,700 --> 00:36:54,580
+Bawa.
+
+887
+00:36:54,680 --> 00:36:55,920
+Jadi niat nanti tadi tu
+
+888
+00:36:55,920 --> 00:36:57,800
+nak masuk ke petronas.
+
+889
+00:36:57,800 --> 00:37:00,000
+Nak isi minyak.
+
+890
+00:37:00,120 --> 00:37:02,000
+Lagi 200 meter.
+
+891
+00:37:02,020 --> 00:37:04,000
+Lagi tinggal 100 meter.
+
+892
+00:37:04,200 --> 00:37:04,860
+70 meter.
+
+893
+00:37:04,860 --> 00:37:06,000
+60 meter.
+
+894
+00:37:06,020 --> 00:37:08,780
+Sebab saya beli kereta yang ada signal.
+
+895
+00:37:08,780 --> 00:37:10,000
+Sebab ramai pemandu di Malaysia
+
+896
+00:37:10,160 --> 00:37:11,980
+dia beli kereta tak ada signal.
+
+897
+00:37:11,980 --> 00:37:12,980
+Dia beli kereta saja.
+
+898
+00:37:12,980 --> 00:37:14,200
+Signal tak ada.
+
+899
+00:37:14,200 --> 00:37:15,200
+Jadi saya bagi signal.
+
+900
+00:37:15,200 --> 00:37:16,000
+Sebab saya nak masuk kanan
+
+901
+00:37:16,120 --> 00:37:17,920
+saya bagi signal kanan.
+
+902
+00:37:17,920 --> 00:37:20,260
+Sebab petropump belak kanan.
+
+903
+00:37:20,260 --> 00:37:22,400
+Orang belakang bila nampak saya bagi signal
+
+904
+00:37:22,440 --> 00:37:23,920
+ke kanan, dia dah beragak, oh
+
+905
+00:37:23,920 --> 00:37:26,000
+mak mak ni dia nak masuk petronas.
+
+906
+00:37:26,000 --> 00:37:27,750
+Itu
+
+907
+00:37:28,840 --> 00:37:30,000
+maksud signal yang diberi.
+
+908
+00:37:30,000 --> 00:37:33,800
+Maksud signal arah tadi tu.
+
+909
+00:37:33,860 --> 00:37:34,640
+Adalah saya
+
+910
+00:37:34,820 --> 00:37:37,540
+nak masuk ke kanan.
+
+911
+00:37:37,600 --> 00:37:38,720
+Arah itu adalah maksud
+
+912
+00:37:38,720 --> 00:37:41,460
+dia nak naik ke atas.
+
+913
+00:37:41,520 --> 00:37:42,620
+Tapi saya teringat, alamak
+
+914
+00:37:42,740 --> 00:37:43,500
+duit tak bawa.
+
+915
+00:37:43,500 --> 00:37:45,240
+Hari-hari purse pun tak bawa.
+
+916
+00:37:45,360 --> 00:37:47,440
+Alamak, purse tak bawa.
+
+917
+00:37:47,440 --> 00:37:49,900
+Duit tak bawa.
+
+918
+00:37:49,920 --> 00:37:51,740
+Rumah ada lagi 5 kilometer
+
+919
+00:37:51,740 --> 00:37:53,280
+ke depan.
+
+920
+00:37:53,280 --> 00:37:55,040
+Kena balik rumah dulu.
+
+921
+00:37:55,280 --> 00:37:56,000
+So signal tadi
+
+922
+00:37:56,160 --> 00:37:57,220
+pada, balik.
+
+923
+00:37:57,220 --> 00:37:58,000
+Terus.
+
+924
+00:37:59,680 --> 00:38:00,620
+So ada signal tadi
+
+925
+00:38:00,700 --> 00:38:02,000
+tadi orang belakang tengok, mak mak ni tadi
+
+926
+00:38:02,180 --> 00:38:03,860
+nak cekan masuk kanan.
+
+927
+00:38:03,860 --> 00:38:04,880
+Tapi tak jadi dia terus.
+
+928
+00:38:04,880 --> 00:38:07,320
+Sebab duit tak bawa.
+
+929
+00:38:07,320 --> 00:38:08,900
+Jadi terus.
+
+930
+00:38:08,900 --> 00:38:10,860
+Jadi signal tadi tu
+
+931
+00:38:11,060 --> 00:38:13,860
+hanyalah signal.
+
+932
+00:38:13,860 --> 00:38:14,420
+Confirm tak?
+
+933
+00:38:14,420 --> 00:38:16,940
+Confirm tu belakang kira.
+
+934
+00:38:16,940 --> 00:38:18,420
+Kira 20 minit ke lagi 5 minit.
+
+935
+00:38:18,420 --> 00:38:21,180
+Tadi cekal 5 minit.
+
+936
+00:38:21,460 --> 00:38:21,960
+Okay.
+
+937
+00:38:21,960 --> 00:38:22,980
+So signal tadi
+
+938
+00:38:23,020 --> 00:38:24,540
+arah tadi tu
+
+939
+00:38:24,960 --> 00:38:26,000
+cuma signal.
+
+940
+00:38:26,960 --> 00:38:28,800
+Mungkin nak naik,
+
+941
+00:38:29,040 --> 00:38:29,860
+mungkin tak naik.
+
+942
+00:38:29,860 --> 00:38:32,000
+Tetapi, yang nyatanya
+
+943
+00:38:33,420 --> 00:38:34,680
+daripada keadaan
+
+944
+00:38:34,760 --> 00:38:36,420
+menurun macam ni,
+
+945
+00:38:36,420 --> 00:38:38,580
+dia sudah berhenti.
+
+946
+00:38:38,660 --> 00:38:40,600
+Dah berhenti penurunan dia.
+
+947
+00:38:40,600 --> 00:38:42,840
+Dia sudah mula sideway.
+
+948
+00:38:42,920 --> 00:38:44,780
+Yang itu maksud dia
+
+949
+00:38:44,980 --> 00:38:46,000
+walaupun
+
+950
+00:38:46,180 --> 00:38:48,000
+saya bagi signal tadi tak jadi masuk
+
+951
+00:38:48,320 --> 00:38:51,060
+tapi dah dekat-dekat tadi saya slow.
+
+952
+00:38:51,120 --> 00:38:52,320
+Sempang tadi itu slow.
+
+953
+00:38:52,320 --> 00:38:54,000
+Tapi berapa-berapa, pokit duit tak bawa
+
+954
+00:38:54,000 --> 00:38:55,640
+alamak.
+
+955
+00:38:55,640 --> 00:38:56,800
+Terus balik.
+
+956
+00:38:56,860 --> 00:38:58,320
+Tapi slow lah sekejap.
+
+957
+00:38:58,320 --> 00:39:00,340
+Dah sampai simpang itu slow.
+
+958
+00:39:00,340 --> 00:39:02,440
+Dah bagi signal nak masuk kan?
+
+959
+00:39:02,440 --> 00:39:03,780
+Kalau dah masuk,
+
+960
+00:39:03,780 --> 00:39:06,520
+kena patah balik juga lah.
+
+961
+00:39:06,520 --> 00:39:09,160
+Masuk saya, signal tadi tu
+
+962
+00:39:09,240 --> 00:39:10,400
+tujuan untuk bagi tahu
+
+963
+00:39:10,460 --> 00:39:13,840
+saya nak belok ke kanan.
+
+964
+00:39:13,840 --> 00:39:14,960
+Bukannya
+
+965
+00:39:15,780 --> 00:39:16,240
+confirm saya
+
+966
+00:39:16,240 --> 00:39:18,620
+nak masuk ke kanan.
+
+967
+00:39:18,720 --> 00:39:20,640
+Tetapi selalunya
+
+968
+00:39:21,160 --> 00:39:22,000
+signal tu bagi
+
+969
+00:39:22,000 --> 00:39:24,540
+poket ada dalam poket.
+
+970
+00:39:24,540 --> 00:39:26,540
+Selalunya ada signal dia akan patah
+
+971
+00:39:26,620 --> 00:39:27,880
+pergi ke kanan.
+
+972
+00:39:27,880 --> 00:39:30,000
+Yang berlaku signal tak ada poket
+
+973
+00:39:30,060 --> 00:39:32,820
+dia tadi jarang berlaku.
+
+974
+00:39:32,840 --> 00:39:34,960
+Sama juga maksud dia.
+
+975
+00:39:34,960 --> 00:39:37,360
+Dia boleh bagi signal.
+
+976
+00:39:37,360 --> 00:39:38,000
+Pertamanya
+
+977
+00:39:38,100 --> 00:39:40,460
+dia akan memberhentikan perjalanan
+
+978
+00:39:40,480 --> 00:39:42,420
+penurunan tadi tu.
+
+979
+00:39:42,460 --> 00:39:44,220
+Tapi nak naik, nak turun, nak naik
+
+980
+00:39:44,220 --> 00:39:45,000
+belum tentu lagi.
+
+981
+00:39:45,000 --> 00:39:47,160
+Tapi dia berhenti kan dulu.
+
+982
+00:39:47,240 --> 00:39:49,020
+Dia stopkan perjalanan tu.
+
+983
+00:39:49,020 --> 00:39:50,000
+So bermaksud
+
+984
+00:39:51,800 --> 00:39:53,040
+kunci kepada
+
+985
+00:39:53,140 --> 00:39:54,420
+kita punya entry
+
+986
+00:39:56,960 --> 00:39:59,120
+paling signifigant, paling penting
+
+987
+00:39:59,360 --> 00:40:00,000
+adalah candelara ni.
+
+988
+00:40:01,020 --> 00:40:09,700
+untuk kita masuk sel ini dan penamat dia adalah bila
+
+989
+00:40:09,700 --> 00:40:12,500
+ada lawan dia.
+
+990
+00:40:12,840 --> 00:40:14,300
+Tampak tak?
+
+991
+00:40:14,300 --> 00:40:17,300
+Kunci masuk rumah ada.
+
+992
+00:40:17,360 --> 00:40:19,400
+Tapi kunci keluar tak ada.
+
+993
+00:40:19,400 --> 00:40:21,380
+Mana boleh?
+
+994
+00:40:21,380 --> 00:40:22,740
+Mesti ada kunci masuk.
+
+995
+00:40:22,740 --> 00:40:25,220
+Kunci yang sama itu juga kita boleh gunakan untuk kunci
+
+996
+00:40:25,220 --> 00:40:26,780
+keluar.
+
+997
+00:40:26,820 --> 00:40:29,000
+Jadi ini kunci masuk, dia adalah arah.
+
+998
+00:40:29,680 --> 00:40:34,040
+Kunci keluar dia juga adalah arah.
+
+999
+00:40:34,260 --> 00:40:38,400
+Dan berlaku bukan sahaja di time frame weekly.
+
+1000
+00:40:38,460 --> 00:40:40,720
+Di semua time frame.
+
+1001
+00:40:40,720 --> 00:40:43,100
+Kamu macam tak percaya pula.
+
+1002
+00:40:45,280 --> 00:40:48,000
+Okey.
+
+1003
+00:40:48,000 --> 00:40:49,000
+Dia tengah naik.
+
+1004
+00:40:49,040 --> 00:40:50,680
+Candle duduk dekat atas.
+
+1005
+00:40:50,680 --> 00:40:52,860
+Dia nak turun, kena dulu candle yang close kat bawah
+
+1006
+00:40:52,860 --> 00:40:53,420
+ni.
+
+1007
+00:40:53,420 --> 00:40:54,840
+Ini candle arah.
+
+1008
+00:40:54,840 --> 00:40:58,000
+Ini yang dikatakan arah yang tak tentu arah.
+
+1009
+00:40:59,220 --> 00:41:00,580
+Ada arah tapi dia tak turun.
+
+1010
+00:41:00,580 --> 00:41:01,700
+Dia nak naik.
+
+1011
+00:41:01,700 --> 00:41:04,000
+Ada cara dia nak tackle dia.
+
+1012
+00:41:04,140 --> 00:41:05,980
+Ini semua arah.
+
+1013
+00:41:05,980 --> 00:41:09,340
+Sebelum dia nak naik, ada arah yang baru.
+
+1014
+00:41:09,340 --> 00:41:11,000
+Untuk naik.
+
+1015
+00:41:11,060 --> 00:41:12,720
+Dan untuk turun, kena ada arah yang baru.
+
+1016
+00:41:12,720 --> 00:41:14,920
+Nak naik kena ada arah yang baru.
+
+1017
+00:41:14,920 --> 00:41:16,520
+Itu time frame yang kecil.
+
+1018
+00:41:16,520 --> 00:41:19,000
+Time frame yang sederhana.
+
+1019
+00:41:19,020 --> 00:41:24,000
+Time frame satu minit bersama.
+
+1020
+00:41:24,080 --> 00:41:25,600
+Bukan saya berbual awak.
+
+1021
+00:41:25,600 --> 00:41:28,540
+Memang betul.
+
+1022
+00:41:28,540 --> 00:41:30,420
+Dia naik, semua duduk di atas.
+
+1023
+00:41:30,420 --> 00:41:33,880
+Dia nak turun, ada candle yang close di bawah.
+
+1024
+00:41:33,880 --> 00:41:36,160
+Dia nak naik balik, mesti kena ada candle yang close
+
+1025
+00:41:36,160 --> 00:41:38,360
+di atas.
+
+1026
+00:41:38,360 --> 00:41:42,060
+Dia nak turun, kena ada candle yang close kat bawah.
+
+1027
+00:41:42,240 --> 00:41:44,920
+Di semua time frame.
+
+1028
+00:41:45,140 --> 00:41:47,020
+Konsepnya sama.
+
+1029
+00:41:47,020 --> 00:41:47,880
+Tak ada beza.
+
+1030
+00:41:47,880 --> 00:41:49,960
+Konsep itu hanya berlaku dekat weekly.
+
+1031
+00:41:49,960 --> 00:41:51,000
+Tak.
+
+1032
+00:41:51,080 --> 00:41:53,000
+Maksudnya ada kunci masuk.
+
+1033
+00:41:53,600 --> 00:41:56,580
+Arah tadi tu boleh jadikan kunci untuk kita masuk.
+
+1034
+00:41:56,580 --> 00:41:58,060
+Entry.
+
+1035
+00:41:58,060 --> 00:41:58,900
+Mana nak keluar?
+
+1036
+00:41:58,900 --> 00:42:02,500
+Selagi tak ada kunci keluar tu tak ada lagi, jangan
+
+1037
+00:42:02,500 --> 00:42:04,300
+keluar.
+
+1038
+00:42:04,300 --> 00:42:08,360
+Itu kalau yang nak swing lama-lama tengok time frame besar
+
+1039
+00:42:08,360 --> 00:42:09,500
+lah.
+
+1040
+00:42:09,540 --> 00:42:11,860
+Yang nak day trade, mungkin tengok satu jam.
+
+1041
+00:42:11,860 --> 00:42:14,920
+Mungkin tengok 30 minit ke 4 jam.
+
+1042
+00:42:14,920 --> 00:42:17,280
+Yang nak scalping, boleh gunakan benda yang sama dekat 5
+
+1043
+00:42:17,280 --> 00:42:18,020
+minit.
+
+1044
+00:42:18,060 --> 00:42:19,180
+Mana nak tipi tadi tu?
+
+1045
+00:42:19,180 --> 00:42:20,140
+Soalan dia mana?
+
+1046
+00:42:20,140 --> 00:42:21,000
+Bang tipi di mana?
+
+1047
+00:42:21,680 --> 00:42:23,540
+Dulu kita jawab senang saja.
+
+1048
+00:42:23,540 --> 00:42:28,480
+Tipi ini ada ayat tu.
+
+1049
+00:42:28,600 --> 00:42:29,920
+Subjektif.
+
+1050
+00:42:30,000 --> 00:42:30,880
+Tipi ini subjektif.
+
+1051
+00:42:30,880 --> 00:42:33,220
+Ada orang nak 5 pip, dia beri 5 pip.
+
+1052
+00:42:34,160 --> 00:42:36,000
+Padahal dia turun setahun tu.
+
+1053
+00:42:36,160 --> 00:42:37,360
+Setahun dia turun.
+
+1054
+00:42:37,360 --> 00:42:39,720
+Dia nak 5 pip saja.
+
+1055
+00:42:39,720 --> 00:42:41,000
+Ya, ok.
+
+1056
+00:42:41,220 --> 00:42:43,560
+Tapi dia punya 1 pip, RM1000 dolar, kau orang mana
+
+1057
+00:42:43,560 --> 00:42:45,000
+tahu?
+
+1058
+00:42:46,120 --> 00:42:51,480
+Kita masuk sampai setahun, 0.01.
+
+1059
+00:42:51,480 --> 00:42:54,380
+Tunggu sampai satu tahun, tak lebih dari dia punya 3
+
+1060
+00:42:54,380 --> 00:42:56,900
+pip.
+
+1061
+00:42:57,040 --> 00:42:58,620
+So, terpulang.
+
+1062
+00:42:58,640 --> 00:43:02,240
+Tipi ini tadi, dulu kita cakap subjektif.
+
+1063
+00:43:02,280 --> 00:43:05,360
+Tapi sebenarnya kita boleh perincikan dengan cara macam ini.
+
+1064
+00:43:05,360 --> 00:43:06,640
+Ini satu kaedah.
+
+1065
+00:43:06,640 --> 00:43:09,040
+Satu tadi Bibi.
+
+1066
+00:43:09,040 --> 00:43:13,000
+Ingat tadi Bibi, bila dia naik, melengkung di bawah.
+
+1067
+00:43:13,600 --> 00:43:17,640
+Itu juga bagi tahu kita yang perjalanan tadi tu nak
+
+1068
+00:43:17,640 --> 00:43:18,540
+habis.
+
+1069
+00:43:18,540 --> 00:43:24,040
+Bila kita kombine dengan Bibi, dia saling melengkapi.
+
+1070
+00:43:24,040 --> 00:43:29,340
+Dia jadi lagi powerful lah, jadi Power Rangers.
+
+1071
+00:43:29,340 --> 00:43:31,740
+Bila kita kombine semua, pening kan?
+
+1072
+00:43:31,740 --> 00:43:33,400
+Ah, banyak sangat lah yang kau orang tengok.
+
+1073
+00:43:33,400 --> 00:43:35,820
+Terus tak masuk MB50 lagi.
+
+1074
+00:43:35,820 --> 00:43:37,640
+Dia turun ke bawah.
+
+1075
+00:43:37,640 --> 00:43:39,000
+Bengkok kan?
+
+1076
+00:43:39,380 --> 00:43:43,640
+Dia Bengkok, memberi tahu bahawa penurunan tadi mungkin dah habis.
+
+1077
+00:43:44,200 --> 00:43:47,060
+So, ketinggitilah tipi.
+
+1078
+00:43:47,060 --> 00:43:50,160
+Dan kita nampak bila dah mula, tak nak close lagi
+
+1079
+00:43:50,160 --> 00:43:51,220
+tak apa.
+
+1080
+00:43:51,220 --> 00:43:54,160
+Selagi kita jaga tak ada arah, tak nak close.
+
+1081
+00:43:54,160 --> 00:43:55,000
+Okay, dah keluar lah.
+
+1082
+00:43:55,000 --> 00:43:57,000
+Close lah, kat sini pun tak apa.
+
+1083
+00:43:57,040 --> 00:43:58,900
+Selepas ada arah nak naik.
+
+1084
+00:43:58,900 --> 00:44:02,000
+Tapi ini satu, filter dia.
+
+1085
+00:44:02,040 --> 00:44:04,780
+So, kita ada banyak kombinasi yang kita boleh gunakan.
+
+1086
+00:44:04,780 --> 00:44:07,000
+Mana nak masuk, mana nak keluar.
+
+1087
+00:44:07,180 --> 00:44:09,440
+Satu cara tengok sini.
+
+1088
+00:44:09,480 --> 00:44:11,300
+Satu cara tengok arah.
+
+1089
+00:44:11,300 --> 00:44:12,400
+Itu belum masuk.
+
+1090
+00:44:12,400 --> 00:44:14,900
+Pertang nanti ada Extreme, ada MHP.
+
+1091
+00:44:14,900 --> 00:44:17,320
+Itu pun memberi tahu kita mana nak masuk, mana nak
+
+1092
+00:44:17,320 --> 00:44:18,980
+keluar dan...
+
+1093
+00:44:19,380 --> 00:44:20,260
+Kunci lah.
+
+1094
+00:44:20,260 --> 00:44:23,260
+Kunci nak masuk, kunci nak keluar.
+
+1095
+00:44:23,300 --> 00:44:26,220
+Contoh dia macam arah tadi kita kata dia adalah signal
+
+1096
+00:44:26,220 --> 00:44:31,200
+awal untuk berlakunya perutukaran arah.
+
+1097
+00:44:31,200 --> 00:44:32,840
+Sama macam Extreme.
+
+1098
+00:44:32,940 --> 00:44:35,000
+Tapi dia hanya signal, tak confirm.
+
+1099
+00:44:35,940 --> 00:44:42,040
+Okay, yang confirmnya bila betul-betul ada retest dan dia mula
+
+1100
+00:44:42,040 --> 00:44:42,880
+bergerak.
+
+1101
+00:44:42,880 --> 00:44:46,280
+Okay, dan kalau dia selagi duduk dalam bibi, pun dia
+
+1102
+00:44:46,280 --> 00:44:48,120
+tak akan bergerak ke mana.
+
+1103
+00:44:48,160 --> 00:44:49,680
+Contoh macam tadi ya.
+
+1104
+00:44:49,680 --> 00:44:53,900
+Tadi kita tengok weekly kan.
+
+1105
+00:44:53,900 --> 00:44:56,000
+Nah, dia dah ada arah dah.
+
+1106
+00:44:56,000 --> 00:44:57,000
+Dia dah ada arah.
+
+1107
+00:44:57,140 --> 00:44:59,840
+Tapi arah dia, okay, inilah tak kukuh.
+
+1108
+00:44:59,860 --> 00:45:02,820
+Okay, ini dah kukuh.
+
+1109
+00:45:02,840 --> 00:45:04,000
+Dia retest.
+
+1110
+00:45:04,300 --> 00:45:06,940
+Dia retest, dia naik balik, tidak melepasi bibi.
+
+1111
+00:45:07,020 --> 00:45:08,680
+Bawah pun tak lepas bibi.
+
+1112
+00:45:08,680 --> 00:45:09,440
+Dah lepas sekejap.
+
+1113
+00:45:09,440 --> 00:45:12,140
+Lepas dia naik balik, dah keluar-keluar dah.
+
+1114
+00:45:12,160 --> 00:45:15,180
+Selagi tidak berada di luar bibi, dia duduk main macam
+
+1115
+00:45:15,180 --> 00:45:15,300
+ini.
+
+1116
+00:45:15,300 --> 00:45:16,680
+Iyalah.
+
+1117
+00:45:16,680 --> 00:45:18,660
+So, ini weekly.
+
+1118
+00:45:18,660 --> 00:45:22,000
+So, sebab itu EU memang pening kepalanya sikit sekarang sebab
+
+1119
+00:45:22,000 --> 00:45:23,740
+weekly, sideways.
+
+1120
+00:45:23,840 --> 00:45:25,900
+Sideway di time frame weekly.
+
+1121
+00:45:25,900 --> 00:45:28,100
+Time frame besar.
+
+1122
+00:45:28,100 --> 00:45:31,100
+Sini bawah sampai ke atas ni bergantung atas pip.
+
+1123
+00:45:31,100 --> 00:45:31,900
+Bergantung atas pip.
+
+1124
+00:45:31,940 --> 00:45:33,000
+Tapi dia dalam keadaan sideways.
+
+1125
+00:45:33,720 --> 00:45:35,140
+Di time frame yang besar.
+
+1126
+00:45:35,140 --> 00:45:37,580
+Time frame kecil kita mungkin nampak up trend, down trend,
+
+1127
+00:45:37,580 --> 00:45:38,780
+up trend, down trend.
+
+1128
+00:45:38,780 --> 00:45:41,000
+Kita ingat nak berjadi macam ni.
+
+1129
+00:45:41,020 --> 00:45:42,800
+Simpan setahun.
+
+1130
+00:45:42,800 --> 00:45:45,040
+Tiga hari lepas tu, tenang balik ke bawah.
+
+1131
+00:45:45,040 --> 00:45:46,800
+Kita pening kepalanya.
+
+1132
+00:45:46,800 --> 00:45:49,400
+Kita pula dah nampak arah weekly ni.
+
+1133
+00:45:49,400 --> 00:45:50,720
+Sampai atas, tenang balik bawah.
+
+1134
+00:45:51,200 --> 00:45:51,520
+Dah.
+
+1135
+00:45:51,520 --> 00:45:52,620
+Kacau kan?
+
+1136
+00:45:52,620 --> 00:45:54,440
+Sebab di sideways.
+
+1137
+00:45:54,700 --> 00:45:55,780
+Okay?
+
+1138
+00:45:56,180 --> 00:45:57,580
+Setting.
+
+1139
+00:45:57,580 --> 00:45:59,000
+Cara nak tengok, okay.
+
+1140
+00:45:59,000 --> 00:46:04,120
+Tadi kita tengok arah yang nak definekan, yang bukan kulit
+
+1141
+00:46:04,120 --> 00:46:07,000
+bawang.
+
+1142
+00:46:07,120 --> 00:46:11,460
+Kita masukkan complete 50.
+
+1143
+00:46:11,720 --> 00:46:14,000
+Sekarang dah complete semua.
+
+1144
+00:46:14,060 --> 00:46:21,460
+So, kita masukkan MA 50.
+
+1145
+00:46:21,520 --> 00:46:21,900
+Okay.
+
+1146
+00:46:21,900 --> 00:46:25,000
+Tadi kita cakap, MA.
+
+1147
+00:46:25,060 --> 00:46:28,880
+Bila kita buka chart aja tengok, MA kita nak tengok.
+
+1148
+00:46:28,880 --> 00:46:33,980
+Bila kita dah buka, kita dah perhatikan.
+
+1149
+00:46:34,040 --> 00:46:39,480
+Candle semua di bawah MA 50.
+
+1150
+00:46:39,480 --> 00:46:42,000
+Itu tadi yang kulit bawang.
+
+1151
+00:46:42,700 --> 00:46:45,940
+So, selain daripada middle BB.
+
+1152
+00:46:45,940 --> 00:46:49,000
+Dan candle berada di bawah MA 50.
+
+1153
+00:46:49,540 --> 00:46:53,700
+MA 5, MA 10 high, MA 5, MA 10 low
+
+1154
+00:46:53,700 --> 00:46:57,080
+juga berada di bawah middle BB dengan MA 50.
+
+1155
+00:46:57,100 --> 00:46:59,920
+So, ada 1, 2, 3, 4, 5 line di bawah
+
+1156
+00:46:59,920 --> 00:47:03,000
+MA 50 plus candle.
+
+1157
+00:47:03,260 --> 00:47:04,480
+Plus candle.
+
+1158
+00:47:04,520 --> 00:47:07,240
+So, bila kita nampak ke 4, 4 line ni tadi
+
+1159
+00:47:07,240 --> 00:47:09,760
+duduk dekat bawah middle BB.
+
+1160
+00:47:09,760 --> 00:47:11,880
+Eh, tak shock pakai benda ni kan?
+
+1161
+00:47:11,920 --> 00:47:14,000
+Sedap, tonjol benda ni juga.
+
+1162
+00:47:14,840 --> 00:47:18,400
+Kita nampak 4, 4 line ni duduk bawah middle BB
+
+1163
+00:47:18,400 --> 00:47:19,920
+dengan bawah MA 50.
+
+1164
+00:47:19,960 --> 00:47:23,400
+Down trend.
+
+1165
+00:47:23,440 --> 00:47:28,240
+Selagi dia duduk dia bawah middle BB, bawah MA 50.
+
+1166
+00:47:28,240 --> 00:47:31,560
+Tetapi kita nak tengok tu, kita kata kalau kita kata
+
+1167
+00:47:31,560 --> 00:47:32,180
+tadi,
+
+1168
+00:47:32,180 --> 00:47:36,640
+Bila middle BB dengan MA 50 cross, itu confirm pertukaran
+
+1169
+00:47:36,640 --> 00:47:37,840
+arah.
+
+1170
+00:47:37,840 --> 00:47:40,980
+Tapi kalau kita nak, tapi ni bukan signal, itu bukan
+
+1171
+00:47:40,980 --> 00:47:41,000
+signal.
+
+1172
+00:47:42,060 --> 00:47:47,240
+Tapi kita tahu bahawa, signal lah juga.
+
+1173
+00:47:47,240 --> 00:47:48,620
+Yang trend itu confirm.
+
+1174
+00:47:48,620 --> 00:47:51,260
+Tetapi bukan signal untuk kita entry.
+
+1175
+00:47:51,260 --> 00:47:54,060
+Cuma bagi tahu kita bahawa trend itu confirm.
+
+1176
+00:47:54,120 --> 00:47:57,060
+Tapi kalau kita nak tunggu dia bersilang ni baru nak
+
+1177
+00:47:57,060 --> 00:47:58,000
+masuk,
+
+1178
+00:47:58,020 --> 00:48:00,980
+Separuh perjalanan dah terlepas.
+
+1179
+00:48:00,980 --> 00:48:02,980
+Nampak?
+
+1180
+00:48:03,040 --> 00:48:06,880
+Separuh perjalanan tu dah, suku perjalanan dah terlepas.
+
+1181
+00:48:06,940 --> 00:48:10,000
+So, sebelum dia berlaku bersilang ni tadi,
+
+1182
+00:48:10,220 --> 00:48:13,080
+Kita tengok ke 4, 4 line ni tadi, down trend
+
+1183
+00:48:13,080 --> 00:48:16,740
+mesti berada di bawah MA 50 dan middle BB.
+
+1184
+00:48:16,740 --> 00:48:22,700
+Mula-mula sekali, dekat sini, ke 4, 4 MA 5 dengan
+
+1185
+00:48:22,700 --> 00:48:25,240
+MA 10 cross middle BB.
+
+1186
+00:48:25,240 --> 00:48:29,180
+Bila 4, 4 line ni tadi duduk bawah middle BB,
+
+1187
+00:48:29,220 --> 00:48:34,340
+Separuh kaki nak turun tu dah ada.
+
+1188
+00:48:34,340 --> 00:48:36,580
+Kalau dulu masa saya budak-budak, dulu dia orang main takro
+
+1189
+00:48:36,580 --> 00:48:37,000
+kan.
+
+1190
+00:48:37,080 --> 00:48:41,460
+Batting air orin kan.
+
+1191
+00:48:41,460 --> 00:48:43,720
+Tudung orin dah nampak.
+
+1192
+00:48:43,720 --> 00:48:48,540
+Bila dia dah leading, dulu tak ada 21, 15, 14,
+
+1193
+00:48:48,540 --> 00:48:49,340
+10.
+
+1194
+00:48:49,420 --> 00:48:51,860
+Tudung orin dah nampak, dia cakap.
+
+1195
+00:48:51,860 --> 00:48:54,220
+Ini tudung orin dah nampak.
+
+1196
+00:48:54,240 --> 00:48:57,000
+Bila ni tudung orin dah nampak.
+
+1197
+00:48:57,000 --> 00:49:01,440
+Per tanda awal yang trend tu mungkin nak berubah.
+
+1198
+00:49:01,500 --> 00:49:05,000
+Confirm bila dia cross MA 50.
+
+1199
+00:49:05,000 --> 00:49:07,820
+Selepas tu baru middle BB cross.
+
+1200
+00:49:07,840 --> 00:49:09,760
+Dia turutan tadi tu.
+
+1201
+00:49:09,840 --> 00:49:13,720
+Mula-mula 4, 4 line tu cross middle BB.
+
+1202
+00:49:13,720 --> 00:49:17,280
+Selepas 4, 4 cross middle BB, dia cross MA 50.
+
+1203
+00:49:17,540 --> 00:49:22,500
+Then baru middle BB cross MA 50.
+
+1204
+00:49:22,500 --> 00:49:24,640
+Itu cara kita nak tengok trend.
+
+1205
+00:49:24,700 --> 00:49:29,860
+Jadi selagi candle duduk di bawah macam ni, itu adalah
+
+1206
+00:49:29,860 --> 00:49:30,460
+down trend.
+
+1207
+00:49:30,460 --> 00:49:32,000
+Bila sampai kat bawah, dia still down trend.
+
+1208
+00:49:32,600 --> 00:49:35,960
+Sebab tu kita cakap major trend untuk EU masih down
+
+1209
+00:49:35,960 --> 00:49:36,220
+trend.
+
+1210
+00:49:36,220 --> 00:49:38,680
+Sebab ni lah.
+
+1211
+00:49:38,680 --> 00:49:41,300
+Semua duduk bawah MA 50 lagi.
+
+1212
+00:49:41,300 --> 00:49:43,600
+Cuma dia sideways sekarang.
+
+1213
+00:49:43,620 --> 00:49:46,500
+Major trend di timeframe besar lah.
+
+1214
+00:49:46,820 --> 00:49:49,880
+Trend kita nak tengok adalah di timeframe besar.
+
+1215
+00:49:49,900 --> 00:49:52,320
+Major trend tengok dekat daily dan ke atas.
+
+1216
+00:49:52,400 --> 00:49:55,080
+Kalau kita nak tengok trend di timeframe kecil untuk scalping,
+
+1217
+00:49:55,080 --> 00:49:57,260
+tengoklah dekat 1 hour ke.
+
+1218
+00:49:57,320 --> 00:49:58,500
+H4 ke.
+
+1219
+00:49:58,500 --> 00:50:00,000
+Dan scalping ikut trend.
+
+1220
+00:50:00,580 --> 00:50:03,420
+Boleh tengok di semua time frame.
+
+1221
+00:50:03,440 --> 00:50:05,800
+Maksudnya kalau kita tengok dekat satu minit, ini adalah trend
+
+1222
+00:50:05,800 --> 00:50:07,420
+di satu minit.
+
+1223
+00:50:07,420 --> 00:50:09,940
+Kalau kita tengok dekat satu jam, itu adalah trend di
+
+1224
+00:50:09,940 --> 00:50:11,360
+satu jam.
+
+1225
+00:50:11,420 --> 00:50:12,920
+Tapi itu bukan major trend.
+
+1226
+00:50:12,920 --> 00:50:15,560
+Major trend adalah di daily dan ke atas.
+
+1227
+00:50:15,560 --> 00:50:18,500
+Kalau kita tengok dekat satu jam, itu trend semasa di
+
+1228
+00:50:18,500 --> 00:50:20,420
+satu jam.
+
+1229
+00:50:20,720 --> 00:50:24,440
+Tapi major trend, tolong tengok refer di daily dan ke
+
+1230
+00:50:24,440 --> 00:50:25,260
+atas.
+
+1231
+00:50:25,280 --> 00:50:27,000
+Contoh macam sekarang, ini adalah weekly.
+
+1232
+00:50:27,120 --> 00:50:28,820
+So ini adalah major trend.
+
+1233
+00:50:28,820 --> 00:50:32,340
+Major trend dia masih lagi downtrend.
+
+1234
+00:50:32,420 --> 00:50:35,060
+Okay?
+
+1235
+00:50:35,060 --> 00:50:37,000
+Ada soalan?
+
+1236
+00:50:37,000 --> 00:50:38,660
+Tak ada soalan?
+
+1237
+00:50:38,880 --> 00:50:41,000
+Cantik, 12.45.
+
+1238
+00:50:42,140 --> 00:50:43,720
+Tak ada soalan?
+
+1239
+00:50:44,540 --> 00:50:49,420
+Penampatan dari foreight ini, dari segi ugama macam mana?
+
+1240
+00:50:49,420 --> 00:50:51,000
+Penampak Tuhan?
+
+1241
+00:50:51,840 --> 00:50:52,780
+Saya ada pendapat saya.
+
+1242
+00:50:52,780 --> 00:50:54,000
+Abang ini pendapat sendiri macam mana?
+
+1243
+00:50:54,120 --> 00:50:57,460
+Saya pendapat saya, as long as kita punya niat.
+
+1244
+00:50:57,460 --> 00:51:00,700
+Abang ini, saya ada refer dekat semua start lah.
+
+1245
+00:51:00,700 --> 00:51:04,400
+Some start kata okay, some beritahu tak okay.
+
+1246
+00:51:04,460 --> 00:51:05,800
+Ini kita macam gambling lah.
+
+1247
+00:51:05,800 --> 00:51:08,940
+Tapi beri saya, ini macam kita bukan gamble.
+
+1248
+00:51:08,940 --> 00:51:11,740
+Kita ikut, kita kejar nak dapat duit.
+
+1249
+00:51:11,740 --> 00:51:13,000
+Betul tak?
+
+1250
+00:51:13,280 --> 00:51:15,960
+Saya punya pendapat.
+
+1251
+00:51:16,160 --> 00:51:20,920
+Setiap perkara yang berkaitan dengan muamalat,
+
+1252
+00:51:21,440 --> 00:51:23,720
+dia bermula dengan harus.
+
+1253
+00:51:23,720 --> 00:51:27,000
+Dia tidak bermula dengan haram.
+
+1254
+00:51:27,100 --> 00:51:31,000
+Unless ada dalil mengatakan haram, baru jatuharam.
+
+1255
+00:51:31,240 --> 00:51:37,000
+Yang menjadi pertikaian ini adalah pendapat ulama
+
+1256
+00:51:37,300 --> 00:51:39,180
+yang mengeluarkan dalil-dalil mengatakan haram.
+
+1257
+00:51:39,180 --> 00:51:42,340
+Tetapi ada ulama juga mengatakan benda ini harus.
+
+1258
+00:51:42,340 --> 00:51:43,740
+Benda ini tidak haram.
+
+1259
+00:51:43,740 --> 00:51:47,440
+Jadi ada pendapat kata harus, ada pendapat kata haram.
+
+1260
+00:51:47,480 --> 00:51:50,000
+So dekat sini timbulnya hilaf ulama.
+
+1261
+00:51:50,600 --> 00:51:54,700
+Pada saya, saya berpegang kepada hilaf ulama adalah,
+
+1262
+00:51:54,800 --> 00:51:58,760
+ini nabi ini bersabda, hilaf ulama itu adalah satu kelebihan
+
+1263
+00:51:58,760 --> 00:52:00,360
+kepada umat.
+
+1264
+00:52:00,360 --> 00:52:02,160
+Kelebihan pada saya.
+
+1265
+00:52:02,220 --> 00:52:03,920
+Saya trade bukan buta-buta.
+
+1266
+00:52:03,920 --> 00:52:07,460
+Bukan saya main baling dadu.
+
+1267
+00:52:07,540 --> 00:52:09,160
+Saya belajar.
+
+1268
+00:52:09,160 --> 00:52:10,780
+Anda semua belajar.
+
+1269
+00:52:10,820 --> 00:52:13,380
+So kita trade dengan ilmu.
+
+1270
+00:52:13,380 --> 00:52:14,860
+Bukan gambling.
+
+1271
+00:52:14,860 --> 00:52:17,340
+So pada saya, saya lebih menjurus kepada harus.
+
+1272
+00:52:17,340 --> 00:52:18,000
+Saya pegang yang harus.
+
+1273
+00:52:18,600 --> 00:52:20,760
+Dan saya saking pinggang.
+
+1274
+00:52:20,760 --> 00:52:23,020
+Saya tak boleh kerja gad, tak boleh kerja apa, kerja
+
+1275
+00:52:23,020 --> 00:52:24,100
+buat tak boleh.
+
+1276
+00:52:24,100 --> 00:52:26,560
+Saya boleh kerja ni saja.
+
+1277
+00:52:26,560 --> 00:52:27,560
+Saya boleh buat kerja ni saja.
+
+1278
+00:52:27,560 --> 00:52:30,420
+Nak buat MLM, nak cari-cari orang, tak boleh.
+
+1279
+00:52:30,540 --> 00:52:33,120
+Saya boleh buat trade forex saja.
+
+1280
+00:52:33,120 --> 00:52:35,480
+Jadi saya pegang yang itu.
+
+1281
+00:52:35,480 --> 00:52:36,720
+Kemas-kemas.
+
+1282
+00:52:36,720 --> 00:52:39,000
+Peduli orang nak cakap haram lah.
+
+1283
+00:52:40,140 --> 00:52:43,560
+Mampus kau lah.
+
+1284
+00:52:43,720 --> 00:52:45,000
+Saya pegang yang itu.
+
+1285
+00:52:45,000 --> 00:52:49,820
+Pada saya, hilaf ulama adalah kebaikan kepada umat.
+
+1286
+00:52:49,880 --> 00:52:51,980
+Dan saya trade dengan ilmu.
+
+1287
+00:52:51,980 --> 00:52:52,780
+Bukan gambling.
+
+1288
+00:52:52,780 --> 00:52:54,900
+Syarat kita kena trade berilmu.
+
+1289
+00:52:54,940 --> 00:52:57,140
+Bukan suka-suka masuk.
+
+1290
+00:52:57,140 --> 00:52:59,360
+Baik, sell.
+
+1291
+00:52:59,860 --> 00:53:01,500
+Itu tak boleh.
+
+1292
+00:53:01,540 --> 00:53:02,480
+Itu tak boleh lah.
+
+1293
+00:53:02,520 --> 00:53:04,540
+Kita kena trade dengan ilmu.
+
+1294
+00:53:04,540 --> 00:53:06,560
+So saya punya pendapat macam tu lah.
+
+1295
+00:53:06,560 --> 00:53:07,740
+Saya punya pendapat macam tu.
+
+1296
+00:53:07,800 --> 00:53:10,560
+Orang-orang yang popular di Malaysia lah.
+
+1297
+00:53:10,560 --> 00:53:14,000
+Bila saya refer, dia cakap ada unsur-unsur.
+
+1298
+00:53:14,000 --> 00:53:14,880
+Apa ni?
+
+1299
+00:53:14,880 --> 00:53:16,000
+Non Syariah Compliant.
+
+1300
+00:53:16,400 --> 00:53:20,000
+Kita cari broker yang Syariah Compliant.
+
+1301
+00:53:20,040 --> 00:53:22,380
+Tapi bagi saya, kita bukan gambar.
+
+1302
+00:53:22,420 --> 00:53:23,460
+Kita usaha kan.
+
+1303
+00:53:23,460 --> 00:53:24,820
+Ini usaha kita lah.
+
+1304
+00:53:24,820 --> 00:53:26,440
+Bukan kita nak...
+
+1305
+00:53:26,440 --> 00:53:27,480
+Kan ini bukan benar ni.
+
+1306
+00:53:27,480 --> 00:53:30,400
+Kita nak, duit yang kita dapat itu untuk menyerah anak
+
+1307
+00:53:30,400 --> 00:53:30,780
+kita.
+
+1308
+00:53:30,820 --> 00:53:31,000
+Betul.
+
+1309
+00:53:31,120 --> 00:53:34,080
+Sebelum kita ni, kita kena cek dulu.
+
+1310
+00:53:34,080 --> 00:53:36,000
+Pada halal kata halal.
+
+1311
+00:53:36,480 --> 00:53:38,660
+Ini dah ada lagi kan?
+
+1312
+00:53:38,660 --> 00:53:39,440
+Kita kena tahu.
+
+1313
+00:53:39,440 --> 00:53:40,600
+Itu setahun ni.
+
+1314
+00:53:40,780 --> 00:53:42,000
+Tuan dah lama.
+
+1315
+00:53:42,000 --> 00:53:45,160
+Pada saya, dia halal.
+
+1316
+00:53:45,160 --> 00:53:47,960
+Kepada saya, saya pegang yang macam saya cakap dari dulu
+
+1317
+00:53:47,960 --> 00:53:48,260
+lah.
+
+1318
+00:53:48,260 --> 00:53:49,900
+So pada saya, harus.
+
+1319
+00:53:49,920 --> 00:53:50,960
+Harus kepada diri saya.
+
+1320
+00:53:50,960 --> 00:53:52,000
+Dah jadi wajib pada saya.
+
+1321
+00:53:52,060 --> 00:53:54,220
+Sebab saya ketua keluarga.
+
+1322
+00:53:54,220 --> 00:53:55,440
+Saya kena kerja.
+
+1323
+00:53:55,440 --> 00:53:57,240
+Saya kena bagi makan anak-anak bini semua.
+
+1324
+00:53:57,240 --> 00:53:58,000
+Macam tuan cakap tu.
+
+1325
+00:53:58,140 --> 00:53:59,120
+Saya pun macam tuan cakap.
+
+1326
+00:53:59,120 --> 00:54:00,380
+Nak kerja pun dah tua.
+
+1327
+00:54:00,460 --> 00:54:01,000
+Betul.
+
+1328
+00:54:01,140 --> 00:54:02,000
+Saya pun tua lah.
+
+1329
+00:54:02,020 --> 00:54:03,400
+Nak buat multi level.
+
+1330
+00:54:03,620 --> 00:54:04,240
+Binta maaf lah.
+
+1331
+00:54:04,240 --> 00:54:05,740
+Nak recruit.
+
+1332
+00:54:05,780 --> 00:54:07,460
+Nak networking tak boleh.
+
+1333
+00:54:07,520 --> 00:54:09,520
+Kan nak berjumpa orang dah tak sesuai.
+
+1334
+00:54:09,520 --> 00:54:10,000
+Tak sesuai betul.
+
+1335
+00:54:10,400 --> 00:54:13,480
+Ini yang cara kita nak cari duit.
+
+1336
+00:54:13,480 --> 00:54:14,000
+Kan?
+
+1337
+00:54:14,080 --> 00:54:15,840
+Nak kecuali orang lain.
+
+1338
+00:54:15,840 --> 00:54:17,500
+Pegang cukup-cukup begitu bang.
+
+1339
+00:54:17,640 --> 00:54:19,800
+Pegang saja abang punya tadi tu.
+
+1340
+00:54:19,840 --> 00:54:21,900
+Itu saya kat sini juga.
+
+1341
+00:54:21,900 --> 00:54:23,380
+Nak confirm balik.
+
+1342
+00:54:23,380 --> 00:54:24,840
+Nak tanya pendapat awak.
+
+1343
+00:54:24,940 --> 00:54:27,400
+Kalau saya punya pendapat yang macam tadi.
+
+1344
+00:54:27,400 --> 00:54:29,720
+Selepas itu saya tak berdiri sini.
+
+1345
+00:54:29,720 --> 00:54:30,540
+Saya tak berdiri sini.
+
+1346
+00:54:30,540 --> 00:54:32,980
+Dari tahun 2010.
+
+1347
+00:54:32,980 --> 00:54:34,780
+Kita start ajar orang.
+
+1348
+00:54:34,780 --> 00:54:36,280
+Saya dengan Abang Omar.
+
+1349
+00:54:36,280 --> 00:54:38,000
+Sehingga sekarang kita tak berhenti lagi mengajar.
+
+1350
+00:54:38,440 --> 00:54:41,000
+Kita punya niat kita awal.
+
+1351
+00:54:41,120 --> 00:54:42,720
+Sebelum kita buka Facebook.
+
+1352
+00:54:42,720 --> 00:54:43,420
+Group dalam Facebook.
+
+1353
+00:54:43,420 --> 00:54:45,800
+Tadi tu pun tak ubah lagi sehingga sekarang.
+
+1354
+00:54:45,800 --> 00:54:47,700
+Niat kita adalah untuk bantu.
+
+1355
+00:54:47,700 --> 00:54:50,200
+Orang ada ATM sendiri di rumah.
+
+1356
+00:54:50,200 --> 00:54:52,940
+Maksudnya dia boleh menjanahkan duit sendiri.
+
+1357
+00:54:52,940 --> 00:54:55,280
+Niat tu tak berubah lagi sampai sekarang.
+
+1358
+00:54:55,280 --> 00:54:55,880
+Masih sama.
+
+1359
+00:54:55,880 --> 00:54:58,620
+Kita niat kita nak membantu ekonomi.
+
+1360
+00:54:58,620 --> 00:54:59,600
+Semua penduduk Malaysia.
+
+1361
+00:54:59,620 --> 00:55:00,860
+Dengan keadaan sekaji.
+
+1362
+00:55:00,880 --> 00:55:01,280
+ST lah.
+
+1363
+00:55:01,280 --> 00:55:02,600
+Tak ada benda yang makin turun kan.
+
+1364
+00:55:02,600 --> 00:55:03,880
+Semua makin naik.
+
+1365
+00:55:03,880 --> 00:55:06,000
+Harap-harap dengan Forex ni tadi.
+
+1366
+00:55:06,000 --> 00:55:10,940
+Dengan ilmu yang sikit kita share tadi.
+
+1367
+00:55:10,960 --> 00:55:15,980
+Boleh bantu ramai orang yang tersepit.
+
+1368
+00:55:16,040 --> 00:55:19,060
+Yang boleh dapat sumber pendapatan yang lebih.
+
+1369
+00:55:19,060 --> 00:55:19,800
+Bukan lebih lah.
+
+1370
+00:55:19,800 --> 00:55:21,500
+Maksudnya extra income.
+
+1371
+00:55:21,500 --> 00:55:23,000
+Boleh cari extra income.
+
+1372
+00:55:23,000 --> 00:55:25,660
+Itu niat dia sampai sekarang kita tak ubah.
+
+1373
+00:55:25,660 --> 00:55:27,620
+Itu niat kita.
+
+1374
+00:55:27,920 --> 00:55:28,440
+Thank you.
+
+1375
+00:55:28,440 --> 00:55:30,380
+Masih ya.
+
+1376
+00:55:31,120 --> 00:55:32,620
+Ada apa lain?
+
+1377
+00:55:32,620 --> 00:55:34,000
+Kalau tak ada kita...
+
+1378
+00:55:36,200 --> 00:55:38,000
+Kita jumpa balik.
+
+1379
+00:55:38,760 --> 00:55:39,460
+Okay.
+
+1380
+00:55:39,540 --> 00:55:42,360
+Saya serahkan chopong saya kepada...
+
+1381
+00:55:42,360 --> 00:55:44,000
+Tuan Said Sikaragam.
+
+1382
+00:55:44,220 --> 00:55:44,480
+Okay.
+
+1383
+00:55:44,480 --> 00:55:45,000
+Terima kasih.
+

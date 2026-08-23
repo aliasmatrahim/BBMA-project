@@ -31,6 +31,7 @@ jobs:
           before = s
           removed = []
 
+          # 1) Residual helper: definition-only after Pass 1.
           name = 'GetEffectiveExpiry'
           if s.count(name + '(') != 1:
               raise SystemExit(f'{name}: expected definition-only count=1, got {s.count(name + "(")}')
@@ -54,6 +55,7 @@ jobs:
           else:
               raise SystemExit(f'{name}: unbalanced function body')
 
+          # 2) Definition-only enum family.
           enum_name = 'ENUM_SIGNAL_MODE'
           em = re.search(r'(?ms)^enum\s+' + enum_name + r'\s*\{.*?\};\s*\n', s)
           if not em:
@@ -63,6 +65,7 @@ jobs:
           s = s[:em.start()] + s[em.end():]
           removed.append(enum_name)
 
+          # 3) SignalMemory instances are declaration-only. Remove instance fields first.
           for field in ['buy_signal_memory', 'sell_signal_memory']:
               if s.count(field) != 1:
                   raise SystemExit(f'{field}: expected declaration-only count=1, got {s.count(field)}')
@@ -72,6 +75,7 @@ jobs:
               s = s2
               removed.append(field)
 
+          # 4) With both instances gone, SignalMemory type must now be definition-only.
           if s.count('SignalMemory') != 1:
               raise SystemExit(f'SignalMemory: expected type-only count=1 after field removal, got {s.count("SignalMemory")}')
           sm = re.search(r'(?ms)^struct\s+SignalMemory\s*\{.*?^\};\s*\n', s)
@@ -80,12 +84,14 @@ jobs:
           s = s[:sm.start()] + s[sm.end():]
           removed.append('struct SignalMemory')
 
+          # 5) Cycle enum becomes definition-only after SignalMemory removal.
           enum_name = 'ENUM_CYCLE_STATE'
           em = re.search(r'(?ms)^enum\s+' + enum_name + r'\s*\{.*?\};\s*\n', s)
           if em and s.count(enum_name) == 1:
               s = s[:em.start()] + s[em.end():]
               removed.append(enum_name)
 
+          # 6) Remove only known unused tail signal constants if each appears only in enum.
           for const in ['SIGNAL_REVERSAL','SIGNAL_CONTINUATION','SIGNAL_MAJOR_REVERSAL']:
               if s.count(const) == 1:
                   s2, n = re.subn(r'(?m)^\s*' + const + r'\s*,?\s*\n', '', s, count=1)
@@ -93,6 +99,7 @@ jobs:
                       s = s2
                       removed.append(const)
 
+          # Guard critical strategy/execution anchors.
           anchors = [
               'bool DetectExtreme(',
               'ENUM_MLV_STATE UpdateCanonicalMLVState(',
@@ -117,6 +124,7 @@ jobs:
               raise SystemExit('No cleanup changes produced')
 
           p.write_text(s, encoding='utf-8')
+
           rec = Path('blueprint/P3_CLEANUP_PASS2_RESULT.md')
           rec.write_text(
               '# P3 Cleanup Pass 2 Result\n\n'
@@ -130,33 +138,13 @@ jobs:
           PY
 
           git diff --check
+          git diff --stat
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -- blueprint/source/BBMA_EA.mq4 blueprint/P3_CLEANUP_PASS2_RESULT.md
-          if git diff --cached --quiet; then exit 0; fi
+          if git diff --cached --quiet; then
+            echo 'No cleanup changes to commit.'
+            exit 0
+          fi
           git commit -m "P3 cleanup pass 2: prune proven dead residuals"
-          git push origin HEAD:${{ github.event.pull_request.head.ref }}
-
-  m2_07_guard:
-    if: github.event.pull_request.head.ref == 'p3-m2-07-cycle-direction-guard'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
-          fetch-depth: 0
-      - name: Apply M2-07 source-derived guard
-        run: python3 blueprint/tools/apply_p3_m2_07_guard.py
-      - name: Verify patch shape
-        run: |
-          git diff --check
-          grep -q 'P3-M2-07 OPPOSITE GUARD' blueprint/source/BBMA_EA.mq4
-          grep -q '#property description "P3-M2-07 Cycle Direction Guard"' blueprint/source/BBMA_EA.mq4
-          grep -q 'SOURCE-DERIVED CYCLE DIRECTION GUARD' blueprint/source/BBMA_EA.mq4
-      - name: Commit M2-07 patch
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "P3-M2-07: enforce source-derived cycle direction guard"
           git push origin HEAD:${{ github.event.pull_request.head.ref }}

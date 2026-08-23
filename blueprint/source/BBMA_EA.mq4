@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//|                                    Version 4.5.1 - PATCHED 2.1    |
+//|                                    Version 4.5.1 - P3-M2-07B Opposite Extreme Supersession    |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -175,7 +175,8 @@ enum ENUM_EXTREME_MATURITY
    EXT_MAT_REVERSAL_CONFIRMED,
    EXT_MAT_RETEST_PHASE,
    EXT_MAT_RETEST_READY,
-   EXT_MAT_VOID
+   EXT_MAT_VOID,
+   EXT_MAT_SUPERSEDED
 };
 
 enum ENUM_SIGNAL_LEVEL { LEVEL_NONE, LEVEL_D, LEVEL_C, LEVEL_B, LEVEL_A, LEVEL_A_PLUS };
@@ -1939,6 +1940,45 @@ void MarkExtremeLifecycleVoid(ExtremeLifecycleData &extreme,
    extreme.Reason = reason;
 }
 
+bool IsExtremeCycleOwnerMature(ExtremeLifecycleData &extreme)
+{
+   if(!extreme.IsValid || extreme.ConfirmationCandleTime <= 0) return false;
+   return (extreme.Maturity == EXT_MAT_REVERSAL_CONFIRMED ||
+           extreme.Maturity == EXT_MAT_RETEST_PHASE ||
+           extreme.Maturity == EXT_MAT_RETEST_READY);
+}
+
+void MarkExtremeLifecycleSuperseded(ExtremeLifecycleData &extreme,
+                                    TimeframeData &data, string reason)
+{
+   extreme.Maturity = EXT_MAT_SUPERSEDED;
+   extreme.IsValid = false;
+   extreme.LastUpdateBar = data.barIndex;
+   extreme.LastUpdateCandleTime = data.candle_time;
+   extreme.PreviousClose = data.close;
+   extreme.Reason = reason;
+}
+
+void ResolveOppositeExtremeSupersession(ExtremeLifecycleData &buyExtreme,
+                                        ExtremeLifecycleData &sellExtreme,
+                                        TimeframeData &data)
+{
+   if(!data.is_valid || !data.is_closed || data.candle_time <= 0) return;
+   if(buyExtreme.Timeframe != data.timeframe || sellExtreme.Timeframe != data.timeframe) return;
+
+   bool buyMature = IsExtremeCycleOwnerMature(buyExtreme);
+   bool sellMature = IsExtremeCycleOwnerMature(sellExtreme);
+   if(!buyMature || !sellMature) return;
+
+   if(buyExtreme.ConfirmationCandleTime > sellExtreme.ConfirmationCandleTime)
+      MarkExtremeLifecycleSuperseded(sellExtreme, data,
+         "SELL Extreme superseded by newer reversal-confirmed opposite BUY Extreme");
+   else if(sellExtreme.ConfirmationCandleTime > buyExtreme.ConfirmationCandleTime)
+      MarkExtremeLifecycleSuperseded(buyExtreme, data,
+         "BUY Extreme superseded by newer reversal-confirmed opposite SELL Extreme");
+   // Equal confirmation time remains ambiguous; downstream conflict stays fail-closed.
+}
+
 void UpdateExtremeProvisionalAnchor(ExtremeLifecycleData &extreme,
                                     TimeframeData &data)
 {
@@ -1999,10 +2039,11 @@ ENUM_EXTREME_MATURITY UpdateExtremeLifecycle(ExtremeLifecycleData &extreme,
    // downstream as a project component-freshness overlay only; it must not
    // erase lifecycle provenance needed by later structural stages such as F1.
 
-   if(extreme.Maturity == EXT_MAT_VOID)
+   if(extreme.Maturity == EXT_MAT_VOID || extreme.Maturity == EXT_MAT_SUPERSEDED)
    {
+      ENUM_EXTREME_MATURITY terminalState = extreme.Maturity;
       if(!rawDetected || data.candle_time <= extreme.LastUpdateCandleTime)
-         return EXT_MAT_VOID;
+         return terminalState;
       ResetExtremeLifecycle(extreme, direction, data.timeframe);
    }
 
@@ -6163,6 +6204,41 @@ void ProcessPair(int pairIndex)
    UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_m15_sell_lifecycle,
                           actual, DIR_SELL, g_pair_states[pairIndex].m15_data,
                           m15Band, m15RawSellExtreme);
+   ResolveOppositeExtremeSupersession(g_pair_states[pairIndex].extreme_m15_buy_lifecycle,
+                                      g_pair_states[pairIndex].extreme_m15_sell_lifecycle,
+                                      g_pair_states[pairIndex].m15_data);
+
+   bool h1RawBuyExtreme = DetectExtreme(actual, DIR_BUY, g_pair_states[pairIndex].h1_data, h1Band);
+   bool h1RawSellExtreme = DetectExtreme(actual, DIR_SELL, g_pair_states[pairIndex].h1_data, h1Band);
+   UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_h1_buy_lifecycle, actual, DIR_BUY,
+                          g_pair_states[pairIndex].h1_data, h1Band, h1RawBuyExtreme);
+   UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_h1_sell_lifecycle, actual, DIR_SELL,
+                          g_pair_states[pairIndex].h1_data, h1Band, h1RawSellExtreme);
+   ResolveOppositeExtremeSupersession(g_pair_states[pairIndex].extreme_h1_buy_lifecycle,
+                                      g_pair_states[pairIndex].extreme_h1_sell_lifecycle,
+                                      g_pair_states[pairIndex].h1_data);
+
+   bool h4RawBuyExtreme = DetectExtreme(actual, DIR_BUY, g_pair_states[pairIndex].h4_data, h4Band);
+   bool h4RawSellExtreme = DetectExtreme(actual, DIR_SELL, g_pair_states[pairIndex].h4_data, h4Band);
+   UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_h4_buy_lifecycle, actual, DIR_BUY,
+                          g_pair_states[pairIndex].h4_data, h4Band, h4RawBuyExtreme);
+   UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_h4_sell_lifecycle, actual, DIR_SELL,
+                          g_pair_states[pairIndex].h4_data, h4Band, h4RawSellExtreme);
+   ResolveOppositeExtremeSupersession(g_pair_states[pairIndex].extreme_h4_buy_lifecycle,
+                                      g_pair_states[pairIndex].extreme_h4_sell_lifecycle,
+                                      g_pair_states[pairIndex].h4_data);
+
+   Signal resolvedH1BuyExtreme, resolvedH1SellExtreme, resolvedH4BuyExtreme, resolvedH4SellExtreme;
+   ZeroMemory(resolvedH1BuyExtreme); ZeroMemory(resolvedH1SellExtreme);
+   ZeroMemory(resolvedH4BuyExtreme); ZeroMemory(resolvedH4SellExtreme);
+   ExportReversalConfirmedExtremeSignal(g_pair_states[pairIndex].extreme_h1_buy_lifecycle, resolvedH1BuyExtreme);
+   ExportReversalConfirmedExtremeSignal(g_pair_states[pairIndex].extreme_h1_sell_lifecycle, resolvedH1SellExtreme);
+   ExportReversalConfirmedExtremeSignal(g_pair_states[pairIndex].extreme_h4_buy_lifecycle, resolvedH4BuyExtreme);
+   ExportReversalConfirmedExtremeSignal(g_pair_states[pairIndex].extreme_h4_sell_lifecycle, resolvedH4SellExtreme);
+   UpdatePersistentExtremeState(resolvedH1BuyExtreme, g_pair_states[pairIndex].extreme_h1_buy_state);
+   UpdatePersistentExtremeState(resolvedH1SellExtreme, g_pair_states[pairIndex].extreme_h1_sell_state);
+   UpdatePersistentExtremeState(resolvedH4BuyExtreme, g_pair_states[pairIndex].extreme_h4_buy_state);
+   UpdatePersistentExtremeState(resolvedH4SellExtreme, g_pair_states[pairIndex].extreme_h4_sell_state);
 
    for(int dirIdx = 0; dirIdx < 2; dirIdx++)
    {
@@ -6176,24 +6252,15 @@ void ProcessPair(int pairIndex)
 
       Signal detectedH1Extreme, detectedH4Extreme;
       ZeroMemory(detectedH1Extreme); ZeroMemory(detectedH4Extreme);
-
-      bool h1RawExtreme = DetectExtreme(actual, direction,
-                                        g_pair_states[pairIndex].h1_data, h1Band);
       if(direction == DIR_BUY)
       {
-         UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_h1_buy_lifecycle,
-                                actual, direction,
-                                g_pair_states[pairIndex].h1_data, h1Band, h1RawExtreme);
-         ExportReversalConfirmedExtremeSignal(
-            g_pair_states[pairIndex].extreme_h1_buy_lifecycle, detectedH1Extreme);
+         detectedH1Extreme = resolvedH1BuyExtreme;
+         detectedH4Extreme = resolvedH4BuyExtreme;
       }
       else
       {
-         UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_h1_sell_lifecycle,
-                                actual, direction,
-                                g_pair_states[pairIndex].h1_data, h1Band, h1RawExtreme);
-         ExportReversalConfirmedExtremeSignal(
-            g_pair_states[pairIndex].extreme_h1_sell_lifecycle, detectedH1Extreme);
+         detectedH1Extreme = resolvedH1SellExtreme;
+         detectedH4Extreme = resolvedH4SellExtreme;
       }
 
       MovingAverage m15MA;
@@ -6291,17 +6358,9 @@ void ProcessPair(int pairIndex)
       }
 
       if(direction == DIR_BUY)
-      {
-         UpdatePersistentExtremeState(detectedH1Extreme,
-                                      g_pair_states[pairIndex].extreme_h1_buy_state);
          h1ExtremeSnapshot = g_pair_states[pairIndex].extreme_h1_buy_state;
-      }
       else
-      {
-         UpdatePersistentExtremeState(detectedH1Extreme,
-                                      g_pair_states[pairIndex].extreme_h1_sell_state);
          h1ExtremeSnapshot = g_pair_states[pairIndex].extreme_h1_sell_state;
-      }
 
       Signal extreme, mhv, csd, ecsd, csm;
       MLVData mlv;
@@ -6318,30 +6377,10 @@ void ProcessPair(int pairIndex)
       ExportConfirmedReEntrySignal(h4ReEntryState, h4_reEntry);
       ExportConfirmedReEntrySignal(d1ReEntryState, d1_reEntry);
 
-      bool h4RawExtreme = DetectExtreme(actual, direction,
-                                        g_pair_states[pairIndex].h4_data, h4Band);
       if(direction == DIR_BUY)
-      {
-         UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_h4_buy_lifecycle,
-                                actual, direction,
-                                g_pair_states[pairIndex].h4_data, h4Band, h4RawExtreme);
-         ExportReversalConfirmedExtremeSignal(
-            g_pair_states[pairIndex].extreme_h4_buy_lifecycle, detectedH4Extreme);
-         UpdatePersistentExtremeState(detectedH4Extreme,
-                                      g_pair_states[pairIndex].extreme_h4_buy_state);
          h4ExtremeSnapshot = g_pair_states[pairIndex].extreme_h4_buy_state;
-      }
       else
-      {
-         UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_h4_sell_lifecycle,
-                                actual, direction,
-                                g_pair_states[pairIndex].h4_data, h4Band, h4RawExtreme);
-         ExportReversalConfirmedExtremeSignal(
-            g_pair_states[pairIndex].extreme_h4_sell_lifecycle, detectedH4Extreme);
-         UpdatePersistentExtremeState(detectedH4Extreme,
-                                      g_pair_states[pairIndex].extreme_h4_sell_state);
          h4ExtremeSnapshot = g_pair_states[pairIndex].extreme_h4_sell_state;
-      }
       h4_extreme = h4ExtremeSnapshot;
 
       ComponentSet rem, rre, ree;

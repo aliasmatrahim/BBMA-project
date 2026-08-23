@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//|                                    Version 4.5.1 - PATCHED 2.1    |
+//|                                    Version 4.5.1 - P3-M2-07 OPPOSITE GUARD    |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -32,6 +32,7 @@
 #property copyright "BBMA EA"
 #property link      ""
 #property version   "4.51"
+#property description "P3-M2-07 Cycle Direction Guard"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -4841,6 +4842,18 @@ bool IsSignalAllowed(BBMA_Decision &decision, string pair, int magicNumber)
 
    if(decision.Pair != pair || pair == "" || magicNumber <= 0 || decision.DecisionID == "")
       return false;
+
+   // P3-M2-07 SOURCE-DERIVED CYCLE DIRECTION GUARD:
+   // Multiple distinct same-direction BBMA entries may coexist, but a fresh
+   // opposite-direction entry must not create BUY+SELL coexistence on the
+   // same EA-owned pair while the earlier opposite position is still live.
+   for(int i = 0; i < g_monitored_count; i++)
+   {
+      if(!IsLiveEAOwnedPortfolioTrade(i)) continue;
+      if(g_monitored_trades[i].pair != pair) continue;
+      if(g_monitored_trades[i].direction != decision.Direction)
+         return false;
+   }
    
    if(TradeLockMode == LOCK_ONE_POSITION)
    {

@@ -368,3 +368,116 @@ Cross-check does not mean forcing all sources to agree. If they conflict or do n
 **Required Strategy-Core development check:**
 
 > Retrieve canonical sources → cross-check PDF + Finale + relevant forum + Core consolidation → establish accepted rule/evidence → compare Blueprint/code → classify mismatch → fix only if authorized by evidence → cross-module/purity verification → preserve traceability.
+
+---
+
+## 18. Mandatory Source + GitHub Preflight
+
+This preflight is **MANDATORY for every BBMA project task** that can change or evaluate architecture, strategy logic, source compliance, code behaviour, runtime behaviour, bug status, queue priority, or release readiness.
+
+Its purpose is to force the project to use the **static evidence layer and the live GitHub layer together**, instead of relying on chat memory, one uploaded file, one code snapshot, or one repository search result.
+
+### 18.1 Two-layer authority model
+Use both layers deliberately:
+
+#### A. Static evidence / knowledge layer
+Use the curated Project Sources / source-reference set for stable evidence and governance, including where relevant:
+
+- `PROJECT_INSTRUCTIONS.md`;
+- `docs/references/SOURCE_INDEX.md`;
+- `docs/references/BBMA_STRATEGY_CORE_SOURCE_OF_TRUTH_V2.md`;
+- `BBMA_FINALE_MASTER_RULE_INDEX.md` and relevant V01–V07 extracted evidence;
+- original/corroborating PDF evidence;
+- source-conflict and implementation-gap registers;
+- registered forum provenance/evidence.
+
+This layer answers: **What is the accepted BBMA rule, evidence, provenance, conflict status and project governance?**
+
+#### B. Live GitHub implementation / state layer
+Always retrieve the current repository state when the task depends on implementation or project status, including where relevant:
+
+- active branch and latest repository state;
+- `blueprint/CURRENT.md`;
+- `blueprint/MASTER_QUEUE.md`;
+- relevant module/source contracts;
+- relevant decisions/audits/verification records;
+- active `blueprint/source/BBMA_EA.mq4`;
+- current commits, compile/runtime evidence and changed files.
+
+This layer answers: **What does the project currently implement, what is active now, what remains pending, and what changed most recently?**
+
+### 18.2 Mandatory preflight sequence
+Before reaching a material conclusion or making a project change:
+
+1. Retrieve the current `PROJECT_INSTRUCTIONS.md` from GitHub.
+2. Retrieve `docs/references/SOURCE_INDEX.md` and use it as the source router.
+3. Identify the task class, affected BBMA concept(s), owning module(s), and whether the task can affect Strategy-Core semantics.
+4. If Strategy-Core semantics may be affected, retrieve the relevant static evidence group required by Section 17 before inspecting code as authority.
+5. Retrieve the live GitHub state relevant to the task: `CURRENT.md`, `MASTER_QUEUE.md`, owning contract(s), current EA source, and relevant audit/decision records.
+6. Compare the layers in this order:
+
+   **Original Evidence → Canonical Strategy Core → Contract / Blueprint → Current Code → Runtime / Test Evidence**
+
+7. Classify any mismatch before fixing it. Valid classifications include:
+   - source clarification;
+   - unresolved source conflict / `HOLD`;
+   - Blueprint/specification defect;
+   - implementation defect;
+   - runtime/integration defect;
+   - observability/documentation defect;
+   - no defect / already compliant.
+8. Apply only the smallest evidence-authorized fix owned by the correct module/layer.
+9. Re-check affected upstream/downstream modules and perform Strategy-Core purity regression when strategy behaviour is touched.
+10. For EA source changes, apply Section 16 build identification and obtain the required compile/runtime evidence.
+11. Commit the verified change to GitHub and update `CURRENT.md`, `MASTER_QUEUE.md`, audit/gap/decision records, or other tracking artifacts **only when their state actually changed**.
+
+### 18.3 Freshness rule
+Uploaded/static copies of live project-state files, code, queue records or runtime records must **never** be assumed current merely because they exist in a knowledge library or previous chat.
+
+For current status, active queue, source code, contracts, build identity, commit state and runtime evidence:
+
+> **GitHub live state wins.**
+
+The static Project Sources are a stable evidence/knowledge layer, not a substitute for checking the current repository when freshness matters.
+
+### 18.4 Comprehensive does not mean read-everything
+"Use the sources comprehensively" does **not** mean reading every source file on every task.
+
+The required behaviour is:
+
+- always start from `SOURCE_INDEX.md`;
+- identify the relevant evidence groups and owning artifacts;
+- retrieve **all materially relevant sources** for the task;
+- do not omit a source group when it can materially change the conclusion;
+- do not load unrelated sources merely to increase document count.
+
+`SOURCE_INDEX.md` is the router; relevance determines depth.
+
+### 18.5 No chat-memory authority
+Conversation history, assistant memory, previous summaries, previous answers, and remembered code states are navigation aids only.
+
+They may help locate the correct artifact, but they must not be treated as authoritative when the answer can be verified from the project sources or GitHub.
+
+Before claiming that a bug is fixed, a rule is compliant, a phase is complete, or a queue item is next, verify the relevant current artifact.
+
+### 18.6 Mandatory trace for material work
+For any material audit/fix, the working conclusion should be reproducible through this chain:
+
+> **source evidence → accepted Core rule → contract/owner → current code → runtime/test evidence → finding → fix → verification → GitHub state**
+
+Do not create duplicate governance documents when an existing authoritative artifact can carry the trace.
+
+### 18.7 Stop conditions
+Do not proceed with a strategy/code change when:
+
+- the relevant source evidence has not been retrieved;
+- the current owning GitHub contract/source has not been checked;
+- a material source conflict remains unresolved;
+- the proposed fix has no clear owning module/layer;
+- a previous snapshot is being used instead of current GitHub state where freshness matters.
+
+In these cases, retrieve the missing evidence/state first or classify the item `HOLD/UNRESOLVED`.
+
+**Required universal BBMA project check:**
+
+> GitHub governance + source index preflight → relevant static evidence retrieval → live GitHub state/contracts/code retrieval → Evidence → Core → Contract → Code → Runtime comparison → classify → smallest authorized fix → cross-module/purity verification → compile/runtime evidence where required → commit/update live project state.

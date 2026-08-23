@@ -253,10 +253,17 @@ This rule is mandatory for every future EA source-code change, patch, fix, diagn
 - Never reuse an old patch/build identifier for code that has changed.
 - Documentation-only changes that do not alter the EA source do not require a new EA build identifier.
 - Before declaring a code patch complete, verify that the About/header identifier matches that patch/build.
+- **MANDATORY HEADER FORMAT:** the visible `Version ... - PATCH/BUILD NAME` line in the EA source header MUST be **left-aligned**, immediately after the `//| ` prefix. Do not center it and do not add leading alignment spaces before `Version`.
+- Keep the surrounding comment box tidy by padding only **after** the patch/build text when padding is desired.
+- Every future source patch must verify both the identifier content **and its left alignment** before the patch is declared complete.
+
+**Required header example:**
+
+`//| Version 4.5.1 - P3-UI-01 Input Panel Cleanup                      |`
 
 **Required development check:**
 
-> EA source changed → About/header patch/build identifier updated → compile verification → runtime/test evidence → GitHub traceability.
+> EA source changed → About/header patch/build identifier updated + left-aligned → compile verification → runtime/test evidence → GitHub traceability.
 
 ---
 

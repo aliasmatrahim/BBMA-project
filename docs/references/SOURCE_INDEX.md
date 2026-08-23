@@ -15,8 +15,8 @@ Canonical retrieval sequence:
 3. `docs/references/video/oma_ally_finale/BBMA_FINALE_MASTER_RULE_INDEX.md` — reconciled Finale synthesis.
 4. `docs/references/video/oma_ally_finale/V01` through `V07` — episode-level `extracted_rules.md` / `summary.md` evidence when needed.
 5. `docs/references/BBMA_OMA_ALLY_RULE_INDEX.md` — PDF-derived rule index.
-6. Primary PDF evidence: `Oma ally BBMA - AL.pdf` (recorded below).
-7. Secondary PDF evidence: `BBMA technique.pdf` (recorded below).
+6. Primary PDF evidence: `docs/references/original/Oma ally BBMA - AL.pdf`.
+7. Secondary PDF evidence: `docs/references/original/BBMA technique.pdf`.
 8. `docs/references/video/oma_ally_finale/BBMA_FINALE_SOURCE_CONFLICT_REGISTER.md` — unresolved source conflicts/HOLD items.
 9. `docs/references/video/oma_ally_finale/BBMA_FINALE_CORE_IMPLEMENTATION_GAP_REGISTER.md` — known implementation mismatches.
 10. Relevant module source contracts and then the active Master Blueprint / EA implementation.
@@ -37,6 +37,8 @@ This canonical file is the preferred **developer-facing Core rule reference**. O
 ## Primary operational reference
 ### Oma ally BBMA - AL.pdf
 - Project role: **PRIMARY OPERATIONAL BBMA REFERENCE**
+- Repository path: `docs/references/original/Oma ally BBMA - AL.pdf`
+- Storage status: **ORIGINAL BINARY STORED IN REPOSITORY**
 - Document title: `BBMA Basics – Oma Ally`
 - Attribution stated by document: `summarized by – Leeeta FX`
 - Pages: 14
@@ -56,6 +58,8 @@ This canonical file is the preferred **developer-facing Core rule reference**. O
 ## Secondary corroborating reference
 ### BBMA technique.pdf
 - Project role: **SECONDARY / CORROBORATING BBMA REFERENCE**
+- Repository path: `docs/references/original/BBMA technique.pdf`
+- Storage status: **ORIGINAL BINARY STORED IN REPOSITORY**
 - Pages: 44
 - Original filename supplied by user: `BBMA technique.pdf`
 - SHA-256: `b3457fb600f8a1ef7586e463938816de3da2e1801b53234d89511de38c946de1`
@@ -125,4 +129,6 @@ For every material Strategy-Core change or compliance audit:
 - do not ask the user to repeatedly re-establish that BBMA/Oma Ally fidelity is required — it is permanent project governance under `PROJECT_INSTRUCTIONS.md`.
 
 ## File-storage note
-The GitHub connector used by ChatGPT exposes UTF-8 text writes but no mounted/local-file upload parameter. The exact raw PDF filenames/hashes remain recorded here. For the BBMA Finale series, full original/corrected SRT files are preserved in the generated source pack; GitHub synchronization state and hashes are recorded in `VIDEO_SOURCE_INDEX.md`. Derived analysis Markdown is committed directly to GitHub.
+The two original user-supplied PDF binaries are now preserved in GitHub under `docs/references/original/` with their original filenames. Their SHA-256 hashes above remain the integrity reference and must continue to match the archived binaries.
+
+The GitHub connector used by ChatGPT still exposes UTF-8 text writes but no mounted/local-file upload parameter, so future binary source additions may require manual upload to the repository. For the BBMA Finale series, full original/corrected SRT files are preserved in the generated source pack; GitHub synchronization state and hashes are recorded in `VIDEO_SOURCE_INDEX.md`. Derived analysis Markdown is committed directly to GitHub.

@@ -17,9 +17,10 @@ Canonical retrieval sequence:
 5. `docs/references/BBMA_OMA_ALLY_RULE_INDEX.md` — PDF-derived rule index.
 6. Primary PDF evidence: `docs/references/original/Oma ally BBMA - AL.pdf`.
 7. Secondary PDF evidence: `docs/references/original/BBMA technique.pdf`.
-8. `docs/references/video/oma_ally_finale/BBMA_FINALE_SOURCE_CONFLICT_REGISTER.md` — unresolved source conflicts/HOLD items.
-9. `docs/references/video/oma_ally_finale/BBMA_FINALE_CORE_IMPLEMENTATION_GAP_REGISTER.md` — known implementation mismatches.
-10. Relevant module source contracts and then the active Master Blueprint / EA implementation.
+8. Original BBMA Finale subtitle evidence: `docs/references/original/video/oma_ally_finale/`.
+9. `docs/references/video/oma_ally_finale/BBMA_FINALE_SOURCE_CONFLICT_REGISTER.md` — unresolved source conflicts/HOLD items.
+10. `docs/references/video/oma_ally_finale/BBMA_FINALE_CORE_IMPLEMENTATION_GAP_REGISTER.md` — known implementation mismatches.
+11. Relevant module source contracts and then the active Master Blueprint / EA implementation.
 
 **Existence rule:** zero-result code search is not proof of absence. For an expected source, use this index and known path/directories before reporting it missing.
 
@@ -76,10 +77,12 @@ This canonical file is the preferred **developer-facing Core rule reference**. O
 ### BBMA Finale V01–V07 subtitles
 - Project role: **SUPPLEMENTAL INSTRUCTIONAL / CLARIFICATION EVIDENCE**.
 - Source form: seven user-supplied SRT transcripts from a video class series identified by the user as `BBMA Finale` / Oma Ally class.
+- Repository archive: `docs/references/original/video/oma_ally_finale/`.
+- Storage status: **ALL 7 ORIGINAL SRT FILES ARCHIVED / HASH VERIFIED**.
 - Provenance status: **USER-SUPPLIED / USER-IDENTIFIED ATTRIBUTION; NOT INDEPENDENTLY AUTHENTICATED FROM THE SRT FILES ALONE**.
 - User validation status: **V01–V07 confirmed usable/OK**.
-- Processing status: part-by-part original, corrected, extracted-rule and summary artifacts prepared; derived Markdown analysis committed under `docs/references/video/oma_ally_finale/`.
-- Raw/corrected SRT hashes and synchronization status are recorded in `docs/references/video/oma_ally_finale/VIDEO_SOURCE_INDEX.md`.
+- Processing status: original SRT evidence is archived byte-for-byte; corrected, extracted-rule and summary artifacts were prepared separately; derived Markdown analysis is committed under `docs/references/video/oma_ally_finale/`.
+- Original/corrected SRT hashes and synchronization status are recorded in `docs/references/video/oma_ally_finale/VIDEO_SOURCE_INDEX.md`; the immutable original archive manifest is `docs/references/original/video/oma_ally_finale/MANIFEST.md`.
 
 ### Reconciled Finale findings
 After comparing Finale against the **current** PDF-derived Core contracts, most important Finale statements are corroboration/clarification rather than brand-new Core rules:
@@ -129,6 +132,8 @@ For every material Strategy-Core change or compliance audit:
 - do not ask the user to repeatedly re-establish that BBMA/Oma Ally fidelity is required — it is permanent project governance under `PROJECT_INSTRUCTIONS.md`.
 
 ## File-storage note
-The two original user-supplied PDF binaries are now preserved in GitHub under `docs/references/original/` with their original filenames. Their SHA-256 hashes above remain the integrity reference and must continue to match the archived binaries.
+The two original user-supplied PDF binaries are preserved in GitHub under `docs/references/original/` with their original filenames. Their SHA-256 hashes above remain the integrity reference and must continue to match the archived binaries.
 
-The GitHub connector used by ChatGPT still exposes UTF-8 text writes but no mounted/local-file upload parameter, so future binary source additions may require manual upload to the repository. For the BBMA Finale series, full original/corrected SRT files are preserved in the generated source pack; GitHub synchronization state and hashes are recorded in `VIDEO_SOURCE_INDEX.md`. Derived analysis Markdown is committed directly to GitHub.
+All seven original BBMA Finale SRT files are now preserved in GitHub under `docs/references/original/video/oma_ally_finale/` with their original supplied filenames. Their GitHub blob identities were verified against the locally supplied files, and their SHA-256 values match the recorded original-source hashes. The corrected SRT files are derived artifacts rather than original evidence and remain separately tracked in `VIDEO_SOURCE_INDEX.md`.
+
+The GitHub connector used by ChatGPT still exposes UTF-8 text writes but no mounted/local-file upload parameter, so future binary/local-file source additions may require manual upload to the repository. Derived analysis Markdown can be committed directly to GitHub.

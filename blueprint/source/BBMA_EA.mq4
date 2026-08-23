@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//|                                    Version 4.5.1 - P3-M2-07B Opposite Extreme Supersession    |
+//|                                    Version 4.5.1 - P3-M2-07B.1 Extreme Descendant Supersession    |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -2459,6 +2459,21 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
       ResetMLVState(mlv, direction);
 
    bool parentMature = IsMHVParentExtremeMature(parent);
+
+   // P3-M2-07B.1: once M08 marks this exact parent Extreme SUPERSEDED by a
+   // newer reversal-confirmed opposite Extreme, every still-authoritative MHV/
+   // MLV descendant of that parent loses cycle authority atomically. This is
+   // strategy-state invalidation only; it never closes an already-open order.
+   if(parent.Maturity == EXT_MAT_SUPERSEDED &&
+      mlv.ParentConfirmationCandleTime > 0 &&
+      parent.ConfirmationCandleTime == mlv.ParentConfirmationCandleTime &&
+      mlv.State != MLV_VOID && mlv.State != MLV_SUPERSEDED)
+   {
+      MarkCanonicalMLVSuperseded(
+         mlv, data,
+         "MHV/MLV superseded because its exact parent Extreme lost cycle ownership");
+      return mlv.State;
+   }
 
    if(mlv.State == MLV_NONE)
    {

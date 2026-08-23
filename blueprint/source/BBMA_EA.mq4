@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//|                                    Version 4.5.1 - P3-M2-07B.2 F1 Boundary Reconciliation    |
+//|                                    Version 4.5.1 - P3-M2-11 Mode2 Diagnostic Trace    |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -1971,11 +1971,25 @@ void ResolveOppositeExtremeSupersession(ExtremeLifecycleData &buyExtreme,
    if(!buyMature || !sellMature) return;
 
    if(buyExtreme.ConfirmationCandleTime > sellExtreme.ConfirmationCandleTime)
+   {
       MarkExtremeLifecycleSuperseded(sellExtreme, data,
          "SELL Extreme superseded by newer reversal-confirmed opposite BUY Extreme");
+      if(EntryMode == 2)
+         Print("[P3M2][EXT_SUPERSEDE] TF=", data.timeframe,
+               " Old=SELL New=BUY OldConfirm=", TimeToString(sellExtreme.ConfirmationCandleTime),
+               " NewConfirm=", TimeToString(buyExtreme.ConfirmationCandleTime),
+               " ProcessCandle=", TimeToString(data.candle_time));
+   }
    else if(sellExtreme.ConfirmationCandleTime > buyExtreme.ConfirmationCandleTime)
+   {
       MarkExtremeLifecycleSuperseded(buyExtreme, data,
          "BUY Extreme superseded by newer reversal-confirmed opposite SELL Extreme");
+      if(EntryMode == 2)
+         Print("[P3M2][EXT_SUPERSEDE] TF=", data.timeframe,
+               " Old=BUY New=SELL OldConfirm=", TimeToString(buyExtreme.ConfirmationCandleTime),
+               " NewConfirm=", TimeToString(sellExtreme.ConfirmationCandleTime),
+               " ProcessCandle=", TimeToString(data.candle_time));
+   }
    // Equal confirmation time remains ambiguous; downstream conflict stays fail-closed.
 }
 
@@ -2421,6 +2435,11 @@ bool TryAdvanceMHVSupersessionCandidate(MLVData &mlv, string pair,
          MarkCanonicalMLVSuperseded(
             mlv, data,
             "Old MHV/MLV cycle superseded by opposite reversal-confirmed Extreme");
+         if(EntryMode == 2)
+            Print("[P3M2][MLV_SUPERSEDE] MLVDir=", EnumToString(mlv.Direction),
+                  " NewExtremeDir=", EnumToString(parentDirection),
+                  " Raw=", TimeToString(mlv.SupersessionRawCandleTime),
+                  " Confirm=", TimeToString(data.candle_time));
          return true;
       }
       return false;
@@ -2441,6 +2460,10 @@ bool TryAdvanceMHVSupersessionCandidate(MLVData &mlv, string pair,
    mlv.SupersessionCandidateActive = true;
    mlv.SupersessionRawBar = data.barIndex;
    mlv.SupersessionRawCandleTime = data.candle_time;
+   if(EntryMode == 2)
+      Print("[P3M2][MLV_SUPER_CAND] MLVDir=", EnumToString(mlv.Direction),
+            " ExtremeDir=", EnumToString(parentDirection),
+            " Raw=", TimeToString(data.candle_time));
    return false;
 }
 
@@ -3773,6 +3796,9 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
    if(EntryMode == 1 && (buyCount > 0 || sellCount > 0))
       Print("[P3M1][M15_COUNTS] Buy=", buyCount, " Sell=", sellCount,
             " Pool=", count, " Time=", TimeToString(g_processing_time));
+   if(EntryMode == 2 && (buyCount > 0 || sellCount > 0))
+      Print("[P3M2][M15_COUNTS] Buy=", buyCount, " Sell=", sellCount,
+            " Pool=", count, " Time=", TimeToString(g_processing_time));
 
    if(buyCount > 0 && sellCount > 0)
    {
@@ -3782,6 +3808,8 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
       conflict.FrozenSnapshotTime = g_processing_time;
       if(EntryMode == 1)
          Print("[P3M1][M15_CONFLICT] Opposite eligible RE candidates; no winner selected");
+      if(EntryMode == 2)
+         Print("[P3M2][M15_CONFLICT] Opposite eligible Mode2 candidates; no winner selected");
       return;
    }
 
@@ -3834,6 +3862,13 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
             " Signal=", EnumToString(decision.SignalType),
             " Dir=", EnumToString(decision.Direction),
             " Candle=", TimeToString(decision.CandleTime),
+            " DecisionID=", decision.DecisionID);
+   if(EntryMode == 2)
+      Print("[P3M2][M15_SELECT] Pair=", decision.Pair,
+            " Signal=", EnumToString(decision.SignalType),
+            " Dir=", EnumToString(decision.Direction),
+            " Candle=", TimeToString(decision.CandleTime),
+            " Components=", decision.ComponentCount,
             " DecisionID=", decision.DecisionID);
 }
 
@@ -4010,6 +4045,9 @@ void InvalidationEngine_Atomic(int pairIndex, BBMA_Decision &decision,
       if(EntryMode == 1)
          Print("[P3M1][M16_REJECT] DecisionID=", decision.DecisionID,
                " Reason=", EnumToString(decision.RejectionReason));
+      if(EntryMode == 2)
+         Print("[P3M2][M16_REJECT] DecisionID=", decision.DecisionID,
+               " Reason=", EnumToString(decision.RejectionReason));
       return;
    }
 
@@ -4026,6 +4064,10 @@ void InvalidationEngine_Atomic(int pairIndex, BBMA_Decision &decision,
          decision.DecisionState = DEC_INVALIDATED;
          decision.RejectionReason = REJ_SEQUENCE_BREAK;
       }
+      if(EntryMode == 2)
+         Print("[P3M2][M16_OWNER_REJECT] DecisionID=", decision.DecisionID,
+               " State=", EnumToString(decision.DecisionState),
+               " Reason=", EnumToString(decision.RejectionReason));
       return;
    }
 
@@ -4040,6 +4082,10 @@ void InvalidationEngine_Atomic(int pairIndex, BBMA_Decision &decision,
    decision.RejectionReason = REJ_NONE;
    if(EntryMode == 1)
       Print("[P3M1][M16_PASS] DecisionID=", decision.DecisionID,
+            " Signal=", EnumToString(decision.SignalType),
+            " Candle=", TimeToString(decision.CandleTime));
+   if(EntryMode == 2)
+      Print("[P3M2][M16_PASS] DecisionID=", decision.DecisionID,
             " Signal=", EnumToString(decision.SignalType),
             " Candle=", TimeToString(decision.CandleTime));
 }
@@ -5177,6 +5223,14 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
                   " Dir=", EnumToString(decision.Direction),
                   " ValidateCandle=", TimeToString(decision.CandleTime),
                   " OrderOpen=", TimeToString(OrderOpenTime()));
+         if(EntryMode == 2)
+            Print("[P3M2][EXEC] Ticket=", ticket,
+                  " Pair=", pair,
+                  " DecisionID=", decision.DecisionID,
+                  " Signal=", EnumToString(decision.SignalType),
+                  " Dir=", EnumToString(decision.Direction),
+                  " ValidateCandle=", TimeToString(decision.CandleTime),
+                  " OrderOpen=", TimeToString(OrderOpenTime()));
          return;
       }
 
@@ -5202,6 +5256,13 @@ bool RunEntryPreflightAndExecute(BBMA_Decision &decision, string pair)
    if(pair == "" || decision.Pair != pair) return false;
    if(EntryMode == 1)
       Print("[P3M1][PREFLIGHT_START] Pair=", pair,
+            " DecisionID=", decision.DecisionID,
+            " Signal=", EnumToString(decision.SignalType),
+            " Dir=", EnumToString(decision.Direction),
+            " ValidateCandle=", TimeToString(decision.CandleTime),
+            " ProcessTime=", TimeToString(g_processing_time));
+   if(EntryMode == 2)
+      Print("[P3M2][PREFLIGHT_START] Pair=", pair,
             " DecisionID=", decision.DecisionID,
             " Signal=", EnumToString(decision.SignalType),
             " Dir=", EnumToString(decision.Direction),
@@ -5281,6 +5342,12 @@ bool RunEntryPreflightAndExecute(BBMA_Decision &decision, string pair)
 
    if(EntryMode == 1)
       Print("[P3M1][PREFLIGHT_PASS] DecisionID=", decision.DecisionID,
+            " Entry=", DoubleToString(decision.EntryPrice, snapshot.Digits),
+            " SL=", DoubleToString(decision.StopLoss, snapshot.Digits),
+            " TP=", DoubleToString(decision.TakeProfit, snapshot.Digits),
+            " Lot=", DoubleToString(lot, snapshot.LotDigits));
+   if(EntryMode == 2)
+      Print("[P3M2][PREFLIGHT_PASS] DecisionID=", decision.DecisionID,
             " Entry=", DoubleToString(decision.EntryPrice, snapshot.Digits),
             " SL=", DoubleToString(decision.StopLoss, snapshot.Digits),
             " TP=", DoubleToString(decision.TakeProfit, snapshot.Digits),

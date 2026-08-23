@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   cleanup:
-    if: github.event.pull_request.head.ref == 'p3-m2-07b-opposite-extreme-supersession'
+    if: github.event.pull_request.head.ref == 'p3-cleanup-pass2'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,233 +18,133 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
 
-      - name: Apply P3-M2-07B atomic opposite Extreme supersession
+      - name: Remove proven dead residual symbols
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
-          p=Path('blueprint/source/BBMA_EA.mq4')
-          s=p.read_text(encoding='utf-8')
-          if 'P3-M2-07B Opposite Extreme Supersession' in s:
-              print('Patch already applied'); raise SystemExit(0)
-          s=s.replace('Version 4.5.1 - PATCHED 2.1','Version 4.5.1 - P3-M2-07B Opposite Extreme Supersession',1)
-          old='''enum ENUM_EXTREME_MATURITY
-{
-   EXT_MAT_NONE,
-   EXT_MAT_RAW,
-   EXT_MAT_REVERSAL_CONFIRMED,
-   EXT_MAT_RETEST_PHASE,
-   EXT_MAT_RETEST_READY,
-   EXT_MAT_VOID
-};'''
-          new='''enum ENUM_EXTREME_MATURITY
-{
-   EXT_MAT_NONE,
-   EXT_MAT_RAW,
-   EXT_MAT_REVERSAL_CONFIRMED,
-   EXT_MAT_RETEST_PHASE,
-   EXT_MAT_RETEST_READY,
-   EXT_MAT_VOID,
-   EXT_MAT_SUPERSEDED
-};'''
-          assert s.count(old)==1
-          s=s.replace(old,new,1)
-          anchor='''void MarkExtremeLifecycleVoid(ExtremeLifecycleData &extreme,
-                              TimeframeData &data, string reason)
-{
-   extreme.Maturity = EXT_MAT_VOID;
-   extreme.IsValid = false;
-   extreme.LastUpdateBar = data.barIndex;
-   extreme.LastUpdateCandleTime = data.candle_time;
-   extreme.PreviousClose = data.close;
-   extreme.Reason = reason;
-}
-'''
-          extra=anchor+'''
-bool IsExtremeCycleOwnerMature(ExtremeLifecycleData &extreme)
-{
-   if(!extreme.IsValid || extreme.ConfirmationCandleTime <= 0) return false;
-   return (extreme.Maturity == EXT_MAT_REVERSAL_CONFIRMED ||
-           extreme.Maturity == EXT_MAT_RETEST_PHASE ||
-           extreme.Maturity == EXT_MAT_RETEST_READY);
-}
+          import re
 
-void MarkExtremeLifecycleSuperseded(ExtremeLifecycleData &extreme,
-                                    TimeframeData &data, string reason)
-{
-   extreme.Maturity = EXT_MAT_SUPERSEDED;
-   extreme.IsValid = false;
-   extreme.LastUpdateBar = data.barIndex;
-   extreme.LastUpdateCandleTime = data.candle_time;
-   extreme.PreviousClose = data.close;
-   extreme.Reason = reason;
-}
+          p = Path('blueprint/source/BBMA_EA.mq4')
+          s = p.read_text(encoding='utf-8')
+          before = s
+          removed = []
 
-void ResolveOppositeExtremeSupersession(ExtremeLifecycleData &buyExtreme,
-                                        ExtremeLifecycleData &sellExtreme,
-                                        TimeframeData &data)
-{
-   if(!data.is_valid || !data.is_closed || data.candle_time <= 0) return;
-   if(buyExtreme.Timeframe != data.timeframe || sellExtreme.Timeframe != data.timeframe) return;
-   bool buyMature=IsExtremeCycleOwnerMature(buyExtreme);
-   bool sellMature=IsExtremeCycleOwnerMature(sellExtreme);
-   if(!buyMature || !sellMature) return;
-   if(buyExtreme.ConfirmationCandleTime > sellExtreme.ConfirmationCandleTime)
-      MarkExtremeLifecycleSuperseded(sellExtreme,data,
-         "SELL Extreme superseded by newer reversal-confirmed opposite BUY Extreme");
-   else if(sellExtreme.ConfirmationCandleTime > buyExtreme.ConfirmationCandleTime)
-      MarkExtremeLifecycleSuperseded(buyExtreme,data,
-         "BUY Extreme superseded by newer reversal-confirmed opposite SELL Extreme");
-   // Equal confirmation time remains ambiguous; downstream conflict stays fail-closed.
-}
-'''
-          assert s.count(anchor)==1
-          s=s.replace(anchor,extra,1)
-          old='''   if(extreme.Maturity == EXT_MAT_VOID)
-   {
-      if(!rawDetected || data.candle_time <= extreme.LastUpdateCandleTime)
-         return EXT_MAT_VOID;
-      ResetExtremeLifecycle(extreme, direction, data.timeframe);
-   }
-'''
-          new='''   if(extreme.Maturity == EXT_MAT_VOID || extreme.Maturity == EXT_MAT_SUPERSEDED)
-   {
-      ENUM_EXTREME_MATURITY terminalState = extreme.Maturity;
-      if(!rawDetected || data.candle_time <= extreme.LastUpdateCandleTime)
-         return terminalState;
-      ResetExtremeLifecycle(extreme, direction, data.timeframe);
-   }
-'''
-          assert s.count(old)==1
-          s=s.replace(old,new,1)
-          old='''   UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_m15_sell_lifecycle,
-                          actual, DIR_SELL, g_pair_states[pairIndex].m15_data,
-                          m15Band, m15RawSellExtreme);
+          # 1) Residual helper: definition-only after Pass 1.
+          name = 'GetEffectiveExpiry'
+          if s.count(name + '(') != 1:
+              raise SystemExit(f'{name}: expected definition-only count=1, got {s.count(name + "(")}')
+          m = re.search(r'(?m)^datetime\s+' + name + r'\s*\(', s)
+          if not m:
+              raise SystemExit(f'{name}: definition not found')
+          brace = s.find('{', m.end())
+          depth = 0
+          i = brace
+          while i < len(s):
+              if s[i] == '{': depth += 1
+              elif s[i] == '}':
+                  depth -= 1
+                  if depth == 0:
+                      end = i + 1
+                      while end < len(s) and s[end] in ' \t\r\n': end += 1
+                      s = s[:m.start()] + s[end:]
+                      removed.append(name + '()')
+                      break
+              i += 1
+          else:
+              raise SystemExit(f'{name}: unbalanced function body')
 
-   for(int dirIdx = 0; dirIdx < 2; dirIdx++)
-'''
-          new='''   UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_m15_sell_lifecycle,
-                          actual, DIR_SELL, g_pair_states[pairIndex].m15_data,
-                          m15Band, m15RawSellExtreme);
-   ResolveOppositeExtremeSupersession(g_pair_states[pairIndex].extreme_m15_buy_lifecycle,
-                                      g_pair_states[pairIndex].extreme_m15_sell_lifecycle,
-                                      g_pair_states[pairIndex].m15_data);
+          # 2) Definition-only enum family.
+          enum_name = 'ENUM_SIGNAL_MODE'
+          em = re.search(r'(?ms)^enum\s+' + enum_name + r'\s*\{.*?\};\s*\n', s)
+          if not em:
+              raise SystemExit(f'{enum_name}: enum not found')
+          if s.count(enum_name) != 1:
+              raise SystemExit(f'{enum_name}: expected definition-only count=1, got {s.count(enum_name)}')
+          s = s[:em.start()] + s[em.end():]
+          removed.append(enum_name)
 
-   bool h1RawBuyExtreme = DetectExtreme(actual, DIR_BUY, g_pair_states[pairIndex].h1_data, h1Band);
-   bool h1RawSellExtreme = DetectExtreme(actual, DIR_SELL, g_pair_states[pairIndex].h1_data, h1Band);
-   UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_h1_buy_lifecycle,actual,DIR_BUY,g_pair_states[pairIndex].h1_data,h1Band,h1RawBuyExtreme);
-   UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_h1_sell_lifecycle,actual,DIR_SELL,g_pair_states[pairIndex].h1_data,h1Band,h1RawSellExtreme);
-   ResolveOppositeExtremeSupersession(g_pair_states[pairIndex].extreme_h1_buy_lifecycle,g_pair_states[pairIndex].extreme_h1_sell_lifecycle,g_pair_states[pairIndex].h1_data);
+          # 3) SignalMemory instances are declaration-only. Remove instance fields first.
+          for field in ['buy_signal_memory', 'sell_signal_memory']:
+              if s.count(field) != 1:
+                  raise SystemExit(f'{field}: expected declaration-only count=1, got {s.count(field)}')
+              s2, n = re.subn(r'(?m)^\s*SignalMemory\s+' + field + r'\s*;.*\n', '', s, count=1)
+              if n != 1:
+                  raise SystemExit(f'{field}: declaration not found')
+              s = s2
+              removed.append(field)
 
-   bool h4RawBuyExtreme = DetectExtreme(actual, DIR_BUY, g_pair_states[pairIndex].h4_data, h4Band);
-   bool h4RawSellExtreme = DetectExtreme(actual, DIR_SELL, g_pair_states[pairIndex].h4_data, h4Band);
-   UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_h4_buy_lifecycle,actual,DIR_BUY,g_pair_states[pairIndex].h4_data,h4Band,h4RawBuyExtreme);
-   UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_h4_sell_lifecycle,actual,DIR_SELL,g_pair_states[pairIndex].h4_data,h4Band,h4RawSellExtreme);
-   ResolveOppositeExtremeSupersession(g_pair_states[pairIndex].extreme_h4_buy_lifecycle,g_pair_states[pairIndex].extreme_h4_sell_lifecycle,g_pair_states[pairIndex].h4_data);
+          # 4) With both instances gone, SignalMemory type must now be definition-only.
+          if s.count('SignalMemory') != 1:
+              raise SystemExit(f'SignalMemory: expected type-only count=1 after field removal, got {s.count("SignalMemory")}')
+          sm = re.search(r'(?ms)^struct\s+SignalMemory\s*\{.*?^\};\s*\n', s)
+          if not sm:
+              raise SystemExit('SignalMemory: struct block not found')
+          s = s[:sm.start()] + s[sm.end():]
+          removed.append('struct SignalMemory')
 
-   Signal resolvedH1BuyExtreme,resolvedH1SellExtreme,resolvedH4BuyExtreme,resolvedH4SellExtreme;
-   ZeroMemory(resolvedH1BuyExtreme); ZeroMemory(resolvedH1SellExtreme); ZeroMemory(resolvedH4BuyExtreme); ZeroMemory(resolvedH4SellExtreme);
-   ExportReversalConfirmedExtremeSignal(g_pair_states[pairIndex].extreme_h1_buy_lifecycle,resolvedH1BuyExtreme);
-   ExportReversalConfirmedExtremeSignal(g_pair_states[pairIndex].extreme_h1_sell_lifecycle,resolvedH1SellExtreme);
-   ExportReversalConfirmedExtremeSignal(g_pair_states[pairIndex].extreme_h4_buy_lifecycle,resolvedH4BuyExtreme);
-   ExportReversalConfirmedExtremeSignal(g_pair_states[pairIndex].extreme_h4_sell_lifecycle,resolvedH4SellExtreme);
-   UpdatePersistentExtremeState(resolvedH1BuyExtreme,g_pair_states[pairIndex].extreme_h1_buy_state);
-   UpdatePersistentExtremeState(resolvedH1SellExtreme,g_pair_states[pairIndex].extreme_h1_sell_state);
-   UpdatePersistentExtremeState(resolvedH4BuyExtreme,g_pair_states[pairIndex].extreme_h4_buy_state);
-   UpdatePersistentExtremeState(resolvedH4SellExtreme,g_pair_states[pairIndex].extreme_h4_sell_state);
+          # 5) Cycle enum becomes definition-only after SignalMemory removal.
+          enum_name = 'ENUM_CYCLE_STATE'
+          em = re.search(r'(?ms)^enum\s+' + enum_name + r'\s*\{.*?\};\s*\n', s)
+          if em and s.count(enum_name) == 1:
+              s = s[:em.start()] + s[em.end():]
+              removed.append(enum_name)
 
-   for(int dirIdx = 0; dirIdx < 2; dirIdx++)
-'''
-          assert s.count(old)==1
-          s=s.replace(old,new,1)
-          old='''      Signal detectedH1Extreme, detectedH4Extreme;
-      ZeroMemory(detectedH1Extreme); ZeroMemory(detectedH4Extreme);
+          # 6) Remove only known unused tail signal constants if each appears only in enum.
+          for const in ['SIGNAL_REVERSAL','SIGNAL_CONTINUATION','SIGNAL_MAJOR_REVERSAL']:
+              if s.count(const) == 1:
+                  s2, n = re.subn(r'(?m)^\s*' + const + r'\s*,?\s*\n', '', s, count=1)
+                  if n == 1:
+                      s = s2
+                      removed.append(const)
 
-      bool h1RawExtreme = DetectExtreme(actual, direction,
-                                        g_pair_states[pairIndex].h1_data, h1Band);
-      if(direction == DIR_BUY)
-      {
-         UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_h1_buy_lifecycle,
-                                actual, direction,
-                                g_pair_states[pairIndex].h1_data, h1Band, h1RawExtreme);
-         ExportReversalConfirmedExtremeSignal(
-            g_pair_states[pairIndex].extreme_h1_buy_lifecycle, detectedH1Extreme);
-      }
-      else
-      {
-         UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_h1_sell_lifecycle,
-                                actual, direction,
-                                g_pair_states[pairIndex].h1_data, h1Band, h1RawExtreme);
-         ExportReversalConfirmedExtremeSignal(
-            g_pair_states[pairIndex].extreme_h1_sell_lifecycle, detectedH1Extreme);
-      }
-'''
-          new='''      Signal detectedH1Extreme, detectedH4Extreme;
-      ZeroMemory(detectedH1Extreme); ZeroMemory(detectedH4Extreme);
-      if(direction == DIR_BUY) { detectedH1Extreme=resolvedH1BuyExtreme; detectedH4Extreme=resolvedH4BuyExtreme; }
-      else { detectedH1Extreme=resolvedH1SellExtreme; detectedH4Extreme=resolvedH4SellExtreme; }
-'''
-          assert s.count(old)==1
-          s=s.replace(old,new,1)
-          old='''      if(direction == DIR_BUY)
-      {
-         UpdatePersistentExtremeState(detectedH1Extreme,
-                                      g_pair_states[pairIndex].extreme_h1_buy_state);
-         h1ExtremeSnapshot = g_pair_states[pairIndex].extreme_h1_buy_state;
-      }
-      else
-      {
-         UpdatePersistentExtremeState(detectedH1Extreme,
-                                      g_pair_states[pairIndex].extreme_h1_sell_state);
-         h1ExtremeSnapshot = g_pair_states[pairIndex].extreme_h1_sell_state;
-      }
-'''
-          new='''      if(direction == DIR_BUY) h1ExtremeSnapshot = g_pair_states[pairIndex].extreme_h1_buy_state;
-      else h1ExtremeSnapshot = g_pair_states[pairIndex].extreme_h1_sell_state;
-'''
-          assert s.count(old)==1
-          s=s.replace(old,new,1)
-          old='''      bool h4RawExtreme = DetectExtreme(actual, direction,
-                                        g_pair_states[pairIndex].h4_data, h4Band);
-      if(direction == DIR_BUY)
-      {
-         UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_h4_buy_lifecycle,
-                                actual, direction,
-                                g_pair_states[pairIndex].h4_data, h4Band, h4RawExtreme);
-         ExportReversalConfirmedExtremeSignal(
-            g_pair_states[pairIndex].extreme_h4_buy_lifecycle, detectedH4Extreme);
-         UpdatePersistentExtremeState(detectedH4Extreme,
-                                      g_pair_states[pairIndex].extreme_h4_buy_state);
-         h4ExtremeSnapshot = g_pair_states[pairIndex].extreme_h4_buy_state;
-      }
-      else
-      {
-         UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_h4_sell_lifecycle,
-                                actual, direction,
-                                g_pair_states[pairIndex].h4_data, h4Band, h4RawExtreme);
-         ExportReversalConfirmedExtremeSignal(
-            g_pair_states[pairIndex].extreme_h4_sell_lifecycle, detectedH4Extreme);
-         UpdatePersistentExtremeState(detectedH4Extreme,
-                                      g_pair_states[pairIndex].extreme_h4_sell_state);
-         h4ExtremeSnapshot = g_pair_states[pairIndex].extreme_h4_sell_state;
-      }
-      h4_extreme = h4ExtremeSnapshot;
-'''
-          new='''      if(direction == DIR_BUY) h4ExtremeSnapshot = g_pair_states[pairIndex].extreme_h4_buy_state;
-      else h4ExtremeSnapshot = g_pair_states[pairIndex].extreme_h4_sell_state;
-      h4_extreme = h4ExtremeSnapshot;
-'''
-          assert s.count(old)==1
-          s=s.replace(old,new,1)
-          for token in ['EXT_MAT_SUPERSEDED','ResolveOppositeExtremeSupersession(','resolvedH1BuyExtreme','resolvedH4BuyExtreme']:
-              assert token in s
-          p.write_text(s,encoding='utf-8')
+          # Guard critical strategy/execution anchors.
+          anchors = [
+              'bool DetectExtreme(',
+              'ENUM_MLV_STATE UpdateCanonicalMLVState(',
+              'ENUM_RE_STATE UpdateReEntryState(',
+              'void PriorityEngine_Atomic(',
+              'void InvalidationEngine_Atomic(',
+              'bool ResolveApprovedInitialSLTP(',
+              'RiskStatus CheckRiskBeforeTrade(',
+              'double CalculateLotSize(',
+              'void ProcessEntry(',
+              'void ProcessPair(',
+              'int OnInit()',
+              'void OnTick()'
+          ]
+          for a in anchors:
+              if before.count(a) != 1 or s.count(a) != 1:
+                  raise SystemExit('Critical anchor changed/missing: ' + a)
+
+          if s.count('{') != s.count('}'):
+              raise SystemExit('Brace imbalance after cleanup')
+          if s == before:
+              raise SystemExit('No cleanup changes produced')
+
+          p.write_text(s, encoding='utf-8')
+
+          rec = Path('blueprint/P3_CLEANUP_PASS2_RESULT.md')
+          rec.write_text(
+              '# P3 Cleanup Pass 2 Result\n\n'
+              'Status: STATIC CLEANUP APPLIED; NATIVE METAEDITOR RECOMPILE REQUIRED\n\n'
+              'Removed only proven dead residual symbols after Pass 1 0E0W:\n' +
+              ''.join(f'- `{x}`\n' for x in removed) +
+              '\nNo BBMA strategy, risk, execution, recovery, SL/TP, or portfolio condition was rewritten.\n',
+              encoding='utf-8'
+          )
+          print('Removed:', ', '.join(removed))
           PY
-          if git diff --quiet -- blueprint/source/BBMA_EA.mq4; then exit 0; fi
+
           git diff --check
+          git diff --stat
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add blueprint/source/BBMA_EA.mq4
-          git commit -m "P3-M2-07B: atomic opposite Extreme cycle supersession"
+          git add -- blueprint/source/BBMA_EA.mq4 blueprint/P3_CLEANUP_PASS2_RESULT.md
+          if git diff --cached --quiet; then
+            echo 'No cleanup changes to commit.'
+            exit 0
+          fi
+          git commit -m "P3 cleanup pass 2: prune proven dead residuals"
           git push origin HEAD:${{ github.event.pull_request.head.ref }}

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-# One-shot M2-07 patch helper; branch update intentionally retriggers PR dispatcher.
+# One-shot M2-07 patch helper; this branch update triggers the verified PR workflow carrier.
 p = Path('blueprint/source/BBMA_EA.mq4')
 s = p.read_text(encoding='utf-8')
 before = s

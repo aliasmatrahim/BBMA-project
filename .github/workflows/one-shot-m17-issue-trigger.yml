@@ -1,4 +1,4 @@
-name: One-shot P3-M2-07 direction guard via issue
+name: One-shot M17 runtime fix via issue
 
 on:
   issues:
@@ -10,33 +10,109 @@ permissions:
 
 jobs:
   patch:
-    if: github.event.issue.title == 'RUN P3 M2 07 DIRECTION GUARD 20260823'
+    if: github.event.issue.title == 'RUN M17 RUNTIME FIX TOKEN 20260821'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: p3-m2-07-cycle-direction-guard
-          fetch-depth: 0
+          ref: blueprint-dev
 
-      - name: Apply M2-07 source-derived cycle direction guard
-        run: python3 blueprint/tools/apply_p3_m2_07_guard.py
-
-      - name: Verify and commit
+      - name: Wire M17 execution price and source-owned SLTP
         shell: bash
         run: |
           set -euo pipefail
-          git diff --check
-          grep -q 'P3-M2-07 OPPOSITE GUARD' blueprint/source/BBMA_EA.mq4
-          grep -q '#property description "P3-M2-07 Cycle Direction Guard"' blueprint/source/BBMA_EA.mq4
-          grep -q 'SOURCE-DERIVED CYCLE DIRECTION GUARD' blueprint/source/BBMA_EA.mq4
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "P3-M2-07: enforce source-derived cycle direction guard"
-          git push origin HEAD:p3-m2-07-cycle-direction-guard
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('blueprint/source/BBMA_EA.mq4')
+          s = p.read_text(encoding='utf-8')
+
+          old = '''   RiskValidationSnapshot snapshot;
+   BuildRiskValidationSnapshot(pair, decision, snapshot);
+
+   // M17: resolve/validate the source-owned BBMA destination and protective SL.
+   ENUM_REJECTION_REASON sltpRejection = REJ_NONE;
+   if(!ValidateSLTP(decision, snapshot, sltpRejection))
+   {
+      decision.DecisionState = DEC_REJECTED;
+      decision.RejectionReason = (sltpRejection != REJ_NONE) ?
+                                 sltpRejection : REJ_SLTP_UNRESOLVED;
+      return false;
+   }
+'''
+
+          new = '''   RiskValidationSnapshot snapshot;
+   BuildRiskValidationSnapshot(pair, decision, snapshot);
+
+   // M17 runtime wiring: strategy eligibility is already frozen by M15/M16,
+   // while market execution geometry must use the live broker side.
+   // BUY references ASK; SELL references BID.
+   if(!ResolveExecutionReferencePrice(decision, snapshot))
+   {
+      decision.DecisionState = DEC_REJECTED;
+      decision.RejectionReason = REJ_MARKET_PRICE_INVALID;
+      return false;
+   }
+
+   // Resolve only the already-approved source-owned BBMA SL/TP. No fixed-pip,
+   // RR-derived or alternate destination is manufactured here.
+   if(!ResolveApprovedInitialSLTP(decision, snapshot))
+   {
+      decision.DecisionState = DEC_REJECTED;
+      decision.RejectionReason = REJ_SLTP_UNRESOLVED;
+      return false;
+   }
+
+   // M17 has now finalized the protective SL; freeze the same value into the
+   // risk snapshot consumed by M21/M19 so the payload remains atomic.
+   snapshot.StopLoss = decision.StopLoss;
+
+   ENUM_REJECTION_REASON sltpRejection = REJ_NONE;
+   if(!ValidateSLTP(decision, snapshot, sltpRejection))
+   {
+      decision.DecisionState = DEC_REJECTED;
+      decision.RejectionReason = (sltpRejection != REJ_NONE) ?
+                                 sltpRejection : REJ_SLTP_UNRESOLVED;
+      return false;
+   }
+'''
+
+          already = (s.count('if(!ResolveExecutionReferencePrice(decision, snapshot))') == 1 and
+                     s.count('if(!ResolveApprovedInitialSLTP(decision, snapshot))') == 1 and
+                     s.count('snapshot.StopLoss = decision.StopLoss;') == 1)
+          if already:
+              print('M17 runtime wiring already applied.')
+              raise SystemExit(0)
+
+          if s.count(old) != 1:
+              raise SystemExit(f'expected one old M17 preflight block, found {s.count(old)}')
+
+          s = s.replace(old, new, 1)
+
+          if s.count('if(!ResolveExecutionReferencePrice(decision, snapshot))') != 1:
+              raise SystemExit('execution-price wiring not unique')
+          if s.count('if(!ResolveApprovedInitialSLTP(decision, snapshot))') != 1:
+              raise SystemExit('SLTP wiring not unique')
+          if s.count('snapshot.StopLoss = decision.StopLoss;') != 1:
+              raise SystemExit('M17-to-M21 StopLoss snapshot sync not unique')
+
+          p.write_text(s, encoding='utf-8')
+          PY
+
+          if git diff --quiet -- blueprint/source/BBMA_EA.mq4; then
+            echo 'M17 wiring already applied; nothing to commit.'
+          else
+            git diff --check
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -- blueprint/source/BBMA_EA.mq4
+            git commit -m "P3 runtime fix: wire M17 market price and source SLTP"
+            git push origin HEAD:blueprint-dev
+          fi
 
       - name: Close trigger issue
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh issue close "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --comment "P3-M2-07 direction-guard patch workflow finished."
+        shell: bash
+        run: gh issue close "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --comment "M17 runtime fix workflow finished."

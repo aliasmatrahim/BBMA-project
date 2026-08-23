@@ -3,9 +3,9 @@
 ## Status
 **ACTIVE / AUTHORITATIVE FOR ACCEPTED BBMA STRATEGY-CORE RULES**
 
-This document is the consolidated Strategy Core reference for the project after incorporating the accepted evidence from the two user-supplied PDF references and the BBMA Finale V01–V07 instructional transcript set.
+This document is the consolidated Strategy Core reference for the project after incorporating the accepted evidence from the two user-supplied PDF references, the BBMA Finale V01–V07 instructional transcript set, and the reconciled high-value findings from the authenticated Tier-B BBMA Home Course Workbook copy.
 
-It is a **derived project specification**, not a claim of authorship or official publication provenance. It does not replace the original source files. Every material rule must remain traceable to the source digest or Finale evidence.
+It is a **derived project specification**, not a claim of authorship or official publication provenance. It does not replace the original source files. Every material rule must remain traceable to the source digest, Finale evidence, or an explicit reconciliation decision that preserves source provenance.
 
 `HOLD`, `UNCERTAIN`, personal workflow, risk-management and EA-management material are intentionally excluded from authoritative Core rules.
 
@@ -17,10 +17,11 @@ It is a **derived project specification**, not a claim of authorship or official
 2. `Oma ally BBMA - AL.pdf` remains the **primary operational BBMA reference**.
 3. `BBMA technique.pdf` remains the **secondary / historical corroborating reference**.
 4. BBMA Finale V01–V07 is **supplemental instructional / clarification evidence**.
-5. `docs/references/BBMA_OMA_ALLY_RULE_INDEX.md` is the page-indexed PDF digest plus accepted Finale clarification pointers.
-6. `docs/references/video/oma_ally_finale/BBMA_FINALE_SOURCE_CONFLICT_REGISTER.md` governs unresolved Finale conflicts/holds.
+5. The 19-page `BBMA Home Course Workbook` copy reviewed under `CORE_V2_F7_WORKBOOK_AUTHENTICATION_AUDIT_20260824.md` is **TIER-B / STRONG-PROVENANCE, PRODUCT-LINKED SUPPLEMENTAL EVIDENCE**. It may strengthen or clarify a rule only through explicit reconciliation and does not outrank the primary PDF or silently become a Tier-A original.
+6. `docs/references/BBMA_OMA_ALLY_RULE_INDEX.md` is the page-indexed PDF digest plus accepted Finale clarification pointers.
+7. `docs/references/video/oma_ally_finale/BBMA_FINALE_SOURCE_CONFLICT_REGISTER.md` governs unresolved Finale conflicts/holds.
 
-No subtitle-only statement may silently weaken an established PDF-derived rule. If evidence conflicts, the stricter established Core rule remains active until explicit resolution.
+No subtitle-only or workbook-only statement may silently weaken an established higher-precedence PDF-derived rule. If evidence conflicts, the conflict must be resolved explicitly before executable Core changes.
 
 ---
 
@@ -359,7 +360,7 @@ Source basis: Finale V06 00:30:46–00:31:06 and 00:52:48–00:56:27.
 
 ---
 
-## 9. Multi-timeframe relationship
+## 9. Multi-timeframe relationship and strategic hierarchy
 
 Accepted Core interpretation:
 - BBMA must be read across related timeframes.
@@ -367,60 +368,118 @@ Accepted Core interpretation:
 - An opposite-looking lower-timeframe direction signal must not automatically be treated as an independent reversal when it is structurally part of the higher-timeframe Re-Entry context.
 - The structural principle scales across related chains such as D1/H4/H1, H4/H1/M15, H1/M15/M5 and M15/M5/M1, but project execution contracts use only explicitly approved timeframe signatures.
 
-Source basis: primary PDF page 10 and pages 12–13; Finale V05 00:34:48–00:36:37 and 00:46:16–00:53:55; V06 00:26:57–00:29:02.
+Canonical project hierarchy after Home Course reconciliation:
 
-### 9.1 Standalone H1 Re-Entry higher-timeframe parent contract
-**User-approved project Core decision:** standalone H1 Re-Entry uses **H4 as the immediate higher-timeframe parent/context owner** in the approved intraday chain.
+`D1 MAJOR-TREND STRATEGIC OWNER -> H4 STRUCTURAL/SETUP PARENT -> H1 SIGNAL/RE-ENTRY -> M15 FINE/ADDITIONAL EXECUTION STRUCTURE`
+
+Source basis: primary PDF page 1, page 10 and pages 12–13; Finale V05 00:34:48–00:36:37 and 00:46:16–00:53:55; V06 00:26:57–00:29:02; reconciled Home Course D1/MA50 evidence.
+
+### 9.1 D1 major-trend strategic owner
+D1 is the strategic major-trend authority for new-entry direction.
+
+The accepted deterministic owner uses only fully closed D1 data:
+- BUY confirmed when `Close1 > MA50_1` **and** `MA50_1 > MA50_2`;
+- SELL confirmed when `Close1 < MA50_1` **and** `MA50_1 < MA50_2`.
+
+Where:
+- `Close1` = latest fully closed D1 close;
+- `MA50_1` = MA50 on that same closed D1 candle;
+- `MA50_2` = MA50 on the immediately previous fully closed D1 candle.
+
+Evidence classification:
+- D1/MA50 major-trend authority = **DIRECT SOURCE / STRONGLY CORROBORATED**;
+- price-side + MA50-slope agreement = **DIRECT PRIMARY-PDF RULE**.
+
+Decision provenance:
+- `blueprint/decisions/HOME_COURSE_D1_MAJOR_TREND_VS_H4_IMMEDIATE_PARENT_RECONCILIATION.md`;
+- `blueprint/decisions/HOME_COURSE_D1_TRANSITION_MAJOR_TREND_OWNER_DECISION.md`;
+- `blueprint/contracts/M11_D1_MAJOR_TREND_OWNER_CONTRACT.md`.
+
+### 9.2 D1 transition / unresolved state
+When valid closed-D1 data does not satisfy either confirmed BUY or confirmed SELL, the project classifies the strategic state as `D1_TRANSITION`.
+
+This includes:
+- close above MA50 while MA50 is flat/falling;
+- close below MA50 while MA50 is flat/rising;
+- close at MA50;
+- flat MA50;
+- first opposite-side cross while MA50 slope still points in the previous direction.
+
+If the required closed-D1/MA50 history is missing or invalid, state = `D1_OWNER_UNRESOLVED`.
+
+Execution meaning:
+- `D1_TRANSITION` -> **block all new strategy entries**;
+- `D1_OWNER_UNRESOLVED` -> **block all new strategy entries**;
+- the last confirmed D1 direction may remain historical/diagnostic only and does not stay active as new-entry authority.
+
+No fixed two-/three-day confirmation, ATR/pip buffer, score, RSI/ADX, session, news or timer is introduced.
+
+The first later fully closed D1 candle satisfying confirmed BUY or SELL restores strategic authority; if direction changes, that closed-D1 state is the atomic major-trend handover.
+
+The explicit transition/unresolved software state and fail-closed blocking are **MINIMAL DETERMINISTIC PROJECT MAPPINGS**, not claimed as verbatim Oma Ally software instructions.
+
+`D1_TRANSITION` is not by itself a live-position broker-close rule.
+
+### 9.3 Standalone H1 Re-Entry H4 parent contract
+Standalone H1 Re-Entry uses **H4 as the immediate structural/setup parent**, but H4 is subordinate to D1 strategic direction.
 
 Accepted contract:
-- H1 standalone Re-Entry cannot be treated as autonomous from H4 BBMA context.
-- D1 remains broader structural context but is not a universal mandatory hard gate for every standalone H1 Re-Entry.
-- H4 compatibility is based on an **active authoritative BBMA directional/cycle owner**, not a single current H4 candle, EMA50-only reading, Mid-BB-only reading, score, or generic trend filter.
-- Raw H4 Extreme and raw H4 MHV/MLV are pre-direction context and do not by themselves establish directional ownership.
-- H4 directional ownership is inherited across one same-direction cycle: a valid direction signal establishes/advances the owner; same-direction Re-Entry and CSM/Momentum inherit/continue that owner.
-- A valid H4 `eCSD` is sufficient to establish H4 directional ownership for parent compatibility; later same-direction CSD/Re-Entry/CSM may strengthen/advance the same owner but are not mandatory prerequisites.
-- eCSD remains directional context only; it does not become direct trade-entry authority.
-- A source-valid opposite H4 `eCSD`, `CSD`, or `CSM/Momentum` causes **atomic owner handover**: the old owner is superseded and the new opposite owner becomes authoritative on the closed-candle transition.
-- Simultaneous authoritative H4 BUY and SELL owners are not allowed.
-- An ordinary neutral H4 candle does not erase an inherited owner that remains structurally valid.
-- If H4 is truly **`NO_OWNER`**, standalone H1 Re-Entry execution is blocked until a compatible authoritative H4 owner exists. No silent fallback to D1, MA50/Mid BB, candle color, generic price position, or absence of an opposite signal is permitted.
-- H4 owner lifetime is **purely structural with no generic fixed candle/time/day/session expiry**.
+- H1 standalone Re-Entry cannot be autonomous from H4 BBMA context;
+- H4 compatibility is based on an active authoritative BBMA directional/cycle owner, not one H4 candle, H4 MA50-only reading, Mid-BB-only reading, score or generic trend filter;
+- raw H4 Extreme/MHV are pre-direction context and do not establish H4 directional ownership;
+- H4 directional ownership is inherited across a same-direction cycle: valid direction signal establishes/advances owner; same-direction Re-Entry and CSM/Momentum inherit/continue it;
+- valid H4 eCSD is sufficient to establish H4 directional ownership for parent compatibility;
+- opposite valid H4 eCSD/CSD/CSM causes atomic H4 owner handover;
+- simultaneous H4 BUY and SELL owners are not allowed;
+- neutral H4 candles do not erase a surviving owner;
+- true H4 `NO_OWNER` blocks standalone H1 Re-Entry;
+- H4 owner lifetime is structural with no generic time/candle/session expiry;
+- D1 cannot substitute for missing H4 ownership, and H4 cannot override an opposite/transition/unresolved D1 owner.
 
-Evidence classification: the requirement for higher-timeframe reading/alignment is a **DIRECT SOURCE PRINCIPLE**. H4-as-immediate-parent and the deterministic owner/inheritance/handover/no-owner/lifetime encoding are **SOURCE-INFERRED / STRONG HINT** based on the explicit H4/H1/M15 chain, source direction/setup separation and Finale parent/child teaching.
+Therefore final standalone H1 higher-timeframe alignment requires **both**:
+1. confirmed same-direction D1 strategic owner; and
+2. active same-direction H4 structural owner.
 
-Decision provenance: `blueprint/decisions/CORE_V2_F4_H1_RE_HTF_CONTEXT_DECISION.md`.
+Evidence classification: H4 MTF/owner semantics remain **DIRECT SOURCE PRINCIPLE + SOURCE-INFERRED / STRONG HINT**, while D1 strategic authority is governed by Sections 9.1–9.2.
 
-### 9.2 Restart/recovery preservation of the H4 owner
-Restart/recovery mechanics are **EA ENGINEERING POLICY**, not an Oma Ally strategy rule, but they must preserve Section 9.1 semantics.
+Decision provenance: reconciled `blueprint/decisions/CORE_V2_F4_H1_RE_HTF_CONTEXT_DECISION.md`.
 
-Approved recovery contract:
-- persisted owner state is only a verified checkpoint/cache, not unquestioned source of truth;
-- after restart, replay closed H4 history chronologically after the checkpoint using the same owner/invalidation/handover state machine;
-- if checkpoint provenance cannot be verified, rebuild from available closed H4 history;
-- if available history cannot prove an authoritative owner chain, resolve to `NO_OWNER` and block standalone H1 execution;
-- the recovered H4 owner should equal the owner that uninterrupted closed-candle runtime would have produced.
+### 9.4 Restart/recovery preservation
+H4 owner restart/recovery remains **EA ENGINEERING POLICY**:
+- verified checkpoint/cache only;
+- deterministic chronological closed-H4 replay;
+- insufficient provenance -> `NO_OWNER` and block standalone H1 execution.
 
-This recovery mechanism must never invent direction from a current snapshot or unsupported fallback.
+D1 current strategic state does not require a persisted owner checkpoint merely for safe new-entry gating. It can be rebuilt from the latest two closed D1 MA50 observations plus the latest closed D1 close. Missing/invalid inputs -> `D1_OWNER_UNRESOLVED` -> block new entries.
+
+Neither H4 nor D1 recovery may invent direction from a current candle snapshot or unsupported fallback.
 
 ---
 
-## 10. REM / RRE / REE exact signatures
+## 10. REM / RRE / REE exact signatures and D1 strategic gate
 
-The authoritative project signatures remain PDF-derived:
+The authoritative project signatures remain PDF-derived and unchanged:
 - **REM = H4 Re-Entry + H1 Extreme + M15 MHV/MLV**.
 - **RRE = D1 Re-Entry + H4 Re-Entry + H1 Extreme**.
 - **REE = D1 Re-Entry + H4 Extreme + H1 Extreme**.
 
-All three components must be interpreted consistently with their own source-defined validity and direction contracts. Finale corroborates the higher-to-lower timeframe principle but does not provide sufficient transcript-only chart detail to redefine these signatures.
+All three components must be interpreted consistently with their own source-defined validity and direction contracts. Finale corroborates the higher-to-lower timeframe principle but does not redefine these signatures.
 
-Additional maturity rules:
+Additional maturity rules remain:
 - every Extreme component in executable REM/REE must be at least reversal-confirmed;
-- retest/standalone-entry readiness is not required merely because the Extreme is serving as an MTF combination component;
-- the M15 MHV/MLV component in REM must be at least `FORMATION ESTABLISHED + FROZEN MARKED BODY`;
-- M15 MHV/MLV retest completion is not mandatory merely to satisfy the REM component signature;
-- a void/superseded or old-cycle historical-only M15 MHV/MLV cannot satisfy a new/current REM decision.
+- retest/standalone-entry readiness is not required merely because the Extreme serves as an MTF combination component;
+- M15 MHV/MLV inside REM must be at least `FORMATION ESTABLISHED + FROZEN MARKED BODY`;
+- M15 MHV/MLV retest completion is not mandatory merely to satisfy REM;
+- void/superseded old-cycle MHV/MLV cannot satisfy a current REM decision.
 
-Source basis: primary PDF pages 12–13; Finale treated as corroboration plus the approved deterministic maturity decisions recorded in `blueprint/decisions/CORE_V2_F2_EXTREME_MATURITY_DECISION.md` and `blueprint/decisions/CORE_V2_F1_MHV_MLV_LIFECYCLE_DECISION.md`.
+### D1 strategic gate does not alter signatures
+D1 major trend is a **separate final new-entry strategic-direction gate**:
+- REM does not acquire a fourth D1 component;
+- RRE/REE D1 Re-Entry components remain setup/component identity, not substitutes for D1 MA50 strategic-owner confirmation;
+- a structurally valid REM/RRE/REE may remain observable while non-executable if D1 owner is opposite, `D1_TRANSITION`, or `D1_OWNER_UNRESOLVED`;
+- final executable direction must agree with a confirmed M11 D1 strategic owner.
+
+Source basis: primary PDF pages 1 and 12–13; Finale corroboration; Home Course D1/MA50 reconciliation; F1/F2 component-maturity decisions.
 
 ---
 
@@ -451,23 +510,21 @@ No `HOLD`, `UNCERTAIN` or `REJECT` item is allowed to enter executable Strategy 
 
 ---
 
-## 13. Post-Finale Core delta
+## 13. Post-source-reconciliation Core delta
 
-Relative to the pre-Finale project Core, the accepted material is predominantly **clarification/corroboration**, not strategy replacement.
+Relative to the earlier Core, accepted material now includes these specific clarifications/corrections:
+- normal Extreme retest can span multiple candles and raw MA-outside condition is not entry authority;
+- normal Extreme TP Wajib is refined toward the opposite MA5/MA10 area first, with Mid BB as farther context;
+- MHV/MLV terminology and deterministic lifecycle are consolidated;
+- expanding-BB requirement for Momentum/CSM is strengthened;
+- eCSD/CSD remains direction information while Re-Entry is the setup;
+- first-validation-candle / second-entry-candle wording remains a timing semantic subject to runtime mapping;
+- Extreme maturity/reversal/retest lifecycle, Type 1 structural-ranging contract and H4 inherited owner semantics are closed at specification level;
+- **D1 is now explicitly the strategic major-trend authority for new-entry direction**;
+- **H4 remains the immediate structural/setup parent but cannot override D1**;
+- **standalone H1 final higher-timeframe alignment now requires same-direction confirmed D1 strategic owner + same-direction active H4 owner**;
+- **`D1_TRANSITION` / `D1_OWNER_UNRESOLVED` block new entries rather than freezing the previous D1 owner as executable authority**;
+- **REM/RRE/REE signatures remain unchanged; D1 strategic gating is separate from component identity**;
+- H4 restart uses verified checkpoint + deterministic replay as engineering policy; D1 current strategic state is rebuilt from closed-D1 price/MA50 history.
 
-Accepted material changes the project knowledge in these specific ways:
-- clarifies that normal Extreme retest can span multiple candles and raw MA-outside condition is not entry authority;
-- refines normal Extreme TP Wajib toward the opposite MA5/MA10 area as the first mandatory objective, with Mid BB as farther context;
-- standardizes MHV/MLV as terminology aliases rather than separate setup types;
-- closes the deterministic MHV/MLV lifecycle: mandatory reversal-confirmed prior Extreme provenance, normal TP-Wajib completion, structural loss-of-momentum, most-extreme body + first move-away formation, immediate frozen marked body, range-touch retest, REM component maturity, stage-bounded invalidation, same-cycle direction progression and opposite reversal-confirmed Extreme atomic cycle supersession;
-- keeps double/triple and H&S-like MHV morphology as supported examples rather than mandatory universal formulas;
-- strengthens the existing expanding-BB requirement for Momentum/CSM;
-- strengthens the interpretation that eCSD/CSD is direction information and Re-Entry is the entry setup;
-- clarifies higher-timeframe ownership/context of lower-timeframe signals;
-- records the first-validation-candle / second-entry-candle phrase as a timing semantic that still requires runtime mapping;
-- closes the user-approved Extreme maturity/reversal/retest lifecycle: reversal-confirmed is sufficient for REM/REE components; standalone Extreme requires later body-or-MA5 retest; deterministic reversal direction, phase transition, frozen body anchor, first-valid-reference retest and invalidation precedence are specified;
-- closes the Type 1 structural-ranging contract, including prior BBMA-state proof, structural invalidation and no fixed minimum/expiry count;
-- closes the standalone H1 Re-Entry H4-parent contract, including inherited H4 owner semantics, eCSD owner authority, atomic opposite handover, no-owner block and structural owner lifetime;
-- records verified checkpoint + deterministic replay as engineering-only restart/recovery policy to preserve the H4 owner contract.
-
-The unresolved Extreme exceptions and personal/workflow material remain outside authoritative Core.
+The unresolved Extreme exceptions, personal/workflow material, and any still-unresolved SL/TP provenance issues remain outside authoritative Core until their own explicit reconciliation is complete.

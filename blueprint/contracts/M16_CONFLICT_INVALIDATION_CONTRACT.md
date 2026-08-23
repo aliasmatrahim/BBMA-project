@@ -1,128 +1,150 @@
 # M16 Conflict / Invalidation / Owner-Aware Freshness Contract
 
 ## Status
-P0 Step 7 architecture contract for Module 16, with M27 routing support and decision-payload support from M15.
+P0 Step 7 architecture contract for Module 16, reconciled 2026-08-24 with the D1 strategic-owner specification.
 
-The user-supplied BBMA PDFs govern BBMA strategy semantics. `Oma ally BBMA - AL.pdf` is the primary operational reference.
+The BBMA source hierarchy governs strategy semantics. `Oma ally BBMA - AL.pdf` remains the primary operational reference. M11 now owns D1 strategic major-trend classification; M16 may verify its frozen identity but must not create a second trend formula.
 
 ## Source rule used in Step 7
-The primary BBMA reference states that an Extreme requires reversal-candle confirmation and that **Extremes are no longer valid in the presence of CSM regardless of the position of MA5 outside BB**.
+The primary BBMA reference states that an Extreme requires reversal-candle confirmation and that Extremes are no longer valid in the presence of CSM regardless of MA5 being outside BB.
 
-Step 7 therefore connects a temporal CSM invalidation path to Extreme validity. M08 remains the raw Extreme detector; M16 owns the later validity/invalidation overlay.
+The original Step 7 contract therefore connected temporal CSM invalidation to Extreme validity. That ownership remains unchanged.
 
 ## Ownership
-M16 is conflict/invalidation/freshness authority only.
+M16 is conflict / invalidation / owner-aware freshness authority only.
 
 M16 does not:
 - detect a new BBMA strategy signal;
+- compute D1 major trend independently;
 - choose BUY versus SELL priority;
 - choose SL/TP;
 - calculate lot/risk;
-- execute orders.
+- execute orders;
+- close live broker positions merely because D1 becomes transitional.
 
 Owner state remains:
-- M09 -> persistent MLV lifecycle;
+- M08 -> Extreme detector/maturity source state;
+- M09 -> persistent MHV/MLV lifecycle;
+- M10 -> direction/Momentum producer;
+- M11 -> D1 major-trend strategic owner;
 - M12 -> persistent Re-Entry lifecycle;
-- M08 -> raw Extreme detection semantics;
-- M16 -> persistent validity overlay for detected Extreme plus final component invalidation checks.
+- M16 -> final selected-decision component + strategic-owner revalidation before downstream execution.
+
+## D1 strategic-owner revalidation
+Any M15-created new-entry decision must carry a frozen M11 D1 owner snapshot/identity sufficient for M16 to verify that the decision still belongs to the same strategic state.
+
+Conceptual required identity:
+- D1 owner state;
+- D1 owner direction;
+- latest closed D1 candle time;
+- D1 close;
+- current closed-D1 MA50;
+- previous closed-D1 MA50.
+
+M16 must verify:
+1. the frozen D1 state was `D1_OWNER_BUY_CONFIRMED` or `D1_OWNER_SELL_CONFIRMED`;
+2. frozen owner direction equals `decision.Direction`;
+3. the decision's D1 snapshot corresponds to the current M11-produced closed-D1 owner for the same processing context;
+4. the owner has not become transition/unresolved before the decision proceeds downstream.
+
+If the M11 owner is now `D1_TRANSITION`, `D1_OWNER_UNRESOLVED`, opposite direction, stale or identity-mismatched, M16 must invalidate/reject the created **new-entry decision** fail-closed.
+
+M16 must not recompute price-vs-MA50 slope with its own independent Boolean logic. The sole strategy formula remains in M11.
+
+## D1 gate is separate from component identity
+The D1 major-trend owner is not inserted as another REM/RRE/REE structural component.
+
+Exact signatures remain:
+- REM = H4 Re-Entry + H1 Extreme + M15 MHV/MLV;
+- RRE = D1 Re-Entry + H4 Re-Entry + H1 Extreme;
+- REE = D1 Re-Entry + H4 Extreme + H1 Extreme.
+
+M16 must distinguish:
+- D1 Re-Entry component validity; from
+- D1 MA50 strategic-owner validity.
+
+A valid D1 Re-Entry does not automatically prove the M11 strategic owner is confirmed in the same direction.
 
 ## Persistent Extreme validity overlay
-PairState now stores independent H1/H4 x BUY/SELL Extreme validity snapshots:
-- `extreme_h1_buy_state`;
-- `extreme_h1_sell_state`;
-- `extreme_h4_buy_state`;
-- `extreme_h4_sell_state`.
+PairState currently stores independent H1/H4 BUY/SELL Extreme validity snapshots.
 
-A new M08-detected Extreme may populate/replace the matching slot. M16 then applies:
-1. timeframe-aware project expiry using `MaxWaitBars_Extreme * timeframe * 60`;
-2. later CSM invalidation.
+Original Step 7 behavior remains:
+1. M08-originating source-valid Extreme may populate the appropriate slot;
+2. M16 applies owner-aware freshness/invalidation;
+3. later same-timeframe closed source-valid CSM may invalidate the stored Extreme according to the source contract.
 
-This does not turn M16 into an Extreme detector. The slot can only originate from an M08-valid Extreme snapshot.
+This does not turn M16 into an Extreme detector.
+
+Future D1 Extreme lifecycle support required by the separate F7 lifecycle work remains a different implementation task and must not be confused with the D1 MA50 strategic-owner gate described here.
 
 ## CSM -> Extreme temporal invalidation
-Operational encoding for the source sentence is:
-- CSM must be a source-valid CLOSED CSM from M10;
-- CSM must be on the **same timeframe** as the stored Extreme;
-- CSM candle time must be later than the Extreme candle time;
-- the source sentence does not qualify the invalidation by CSM direction, so no additional same-direction requirement is invented.
-
-M27 builds H1/H4 CSM-presence snapshots by checking the source-aligned M10 CSM detector before the BUY/SELL candidate loop, then passes that temporal evidence to M16's Extreme validity overlay.
-
-This same-timeframe/later-closed-candle mapping is an engineering translation of the source rule, not a verbatim algorithm from the PDF.
+Operational encoding remains:
+- CSM must be source-valid and closed;
+- same timeframe as stored Extreme;
+- later than the Extreme candle;
+- no unsupported extra direction qualification is invented when the source sentence does not provide one.
 
 ## Expiry is not invalidation
-Step 7 explicitly separates:
+Continue to distinguish:
 - `EXPIRED` -> owner/project time window ended;
-- `INVALIDATED` -> owner state no longer matches or a strategy invalidation such as later CSM removed the Extreme.
+- `INVALIDATED` -> strategy/owner identity is no longer valid.
 
-An Extreme invalidated by CSM must not be mislabeled as time-expired.
+D1 transition/opposite-owner failure is a strategic-owner eligibility failure for a pending new-entry decision, not a generic time expiry.
 
 ## Decision component identity
-`ValidatedSequenceCandidate` now carries explicit `ComponentCount`.
+`ValidatedSequenceCandidate` / `BBMA_Decision` component identity remains the basis for exact selected-setup verification.
 
-M15 forwards the selected candidate payload into `BBMA_Decision`:
-- `ComponentCount`;
-- `Components[3]`;
-- `CandidateExpiry` when explicitly supplied by the owner.
-
-This allows M16 to validate the exact component identity chosen by M15 rather than infer validity from `decision.CandleTime` or `CycleStartTime`.
+M16 validates the exact selected components rather than inferring validity from generic decision timestamps.
 
 ## Owner-aware component validation
-Before a created decision can become `DEC_VALIDATED`, M16 checks every selected component against the current owner state.
-
 ### Re-Entry component
-Valid only when the matching H1/H4/D1 + BUY/SELL M12 slot is still:
-- `RE_STATE_CONFIRMED`;
-- `IsValid == true`;
+Valid only when the matching H1/H4/D1 M12 slot remains:
+- confirmed;
+- valid;
 - same direction/timeframe;
-- same `ConfirmationCandle` as the decision component;
-- not past explicit `ExpiryCandleTime`.
+- same confirmation-candle identity;
+- within any explicit owner validity contract.
 
-### MLV component
-Valid only when the matching M15 + BUY/SELL M09 slot is still:
-- `MLV_CONFIRMED`;
-- `IsValid == true`;
-- same direction;
-- same `ConfirmationCandleTime` as the decision component;
-- not past explicit `ExpiryCandleTime`.
+### MHV/MLV component
+Valid only when the matching M09 owner state remains at the required maturity/identity for the selected decision.
 
 ### Extreme component
-Valid only when the matching persistent M16 H1/H4 + BUY/SELL slot is:
-- still `Valid`;
-- same type/direction/timeframe/candle identity;
-- not past the timeframe-aware Extreme project expiry;
-- not invalidated by a later same-timeframe CSM.
+Valid only when the matching owner snapshot remains source-valid, same type/direction/timeframe/candle identity, and not structurally invalidated/superseded.
 
-If one required component is no longer owner-valid, the assembled Re-Entry/REM/RRE/REE decision cannot proceed.
+If one required structural component is no longer owner-valid, the selected Re-Entry/REM/RRE/REE decision cannot proceed.
 
-## Removal of legacy generic expiry
-M16 no longer expires a decision using:
-- `decision.CandleTime + MaxWaitBars_Global * 900`;
-- `decision.CycleStartTime + MaxWaitBars_Global * 900`.
+## D1 transition is not a live-position exit
+M16's D1 revalidation applies to **not-yet-executed new-entry decisions**.
 
-The old generic helpers that assumed one universal M15/global time basis for Signal/MLV/Re-Entry are removed from the M16 path.
-
-Freshness now comes from the real owner state and timeframe.
+It must not directly close a live broker position because D1 moves to transition/opposite major-trend state. Existing positions remain owned by M23/M24 lifecycle plus protective/emergency controls under their own contracts.
 
 ## Opposite direction conflict
-Step 6 already resolves simultaneous eligible BUY + SELL conservatively by producing **no created trade decision**.
+M15 is the final direction authority and applies the D1 strategic filter first.
 
-M16 preserves that architecture. If a direction conflict ever reaches M16 together with a created decision, M16 invalidates it; M16 does not invent a winner.
+If contradictory eligible directions still reach M16 despite one confirmed D1 owner, treat that as an upstream identity/invariant failure and invalidate the decision. M16 does not invent a winner.
 
-## Broker guard removed from M16
-The old `g_broker_initialized` rejection inside M16 is removed because broker readiness is not BBMA signal invalidation ownership. Broker/risk/execution readiness remains downstream.
+## Broker guard
+Broker readiness is not M16 strategy invalidation ownership and remains downstream.
 
-## Scope guard / remaining blockers
-Step 7 does not certify or repair:
-- standalone Extreme reversal-candle + retest entry lifecycle;
-- M17 entry-price / SL / TP source resolution;
-- M17 direction-aware stop/TP validation;
+## Scope guard
+M16 does not own:
+- D1 owner production;
+- candidate direction filtering/selection;
+- M11 MA50 calculations;
+- standalone Extreme execution;
+- SL/TP;
 - risk/portfolio semantics;
-- execution/recovery logic.
+- broker execution/recovery;
+- live-position strategy close.
 
-The next P0 target is M17.
+## Current implementation gap
+The active EA does not yet carry/verify the canonical M11 D1 strategic-owner snapshot through M15 -> M16.
 
-## Implementation record
+Therefore the 2026-08-24 D1-owner revalidation portion is **SPECIFICATION-ONLY / NOT IMPLEMENTED** while the P3 runtime candidate remains frozen.
+
+Historical Step 7 implementation remains valid for the existing component/Extreme invalidation architecture but is not proof of D1 gate implementation.
+
+## Historical implementation record
 Patch:
 `blueprint/patches/0014-p0-step7-m16-owner-aware-invalidation.patch`
 
@@ -132,21 +154,4 @@ Patch commit:
 Focused patch SHA-256:
 `d333b64594eb563c3013776e36d3ab967041be471f7b45206fb73d466adc034a`
 
-## Verification
-Focused post-Step6 verification:
-- patch dry-run/apply: clean;
-- applied output exact-match to generated Step 7 target;
-- braces: 502 / 502;
-- parentheses: 1538 / 1538;
-- brackets: 353 / 353;
-- legacy generic decision/cycle expiry formulas absent from M16;
-- legacy generic `IsExpired_Signal`, `IsExpired_MLV`, `IsExpired_ReEntry` helpers absent from the active focused region;
-- decision component payload forwarding present;
-- owner snapshot validator present;
-- persistent H1/H4 Extreme validity overlay present;
-- later same-timeframe CSM invalidation path present;
-- M16 call receives explicit `pairIndex` instead of inferring PairState from broker symbol text.
-
-This remains focused verification. A new complete full-chain working-source SHA is not claimed until the entire ordered patch chain is exactly materialized in one source file.
-
-Do not merge to `main` until the full blueprint audit is clean and explicitly approved as MASTER BLUEPRINT LOCKED.
+Do not merge to `main` until the current source/spec/runtime gates are reconciled and explicitly approved.

@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# One-shot M2-07 patch helper; branch update intentionally retriggers PR dispatcher.
 p = Path('blueprint/source/BBMA_EA.mq4')
 s = p.read_text(encoding='utf-8')
 before = s

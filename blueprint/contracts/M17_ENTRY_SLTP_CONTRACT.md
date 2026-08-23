@@ -1,171 +1,214 @@
-# M17 Entry / SL / TP Resolution & Validation Contract
+# M17 Entry / Protective Payload Resolution & Validation Contract
 
 ## Status
-P0 Step 8C is **COMPLETED AT ACTIVE-BLUEPRINT PATCH LEVEL**.
 
-The Step 8 engineering guard remains active, and the Step 8B approved BBMA destination / structural-stop contract is now implemented by ordered patch `0016`.
+**F7 CANONICAL CONTRACT — IMPLEMENTATION PENDING AFTER P3 RUNTIME FREEZE**
 
-The user-supplied BBMA PDFs govern BBMA strategy semantics. `Oma ally BBMA - AL.pdf` remains the primary operational reference. Community-supported exit rules remain explicitly separated from PDF-core rules.
+This contract supersedes the old Step 8C assumption that every executable Re-Entry-owned decision requires a positive static outer-BB TP.
+
+The frozen P3 EA source still implements the historical Step 8C `SL + static TP` behavior and must not be changed until its pending runtime evidence closes. This file defines the **next implementation contract**, not a retroactive description of the frozen binary/source.
+
+Canonical integration contract:
+`blueprint/contracts/F7_REENTRY_LIFECYCLE_EXECUTION_CONTRACT.md`.
 
 ## Provenance boundary
-The implementation preserves three provenance classes:
-- `PDF_CORE` — explicit BBMA/Oma Ally source semantics;
-- `FORUM_SUPPORTED` — community-supported BBMA destination/exit interpretation;
-- `EA_SAFETY` — deterministic broker-side protection required for autonomous execution.
 
-No `FORUM_SUPPORTED` or `EA_SAFETY` rule may be described as an explicit PDF Oma Ally rule.
+Use these provenance classes explicitly:
+- `STRATEGY_CORE` — accepted source-reconciled BBMA semantics;
+- `EA_SAFETY` — deterministic broker/risk protection required for autonomous execution;
+- `ENGINEERING` — persistence, normalization, recovery and broker mechanics.
 
-## Approved executable TP mapping
-For currently executable M15 decision types:
-- confirmed H1 `RE_ENTRY`: BUY -> H1 TOP BB, SELL -> H1 LOW BB;
-- `REM`: BUY -> H4 TOP BB, SELL -> H4 LOW BB;
-- `RRE`: BUY -> D1 TOP BB, SELL -> D1 LOW BB;
-- `REE`: BUY -> D1 TOP BB, SELL -> D1 LOW BB.
+The old universal Re-Entry outer-BB static TP mapping is **not Strategy Core under Path A** and must not be presented as `PDF_CORE`, `FORUM_SUPPORTED`, or Oma Ally authority.
 
-The TP source is always the validated Re-Entry component at the exact mapped timeframe.
+The exact hard-stop formula remains **EA_SAFETY**:
+- BUY -> exact owner Re-Entry source-candle LOW minus one broker point;
+- SELL -> exact owner Re-Entry source-candle HIGH plus one broker point.
 
-## Decision payload extension
-`BBMA_Decision` now carries:
-- `HasSLTPSourceComponent`;
-- `SLTPSourceComponent`.
+The primary source contains limited Extreme-context wick-stop guidance, but the exact owner-Re-Entry-candle mapping and one-point buffer remain project engineering protection, not a universal Core SL formula.
 
-M15 does not invent a price target. It only preserves the already validated component identity needed by the downstream Step 8B mapping:
-- standalone Re-Entry -> H1 Re-Entry component;
-- REM -> H4 Re-Entry component;
-- RRE/REE -> D1 Re-Entry component.
+## 1. Covered executable decisions
 
-The full component payload still survives M14 -> M15 -> M16, and M16 continues to revalidate owner-state identity before M17 executes.
+All currently executable Strategy-Core decisions are Re-Entry-owned:
+- standalone H1 `RE_ENTRY`;
+- `REM`;
+- `RRE`;
+- `REE`.
 
-## Closed-candle source resolver
-M17 resolves the source component candle by exact `CandleTime` and timeframe using `iBarShift(..., exact=true)`.
+Lifecycle owner mapping:
+- standalone H1 Re-Entry -> H1 Re-Entry;
+- REM -> H4 Re-Entry;
+- RRE -> D1 Re-Entry;
+- REE -> D1 Re-Entry.
 
-Resolution is accepted only when:
-- the component type is `SIGNAL_RE_ENTRY`;
-- the component direction equals the final decision direction;
-- the component timeframe exactly matches the approved mapping;
-- the resolved bar time exactly equals the stored component candle time;
-- the resolved shift is `>= 1`, therefore fully closed.
+The owner component identity must be preserved exactly from upstream validated components and must resolve to a fully closed source candle.
 
-A missing, stale, current-bar or ambiguous source fails closed.
+## 2. Future canonical payload
 
-## BB destination resolver
-The approved single TP is read from the Bollinger Band on the exact closed source candle:
-- BUY -> upper BB;
-- SELL -> lower BB.
+For these decisions M17 must produce/validate:
 
-M17 does not substitute another timeframe and does not create a replacement target if the mapped destination has already been crossed.
+`EntryPrice = live execution reference`
 
-A BUY target at/below execution entry or SELL target at/above execution entry fails closed with `REJ_SLTP_UNRESOLVED`.
+`StopLoss = protective EA_SAFETY hard stop`
 
-## Protective hard SL
-Classification: **EA_SAFETY informed by FORUM_SUPPORTED structural practice**.
+`TakeProfit = 0.0`
 
-For the current deterministic implementation, the source-owned structural anchor is the wick of the exact closed Re-Entry source candle selected by the approved mapping:
-- BUY -> source-candle LOW;
-- SELL -> source-candle HIGH.
+`ExitPolicy = REENTRY_LIFECYCLE`
 
-The broker hard stop is placed one broker point beyond that wick:
-- BUY -> `LOW - Point`;
-- SELL -> `HIGH + Point`.
+`HasStaticTakeProfit = false`
 
-This one-point buffer is engineering protection only and is not represented as a PDF Oma Ally rule.
+`LifecycleOwnerType = SIGNAL_RE_ENTRY`
 
-The resolver does not scan an unrelated arbitrary swing window. If the exact source candle cannot be resolved, it fails closed.
+`LifecycleOwnerTimeframe = H1/H4/D1 according to the mapping above`
 
-## Execution reference price
-Broker execution geometry remains:
-- BUY market execution reference = ASK;
-- SELL market execution reference = BID.
+`OriginalOwnerReEntryCandleTime = exact validated owner Re-Entry confirmation candle`
 
-This is broker-side execution normalization and does not redefine BBMA setup entry semantics.
+No synthetic/static TP may be manufactured merely to satisfy legacy validators or RR calculation.
 
-## Direction-aware geometry
-A source-resolved pair is valid only when:
-- BUY: `SL < Entry < TP`;
-- SELL: `TP < Entry < SL`.
+## 3. Source-component resolution
 
-Wrong-side, zero-distance or inverted geometry is rejected.
+M17 must resolve the owner/protective source component by exact:
+- component type = `SIGNAL_RE_ENTRY`;
+- decision direction;
+- expected owner timeframe;
+- stored `CandleTime`;
+- exact `iBarShift(..., exact=true)` mapping;
+- resolved shift `>= 1`.
 
-## MaxSL ownership
-`MaxSLPips` remains a project rejection cap only.
+Missing/current-bar/stale/mismatched owner identity fails closed.
 
-It uses the project pip-price helper and may reject an excessively distant source-resolved SL. It never manufactures the SL itself.
+The old field names `HasSLTPSourceComponent` / `SLTPSourceComponent` may remain temporarily for compatibility, but their future semantic role must be narrowed to **protective/lifecycle owner component**, not proof of a static TP destination.
 
-## MinRR ownership
-`MinRRRatio` remains a rejection filter only.
+A future cleanup may rename them, but field renaming is not itself a Strategy-Core requirement.
 
-It may reject a source-resolved SL/TP pair whose reward/risk is below the configured threshold. It never manufactures TP.
+## 4. Protective hard SL
 
-## StopLevel / FreezeLevel
-Direction-aware broker geometry from Step 8 remains active:
-- BUY uses BID as the close/trigger side;
-- SELL uses ASK.
+For the exact closed owner Re-Entry candle:
+- BUY anchor = candle LOW;
+- SELL anchor = candle HIGH;
+- BUY hard SL = `LOW - Point`;
+- SELL hard SL = `HIGH + Point`.
 
-## Fail-closed behavior
-`REJ_SLTP_UNRESOLVED` remains mandatory when:
-- mapped source component is missing;
-- source type/timeframe/direction does not match the approved mapping;
-- source candle cannot be resolved exactly as a closed bar;
-- wick anchor is invalid;
-- BB destination is invalid;
-- destination is already crossed/stale;
-- the initial source resolver otherwise cannot produce a complete pair.
+Requirements:
+- anchor must be valid and finite;
+- `Point > 0`;
+- BUY `SL < Entry`;
+- SELL `SL > Entry`;
+- positive SL distance;
+- exact source candle must resolve; no arbitrary swing scan;
+- no fixed-pip fallback;
+- no RR-derived fallback.
 
-No fixed-pip or RR-manufactured fallback is allowed.
+`MaxSLPips` remains a project/EA-safety rejection cap only. It never manufactures a stop.
 
-## Lifecycle boundary
-Opposite confirmed CSM/momentum + BB expansion remains a possible `FORUM_SUPPORTED` dynamic invalidation concept, but Step 8C does **not** enable it as a broker close rule.
+## 5. No-static-TP validation
 
-M23/M24 lifecycle ownership must be audited separately before any dynamic cut-loss close path is enabled.
+For explicit `REENTRY_LIFECYCLE` payloads:
+- `TakeProfit == 0.0` is valid and required;
+- `HasStaticTakeProfit == false` is required;
+- positive TP is an inconsistent payload and must fail closed;
+- negative TP is invalid;
+- no TP direction-geometry test is performed;
+- no TP StopLevel/FreezeLevel test is performed;
+- no destination-staleness/crossed-target test is performed;
+- M17 must not call the historical outer-BB destination resolver for these decisions.
 
-M16 invalidation does not directly close live broker positions.
+A zero TP **without** explicit lifecycle/no-static-TP identity remains unresolved/invalid and must not be silently accepted.
 
-## Ownership guard
+## 6. MinRR
+
+`MinRRRatio` is **structurally inactive/bypassed** for standalone H1 Re-Entry, REM, RRE and REE under Path A.
+
+Reason:
+- there is no source-proven deterministic reward distance at entry;
+- the historical RR value depended on the now-rejected universal static outer-BB TP;
+- manufacturing an estimated lifecycle reward would create hidden non-Core strategy logic.
+
+These trades must not emit `REJ_INVALID_RR` merely because static TP is absent.
+
+Do not depend on the user manually setting `MinRRRatio=0`.
+
+## 7. Broker geometry
+
+Execution reference remains engineering-only:
+- BUY = live ASK;
+- SELL = live BID.
+
+For lifecycle payloads validate only:
+- valid direction;
+- valid live EntryPrice;
+- valid exact owner/protective source identity;
+- non-zero protective SL;
+- BUY `SL < Entry`;
+- SELL `SL > Entry`;
+- positive SL distance;
+- broker normalization / SL StopLevel requirements;
+- `MaxSLPips` safety cap.
+
+FreezeLevel behavior remains broker-mechanics only and must not create a strategy target.
+
+## 8. Lifecycle ownership handoff
+
+M17 does not decide post-entry Momentum/no-Momentum exits.
+
+It must hand downstream enough immutable identity for:
+- original owner Re-Entry candle;
+- owner timeframe;
+- direction;
+- cycle provenance;
+- explicit lifecycle/no-static-TP exit policy.
+
+Post-entry lifecycle belongs to M23/M24 and is governed by:
+`blueprint/contracts/F7_REENTRY_LIFECYCLE_EXECUTION_CONTRACT.md`.
+
+## 9. Fail-closed cases
+
+M17 rejects when:
+- owner Re-Entry component is absent/ambiguous;
+- type/timeframe/direction does not match the approved owner mapping;
+- owner candle does not resolve exactly to a closed bar;
+- protective wick anchor is invalid;
+- hard SL is on the wrong side / zero distance;
+- broker SL geometry fails;
+- `MaxSLPips` fails;
+- exit-policy/static-TP fields contradict each other.
+
+Use the closest existing rejection code during implementation or add a narrowly scoped payload-policy rejection enum if needed. Do not map targetless lifecycle mode to `REJ_INVALID_TP` merely because TP is zero by design.
+
+## 10. Historical Step 8C behavior
+
+Historical Step 8C mapped:
+- H1 RE -> H1 outer BB TP;
+- REM -> H4 outer BB TP;
+- RRE/REE -> D1 outer BB TP.
+
+F7 source reconciliation found that those outer-BB destinations are not sufficiently proven as universal Re-Entry broker TP rules under strict Path A. They remain historical implementation context only.
+
+The owner **timeframe hierarchy** H1/H4/D1 remains valid for lifecycle ownership, but that does not revive the old static TP formula.
+
+## 11. Ownership guard
+
 M17 owns:
-- execution-reference price normalization;
-- validation of the approved source component identity;
-- exact closed-source-candle lookup;
-- approved BB destination resolution;
-- structural hard-SL resolution from the exact source candle wick;
-- BUY/SELL geometry validation;
-- broker StopLevel/FreezeLevel checks;
-- MaxSL and MinRR rejection filters;
-- explicit fail-closed source-resolution behavior.
+- execution-reference normalization;
+- exact owner/protective component validation;
+- protective hard-SL resolution;
+- lifecycle/no-static-TP payload consistency;
+- SL broker geometry;
+- `MaxSLPips` safety rejection;
+- structural MinRR bypass for lifecycle-managed current executable types.
 
-M17 does **not** own:
-- BBMA signal detection;
+M17 does not own:
+- BBMA detection;
 - Re-Entry confirmation;
-- REM/RRE/REE construction;
-- final direction selection;
+- REM/RRE/REE assembly;
+- final decision selection;
 - lot sizing;
 - portfolio risk;
-- order execution;
-- live-position dynamic invalidation close;
-- trailing stop;
-- TP2/TP3.
+- broker send;
+- post-entry lifecycle reduction/close;
+- trailing stop, breakeven, partial close, TP2 or TP3.
 
-## Implementation record
-Step 8 engineering guard patch:
-`blueprint/patches/0015-p0-step8-m17-sltp-source-guard-direction-validation.patch`
+## 12. Implementation gate
 
-Step 8C resolver patch:
-`blueprint/patches/0016-p0-step8c-m17-approved-sltp-resolver.patch`
+No EA code change is authorized by this documentation update while P3 runtime evidence remains open.
 
-Step 8C patch commit:
-`2afeee76806f4b1c4e56f829fd7c8d42403a1450`
-
-## Focused verification status
-Verified directly from the stored `0016` patch:
-- decision payload carries an explicit mapped SL/TP source component;
-- only H1/H4/D1 Re-Entry source mapping is accepted for RE_ENTRY/REM/RRE/REE respectively;
-- exact closed candle identity is enforced;
-- BB target is source-timeframe and direction aware;
-- structural stop uses the exact source-candle wick plus one broker point;
-- crossed destination fails closed;
-- `REJ_SLTP_UNRESOLVED` remains active;
-- fixed-pip and RR-manufactured fallback are absent from Step 8C;
-- dynamic opposite-CSM broker close is not introduced.
-
-This is a focused patch-level verification. A new complete full-chain working-source SHA is **not** claimed until the ordered patch chain is exactly materialized and tested as one source.
-
-Do not merge to `main` until the full blueprint audit is clean and explicitly approved as MASTER BLUEPRINT LOCKED.
+After freeze closure, implementation must follow the canonical F7 contract, assign a new unique left-aligned build/header identifier, compile at 0 errors/0 warnings, and run fresh targetless-lifecycle runtime validation.

@@ -272,8 +272,9 @@ Always inspect the authoritative project sources in this order:
 3. `docs/references/video/oma_ally_finale/BBMA_FINALE_MASTER_RULE_INDEX.md` — reconciled Finale V01–V07 evidence.
 4. Relevant `docs/references/video/oma_ally_finale/V01` … `V07` `extracted_rules.md` and/or `summary.md` when the rule requires timestamped or episode-level evidence.
 5. `docs/references/BBMA_OMA_ALLY_RULE_INDEX.md` and the recorded primary/secondary PDF evidence.
-6. Relevant source-conflict, implementation-gap and source-contract files.
-7. Current Master Blueprint / active EA implementation only **after** the Strategy-Core evidence has been established.
+6. Relevant BBMA/Oma Ally forum evidence when the issue requires clarification, corroboration, historical teaching context or resolution beyond the PDF/Finale layer.
+7. Relevant source-conflict, implementation-gap and source-contract files.
+8. Current Master Blueprint / active EA implementation only **after** the Strategy-Core evidence has been established.
 
 ### 17.2 No search-empty inference
 A GitHub code-search result of zero matches is **NOT evidence that a project source does not exist**.
@@ -323,6 +324,40 @@ The user must not be required to repeatedly remind the project that the EA must 
 ### 17.7 Conflict precedence
 Apply the source precedence and conflict policy defined in `docs/references/SOURCE_INDEX.md`. Finale clarification must not silently overwrite an established PDF rule, and implementation behaviour must never outrank clearly supported source evidence.
 
+### 17.8 Mandatory uncertainty / gap / ambiguity hard gate
+For **any** uncertainty, gap, contradiction, ambiguity, incomplete behaviour, questionable assumption, proposed improvement, lifecycle question, or unclear trading behaviour that could affect BBMA semantics, the developer/assistant MUST cross-check the BBMA source group **before** reaching a strategy conclusion or modifying code.
+
+This hard gate applies to all BBMA-derived behaviour, including but not limited to:
+
+- Extreme, MHV/MLV, eCSD/CSD, CSM/Momentum and Re-Entry;
+- REM/RRE/REE and all combination semantics;
+- signal validity, invalidation, supersession and expiry;
+- cycle ownership, cycle restart/reversal and opposite Extreme;
+- pending candidates and descendant invalidation;
+- multi-timeframe ownership/alignment;
+- entry authority and entry timing;
+- SL, TP, TP Wajib and BBMA-derived exit/position-management behaviour;
+- simultaneous/opposite signals and multiple/add-on entries;
+- any behaviour claimed to originate from BBMA/Oma Ally methodology.
+
+The mandatory evidence group is:
+
+1. **BBMA PDF evidence** — primary operational PDF plus secondary corroborating PDF where relevant;
+2. **BBMA Finale V01–V07** — Master Rule Index plus timestamped episode-level extracted rules/summary where relevant;
+3. **BBMA/Oma Ally forum evidence** — relevant thread/post evidence used as corroboration/clarification, with provenance retained;
+4. **Canonical Core consolidation** — `BBMA_STRATEGY_CORE_SOURCE_OF_TRUTH_V2.md`, which contains only accepted/reconciled rules.
+
+Cross-check does not mean forcing all sources to agree. If they conflict or do not answer the issue deterministically, classify the item `HOLD/UNRESOLVED`, record the evidence gap, and **do not invent a BBMA trading rule**.
+
+### 17.9 Minimum-source and reasoning discipline
+- Do not rely on a single convenient source when the other canonical source groups can materially clarify the issue.
+- Distinguish explicit source statements from logical implications and project inference.
+- Inference may explain evidence but must not silently become a deterministic entry/exit/invalidation rule.
+- Existing code, previous patch, previous assistant conclusion, backtest result or personal preference does not outrank source evidence.
+- A previous project decision MUST be reopened when stronger source evidence proves or materially suggests it is wrong.
+- Strategy fixes require a post-fix purity regression against the accepted Core so one correction does not introduce another deviation.
+- When source evidence genuinely cannot resolve an execution choice, prefer fail-closed/conservative behaviour that does not create a new entry authority, and retain the uncertainty for explicit resolution.
+
 **Required Strategy-Core development check:**
 
-> Retrieve canonical sources → establish accepted rule/evidence → compare Blueprint/code → classify mismatch → fix only if authorized by evidence → cross-module verification → preserve traceability.
+> Retrieve canonical sources → cross-check PDF + Finale + relevant forum + Core consolidation → establish accepted rule/evidence → compare Blueprint/code → classify mismatch → fix only if authorized by evidence → cross-module/purity verification → preserve traceability.

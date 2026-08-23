@@ -1,0 +1,34 @@
+name: P3-M2-07 cycle direction guard dispatcher
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+    branches: [blueprint-dev]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.pull_request.head.ref == 'p3-m2-07-cycle-direction-guard'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: p3-m2-07-cycle-direction-guard
+          fetch-depth: 0
+      - name: Apply source-derived guard patch
+        run: python3 blueprint/tools/apply_p3_m2_07_guard.py
+      - name: Static guards
+        run: |
+          git diff --check
+          grep -q 'P3-M2-07 OPPOSITE GUARD' blueprint/source/BBMA_EA.mq4
+          grep -q 'P3-M2-07 Cycle Direction Guard' blueprint/source/BBMA_EA.mq4
+          grep -q 'SOURCE-DERIVED CYCLE DIRECTION GUARD' blueprint/source/BBMA_EA.mq4
+      - name: Commit patched source
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add blueprint/source/BBMA_EA.mq4 blueprint/P3_M2_07_CYCLE_DIRECTION_GUARD_PATCH.md blueprint/tools/apply_p3_m2_07_guard.py
+          git commit -m 'P3-M2-07: enforce source-derived cycle direction guard'
+          git push origin HEAD:p3-m2-07-cycle-direction-guard

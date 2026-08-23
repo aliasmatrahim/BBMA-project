@@ -2,7 +2,8 @@
 
 Date: 2026-08-23  
 Branch: `blueprint-dev`  
-Build: **P3-M2-07B.2 F1 Boundary Reconciliation**  
+Strategy-fix build: **P3-M2-07B.2 F1 Boundary Reconciliation**  
+Current canonical compile build: **P3-M2-11.1 Mode2 Diagnostic Closure**  
 Status: **STATIC PASS — NATIVE METAEDITOR 0E0W REQUIRED; RUNTIME EVIDENCE KIV**
 
 ## 1. Mandatory source cross-check
@@ -107,7 +108,7 @@ Already-open positions remain governed by the approved broker SL/TP, M23 synchro
 ## 8. Static integrity checks
 
 PASS:
-- build identifier updated to `P3-M2-07B.2 F1 Boundary Reconciliation`;
+- strategy-fix identifier was `P3-M2-07B.2 F1 Boundary Reconciliation`;
 - source patch carrier ran `git diff --check` during materialization;
 - patch script asserted balanced `{}` before write;
 - new M08 supersession helpers are declared before controller use;
@@ -116,22 +117,27 @@ PASS:
 - temporary PR #39 is not a merge vehicle;
 - temporary carrier script was restored after patching.
 
+Subsequent **M2-11/M2-11.1 changes are diagnostic-only** and do not alter the P3-M2-07B.2 strategy result. They add Mode-2 trace coverage and make `P3-M2-11.1 Mode2 Diagnostic Closure` the exact build that must now be compiled.
+
 ## 9. Hard gate remaining
 
-**Native MT4 MetaEditor compile is now required for the current B.2 source.**
+**Native MT4 MetaEditor compile is required for the current canonical source.**
 
 Required result:
 
 `0 errors / 0 warnings (0E0W)`
 
-Do not reuse the earlier 0E0W record because the EA source changed after that compile.
+Do not reuse earlier 0E0W evidence because EA source changed after that compile.
 
 Canonical file to compile:
 
 `blueprint/source/BBMA_EA.mq4` on `blueprint-dev`.
 
+Exact About/header identifier expected:
+
+`P3-M2-11.1 Mode2 Diagnostic Closure`
+
 After 0E0W:
-1. close P3-M2-07B compile gate;
-2. run M2-11 diagnostic/runtime-readiness audit;
-3. run M2-12 final Mode-2 offline gate;
-4. keep live/runtime evidence KIV until market/data execution is available.
+1. close P3-M2-07B / M2-11 compile gate;
+2. mark M2-12 final offline gate compile-closed PASS;
+3. keep live/runtime evidence KIV until market/data execution is available.

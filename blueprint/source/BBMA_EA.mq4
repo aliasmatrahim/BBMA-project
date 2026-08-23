@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//|                                    Version 4.5.1 - P3-M2-11 Mode2 Diagnostic Trace    |
+//|                                    Version 4.5.1 - P3-M2-11.1 Mode2 Diagnostic Closure    |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -6487,6 +6487,15 @@ void ProcessPair(int pairIndex)
 
    if(decision.DecisionState == DEC_VALIDATED)
       RunEntryPreflightAndExecute(decision, actual);
+
+   if(EntryMode == 2 && decision.Valid)
+      Print("[P3M2][DECISION_FINAL] Pair=", actual,
+            " Signal=", EnumToString(decision.SignalType),
+            " Dir=", EnumToString(decision.Direction),
+            " State=", EnumToString(decision.DecisionState),
+            " Reason=", EnumToString(decision.RejectionReason),
+            " DecisionID=", decision.DecisionID);
+
    g_pair_states[pairIndex].last_decision = decision;
 
    datetime m15Closed = GetLatestClosedCandleTime(actual, PERIOD_M15);

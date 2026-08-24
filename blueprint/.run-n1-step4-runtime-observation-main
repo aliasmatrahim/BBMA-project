@@ -1,0 +1,4 @@
+trigger=2026-08-24T21:45+08:00
+target_branch=d1-owner-dev
+source_blob=e1329219e8fad10e4242f7cf2769593cdf09063e
+purpose=N1-04 NMJE runtime observation via main dispatcher

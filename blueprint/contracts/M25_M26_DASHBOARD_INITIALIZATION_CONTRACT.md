@@ -74,3 +74,6 @@ Patch commit:
 `cb148e3dc9b074d1ad0811ba6b9b4e237a2b1a42`
 
 A full-chain compile/SHA is not claimed until the complete ordered patch chain is exactly materialized and verified.
+
+## D1-05 recoverable input sanitation overlay
+Recoverable pair-capacity input errors are sanitized before fatal input validation. `MaxActivePair` is capped to the supported 1..40 runtime range and oversized `PairList` input is truncated by the existing bounded loader after a warning. These conditions do not justify `INIT_PARAMETERS_INCORRECT`; the EA stays attached. Truly fatal initialization failures such as no valid pair, invalid ownership/magic construction, or invalid protection reference remain fail-closed under the existing M26 contract.

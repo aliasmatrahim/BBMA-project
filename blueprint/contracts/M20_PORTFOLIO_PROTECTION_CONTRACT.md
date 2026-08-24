@@ -47,3 +47,6 @@ M20 may use live order/account state because portfolio limits and protection are
 
 ## Downstream boundary
 M23 remains the position-action owner. Step 11 only routes the emergency protection request into M23; detailed M23 partial-close, breakeven, TP-close, retry and lifecycle behavior remains subject to its dedicated downstream P0 audit.
+
+## D1-05 runtime input-capacity overlay
+`MaxActivePair` remains an M20 hard portfolio-admission limit, but M26 now supplies a sanitized runtime-effective value. The supported pair-state capacity is 40. A requested value below 1 or above 40 is capped to the nearest supported bound with an unconditional Experts/Journal warning; this recoverable input condition must not detach the EA. M20 applies the effective value to both current-portfolio and prospective atomic admission checks. No BBMA signal, direction, SL/TP, or lifecycle semantics change.

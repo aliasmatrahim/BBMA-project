@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.5.1 - D1-03 M11 Snapshot Atomicity                    |
+//| Version 4.5.1 - D1-05 Input Limit Guard                         |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -77,7 +77,7 @@ input string   PairList                           = "EURUSD,USDJPY,GBPUSD,AUDUSD
 //--- 03 TRADE LIMITS
 input int      MaxTradePerPair                    = 2;          // 03 Limits | max live trades per pair
 input int      MaxTotalTrade                      = 10;         // 03 Limits | max total live EA trades
-input int      MaxActivePair                      = 7;          // 03 Limits | max pairs active at once
+input int      MaxActivePair                      = 7;          // 03 Limits | requested max active pairs; runtime caps safely
 
 //--- 04 MONEY MANAGEMENT
 input ENUM_MM_MODE_INPUT MMMode                   = MM_AUTO_LOT; // 04 Money | AUTO=risk %, FIXED=FixedLot
@@ -140,7 +140,7 @@ int            AllowedExecutionDeviation_MinPoints= 5;
 #define MA5_LOW_PERIOD          5
 #define MA10_LOW_PERIOD         10
 #define EMA50_PERIOD            50
-#define MAX_PAIRS               20
+#define MAX_PAIRS               40
 #define MAX_TRADES_PER_PAIR     20
 #define MAX_MONITORED           400
 #define RETRY_SLEEP_MS          100
@@ -800,6 +800,9 @@ string               g_pair_names[MAX_PAIRS];
 PairState            g_pair_states[MAX_PAIRS];
 datetime             g_processed_candle_time[MAX_PAIRS];
 int                  g_pair_count;
+int                  g_effective_max_active_pair;
+bool                 g_max_active_pair_sanitized;
+bool                 g_pair_list_truncated;
 
 //--- Broker info
 BrokerInfo           g_broker_info;
@@ -4907,7 +4910,7 @@ PortfolioStatus CheckPortfolioLimits()
       if(status.trades_per_pair[p] > 0)
          status.active_pairs++;
    
-   if(status.active_pairs > MaxActivePair)
+   if(status.active_pairs > g_effective_max_active_pair)
    {
       status.allowed = false;
       status.reason = "Max active pairs exceeded";
@@ -4959,7 +4962,7 @@ void FinalPortfolioGuard(BBMA_Decision &decision)
    int wouldBePairTrades = status.trades_per_pair[pairIdx] + 1;
    int wouldBePairs = status.active_pairs + ((status.trades_per_pair[pairIdx] == 0) ? 1 : 0);
    
-   if(wouldBePairs > MaxActivePair)
+   if(wouldBePairs > g_effective_max_active_pair)
    {
       decision.DecisionState = DEC_REJECTED;
       decision.RejectionReason = REJ_PORTFOLIO_LIMIT_ATOMIC;
@@ -6189,7 +6192,7 @@ void RecoverExistingOrders()
 void BuildDashboardSnapshot()
 {
    g_dashboard_snapshot = "";
-   g_dashboard_snapshot += "=== BBMA EA V4.5.1 D1-03 ===\n";
+   g_dashboard_snapshot += "=== BBMA EA V4.5.1 D1-05 ===\n";
    g_dashboard_snapshot += "Time: " + TimeToString(TimeCurrent()) + "\n";
    g_dashboard_snapshot += "Balance: " + DoubleToString(AccountBalance(), 2) + "\n";
    g_dashboard_snapshot += "Equity: " + DoubleToString(AccountEquity(), 2) + "\n";
@@ -6228,6 +6231,43 @@ void UpdateDashboard()
 //| LEVEL: INTERMEDIATE                                              |
 //+------------------------------------------------------------------+
 
+void NormalizeRuntimeLimits()
+{
+   int requested = MaxActivePair;
+   g_effective_max_active_pair = requested;
+   g_max_active_pair_sanitized = false;
+   g_pair_list_truncated = false;
+
+   if(g_effective_max_active_pair < 1)
+   {
+      g_effective_max_active_pair = 1;
+      g_max_active_pair_sanitized = true;
+   }
+   else if(g_effective_max_active_pair > MAX_PAIRS)
+   {
+      g_effective_max_active_pair = MAX_PAIRS;
+      g_max_active_pair_sanitized = true;
+   }
+
+   if(g_max_active_pair_sanitized)
+   {
+      Print("[INPUT WARNING] MaxActivePair=", IntegerToString(requested),
+            " outside supported runtime range 1-", IntegerToString(MAX_PAIRS),
+            ". EffectiveMaxActivePair=", IntegerToString(g_effective_max_active_pair),
+            ". EA remains attached.");
+   }
+
+   string pairs[];
+   SplitString(PairList, ",", pairs);
+   if(ArraySize(pairs) > MAX_PAIRS)
+   {
+      g_pair_list_truncated = true;
+      Print("[INPUT WARNING] PairList contains ", IntegerToString(ArraySize(pairs)),
+            " entries; runtime capacity is ", IntegerToString(MAX_PAIRS),
+            ". Extra entries are ignored. EA remains attached.");
+   }
+}
+
 bool ValidateInputParameters()
 {
    if(MaxRetry <= 0) return false;
@@ -6238,7 +6278,6 @@ bool ValidateInputParameters()
    if(MMMode == 1 && MaxAutoLot <= 0) return false;
    if(MMMode == 2 && FixedLot <= 0) return false;
 
-   if(MaxActivePair > MAX_PAIRS) return false;
    if(MaxTradePerPair > MAX_TRADES_PER_PAIR) return false;
    if(MaxTotalTrade > MAX_MONITORED) return false;
    if(StrategyID < STRATEGY_ID_MIN || StrategyID > STRATEGY_ID_MAX) return false;
@@ -6246,7 +6285,6 @@ bool ValidateInputParameters()
    
    string pairs[];
    SplitString(PairList, ",", pairs);
-   if(ArraySize(pairs) > MAX_PAIRS) return false;
 
    if(EntryMode < 1 || EntryMode > 2) return false;
 
@@ -6400,7 +6438,8 @@ int InitializeEA()
    g_cached_balance = 0.0;
 
    Print("[P3S1] InitializeEA start PairList=", PairList,
-         " MaxActivePair=", IntegerToString(MaxActivePair));
+         " RequestedMaxActivePair=", IntegerToString(MaxActivePair),
+         " EffectiveMaxActivePair=", IntegerToString(g_effective_max_active_pair));
 
    InitBrokerInfo();
    LoadPairs();
@@ -6828,6 +6867,7 @@ void OnTickMain()
 //+------------------------------------------------------------------+
 int OnInit()
 {
+   NormalizeRuntimeLimits();
    if(!ValidateInputParameters())
    {
       Log(DBG_ERROR, "Input parameter validation failed");
@@ -6849,7 +6889,7 @@ int OnInit()
       return INIT_FAILED;
    }
    
-   Log(DBG_FULL, "BBMA EA V4.5.1 D1-03 initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.5.1 D1-05 initialized successfully");
    return INIT_SUCCEEDED;
 }
 

@@ -1,137 +1,109 @@
-name: D1 Step2 M15-M16 one-shot integration
+name: D1 Step1 native compile direct diagnostic
 
 on:
   issues:
     types: [opened]
 
 permissions:
-  contents: write
+  contents: read
   issues: write
 
 jobs:
-  d1-step2:
-    if: github.event.issue.title == 'RUN D1 STEP2 APPLY NATIVE 20260824'
+  native-diagnostic:
+    if: startsWith(github.event.issue.title, 'RUN D1 STEP1 NATIVE DIAG 20260824')
     runs-on: windows-latest
-    timeout-minutes: 8
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
         with:
           ref: d1-owner-dev
-          fetch-depth: 0
 
-      - name: Apply exact D1-02 source patch and static checks
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          python blueprint/tools/d1_step2_apply.py
-          git diff --check
-
-      - name: Acquire official MT4 MetaEditor
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-          if (-not $meta) {
-            $url = 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe'
-            Invoke-WebRequest -Uri $url -OutFile "$env:RUNNER_TEMP\mt4setup.exe" -UseBasicParsing
-            Start-Process -FilePath "$env:RUNNER_TEMP\mt4setup.exe" -ArgumentList '/auto' -Wait
-            Start-Sleep -Seconds 5
-            $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-          }
-          if (-not $meta) { throw 'MT4 MetaEditor not found' }
-          "METAEDITOR=$($meta.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-      - name: Native MetaEditor compile and report
+      - name: Compile exact D1-01 source and report directly
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
-          $src = (Resolve-Path '.\blueprint\source\BBMA_EA.mq4').Path
-          $log = Join-Path $env:RUNNER_TEMP 'd1-step2-metaeditor.log'
           $ok = $false
+          $stage = 'START'
+          $detail = ''
+          $canonicalSha = '423ddc4217ac1aebf83745348a34fa2fc3200916bb2456720fd7a090a4726367'
+          $blob = ''
+          $worktreeSha = ''
           $errors = -1
           $warnings = -1
-          $detail = ''
+          $metaPath = ''
+          $log = Join-Path $env:RUNNER_TEMP 'd1-step1-metaeditor.log'
           try {
-            & "$env:METAEDITOR" "/compile:$src" "/log:$log"
+            $stage = 'VERIFY_SOURCE'
+            $src = '.\blueprint\source\BBMA_EA.mq4'
+            if (-not (Test-Path $src)) { throw 'D1-01 source missing' }
+            $text = Get-Content $src -Raw
+            if ($text -notmatch 'Version 4\.5\.1 - D1-01 M11 Strategic Owner') { throw 'Unexpected D1-01 build identifier' }
+            $blob = (git rev-parse HEAD:blueprint/source/BBMA_EA.mq4).Trim()
+            if ($blob -ne '9a077c47592fd9f87ab8b8a52ca39f0ee54b7c28') { throw "Unexpected Git source blob: $blob" }
+            $worktreeSha = (Get-FileHash $src -Algorithm SHA256).Hash.ToLower()
+
+            $stage = 'ACQUIRE_METAEDITOR'
+            $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+            if (-not $meta) {
+              $url = 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe'
+              $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+              Invoke-WebRequest -Uri $url -OutFile $setup -UseBasicParsing
+              $proc = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
+              if (-not $proc.WaitForExit(120000)) {
+                try { $proc.Kill() } catch {}
+              }
+              Start-Sleep -Seconds 5
+              $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+            }
+            if (-not $meta) { throw 'MT4 MetaEditor not found after bounded official installer attempt' }
+            $metaPath = $meta.FullName
+
+            $stage = 'COMPILE'
+            $srcPath = (Resolve-Path $src).Path
+            & "$metaPath" "/compile:$srcPath" "/log:$log"
             Start-Sleep -Seconds 2
             if (-not (Test-Path $log)) { throw 'MetaEditor compile log missing' }
             $txt = Get-Content $log -Raw
-            $ex4 = [System.IO.Path]::ChangeExtension($src,'.ex4')
+            $ex4 = [System.IO.Path]::ChangeExtension($srcPath,'.ex4')
             if (-not (Test-Path $ex4)) { throw 'MetaEditor did not produce EX4' }
             $matches = [regex]::Matches($txt, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
-            if ($matches.Count -lt 1) { throw 'Unable to parse MetaEditor summary' }
+            if ($matches.Count -lt 1) { throw 'Unable to parse MetaEditor error/warning summary' }
             $m = $matches[$matches.Count - 1]
             $errors = [int]$m.Groups[1].Value
             $warnings = [int]$m.Groups[2].Value
             if ($errors -ne 0 -or $warnings -ne 0) { throw "MetaEditor produced $errors errors / $warnings warnings" }
             $ok = $true
-            $detail = 'D1-02 exact source compiled 0E0W and EX4 was produced.'
+            $stage = 'PASS'
+            $detail = 'Exact D1-01 Git blob compiled 0E0W and EX4 was produced.'
           }
           catch {
             $detail = $_.Exception.Message
           }
-          $body = New-Object System.Collections.Generic.List[string]
-          $body.Add('D1-02 native compile result')
-          $body.Add('')
-          $body.Add("- OK: $ok")
-          $body.Add("- Errors: $errors")
-          $body.Add("- Warnings: $warnings")
-          $body.Add("- Detail: $detail")
+
+          $lines = New-Object System.Collections.Generic.List[string]
+          $lines.Add("D1-01 native diagnostic result")
+          $lines.Add("")
+          $lines.Add("- OK: $ok")
+          $lines.Add("- Stage: $stage")
+          $lines.Add("- Git blob: $blob")
+          $lines.Add("- Canonical LF SHA256: $canonicalSha")
+          $lines.Add("- Windows worktree SHA256: $worktreeSha")
+          $lines.Add("- MetaEditor: $metaPath")
+          $lines.Add("- Errors: $errors")
+          $lines.Add("- Warnings: $warnings")
+          $lines.Add("- Detail: $detail")
           if (Test-Path $log) {
-            $body.Add('')
-            $body.Add('```text')
-            foreach ($line in (Get-Content $log | Select-Object -Last 80)) { $body.Add($line) }
-            $body.Add('```')
+            $lines.Add("")
+            $lines.Add('```text')
+            $tail = Get-Content $log | Select-Object -Last 100
+            foreach ($line in $tail) { $lines.Add($line) }
+            $lines.Add('```')
           }
-          $comment = Join-Path $env:RUNNER_TEMP 'd1-step2-comment.md'
-          $body | Set-Content $comment
-          gh issue comment "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --body-file $comment
-          if (-not $ok) { throw $detail }
+          $body = Join-Path $env:RUNNER_TEMP 'd1-native-comment.md'
+          $lines | Set-Content $body
+          gh issue comment "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --body-file $body
+          gh issue close "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --comment "D1-01 native diagnostic completed: OK=$ok, stage=$stage."
 
-      - name: Finalize contracts, audit and commit isolated D1-02
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          python blueprint/tools/d1_step2_apply.py --finalize
-          git diff --check
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm blueprint/tools/d1_step2_apply.py
-          git add -- blueprint/source/BBMA_EA.mq4 blueprint/contracts/M15_FINAL_SIGNAL_AUTHORITY_CONTRACT.md blueprint/contracts/M16_CONFLICT_INVALIDATION_CONTRACT.md blueprint/D1_STEP2_M15_M16_STRATEGIC_GATE_IMPLEMENTATION_AUDIT_20260824.md
-          git commit -m "D1-02: integrate M15-M16 strategic owner gate [skip ci]"
-          $commit = (git rev-parse HEAD).Trim()
-          $blob = (git rev-parse HEAD:blueprint/source/BBMA_EA.mq4).Trim()
-          git push origin HEAD:d1-owner-dev
-          "D1_STEP2_COMMIT=$commit" | Out-File -FilePath $env:GITHUB_ENV -Append
-          "D1_STEP2_BLOB=$blob" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-      - name: Report D1-02 success
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: pwsh
-        run: |
-          $body = @"
-          D1-02 integration PASS.
-
-          - Branch: `d1-owner-dev`
-          - Commit: `$env:D1_STEP2_COMMIT`
-          - Source blob: `$env:D1_STEP2_BLOB`
-          - Static integrity: PASS
-          - Native MT4 MetaEditor: 0 errors / 0 warnings
-          - `blueprint-dev`: unchanged
-          "@
-          gh issue comment "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --body $body
-
-  close-issue:
-    if: always() && github.event.issue.title == 'RUN D1 STEP2 APPLY NATIVE 20260824'
-    needs: d1-step2
-    runs-on: ubuntu-latest
-    steps:
-      - name: Close trigger issue with result
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RESULT: ${{ needs.d1-step2.result }}
-        run: |
-          gh issue close "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --comment "D1-02 one-shot result: ${RESULT}."
+          if (-not $ok) { Write-Host "Diagnostic captured failure: $detail" }

@@ -2,7 +2,7 @@ name: D1 Step2 temporary PR dispatcher
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, synchronize]
 
 permissions:
   contents: write
@@ -11,7 +11,7 @@ jobs:
   d1-step2:
     if: github.event.pull_request.title == 'RUN D1 STEP2 PR DISPATCH 20260824'
     runs-on: windows-latest
-    timeout-minutes: 8
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,7 +35,7 @@ jobs:
             $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
             Invoke-WebRequest -Uri $url -OutFile $setup -UseBasicParsing
             $proc = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
-            if (-not $proc.WaitForExit(120000)) { try { $proc.Kill() } catch {} }
+            if (-not $proc.WaitForExit(180000)) { try { $proc.Kill() } catch {} }
             Start-Sleep -Seconds 5
             $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
           }

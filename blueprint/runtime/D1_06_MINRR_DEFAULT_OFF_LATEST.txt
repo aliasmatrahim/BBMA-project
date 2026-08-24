@@ -1,0 +1,17 @@
+D1-06 MinRR Default Off - Latest CI Result
+Run=32699948534
+Trigger=e149cc60bc6c474f081088dfb7f0f709b1444216
+
+Stage=PASS
+Static=PASS
+Errors=0
+Warnings=0
+EX4=PRODUCED
+D1OwnerDevCommit=80c1ce56c58166cbf325a2a36af1ab1a8acd79ba
+OutputBlob=6a2dba4a3b669a139a48ad40728455512d082c01
+
+--- MetaEditor tail ---
+
+
+D:\a\BBMA-project\BBMA-project\target\blueprint\source\BBMA_EA.mq4 : information: compiling 'BBMA_EA.mq4'
+Result: 0 errors, 0 warnings, 115 msec elapsed

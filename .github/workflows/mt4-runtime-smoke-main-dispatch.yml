@@ -1,0 +1,162 @@
+name: MT4 Runtime Smoke Main Dispatcher
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  runtime-smoke:
+    if: github.event.pull_request.title == 'RUN D1-02 MT4 RUNTIME SMOKE 20260824'
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          fetch-depth: 0
+
+      - name: Verify exact D1-02 source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = '.\blueprint\source\BBMA_EA.mq4'
+          if (-not (Test-Path $src)) { throw 'EA source missing' }
+          $text = Get-Content $src -Raw
+          if ($text -notmatch 'Version 4\.5\.1 - D1-02 M15-M16 Strategic Gate') { throw 'Unexpected D1-02 build identifier' }
+          $blob = (git rev-parse HEAD:blueprint/source/BBMA_EA.mq4).Trim()
+          Write-Host "EA_BLOB=$blob"
+          "EA_BLOB=$blob" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Acquire official MT4
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dirs = @('C:\Program Files (x86)\MetaTrader 4','C:\Program Files\MetaTrader 4')
+          $installDir = $null
+          foreach ($dir in $dirs) {
+            if ((Test-Path (Join-Path $dir 'metaeditor.exe')) -and (Test-Path (Join-Path $dir 'terminal.exe'))) { $installDir = $dir; break }
+          }
+          if (-not $installDir) {
+            $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+            Write-Host 'Downloading official MT4 installer...'
+            Invoke-WebRequest -Uri 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -OutFile $setup -UseBasicParsing
+            Write-Host 'Launching official MT4 installer...'
+            $sp = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
+            for ($i=0; $i -lt 72; $i++) {
+              Start-Sleep -Seconds 5
+              foreach ($dir in $dirs) {
+                if ((Test-Path (Join-Path $dir 'metaeditor.exe')) -and (Test-Path (Join-Path $dir 'terminal.exe'))) { $installDir = $dir; break }
+              }
+              if ($installDir) { break }
+            }
+            if ($sp -and -not $sp.HasExited) { try { $sp.Kill() } catch {} }
+          }
+          if (-not $installDir) { throw 'Official MT4 terminal/metaeditor not found' }
+          $portable = Join-Path $env:RUNNER_TEMP 'mt4portable'
+          if (Test-Path $portable) { Remove-Item $portable -Recurse -Force }
+          New-Item -ItemType Directory -Path $portable | Out-Null
+          Copy-Item "$installDir\*" $portable -Recurse -Force
+          if (-not (Test-Path (Join-Path $portable 'terminal.exe'))) { throw 'Portable terminal copy failed' }
+          if (-not (Test-Path (Join-Path $portable 'metaeditor.exe'))) { throw 'Portable MetaEditor copy failed' }
+          "MT4DIR=$portable" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Native MetaEditor compile 0E0W
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $expertsDir = Join-Path $env:MT4DIR 'MQL4\Experts'
+          New-Item -ItemType Directory -Path $expertsDir -Force | Out-Null
+          $dst = Join-Path $expertsDir 'BBMA_EA.mq4'
+          Copy-Item '.\blueprint\source\BBMA_EA.mq4' $dst -Force
+          $compileLog = Join-Path $env:RUNNER_TEMP 'mt4-runtime-compile.log'
+          & (Join-Path $env:MT4DIR 'metaeditor.exe') "/compile:$dst" "/log:$compileLog"
+          Start-Sleep -Seconds 2
+          if (-not (Test-Path $compileLog)) { throw 'MetaEditor compile log missing' }
+          $ct = Get-Content $compileLog -Raw
+          $ct | Write-Host
+          $matches = [regex]::Matches($ct, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
+          if ($matches.Count -lt 1) { throw 'Unable to parse MetaEditor summary' }
+          $m = $matches[$matches.Count - 1]
+          $errors = [int]$m.Groups[1].Value
+          $warnings = [int]$m.Groups[2].Value
+          if ($errors -ne 0 -or $warnings -ne 0) { throw "MetaEditor produced $errors errors / $warnings warnings" }
+          if (-not (Test-Path ([System.IO.Path]::ChangeExtension($dst,'.ex4')))) { throw 'EX4 not produced' }
+          Write-Host 'METAEDITOR_0E0W=PASS'
+
+      - name: Launch MT4 with EA and trading disabled
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $ini = Join-Path $env:RUNNER_TEMP 'runtime-smoke.ini'
+          @'
+[Common]
+EnableNews=false
+
+[Experts]
+ExpertsEnable=true
+ExpertsDllImport=false
+ExpertsExpImport=false
+ExpertsTrades=false
+
+[StartUp]
+Symbol=EURUSD
+Period=M15
+Expert=BBMA_EA
+'@ | Set-Content -Path $ini -Encoding Ascii
+          $terminal = Join-Path $env:MT4DIR 'terminal.exe'
+          $proc = Start-Process -FilePath $terminal -ArgumentList '/portable', "/config:$ini" -PassThru
+          for ($i=0; $i -lt 12; $i++) {
+            Start-Sleep -Seconds 5
+            if ($proc.HasExited) { break }
+          }
+          if (-not $proc.HasExited) { try { $proc.CloseMainWindow() | Out-Null } catch {}; Start-Sleep -Seconds 2 }
+          if (-not $proc.HasExited) { try { $proc.Kill() } catch {} }
+          Write-Host 'MT4_LAUNCH=PASS'
+
+      - name: Inspect Journal and Experts logs
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $journal = @(Get-ChildItem (Join-Path $env:MT4DIR 'logs') -Filter '*.log' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime)
+          $expertLogs = @(Get-ChildItem (Join-Path $env:MT4DIR 'MQL4\Logs') -Filter '*.log' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime)
+          $all = @($journal) + @($expertLogs)
+          if ($all.Count -eq 0) { throw 'No MT4 Journal/Experts logs produced' }
+          $combinedPath = Join-Path $env:RUNNER_TEMP 'mt4-runtime-combined.log'
+          $combined = ''
+          foreach ($f in $all) {
+            $combined += "`r`n===== $($f.FullName) =====`r`n"
+            $combined += (Get-Content $f.FullName -Raw -ErrorAction SilentlyContinue)
+          }
+          $combined | Set-Content $combinedPath -Encoding UTF8
+          ($combined -split "`r?`n" | Select-Object -Last 250) | ForEach-Object { Write-Host $_ }
+          foreach ($p in @('array out of range','zero divide','critical runtime error','access violation','stack overflow','invalid pointer','unresolved import','cannot load expert','expert initialization failed')) {
+            if ($combined -match [regex]::Escape($p)) { throw "Fatal MT4 runtime signature detected: $p" }
+          }
+          if ($combined -match '\[P3S1\]\[PASS\] EA initialized successfully') {
+            Write-Host 'MT4_RUNTIME_CLASSIFICATION=PASS_EA_INITIALIZED'
+            exit 0
+          }
+          $envBlocked = ($combined -match '\[P3S1\]\[FAIL\] No valid pairs loaded') -or
+                        ($combined -match '\[P3S1\]\[FAIL\] Symbol resolution failed') -or
+                        ($combined -match '(?i)not connected') -or
+                        ($combined -match '(?i)no prices') -or
+                        ($combined -match '(?i)waiting for update')
+          if ($envBlocked) {
+            Write-Host 'MT4_RUNTIME_CLASSIFICATION=ENVIRONMENT_BLOCKED_NO_BROKER_SYMBOL_DATA'
+            exit 0
+          }
+          throw 'MT4 launched but EA initialization could not be positively classified from Journal/Experts logs'
+
+      - name: Publish runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mt4-runtime-smoke-main-evidence
+          path: |
+            ${{ runner.temp }}/mt4-runtime-compile.log
+            ${{ runner.temp }}/mt4-runtime-combined.log
+          if-no-files-found: warn

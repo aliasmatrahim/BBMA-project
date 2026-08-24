@@ -1,0 +1,132 @@
+name: N2-13 Closed Outcome Native MT4 Compile
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'blueprint/.run-n2-step13-closed-outcome'
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  compile-d1-target:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          fetch-depth: 0
+
+      - name: Verify N2-13 baseline
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = '.\blueprint\source\BBMA_EA.mq4'
+          $head = (git rev-parse HEAD).Trim()
+          $blob = (git rev-parse HEAD:blueprint/source/BBMA_EA.mq4).Trim()
+          if ($blob -ne 'eb55cd82f0c8c00b09f7191394fedae8f80c37c2') { throw "Unexpected source blob: $blob" }
+          $patcher = '.\blueprint\tools\n2_nmje_closed_outcome_shadow_patch.py'
+          if (-not (Test-Path $patcher)) { throw 'N2-13 patcher missing' }
+          $patch = Get-Content $patcher -Raw
+          if ($patch -notmatch '\[N2-NMJE-OUT\]') { throw 'N2 outcome marker missing from patcher' }
+          if ($patch -notmatch 'CompactMonitoredTrades') { throw 'Compaction hook missing from patcher' }
+          "TARGET_HEAD=$head" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "BASELINE_BLOB=$blob" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Apply N2-13 closed-outcome shadow patch
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python .\blueprint\tools\n2_nmje_closed_outcome_shadow_patch.py
+          git diff --check
+          $src = '.\blueprint\source\BBMA_EA.mq4'
+          $txt = Get-Content $src -Raw
+          if ($txt -notmatch '\[N2-NMJE-OUT\]') { throw 'N2 outcome telemetry not materialized' }
+          if ($txt -notmatch 'NMJE_PrintClosedOutcomeShadow') { throw 'Outcome helper not materialized' }
+          $calls = ([regex]::Matches($txt, 'NMJE_PrintClosedOutcomeShadow\(g_monitored_trades\[i\]\);')).Count
+          if ($calls -ne 1) { throw "Expected one outcome hook, got $calls" }
+          "N2_SOURCE_BLOB=$((git hash-object $src).Trim())" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "N2_SOURCE_SHA256=$((Get-FileHash $src -Algorithm SHA256).Hash.ToLower())" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Acquire official MT4 MetaEditor
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $meta) {
+            $url = 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe'
+            Invoke-WebRequest -Uri $url -OutFile "$env:RUNNER_TEMP\mt4setup.exe" -UseBasicParsing
+            Start-Process -FilePath "$env:RUNNER_TEMP\mt4setup.exe" -ArgumentList '/auto' -Wait
+            Start-Sleep -Seconds 5
+            $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          }
+          if (-not $meta) { throw 'MT4 MetaEditor not found after official installer attempt' }
+          "METAEDITOR=$($meta.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "Using $($meta.FullName)"
+
+      - name: Native MetaEditor 0E0W compile
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = (Resolve-Path '.\blueprint\source\BBMA_EA.mq4').Path
+          $log = Join-Path $env:RUNNER_TEMP 'n2-step13-metaeditor.log'
+          & "$env:METAEDITOR" "/compile:$src" "/log:$log"
+          Start-Sleep -Seconds 2
+          if (-not (Test-Path $log)) { throw 'MetaEditor compile log missing' }
+          $txt = Get-Content $log -Raw
+          $txt | Write-Host
+          $ex4 = [System.IO.Path]::ChangeExtension($src,'.ex4')
+          if (-not (Test-Path $ex4)) { throw 'MetaEditor did not produce EX4' }
+          $matches = [regex]::Matches($txt, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
+          if ($matches.Count -lt 1) { throw 'Unable to parse MetaEditor summary' }
+          $m = $matches[$matches.Count - 1]
+          $errors = [int]$m.Groups[1].Value
+          $warnings = [int]$m.Groups[2].Value
+          if ($errors -ne 0 -or $warnings -ne 0) { throw "Native compile failed: $errors errors / $warnings warnings" }
+          "COMPILE_RESULT=0E0W" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Upload native evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: n2-step13-closed-outcome-native-mt4-evidence
+          path: |
+            blueprint/source/BBMA_EA.ex4
+            ${{ runner.temp }}/n2-step13-metaeditor.log
+          if-no-files-found: warn
+
+      - name: Commit verified N2-13 to d1-owner-dev
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $audit = @"
+          # N2-13 — NMJE Closed-Outcome Shadow Native Compile Audit
+
+          Date: 2026-08-25  
+          Branch: ``d1-owner-dev``  
+          Build: ``Version 4.5.1 - N2-13 Closed Outcome Shadow``
+
+          ## Result
+          **PASS — closed-outcome shadow materialized / native MT4 MetaEditor 0 errors / 0 warnings.**
+
+          Baseline source blob: ``$env:BASELINE_BLOB``  
+          N2-13 source blob: ``$env:N2_SOURCE_BLOB``  
+          N2-13 source SHA-256: ``$env:N2_SOURCE_SHA256``
+
+          The hook is read-only and runs only when ``CompactMonitoredTrades()`` has selected a monitored ticket and confirmed ``OrderCloseTime()!=0``. It emits at most one ``[N2-NMJE-OUT]`` record before that registry row is discarded. No entry, exit, SL/TP, risk, REM/RRE/REE, M15 or M16 strategy semantics were changed.
+          "@
+          Set-Content '.\blueprint\N2_STEP13_NMJE_CLOSED_OUTCOME_SHADOW_AUDIT_20260825.md' $audit -Encoding UTF8
+          if (Test-Path '.\blueprint\source\BBMA_EA.ex4') { Remove-Item '.\blueprint\source\BBMA_EA.ex4' -Force }
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'N2-13: materialize closed-outcome shadow native 0E0W [skip ci]'
+          git fetch origin d1-owner-dev
+          $remote = (git rev-parse origin/d1-owner-dev).Trim()
+          if ($remote -ne $env:TARGET_HEAD) { throw "d1-owner-dev moved during compile: remote=$remote expected=$env:TARGET_HEAD" }
+          git push origin HEAD:d1-owner-dev

@@ -1,2 +1,2 @@
 Trigger MT4 runtime smoke CI for D1-02.
-Retry with hardened 25-minute runtime harness.
+Retry with corrected MT4 /config startup sections and 25-minute runtime harness.

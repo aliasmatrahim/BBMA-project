@@ -3,8 +3,10 @@
 
 Research/diagnostic only. It converts `[N2-NMJE-OUT]` records with a full
 DecisionID into the exact DecisionID CSV consumed by n2_nmje_outcome_attributor.py.
-Hash-only recovered outcomes are surfaced separately and are never silently
-promoted to a full DecisionID.
+N2 telemetry encodes spaces inside DecisionID as `~` so each diagnostic field
+remains one log token; this parser restores the original DecisionID before
+identity attribution. Hash-only recovered outcomes are surfaced separately and
+are never silently promoted to a full DecisionID.
 
 Usage:
   python blueprint/tools/n2_nmje_outcome_log_extractor.py logs/*.log \
@@ -32,6 +34,12 @@ OUT_RE = re.compile(
     r"CLOSE=(?P<close_time>\d+)\s+"
     r"REC=(?P<recovery_state>\S+)"
 )
+
+
+def decode_identity_token(token: str) -> str:
+    if token == "-":
+        return token
+    return token.replace("~", " ")
 
 
 @dataclass(frozen=True)
@@ -62,7 +70,7 @@ def parse_logs(paths: Iterable[Path]) -> list[OutcomeRecord]:
                         line_no=line_no,
                         pair=gd["pair"],
                         ticket=int(gd["ticket"]),
-                        decision_id=gd["decision_id"],
+                        decision_id=decode_identity_token(gd["decision_id"]),
                         decision_hash=gd["decision_hash"],
                         net_profit=float(gd["net_profit"]),
                         close_time=int(gd["close_time"]),
@@ -144,7 +152,6 @@ def main() -> int:
         args.json_path.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
     print_report(report)
 
-    # Duplicate identity is excluded from CSV and reported as a data-integrity failure.
     if report["duplicate_tickets"] or report["duplicate_decision_ids"]:
         return 2
     return 0

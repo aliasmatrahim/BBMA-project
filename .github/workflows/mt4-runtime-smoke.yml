@@ -93,18 +93,25 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $ini = Join-Path $env:RUNNER_TEMP 'runtime-smoke.ini'
           @'
-          EnableNews=false
-          ExpertsEnable=true
-          ExpertsDllImport=false
-          ExpertsExpImport=false
-          ExpertsTrades=false
-          Symbol=EURUSD
-          Period=M15
-          Expert=BBMA_EA
-          '@ | Set-Content -Path $ini -Encoding Ascii
+[Common]
+EnableNews=false
+
+[Experts]
+ExpertsEnable=true
+ExpertsDllImport=false
+ExpertsExpImport=false
+ExpertsTrades=false
+
+[StartUp]
+Symbol=EURUSD
+Period=M15
+Expert=BBMA_EA
+'@ | Set-Content -Path $ini -Encoding Ascii
 
           $terminal = Join-Path $env:MT4DIR 'terminal.exe'
-          $proc = Start-Process -FilePath $terminal -ArgumentList '/portable', "`"$ini`"" -PassThru
+          $configArg = "/config:$ini"
+          Write-Host "Starting MT4 runtime smoke with $configArg"
+          $proc = Start-Process -FilePath $terminal -ArgumentList '/portable', $configArg -PassThru
           for ($i=0; $i -lt 12; $i++) {
             Start-Sleep -Seconds 5
             if ($proc.HasExited) { break }
@@ -156,7 +163,8 @@ jobs:
           $envBlock = ($combined -match '\[P3S1\]\[FAIL\] No valid pairs loaded') -or
                       ($combined -match '\[P3S1\]\[FAIL\] Symbol resolution failed') -or
                       ($combined -match '(?i)not connected') -or
-                      ($combined -match '(?i)no prices')
+                      ($combined -match '(?i)no prices') -or
+                      ($combined -match '(?i)waiting for update')
           if ($envBlock) {
             Write-Host 'MT4_ATTACH_SMOKE=ENVIRONMENT_BLOCKED_NO_BROKER_SYMBOL_DATA'
             "MT4_ATTACH_SMOKE=ENVIRONMENT_BLOCKED_NO_BROKER_SYMBOL_DATA" | Out-File -FilePath $env:GITHUB_ENV -Append

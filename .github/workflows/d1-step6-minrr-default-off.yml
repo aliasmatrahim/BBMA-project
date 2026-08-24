@@ -1,0 +1,196 @@
+name: D1 Step6 MinRR Default Off
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'blueprint/.run-d1-06-minrr-default-off'
+
+permissions:
+  contents: write
+
+jobs:
+  d1-step6:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: dispatcher
+          fetch-depth: 0
+
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          path: target
+          fetch-depth: 0
+
+      - name: Verify D1-05 input identity
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $status = Join-Path $env:RUNNER_TEMP 'd1-step6-status.txt'
+          "Stage=VERIFY_INPUT" | Set-Content $status
+          $blob = (git -C '.\target' rev-parse 'HEAD:blueprint/source/BBMA_EA.mq4').Trim()
+          "InputBlob=$blob" | Add-Content $status
+          if ($blob -ne '318725900eb33e2d7c8a3d8884d1ae0cb565d1f6') {
+            throw "Unexpected D1-05 source blob: $blob"
+          }
+          $text = Get-Content '.\target\blueprint\source\BBMA_EA.mq4' -Raw
+          if ($text -notmatch 'Version 4\.5\.1 - D1-05 Input Limit Guard') {
+            throw 'Expected D1-05 source header not found'
+          }
+          if ($text -notmatch 'MinRRRatio\s*=\s*1\.5;') {
+            throw 'Expected MinRRRatio default 1.5 not found'
+          }
+
+      - name: Apply D1-06 MinRR default-off patch and static audit
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $status = Join-Path $env:RUNNER_TEMP 'd1-step6-status.txt'
+          "Stage=APPLY_STATIC" | Set-Content $status
+          python '.\dispatcher\blueprint\tools\d1_step6_minrr_default_off.py' --repo-root '.\target'
+          if ($LASTEXITCODE -ne 0) { throw "D1-06 patcher failed with exit code $LASTEXITCODE" }
+          python '.\dispatcher\blueprint\tools\d1_step6_minrr_default_off.py' --repo-root '.\target' --verify
+          if ($LASTEXITCODE -ne 0) { throw "D1-06 verifier failed with exit code $LASTEXITCODE" }
+          git -C '.\target' diff --check
+          if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed' }
+          "Static=PASS" | Add-Content $status
+
+      - name: Acquire official MT4 MetaEditor
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $status = Join-Path $env:RUNNER_TEMP 'd1-step6-status.txt'
+          "Stage=ACQUIRE_METAEDITOR" | Set-Content $status
+          "Static=PASS" | Add-Content $status
+          $dirs = @('C:\Program Files (x86)\MetaTrader 4','C:\Program Files\MetaTrader 4')
+          $meta = $null
+          foreach ($dir in $dirs) {
+            $candidate = Join-Path $dir 'metaeditor.exe'
+            if (Test-Path $candidate) { $meta = Get-Item $candidate; break }
+          }
+          if (-not $meta) {
+            $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+            Invoke-WebRequest -Uri 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -OutFile $setup -UseBasicParsing
+            $sp = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
+            for ($i=0; $i -lt 72; $i++) {
+              Start-Sleep -Seconds 5
+              foreach ($dir in $dirs) {
+                $candidate = Join-Path $dir 'metaeditor.exe'
+                if (Test-Path $candidate) { $meta = Get-Item $candidate; break }
+              }
+              if ($meta) { break }
+            }
+            if ($sp -and -not $sp.HasExited) { try { $sp.Kill() } catch {} }
+          }
+          if (-not $meta) { throw 'Official MT4 MetaEditor not found' }
+          "METAEDITOR=$($meta.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "MetaEditor=$($meta.FullName)" | Add-Content $status
+
+      - name: Native MetaEditor compile D1-06 0E0W
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $status = Join-Path $env:RUNNER_TEMP 'd1-step6-status.txt'
+          "Stage=COMPILE" | Set-Content $status
+          "Static=PASS" | Add-Content $status
+          "MetaEditor=$env:METAEDITOR" | Add-Content $status
+          $src = (Resolve-Path '.\target\blueprint\source\BBMA_EA.mq4').Path
+          $log = Join-Path $env:RUNNER_TEMP 'd1-step6-metaeditor.log'
+          if (Test-Path $log) { Remove-Item $log -Force }
+          & "$env:METAEDITOR" "/compile:$src" "/log:$log"
+          for ($i=0; $i -lt 30; $i++) {
+            if (Test-Path $log) {
+              $probe = Get-Content $log -Raw -ErrorAction SilentlyContinue
+              if ($probe -match '(?i)Result:\s*\d+\s+errors?,\s*\d+\s+warnings?') { break }
+            }
+            Start-Sleep -Seconds 1
+          }
+          if (-not (Test-Path $log)) { throw 'MetaEditor compile log missing after bounded wait' }
+          $txt = Get-Content $log -Raw
+          $txt | Write-Host
+          $matches = [regex]::Matches($txt, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
+          if ($matches.Count -lt 1) { throw 'Unable to parse MetaEditor summary' }
+          $m = $matches[$matches.Count - 1]
+          $errors = [int]$m.Groups[1].Value
+          $warnings = [int]$m.Groups[2].Value
+          "Errors=$errors" | Add-Content $status
+          "Warnings=$warnings" | Add-Content $status
+          if ($errors -ne 0 -or $warnings -ne 0) { throw "D1-06 compile failed: $errors errors / $warnings warnings" }
+          $ex4 = [System.IO.Path]::ChangeExtension($src,'.ex4')
+          for ($i=0; $i -lt 10 -and -not (Test-Path $ex4); $i++) { Start-Sleep -Seconds 1 }
+          if (-not (Test-Path $ex4)) { throw 'MetaEditor did not produce EX4' }
+          "EX4=PRODUCED" | Add-Content $status
+          "ERRORS=$errors" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "WARNINGS=$warnings" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Finalize audit and push isolated D1-06 branch
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $status = Join-Path $env:RUNNER_TEMP 'd1-step6-status.txt'
+          python '.\dispatcher\blueprint\tools\d1_step6_minrr_default_off.py' --repo-root '.\target' --finalize
+          if ($LASTEXITCODE -ne 0) { throw "D1-06 finalize failed with exit code $LASTEXITCODE" }
+          python '.\dispatcher\blueprint\tools\d1_step6_minrr_default_off.py' --repo-root '.\target' --verify
+          if ($LASTEXITCODE -ne 0) { throw "D1-06 final verification failed with exit code $LASTEXITCODE" }
+          git -C '.\target' diff --check
+          if ($LASTEXITCODE -ne 0) { throw 'final git diff --check failed' }
+          git -C '.\target' config user.name 'github-actions[bot]'
+          git -C '.\target' config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C '.\target' add blueprint/source/BBMA_EA.mq4 blueprint/D1_STEP6_MINRR_DEFAULT_OFF_IMPLEMENTATION_AUDIT_20260824.md blueprint/decisions/D1_06_MINRR_DEFAULT_OFF_DECISION_20260824.md
+          git -C '.\target' commit -m 'D1-06: keep MinRR optional and default disabled [skip ci]'
+          if ($LASTEXITCODE -ne 0) { throw 'D1-06 commit failed' }
+          $commit = (git -C '.\target' rev-parse HEAD).Trim()
+          git -C '.\target' fetch origin d1-owner-dev
+          $remote = (git -C '.\target' rev-parse origin/d1-owner-dev).Trim()
+          $parent = (git -C '.\target' rev-parse HEAD^).Trim()
+          if ($remote -ne $parent) { throw "d1-owner-dev moved during D1-06 run: remote=$remote parent=$parent" }
+          git -C '.\target' push origin HEAD:d1-owner-dev
+          if ($LASTEXITCODE -ne 0) { throw 'D1-06 push failed' }
+          "Stage=PASS" | Set-Content $status
+          "Static=PASS" | Add-Content $status
+          "Errors=$env:ERRORS" | Add-Content $status
+          "Warnings=$env:WARNINGS" | Add-Content $status
+          "EX4=PRODUCED" | Add-Content $status
+          "D1OwnerDevCommit=$commit" | Add-Content $status
+          $blob = (git -C '.\target' rev-parse 'HEAD:blueprint/source/BBMA_EA.mq4').Trim()
+          "OutputBlob=$blob" | Add-Content $status
+
+      - name: Persist D1-06 CI status
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $status = Join-Path $env:RUNNER_TEMP 'd1-step6-status.txt'
+          $outRel = 'blueprint/runtime/D1_06_MINRR_DEFAULT_OFF_LATEST.txt'
+          git -C '.\dispatcher' pull --rebase origin main
+          $out = Join-Path '.\dispatcher' $outRel
+          New-Item -ItemType Directory -Path (Split-Path $out -Parent) -Force | Out-Null
+          $lines = New-Object System.Collections.Generic.List[string]
+          $lines.Add('D1-06 MinRR Default Off - Latest CI Result')
+          $lines.Add("Run=${{ github.run_id }}")
+          $lines.Add("Trigger=${{ github.sha }}")
+          $lines.Add('')
+          if (Test-Path $status) {
+            foreach ($line in Get-Content $status) { $lines.Add($line) }
+          } else {
+            $lines.Add('Stage=CI_INFRA_FAILURE')
+            $lines.Add('Detail=No D1-06 status file produced')
+          }
+          $log = Join-Path $env:RUNNER_TEMP 'd1-step6-metaeditor.log'
+          if (Test-Path $log) {
+            $lines.Add('')
+            $lines.Add('--- MetaEditor tail ---')
+            foreach ($line in (Get-Content $log | Select-Object -Last 80)) { $lines.Add($line) }
+          }
+          $lines | Set-Content $out -Encoding UTF8
+          git -C '.\dispatcher' config user.name 'github-actions[bot]'
+          git -C '.\dispatcher' config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C '.\dispatcher' add $outRel
+          if (-not (git -C '.\dispatcher' diff --cached --quiet)) {
+            git -C '.\dispatcher' commit -m 'Record D1-06 MinRR default-off CI result [skip ci]'
+            git -C '.\dispatcher' push origin HEAD:main
+          }

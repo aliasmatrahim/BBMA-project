@@ -1,4 +1,4 @@
-trigger=2026-08-25T00:55+08:00
+trigger=2026-08-25T02:31+08:00
 target_branch=d1-owner-dev
 source_blob=e1329219e8fad10e4242f7cf2769593cdf09063e
-purpose=N2-01 validated decision shadow native MT4 compile
+purpose=N2-01 validated decision shadow native MT4 compile retrigger

@@ -1,0 +1,53 @@
+name: D1 Step 1 issue dispatcher
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  apply-d1-step1:
+    if: github.event.issue.title == 'RUN D1 STEP1 M11 OWNER 20260824'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          fetch-depth: 0
+
+      - name: Materialize D1-01 and run static checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/apply_d1_step1.py
+          git diff --check
+          git diff -- blueprint/source/BBMA_EA.mq4 > blueprint/patches/0026-d1-step1-m11-strategic-owner-producer.patch
+          test -s blueprint/patches/0026-d1-step1-m11-strategic-owner-producer.patch
+          git apply --check --reverse blueprint/patches/0026-d1-step1-m11-strategic-owner-producer.patch
+          rm -f blueprint/.d1-step1-dispatch*
+          rm -f .github/workflows/one-shot-apply-d1-step1.yml
+          git diff --check
+
+      - name: Commit isolated D1-01 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'No D1-01 changes to commit.'
+            exit 0
+          fi
+          git commit -m "D1-01: materialize M11 strategic owner producer [skip ci]"
+          git push origin HEAD:d1-owner-dev
+
+      - name: Close trigger issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: gh issue close "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --comment "D1 Step 1 dispatcher finished."

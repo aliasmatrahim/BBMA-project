@@ -123,9 +123,9 @@ Expert=BBMA_EA
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $journal = Get-ChildItem (Join-Path $env:MT4DIR 'logs') -Filter '*.log' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime
-          $experts = Get-ChildItem (Join-Path $env:MT4DIR 'MQL4\Logs') -Filter '*.log' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime
-          $all = @($journal + $experts)
+          $journal = @(Get-ChildItem (Join-Path $env:MT4DIR 'logs') -Filter '*.log' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime)
+          $experts = @(Get-ChildItem (Join-Path $env:MT4DIR 'MQL4\Logs') -Filter '*.log' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime)
+          $all = @($journal) + @($experts)
           if ($all.Count -eq 0) { throw 'No MT4 Journal/Experts logs produced' }
 
           $combinedPath = Join-Path $env:RUNNER_TEMP 'mt4-runtime-combined.log'

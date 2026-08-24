@@ -6515,6 +6515,41 @@ bool IsNewCandle(string pair, int pairIndex)
    return false;
 }
 
+void PrintSignalBottleneckDiagnostic(int pairIndex, BBMA_Decision &decision)
+{
+   if(pairIndex < 0 || pairIndex >= g_pair_count) return;
+   if(!g_pair_states[pairIndex].pair_enabled) return;
+
+   string finalCandidate = "NONE";
+   if(decision.Valid)
+   {
+      finalCandidate = EnumToString(decision.SignalType) + "/" +
+                       EnumToString(decision.Direction) + "/" +
+                       EnumToString(decision.DecisionState);
+      if(decision.RejectionReason != REJ_NONE)
+         finalCandidate += "/" + EnumToString(decision.RejectionReason);
+   }
+
+   Print("[D1-10][BOTTLENECK] Pair=", g_pair_states[pairIndex].actual_symbol,
+         " D1=", EnumToString(g_pair_states[pairIndex].d1_major_trend_owner.State),
+         "/", EnumToString(g_pair_states[pairIndex].d1_major_trend_owner.Direction),
+         " H4=", EnumToString(g_pair_states[pairIndex].h4_direction_owner.State),
+         "/", EnumToString(g_pair_states[pairIndex].h4_direction_owner.Direction),
+         " H1RE=B:", EnumToString(g_pair_states[pairIndex].re_h1_buy_state.State),
+         ",S:", EnumToString(g_pair_states[pairIndex].re_h1_sell_state.State),
+         " H4RE=B:", EnumToString(g_pair_states[pairIndex].re_h4_buy_state.State),
+         ",S:", EnumToString(g_pair_states[pairIndex].re_h4_sell_state.State),
+         " D1RE=B:", EnumToString(g_pair_states[pairIndex].re_d1_buy_state.State),
+         ",S:", EnumToString(g_pair_states[pairIndex].re_d1_sell_state.State),
+         " H1EXT=B:", EnumToString(g_pair_states[pairIndex].extreme_h1_buy_lifecycle.Maturity),
+         ",S:", EnumToString(g_pair_states[pairIndex].extreme_h1_sell_lifecycle.Maturity),
+         " H4EXT=B:", EnumToString(g_pair_states[pairIndex].extreme_h4_buy_lifecycle.Maturity),
+         ",S:", EnumToString(g_pair_states[pairIndex].extreme_h4_sell_lifecycle.Maturity),
+         " M15MHV=B:", EnumToString(g_pair_states[pairIndex].mlv_buy_state.State),
+         ",S:", EnumToString(g_pair_states[pairIndex].mlv_sell_state.State),
+         " Final=", finalCandidate);
+}
+
 void ProcessPair(int pairIndex)
 {
    if(pairIndex < 0 || pairIndex >= g_pair_count) return;
@@ -6819,6 +6854,8 @@ void ProcessPair(int pairIndex)
             " State=", EnumToString(decision.DecisionState),
             " Reason=", EnumToString(decision.RejectionReason),
             " DecisionID=", decision.DecisionID);
+
+   PrintSignalBottleneckDiagnostic(pairIndex, decision);
 
    g_pair_states[pairIndex].last_decision = decision;
 

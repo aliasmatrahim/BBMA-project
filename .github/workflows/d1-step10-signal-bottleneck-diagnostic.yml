@@ -1,0 +1,62 @@
+name: D1 Step10 Signal Bottleneck Diagnostic
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'blueprint/.run-d1-10-signal-bottleneck-diag'
+
+permissions:
+  contents: write
+
+jobs:
+  diagnostic-patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: dispatcher
+          fetch-depth: 0
+
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          path: target
+          fetch-depth: 0
+
+      - name: Verify D1-09 baseline identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          head_sha="$(git -C target rev-parse HEAD)"
+          blob_sha="$(git -C target rev-parse HEAD:blueprint/source/BBMA_EA.mq4)"
+          test "$head_sha" = "d9df8c7e5bffe6d39169e40ec78cb483d40385d2"
+          test "$blob_sha" = "b756b95bbc6a2d32ef5b6cec4f1a66544e9614b5"
+
+      - name: Apply diagnostic-only patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python dispatcher/blueprint/tools/d1_step10_signal_bottleneck_diag.py --repo-root target
+          python dispatcher/blueprint/tools/d1_step10_signal_bottleneck_diag.py --repo-root target --verify
+          git -C target diff --check
+          git -C target diff -- blueprint/source/BBMA_EA.mq4
+
+      - name: Commit and push diagnostic source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git -C target config user.name 'github-actions[bot]'
+          git -C target config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C target add blueprint/source/BBMA_EA.mq4
+          git -C target commit -m 'D1-10: add temporary signal bottleneck diagnostic [skip ci]'
+          new_commit="$(git -C target rev-parse HEAD)"
+          parent="$(git -C target rev-parse HEAD^)"
+          git -C target fetch origin d1-owner-dev
+          remote="$(git -C target rev-parse origin/d1-owner-dev)"
+          test "$remote" = "$parent"
+          git -C target push origin HEAD:d1-owner-dev
+          echo "D1-10 commit=$new_commit"
+          echo "D1-10 source_blob=$(git -C target rev-parse HEAD:blueprint/source/BBMA_EA.mq4)"

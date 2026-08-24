@@ -26,7 +26,6 @@ def verify_source(src: Path) -> None:
         "if(MinRRRatio > 0.0 && (tpDistance / slDistance) < MinRRRatio)",
         "rejection = REJ_INVALID_RR;",
         "#define MAX_PAIRS               40",
-        "Version 4.5.1 - D1-06 MinRR Default Off",
     ]
     for item in required:
         if item not in text:
@@ -50,42 +49,48 @@ def verify_source(src: Path) -> None:
 def write_docs(root: Path) -> None:
     decision = root / DECISION_REL
     decision.parent.mkdir(parents=True, exist_ok=True)
-    decision.write_text(
-        """# D1-06 — MinRR Default-Off Decision\n\n"
-        "Date: 2026-08-24  \n"
-        "Branch: `d1-owner-dev`  \n"
-        "Decision: **KEEP `MinRRRatio` AVAILABLE, DEFAULT DISABLED (`0.0`)**\n\n"
-        "## User decision\n"
-        "`MinRRRatio` is retained as an optional project-level rejection filter, but it must not be enabled by default.\n\n"
-        "## Runtime meaning\n"
-        "- `MinRRRatio = 0.0` => filter disabled.\n"
-        "- `MinRRRatio > 0.0` => existing RR rejection check remains available where the current payload has a valid static TP distance.\n"
-        "- This optional numeric filter is **not represented as a universal BBMA/Oma Ally Core rule**.\n"
-        "- Future F7 targetless/lifecycle-managed Re-Entry payloads remain governed by the F7 resolution: they must structurally bypass numeric RR when no source-valid static reward distance exists, regardless of this input.\n\n"
-        "## Scope\n"
-        "This decision changes only the default input state and build identity. It does not alter BBMA detectors, D1/H4/H1/M15 hierarchy, SL/TP construction, lot sizing, execution order, or lifecycle rules.\n",
-        encoding="utf-8",
-    )
+    decision_text = """# D1-06 — MinRR Default-Off Decision
+
+Date: 2026-08-24  
+Branch: `d1-owner-dev`  
+Decision: **KEEP `MinRRRatio` AVAILABLE, DEFAULT DISABLED (`0.0`)**
+
+## User decision
+`MinRRRatio` is retained as an optional project-level rejection filter, but it must not be enabled by default.
+
+## Runtime meaning
+- `MinRRRatio = 0.0` => filter disabled.
+- `MinRRRatio > 0.0` => existing RR rejection check remains available where the current payload has a valid static TP distance.
+- This optional numeric filter is **not represented as a universal BBMA/Oma Ally Core rule**.
+- Future F7 targetless/lifecycle-managed Re-Entry payloads remain governed by the F7 resolution: they must structurally bypass numeric RR when no source-valid static reward distance exists, regardless of this input.
+
+## Scope
+This decision changes only the default input state and build identity. It does not alter BBMA detectors, D1/H4/H1/M15 hierarchy, SL/TP construction, lot sizing, execution order, or lifecycle rules.
+"""
+    decision.write_text(decision_text, encoding="utf-8")
 
     audit = root / AUDIT_REL
-    audit.write_text(
-        """# D1 Step 6 — MinRR Default-Off Implementation Audit\n\n"
-        "Date: 2026-08-24  \n"
-        "Branch: `d1-owner-dev`  \n"
-        "Build: `Version 4.5.1 - D1-06 MinRR Default Off`  \n"
-        "Status: **IMPLEMENTED / STATIC PASS / NATIVE METAEDITOR COMPILE PENDING**\n\n"
-        "## Change\n"
-        "- `MinRRRatio` default changed from `1.5` to `0.0`.\n"
-        "- Input remains visible and functional as an optional project filter.\n"
-        "- Existing runtime condition `MinRRRatio > 0.0` is preserved, therefore `0.0` disables RR rejection.\n"
-        "- No detector, combination, direction, D1 owner, SL/TP resolver, money-management, portfolio, order-send, or lifecycle formula was changed.\n\n"
-        "## F7 compatibility boundary\n"
-        "The numeric RR filter is not promoted as universal BBMA Core. When the later F7 targetless lifecycle payload is implemented, lifecycle-managed Re-Entry trades with no source-valid static TP must bypass RR structurally even if the optional input is non-zero.\n\n"
-        "## Verification\n"
-        "Focused source invariant check: **PASS**.  \n"
-        "Native MT4 MetaEditor: **PENDING**.\n",
-        encoding="utf-8",
-    )
+    audit_text = """# D1 Step 6 — MinRR Default-Off Implementation Audit
+
+Date: 2026-08-24  
+Branch: `d1-owner-dev`  
+Build: `Version 4.5.1 - D1-06 MinRR Default Off`  
+Status: **IMPLEMENTED / STATIC PASS / NATIVE METAEDITOR COMPILE PENDING**
+
+## Change
+- `MinRRRatio` default changed from `1.5` to `0.0`.
+- Input remains visible and functional as an optional project filter.
+- Existing runtime condition `MinRRRatio > 0.0` is preserved, therefore `0.0` disables RR rejection.
+- No detector, combination, direction, D1 owner, SL/TP resolver, money-management, portfolio, order-send, or lifecycle formula was changed.
+
+## F7 compatibility boundary
+The numeric RR filter is not promoted as universal BBMA Core. When the later F7 targetless lifecycle payload is implemented, lifecycle-managed Re-Entry trades with no source-valid static TP must bypass RR structurally even if the optional input is non-zero.
+
+## Verification
+Focused source invariant check: **PASS**.  
+Native MT4 MetaEditor: **PENDING**.
+"""
+    audit.write_text(audit_text, encoding="utf-8")
 
 
 def apply(root: Path) -> None:
@@ -94,7 +99,6 @@ def apply(root: Path) -> None:
     text = replace_once(text, BUILD_OLD, BUILD_NEW, "build header")
     text = replace_once(text, INPUT_OLD, INPUT_NEW, "MinRR default")
 
-    # Keep runtime-visible build text aligned with the source identity if present.
     text = text.replace("=== BBMA EA V4.5.1 D1-05 ===", "=== BBMA EA V4.5.1 D1-06 ===")
     text = text.replace("BBMA EA V4.5.1 D1-05 initialized successfully", "BBMA EA V4.5.1 D1-06 initialized successfully")
 

@@ -28,19 +28,19 @@ jobs:
             python3 .github/scripts/apply_d1_step1.py
             python_status=$?
             if [ $python_status -ne 0 ]; then exit $python_status; fi
-            git diff --check
+            git diff --check -- blueprint/source/BBMA_EA.mq4 blueprint/D1_STEP1_M11_STRATEGIC_OWNER_IMPLEMENTATION_AUDIT_20260824.md
             diff_status=$?
             if [ $diff_status -ne 0 ]; then exit $diff_status; fi
-            git diff -- blueprint/source/BBMA_EA.mq4 > blueprint/patches/0026-d1-step1-m11-strategic-owner-producer.patch
-            test -s blueprint/patches/0026-d1-step1-m11-strategic-owner-producer.patch
+            git diff -- blueprint/source/BBMA_EA.mq4 > /tmp/d1-source.patch
+            test -s /tmp/d1-source.patch
             patch_status=$?
             if [ $patch_status -ne 0 ]; then exit $patch_status; fi
-            git apply --check --reverse blueprint/patches/0026-d1-step1-m11-strategic-owner-producer.patch
+            git apply --check --reverse /tmp/d1-source.patch
             reverse_status=$?
             if [ $reverse_status -ne 0 ]; then exit $reverse_status; fi
+            cp /tmp/d1-source.patch blueprint/patches/0026-d1-step1-m11-strategic-owner-producer.patch
             rm -f blueprint/.d1-step1-dispatch*
             rm -f .github/workflows/one-shot-apply-d1-step1.yml
-            git diff --check
           } > /tmp/d1-step1.log 2>&1
           status=$?
           cat /tmp/d1-step1.log

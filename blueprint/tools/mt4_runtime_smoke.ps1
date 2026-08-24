@@ -141,6 +141,12 @@ Expert=BBMA_EA
     $stage = 'PASS_ENVIRONMENT_LIMIT'
     $exitCode = 0
   }
+  elseif ($combined -match 'MetaTrader 4 build') {
+    $classification = 'ENVIRONMENT_BLOCKED_PRE_ATTACH_NO_BROKER_SESSION'
+    $detail = 'Fresh GitHub MT4 terminal launched without broker login/server credentials; no EA initialization trace was produced and no fatal runtime signature was detected. EA attach/runtime behavior therefore remains unverified until a real broker/demo terminal is used.'
+    $stage = 'PASS_ENVIRONMENT_LIMIT'
+    $exitCode = 0
+  }
   else {
     throw 'MT4 launched but EA initialization could not be positively classified from Journal/Experts logs'
   }

@@ -6,8 +6,10 @@ Requires logs containing:
 - [N2-NMJE-DEC] validated-decision shadows
 - [N2-NMJE-OUT] closed-outcome shadows
 
-Hash-only recovered outcomes are preserved in extraction.json but are not silently
-attributed until a separate unique-hash identity rule is implemented and verified.
+Recovered hash-only outcomes may be attributed only through the fail-closed
+N2-09 reconciliation rule: the persisted SHORT_HASH must map to exactly one
+validated DecisionID in the analyzed dataset and the pair must match. Any
+collision, ambiguity or identity mismatch remains unattributed.
 
 Research/diagnostic only; no EA source or trading behavior is modified.
 """
@@ -25,6 +27,7 @@ if str(HERE) not in sys.path:
 
 import n2_nmje_decision_correlator as correlator
 import n2_nmje_outcome_log_extractor as extractor
+import n2_nmje_hash_identity_reconciler as reconciler
 import n2_nmje_outcome_attributor as attributor
 import n2_nmje_evidence_sufficiency as evidence_tool
 
@@ -41,8 +44,9 @@ def run(log_paths: list[Path], out_dir: Path) -> dict:
     correlation = correlator.correlate(observations, decisions)
 
     extraction = extractor.analyze(extractor.parse_logs(log_paths))
-    outcomes_csv = out_dir / "outcomes_exact.csv"
-    extractor.write_exact_csv(outcomes_csv, extraction)
+    reconciliation = reconciler.reconcile(correlation, extraction)
+    outcomes_csv = out_dir / "outcomes_reconciled.csv"
+    reconciler.write_csv(outcomes_csv, reconciliation)
 
     outcomes, duplicate_rows = attributor.load_outcomes(outcomes_csv)
     attribution = attributor.attribute(correlation, outcomes, duplicate_rows)
@@ -50,12 +54,14 @@ def run(log_paths: list[Path], out_dir: Path) -> dict:
 
     write_json(out_dir / "correlation.json", correlation)
     write_json(out_dir / "extraction.json", extraction)
+    write_json(out_dir / "reconciliation.json", reconciliation)
     write_json(out_dir / "outcome_attribution.json", attribution)
     write_json(out_dir / "evidence.json", evidence)
 
     return {
         "correlation": correlation,
         "extraction": extraction,
+        "reconciliation": reconciliation,
         "attribution": attribution,
         "evidence": evidence,
         "outcomes_csv": str(outcomes_csv),
@@ -65,6 +71,7 @@ def run(log_paths: list[Path], out_dir: Path) -> dict:
 def print_summary(result: dict) -> None:
     c = result["correlation"]
     x = result["extraction"]
+    r = result["reconciliation"]
     a = result["attribution"]
     e = result["evidence"]
     print("N2 NMJE AUTO RESEARCH PIPELINE")
@@ -72,8 +79,10 @@ def print_summary(result: dict) -> None:
     print(f"Journey observations   : {c['n1_observation_count']}")
     print(f"Validated decisions    : {c['n2_decision_count']}")
     print(f"Closed outcomes        : {x['record_count']}")
-    print(f"Exact outcome identity : {x['valid_exact_outcomes']}")
-    print(f"Hash-only outcomes     : {x['hash_only_outcomes']}")
+    print(f"Exact outcome identity : {r['exact_outcome_count']}")
+    print(f"Hash-only inputs       : {r['hash_only_input_count']}")
+    print(f"Hash reconciled        : {r['reconciled_hash_only_count']}")
+    print(f"Hash unresolved        : {len(r['unresolved_hash_only_rows'])}")
     print(f"Attributed outcomes    : {a['matched_outcomes']}")
     print(f"Data status            : {e['data_status']}")
     print("Interpretation         : DESCRIPTIVE_RESEARCH_ONLY")
@@ -95,10 +104,13 @@ def main() -> int:
     print_summary(result)
 
     extraction = result["extraction"]
+    reconciliation = result["reconciliation"]
     if extraction["duplicate_tickets"] or extraction["duplicate_decision_ids"]:
         return 2
-    if result["evidence"]["data_status"] == "IDENTITY_INVALID":
+    if not reconciliation["identity_valid"]:
         return 3
+    if result["evidence"]["data_status"] == "IDENTITY_INVALID":
+        return 4
     return 0
 
 

@@ -26,17 +26,22 @@ It must never call or modify:
 Canonical diagnostic marker:
 
 ```text
-[N2-NMJE-OUT] PAIR=<symbol> TICKET=<ticket> DID=<decision-id-or-> DIDH=<execution-hash-or-> NET=<net-profit> CLOSE=<unix-time> REC=<recovery-state>
+[N2-NMJE-OUT] PAIR=<symbol> TICKET=<ticket> DID=<token-safe-decision-id-or-> DIDH=<execution-hash-or-> NET=<net-profit> CLOSE=<unix-time> REC=<recovery-state>
 ```
 
 `NET` must equal realized `OrderProfit() + OrderSwap() + OrderCommission()` from the selected closed order.
 
 ## Identity rules
-1. Freshly executed trade with full in-memory `decision_id`: emit both `DID` and existing persisted execution hash (`DIDH`).
+1. Freshly executed trade with full in-memory `decision_id`: emit both token-safe `DID` and the existing persisted execution hash (`DIDH`). The token encoding must be the same reversible whitespace encoding used by N2-01A decision telemetry; research tooling restores the original DecisionID before attribution.
 2. Recovered trade where full `decision_id` is unavailable: emit `DID=-` and the exact persisted execution hash already recovered from the MT4 order comment.
 3. No pair-only, timestamp-only or direction-only outcome matching is permitted.
-4. Research tooling may use `DIDH` only after it proves that the hash maps to exactly one N2 validated DecisionID in the analyzed dataset. Any collision or ambiguity must fail closed and remain unattributed.
-5. Missing identity is a research-data limitation, never a reason to alter or close a trade.
+4. A full-DID outcome is eligible for attribution only when:
+   - decoded `DID` exists in the correlated validated-decision dataset;
+   - `PAIR` matches that validated decision;
+   - `DIDH` is present and equals the locally reconstructed EA-compatible `SHORT_HASH(decoded DID)`.
+   Any mismatch is excluded and fails the identity-integrity gate.
+5. Research tooling may use hash-only `DIDH` only after it proves that the hash maps to exactly one N2 validated DecisionID in the analyzed dataset and pair identity matches. Any collision or ambiguity must fail closed and remain unattributed.
+6. Missing identity is a research-data limitation, never a reason to alter or close a trade.
 
 ## Hook placement
 Preferred hook is the existing monitored-trade compaction/removal path, immediately after a monitored ticket is proven closed and **before** that registry row is discarded. The telemetry call must be read-only. Existing compaction order and removal semantics must remain unchanged.

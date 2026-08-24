@@ -2,12 +2,14 @@
 from pathlib import Path
 import tempfile
 import importlib.util
+import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 MODULE_PATH = ROOT / "blueprint" / "tools" / "n2_nmje_decision_correlator.py"
 spec = importlib.util.spec_from_file_location("n2_nmje_decision_correlator", MODULE_PATH)
 mod = importlib.util.module_from_spec(spec)
 assert spec and spec.loader
+sys.modules[spec.name] = mod
 spec.loader.exec_module(mod)
 
 sample = """

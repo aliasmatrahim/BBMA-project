@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.5.1 - N1-03 NMJE Observer                 |
+//| Version 4.5.1 - N2-01 NMJE Decision Shadow                 |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -4248,6 +4248,40 @@ void UpdateNestedJourneyObservation(int pairIndex)
          " R=", journey.Reason);
 }
 
+// N2-01: post-M16 shadow tag for validated decisions only.
+// Observation metadata only. It does not mutate decision, candidate, risk or execution state.
+string NMJE_LogIdentityToken(string value)
+{
+   // DecisionID contains a human-readable TimeToString() component with a space.
+   // Encode whitespace so the diagnostic remains a deterministic single token.
+   string token = value;
+   StringReplace(token, " ", "~");
+   StringReplace(token, "\t", "~");
+   return token;
+}
+
+void NMJE_PrintValidatedDecisionShadow(int pairIndex, BBMA_Decision &decision)
+{
+   if(pairIndex < 0 || pairIndex >= g_pair_count) return;
+   if(!decision.Valid || decision.DecisionState != DEC_VALIDATED) return;
+
+   NestedJourneyState journey = g_nested_journeys[pairIndex];
+   string journeyId = journey.JourneyID;
+   if(journeyId == "") journeyId = "-";
+
+   string decisionToken = NMJE_LogIdentityToken(decision.DecisionID);
+   string decisionHash = SHORT_HASH(decision.DecisionID);
+
+   Print("[N2-NMJE-DEC] ", decision.Pair,
+         " SIG=", EnumToString(decision.SignalType),
+         " DIR=", NMJE_DirText(decision.Direction),
+         " REL=", NMJE_RelationText(journey.Relation),
+         " P=", NMJE_ParentText(journey.ParentKind), "/", NMJE_DirText(journey.ParentDirection),
+         " J=", journeyId,
+         " DID=", decisionToken,
+         " DIDH=", decisionHash);
+}
+
 //+------------------------------------------------------------------+
 //| MODULE 13: COMBINATION ENGINE (COLLECT ONLY)                     |
 //| LEVEL: INTERMEDIATE+                                             |
@@ -7563,7 +7597,11 @@ void ProcessPair(int pairIndex)
    }
 
    if(decision.DecisionState == DEC_VALIDATED)
+   {
+      // N2-01 shadow metadata only; execution path remains unchanged.
+      NMJE_PrintValidatedDecisionShadow(pairIndex, decision);
       RunEntryPreflightAndExecute(decision, actual);
+   }
 
    if(EntryMode == 2 && decision.Valid)
       Print("[P3M2][DECISION_FINAL] Pair=", actual,
@@ -7647,7 +7685,7 @@ int OnInit()
       return INIT_FAILED;
    }
    
-   Log(DBG_FULL, "BBMA EA V4.5.1 N1-03 initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.5.1 N2-01 initialized successfully");
    return INIT_SUCCEEDED;
 }
 

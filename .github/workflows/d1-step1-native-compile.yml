@@ -1,0 +1,136 @@
+name: D1 Step1 native MT4 compile
+
+on:
+  push:
+    branches: [ d1-owner-dev ]
+    paths:
+      - 'blueprint/.d1-native-compile-trigger'
+
+permissions:
+  contents: write
+
+jobs:
+  compile-mt4:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+
+      - name: Verify D1-01 source identity
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = '.\blueprint\source\BBMA_EA.mq4'
+          if (-not (Test-Path $src)) { throw 'D1-01 source missing' }
+          $text = Get-Content $src -Raw
+          if ($text -notmatch 'Version 4\.5\.1 - D1-01 M11 Strategic Owner') { throw 'Unexpected build identifier' }
+          $sha = (Get-FileHash $src -Algorithm SHA256).Hash.ToLower()
+          if ($sha -ne '423ddc4217ac1aebf83745348a34fa2fc3200916bb2456720fd7a090a4726367') { throw "Unexpected D1-01 source SHA256: $sha" }
+          "D1_SOURCE_SHA256=$sha" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Acquire official MT4 MetaEditor
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $meta) {
+            $url = 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe'
+            Invoke-WebRequest -Uri $url -OutFile "$env:RUNNER_TEMP\mt4setup.exe" -UseBasicParsing
+            Start-Process -FilePath "$env:RUNNER_TEMP\mt4setup.exe" -ArgumentList '/auto' -Wait
+            Start-Sleep -Seconds 5
+            $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          }
+          if (-not $meta) { throw 'MT4 MetaEditor not found after official installer attempt' }
+          "METAEDITOR=$($meta.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "Using $($meta.FullName)"
+
+      - name: Native MetaEditor 0E0W compile
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = (Resolve-Path '.\blueprint\source\BBMA_EA.mq4').Path
+          $log = Join-Path $env:RUNNER_TEMP 'd1-step1-metaeditor.log'
+          & "$env:METAEDITOR" "/compile:$src" "/log:$log"
+          Start-Sleep -Seconds 2
+          if (-not (Test-Path $log)) { throw 'MetaEditor compile log missing' }
+          $txt = Get-Content $log -Raw
+          $txt | Write-Host
+          $ex4 = [System.IO.Path]::ChangeExtension($src,'.ex4')
+          if (-not (Test-Path $ex4)) { throw 'MetaEditor did not produce EX4' }
+          $matches = [regex]::Matches($txt, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
+          if ($matches.Count -lt 1) { throw 'Unable to parse MetaEditor error/warning summary' }
+          $m = $matches[$matches.Count - 1]
+          $errors = [int]$m.Groups[1].Value
+          $warnings = [int]$m.Groups[2].Value
+          if ($errors -ne 0 -or $warnings -ne 0) { throw "Native compile failed: $errors errors / $warnings warnings" }
+          @"
+          D1_STEP1_NATIVE_METAEDITOR=PASS
+          SOURCE_SHA256=$env:D1_SOURCE_SHA256
+          ERRORS=$errors
+          WARNINGS=$warnings
+          "@ | Set-Content (Join-Path $env:RUNNER_TEMP 'd1-step1-compile-result.txt')
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: d1-step1-native-compile-evidence
+          path: |
+            blueprint/source/BBMA_EA.ex4
+            ${{ runner.temp }}/d1-step1-metaeditor.log
+            ${{ runner.temp }}/d1-step1-compile-result.txt
+          if-no-files-found: error
+
+  close-gate:
+    needs: compile-mt4
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: d1-step1-native-compile-evidence
+          path: /tmp/d1-native
+      - name: Record native compile closure
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'D1_STEP1_NATIVE_METAEDITOR=PASS' /tmp/d1-native/d1-step1-compile-result.txt
+          grep -Fq 'SOURCE_SHA256=423ddc4217ac1aebf83745348a34fa2fc3200916bb2456720fd7a090a4726367' /tmp/d1-native/d1-step1-compile-result.txt
+          grep -Fq 'ERRORS=0' /tmp/d1-native/d1-step1-compile-result.txt
+          grep -Fq 'WARNINGS=0' /tmp/d1-native/d1-step1-compile-result.txt
+          cat > blueprint/D1_STEP1_NATIVE_METAEDITOR_COMPILE_20260824.md <<'EOF'
+          # D1 Step 1 — Native MT4 MetaEditor Compile Closure
+
+          Date: 2026-08-24  
+          Branch: `d1-owner-dev`  
+          Build: `Version 4.5.1 - D1-01 M11 Strategic Owner`  
+          Source SHA-256: `423ddc4217ac1aebf83745348a34fa2fc3200916bb2456720fd7a090a4726367`
+
+          Status: **NATIVE METAEDITOR PASS — 0 ERRORS / 0 WARNINGS**
+
+          The exact D1-01 source above was compiled with MT4 MetaEditor on a Windows GitHub runner using the official MetaQuotes MT4 installer path when MetaEditor was not preinstalled.
+
+          Compile evidence was emitted as the workflow artifact `d1-step1-native-compile-evidence`, containing the EX4, MetaEditor compile log and machine-readable result summary.
+
+          Scope closure: this closes the native compile gate for D1 Step 1 only. It does not activate the M15 D1 strategic gate, M16 D1 revalidation, F7 lifecycle implementation, or any change on `blueprint-dev`.
+          EOF
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('blueprint/D1_STEP1_M11_STRATEGIC_OWNER_IMPLEMENTATION_AUDIT_20260824.md')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace('Status: **SOURCE MATERIALIZED / STATIC INTEGRITY PASS / NATIVE METAEDITOR COMPILE PENDING**',
+                      'Status: **SOURCE MATERIALIZED / STATIC INTEGRITY PASS / NATIVE METAEDITOR 0E0W PASS**')
+          s=s.replace('Native MT4 MetaEditor compile remains required. Target: **0 errors / 0 warnings**.',
+                      'Native MT4 MetaEditor compile: **PASS — 0 errors / 0 warnings**. See `D1_STEP1_NATIVE_METAEDITOR_COMPILE_20260824.md`.')
+          p.write_text(s, encoding='utf-8')
+          PY
+          rm -f blueprint/.d1-native-compile-trigger
+          rm -f .github/workflows/d1-step1-native-compile.yml
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "D1-01: close native MetaEditor 0E0W gate [skip ci]"
+          git push origin HEAD:d1-owner-dev

@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.5.1 - D1-01 M11 Strategic Owner                        |
+//| Version 4.5.1 - D1-02 M15-M16 Strategic Gate                    |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -555,6 +555,15 @@ struct BBMA_Decision
    datetime             CycleStartTime;
    ENUM_SIGNAL_TYPE     SLTPSource;
    string               Pair;
+
+   // D1-02 frozen M11 strategic-owner identity for downstream M16 verification.
+   ENUM_D1_OWNER_STATE  D1OwnerState;
+   ENUM_DIRECTION       D1OwnerDirection;
+   datetime             D1OwnerCandleTime;
+   double               D1OwnerClose;
+   double               D1OwnerMA50Current;
+   double               D1OwnerMA50Previous;
+   bool                 D1OwnerSnapshotValid;
    
    // MUTABLE LIFECYCLE
    ENUM_DECISION_STATE  DecisionState;
@@ -3781,6 +3790,52 @@ void ValidateSequence(ComponentSet &set, ValidatedSequenceCandidate &candidate)
 //| LEVEL: EXPERT-RESTRICTED                                         |
 //+------------------------------------------------------------------+
 
+bool IsD1MajorTrendOwnerExecutionReady(PairState &pairState)
+{
+   D1MajorTrendOwner owner = pairState.d1_major_trend_owner;
+
+   if(!pairState.d1_data.is_valid || !pairState.d1_data.is_closed ||
+      pairState.d1_data.timeframe != PERIOD_D1 ||
+      pairState.d1_data.candle_time <= 0 || pairState.d1_data.close <= 0.0)
+      return false;
+
+   if(!owner.IsValid || owner.SourceCandleTime <= 0 ||
+      owner.SourceCandleTime != pairState.d1_data.candle_time)
+      return false;
+
+   if(pairState.current_daily_ema50 <= 0.0 || pairState.prev_daily_ema50 <= 0.0)
+      return false;
+
+   if(owner.State == D1_OWNER_BUY_CONFIRMED)
+      return (owner.Direction == DIR_BUY);
+
+   if(owner.State == D1_OWNER_SELL_CONFIRMED)
+      return (owner.Direction == DIR_SELL);
+
+   return false;
+}
+
+bool IsCandidateAllowedByD1Owner(ValidatedSequenceCandidate &candidate,
+                                 PairState &pairState)
+{
+   if(!IsD1MajorTrendOwnerExecutionReady(pairState)) return false;
+   return (candidate.Direction == pairState.d1_major_trend_owner.Direction);
+}
+
+bool FreezeD1OwnerSnapshot(PairState &pairState, BBMA_Decision &decision)
+{
+   if(!IsD1MajorTrendOwnerExecutionReady(pairState)) return false;
+
+   decision.D1OwnerState = pairState.d1_major_trend_owner.State;
+   decision.D1OwnerDirection = pairState.d1_major_trend_owner.Direction;
+   decision.D1OwnerCandleTime = pairState.d1_major_trend_owner.SourceCandleTime;
+   decision.D1OwnerClose = pairState.d1_data.close;
+   decision.D1OwnerMA50Current = pairState.current_daily_ema50;
+   decision.D1OwnerMA50Previous = pairState.prev_daily_ema50;
+   decision.D1OwnerSnapshotValid = true;
+   return true;
+}
+
 bool IsEntryModeCandidateAllowed(ValidatedSequenceCandidate &candidate)
 {
    if(EntryMode == 1)
@@ -3932,14 +3987,31 @@ int CompareCanonicalCandidates(ValidatedSequenceCandidate &a,
 }
 
 void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
+                           PairState &pairState,
                            BBMA_Decision &decision, OppositeConflictPackage &conflict)
 {
+   int structurallyEligible = 0;
+   for(int i = 0; i < count; i++)
+      if(IsCandidateEligible(candidates[i])) structurallyEligible++;
+
+   // D1-02: D1 is the strategic new-entry gate. TRANSITION/UNRESOLVED
+   // and stale/malformed owner identity fail closed before atomic direction selection.
+   if(structurallyEligible > 0 && !IsD1MajorTrendOwnerExecutionReady(pairState))
+   {
+      Print("[D1-02][M15_D1_BLOCK] Pair=", pairState.actual_symbol,
+            " State=", EnumToString(pairState.d1_major_trend_owner.State),
+            " Dir=", EnumToString(pairState.d1_major_trend_owner.Direction),
+            " Candle=", TimeToString(pairState.d1_major_trend_owner.SourceCandleTime));
+      return;
+   }
+
    int buyCount = 0;
    int sellCount = 0;
 
    for(int i = 0; i < count; i++)
    {
       if(!IsCandidateEligible(candidates[i])) continue;
+      if(!IsCandidateAllowedByD1Owner(candidates[i], pairState)) continue;
       if(candidates[i].Direction == DIR_BUY) buyCount++;
       else if(candidates[i].Direction == DIR_SELL) sellCount++;
    }
@@ -3973,6 +4045,7 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
    for(int i = 0; i < count; i++)
    {
       if(!IsCandidateEligible(candidates[i])) continue;
+      if(!IsCandidateAllowedByD1Owner(candidates[i], pairState)) continue;
       if(candidates[i].Direction != targetDirection) continue;
 
       if(canonicalIdx < 0 ||
@@ -3985,6 +4058,13 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
    if(canonicalIdx < 0) return;
 
    ValidatedSequenceCandidate selected = candidates[canonicalIdx];
+   if(!FreezeD1OwnerSnapshot(pairState, decision))
+   {
+      Print("[D1-02][M15_D1_BLOCK] Pair=", pairState.actual_symbol,
+            " Reason=freeze_failed");
+      return;
+   }
+
    decision.Valid = true;
    decision.Direction = selected.Direction;
    decision.SignalType = selected.SequenceType;
@@ -4012,12 +4092,16 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
       Print("[P3M1][M15_SELECT] Pair=", decision.Pair,
             " Signal=", EnumToString(decision.SignalType),
             " Dir=", EnumToString(decision.Direction),
+            " D1State=", EnumToString(decision.D1OwnerState),
+            " D1Candle=", TimeToString(decision.D1OwnerCandleTime),
             " Candle=", TimeToString(decision.CandleTime),
             " DecisionID=", decision.DecisionID);
    if(EntryMode == 2)
       Print("[P3M2][M15_SELECT] Pair=", decision.Pair,
             " Signal=", EnumToString(decision.SignalType),
             " Dir=", EnumToString(decision.Direction),
+            " D1State=", EnumToString(decision.D1OwnerState),
+            " D1Candle=", TimeToString(decision.D1OwnerCandleTime),
             " Candle=", TimeToString(decision.CandleTime),
             " Components=", decision.ComponentCount,
             " DecisionID=", decision.DecisionID);
@@ -4161,6 +4245,26 @@ bool IsDecisionComponentOwnerValid(PairState &pairState,
    return false;
 }
 
+bool ValidateDecisionD1OwnerSnapshot(int pairIndex, BBMA_Decision &decision)
+{
+   if(pairIndex < 0 || pairIndex >= g_pair_count) return false;
+   if(!decision.D1OwnerSnapshotValid) return false;
+
+   PairState state = g_pair_states[pairIndex];
+   if(!IsD1MajorTrendOwnerExecutionReady(state)) return false;
+
+   D1MajorTrendOwner owner = state.d1_major_trend_owner;
+   if(decision.D1OwnerState != owner.State) return false;
+   if(decision.D1OwnerDirection != owner.Direction) return false;
+   if(decision.Direction != owner.Direction) return false;
+   if(decision.D1OwnerCandleTime != owner.SourceCandleTime) return false;
+   if(decision.D1OwnerClose != state.d1_data.close) return false;
+   if(decision.D1OwnerMA50Current != state.current_daily_ema50) return false;
+   if(decision.D1OwnerMA50Previous != state.prev_daily_ema50) return false;
+
+   return true;
+}
+
 bool ValidateDecisionOwnerSnapshot(int pairIndex, BBMA_Decision &decision,
                                    bool &expired)
 {
@@ -4199,6 +4303,18 @@ void InvalidationEngine_Atomic(int pairIndex, BBMA_Decision &decision,
       if(EntryMode == 2)
          Print("[P3M2][M16_REJECT] DecisionID=", decision.DecisionID,
                " Reason=", EnumToString(decision.RejectionReason));
+      return;
+   }
+
+   if(!ValidateDecisionD1OwnerSnapshot(pairIndex, decision))
+   {
+      decision.DecisionState = DEC_INVALIDATED;
+      decision.RejectionReason = REJ_SEQUENCE_BREAK;
+      Print("[D1-02][M16_D1_REJECT] Pair=", decision.Pair,
+            " DecisionID=", decision.DecisionID,
+            " FrozenState=", EnumToString(decision.D1OwnerState),
+            " FrozenDir=", EnumToString(decision.D1OwnerDirection),
+            " FrozenCandle=", TimeToString(decision.D1OwnerCandleTime));
       return;
    }
 
@@ -6633,7 +6749,8 @@ void ProcessPair(int pairIndex)
    ZeroMemory(conflict);
    decision.Pair = actual;
 
-   PriorityEngine_Atomic(allCandidates, allCandidateCount, decision, conflict);
+   PriorityEngine_Atomic(allCandidates, allCandidateCount,
+                         g_pair_states[pairIndex], decision, conflict);
 
    if(decision.DecisionState == DEC_CREATED)
    {
@@ -6722,7 +6839,7 @@ int OnInit()
       return INIT_FAILED;
    }
    
-   Log(DBG_FULL, "BBMA EA V4.5.1 D1-01 initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.5.1 D1-02 initialized successfully");
    return INIT_SUCCEEDED;
 }
 

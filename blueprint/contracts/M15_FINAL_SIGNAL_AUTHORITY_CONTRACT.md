@@ -194,3 +194,15 @@ Focused patch SHA-256:
 `9933e041a1999b865c18f340454536ae5371a777d2a6af5d28f2e0d561258b0e`
 
 Do not merge to `main` until the current source/spec/runtime gates are reconciled and explicitly approved.
+
+## D1-02 implementation record — `d1-owner-dev`
+The 2026-08-24 D1 strategic gate is implemented on isolated `d1-owner-dev` as build `Version 4.5.1 - D1-02 M15-M16 Strategic Gate`.
+
+- M15 consumes M11 owner state; it does not recalculate D1/MA50.
+- Transition/unresolved/stale D1 blocks new-entry authority.
+- Opposite-D1 candidates are filtered before the atomic surviving-direction check.
+- Exact REM/RRE/REE signatures remain unchanged.
+- Selected decisions freeze D1 owner state/direction/candle plus D1 close and MA50 identity for M16.
+- Native MT4 MetaEditor: **0 errors / 0 warnings**.
+- `blueprint-dev` remains unchanged pending explicit integration approval.
+

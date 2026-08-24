@@ -155,3 +155,14 @@ Focused patch SHA-256:
 `d333b64594eb563c3013776e36d3ab967041be471f7b45206fb73d466adc034a`
 
 Do not merge to `main` until the current source/spec/runtime gates are reconciled and explicitly approved.
+
+## D1-02 implementation record — `d1-owner-dev`
+The 2026-08-24 D1 owner revalidation is implemented on isolated `d1-owner-dev` as build `Version 4.5.1 - D1-02 M15-M16 Strategic Gate`.
+
+- M16 verifies the frozen M15 D1 snapshot against the current M11-produced owner identity.
+- Transition/unresolved/opposite/stale/identity mismatch fails closed before structural component revalidation.
+- M16 does not duplicate the D1 price-vs-MA50 slope formula.
+- D1 strategic failure invalidates only a pending new-entry decision; it is not a live-position close rule.
+- Native MT4 MetaEditor: **0 errors / 0 warnings**.
+- `blueprint-dev` remains unchanged pending explicit integration approval.
+

@@ -1,5 +1,4 @@
 diff --git a/blueprint/source/BBMA_EA.mq4 b/blueprint/source/BBMA_EA.mq4
-index 105d992..D1STEP1 100644
 --- a/blueprint/source/BBMA_EA.mq4
 +++ b/blueprint/source/BBMA_EA.mq4
 @@ -1,6 +1,6 @@
@@ -157,7 +156,15 @@ index 105d992..D1STEP1 100644
  //+------------------------------------------------------------------+
  //| MODULE 12: RE-ENTRY ENGINE                                       |
  //| LEVEL: INTERMEDIATE+                                             |
-@@ -6212,6 +6330,10 @@ void ProcessPair(int pairIndex)
+@@ -5945,7 +6067,7 @@ void BuildDashboardSnapshot()
+ {
+    g_dashboard_snapshot = "";
+-   g_dashboard_snapshot += "=== BBMA EA V4.5.1 ===\n";
++   g_dashboard_snapshot += "=== BBMA EA V4.5.1 D1-01 ===\n";
+    g_dashboard_snapshot += "Time: " + TimeToString(TimeCurrent()) + "\n";
+    g_dashboard_snapshot += "Balance: " + DoubleToString(AccountBalance(), 2) + "\n";
+    g_dashboard_snapshot += "Equity: " + DoubleToString(AccountEquity(), 2) + "\n";
+@@ -6212,6 +6334,10 @@ void ProcessPair(int pairIndex)
     GetDataForTimeframe(actual, PERIOD_M15, g_pair_states[pairIndex].tf_snapshot.M15_CandleTime,
                         g_pair_states[pairIndex].m15_data);
  
@@ -168,15 +175,7 @@ index 105d992..D1STEP1 100644
     // H4 owner is persistent across neutral H4 candles and changes only on
     // source-valid authoritative H4 direction/momentum events.
     UpdateRuntimeH4DirectionalOwner(pairIndex);
-@@ -5945,7 +6067,7 @@ void BuildDashboardSnapshot()
- {
-    g_dashboard_snapshot = "";
--   g_dashboard_snapshot += "=== BBMA EA V4.5.1 ===\n";
-+   g_dashboard_snapshot += "=== BBMA EA V4.5.1 D1-01 ===\n";
-    g_dashboard_snapshot += "Time: " + TimeToString(TimeCurrent()) + "\n";
-    g_dashboard_snapshot += "Balance: " + DoubleToString(AccountBalance(), 2) + "\n";
-    g_dashboard_snapshot += "Equity: " + DoubleToString(AccountEquity(), 2) + "\n";
-@@ -6608,7 +6730,7 @@ int OnInit()
+@@ -6608,7 +6734,7 @@ int OnInit()
     }
     
 -   Log(DBG_FULL, "BBMA Professional EA V4.5.1 initialized successfully");

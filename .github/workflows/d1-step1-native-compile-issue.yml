@@ -12,6 +12,7 @@ jobs:
   native-diagnostic:
     if: startsWith(github.event.issue.title, 'RUN D1 STEP1 NATIVE DIAG 20260824')
     runs-on: windows-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
         with:
@@ -41,20 +42,22 @@ jobs:
             if ($text -notmatch 'Version 4\.5\.1 - D1-01 M11 Strategic Owner') { throw 'Unexpected D1-01 build identifier' }
             $blob = (git rev-parse HEAD:blueprint/source/BBMA_EA.mq4).Trim()
             if ($blob -ne '9a077c47592fd9f87ab8b8a52ca39f0ee54b7c28') { throw "Unexpected Git source blob: $blob" }
-            # Windows checkout may convert LF to CRLF, so raw working-tree SHA is diagnostic only.
-            # Git blob SHA above is the exact repository identity gate.
             $worktreeSha = (Get-FileHash $src -Algorithm SHA256).Hash.ToLower()
 
             $stage = 'ACQUIRE_METAEDITOR'
             $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
             if (-not $meta) {
               $url = 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe'
-              Invoke-WebRequest -Uri $url -OutFile "$env:RUNNER_TEMP\mt4setup.exe" -UseBasicParsing
-              Start-Process -FilePath "$env:RUNNER_TEMP\mt4setup.exe" -ArgumentList '/auto' -Wait
+              $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+              Invoke-WebRequest -Uri $url -OutFile $setup -UseBasicParsing
+              $proc = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
+              if (-not $proc.WaitForExit(120000)) {
+                try { $proc.Kill() } catch {}
+              }
               Start-Sleep -Seconds 5
               $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
             }
-            if (-not $meta) { throw 'MT4 MetaEditor not found after official installer attempt' }
+            if (-not $meta) { throw 'MT4 MetaEditor not found after bounded official installer attempt' }
             $metaPath = $meta.FullName
 
             $stage = 'COMPILE'

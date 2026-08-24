@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
-"""Reconcile hash-only N2 closed outcomes to validated DecisionIDs, fail-closed.
+"""Reconcile N2 closed outcomes to validated DecisionIDs, fail-closed.
 
-Research/diagnostic only. This implements the existing MQL4 SHORT_HASH identity
-algorithm and resolves a recovered `[N2-NMJE-OUT] DID=- DIDH=<hash>` only when
-that hash maps to exactly one validated DecisionID in the analyzed N2
-correlation dataset. Pair identity must also match. If `[N2-NMJE-DEC]` carries
-DIDH, that logged hash must equal the locally reconstructed hash of the decoded
-DecisionID. Collisions, mismatches, duplicates and ambiguous mappings are never
-guessed.
+Research/diagnostic only. Hash-only recovery is allowed only when DIDH maps to
+exactly one validated DecisionID and pair identity matches. Full DecisionID
+outcomes are also integrity-checked: their logged DIDH must equal the local
+EA-compatible SHORT_HASH and their pair must match the correlated validated
+decision. Corrupted or ambiguous telemetry is excluded rather than guessed.
 """
 
 from __future__ import annotations
@@ -24,11 +22,9 @@ HEX_DIGITS = "0123456789ABCDEF"
 
 
 def mql4_short_hash(text: str, chars: int = 16) -> str:
-    """Mirror BBMA_EA.mq4 SHORT_HASH for ASCII DecisionID payloads."""
     value = 0
     for ch in text:
         value = (value * MULTIPLIER + ord(ch)) & MASK64
-
     out: list[str] = []
     for _ in range(min(chars, 16)):
         out.append(HEX_DIGITS[value & 0xF])
@@ -40,8 +36,9 @@ def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def build_decision_hash_index(correlation: dict) -> tuple[dict[str, list[dict]], list[str], list[dict]]:
+def build_decision_identity_index(correlation: dict) -> tuple[dict[str, list[dict]], dict[str, dict], list[str], list[dict]]:
     by_hash: dict[str, list[dict]] = defaultdict(list)
+    by_id: dict[str, dict] = {}
     seen_ids: set[str] = set()
     duplicate_ids: list[str] = []
     logged_hash_mismatches: list[dict] = []
@@ -53,6 +50,8 @@ def build_decision_hash_index(correlation: dict) -> tuple[dict[str, list[dict]],
             continue
         if did in seen_ids:
             duplicate_ids.append(did)
+        else:
+            by_id[did] = decision
         seen_ids.add(did)
 
         computed = mql4_short_hash(did)
@@ -66,24 +65,62 @@ def build_decision_hash_index(correlation: dict) -> tuple[dict[str, list[dict]],
                     "computed_hash": computed,
                 }
             )
-            # Corrupted/mismatched telemetry must not participate in recovery.
             continue
-
         by_hash[computed].append(decision)
 
-    return dict(by_hash), sorted(set(duplicate_ids)), logged_hash_mismatches
+    return dict(by_hash), by_id, sorted(set(duplicate_ids)), logged_hash_mismatches
 
 
 def reconcile(correlation: dict, extraction: dict) -> dict:
-    by_hash, duplicate_correlation_ids, logged_hash_mismatches = build_decision_hash_index(correlation)
+    by_hash, by_id, duplicate_correlation_ids, logged_hash_mismatches = build_decision_identity_index(correlation)
 
-    exact_rows = list(extraction.get("valid_exact_rows") or [])
+    exact_rows_raw = list(extraction.get("valid_exact_rows") or [])
     hash_only_rows = list(extraction.get("hash_only_rows") or [])
     duplicate_tickets = set(extraction.get("duplicate_tickets") or [])
     duplicate_dids = set(extraction.get("duplicate_decision_ids") or [])
 
-    exact_ids = {str(row.get("decision_id") or "") for row in exact_rows}
-    exact_tickets = {int(row.get("ticket")) for row in exact_rows if row.get("ticket") is not None}
+    bad_correlation_dids = {str(x.get("decision_id") or "") for x in logged_hash_mismatches}
+    exact_outcome_identity_issues: list[dict] = []
+    validated_exact_rows: list[dict] = []
+
+    for raw in exact_rows_raw:
+        row = dict(raw)
+        did = str(row.get("decision_id") or "").strip()
+        pair = str(row.get("pair") or "").strip()
+        logged_hash = str(row.get("decision_hash") or "").strip()
+        issue = ""
+
+        if not did or did == "-":
+            issue = "MISSING_FULL_DECISION_ID"
+        elif did in duplicate_correlation_ids or did in duplicate_dids:
+            issue = "DUPLICATE_DECISION_ID"
+        elif did in bad_correlation_dids:
+            issue = "CORRELATION_DECISION_HASH_INVALID"
+        elif logged_hash in ("", "-"):
+            issue = "MISSING_OUTCOME_DECISION_HASH"
+        elif logged_hash != mql4_short_hash(did):
+            issue = "OUTCOME_DECISION_HASH_MISMATCH"
+        elif did not in by_id:
+            issue = "DECISION_ID_NOT_IN_CORRELATION"
+        elif str(by_id[did].get("pair") or "") != pair:
+            issue = "OUTCOME_PAIR_IDENTITY_MISMATCH"
+
+        if issue:
+            bad = dict(row)
+            bad["identity_issue"] = issue
+            if did and did != "-":
+                bad["computed_hash"] = mql4_short_hash(did)
+            if did in by_id:
+                bad["correlation_pair"] = str(by_id[did].get("pair") or "")
+            exact_outcome_identity_issues.append(bad)
+            continue
+
+        validated_exact_rows.append(row)
+
+    # Reserve all exact identities/tickets, including invalid exact telemetry,
+    # so the same closed order cannot be silently re-attributed through a hash row.
+    exact_ids_all = {str(row.get("decision_id") or "") for row in exact_rows_raw}
+    exact_tickets_all = {int(row.get("ticket")) for row in exact_rows_raw if row.get("ticket") is not None}
 
     reconciled: list[dict] = []
     unresolved: list[dict] = []
@@ -97,7 +134,7 @@ def reconcile(correlation: dict, extraction: dict) -> dict:
         pair = str(row.get("pair") or "").strip()
         ticket = int(row.get("ticket") or 0)
 
-        if not h:
+        if h in ("", "-"):
             row["unresolved_reason"] = "MISSING_DECISION_HASH"
             unresolved.append(row)
             continue
@@ -134,7 +171,7 @@ def reconcile(correlation: dict, extraction: dict) -> dict:
             row["unresolved_reason"] = "DUPLICATE_DECISION_ID"
             unresolved.append(row)
             continue
-        if did in exact_ids or ticket in exact_tickets:
+        if did in exact_ids_all or ticket in exact_tickets_all:
             row["unresolved_reason"] = "ALREADY_PRESENT_AS_EXACT_OUTCOME"
             unresolved.append(row)
             continue
@@ -151,9 +188,9 @@ def reconcile(correlation: dict, extraction: dict) -> dict:
         seen_reconciled_tickets.add(ticket)
 
     combined = []
-    for raw in exact_rows:
+    for raw in validated_exact_rows:
         row = dict(raw)
-        row["identity_provenance"] = "FULL_DECISION_ID"
+        row["identity_provenance"] = "FULL_DECISION_ID_PLUS_HASH"
         combined.append(row)
     combined.extend(reconciled)
 
@@ -165,21 +202,24 @@ def reconcile(correlation: dict, extraction: dict) -> dict:
     identity_valid = not (
         duplicate_correlation_ids
         or logged_hash_mismatches
+        or exact_outcome_identity_issues
         or collision_hashes
         or combined_duplicate_dids
         or combined_duplicate_tickets
     )
 
     return {
-        "correlation_decision_count": sum(len(v) for v in by_hash.values()) + len(logged_hash_mismatches),
+        "correlation_decision_count": len(by_id),
         "unique_hash_count": len(by_hash),
-        "exact_outcome_count": len(exact_rows),
+        "exact_outcome_count": len(exact_rows_raw),
+        "validated_exact_outcome_count": len(validated_exact_rows),
         "hash_only_input_count": len(hash_only_rows),
         "reconciled_hash_only_count": len(reconciled),
         "combined_outcome_count": len(combined),
         "identity_valid": identity_valid,
         "duplicate_correlation_decision_ids": duplicate_correlation_ids,
         "logged_decision_hash_mismatches": logged_hash_mismatches,
+        "exact_outcome_identity_issues": exact_outcome_identity_issues,
         "collision_hashes": collision_hashes,
         "combined_duplicate_decision_ids": combined_duplicate_dids,
         "combined_duplicate_tickets": combined_duplicate_tickets,
@@ -206,12 +246,14 @@ def print_report(report: dict) -> None:
     print("N2 NMJE HASH IDENTITY RECONCILIATION")
     print("====================================")
     print(f"Validated DecisionIDs : {report['correlation_decision_count']}")
-    print(f"Exact outcomes        : {report['exact_outcome_count']}")
+    print(f"Exact outcomes input  : {report['exact_outcome_count']}")
+    print(f"Exact outcomes valid  : {report['validated_exact_outcome_count']}")
     print(f"Hash-only inputs      : {report['hash_only_input_count']}")
     print(f"Hash reconciled       : {report['reconciled_hash_only_count']}")
     print(f"Combined outcomes     : {report['combined_outcome_count']}")
     print(f"Unresolved hash-only  : {len(report['unresolved_hash_only_rows'])}")
-    print(f"DIDH mismatches       : {len(report['logged_decision_hash_mismatches'])}")
+    print(f"DEC DIDH mismatches   : {len(report['logged_decision_hash_mismatches'])}")
+    print(f"OUT identity issues   : {len(report['exact_outcome_identity_issues'])}")
     print(f"Hash collisions       : {len(report['collision_hashes'])}")
     print(f"Identity valid        : {'YES' if report['identity_valid'] else 'NO'}")
 

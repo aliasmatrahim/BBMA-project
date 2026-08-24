@@ -1,0 +1,4 @@
+trigger=2026-08-24T21:21+08:00
+target_head=bba72c6ea85e475e796b3e780d8d18783a93fa66
+source_blob=e1329219e8fad10e4242f7cf2769593cdf09063e
+purpose=N1-04 runtime observation smoke

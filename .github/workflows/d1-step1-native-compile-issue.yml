@@ -1,16 +1,15 @@
-name: D1 Step2 temporary dispatcher
+name: D1 Step2 temporary PR dispatcher
 
 on:
-  issues:
+  pull_request:
     types: [opened]
 
 permissions:
   contents: write
-  issues: write
 
 jobs:
   d1-step2:
-    if: github.event.issue.title == 'RUN D1 STEP2 VIA ENABLED DISPATCHER 20260824'
+    if: github.event.pull_request.title == 'RUN D1 STEP2 PR DISPATCH 20260824'
     runs-on: windows-latest
     timeout-minutes: 8
     steps:
@@ -62,13 +61,9 @@ jobs:
           $errors = [int]$m.Groups[1].Value
           $warnings = [int]$m.Groups[2].Value
           if ($errors -ne 0 -or $warnings -ne 0) { throw "Native compile failed: $errors errors / $warnings warnings" }
-          "ERRORS=$errors" | Out-File -FilePath $env:GITHUB_ENV -Append
-          "WARNINGS=$warnings" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Finalize and push d1-owner-dev only
         shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
           python .\blueprint\tools\d1_step2_apply.py --finalize
@@ -78,5 +73,3 @@ jobs:
           git add blueprint/source/BBMA_EA.mq4 blueprint/contracts/M15_FINAL_SIGNAL_AUTHORITY_CONTRACT.md blueprint/contracts/M16_CONFLICT_INVALIDATION_CONTRACT.md blueprint/D1_STEP2_M15_M16_STRATEGIC_GATE_IMPLEMENTATION_AUDIT_20260824.md
           git commit -m 'D1-02: implement M15-M16 strategic D1 gate [skip ci]'
           git push origin HEAD:d1-owner-dev
-          gh issue comment "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --body "D1-02 PASS: static integrity PASS; native MetaEditor $env:ERRORS errors / $env:WARNINGS warnings; committed to d1-owner-dev; blueprint-dev unchanged."
-          gh issue close "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --comment 'D1-02 completed.'

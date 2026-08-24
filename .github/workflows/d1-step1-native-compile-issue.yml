@@ -26,7 +26,9 @@ jobs:
           $ok = $false
           $stage = 'START'
           $detail = ''
-          $sha = ''
+          $canonicalSha = '423ddc4217ac1aebf83745348a34fa2fc3200916bb2456720fd7a090a4726367'
+          $blob = ''
+          $worktreeSha = ''
           $errors = -1
           $warnings = -1
           $metaPath = ''
@@ -37,8 +39,11 @@ jobs:
             if (-not (Test-Path $src)) { throw 'D1-01 source missing' }
             $text = Get-Content $src -Raw
             if ($text -notmatch 'Version 4\.5\.1 - D1-01 M11 Strategic Owner') { throw 'Unexpected D1-01 build identifier' }
-            $sha = (Get-FileHash $src -Algorithm SHA256).Hash.ToLower()
-            if ($sha -ne '423ddc4217ac1aebf83745348a34fa2fc3200916bb2456720fd7a090a4726367') { throw "Unexpected source SHA256: $sha" }
+            $blob = (git rev-parse HEAD:blueprint/source/BBMA_EA.mq4).Trim()
+            if ($blob -ne '9a077c47592fd9f87ab8b8a52ca39f0ee54b7c28') { throw "Unexpected Git source blob: $blob" }
+            # Windows checkout may convert LF to CRLF, so raw working-tree SHA is diagnostic only.
+            # Git blob SHA above is the exact repository identity gate.
+            $worktreeSha = (Get-FileHash $src -Algorithm SHA256).Hash.ToLower()
 
             $stage = 'ACQUIRE_METAEDITOR'
             $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -68,7 +73,7 @@ jobs:
             if ($errors -ne 0 -or $warnings -ne 0) { throw "MetaEditor produced $errors errors / $warnings warnings" }
             $ok = $true
             $stage = 'PASS'
-            $detail = 'Exact D1-01 source compiled 0E0W and EX4 was produced.'
+            $detail = 'Exact D1-01 Git blob compiled 0E0W and EX4 was produced.'
           }
           catch {
             $detail = $_.Exception.Message
@@ -79,7 +84,9 @@ jobs:
           $lines.Add("")
           $lines.Add("- OK: $ok")
           $lines.Add("- Stage: $stage")
-          $lines.Add("- Source SHA256: $sha")
+          $lines.Add("- Git blob: $blob")
+          $lines.Add("- Canonical LF SHA256: $canonicalSha")
+          $lines.Add("- Windows worktree SHA256: $worktreeSha")
           $lines.Add("- MetaEditor: $metaPath")
           $lines.Add("- Errors: $errors")
           $lines.Add("- Warnings: $warnings")

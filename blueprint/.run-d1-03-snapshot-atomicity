@@ -1,4 +1,4 @@
-run=20260824T1205+08
+run=20260824T1211+08
 source=d1-owner-dev
 input_blob=72c4ad75b8e167095acbcc13639eeb48fe4dceba
-purpose=D1-03 retry after MQL4 local-reference compatibility repair
+purpose=D1-03 hardened rerun: atomic snapshot repair + static verify + MQL4 compat + native MetaEditor 0E0W + EX4 + isolated push

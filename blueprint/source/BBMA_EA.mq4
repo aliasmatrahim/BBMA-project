@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.5.1 - D1-08 Runtime Identity Sync                    |
+//| Version 4.5.1 - D1-09 Default 20 Pair Universe                 |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -72,7 +72,7 @@ enum ENUM_DEBUG_LEVEL
 input ENUM_ENTRY_MODE_INPUT EntryMode             = MODE_2_ALL_VALIDATED_BBMA; // 01 Trading | Mode 1=RE only, Mode 2=RE+REM/RRE/REE
 
 //--- 02 PAIR SELECTION
-input string   PairList                           = "EURUSD,USDJPY,GBPUSD,AUDUSD,USDCAD,USDCHF,NZDUSD"; // 02 Pairs | comma-separated symbols
+input string   PairList                           = "EURUSD,GBPUSD,USDJPY,USDCHF,USDCAD,AUDUSD,NZDUSD,EURJPY,GBPJPY,EURGBP,AUDJPY,CADJPY,CHFJPY,NZDJPY,EURAUD,EURCAD,EURCHF,GBPAUD,GBPCAD,AUDCAD"; // 02 Pairs | default 20-pair FX universe
 
 //--- 03 TRADE LIMITS
 input int      MaxTradePerPair                    = 2;          // 03 Limits | max live trades per pair
@@ -6192,7 +6192,7 @@ void RecoverExistingOrders()
 void BuildDashboardSnapshot()
 {
    g_dashboard_snapshot = "";
-   g_dashboard_snapshot += "=== BBMA EA V4.5.1 D1-08 ===\n";
+   g_dashboard_snapshot += "=== BBMA EA V4.5.1 D1-09 ===\n";
    g_dashboard_snapshot += "Time: " + TimeToString(TimeCurrent()) + "\n";
    g_dashboard_snapshot += "Balance: " + DoubleToString(AccountBalance(), 2) + "\n";
    g_dashboard_snapshot += "Equity: " + DoubleToString(AccountEquity(), 2) + "\n";
@@ -6892,7 +6892,7 @@ int OnInit()
       return INIT_FAILED;
    }
    
-   Log(DBG_FULL, "BBMA EA V4.5.1 D1-08 initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.5.1 D1-09 initialized successfully");
    return INIT_SUCCEEDED;
 }
 

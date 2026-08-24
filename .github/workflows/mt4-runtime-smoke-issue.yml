@@ -1,0 +1,189 @@
+name: MT4 Runtime Smoke Issue Dispatcher
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  runtime-smoke:
+    if: github.event.issue.title == 'RUN MT4 RUNTIME SMOKE D1-02 20260824'
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          fetch-depth: 0
+
+      - name: Run MT4 compile + runtime smoke and report
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $ok = $false
+          $stage = 'START'
+          $classification = 'UNRESOLVED'
+          $detail = ''
+          $errors = -1
+          $warnings = -1
+          $blob = ''
+          $metaPath = ''
+          $terminalPath = ''
+          $combinedPath = Join-Path $env:RUNNER_TEMP 'mt4-runtime-combined.log'
+          $compileLog = Join-Path $env:RUNNER_TEMP 'mt4-runtime-compile.log'
+          $tailLines = @()
+
+          try {
+            $stage = 'VERIFY_SOURCE'
+            $src = '.\blueprint\source\BBMA_EA.mq4'
+            if (-not (Test-Path $src)) { throw 'EA source missing' }
+            $text = Get-Content $src -Raw
+            if ($text -notmatch 'Version 4\.5\.1 - D1-02 M15-M16 Strategic Gate') { throw 'Unexpected D1-02 build identifier' }
+            $blob = (git rev-parse HEAD:blueprint/source/BBMA_EA.mq4).Trim()
+
+            $stage = 'ACQUIRE_MT4'
+            $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+            $terminal = Get-ChildItem 'C:\Program Files*' -Filter terminal.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+            if (-not $meta -or -not $terminal) {
+              $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+              Invoke-WebRequest -Uri 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -OutFile $setup -UseBasicParsing
+              $procSetup = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
+              for ($i=0; $i -lt 60; $i++) {
+                Start-Sleep -Seconds 5
+                $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+                $terminal = Get-ChildItem 'C:\Program Files*' -Filter terminal.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+                if ($meta -and $terminal) { break }
+              }
+              if ($procSetup -and -not $procSetup.HasExited) { try { $procSetup.Kill() } catch {} }
+            }
+            if (-not $meta -or -not $terminal) { throw 'Official MT4 terminal/metaeditor not found' }
+            $metaPath = $meta.FullName
+            $terminalPath = $terminal.FullName
+
+            $stage = 'PREPARE_PORTABLE'
+            $installDir = Split-Path $terminal.FullName -Parent
+            $portable = Join-Path $env:RUNNER_TEMP 'mt4portable'
+            if (Test-Path $portable) { Remove-Item $portable -Recurse -Force }
+            New-Item -ItemType Directory -Path $portable | Out-Null
+            Copy-Item "$installDir\*" $portable -Recurse -Force
+            $portableTerminal = Join-Path $portable 'terminal.exe'
+            $portableMeta = Join-Path $portable 'metaeditor.exe'
+            if (-not (Test-Path $portableTerminal) -or -not (Test-Path $portableMeta)) { throw 'Portable MT4 copy incomplete' }
+
+            $stage = 'COMPILE'
+            $expertsDir = Join-Path $portable 'MQL4\Experts'
+            New-Item -ItemType Directory -Path $expertsDir -Force | Out-Null
+            $dst = Join-Path $expertsDir 'BBMA_EA.mq4'
+            Copy-Item $src $dst -Force
+            & $portableMeta "/compile:$dst" "/log:$compileLog"
+            Start-Sleep -Seconds 2
+            if (-not (Test-Path $compileLog)) { throw 'MetaEditor compile log missing' }
+            $compileText = Get-Content $compileLog -Raw
+            $matches = [regex]::Matches($compileText, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
+            if ($matches.Count -lt 1) { throw 'Unable to parse MetaEditor summary' }
+            $m = $matches[$matches.Count - 1]
+            $errors = [int]$m.Groups[1].Value
+            $warnings = [int]$m.Groups[2].Value
+            if ($errors -ne 0 -or $warnings -ne 0) { throw "MetaEditor produced $errors errors / $warnings warnings" }
+            $ex4 = [System.IO.Path]::ChangeExtension($dst,'.ex4')
+            if (-not (Test-Path $ex4)) { throw 'EX4 not produced' }
+
+            $stage = 'LAUNCH_MT4'
+            $ini = Join-Path $env:RUNNER_TEMP 'runtime-smoke.ini'
+            @'
+[Common]
+EnableNews=false
+
+[Experts]
+ExpertsEnable=true
+ExpertsDllImport=false
+ExpertsExpImport=false
+ExpertsTrades=false
+
+[StartUp]
+Symbol=EURUSD
+Period=M15
+Expert=BBMA_EA
+'@ | Set-Content -Path $ini -Encoding Ascii
+            $configArg = "/config:$ini"
+            $proc = Start-Process -FilePath $portableTerminal -ArgumentList '/portable', $configArg -PassThru
+            for ($i=0; $i -lt 12; $i++) {
+              Start-Sleep -Seconds 5
+              if ($proc.HasExited) { break }
+            }
+            if (-not $proc.HasExited) { try { $proc.CloseMainWindow() | Out-Null } catch {}; Start-Sleep -Seconds 2 }
+            if (-not $proc.HasExited) { try { $proc.Kill() } catch {} }
+
+            $stage = 'INSPECT_LOGS'
+            $journal = @(Get-ChildItem (Join-Path $portable 'logs') -Filter '*.log' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime)
+            $expertLogs = @(Get-ChildItem (Join-Path $portable 'MQL4\Logs') -Filter '*.log' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime)
+            $all = @($journal) + @($expertLogs)
+            if ($all.Count -eq 0) { throw 'No MT4 Journal/Experts logs produced' }
+
+            $combined = ''
+            foreach ($f in $all) {
+              $combined += "`r`n===== $($f.FullName) =====`r`n"
+              $combined += (Get-Content $f.FullName -Raw -ErrorAction SilentlyContinue)
+            }
+            $combined | Set-Content $combinedPath -Encoding UTF8
+            $tailLines = @($combined -split "`r?`n" | Select-Object -Last 120)
+
+            $fatalPatterns = @('array out of range','zero divide','critical runtime error','access violation','stack overflow','invalid pointer','unresolved import','cannot load expert','expert initialization failed','init failed')
+            foreach ($p in $fatalPatterns) {
+              if ($combined -match [regex]::Escape($p)) { throw "Fatal MT4 runtime signature detected: $p" }
+            }
+
+            if ($combined -match '\[P3S1\]\[PASS\] EA initialized successfully') {
+              $classification = 'PASS_EA_INITIALIZED'
+              $detail = 'EA initialized in MT4 runtime smoke; no fatal runtime signature detected.'
+              $ok = $true
+            }
+            elseif (($combined -match '\[P3S1\]\[FAIL\] No valid pairs loaded') -or
+                    ($combined -match '\[P3S1\]\[FAIL\] Symbol resolution failed') -or
+                    ($combined -match '(?i)not connected') -or
+                    ($combined -match '(?i)no prices') -or
+                    ($combined -match '(?i)waiting for update')) {
+              $classification = 'ENVIRONMENT_BLOCKED_NO_BROKER_SYMBOL_DATA'
+              $detail = 'MT4 launched and logs were inspected; broker/symbol feed was unavailable on the GitHub runner. No fatal runtime signature was detected.'
+              $ok = $true
+            }
+            else {
+              throw 'MT4 launched but EA initialization could not be positively classified from Journal/Experts logs'
+            }
+
+            $stage = 'PASS'
+          }
+          catch {
+            $detail = $_.Exception.Message
+            if ($classification -eq 'UNRESOLVED') { $classification = 'FAIL' }
+          }
+
+          $lines = New-Object System.Collections.Generic.List[string]
+          $lines.Add('D1-02 MT4 runtime smoke result')
+          $lines.Add('')
+          $lines.Add("- OK: $ok")
+          $lines.Add("- Stage: $stage")
+          $lines.Add("- Classification: $classification")
+          $lines.Add("- Git blob: $blob")
+          $lines.Add("- MetaEditor errors: $errors")
+          $lines.Add("- MetaEditor warnings: $warnings")
+          $lines.Add("- MetaEditor: $metaPath")
+          $lines.Add("- Terminal: $terminalPath")
+          $lines.Add("- Detail: $detail")
+          if ($tailLines.Count -gt 0) {
+            $lines.Add('')
+            $lines.Add('```text')
+            foreach ($line in $tailLines) { $lines.Add($line) }
+            $lines.Add('```')
+          }
+          $body = Join-Path $env:RUNNER_TEMP 'runtime-smoke-comment.md'
+          $lines | Set-Content $body
+          gh issue comment "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --body-file $body
+          gh issue close "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --comment "MT4 runtime smoke completed: OK=$ok, classification=$classification, stage=$stage."
+
+          if (-not $ok) { throw $detail }

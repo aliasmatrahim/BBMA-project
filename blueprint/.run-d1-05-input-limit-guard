@@ -1,4 +1,4 @@
-run=20260824T1241+08
+run=20260824T1247+08
 source=d1-owner-dev
 input_blob=d6e7796b6d228cc281857ab0badbe8376ddc29a0
-purpose=raise pair capacity to 40, sanitize MaxActivePair, keep EA attached on recoverable limit input
+purpose=retry input limit guard after contract newline normalization

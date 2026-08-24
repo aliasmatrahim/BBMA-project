@@ -1,0 +1,42 @@
+name: N2 NMJE Research Tooling PR Self-Test
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'blueprint/.run-n2-research-pr-selftest'
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-selftest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 1
+
+      - name: Run N2 synthetic research tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python blueprint/tests/test_n2_nmje_decision_correlator.py
+          python blueprint/tests/test_n2_nmje_outcome_attributor.py
+          python blueprint/tests/test_n2_nmje_evidence_sufficiency.py
+          python blueprint/tests/test_n2_nmje_research_pipeline.py
+          python blueprint/tests/test_n2_nmje_outcome_log_extractor.py
+          python blueprint/tests/test_n2_nmje_hash_identity_reconciler.py
+          python blueprint/tests/test_n2_nmje_auto_research_pipeline.py
+
+      - name: Verify research-only guardrails
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'DESCRIPTIVE_RESEARCH_ONLY' blueprint/tools/n2_nmje_evidence_sufficiency.py
+          grep -q 'nested_execution_gate_authorized' blueprint/tools/n2_nmje_evidence_sufficiency.py
+          grep -q 'UNIQUE_SHORT_HASH_PLUS_PAIR' blueprint/tools/n2_nmje_hash_identity_reconciler.py
+          grep -q 'No BBMA strategy semantics or execution gate changes' blueprint/N2_NMJE_RESEARCH_METHODOLOGY.md || true

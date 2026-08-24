@@ -9,7 +9,6 @@ mod = importlib.util.module_from_spec(spec)
 assert spec and spec.loader
 spec.loader.exec_module(mod)
 
-# Stable mirror checks for the EA's least-significant-nibble-first SHORT_HASH.
 assert mod.mql4_short_hash("") == "0000000000000000"
 assert len(mod.mql4_short_hash("EURUSD|2026.08.25 00:00|1|8|ABC")) == 16
 
@@ -21,8 +20,8 @@ assert h1 != h2
 
 correlation = {
     "rows": [
-        {"decision": {"decision_id": d1, "pair": "EURUSD", "signal": "SIGNAL_REM"}},
-        {"decision": {"decision_id": d2, "pair": "GBPUSD", "signal": "SIGNAL_RE_ENTRY"}},
+        {"decision": {"decision_id": d1, "decision_hash": h1, "pair": "EURUSD", "signal": "SIGNAL_REM"}},
+        {"decision": {"decision_id": d2, "decision_hash": h2, "pair": "GBPUSD", "signal": "SIGNAL_RE_ENTRY"}},
     ]
 }
 extraction = {
@@ -63,6 +62,7 @@ extraction = {
 
 report = mod.reconcile(correlation, extraction)
 assert report["identity_valid"] is True, report
+assert report["logged_decision_hash_mismatches"] == [], report
 assert report["exact_outcome_count"] == 1, report
 assert report["hash_only_input_count"] == 2, report
 assert report["reconciled_hash_only_count"] == 1, report
@@ -72,7 +72,6 @@ assert report["reconciled_rows"][0]["identity_provenance"] == "UNIQUE_SHORT_HASH
 assert len(report["unresolved_hash_only_rows"]) == 1, report
 assert report["unresolved_hash_only_rows"][0]["unresolved_reason"] == "HASH_NOT_FOUND_IN_VALIDATED_DECISIONS", report
 
-# Pair mismatch must fail closed even with a unique hash.
 pair_bad = dict(extraction)
 pair_bad["valid_exact_rows"] = []
 pair_bad["hash_only_rows"] = [dict(extraction["hash_only_rows"][0])]
@@ -81,7 +80,24 @@ pair_report = mod.reconcile(correlation, pair_bad)
 assert pair_report["reconciled_hash_only_count"] == 0, pair_report
 assert pair_report["unresolved_hash_only_rows"][0]["unresolved_reason"] == "PAIR_IDENTITY_MISMATCH", pair_report
 
-# Deliberately force a hash collision in the index to verify fail-closed logic.
+# Logged DIDH must agree with the hash reconstructed from decoded DecisionID.
+hash_bad_corr = {
+    "rows": [
+        {"decision": {"decision_id": d2, "decision_hash": "BADHASH", "pair": "GBPUSD"}},
+    ]
+}
+hash_bad_ext = {
+    "valid_exact_rows": [],
+    "hash_only_rows": [dict(extraction["hash_only_rows"][0])],
+    "duplicate_tickets": [],
+    "duplicate_decision_ids": [],
+}
+hash_bad = mod.reconcile(hash_bad_corr, hash_bad_ext)
+assert hash_bad["identity_valid"] is False, hash_bad
+assert len(hash_bad["logged_decision_hash_mismatches"]) == 1, hash_bad
+assert hash_bad["reconciled_hash_only_count"] == 0, hash_bad
+assert hash_bad["unresolved_hash_only_rows"][0]["unresolved_reason"] == "HASH_NOT_FOUND_IN_VALIDATED_DECISIONS", hash_bad
+
 original_hash = mod.mql4_short_hash
 try:
     mod.mql4_short_hash = lambda text, chars=16: "COLLISION"
@@ -108,4 +124,4 @@ try:
 finally:
     mod.mql4_short_hash = original_hash
 
-print("N2-09 NMJE hash identity reconciler synthetic self-test PASS")
+print("N2-12 NMJE hash identity + logged DIDH integrity self-test PASS")

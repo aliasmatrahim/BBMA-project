@@ -7,7 +7,7 @@ on:
       - 'blueprint/.run-d1-02-runtime-smoke'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   runtime-smoke:
@@ -18,7 +18,7 @@ jobs:
         with:
           ref: main
           path: dispatcher
-          fetch-depth: 1
+          fetch-depth: 0
 
       - uses: actions/checkout@v4
         with:
@@ -33,10 +33,47 @@ jobs:
           & '.\dispatcher\blueprint\tools\mt4_runtime_smoke.ps1' -RepoRoot '.\target' -EvidenceDir $evidence
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Publish runtime evidence
+      - name: Publish runtime evidence artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: mt4-runtime-smoke-push-evidence
           path: ${{ runner.temp }}/mt4-runtime-evidence
           if-no-files-found: warn
+
+      - name: Persist latest runtime result to repository
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $evidence = Join-Path $env:RUNNER_TEMP 'mt4-runtime-evidence'
+          $outDir = '.\dispatcher\blueprint\runtime'
+          New-Item -ItemType Directory -Path $outDir -Force | Out-Null
+          $out = Join-Path $outDir 'D1_02_MT4_RUNTIME_SMOKE_LATEST.txt'
+          $lines = New-Object System.Collections.Generic.List[string]
+          $lines.Add('D1-02 MT4 Runtime Smoke - Latest GitHub CI Result')
+          $lines.Add("Run: ${{ github.run_id }}")
+          $lines.Add("Triggered commit: ${{ github.sha }}")
+          $lines.Add('')
+          $result = Join-Path $evidence 'mt4-runtime-result.txt'
+          if (Test-Path $result) {
+            foreach ($line in Get-Content $result) { $lines.Add($line) }
+          } else {
+            $lines.Add('Stage=CI_INFRA_FAILURE')
+            $lines.Add('Classification=FAIL')
+            $lines.Add('Detail=Runtime harness did not produce a result file.')
+          }
+          $combined = Join-Path $evidence 'mt4-runtime-combined.log'
+          if (Test-Path $combined) {
+            $lines.Add('')
+            $lines.Add('--- Journal/Experts tail ---')
+            foreach ($line in (Get-Content $combined | Select-Object -Last 200)) { $lines.Add($line) }
+          }
+          $lines | Set-Content $out -Encoding UTF8
+          git -C '.\dispatcher' config user.name 'github-actions[bot]'
+          git -C '.\dispatcher' config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C '.\dispatcher' add 'blueprint/runtime/D1_02_MT4_RUNTIME_SMOKE_LATEST.txt'
+          if (-not (git -C '.\dispatcher' diff --cached --quiet)) {
+            git -C '.\dispatcher' commit -m 'Record D1-02 MT4 runtime smoke result [skip ci]'
+            git -C '.\dispatcher' push origin HEAD:main
+          }

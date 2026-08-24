@@ -1,0 +1,242 @@
+name: One-shot apply D1 Step 1 M11 owner
+
+on:
+  push:
+    branches: [ d1-owner-dev ]
+    paths:
+      - '.github/workflows/one-shot-apply-d1-step1.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply-d1-step1:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          fetch-depth: 0
+
+      - name: Apply D1-01 patch and verify static integrity
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          PATCH='blueprint/patches/0026-d1-step1-m11-strategic-owner-producer.patch'
+          SRC='blueprint/source/BBMA_EA.mq4'
+          AUDIT='blueprint/D1_STEP1_M11_STRATEGIC_OWNER_IMPLEMENTATION_AUDIT_20260824.md'
+
+          test -f "$PATCH"
+          test -f "$SRC"
+
+          BEFORE_SHA=$(sha256sum "$SRC" | awk '{print $1}')
+
+          git apply --check "$PATCH"
+          git apply "$PATCH"
+          git diff --check
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          import re
+
+          src = Path('blueprint/source/BBMA_EA.mq4')
+          s = src.read_text(encoding='utf-8')
+
+          required_once = [
+              '//| Version 4.5.1 - D1-01 M11 Strategic Owner',
+              'enum ENUM_D1_OWNER_STATE',
+              'struct D1MajorTrendOwner',
+              'D1MajorTrendOwner    d1_major_trend_owner;',
+              'void SetD1OwnerUnresolved(PairState &state, string reason)',
+              'void TraceD1MajorTrendOwner(string pair, PairState &state)',
+              'void UpdateD1MajorTrendOwner(string pair, PairState &state)',
+              'UpdateD1MajorTrendOwner(actual, g_pair_states[pairIndex]);',
+              '=== BBMA EA V4.5.1 D1-01 ===',
+              'BBMA EA V4.5.1 D1-01 initialized successfully',
+          ]
+          for needle in required_once:
+              c = s.count(needle)
+              if c != 1:
+                  raise SystemExit(f'D1-01 static check: expected exactly one {needle!r}, found {c}')
+
+          # Exact canonical owner predicates.
+          if s.count('state.d1_data.close > currentMA50 && currentMA50 > previousMA50') != 1:
+              raise SystemExit('D1 BUY predicate missing/ambiguous')
+          if s.count('state.d1_data.close < currentMA50 && currentMA50 < previousMA50') != 1:
+              raise SystemExit('D1 SELL predicate missing/ambiguous')
+          if s.count('state.d1_major_trend_owner.State = D1_TRANSITION;') != 1:
+              raise SystemExit('D1 transition assignment missing/ambiguous')
+          if s.count('state.d1_major_trend_owner.State = D1_OWNER_UNRESOLVED;') < 1:
+              raise SystemExit('D1 unresolved path missing')
+
+          # Closed-D1 / previous-MA50 source requirements must remain explicit.
+          for needle in [
+              '!state.d1_data.is_closed',
+              'state.d1_data.timeframe != PERIOD_D1',
+              'state.d1_data.barIndex < 1',
+              'EMA(pair, PERIOD_D1, EMA50_PERIOD,',
+              'state.d1_data.barIndex + 1',
+          ]:
+              if needle not in s:
+                  raise SystemExit(f'D1 closed-history guard missing: {needle}')
+
+          # Producer call must occur after D1 snapshot build and before H4 owner update.
+          process_start = s.index('void ProcessPair(int pairIndex)')
+          process_end = s.index('void OnTickMain()', process_start)
+          process = s[process_start:process_end]
+          d1_load = process.index('GetDataForTimeframe(actual, PERIOD_D1')
+          owner_call = process.index('UpdateD1MajorTrendOwner(actual, g_pair_states[pairIndex]);')
+          h4_call = process.index('UpdateRuntimeH4DirectionalOwner(pairIndex);')
+          if not (d1_load < owner_call < h4_call):
+              raise SystemExit('D1 owner producer orchestration order invalid')
+
+          # Step 1 must remain producer-only: M15/M16 may not consume the new owner yet.
+          m15_start = s.index('//| MODULE 15:')
+          m16_start = s.index('//| MODULE 16:', m15_start)
+          m17_start = s.index('//| MODULE 17:', m16_start)
+          if 'd1_major_trend_owner' in s[m15_start:m16_start]:
+              raise SystemExit('D1-01 scope breach: M15 consumes D1 owner in Step 1')
+          if 'd1_major_trend_owner' in s[m16_start:m17_start]:
+              raise SystemExit('D1-01 scope breach: M16 consumes D1 owner in Step 1')
+
+          # Header governance: build identifier must be left-aligned immediately after //| .
+          header_line = next((ln for ln in s.splitlines() if 'D1-01 M11 Strategic Owner' in ln), '')
+          if not header_line.startswith('//| Version 4.5.1 - D1-01 M11 Strategic Owner'):
+              raise SystemExit('D1-01 build identifier is not left-aligned per governance')
+
+          # Lightweight lexer sanity: strip comments/strings before delimiter balance checks.
+          def scrub(text: str) -> str:
+              out=[]
+              i=0
+              n=len(text)
+              state='code'
+              while i<n:
+                  ch=text[i]
+                  nxt=text[i+1] if i+1<n else ''
+                  if state=='code':
+                      if ch=='/' and nxt=='/':
+                          state='line'; out.extend('  '); i+=2; continue
+                      if ch=='/' and nxt=='*':
+                          state='block'; out.extend('  '); i+=2; continue
+                      if ch=='"':
+                          state='string'; out.append(' '); i+=1; continue
+                      out.append(ch); i+=1; continue
+                  if state=='line':
+                      if ch=='\n': state='code'; out.append('\n')
+                      else: out.append(' ')
+                      i+=1; continue
+                  if state=='block':
+                      if ch=='*' and nxt=='/':
+                          state='code'; out.extend('  '); i+=2
+                      else:
+                          out.append('\n' if ch=='\n' else ' '); i+=1
+                      continue
+                  if state=='string':
+                      if ch=='\\':
+                          out.extend('  '); i+=2; continue
+                      if ch=='"': state='code'; out.append(' '); i+=1; continue
+                      out.append('\n' if ch=='\n' else ' '); i+=1
+              return ''.join(out)
+
+          clean = scrub(s)
+          pairs = [('(',')'), ('[',']'), ('{','}')]
+          for a,b in pairs:
+              if clean.count(a) != clean.count(b):
+                  raise SystemExit(f'Delimiter count mismatch {a}{b}: {clean.count(a)} vs {clean.count(b)}')
+
+          # Ensure all 27 module markers survive.
+          for module in range(1, 28):
+              marker = f'MODULE {module:02d}:'
+              if marker not in s:
+                  raise SystemExit(f'Missing module marker {marker}')
+
+          # No strategy pollution in D1 owner block.
+          m11_start = s.index('//| MODULE 11:')
+          m12_start = s.index('//| MODULE 12:', m11_start)
+          m11 = s[m11_start:m12_start]
+          forbidden = ['RSI', 'MACD', 'Stochastic', 'ADX', 'ATR(', 'News', 'Session']
+          for token in forbidden:
+              if token in m11:
+                  raise SystemExit(f'Forbidden non-Core token in M11 D1 owner block: {token}')
+
+          after_sha = hashlib.sha256(s.encode('utf-8')).hexdigest()
+          Path('/tmp/d1_after_sha').write_text(after_sha, encoding='utf-8')
+          PY
+
+          AFTER_SHA=$(cat /tmp/d1_after_sha)
+
+          cat > "$AUDIT" <<EOF
+          # D1 Step 1 — M11 Strategic Owner Implementation Audit
+
+          Date: 2026-08-24  
+          Branch: `d1-owner-dev`  
+          Status: **SOURCE MATERIALIZED / STATIC INTEGRITY PASS / NATIVE METAEDITOR COMPILE PENDING**
+
+          ## Scope
+          Materialize the already-approved D1 strategic-owner producer only. This step intentionally does **not** activate M15/M16 D1 entry gating yet.
+
+          Canonical contract:
+          - `D1 BUY CONFIRMED = closed D1 Close > MA50 AND MA50 rising`;
+          - `D1 SELL CONFIRMED = closed D1 Close < MA50 AND MA50 falling`;
+          - valid disagreement/flat/equality = `D1_TRANSITION`;
+          - invalid/incomplete history = `D1_OWNER_UNRESOLVED`.
+
+          ## Materialized changes
+          - added `ENUM_D1_OWNER_STATE`;
+          - added `D1MajorTrendOwner` state payload in `PairState`;
+          - initialized D1 state fail-closed to unresolved;
+          - implemented M11 closed-D1 owner producer;
+          - reads previous closed-D1 MA50 using the immediately older D1 bar;
+          - added diagnostic D1 owner trace at `DBG_SIGNAL+`;
+          - wired M11 producer after frozen D1 snapshot construction and before H4 runtime-owner update;
+          - build marker = `D1-01 M11 Strategic Owner`, left-aligned in source header;
+          - dashboard/init runtime identifiers carry `D1-01`.
+
+          ## Static checks
+          PASS:
+          - patch applied cleanly;
+          - `git diff --check` clean;
+          - owner predicates unique and exact;
+          - closed-D1/history guards present;
+          - ProcessPair order = D1 snapshot -> M11 owner producer -> H4 owner update;
+          - M15/M16 contain no `d1_major_trend_owner` consumption in Step 1;
+          - delimiter balance sanity passed after comments/strings scrub;
+          - Module 01–27 markers retained;
+          - no RSI/MACD/Stochastic/ADX/news/session/ATR strategy pollution introduced in M11.
+
+          ## Source identity
+          Before SHA-256: `$BEFORE_SHA`  
+          After SHA-256: `$AFTER_SHA`
+
+          ## Compile gate
+          GitHub/Linux static checks are **not** a substitute for native MT4 MetaEditor compilation.
+
+          Required next evidence:
+          - compile this branch's `blueprint/source/BBMA_EA.mq4` in native MetaEditor;
+          - target: **0 errors / 0 warnings**;
+          - do not start D1 Step 2 if native compile exposes a D1-01 defect.
+
+          ## Strategy boundary
+          No M15/M16 D1 strategic gate, M17, risk, lot sizing, order execution, lifecycle exit, dashboard trade-count fix, or F7 broker payload change is activated by D1-01.
+          EOF
+
+          git diff --check
+
+      - name: Commit materialized D1-01 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- blueprint/source/BBMA_EA.mq4 \
+                     blueprint/D1_STEP1_M11_STRATEGIC_OWNER_IMPLEMENTATION_AUDIT_20260824.md
+          git rm -- .github/workflows/one-shot-apply-d1-step1.yml
+          if git diff --cached --quiet; then
+            echo 'No D1-01 changes to commit.'
+            exit 0
+          fi
+          git commit -m "D1-01: materialize M11 strategic owner producer [skip ci]"
+          git push origin HEAD:d1-owner-dev

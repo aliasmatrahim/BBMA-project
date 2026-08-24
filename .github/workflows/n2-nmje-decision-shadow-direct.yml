@@ -1,0 +1,131 @@
+name: N2 NMJE Decision Shadow Direct Compile
+
+on:
+  push:
+    branches: [ d1-owner-dev ]
+    paths:
+      - 'blueprint/.run-n2-decision-shadow-direct'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-compile-commit:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          fetch-depth: 0
+
+      - name: Verify N2 baseline
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = '.\blueprint\source\BBMA_EA.mq4'
+          $blob = (git rev-parse HEAD:blueprint/source/BBMA_EA.mq4).Trim()
+          if ($blob -ne 'e1329219e8fad10e4242f7cf2769593cdf09063e') { throw "Unexpected source blob: $blob" }
+          if (-not (Test-Path '.\blueprint\tools\n2_nmje_decision_shadow_patch.py')) { throw 'N2 patcher missing' }
+          "BASELINE_BLOB=$blob" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Apply N2-01 shadow patch
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python .\blueprint\tools\n2_nmje_decision_shadow_patch.py
+          git diff --check
+          $src = '.\blueprint\source\BBMA_EA.mq4'
+          $txt = Get-Content $src -Raw
+          if ($txt -notmatch '\[N2-NMJE-DEC\]') { throw 'N2 marker missing' }
+          if ($txt -notmatch 'Version 4\.5\.1 - N2-01 NMJE Decision Shadow') { throw 'N2 build id missing' }
+          $calls = ([regex]::Matches($txt, 'NMJE_PrintValidatedDecisionShadow\(pairIndex, decision\);')).Count
+          if ($calls -ne 1) { throw "Expected exactly one N2 shadow call, got $calls" }
+          "N2_SOURCE_BLOB=$((git hash-object $src).Trim())" | Out-File $env:GITHUB_ENV -Append
+          "N2_SOURCE_SHA256=$((Get-FileHash $src -Algorithm SHA256).Hash.ToLower())" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Acquire official MT4 MetaEditor
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $meta) {
+            $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+            Invoke-WebRequest -Uri 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -OutFile $setup -UseBasicParsing
+            $proc = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
+            if (-not $proc.WaitForExit(120000)) { try { $proc.Kill() } catch {} }
+            Start-Sleep -Seconds 5
+            $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          }
+          if (-not $meta) { throw 'MT4 MetaEditor not found' }
+          "METAEDITOR=$($meta.FullName)" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Native MT4 compile 0E0W
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = (Resolve-Path '.\blueprint\source\BBMA_EA.mq4').Path
+          $log = Join-Path $env:RUNNER_TEMP 'n2-direct-metaeditor.log'
+          & "$env:METAEDITOR" "/compile:$src" "/log:$log"
+          Start-Sleep -Seconds 2
+          if (-not (Test-Path $log)) { throw 'Compile log missing' }
+          $txt = Get-Content $log -Raw
+          $matches = [regex]::Matches($txt, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
+          if ($matches.Count -lt 1) { throw 'Unable to parse MetaEditor summary' }
+          $m = $matches[$matches.Count - 1]
+          $errors = [int]$m.Groups[1].Value
+          $warnings = [int]$m.Groups[2].Value
+          if ($errors -ne 0 -or $warnings -ne 0) { throw "Compile failed: $errors errors / $warnings warnings" }
+          "COMPILE_RESULT=0E0W" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Upload compile evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: n2-nmje-decision-shadow-direct-evidence
+          path: |
+            blueprint/source/BBMA_EA.ex4
+            ${{ runner.temp }}/n2-direct-metaeditor.log
+          if-no-files-found: warn
+
+      - name: Commit verified N2-01 source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $audit = @"
+# N2-01 — NMJE Validated Decision Shadow Audit
+
+Date: 2026-08-25  
+Branch: ``d1-owner-dev``  
+Build: ``Version 4.5.1 - N2-01 NMJE Decision Shadow``
+
+## Result
+**PASS — validated-decision nested shadow tag materialized / native MT4 MetaEditor 0 errors / 0 warnings.**
+
+Baseline source blob: ``$env:BASELINE_BLOB``  
+N2 source blob: ``$env:N2_SOURCE_BLOB``  
+N2 source SHA-256: ``$env:N2_SOURCE_SHA256``
+
+## Behaviour
+After M16 validates a real M15 decision, the EA emits one ``[N2-NMJE-DEC]`` record immediately before the existing preflight/execution call. It records signal type, direction, nested relation, parent context, JourneyID and DecisionID.
+
+## Hard invariant
+Shadow metadata only. It does not accept, reject, rank, resize, delay or execute a trade. REM/RRE/REE, D1 gate, M15, M16, SL/TP, risk and broker execution remain unchanged.
+
+## Verification
+- source baseline identity checked;
+- patcher critical-function guards passed;
+- exactly one decision-shadow call;
+- ``git diff --check`` PASS;
+- native MT4 MetaEditor **0E0W**.
+"@
+          Set-Content '.\blueprint\N2_STEP1_NMJE_DECISION_SHADOW_AUDIT_20260825.md' $audit -Encoding UTF8
+          if (Test-Path '.\blueprint\source\BBMA_EA.ex4') { Remove-Item '.\blueprint\source\BBMA_EA.ex4' -Force }
+          Remove-Item '.\blueprint\.run-n2-decision-shadow-direct' -Force
+          Remove-Item '.\.github\workflows\n2-nmje-decision-shadow-direct.yml' -Force
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'N2-01: materialize validated-decision shadow 0E0W [skip ci]'
+          git push origin HEAD:d1-owner-dev

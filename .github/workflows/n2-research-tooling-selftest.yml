@@ -1,0 +1,67 @@
+name: N2 NMJE Research Tooling Self-Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'blueprint/.run-n2-research-selftest'
+
+permissions:
+  contents: write
+
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Run N2 synthetic research tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python blueprint/tests/test_n2_nmje_decision_correlator.py
+          python blueprint/tests/test_n2_nmje_outcome_attributor.py
+          python blueprint/tests/test_n2_nmje_evidence_sufficiency.py
+          python blueprint/tests/test_n2_nmje_research_pipeline.py
+
+      - name: Record tooling audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > blueprint/N2_RESEARCH_TOOLING_SELFTEST_AUDIT_20260825.md <<'EOF'
+          # N2 NMJE Research Tooling Self-Test Audit
+
+          Date: 2026-08-25
+
+          ## Result
+          **PASS — N2 synthetic research tooling tests completed successfully.**
+
+          Verified:
+          - N2-02 decision/journey correlator;
+          - N2-03 realized-outcome attributor;
+          - N2-04 evidence sufficiency / uncertainty reporter;
+          - N2-05 end-to-end research pipeline.
+
+          ## Guardrails
+          - research/diagnostic only;
+          - no EA source modified;
+          - no nested execution gate;
+          - no REM/RRE/REE signature change;
+          - no minimum sample size invented;
+          - outcome attribution uses exact DecisionID identity and fails closed on duplicate identity;
+          - statistical output is descriptive and includes Wilson 95% uncertainty for decisive win rate.
+
+          ## Runtime dependency
+          Actual performance conclusions remain blocked until real MT4 `[N1-NMJE]`, `[N2-NMJE-DEC]` and realized closed-trade outcomes are collected. Synthetic PASS proves tooling mechanics only, not trading edge.
+          EOF
+
+          rm -f blueprint/.run-n2-research-selftest
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'N2: record research tooling self-test PASS [skip ci]'
+          git push origin HEAD:main

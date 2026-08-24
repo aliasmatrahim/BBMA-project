@@ -1,0 +1,187 @@
+name: N1 Step4 Runtime Observation Dispatch
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'blueprint/.run-n1-step4-runtime-observation-main'
+
+permissions:
+  contents: write
+
+jobs:
+  runtime-observation:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: dispatcher
+          fetch-depth: 0
+
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          path: target
+          fetch-depth: 0
+
+      - name: Verify target N1 source identity
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = '.\target\blueprint\source\BBMA_EA.mq4'
+          if (-not (Test-Path $src)) { throw 'EA source missing' }
+          $blob = (git -C target rev-parse HEAD:blueprint/source/BBMA_EA.mq4).Trim()
+          if ($blob -ne 'e1329219e8fad10e4242f7cf2769593cdf09063e') { throw "Unexpected source blob: $blob" }
+          $txt = Get-Content $src -Raw
+          if ($txt -notmatch 'Version 4\.5\.1 - N1-03 NMJE Observer') { throw 'Unexpected build id' }
+          if ($txt -notmatch '\[N1-NMJE\]') { throw 'NMJE diagnostic marker missing' }
+          $head = (git -C target rev-parse HEAD).Trim()
+          "TARGET_BASE_HEAD=$head" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "SOURCE_BLOB=$blob" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Acquire official MT4 terminal and MetaEditor
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          $terminal = Get-ChildItem 'C:\Program Files*' -Filter terminal.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $meta -or -not $terminal) {
+            $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+            Invoke-WebRequest -Uri 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -OutFile $setup -UseBasicParsing
+            $proc = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
+            if (-not $proc.WaitForExit(120000)) { try { $proc.Kill() } catch {} }
+            Start-Sleep -Seconds 5
+            $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+            $terminal = Get-ChildItem 'C:\Program Files*' -Filter terminal.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          }
+          if (-not $meta -or -not $terminal) { throw 'Official MT4 terminal/metaeditor not found' }
+          $installDir = Split-Path $terminal.FullName -Parent
+          $portable = Join-Path $env:RUNNER_TEMP 'mt4-n1-step4'
+          if (Test-Path $portable) { Remove-Item $portable -Recurse -Force }
+          New-Item -ItemType Directory -Path $portable | Out-Null
+          Copy-Item "$installDir\*" $portable -Recurse -Force
+          "MT4DIR=$portable" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Native MetaEditor compile
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $experts = Join-Path $env:MT4DIR 'MQL4\Experts'
+          New-Item -ItemType Directory -Path $experts -Force | Out-Null
+          $dst = Join-Path $experts 'BBMA_EA.mq4'
+          Copy-Item '.\target\blueprint\source\BBMA_EA.mq4' $dst -Force
+          $log = Join-Path $env:RUNNER_TEMP 'n1-step4-compile.log'
+          & (Join-Path $env:MT4DIR 'metaeditor.exe') "/compile:$dst" "/log:$log"
+          Start-Sleep -Seconds 2
+          if (-not (Test-Path $log)) { throw 'Compile log missing' }
+          $txt = Get-Content $log -Raw
+          $txt | Write-Host
+          $matches = [regex]::Matches($txt, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
+          if ($matches.Count -lt 1) { throw 'Unable to parse MetaEditor summary' }
+          $m = $matches[$matches.Count - 1]
+          $errors = [int]$m.Groups[1].Value
+          $warnings = [int]$m.Groups[2].Value
+          if ($errors -ne 0 -or $warnings -ne 0) { throw "Compile failed: $errors errors / $warnings warnings" }
+          "COMPILE_RESULT=0E0W" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Launch MT4 with trading disabled
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $ini = Join-Path $env:RUNNER_TEMP 'n1-step4.ini'
+          @'
+[Common]
+EnableNews=false
+
+[Experts]
+ExpertsEnable=true
+ExpertsDllImport=false
+ExpertsExpImport=false
+ExpertsTrades=false
+
+[StartUp]
+Symbol=EURUSD
+Period=M15
+Expert=BBMA_EA
+'@ | Set-Content -Path $ini -Encoding Ascii
+          $proc = Start-Process -FilePath (Join-Path $env:MT4DIR 'terminal.exe') -ArgumentList '/portable', "/config:$ini" -PassThru
+          for ($i=0; $i -lt 12; $i++) { Start-Sleep -Seconds 5; if ($proc.HasExited) { break } }
+          if (-not $proc.HasExited) { try { $proc.CloseMainWindow() | Out-Null } catch {}; Start-Sleep -Seconds 2 }
+          if (-not $proc.HasExited) { try { $proc.Kill() } catch {} }
+
+      - name: Inspect runtime logs
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $journal = @(Get-ChildItem (Join-Path $env:MT4DIR 'logs') -Filter '*.log' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime)
+          $experts = @(Get-ChildItem (Join-Path $env:MT4DIR 'MQL4\Logs') -Filter '*.log' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime)
+          $all = @($journal) + @($experts)
+          if ($all.Count -eq 0) { throw 'No MT4 logs produced' }
+          $combinedPath = Join-Path $env:RUNNER_TEMP 'n1-step4-runtime-combined.log'
+          $combined = ''
+          foreach ($f in $all) {
+            $combined += "`r`n===== $($f.FullName) =====`r`n"
+            $combined += (Get-Content $f.FullName -Raw -ErrorAction SilentlyContinue)
+          }
+          $combined | Set-Content $combinedPath -Encoding UTF8
+          $fatalPatterns = @('array out of range','zero divide','critical runtime error','access violation','stack overflow','invalid pointer','cannot load expert','expert initialization failed','init failed')
+          foreach ($p in $fatalPatterns) { if ($combined -match [regex]::Escape($p)) { throw "Fatal runtime signature: $p" } }
+          $classification = 'ATTACH_OK_NO_MARKET_DATA'
+          if ($combined -match '\[N1-NMJE\]') { $classification = 'NMJE_RUNTIME_MARKER_OBSERVED' }
+          elseif ($combined -match 'N1-03 initialized successfully') { $classification = 'EA_INIT_OK_NO_NMJE_CYCLE_YET' }
+          elseif ($combined -match '(?i)not connected|no prices|waiting for update|no valid pairs loaded|symbol resolution failed') { $classification = 'ENVIRONMENT_BLOCKED_NO_BROKER_DATA' }
+          "RUNTIME_CLASSIFICATION=$classification" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "RUNTIME_CLASSIFICATION=$classification"
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: n1-step4-runtime-observation-evidence
+          path: |
+            ${{ runner.temp }}/n1-step4-compile.log
+            ${{ runner.temp }}/n1-step4-runtime-combined.log
+          if-no-files-found: warn
+
+      - name: Commit N1-04 audit to target branch
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $audit = @"
+# N1-04 — NMJE Runtime Observation Audit
+
+Date: 2026-08-24  
+Branch: ``d1-owner-dev``  
+Source blob: ``$env:SOURCE_BLOB``
+
+## Result
+- Native MT4 compile: **$env:COMPILE_RESULT**
+- Runtime classification: **$env:RUNTIME_CLASSIFICATION**
+- Trading disabled during smoke test.
+- No fatal MT4 runtime signature was accepted.
+
+## Scope
+Runtime/attachment validation only. No nested execution gate and no BBMA trade behavior change.
+
+## Next
+Analyze live/demo ``[N1-NMJE]`` lines with ``blueprint/tools/n1_nmje_log_analyzer.py``. CI without broker data is environment-limited, not a strategy failure.
+"@
+          Set-Content '.\target\blueprint\N1_STEP4_NMJE_RUNTIME_OBSERVATION_AUDIT_20260824.md' $audit -Encoding UTF8
+          if (Test-Path '.\target\blueprint\.run-n1-step4-runtime-observation') { Remove-Item '.\target\blueprint\.run-n1-step4-runtime-observation' -Force }
+          if (Test-Path '.\target\.github\workflows\n1-step4-runtime-observation.yml') { Remove-Item '.\target\.github\workflows\n1-step4-runtime-observation.yml' -Force }
+          Push-Location target
+          try {
+            git diff --check
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add -A
+            git commit -m 'N1-04: record NMJE runtime observation [skip ci]'
+            $parent = (git rev-parse HEAD^).Trim()
+            git fetch origin d1-owner-dev
+            $remote = (git rev-parse origin/d1-owner-dev).Trim()
+            if ($remote -ne $parent) { throw "Target moved during runtime smoke: remote=$remote parent=$parent" }
+            git push origin HEAD:d1-owner-dev
+          }
+          finally { Pop-Location }

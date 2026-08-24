@@ -1,0 +1,157 @@
+name: D1 Step9 Default 20 Pair Universe
+
+on:
+  push:
+    branches: [dispatch-d1-09-main]
+    paths:
+      - 'blueprint/.run-d1-09-default-20-pairs'
+
+permissions:
+  contents: write
+
+jobs:
+  d1-step9:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dispatch-d1-09-main
+          path: dispatcher
+          fetch-depth: 0
+
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          path: target
+          fetch-depth: 0
+
+      - name: Verify D1-08 input identity
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $status = Join-Path $env:RUNNER_TEMP 'd1-step9-status.txt'
+          "Stage=VERIFY_INPUT" | Set-Content $status
+          $blob = (git -C '.\target' rev-parse 'HEAD:blueprint/source/BBMA_EA.mq4').Trim()
+          "InputBlob=$blob" | Add-Content $status
+          if ($blob -ne 'a88aa0d18d523a73348d09e205ecd60edd594a1f') { throw "Unexpected D1-08 source blob: $blob" }
+          $head = (git -C '.\target' rev-parse HEAD).Trim()
+          "InputHead=$head" | Add-Content $status
+          if ($head -ne 'a7c6dbe6c025e79f3785ca25dfa79a0f4d56ea1f') { throw "Unexpected d1-owner-dev head: $head" }
+
+      - name: Apply D1-09 pair-universe patch and static audit
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $status = Join-Path $env:RUNNER_TEMP 'd1-step9-status.txt'
+          "Stage=APPLY_STATIC" | Set-Content $status
+          python '.\dispatcher\blueprint\tools\d1_step9_default_20_pair_universe.py' --repo-root '.\target'
+          if ($LASTEXITCODE -ne 0) { throw 'D1-09 patcher failed' }
+          python '.\dispatcher\blueprint\tools\d1_step9_default_20_pair_universe.py' --repo-root '.\target' --verify
+          if ($LASTEXITCODE -ne 0) { throw 'D1-09 verifier failed' }
+          git -C '.\target' diff --check
+          if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed' }
+          "Static=PASS" | Add-Content $status
+
+      - name: Acquire official MT4 MetaEditor
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dirs = @('C:\Program Files (x86)\MetaTrader 4','C:\Program Files\MetaTrader 4')
+          $meta = $null
+          foreach ($dir in $dirs) {
+            $candidate = Join-Path $dir 'metaeditor.exe'
+            if (Test-Path $candidate) { $meta = Get-Item $candidate; break }
+          }
+          if (-not $meta) {
+            $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+            Invoke-WebRequest -Uri 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -OutFile $setup -UseBasicParsing
+            $sp = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
+            for ($i=0; $i -lt 72; $i++) {
+              Start-Sleep -Seconds 5
+              foreach ($dir in $dirs) {
+                $candidate = Join-Path $dir 'metaeditor.exe'
+                if (Test-Path $candidate) { $meta = Get-Item $candidate; break }
+              }
+              if ($meta) { break }
+            }
+            if ($sp -and -not $sp.HasExited) { try { $sp.Kill() } catch {} }
+          }
+          if (-not $meta) { throw 'Official MT4 MetaEditor not found' }
+          "METAEDITOR=$($meta.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Native MetaEditor compile D1-09 0E0W
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $status = Join-Path $env:RUNNER_TEMP 'd1-step9-status.txt'
+          "Stage=COMPILE" | Set-Content $status
+          "Static=PASS" | Add-Content $status
+          $src = (Resolve-Path '.\target\blueprint\source\BBMA_EA.mq4').Path
+          $log = Join-Path $env:RUNNER_TEMP 'd1-step9-metaeditor.log'
+          if (Test-Path $log) { Remove-Item $log -Force }
+          & "$env:METAEDITOR" "/compile:$src" "/log:$log"
+          for ($i=0; $i -lt 30; $i++) {
+            if (Test-Path $log) {
+              $probe = Get-Content $log -Raw -ErrorAction SilentlyContinue
+              if ($probe -match '(?i)Result:\s*\d+\s+errors?,\s*\d+\s+warnings?') { break }
+            }
+            Start-Sleep -Seconds 1
+          }
+          if (-not (Test-Path $log)) { throw 'MetaEditor compile log missing' }
+          $txt = Get-Content $log -Raw
+          $matches = [regex]::Matches($txt, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
+          if ($matches.Count -lt 1) { throw 'Unable to parse MetaEditor summary' }
+          $m = $matches[$matches.Count - 1]
+          $errors = [int]$m.Groups[1].Value
+          $warnings = [int]$m.Groups[2].Value
+          if ($errors -ne 0 -or $warnings -ne 0) { throw "D1-09 compile failed: $errors errors / $warnings warnings" }
+          $ex4 = [System.IO.Path]::ChangeExtension($src,'.ex4')
+          for ($i=0; $i -lt 10 -and -not (Test-Path $ex4); $i++) { Start-Sleep -Seconds 1 }
+          if (-not (Test-Path $ex4)) { throw 'EX4 not produced' }
+          "Errors=$errors" | Add-Content $status
+          "Warnings=$warnings" | Add-Content $status
+          "EX4=PRODUCED" | Add-Content $status
+          "ERRORS=$errors" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "WARNINGS=$warnings" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Finalize audit and push D1-09
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $status = Join-Path $env:RUNNER_TEMP 'd1-step9-status.txt'
+          python '.\dispatcher\blueprint\tools\d1_step9_default_20_pair_universe.py' --repo-root '.\target' --finalize
+          python '.\dispatcher\blueprint\tools\d1_step9_default_20_pair_universe.py' --repo-root '.\target' --verify
+          git -C '.\target' diff --check
+
+          $outRel = 'blueprint/runtime/D1_09_DEFAULT_20_PAIR_UNIVERSE_LATEST.txt'
+          $out = Join-Path '.\target' $outRel
+          New-Item -ItemType Directory -Path (Split-Path $out -Parent) -Force | Out-Null
+          $lines = New-Object System.Collections.Generic.List[string]
+          $lines.Add('D1-09 Default 20 Pair Universe - Latest Verification')
+          $lines.Add("Run=${{ github.run_id }}")
+          $lines.Add("Trigger=${{ github.sha }}")
+          $lines.Add('Stage=PASS')
+          $lines.Add('Static=PASS')
+          $lines.Add("Errors=$env:ERRORS")
+          $lines.Add("Warnings=$env:WARNINGS")
+          $lines.Add('EX4=PRODUCED')
+          $lines.Add('DefaultPairCount=20')
+          $lines.Add('DefaultPairUniverse=EURUSD,GBPUSD,USDJPY,USDCHF,USDCAD,AUDUSD,NZDUSD,EURJPY,GBPJPY,EURGBP,AUDJPY,CADJPY,CHFJPY,NZDJPY,EURAUD,EURCAD,EURCHF,GBPAUD,GBPCAD,AUDCAD')
+          $lines.Add('MaxActivePairDefault=7')
+          $lines.Add('MAX_PAIRS=40')
+          $lines | Set-Content $out -Encoding UTF8
+
+          git -C '.\target' config user.name 'github-actions[bot]'
+          git -C '.\target' config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C '.\target' add blueprint/source/BBMA_EA.mq4 blueprint/D1_STEP9_DEFAULT_20_PAIR_UNIVERSE_AUDIT_20260824.md $outRel
+          git -C '.\target' commit -m 'D1-09: set default 20-pair FX universe [skip ci]'
+          $commit = (git -C '.\target' rev-parse HEAD).Trim()
+          git -C '.\target' fetch origin d1-owner-dev
+          $remote = (git -C '.\target' rev-parse origin/d1-owner-dev).Trim()
+          $parent = (git -C '.\target' rev-parse HEAD^).Trim()
+          if ($remote -ne $parent) { throw "d1-owner-dev moved during run: remote=$remote parent=$parent" }
+          git -C '.\target' push origin HEAD:d1-owner-dev
+          Write-Host "D1OwnerDevCommit=$commit"
+          $blob = (git -C '.\target' rev-parse 'HEAD:blueprint/source/BBMA_EA.mq4').Trim()
+          Write-Host "OutputBlob=$blob"

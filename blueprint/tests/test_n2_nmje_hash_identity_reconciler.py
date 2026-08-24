@@ -63,10 +63,13 @@ extraction = {
 report = mod.reconcile(correlation, extraction)
 assert report["identity_valid"] is True, report
 assert report["logged_decision_hash_mismatches"] == [], report
+assert report["exact_outcome_identity_issues"] == [], report
 assert report["exact_outcome_count"] == 1, report
+assert report["validated_exact_outcome_count"] == 1, report
 assert report["hash_only_input_count"] == 2, report
 assert report["reconciled_hash_only_count"] == 1, report
 assert report["combined_outcome_count"] == 2, report
+assert report["combined_rows"][0]["identity_provenance"] == "FULL_DECISION_ID_PLUS_HASH", report
 assert report["reconciled_rows"][0]["decision_id"] == d2, report
 assert report["reconciled_rows"][0]["identity_provenance"] == "UNIQUE_SHORT_HASH_PLUS_PAIR", report
 assert len(report["unresolved_hash_only_rows"]) == 1, report
@@ -80,7 +83,7 @@ pair_report = mod.reconcile(correlation, pair_bad)
 assert pair_report["reconciled_hash_only_count"] == 0, pair_report
 assert pair_report["unresolved_hash_only_rows"][0]["unresolved_reason"] == "PAIR_IDENTITY_MISMATCH", pair_report
 
-# Logged DIDH must agree with the hash reconstructed from decoded DecisionID.
+# Logged DEC DIDH must agree with the hash reconstructed from decoded DecisionID.
 hash_bad_corr = {
     "rows": [
         {"decision": {"decision_id": d2, "decision_hash": "BADHASH", "pair": "GBPUSD"}},
@@ -97,6 +100,33 @@ assert hash_bad["identity_valid"] is False, hash_bad
 assert len(hash_bad["logged_decision_hash_mismatches"]) == 1, hash_bad
 assert hash_bad["reconciled_hash_only_count"] == 0, hash_bad
 assert hash_bad["unresolved_hash_only_rows"][0]["unresolved_reason"] == "HASH_NOT_FOUND_IN_VALIDATED_DECISIONS", hash_bad
+
+# Full outcome DIDH mismatch must be excluded and fail identity validation.
+out_hash_bad = {
+    "valid_exact_rows": [dict(extraction["valid_exact_rows"][0])],
+    "hash_only_rows": [],
+    "duplicate_tickets": [],
+    "duplicate_decision_ids": [],
+}
+out_hash_bad["valid_exact_rows"][0]["decision_hash"] = "BADHASH"
+out_hash_report = mod.reconcile(correlation, out_hash_bad)
+assert out_hash_report["identity_valid"] is False, out_hash_report
+assert out_hash_report["validated_exact_outcome_count"] == 0, out_hash_report
+assert out_hash_report["combined_outcome_count"] == 0, out_hash_report
+assert out_hash_report["exact_outcome_identity_issues"][0]["identity_issue"] == "OUTCOME_DECISION_HASH_MISMATCH", out_hash_report
+
+# Full outcome pair mismatch must also be excluded and fail closed.
+out_pair_bad = {
+    "valid_exact_rows": [dict(extraction["valid_exact_rows"][0])],
+    "hash_only_rows": [],
+    "duplicate_tickets": [],
+    "duplicate_decision_ids": [],
+}
+out_pair_bad["valid_exact_rows"][0]["pair"] = "USDJPY"
+out_pair_report = mod.reconcile(correlation, out_pair_bad)
+assert out_pair_report["identity_valid"] is False, out_pair_report
+assert out_pair_report["validated_exact_outcome_count"] == 0, out_pair_report
+assert out_pair_report["exact_outcome_identity_issues"][0]["identity_issue"] == "OUTCOME_PAIR_IDENTITY_MISMATCH", out_pair_report
 
 original_hash = mod.mql4_short_hash
 try:
@@ -124,4 +154,4 @@ try:
 finally:
     mod.mql4_short_hash = original_hash
 
-print("N2-12 NMJE hash identity + logged DIDH integrity self-test PASS")
+print("N2-14 NMJE exact + hash-only identity fail-closed self-test PASS")

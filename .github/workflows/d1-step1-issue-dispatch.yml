@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   apply-d1-step1:
-    if: github.event.issue.title == 'RUN D1 STEP1 M11 OWNER 20260824'
+    if: startsWith(github.event.issue.title, 'RUN D1 STEP1 M11 OWNER 20260824')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,19 +19,54 @@ jobs:
           fetch-depth: 0
 
       - name: Materialize D1-01 and run static checks
+        id: materialize
+        shell: bash
+        run: |
+          set +e
+          {
+            set -x
+            python3 .github/scripts/apply_d1_step1.py
+            python_status=$?
+            if [ $python_status -ne 0 ]; then exit $python_status; fi
+            git diff --check
+            diff_status=$?
+            if [ $diff_status -ne 0 ]; then exit $diff_status; fi
+            git diff -- blueprint/source/BBMA_EA.mq4 > blueprint/patches/0026-d1-step1-m11-strategic-owner-producer.patch
+            test -s blueprint/patches/0026-d1-step1-m11-strategic-owner-producer.patch
+            patch_status=$?
+            if [ $patch_status -ne 0 ]; then exit $patch_status; fi
+            git apply --check --reverse blueprint/patches/0026-d1-step1-m11-strategic-owner-producer.patch
+            reverse_status=$?
+            if [ $reverse_status -ne 0 ]; then exit $reverse_status; fi
+            rm -f blueprint/.d1-step1-dispatch*
+            rm -f .github/workflows/one-shot-apply-d1-step1.yml
+            git diff --check
+          } > /tmp/d1-step1.log 2>&1
+          status=$?
+          cat /tmp/d1-step1.log
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Report static materialization result
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STEP_STATUS: ${{ steps.materialize.outputs.status }}
         shell: bash
         run: |
           set -euo pipefail
-          python3 .github/scripts/apply_d1_step1.py
-          git diff --check
-          git diff -- blueprint/source/BBMA_EA.mq4 > blueprint/patches/0026-d1-step1-m11-strategic-owner-producer.patch
-          test -s blueprint/patches/0026-d1-step1-m11-strategic-owner-producer.patch
-          git apply --check --reverse blueprint/patches/0026-d1-step1-m11-strategic-owner-producer.patch
-          rm -f blueprint/.d1-step1-dispatch*
-          rm -f .github/workflows/one-shot-apply-d1-step1.yml
-          git diff --check
+          tail -c 5000 /tmp/d1-step1.log > /tmp/d1-tail.log || true
+          {
+            echo "D1 Step 1 materialization status: ${STEP_STATUS:-unknown}"
+            echo
+            echo '```text'
+            cat /tmp/d1-tail.log
+            echo '```'
+          } > /tmp/comment.md
+          gh issue comment "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --body-file /tmp/comment.md
 
       - name: Commit isolated D1-01 source
+        if: steps.materialize.outputs.status == '0'
         shell: bash
         run: |
           set -euo pipefail
@@ -50,4 +85,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
-        run: gh issue close "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --comment "D1 Step 1 dispatcher finished."
+        run: gh issue close "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --comment "D1 Step 1 diagnostic dispatcher finished."

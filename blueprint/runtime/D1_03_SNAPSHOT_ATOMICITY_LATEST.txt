@@ -1,0 +1,17 @@
+D1-03 M11 Snapshot Atomicity - Latest CI Result
+Run=32688535368
+Trigger=a2f566d2ae392b98fe075a0ecbe31f605e23c2ee
+
+Stage=COMPILE
+Static=PASS
+MetaEditor=C:\Program Files (x86)\MetaTrader 4\metaeditor.exe
+Errors=2
+Warnings=0
+
+--- MetaEditor tail ---
+
+
+D:\a\BBMA-project\BBMA-project\target\blueprint\source\BBMA_EA.mq4 : information: compiling 'BBMA_EA.mq4'
+D:\a\BBMA-project\BBMA-project\target\blueprint\source\BBMA_EA.mq4(2892,22) : error 229: '&' - reference cannot used
+D:\a\BBMA-project\BBMA-project\target\blueprint\source\BBMA_EA.mq4(2938,22) : error 229: '&' - reference cannot used
+Result: 2 errors, 0 warnings

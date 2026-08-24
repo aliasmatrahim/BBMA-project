@@ -1,6 +1,18 @@
 D1-03 M11 Snapshot Atomicity - Latest CI Result
-Run=32689150052
-Trigger=26a8c4a2be470de2657a98a8e42edb249101c466
+Run=32689270166
+Trigger=fb27bc417bdeb43fcf16dded6732a8ff8ead5fd6
 
-Stage=APPLY_STATIC
-InputBlob=72c4ad75b8e167095acbcc13639eeb48fe4dceba
+Stage=PASS
+Static=PASS
+MQL4Compat=PASS
+Errors=0
+Warnings=0
+EX4=PRODUCED
+D1OwnerDevCommit=0d6ce9289581ee47722d2cc1a89186eadf4109f3
+OutputBlob=d6e7796b6d228cc281857ab0badbe8376ddc29a0
+
+--- MetaEditor tail ---
+
+
+D:\a\BBMA-project\BBMA-project\target\blueprint\source\BBMA_EA.mq4 : information: compiling 'BBMA_EA.mq4'
+Result: 0 errors, 0 warnings, 588 msec elapsed

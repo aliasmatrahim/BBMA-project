@@ -1,0 +1,61 @@
+name: D1 Step10B Compact Signal Diagnostic
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'blueprint/.run-d1-10b-compact-signal-diag'
+
+permissions:
+  contents: write
+
+jobs:
+  compact-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: dispatcher
+          fetch-depth: 0
+
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          path: target
+          fetch-depth: 0
+
+      - name: Verify current D1-10 source identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          head_sha="$(git -C target rev-parse HEAD)"
+          blob_sha="$(git -C target rev-parse HEAD:blueprint/source/BBMA_EA.mq4)"
+          test "$head_sha" = "7dacc550ac1ef737fa82226d1a54e24991306d77"
+          test "$blob_sha" = "bf3289e12c181a76c6fa3fb8319e386ea044682b"
+
+      - name: Apply compact diagnostic-only patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python dispatcher/blueprint/tools/d1_step10b_compact_signal_diag.py --repo-root target
+          python dispatcher/blueprint/tools/d1_step10b_compact_signal_diag.py --repo-root target --verify
+          git -C target diff --check
+          git -C target diff -- blueprint/source/BBMA_EA.mq4
+
+      - name: Commit and push compact diagnostic source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git -C target config user.name 'github-actions[bot]'
+          git -C target config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C target add blueprint/source/BBMA_EA.mq4
+          git -C target commit -m 'D1-10B: compact signal bottleneck diagnostic [skip ci]'
+          parent="$(git -C target rev-parse HEAD^)"
+          git -C target fetch origin d1-owner-dev
+          remote="$(git -C target rev-parse origin/d1-owner-dev)"
+          test "$remote" = "$parent"
+          git -C target push origin HEAD:d1-owner-dev
+          echo "D1-10B commit=$(git -C target rev-parse HEAD)"
+          echo "D1-10B source_blob=$(git -C target rev-parse HEAD:blueprint/source/BBMA_EA.mq4)"

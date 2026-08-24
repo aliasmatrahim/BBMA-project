@@ -12,7 +12,7 @@ permissions:
 jobs:
   runtime-smoke:
     runs-on: windows-latest
-    timeout-minutes: 12
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -40,9 +40,11 @@ jobs:
           $terminal = Get-ChildItem 'C:\Program Files*' -Filter terminal.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
           if (-not $meta -or -not $terminal) {
             $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+            Write-Host 'Downloading official MT4 installer...'
             Invoke-WebRequest -Uri 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -OutFile $setup -UseBasicParsing
+            Write-Host 'Launching official MT4 installer...'
             $proc = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
-            for ($i=0; $i -lt 36; $i++) {
+            for ($i=0; $i -lt 60; $i++) {
               Start-Sleep -Seconds 5
               $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
               $terminal = Get-ChildItem 'C:\Program Files*' -Filter terminal.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1

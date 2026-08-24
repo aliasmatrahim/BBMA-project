@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.5.1 - D1-05 Input Limit Guard                         |
+//| Version 4.5.1 - D1-06 MinRR Default Off                        |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -98,7 +98,7 @@ input double   MaxTotalRiskPercent                = 5.0;        // 06 Risk | max
 input bool     ShowDashboard                      = true;       // 07 Display | show chart dashboard
 
 //--- 08 ADVANCED SAFETY / EXECUTION
-input double   MinRRRatio                         = 1.5;        // 08 Advanced | minimum accepted Risk:Reward
+input double   MinRRRatio                         = 0.0;        // 08 Advanced | optional Min RR filter; 0=disabled
 input double   MaxSLPips                          = 100.0;      // 08 Advanced | maximum accepted SL distance
 input int      Slippage                           = 3;          // 08 Advanced | broker slippage in points
 input ENUM_DEBUG_LEVEL DebugLevel                 = DBG_OFF;    // 08 Advanced | OFF / ERROR / SIGNAL / TRADE / FULL
@@ -6192,7 +6192,7 @@ void RecoverExistingOrders()
 void BuildDashboardSnapshot()
 {
    g_dashboard_snapshot = "";
-   g_dashboard_snapshot += "=== BBMA EA V4.5.1 D1-05 ===\n";
+   g_dashboard_snapshot += "=== BBMA EA V4.5.1 D1-06 ===\n";
    g_dashboard_snapshot += "Time: " + TimeToString(TimeCurrent()) + "\n";
    g_dashboard_snapshot += "Balance: " + DoubleToString(AccountBalance(), 2) + "\n";
    g_dashboard_snapshot += "Equity: " + DoubleToString(AccountEquity(), 2) + "\n";
@@ -6889,7 +6889,7 @@ int OnInit()
       return INIT_FAILED;
    }
    
-   Log(DBG_FULL, "BBMA EA V4.5.1 D1-05 initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.5.1 D1-06 initialized successfully");
    return INIT_SUCCEEDED;
 }
 

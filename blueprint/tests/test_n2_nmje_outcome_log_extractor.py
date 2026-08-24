@@ -2,6 +2,7 @@
 from pathlib import Path
 import csv
 import importlib.util
+import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -9,6 +10,7 @@ MODULE_PATH = ROOT / "blueprint" / "tools" / "n2_nmje_outcome_log_extractor.py"
 spec = importlib.util.spec_from_file_location("n2_nmje_outcome_log_extractor", MODULE_PATH)
 mod = importlib.util.module_from_spec(spec)
 assert spec and spec.loader
+sys.modules[spec.name] = mod
 spec.loader.exec_module(mod)
 
 with tempfile.TemporaryDirectory() as td:

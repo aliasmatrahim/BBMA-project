@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.5.1 - D1-02 M15-M16 Strategic Gate                    |
+//| Version 4.5.1 - D1-03 M11 Snapshot Atomicity                    |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -491,6 +491,9 @@ struct D1MajorTrendOwner
    ENUM_DIRECTION       Direction;
    datetime             SourceCandleTime;
    datetime             LastProcessedD1CandleTime;
+   double               Close1;
+   double               MA50_1;
+   double               MA50_2;
    bool                 IsValid;
    string               Reason;
 };
@@ -1213,6 +1216,9 @@ void InitPairState(PairState &state)
    state.d1_major_trend_owner.Direction = DIR_NONE;
    state.d1_major_trend_owner.SourceCandleTime = 0;
    state.d1_major_trend_owner.LastProcessedD1CandleTime = 0;
+   state.d1_major_trend_owner.Close1 = 0.0;
+   state.d1_major_trend_owner.MA50_1 = 0.0;
+   state.d1_major_trend_owner.MA50_2 = 0.0;
    state.d1_major_trend_owner.IsValid = false;
    state.d1_major_trend_owner.Reason = "D1 owner not evaluated";
 }
@@ -2883,30 +2889,38 @@ bool DetectECSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
 
 void SetD1OwnerUnresolved(PairState &state, string reason)
 {
-   state.d1_major_trend_owner.State = D1_OWNER_UNRESOLVED;
-   state.d1_major_trend_owner.Direction = DIR_NONE;
-   state.d1_major_trend_owner.IsValid = false;
-   state.d1_major_trend_owner.SourceCandleTime = state.d1_data.candle_time;
-   state.d1_major_trend_owner.LastProcessedD1CandleTime = state.d1_data.candle_time;
-   state.d1_major_trend_owner.Reason = reason;
+   D1MajorTrendOwner owner = state.d1_major_trend_owner;
+   owner.State = D1_OWNER_UNRESOLVED;
+   owner.Direction = DIR_NONE;
+   owner.SourceCandleTime = state.d1_data.candle_time;
+   owner.LastProcessedD1CandleTime = state.d1_data.candle_time;
+   owner.Close1 = (state.d1_data.close > 0.0) ? state.d1_data.close : 0.0;
+   owner.MA50_1 = (state.d1_data.ma[4] > 0.0) ? state.d1_data.ma[4] : 0.0;
+   owner.MA50_2 = 0.0;
+   owner.IsValid = false;
+   owner.Reason = reason;
+   state.d1_major_trend_owner = owner;
 }
 
 void TraceD1MajorTrendOwner(string pair, PairState &state)
 {
    if(DebugLevel < DBG_SIGNAL) return;
 
-   Print("[D1-01][OWNER] Pair=", pair,
-         " Candle=", TimeToString(state.d1_major_trend_owner.SourceCandleTime),
-         " State=", EnumToString(state.d1_major_trend_owner.State),
-         " Dir=", EnumToString(state.d1_major_trend_owner.Direction),
-         " Close=", DoubleToString(state.d1_data.close, state.d1_data.digits),
-         " MA50=", DoubleToString(state.current_daily_ema50, state.d1_data.digits),
-         " PrevMA50=", DoubleToString(state.prev_daily_ema50, state.d1_data.digits));
+   D1MajorTrendOwner owner = state.d1_major_trend_owner;
+   Print("[D1-03][OWNER] Pair=", pair,
+         " Candle=", TimeToString(owner.SourceCandleTime),
+         " State=", EnumToString(owner.State),
+         " Dir=", EnumToString(owner.Direction),
+         " Close=", DoubleToString(owner.Close1, state.d1_data.digits),
+         " MA50=", DoubleToString(owner.MA50_1, state.d1_data.digits),
+         " PrevMA50=", DoubleToString(owner.MA50_2, state.d1_data.digits));
 }
 
 void UpdateD1MajorTrendOwner(string pair, PairState &state)
 {
-   // D1-01 is producer-only. M15/M16 consumption is a later dependency step.
+   // D1-03: M11 produces one atomic closed-D1 owner snapshot consumed by M15/M16.
+   // Re-evaluate on every M15 processing cycle so refreshed broker history cannot
+   // create a hybrid identity from cached owner state plus newer raw D1 values.
    if(!state.d1_data.is_valid ||
       !state.d1_data.is_closed ||
       state.d1_data.timeframe != PERIOD_D1 ||
@@ -2918,48 +2932,51 @@ void UpdateD1MajorTrendOwner(string pair, PairState &state)
       return;
    }
 
-   if(state.d1_major_trend_owner.IsValid &&
-      state.d1_major_trend_owner.LastProcessedD1CandleTime == state.d1_data.candle_time)
-      return;
-
    double currentMA50 = state.d1_data.ma[4];
    double previousMA50 = EMA(pair, PERIOD_D1, EMA50_PERIOD,
                              state.d1_data.barIndex + 1);
 
-   state.current_daily_ema50 = currentMA50;
-   state.prev_daily_ema50 = previousMA50;
-   state.d1_major_trend_owner.SourceCandleTime = state.d1_data.candle_time;
-   state.d1_major_trend_owner.LastProcessedD1CandleTime = state.d1_data.candle_time;
+   D1MajorTrendOwner owner = state.d1_major_trend_owner;
+   owner.SourceCandleTime = state.d1_data.candle_time;
+   owner.LastProcessedD1CandleTime = state.d1_data.candle_time;
+   owner.Close1 = state.d1_data.close;
+   owner.MA50_1 = currentMA50;
+   owner.MA50_2 = previousMA50;
 
-   if(state.d1_data.close <= 0.0 || currentMA50 <= 0.0 || previousMA50 <= 0.0)
+   // Compatibility mirrors only. Downstream D1 identity authority is owner.*.
+   state.current_daily_ema50 = owner.MA50_1;
+   state.prev_daily_ema50 = owner.MA50_2;
+
+   if(owner.Close1 <= 0.0 || owner.MA50_1 <= 0.0 || owner.MA50_2 <= 0.0)
    {
       SetD1OwnerUnresolved(state, "Required closed D1 MA50 history unavailable");
       TraceD1MajorTrendOwner(pair, state);
       return;
    }
 
-   state.d1_major_trend_owner.IsValid = true;
+   owner.IsValid = true;
 
-   if(state.d1_data.close > currentMA50 && currentMA50 > previousMA50)
+   if(owner.Close1 > owner.MA50_1 && owner.MA50_1 > owner.MA50_2)
    {
-      state.d1_major_trend_owner.State = D1_OWNER_BUY_CONFIRMED;
-      state.d1_major_trend_owner.Direction = DIR_BUY;
-      state.d1_major_trend_owner.Reason = "Closed D1 above MA50 with rising MA50";
+      owner.State = D1_OWNER_BUY_CONFIRMED;
+      owner.Direction = DIR_BUY;
+      owner.Reason = "Closed D1 above MA50 with rising MA50";
    }
-   else if(state.d1_data.close < currentMA50 && currentMA50 < previousMA50)
+   else if(owner.Close1 < owner.MA50_1 && owner.MA50_1 < owner.MA50_2)
    {
-      state.d1_major_trend_owner.State = D1_OWNER_SELL_CONFIRMED;
-      state.d1_major_trend_owner.Direction = DIR_SELL;
-      state.d1_major_trend_owner.Reason = "Closed D1 below MA50 with falling MA50";
+      owner.State = D1_OWNER_SELL_CONFIRMED;
+      owner.Direction = DIR_SELL;
+      owner.Reason = "Closed D1 below MA50 with falling MA50";
    }
    else
    {
-      state.d1_major_trend_owner.State = D1_TRANSITION;
-      state.d1_major_trend_owner.Direction = DIR_NONE;
-      state.d1_major_trend_owner.Reason =
+      owner.State = D1_TRANSITION;
+      owner.Direction = DIR_NONE;
+      owner.Reason =
          "Closed D1 price-side and MA50 slope do not confirm one direction";
    }
 
+   state.d1_major_trend_owner = owner;
    TraceD1MajorTrendOwner(pair, state);
 }
 
@@ -3794,16 +3811,8 @@ bool IsD1MajorTrendOwnerExecutionReady(PairState &pairState)
 {
    D1MajorTrendOwner owner = pairState.d1_major_trend_owner;
 
-   if(!pairState.d1_data.is_valid || !pairState.d1_data.is_closed ||
-      pairState.d1_data.timeframe != PERIOD_D1 ||
-      pairState.d1_data.candle_time <= 0 || pairState.d1_data.close <= 0.0)
-      return false;
-
    if(!owner.IsValid || owner.SourceCandleTime <= 0 ||
-      owner.SourceCandleTime != pairState.d1_data.candle_time)
-      return false;
-
-   if(pairState.current_daily_ema50 <= 0.0 || pairState.prev_daily_ema50 <= 0.0)
+      owner.Close1 <= 0.0 || owner.MA50_1 <= 0.0 || owner.MA50_2 <= 0.0)
       return false;
 
    if(owner.State == D1_OWNER_BUY_CONFIRMED)
@@ -3826,12 +3835,13 @@ bool FreezeD1OwnerSnapshot(PairState &pairState, BBMA_Decision &decision)
 {
    if(!IsD1MajorTrendOwnerExecutionReady(pairState)) return false;
 
-   decision.D1OwnerState = pairState.d1_major_trend_owner.State;
-   decision.D1OwnerDirection = pairState.d1_major_trend_owner.Direction;
-   decision.D1OwnerCandleTime = pairState.d1_major_trend_owner.SourceCandleTime;
-   decision.D1OwnerClose = pairState.d1_data.close;
-   decision.D1OwnerMA50Current = pairState.current_daily_ema50;
-   decision.D1OwnerMA50Previous = pairState.prev_daily_ema50;
+   D1MajorTrendOwner owner = pairState.d1_major_trend_owner;
+   decision.D1OwnerState = owner.State;
+   decision.D1OwnerDirection = owner.Direction;
+   decision.D1OwnerCandleTime = owner.SourceCandleTime;
+   decision.D1OwnerClose = owner.Close1;
+   decision.D1OwnerMA50Current = owner.MA50_1;
+   decision.D1OwnerMA50Previous = owner.MA50_2;
    decision.D1OwnerSnapshotValid = true;
    return true;
 }
@@ -3998,7 +4008,7 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
    // and stale/malformed owner identity fail closed before atomic direction selection.
    if(structurallyEligible > 0 && !IsD1MajorTrendOwnerExecutionReady(pairState))
    {
-      Print("[D1-02][M15_D1_BLOCK] Pair=", pairState.actual_symbol,
+      Print("[D1-03][M15_D1_BLOCK] Pair=", pairState.actual_symbol,
             " State=", EnumToString(pairState.d1_major_trend_owner.State),
             " Dir=", EnumToString(pairState.d1_major_trend_owner.Direction),
             " Candle=", TimeToString(pairState.d1_major_trend_owner.SourceCandleTime));
@@ -4060,7 +4070,7 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
    ValidatedSequenceCandidate selected = candidates[canonicalIdx];
    if(!FreezeD1OwnerSnapshot(pairState, decision))
    {
-      Print("[D1-02][M15_D1_BLOCK] Pair=", pairState.actual_symbol,
+      Print("[D1-03][M15_D1_BLOCK] Pair=", pairState.actual_symbol,
             " Reason=freeze_failed");
       return;
    }
@@ -4258,9 +4268,9 @@ bool ValidateDecisionD1OwnerSnapshot(int pairIndex, BBMA_Decision &decision)
    if(decision.D1OwnerDirection != owner.Direction) return false;
    if(decision.Direction != owner.Direction) return false;
    if(decision.D1OwnerCandleTime != owner.SourceCandleTime) return false;
-   if(decision.D1OwnerClose != state.d1_data.close) return false;
-   if(decision.D1OwnerMA50Current != state.current_daily_ema50) return false;
-   if(decision.D1OwnerMA50Previous != state.prev_daily_ema50) return false;
+   if(decision.D1OwnerClose != owner.Close1) return false;
+   if(decision.D1OwnerMA50Current != owner.MA50_1) return false;
+   if(decision.D1OwnerMA50Previous != owner.MA50_2) return false;
 
    return true;
 }
@@ -4310,7 +4320,7 @@ void InvalidationEngine_Atomic(int pairIndex, BBMA_Decision &decision,
    {
       decision.DecisionState = DEC_INVALIDATED;
       decision.RejectionReason = REJ_SEQUENCE_BREAK;
-      Print("[D1-02][M16_D1_REJECT] Pair=", decision.Pair,
+      Print("[D1-03][M16_D1_REJECT] Pair=", decision.Pair,
             " DecisionID=", decision.DecisionID,
             " FrozenState=", EnumToString(decision.D1OwnerState),
             " FrozenDir=", EnumToString(decision.D1OwnerDirection),
@@ -6179,7 +6189,7 @@ void RecoverExistingOrders()
 void BuildDashboardSnapshot()
 {
    g_dashboard_snapshot = "";
-   g_dashboard_snapshot += "=== BBMA EA V4.5.1 D1-01 ===\n";
+   g_dashboard_snapshot += "=== BBMA EA V4.5.1 D1-03 ===\n";
    g_dashboard_snapshot += "Time: " + TimeToString(TimeCurrent()) + "\n";
    g_dashboard_snapshot += "Balance: " + DoubleToString(AccountBalance(), 2) + "\n";
    g_dashboard_snapshot += "Equity: " + DoubleToString(AccountEquity(), 2) + "\n";
@@ -6839,7 +6849,7 @@ int OnInit()
       return INIT_FAILED;
    }
    
-   Log(DBG_FULL, "BBMA EA V4.5.1 D1-02 initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.5.1 D1-03 initialized successfully");
    return INIT_SUCCEEDED;
 }
 

@@ -1,7 +1,7 @@
 # M11 D1 Major-Trend Owner Contract
 
 Date: 2026-08-24  
-Status: **CANONICAL SPECIFICATION — IMPLEMENTATION PENDING / NO EA SOURCE CHANGE**
+Status: **CANONICAL SPECIFICATION — IMPLEMENTED ON ISOLATED `d1-owner-dev` / CANONICAL INTEGRATION PENDING**
 
 ## Role
 M11 is the sole producer of the project D1 major-trend strategic owner used for **new-entry eligibility**.
@@ -123,3 +123,13 @@ No H4/current-candle/last-known-direction fallback is allowed.
 The active EA currently derives `TimeframeData.trend` from price relative to EMA50 only and has no dedicated M11 D1 major-trend owner state. Therefore this contract is not yet implemented.
 
 No EA source change is authorized by this documentation-only contract while the current P3 runtime candidate remains frozen.
+
+## D1-03 implementation record — atomic M11 snapshot
+Build `Version 4.5.1 - D1-03 M11 Snapshot Atomicity` on isolated `d1-owner-dev` closes the M11 snapshot-interface ownership gap without changing the accepted D1 formula.
+
+- M11 now owns `Close1`, `MA50_1`, and `MA50_2` inside `D1MajorTrendOwner` together with state/direction/candle/validity/reason.
+- M11 re-evaluates the latest fully closed D1 snapshot on every M15 processing cycle; it does not freeze a same-candle classification across a refreshed broker-history snapshot.
+- `current_daily_ema50` / `prev_daily_ema50` remain compatibility mirrors only and are not downstream D1 identity authority.
+- M15 freezes only the M11-owned atomic snapshot; M16 verifies only against the current M11-owned atomic snapshot.
+- BUY/SELL/TRANSITION/UNRESOLVED semantics and exact REM/RRE/REE signatures are unchanged.
+- `blueprint-dev` remains unchanged; canonical integration still requires explicit release of the P3 freeze.

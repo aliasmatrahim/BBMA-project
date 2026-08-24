@@ -206,3 +206,5 @@ The 2026-08-24 D1 strategic gate is implemented on isolated `d1-owner-dev` as bu
 - Native MT4 MetaEditor: **0 errors / 0 warnings**.
 - `blueprint-dev` remains unchanged pending explicit integration approval.
 
+## D1-03 atomic snapshot ownership overlay
+M15 continues the D1-02 gate order, but its frozen D1 identity now comes exclusively from the M11-owned `D1MajorTrendOwner` atomic snapshot (`state`, `direction`, closed-D1 candle, `Close1`, `MA50_1`, `MA50_2`). M15 no longer mixes raw `d1_data` fields with separate PairState MA mirrors when freezing a decision. Strategy semantics and candidate signatures are unchanged.

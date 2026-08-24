@@ -166,3 +166,5 @@ The 2026-08-24 D1 owner revalidation is implemented on isolated `d1-owner-dev` a
 - Native MT4 MetaEditor: **0 errors / 0 warnings**.
 - `blueprint-dev` remains unchanged pending explicit integration approval.
 
+## D1-03 atomic snapshot ownership overlay
+M16 continues to revalidate D1 before structural component freshness, but the comparison now uses only the current M11-owned atomic D1 snapshot. It no longer compares frozen decision identity against split raw `d1_data` / PairState MA mirror fields. No D1 trend formula is duplicated and no live-position exit authority is added.

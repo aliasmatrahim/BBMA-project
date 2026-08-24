@@ -18,19 +18,20 @@ with tempfile.TemporaryDirectory() as td:
     did1 = "D1"
     did2 = "D2"
     did3 = "USDJPY|2026.08.25 00:30|1|7|CCC"
+    did3_token = did3.replace(" ", "~")
     did3_hash = mod.reconciler.mql4_short_hash(did3)
 
     log.write_text(
         "\n".join(
             [
                 "[N1-NMJE] EURUSD REL=SUPPORTING P=H4_RE/S J=J1 D1=OWN/S H4=RE:F/S H1=EXT:REV/B M15=MHV:F/B R=LTF_STRUCTURE_SUPPORTING_PARENT",
-                f"[N2-NMJE-DEC] EURUSD SIG=SIGNAL_REM DIR=S REL=SUPPORTING P=H4_RE/S J=J1 DID={did1}",
+                f"[N2-NMJE-DEC] EURUSD SIG=SIGNAL_REM DIR=S REL=SUPPORTING P=H4_RE/S J=J1 DID={did1} DIDH={mod.reconciler.mql4_short_hash(did1)}",
                 f"[N2-NMJE-OUT] PAIR=EURUSD TICKET=101 DID={did1} DIDH=H1 NET=12.5 CLOSE=1770000000 REC=REC_NORMAL",
                 "[N1-NMJE] GBPUSD REL=ALIGNED P=H4_RE/B J=J2 D1=OWN/B H4=RE:F/B H1=RE:F/B M15=- R=H1_RE_ALIGNED_WITH_PARENT",
-                f"[N2-NMJE-DEC] GBPUSD SIG=SIGNAL_RE_ENTRY DIR=B REL=ALIGNED P=H4_RE/B J=J2 DID={did2}",
+                f"[N2-NMJE-DEC] GBPUSD SIG=SIGNAL_RE_ENTRY DIR=B REL=ALIGNED P=H4_RE/B J=J2 DID={did2} DIDH={mod.reconciler.mql4_short_hash(did2)}",
                 f"[N2-NMJE-OUT] PAIR=GBPUSD TICKET=102 DID={did2} DIDH=H2 NET=-2.5 CLOSE=1770000100 REC=REC_NORMAL",
                 "[N1-NMJE] USDJPY REL=BUILDING P=D1_OWNER/B J=J3 D1=OWN/B H4=OWN/B H1=- M15=- R=PARENT_WAITING_FOR_CHILD",
-                f"[N2-NMJE-DEC] USDJPY SIG=SIGNAL_RE_ENTRY DIR=B REL=BUILDING P=D1_OWNER/B J=J3 DID={did3}",
+                f"[N2-NMJE-DEC] USDJPY SIG=SIGNAL_RE_ENTRY DIR=B REL=BUILDING P=D1_OWNER/B J=J3 DID={did3_token} DIDH={did3_hash}",
                 f"[N2-NMJE-OUT] PAIR=USDJPY TICKET=103 DID=- DIDH={did3_hash} NET=4.0 CLOSE=1770000200 REC=REC_IDENTITY_HASH_ONLY",
             ]
         ),
@@ -40,6 +41,8 @@ with tempfile.TemporaryDirectory() as td:
     result = mod.run([log], out_dir)
     assert result["correlation"]["n1_observation_count"] == 3, result
     assert result["correlation"]["n2_decision_count"] == 3, result
+    assert result["correlation"]["rows"][2]["decision"]["decision_id"] == did3, result
+    assert result["correlation"]["rows"][2]["decision"]["decision_hash"] == did3_hash, result
     assert result["extraction"]["record_count"] == 3, result
     assert result["extraction"]["valid_exact_outcomes"] == 2, result
     assert result["extraction"]["hash_only_outcomes"] == 1, result
@@ -60,4 +63,4 @@ with tempfile.TemporaryDirectory() as td:
     ):
         assert (out_dir / name).is_file(), name
 
-print("N2-10 NMJE auto research pipeline + hash reconciliation synthetic self-test PASS")
+print("N2-10 NMJE auto research pipeline + token-safe hash reconciliation self-test PASS")

@@ -1,16 +1,15 @@
-D1-05 Input Limit Guard - Latest CI Result
-Run=32691172175
-Trigger=6eba7b2fb7f7c070495c39d1752b351893e07e6b
+D1-05 Input Limit Guard - Reconciled CI Result
 
-Stage=COMPILE
+Stage=PASS
 Static=PASS
 MetaEditor=C:\Program Files (x86)\MetaTrader 4\metaeditor.exe
 Errors=0
 Warnings=0
 EX4=PRODUCED
+D1OwnerDevCommit=823393dcee453d9eda09e535440f8cda9ab6a134
+OutputBlob=318725900eb33e2d7c8a3d8884d1ae0cb565d1f6
 
---- MetaEditor tail ---
-
-
-D:\a\BBMA-project\BBMA-project\target\blueprint\source\BBMA_EA.mq4 : information: compiling 'BBMA_EA.mq4'
-Result: 0 errors, 0 warnings, 125 msec elapsed
+Verification note:
+- The D1-05 source was successfully pushed to d1-owner-dev by an earlier concurrent workflow execution.
+- A later retry compiled the same deterministic transformation at 0 errors / 0 warnings but its push was correctly rejected as non-fast-forward because d1-owner-dev already contained the D1-05 commit.
+- Branch source and finalized implementation audit were re-read after the race and match D1-05.

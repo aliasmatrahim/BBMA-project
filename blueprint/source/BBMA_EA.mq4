@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.5.1 - N2-01 NMJE Decision Shadow                 |
+//| Version 4.5.1 - N2-13 Closed Outcome Shadow                 |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -5990,6 +5990,38 @@ int SendOrderWithRetry(string pair, int direction, double lot,
    return -1;
 }
 
+// N2-13: read-only closed-order outcome telemetry.
+// Called only after OrderSelect() proves that the monitored ticket is closed.
+// It never changes order state, trade lifecycle, risk, exit logic or registry identity.
+void NMJE_PrintClosedOutcomeShadow(TradeInfo &info)
+{
+   if(info.ticket <= 0 || info.pair == "") return;
+   if(OrderTicket() != info.ticket) return;
+   if(OrderCloseTime() == 0) return;
+
+   // Fail closed on registry/order identity mismatch rather than attributing
+   // realized P/L to the wrong research identity.
+   if(OrderSymbol() != info.pair) return;
+   if(info.magic_number <= 0 || OrderMagicNumber() != info.magic_number) return;
+
+   string decisionToken = "-";
+   if(info.decision_id != "")
+      decisionToken = NMJE_LogIdentityToken(info.decision_id);
+
+   string decisionHash = info.execution_hash;
+   if(decisionHash == "") decisionHash = "-";
+
+   double netProfit = OrderProfit() + OrderSwap() + OrderCommission();
+
+   Print("[N2-NMJE-OUT] PAIR=", info.pair,
+         " TICKET=", IntegerToString(info.ticket),
+         " DID=", decisionToken,
+         " DIDH=", decisionHash,
+         " NET=", DoubleToString(netProfit, 8),
+         " CLOSE=", IntegerToString((int)OrderCloseTime()),
+         " REC=", EnumToString(info.recovery_state));
+}
+
 void CompactMonitoredTrades()
 {
    int write = 0;
@@ -5998,7 +6030,12 @@ void CompactMonitoredTrades()
       bool removeClosed = false;
       if(OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))
          removeClosed = (OrderCloseTime() != 0);
-      if(removeClosed) continue;
+      if(removeClosed)
+      {
+         // Emit at most once: the row is discarded immediately afterwards.
+         NMJE_PrintClosedOutcomeShadow(g_monitored_trades[i]);
+         continue;
+      }
       if(write != i) g_monitored_trades[write] = g_monitored_trades[i];
       write++;
    }
@@ -7685,7 +7722,7 @@ int OnInit()
       return INIT_FAILED;
    }
    
-   Log(DBG_FULL, "BBMA EA V4.5.1 N2-01 initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.5.1 N2-13 initialized successfully");
    return INIT_SUCCEEDED;
 }
 

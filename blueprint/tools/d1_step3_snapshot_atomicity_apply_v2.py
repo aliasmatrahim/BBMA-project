@@ -95,6 +95,21 @@ def robust_static_check(src: Path) -> None:
     print('D1_STEP3_ROBUST_STATIC=PASS')
 
 
+def normalize_outputs(root: Path) -> None:
+    """Keep generated text artifacts git-diff clean without changing semantics."""
+    paths = [
+        root / 'blueprint/contracts/M11_D1_MAJOR_TREND_OWNER_CONTRACT.md',
+        root / 'blueprint/contracts/M15_FINAL_SIGNAL_AUTHORITY_CONTRACT.md',
+        root / 'blueprint/contracts/M16_CONFLICT_INVALIDATION_CONTRACT.md',
+        root / 'blueprint/D1_STEP3_M11_SNAPSHOT_ATOMICITY_IMPLEMENTATION_AUDIT_20260824.md',
+    ]
+    for path in paths:
+        if not path.exists():
+            continue
+        text = path.read_text(encoding='utf-8')
+        path.write_text(text.rstrip() + '\n', encoding='utf-8')
+
+
 mod.static_check = robust_static_check
 
 
@@ -110,8 +125,12 @@ def main():
         robust_static_check(src)
     elif args.finalize:
         mod.finalize(root)
+        normalize_outputs(root)
+        robust_static_check(src)
     else:
         mod.apply(root)
+        normalize_outputs(root)
+        robust_static_check(src)
 
 
 if __name__ == '__main__':

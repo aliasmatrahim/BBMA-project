@@ -1,3 +1,3 @@
-run=20260824T1143+08
+run=20260824T1148+08
 source=d1-owner-dev
-purpose=MT4 Journal/Experts runtime smoke
+purpose=MT4 Journal/Experts runtime smoke with persisted result

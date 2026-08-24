@@ -51,8 +51,10 @@ jobs:
           $blob = (git -C '.\target' rev-parse 'HEAD:blueprint/source/BBMA_EA.mq4').Trim()
           "InputBlob=$blob" | Add-Content $status
           python '.\dispatcher\blueprint\tools\d1_step3_snapshot_atomicity_apply.py' --repo-root '.\target'
+          python '.\dispatcher\blueprint\tools\d1_step3_mql4_compat_repair.py' --repo-root '.\target'
           git -C '.\target' diff --check
           "Static=PASS" | Add-Content $status
+          "MQL4Compat=PASS" | Add-Content $status
 
       - name: Acquire official MT4 MetaEditor
         shell: pwsh
@@ -61,6 +63,7 @@ jobs:
           $status = Join-Path $env:RUNNER_TEMP 'd1-step3-status.txt'
           "Stage=ACQUIRE_METAEDITOR" | Set-Content $status
           "Static=PASS" | Add-Content $status
+          "MQL4Compat=PASS" | Add-Content $status
           $dirs = @('C:\Program Files (x86)\MetaTrader 4','C:\Program Files\MetaTrader 4')
           $meta = $null
           foreach ($dir in $dirs) {
@@ -92,6 +95,7 @@ jobs:
           $status = Join-Path $env:RUNNER_TEMP 'd1-step3-status.txt'
           "Stage=COMPILE" | Set-Content $status
           "Static=PASS" | Add-Content $status
+          "MQL4Compat=PASS" | Add-Content $status
           "MetaEditor=$env:METAEDITOR" | Add-Content $status
           $src = (Resolve-Path '.\target\blueprint\source\BBMA_EA.mq4').Path
           $log = Join-Path $env:RUNNER_TEMP 'd1-step3-metaeditor.log'
@@ -120,6 +124,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $status = Join-Path $env:RUNNER_TEMP 'd1-step3-status.txt'
           python '.\dispatcher\blueprint\tools\d1_step3_snapshot_atomicity_apply.py' --repo-root '.\target' --finalize
+          python '.\dispatcher\blueprint\tools\d1_step3_mql4_compat_repair.py' --repo-root '.\target'
           git -C '.\target' diff --check
           git -C '.\target' config user.name 'github-actions[bot]'
           git -C '.\target' config user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -129,6 +134,7 @@ jobs:
           git -C '.\target' push origin HEAD:d1-owner-dev
           "Stage=PASS" | Set-Content $status
           "Static=PASS" | Add-Content $status
+          "MQL4Compat=PASS" | Add-Content $status
           "Errors=$env:ERRORS" | Add-Content $status
           "Warnings=$env:WARNINGS" | Add-Content $status
           "EX4=PRODUCED" | Add-Content $status

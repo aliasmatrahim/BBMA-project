@@ -4,13 +4,10 @@
 Research/diagnostic only. This implements the existing MQL4 SHORT_HASH identity
 algorithm and resolves a recovered `[N2-NMJE-OUT] DID=- DIDH=<hash>` only when
 that hash maps to exactly one validated DecisionID in the analyzed N2
-correlation dataset. Pair identity must also match. Collisions, duplicate
-outcomes and ambiguous mappings are never guessed.
-
-Usage:
-  python blueprint/tools/n2_nmje_hash_identity_reconciler.py \
-      correlation.json extraction.json --csv outcomes_reconciled.csv \
-      --json reconciliation.json
+correlation dataset. Pair identity must also match. If `[N2-NMJE-DEC]` carries
+DIDH, that logged hash must equal the locally reconstructed hash of the decoded
+DecisionID. Collisions, mismatches, duplicates and ambiguous mappings are never
+guessed.
 """
 
 from __future__ import annotations
@@ -29,8 +26,6 @@ HEX_DIGITS = "0123456789ABCDEF"
 def mql4_short_hash(text: str, chars: int = 16) -> str:
     """Mirror BBMA_EA.mq4 SHORT_HASH for ASCII DecisionID payloads."""
     value = 0
-    # DecisionIDs are ASCII by construction in this EA. MQL4 StringGetChar
-    # therefore equals Python ord() for every emitted identity character.
     for ch in text:
         value = (value * MULTIPLIER + ord(ch)) & MASK64
 
@@ -45,10 +40,11 @@ def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def build_decision_hash_index(correlation: dict) -> tuple[dict[str, list[dict]], list[str]]:
+def build_decision_hash_index(correlation: dict) -> tuple[dict[str, list[dict]], list[str], list[dict]]:
     by_hash: dict[str, list[dict]] = defaultdict(list)
     seen_ids: set[str] = set()
     duplicate_ids: list[str] = []
+    logged_hash_mismatches: list[dict] = []
 
     for row in correlation.get("rows", []):
         decision = (row or {}).get("decision") or {}
@@ -58,13 +54,28 @@ def build_decision_hash_index(correlation: dict) -> tuple[dict[str, list[dict]],
         if did in seen_ids:
             duplicate_ids.append(did)
         seen_ids.add(did)
-        by_hash[mql4_short_hash(did)].append(decision)
 
-    return dict(by_hash), sorted(set(duplicate_ids))
+        computed = mql4_short_hash(did)
+        logged = str(decision.get("decision_hash") or "").strip()
+        if logged and logged != computed:
+            logged_hash_mismatches.append(
+                {
+                    "decision_id": did,
+                    "pair": str(decision.get("pair") or ""),
+                    "logged_hash": logged,
+                    "computed_hash": computed,
+                }
+            )
+            # Corrupted/mismatched telemetry must not participate in recovery.
+            continue
+
+        by_hash[computed].append(decision)
+
+    return dict(by_hash), sorted(set(duplicate_ids)), logged_hash_mismatches
 
 
 def reconcile(correlation: dict, extraction: dict) -> dict:
-    by_hash, duplicate_correlation_ids = build_decision_hash_index(correlation)
+    by_hash, duplicate_correlation_ids, logged_hash_mismatches = build_decision_hash_index(correlation)
 
     exact_rows = list(extraction.get("valid_exact_rows") or [])
     hash_only_rows = list(extraction.get("hash_only_rows") or [])
@@ -146,7 +157,6 @@ def reconcile(correlation: dict, extraction: dict) -> dict:
         combined.append(row)
     combined.extend(reconciled)
 
-    # Final combined identity guard.
     did_counts = Counter(str(r.get("decision_id") or "") for r in combined)
     ticket_counts = Counter(int(r.get("ticket") or 0) for r in combined)
     combined_duplicate_dids = sorted(k for k, v in did_counts.items() if k and v > 1)
@@ -154,13 +164,14 @@ def reconcile(correlation: dict, extraction: dict) -> dict:
 
     identity_valid = not (
         duplicate_correlation_ids
+        or logged_hash_mismatches
         or collision_hashes
         or combined_duplicate_dids
         or combined_duplicate_tickets
     )
 
     return {
-        "correlation_decision_count": sum(len(v) for v in by_hash.values()),
+        "correlation_decision_count": sum(len(v) for v in by_hash.values()) + len(logged_hash_mismatches),
         "unique_hash_count": len(by_hash),
         "exact_outcome_count": len(exact_rows),
         "hash_only_input_count": len(hash_only_rows),
@@ -168,6 +179,7 @@ def reconcile(correlation: dict, extraction: dict) -> dict:
         "combined_outcome_count": len(combined),
         "identity_valid": identity_valid,
         "duplicate_correlation_decision_ids": duplicate_correlation_ids,
+        "logged_decision_hash_mismatches": logged_hash_mismatches,
         "collision_hashes": collision_hashes,
         "combined_duplicate_decision_ids": combined_duplicate_dids,
         "combined_duplicate_tickets": combined_duplicate_tickets,
@@ -199,6 +211,7 @@ def print_report(report: dict) -> None:
     print(f"Hash reconciled       : {report['reconciled_hash_only_count']}")
     print(f"Combined outcomes     : {report['combined_outcome_count']}")
     print(f"Unresolved hash-only  : {len(report['unresolved_hash_only_rows'])}")
+    print(f"DIDH mismatches       : {len(report['logged_decision_hash_mismatches'])}")
     print(f"Hash collisions       : {len(report['collision_hashes'])}")
     print(f"Identity valid        : {'YES' if report['identity_valid'] else 'NO'}")
 

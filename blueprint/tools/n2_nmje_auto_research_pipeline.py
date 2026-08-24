@@ -6,10 +6,9 @@ Requires logs containing:
 - [N2-NMJE-DEC] validated-decision shadows
 - [N2-NMJE-OUT] closed-outcome shadows
 
-Recovered hash-only outcomes may be attributed only through the fail-closed
-N2-09 reconciliation rule: the persisted SHORT_HASH must map to exactly one
-validated DecisionID in the analyzed dataset and the pair must match. Any
-collision, ambiguity or identity mismatch remains unattributed.
+Recovered hash-only outcomes may be attributed only through fail-closed identity
+reconciliation. Full DecisionID outcomes are also verified against their DIDH
+and correlated pair identity before attribution.
 
 Research/diagnostic only; no EA source or trading behavior is modified.
 """
@@ -79,11 +78,14 @@ def print_summary(result: dict) -> None:
     print(f"Journey observations   : {c['n1_observation_count']}")
     print(f"Validated decisions    : {c['n2_decision_count']}")
     print(f"Closed outcomes        : {x['record_count']}")
-    print(f"Exact outcome identity : {r['exact_outcome_count']}")
+    print(f"Exact outcomes input   : {r['exact_outcome_count']}")
+    print(f"Exact outcomes valid   : {r['validated_exact_outcome_count']}")
+    print(f"Exact identity issues  : {len(r['exact_outcome_identity_issues'])}")
     print(f"Hash-only inputs       : {r['hash_only_input_count']}")
     print(f"Hash reconciled        : {r['reconciled_hash_only_count']}")
     print(f"Hash unresolved        : {len(r['unresolved_hash_only_rows'])}")
     print(f"Attributed outcomes    : {a['matched_outcomes']}")
+    print(f"Identity valid         : {'YES' if r['identity_valid'] else 'NO'}")
     print(f"Data status            : {e['data_status']}")
     print("Interpretation         : DESCRIPTIVE_RESEARCH_ONLY")
 

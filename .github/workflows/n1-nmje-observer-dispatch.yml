@@ -1,0 +1,209 @@
+name: N1 NMJE Observer Dispatch and Native MT4 Compile
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'blueprint/.run-n1-nmje-observer-main'
+
+permissions:
+  contents: write
+
+jobs:
+  nmje-observer:
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: dispatcher
+          fetch-depth: 0
+
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          path: target
+          fetch-depth: 0
+
+      - name: Verify target baseline
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = '.\target\blueprint\source\BBMA_EA.mq4'
+          if (-not (Test-Path $src)) { throw 'Target BBMA source missing' }
+          $blob = (git -C target rev-parse HEAD:blueprint/source/BBMA_EA.mq4).Trim()
+          if ($blob -ne '1a8252e7544ae5f54c5ed12de2e92212fab80141') {
+            throw "Unexpected target source blob: $blob"
+          }
+          if (-not (Test-Path '.\target\blueprint\decisions\N1_NESTED_MTF_MAPPING_DECISION_20260824.md')) { throw 'N1 decision missing' }
+          if (-not (Test-Path '.\target\blueprint\contracts\M12N_NESTED_MTF_JOURNEY_ENGINE_CONTRACT.md')) { throw 'M12N contract missing' }
+          if (-not (Test-Path '.\target\blueprint\tools\n1_nmje_observer_patch.py')) { throw 'N1 patcher missing' }
+          $head = (git -C target rev-parse HEAD).Trim()
+          "TARGET_BASE_HEAD=$head" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "BASELINE_BLOB=$blob" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "Target head=$head source_blob=$blob"
+
+      - name: Apply N1 observation-only patch
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Push-Location target
+          try {
+            python .\blueprint\tools\n1_nmje_observer_patch.py
+            git diff --check
+          }
+          finally { Pop-Location }
+
+          $src = '.\target\blueprint\source\BBMA_EA.mq4'
+          $text = Get-Content $src -Raw
+          if ($text -notmatch 'MODULE 12N: NESTED MTF JOURNEY ENGINE') { throw 'M12N module missing' }
+          $callCount = ([regex]::Matches($text, 'UpdateNestedJourneyObservation\(pairIndex\);')).Count
+          if ($callCount -ne 1) { throw "Expected one NMJE update call, got $callCount" }
+          if ($text -notmatch 'Version 4\.5\.1 - N1-03 NMJE Observer') { throw 'N1 build identifier missing' }
+
+          $newBlob = (git -C target hash-object blueprint/source/BBMA_EA.mq4).Trim()
+          $sha256 = (Get-FileHash $src -Algorithm SHA256).Hash.ToLower()
+          "N1_SOURCE_BLOB=$newBlob" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "N1_SOURCE_SHA256=$sha256" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "Patched source blob=$newBlob SHA256=$sha256"
+
+      - name: Static ownership guard
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $text = Get-Content '.\target\blueprint\source\BBMA_EA.mq4' -Raw
+          $start = $text.IndexOf('//| MODULE 12N: NESTED MTF JOURNEY ENGINE')
+          $end = $text.IndexOf('//| MODULE 13:', $start)
+          if ($start -lt 0 -or $end -lt 0) { throw 'Unable to isolate M12N block' }
+          $block = $text.Substring($start, $end - $start)
+          $forbidden = @('DetectExtreme(', 'DetectMHV(', 'DetectCSD(', 'DetectECSD(', 'DetectCSM(', 'UpdateReEntryState(', 'BuildPossibleCombinations(', 'ValidateSequence(', 'PriorityEngine_Atomic(', 'InvalidationEngine_Atomic(', 'OrderSend(', 'EntryMode')
+          foreach ($needle in $forbidden) {
+            if ($block.Contains($needle)) { throw "M12N ownership violation: $needle" }
+          }
+          Write-Host 'Static N1 ownership guard PASS'
+
+      - name: Acquire official MT4 MetaEditor
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $meta) {
+            $url = 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe'
+            $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+            Invoke-WebRequest -Uri $url -OutFile $setup -UseBasicParsing
+            $proc = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
+            if (-not $proc.WaitForExit(120000)) { try { $proc.Kill() } catch {} }
+            Start-Sleep -Seconds 5
+            $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          }
+          if (-not $meta) { throw 'MT4 MetaEditor not found' }
+          "METAEDITOR=$($meta.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "Using $($meta.FullName)"
+
+      - name: Native MetaEditor 0E0W compile
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = (Resolve-Path '.\target\blueprint\source\BBMA_EA.mq4').Path
+          $log = Join-Path $env:RUNNER_TEMP 'n1-nmje-metaeditor.log'
+          & "$env:METAEDITOR" "/compile:$src" "/log:$log"
+          Start-Sleep -Seconds 2
+          if (-not (Test-Path $log)) { throw 'MetaEditor compile log missing' }
+          $txt = Get-Content $log -Raw
+          $txt | Write-Host
+          $ex4 = [System.IO.Path]::ChangeExtension($src,'.ex4')
+          if (-not (Test-Path $ex4)) { throw 'MetaEditor did not produce EX4' }
+          $matches = [regex]::Matches($txt, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
+          if ($matches.Count -lt 1) { throw 'Unable to parse MetaEditor summary' }
+          $m = $matches[$matches.Count - 1]
+          $errors = [int]$m.Groups[1].Value
+          $warnings = [int]$m.Groups[2].Value
+          if ($errors -ne 0 -or $warnings -ne 0) { throw "Native compile failed: $errors errors / $warnings warnings" }
+          @"
+          N1_NMJE_NATIVE_METAEDITOR=PASS
+          SOURCE_BLOB=$env:N1_SOURCE_BLOB
+          SOURCE_SHA256=$env:N1_SOURCE_SHA256
+          ERRORS=$errors
+          WARNINGS=$warnings
+          "@ | Set-Content (Join-Path $env:RUNNER_TEMP 'n1-nmje-compile-result.txt')
+
+      - name: Upload compile evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: n1-nmje-native-compile-evidence
+          path: |
+            target/blueprint/source/BBMA_EA.ex4
+            ${{ runner.temp }}/n1-nmje-metaeditor.log
+            ${{ runner.temp }}/n1-nmje-compile-result.txt
+          if-no-files-found: warn
+
+      - name: Commit verified NMJE observer to target branch
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $audit = @"
+          # N1-03 — NMJE Observation Engine Implementation Audit
+
+          Date: 2026-08-24  
+          Branch: ``d1-owner-dev``  
+          Build: ``Version 4.5.1 - N1-03 NMJE Observer``
+
+          ## Result
+          **PASS — N1 observation-only engine materialized / native MT4 MetaEditor 0 errors / 0 warnings.**
+
+          Baseline source blob: ``$env:BASELINE_BLOB``  
+          N1 source blob: ``$env:N1_SOURCE_BLOB``  
+          N1 source SHA-256: ``$env:N1_SOURCE_SHA256``
+
+          ## Materialized architecture
+          - ``ENUM_NESTED_RELATION`` plus explicit parent-kind metadata;
+          - ``NestedTFNode`` and ``NestedJourneyState``;
+          - dedicated ``g_nested_journeys[MAX_PAIRS]`` storage outside ``PairState``;
+          - logical ``M12N`` read-only Nested MTF Journey Engine;
+          - one observer update per pair after both directional state passes and before M15 final authority;
+          - compact ``[N1-NMJE]`` diagnostic with parent, JourneyID, D1/H4/H1/M15 nodes and relation reason.
+
+          ## N1 placement note
+          Existing ``ProcessPair`` interleaves owner updates with M13/M14 assembly inside the BUY/SELL loop. N1 intentionally avoids refactoring that proven signal path. Logical ownership remains M12N between M12 and M13, while the physical shadow call is post-loop/pre-M15 so it sees complete owner state and cannot alter candidate construction.
+
+          ## Trade-behaviour invariant
+          Unchanged: standalone H1 Re-Entry eligibility, REM/RRE/REE signatures, candidate validation, D1 strategic gate, M15 final selection, M16 revalidation, SL/TP, lot, risk, limits and broker execution.
+
+          Nested relation is diagnostic/shadow metadata only. It is not an entry generator, filter, score or priority input.
+
+          ## Verification
+          - baseline source identity: PASS;
+          - critical M13/M14/M15/M16/M17 function byte-guard in patcher: PASS;
+          - M12N forbidden-owner-call scan: PASS;
+          - exactly one observer call: PASS;
+          - ``git diff --check``: PASS;
+          - official MT4 MetaEditor: **0 errors / 0 warnings**;
+          - artifact: ``n1-nmje-native-compile-evidence``.
+
+          ## Next
+          N1 runtime observation/forward validation. N2 may add shadow outcome statistics only; nested execution gating is not authorized by this implementation.
+          "@
+          Set-Content -Path '.\target\blueprint\N1_STEP3_NMJE_OBSERVER_IMPLEMENTATION_AUDIT_20260824.md' -Value $audit -Encoding UTF8
+
+          if (Test-Path '.\target\blueprint\source\BBMA_EA.ex4') { Remove-Item '.\target\blueprint\source\BBMA_EA.ex4' -Force }
+          if (Test-Path '.\target\blueprint\.run-n1-nmje-observer') { Remove-Item '.\target\blueprint\.run-n1-nmje-observer' -Force }
+          if (Test-Path '.\target\.github\workflows\n1-nmje-observer-native-compile.yml') { Remove-Item '.\target\.github\workflows\n1-nmje-observer-native-compile.yml' -Force }
+
+          Push-Location target
+          try {
+            git diff --check
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add -A
+            git commit -m 'N1-03: materialize NMJE observer with native MT4 0E0W [skip ci]'
+            $parent = (git rev-parse HEAD^).Trim()
+            git fetch origin d1-owner-dev
+            $remote = (git rev-parse origin/d1-owner-dev).Trim()
+            if ($remote -ne $parent) { throw "Target branch moved during N1 compile: remote=$remote parent=$parent" }
+            git push origin HEAD:d1-owner-dev
+            Write-Host "N1 commit=$(git rev-parse HEAD)"
+            Write-Host "N1 source_blob=$(git rev-parse HEAD:blueprint/source/BBMA_EA.mq4)"
+          }
+          finally { Pop-Location }

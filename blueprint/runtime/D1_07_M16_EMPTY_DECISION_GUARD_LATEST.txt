@@ -1,0 +1,17 @@
+D1-07 M16 Empty Decision Guard - Latest CI Result
+Run=32700835741
+Trigger=7f6a61af0f7fa081c2f0838b046af2b82f7d469d
+
+Stage=PASS
+Static=PASS
+Errors=0
+Warnings=0
+EX4=PRODUCED
+D1OwnerDevCommit=c788abe4d0c462a9f53cc1372be788e214538512
+OutputBlob=6e63668fa03f5b1f6f58d587c763454419bc205b
+
+--- MetaEditor tail ---
+
+
+D:\a\BBMA-project\BBMA-project\target\blueprint\source\BBMA_EA.mq4 : information: compiling 'BBMA_EA.mq4'
+Result: 0 errors, 0 warnings, 119 msec elapsed

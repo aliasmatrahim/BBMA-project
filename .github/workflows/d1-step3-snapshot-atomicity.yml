@@ -50,9 +50,18 @@ jobs:
           "Stage=APPLY_STATIC" | Set-Content $status
           $blob = (git -C '.\target' rev-parse 'HEAD:blueprint/source/BBMA_EA.mq4').Trim()
           "InputBlob=$blob" | Add-Content $status
-          python '.\dispatcher\blueprint\tools\d1_step3_snapshot_atomicity_apply.py' --repo-root '.\target'
+
+          python '.\dispatcher\blueprint\tools\d1_step3_snapshot_atomicity_apply_v2.py' --repo-root '.\target'
+          if ($LASTEXITCODE -ne 0) { throw "D1-03 patcher failed with exit code $LASTEXITCODE" }
+
           python '.\dispatcher\blueprint\tools\d1_step3_mql4_compat_repair.py' --repo-root '.\target'
+          if ($LASTEXITCODE -ne 0) { throw "D1-03 MQL4 compatibility repair failed with exit code $LASTEXITCODE" }
+
+          python '.\dispatcher\blueprint\tools\d1_step3_snapshot_atomicity_apply_v2.py' --repo-root '.\target' --verify
+          if ($LASTEXITCODE -ne 0) { throw "D1-03 robust static verification failed with exit code $LASTEXITCODE" }
+
           git -C '.\target' diff --check
+          if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed' }
           "Static=PASS" | Add-Content $status
           "MQL4Compat=PASS" | Add-Content $status
 
@@ -99,21 +108,32 @@ jobs:
           "MetaEditor=$env:METAEDITOR" | Add-Content $status
           $src = (Resolve-Path '.\target\blueprint\source\BBMA_EA.mq4').Path
           $log = Join-Path $env:RUNNER_TEMP 'd1-step3-metaeditor.log'
+          if (Test-Path $log) { Remove-Item $log -Force }
           & "$env:METAEDITOR" "/compile:$src" "/log:$log"
-          Start-Sleep -Seconds 2
-          if (-not (Test-Path $log)) { throw 'MetaEditor compile log missing' }
+
+          for ($i=0; $i -lt 30; $i++) {
+            if (Test-Path $log) {
+              $probe = Get-Content $log -Raw -ErrorAction SilentlyContinue
+              if ($probe -match '(?i)Result:\s*\d+\s+errors?,\s*\d+\s+warnings?') { break }
+            }
+            Start-Sleep -Seconds 1
+          }
+          if (-not (Test-Path $log)) { throw 'MetaEditor compile log missing after bounded wait' }
+
           $txt = Get-Content $log -Raw
           $txt | Write-Host
           $matches = [regex]::Matches($txt, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
-          if ($matches.Count -lt 1) { throw 'Unable to parse MetaEditor summary' }
+          if ($matches.Count -lt 1) { throw 'Unable to parse MetaEditor summary after bounded wait' }
           $m = $matches[$matches.Count - 1]
           $errors = [int]$m.Groups[1].Value
           $warnings = [int]$m.Groups[2].Value
           "Errors=$errors" | Add-Content $status
           "Warnings=$warnings" | Add-Content $status
           if ($errors -ne 0 -or $warnings -ne 0) { throw "D1-03 compile failed: $errors errors / $warnings warnings" }
+
           $ex4 = [System.IO.Path]::ChangeExtension($src,'.ex4')
-          if (-not (Test-Path $ex4)) { throw 'MetaEditor did not produce EX4' }
+          for ($i=0; $i -lt 10 -and -not (Test-Path $ex4); $i++) { Start-Sleep -Seconds 1 }
+          if (-not (Test-Path $ex4)) { throw 'MetaEditor did not produce EX4 after bounded wait' }
           "EX4=PRODUCED" | Add-Content $status
           "ERRORS=$errors" | Out-File -FilePath $env:GITHUB_ENV -Append
           "WARNINGS=$warnings" | Out-File -FilePath $env:GITHUB_ENV -Append
@@ -123,15 +143,25 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $status = Join-Path $env:RUNNER_TEMP 'd1-step3-status.txt'
-          python '.\dispatcher\blueprint\tools\d1_step3_snapshot_atomicity_apply.py' --repo-root '.\target' --finalize
+
+          python '.\dispatcher\blueprint\tools\d1_step3_snapshot_atomicity_apply_v2.py' --repo-root '.\target' --finalize
+          if ($LASTEXITCODE -ne 0) { throw "D1-03 finalize failed with exit code $LASTEXITCODE" }
           python '.\dispatcher\blueprint\tools\d1_step3_mql4_compat_repair.py' --repo-root '.\target'
+          if ($LASTEXITCODE -ne 0) { throw "D1-03 final MQL4 compatibility verification failed with exit code $LASTEXITCODE" }
+          python '.\dispatcher\blueprint\tools\d1_step3_snapshot_atomicity_apply_v2.py' --repo-root '.\target' --verify
+          if ($LASTEXITCODE -ne 0) { throw "D1-03 final static verification failed with exit code $LASTEXITCODE" }
+
           git -C '.\target' diff --check
+          if ($LASTEXITCODE -ne 0) { throw 'final git diff --check failed' }
           git -C '.\target' config user.name 'github-actions[bot]'
           git -C '.\target' config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git -C '.\target' add blueprint/source/BBMA_EA.mq4 blueprint/contracts/M11_D1_MAJOR_TREND_OWNER_CONTRACT.md blueprint/contracts/M15_FINAL_SIGNAL_AUTHORITY_CONTRACT.md blueprint/contracts/M16_CONFLICT_INVALIDATION_CONTRACT.md blueprint/D1_STEP3_M11_SNAPSHOT_ATOMICITY_IMPLEMENTATION_AUDIT_20260824.md
           git -C '.\target' commit -m 'D1-03: make M11 D1 owner snapshot atomic [skip ci]'
+          if ($LASTEXITCODE -ne 0) { throw 'D1-03 commit failed' }
           $commit = (git -C '.\target' rev-parse HEAD).Trim()
           git -C '.\target' push origin HEAD:d1-owner-dev
+          if ($LASTEXITCODE -ne 0) { throw 'D1-03 push failed' }
+
           "Stage=PASS" | Set-Content $status
           "Static=PASS" | Add-Content $status
           "MQL4Compat=PASS" | Add-Content $status

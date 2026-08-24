@@ -1,0 +1,4 @@
+run=20260824T1500+08
+source=d1-owner-dev
+input_blob=318725900eb33e2d7c8a3d8884d1ae0cb565d1f6
+purpose=keep MinRRRatio optional but default disabled at 0.0

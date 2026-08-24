@@ -1,45 +1,44 @@
-name: D1 Step1 native compile issue dispatcher
+name: D1 Step1 native compile direct diagnostic
 
 on:
   issues:
     types: [opened]
 
 permissions:
-  contents: write
+  contents: read
   issues: write
 
 jobs:
-  compile-mt4:
-    if: startsWith(github.event.issue.title, 'RUN D1 STEP1 NATIVE COMPILE 20260824')
+  native-diagnostic:
+    if: startsWith(github.event.issue.title, 'RUN D1 STEP1 NATIVE DIAG 20260824')
     runs-on: windows-latest
-    outputs:
-      ok: ${{ steps.native.outputs.ok }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: d1-owner-dev
 
-      - name: Native MT4 MetaEditor diagnostic compile
-        id: native
+      - name: Compile exact D1-01 source and report directly
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
-          $result = Join-Path $env:RUNNER_TEMP 'd1-step1-compile-result.txt'
-          $log = Join-Path $env:RUNNER_TEMP 'd1-step1-metaeditor.log'
-          $ok = 'false'
+          $ok = $false
           $stage = 'START'
           $detail = ''
           $sha = ''
           $errors = -1
           $warnings = -1
+          $metaPath = ''
+          $log = Join-Path $env:RUNNER_TEMP 'd1-step1-metaeditor.log'
           try {
             $stage = 'VERIFY_SOURCE'
             $src = '.\blueprint\source\BBMA_EA.mq4'
             if (-not (Test-Path $src)) { throw 'D1-01 source missing' }
             $text = Get-Content $src -Raw
-            if ($text -notmatch 'Version 4\.5\.1 - D1-01 M11 Strategic Owner') { throw 'Unexpected build identifier' }
+            if ($text -notmatch 'Version 4\.5\.1 - D1-01 M11 Strategic Owner') { throw 'Unexpected D1-01 build identifier' }
             $sha = (Get-FileHash $src -Algorithm SHA256).Hash.ToLower()
-            if ($sha -ne '423ddc4217ac1aebf83745348a34fa2fc3200916bb2456720fd7a090a4726367') { throw "Unexpected D1-01 source SHA256: $sha" }
+            if ($sha -ne '423ddc4217ac1aebf83745348a34fa2fc3200916bb2456720fd7a090a4726367') { throw "Unexpected source SHA256: $sha" }
 
             $stage = 'ACQUIRE_METAEDITOR'
             $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -51,14 +50,14 @@ jobs:
               $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
             }
             if (-not $meta) { throw 'MT4 MetaEditor not found after official installer attempt' }
+            $metaPath = $meta.FullName
 
             $stage = 'COMPILE'
             $srcPath = (Resolve-Path $src).Path
-            & "$($meta.FullName)" "/compile:$srcPath" "/log:$log"
+            & "$metaPath" "/compile:$srcPath" "/log:$log"
             Start-Sleep -Seconds 2
             if (-not (Test-Path $log)) { throw 'MetaEditor compile log missing' }
             $txt = Get-Content $log -Raw
-            $txt | Write-Host
             $ex4 = [System.IO.Path]::ChangeExtension($srcPath,'.ex4')
             if (-not (Test-Path $ex4)) { throw 'MetaEditor did not produce EX4' }
             $matches = [regex]::Matches($txt, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
@@ -66,123 +65,35 @@ jobs:
             $m = $matches[$matches.Count - 1]
             $errors = [int]$m.Groups[1].Value
             $warnings = [int]$m.Groups[2].Value
-            if ($errors -ne 0 -or $warnings -ne 0) { throw "Native compile produced $errors errors / $warnings warnings" }
-
+            if ($errors -ne 0 -or $warnings -ne 0) { throw "MetaEditor produced $errors errors / $warnings warnings" }
+            $ok = $true
             $stage = 'PASS'
-            $detail = 'Exact D1-01 source compiled successfully.'
-            $ok = 'true'
+            $detail = 'Exact D1-01 source compiled 0E0W and EX4 was produced.'
           }
           catch {
             $detail = $_.Exception.Message
-            Write-Host "D1 native compile diagnostic failure at $stage : $detail"
           }
-          finally {
-            @"
-          D1_STEP1_NATIVE_METAEDITOR_OK=$ok
-          STAGE=$stage
-          SOURCE_SHA256=$sha
-          ERRORS=$errors
-          WARNINGS=$warnings
-          DETAIL=$detail
-          "@ | Set-Content $result
-            "ok=$ok" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+          $lines = New-Object System.Collections.Generic.List[string]
+          $lines.Add("D1-01 native diagnostic result")
+          $lines.Add("")
+          $lines.Add("- OK: $ok")
+          $lines.Add("- Stage: $stage")
+          $lines.Add("- Source SHA256: $sha")
+          $lines.Add("- MetaEditor: $metaPath")
+          $lines.Add("- Errors: $errors")
+          $lines.Add("- Warnings: $warnings")
+          $lines.Add("- Detail: $detail")
+          if (Test-Path $log) {
+            $lines.Add("")
+            $lines.Add('```text')
+            $tail = Get-Content $log | Select-Object -Last 100
+            foreach ($line in $tail) { $lines.Add($line) }
+            $lines.Add('```')
           }
-          exit 0
+          $body = Join-Path $env:RUNNER_TEMP 'd1-native-comment.md'
+          $lines | Set-Content $body
+          gh issue comment "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --body-file $body
+          gh issue close "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --comment "D1-01 native diagnostic completed: OK=$ok, stage=$stage."
 
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: d1-step1-native-compile-diagnostic
-          path: |
-            blueprint/source/BBMA_EA.ex4
-            ${{ runner.temp }}/d1-step1-metaeditor.log
-            ${{ runner.temp }}/d1-step1-compile-result.txt
-          if-no-files-found: warn
-
-  close-gate:
-    if: needs.compile-mt4.outputs.ok == 'true'
-    needs: compile-mt4
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: d1-owner-dev
-          fetch-depth: 0
-      - uses: actions/download-artifact@v4
-        with:
-          name: d1-step1-native-compile-diagnostic
-          path: /tmp/d1-native
-      - name: Record D1-01 native compile closure
-        shell: bash
-        run: |
-          set -euo pipefail
-          grep -Fq 'D1_STEP1_NATIVE_METAEDITOR_OK=true' /tmp/d1-native/d1-step1-compile-result.txt
-          grep -Fq 'SOURCE_SHA256=423ddc4217ac1aebf83745348a34fa2fc3200916bb2456720fd7a090a4726367' /tmp/d1-native/d1-step1-compile-result.txt
-          grep -Fq 'ERRORS=0' /tmp/d1-native/d1-step1-compile-result.txt
-          grep -Fq 'WARNINGS=0' /tmp/d1-native/d1-step1-compile-result.txt
-          cat > blueprint/D1_STEP1_NATIVE_METAEDITOR_COMPILE_20260824.md <<'EOF'
-          # D1 Step 1 — Native MT4 MetaEditor Compile Closure
-
-          Date: 2026-08-24  
-          Branch: `d1-owner-dev`  
-          Build: `Version 4.5.1 - D1-01 M11 Strategic Owner`  
-          Source SHA-256: `423ddc4217ac1aebf83745348a34fa2fc3200916bb2456720fd7a090a4726367`
-
-          Status: **NATIVE METAEDITOR PASS — 0 ERRORS / 0 WARNINGS**
-
-          The exact D1-01 source above was compiled by MT4 MetaEditor on a Windows GitHub runner. The official MetaQuotes MT4 installer path was used when MetaEditor was not already present.
-
-          Evidence artifact: `d1-step1-native-compile-diagnostic`, containing the EX4, MetaEditor compile log and machine-readable result summary.
-
-          This closes the native compile gate for D1 Step 1 only. M15 D1 strategic gating, M16 D1 revalidation, F7 lifecycle implementation and `blueprint-dev` remain unchanged.
-          EOF
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('blueprint/D1_STEP1_M11_STRATEGIC_OWNER_IMPLEMENTATION_AUDIT_20260824.md')
-          s=p.read_text(encoding='utf-8')
-          s=s.replace('Status: **SOURCE MATERIALIZED / STATIC INTEGRITY PASS / NATIVE METAEDITOR COMPILE PENDING**',
-                      'Status: **SOURCE MATERIALIZED / STATIC INTEGRITY PASS / NATIVE METAEDITOR 0E0W PASS**')
-          s=s.replace('Native MT4 MetaEditor compile remains required. Target: **0 errors / 0 warnings**.',
-                      'Native MT4 MetaEditor compile: **PASS — 0 errors / 0 warnings**. See `D1_STEP1_NATIVE_METAEDITOR_COMPILE_20260824.md`.')
-          p.write_text(s, encoding='utf-8')
-          PY
-          rm -f blueprint/.d1-native-compile-trigger
-          rm -f .github/workflows/d1-step1-native-compile.yml
-          git diff --check
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "D1-01: close native MetaEditor 0E0W gate [skip ci]"
-          git push origin HEAD:d1-owner-dev
-
-  report-and-close:
-    if: always() && startsWith(github.event.issue.title, 'RUN D1 STEP1 NATIVE COMPILE 20260824')
-    needs: [compile-mt4, close-gate]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: d1-step1-native-compile-diagnostic
-          path: /tmp/d1-native
-      - name: Report diagnostic and close issue
-        env:
-          GH_TOKEN: ${{ github.token }}
-          COMPILE_OK: ${{ needs.compile-mt4.outputs.ok }}
-          GATE_RESULT: ${{ needs.close-gate.result }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          {
-            echo "D1-01 native compile diagnostic: ok=${COMPILE_OK:-unknown}, gate=${GATE_RESULT}."
-            echo
-            echo '```text'
-            cat /tmp/d1-native/d1-step1-compile-result.txt || true
-            if [ -f /tmp/d1-native/d1-step1-metaeditor.log ]; then
-              echo
-              echo '--- MetaEditor log tail ---'
-              tail -n 80 /tmp/d1-native/d1-step1-metaeditor.log
-            fi
-            echo '```'
-          } > /tmp/d1-comment.md
-          gh issue comment "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --body-file /tmp/d1-comment.md
-          gh issue close "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --comment "D1-01 native compile diagnostic workflow finished."
+          if (-not $ok) { Write-Host "Diagnostic captured failure: $detail" }

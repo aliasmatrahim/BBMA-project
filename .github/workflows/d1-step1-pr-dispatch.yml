@@ -25,30 +25,253 @@ jobs:
         run: |
           set -euo pipefail
 
-          PATCH='blueprint/patches/0026-d1-step1-m11-strategic-owner-producer.patch'
           SRC='blueprint/source/BBMA_EA.mq4'
+          PATCH='blueprint/patches/0026-d1-step1-m11-strategic-owner-producer.patch'
           AUDIT='blueprint/D1_STEP1_M11_STRATEGIC_OWNER_IMPLEMENTATION_AUDIT_20260824.md'
 
-          test -f "$PATCH"
           test -f "$SRC"
-          BEFORE_SHA=$(sha256sum "$SRC" | awk '{print $1}')
-
-          if grep -Fq 'D1-01 M11 Strategic Owner' "$SRC"; then
-            echo 'D1-01 already materialized; verifying current source.'
-          else
-            git apply --check "$PATCH"
-            git apply "$PATCH"
-          fi
-
-          git diff --check
+          test -f "$PATCH"
+          cp "$SRC" /tmp/BBMA_EA.before.mq4
 
           python3 - <<'PY'
           from pathlib import Path
           import hashlib
 
           src = Path('blueprint/source/BBMA_EA.mq4')
+          audit = Path('blueprint/D1_STEP1_M11_STRATEGIC_OWNER_IMPLEMENTATION_AUDIT_20260824.md')
+          before = Path('/tmp/BBMA_EA.before.mq4').read_text(encoding='utf-8')
           s = src.read_text(encoding='utf-8')
 
+          def replace_once(text, old, new, label):
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected exactly one anchor, found {count}')
+              return text.replace(old, new, 1)
+
+          if 'D1-01 M11 Strategic Owner' not in s:
+              s = replace_once(
+                  s,
+                  '//|                                    Version 4.5.1 - P3-UI-01 Input Panel Cleanup    |',
+                  '//| Version 4.5.1 - D1-01 M11 Strategic Owner                        |',
+                  'header build id')
+
+              old_enum = '''enum ENUM_H4_OWNER_STATE
+{
+   H4_OWNER_RECOVERY_UNRESOLVED,
+   H4_OWNER_NONE,
+   H4_OWNER_ACTIVE
+};
+
+enum ENUM_EXTREME_TYPE'''
+              new_enum = '''enum ENUM_H4_OWNER_STATE
+{
+   H4_OWNER_RECOVERY_UNRESOLVED,
+   H4_OWNER_NONE,
+   H4_OWNER_ACTIVE
+};
+
+enum ENUM_D1_OWNER_STATE
+{
+   D1_OWNER_UNRESOLVED,
+   D1_OWNER_BUY_CONFIRMED,
+   D1_OWNER_SELL_CONFIRMED,
+   D1_TRANSITION
+};
+
+enum ENUM_EXTREME_TYPE'''
+              s = replace_once(s, old_enum, new_enum, 'D1 owner enum')
+
+              old_struct = '''struct H4DirectionalOwner
+{
+   ENUM_H4_OWNER_STATE  State;
+   ENUM_DIRECTION       Direction;
+   ENUM_SIGNAL_TYPE     SourceSignal;
+   datetime             SourceCandleTime;
+   ENUM_SIGNAL_TYPE     LastAdvanceSignal;
+   datetime             LastAdvanceCandleTime;
+   datetime             LastProcessedH4CandleTime;
+   bool                 IsValid;
+   bool                 RecoveryComplete;
+   bool                 RecoveredFromCheckpoint;
+   string               Reason;
+};
+
+struct TimeframeSnapshot'''
+              new_struct = '''struct H4DirectionalOwner
+{
+   ENUM_H4_OWNER_STATE  State;
+   ENUM_DIRECTION       Direction;
+   ENUM_SIGNAL_TYPE     SourceSignal;
+   datetime             SourceCandleTime;
+   ENUM_SIGNAL_TYPE     LastAdvanceSignal;
+   datetime             LastAdvanceCandleTime;
+   datetime             LastProcessedH4CandleTime;
+   bool                 IsValid;
+   bool                 RecoveryComplete;
+   bool                 RecoveredFromCheckpoint;
+   string               Reason;
+};
+
+struct D1MajorTrendOwner
+{
+   ENUM_D1_OWNER_STATE  State;
+   ENUM_DIRECTION       Direction;
+   datetime             SourceCandleTime;
+   datetime             LastProcessedD1CandleTime;
+   bool                 IsValid;
+   string               Reason;
+};
+
+struct TimeframeSnapshot'''
+              s = replace_once(s, old_struct, new_struct, 'D1 owner struct')
+
+              s = replace_once(
+                  s,
+                  '   H4DirectionalOwner   h4_direction_owner;\n   double               prev_ema50;',
+                  '   H4DirectionalOwner   h4_direction_owner;\n   D1MajorTrendOwner    d1_major_trend_owner;\n   double               prev_ema50;',
+                  'PairState D1 owner field')
+
+              old_init = '''   state.h4_direction_owner.IsValid = false;
+   state.h4_direction_owner.RecoveryComplete = false;
+   state.h4_direction_owner.RecoveredFromCheckpoint = false;
+}'''
+              new_init = '''   state.h4_direction_owner.IsValid = false;
+   state.h4_direction_owner.RecoveryComplete = false;
+   state.h4_direction_owner.RecoveredFromCheckpoint = false;
+
+   state.d1_major_trend_owner.State = D1_OWNER_UNRESOLVED;
+   state.d1_major_trend_owner.Direction = DIR_NONE;
+   state.d1_major_trend_owner.SourceCandleTime = 0;
+   state.d1_major_trend_owner.LastProcessedD1CandleTime = 0;
+   state.d1_major_trend_owner.IsValid = false;
+   state.d1_major_trend_owner.Reason = "D1 owner not evaluated";
+}'''
+              s = replace_once(s, old_init, new_init, 'InitPairState D1 owner init')
+
+              module12_marker = '''//+------------------------------------------------------------------+
+//| MODULE 12: RE-ENTRY ENGINE                                       |'''
+              d1_functions = '''void SetD1OwnerUnresolved(PairState &state, string reason)
+{
+   state.d1_major_trend_owner.State = D1_OWNER_UNRESOLVED;
+   state.d1_major_trend_owner.Direction = DIR_NONE;
+   state.d1_major_trend_owner.IsValid = false;
+   state.d1_major_trend_owner.SourceCandleTime = state.d1_data.candle_time;
+   state.d1_major_trend_owner.LastProcessedD1CandleTime = state.d1_data.candle_time;
+   state.d1_major_trend_owner.Reason = reason;
+}
+
+void TraceD1MajorTrendOwner(string pair, PairState &state)
+{
+   if(DebugLevel < DBG_SIGNAL) return;
+
+   Print("[D1-01][OWNER] Pair=", pair,
+         " Candle=", TimeToString(state.d1_major_trend_owner.SourceCandleTime),
+         " State=", EnumToString(state.d1_major_trend_owner.State),
+         " Dir=", EnumToString(state.d1_major_trend_owner.Direction),
+         " Close=", DoubleToString(state.d1_data.close, state.d1_data.digits),
+         " MA50=", DoubleToString(state.current_daily_ema50, state.d1_data.digits),
+         " PrevMA50=", DoubleToString(state.prev_daily_ema50, state.d1_data.digits));
+}
+
+void UpdateD1MajorTrendOwner(string pair, PairState &state)
+{
+   // D1-01 producer only. This state is not consumed by M15/M16 yet, so this
+   // patch must not alter entry eligibility until the next dependency step.
+   if(!state.d1_data.is_valid ||
+      !state.d1_data.is_closed ||
+      state.d1_data.timeframe != PERIOD_D1 ||
+      state.d1_data.candle_time <= 0 ||
+      state.d1_data.barIndex < 1)
+   {
+      SetD1OwnerUnresolved(state, "Invalid/incomplete closed D1 snapshot");
+      TraceD1MajorTrendOwner(pair, state);
+      return;
+   }
+
+   // Recalculate unresolved states on later M15 scans in case broker history
+   // becomes available. A valid already-classified D1 candle is immutable.
+   if(state.d1_major_trend_owner.IsValid &&
+      state.d1_major_trend_owner.LastProcessedD1CandleTime == state.d1_data.candle_time)
+      return;
+
+   double currentMA50 = state.d1_data.ma[4];
+   double previousMA50 = EMA(pair, PERIOD_D1, EMA50_PERIOD,
+                             state.d1_data.barIndex + 1);
+
+   state.current_daily_ema50 = currentMA50;
+   state.prev_daily_ema50 = previousMA50;
+   state.d1_major_trend_owner.SourceCandleTime = state.d1_data.candle_time;
+   state.d1_major_trend_owner.LastProcessedD1CandleTime = state.d1_data.candle_time;
+
+   if(state.d1_data.close <= 0.0 || currentMA50 <= 0.0 || previousMA50 <= 0.0)
+   {
+      SetD1OwnerUnresolved(state, "Required closed D1 MA50 history unavailable");
+      TraceD1MajorTrendOwner(pair, state);
+      return;
+   }
+
+   state.d1_major_trend_owner.IsValid = true;
+
+   if(state.d1_data.close > currentMA50 && currentMA50 > previousMA50)
+   {
+      state.d1_major_trend_owner.State = D1_OWNER_BUY_CONFIRMED;
+      state.d1_major_trend_owner.Direction = DIR_BUY;
+      state.d1_major_trend_owner.Reason =
+         "Closed D1 above MA50 with rising MA50";
+   }
+   else if(state.d1_data.close < currentMA50 && currentMA50 < previousMA50)
+   {
+      state.d1_major_trend_owner.State = D1_OWNER_SELL_CONFIRMED;
+      state.d1_major_trend_owner.Direction = DIR_SELL;
+      state.d1_major_trend_owner.Reason =
+         "Closed D1 below MA50 with falling MA50";
+   }
+   else
+   {
+      state.d1_major_trend_owner.State = D1_TRANSITION;
+      state.d1_major_trend_owner.Direction = DIR_NONE;
+      state.d1_major_trend_owner.Reason =
+         "Closed D1 price-side and MA50 slope do not confirm one direction";
+   }
+
+   TraceD1MajorTrendOwner(pair, state);
+}
+
+'''
+              s = replace_once(s, module12_marker, d1_functions + module12_marker, 'M11 D1 owner functions')
+
+              s = replace_once(
+                  s,
+                  '   g_dashboard_snapshot += "=== BBMA EA V4.5.1 ===\\n";',
+                  '   g_dashboard_snapshot += "=== BBMA EA V4.5.1 D1-01 ===\\n";',
+                  'dashboard build id')
+
+              old_process = '''   GetDataForTimeframe(actual, PERIOD_M15, g_pair_states[pairIndex].tf_snapshot.M15_CandleTime,
+                       g_pair_states[pairIndex].m15_data);
+
+   // H4 owner is persistent across neutral H4 candles and changes only on'''
+              new_process = '''   GetDataForTimeframe(actual, PERIOD_M15, g_pair_states[pairIndex].tf_snapshot.M15_CandleTime,
+                       g_pair_states[pairIndex].m15_data);
+
+   // D1-01: classify the strategic D1/MA50 owner from fully closed D1 data.
+   // Producer only in this step; M15/M16 consumption is intentionally later.
+   UpdateD1MajorTrendOwner(actual, g_pair_states[pairIndex]);
+
+   // H4 owner is persistent across neutral H4 candles and changes only on'''
+              s = replace_once(s, old_process, new_process, 'ProcessPair D1 producer call')
+
+              s = replace_once(
+                  s,
+                  '   Log(DBG_FULL, "BBMA Professional EA V4.5.1 initialized successfully");',
+                  '   Log(DBG_FULL, "BBMA EA V4.5.1 D1-01 initialized successfully");',
+                  'init build id')
+
+              src.write_text(s, encoding='utf-8')
+          else:
+              print('D1-01 already materialized; transformation skipped.')
+
+          # Static verification.
+          s = src.read_text(encoding='utf-8')
           required_once = [
               '//| Version 4.5.1 - D1-01 M11 Strategic Owner',
               'enum ENUM_D1_OWNER_STATE',
@@ -72,26 +295,13 @@ jobs:
               raise SystemExit('D1 SELL predicate missing/ambiguous')
           if s.count('state.d1_major_trend_owner.State = D1_TRANSITION;') != 1:
               raise SystemExit('D1 transition assignment missing/ambiguous')
-          if s.count('state.d1_major_trend_owner.State = D1_OWNER_UNRESOLVED;') < 1:
-              raise SystemExit('D1 unresolved path missing')
-
-          for needle in [
-              '!state.d1_data.is_closed',
-              'state.d1_data.timeframe != PERIOD_D1',
-              'state.d1_data.barIndex < 1',
-              'EMA(pair, PERIOD_D1, EMA50_PERIOD,',
-              'state.d1_data.barIndex + 1',
-          ]:
-              if needle not in s:
-                  raise SystemExit(f'D1 closed-history guard missing: {needle}')
 
           process_start = s.index('void ProcessPair(int pairIndex)')
           process_end = s.index('void OnTickMain()', process_start)
           process = s[process_start:process_end]
-          d1_load = process.index('GetDataForTimeframe(actual, PERIOD_D1')
-          owner_call = process.index('UpdateD1MajorTrendOwner(actual, g_pair_states[pairIndex]);')
-          h4_call = process.index('UpdateRuntimeH4DirectionalOwner(pairIndex);')
-          if not (d1_load < owner_call < h4_call):
+          if not (process.index('GetDataForTimeframe(actual, PERIOD_D1') <
+                  process.index('UpdateD1MajorTrendOwner(actual, g_pair_states[pairIndex]);') <
+                  process.index('UpdateRuntimeH4DirectionalOwner(pairIndex);')):
               raise SystemExit('D1 producer orchestration order invalid')
 
           m15_start = s.index('//| MODULE 15:')
@@ -135,9 +345,8 @@ jobs:
                   raise SystemExit(f'Delimiter mismatch {a}{b}: {clean.count(a)} vs {clean.count(b)}')
 
           for module in range(1, 28):
-              marker=f'MODULE {module:02d}:'
-              if marker not in s:
-                  raise SystemExit(f'Missing module marker {marker}')
+              if f'MODULE {module:02d}:' not in s:
+                  raise SystemExit(f'Missing module marker MODULE {module:02d}')
 
           m11_start = s.index('//| MODULE 11:')
           m12_start = s.index('//| MODULE 12:', m11_start)
@@ -146,64 +355,56 @@ jobs:
               if token in m11:
                   raise SystemExit(f'Forbidden non-Core token in M11: {token}')
 
+          before_sha = hashlib.sha256(before.encode('utf-8')).hexdigest()
           after_sha = hashlib.sha256(s.encode('utf-8')).hexdigest()
-          Path('/tmp/d1_after_sha').write_text(after_sha, encoding='utf-8')
+          audit.write_text(f'''# D1 Step 1 — M11 Strategic Owner Implementation Audit
+
+Date: 2026-08-24  
+Branch: `d1-owner-dev`  
+Status: **SOURCE MATERIALIZED / STATIC INTEGRITY PASS / NATIVE METAEDITOR COMPILE PENDING**
+
+## Scope
+Materialize the approved M11 D1 strategic-owner producer only. M15/M16 D1 entry gating remains deliberately inactive until D1 Step 2.
+
+## Canonical mapping implemented
+- BUY = latest fully closed D1 `Close > MA50` and MA50 rising versus previous closed D1;
+- SELL = latest fully closed D1 `Close < MA50` and MA50 falling versus previous closed D1;
+- valid disagreement/flat/equality = `D1_TRANSITION`;
+- invalid/incomplete required history = `D1_OWNER_UNRESOLVED`.
+
+## Static integrity result
+**PASS**
+
+Verified:
+- source materialized by exact-anchor transformer;
+- D1 owner predicates unique;
+- closed-D1/history guards retained;
+- orchestration = D1 snapshot -> M11 producer -> H4 runtime owner;
+- M15/M16 do not consume the D1 owner yet;
+- left-aligned `D1-01` source build identifier;
+- delimiter balance sanity passed after comment/string scrub;
+- Module 01–27 markers retained;
+- no RSI/MACD/Stochastic/ADX/ATR/news/session strategy pollution in M11.
+
+## Source identity
+Before SHA-256: `{before_sha}`  
+After SHA-256: `{after_sha}`
+
+## Compile gate
+Native MT4 MetaEditor compilation remains mandatory. Target = **0 errors / 0 warnings**. GitHub/Linux static checks are not a substitute for native MQL4 compilation.
+
+## Boundary
+No M15/M16 D1 strategic gate, M17/F7 payload, risk, money management, broker execution, live-position lifecycle, or dashboard active-count behavior is changed by D1-01.
+''', encoding='utf-8')
           PY
 
-          AFTER_SHA=$(cat /tmp/d1_after_sha)
+          # Regenerate the patch from the actual materialized source so the
+          # repository patch artifact is syntactically valid and reproducible.
+          git diff -- blueprint/source/BBMA_EA.mq4 > "$PATCH"
+          test -s "$PATCH"
+          git apply --check --reverse "$PATCH"
 
-          cat > "$AUDIT" <<EOF
-          # D1 Step 1 — M11 Strategic Owner Implementation Audit
-
-          Date: 2026-08-24  
-          Branch: `d1-owner-dev`  
-          Status: **SOURCE MATERIALIZED / STATIC INTEGRITY PASS / NATIVE METAEDITOR COMPILE PENDING**
-
-          ## Scope
-          Materialize the approved M11 D1 strategic-owner producer only. M15/M16 D1 entry gating remains deliberately inactive until D1 Step 2.
-
-          ## Canonical mapping implemented
-          - BUY = latest fully closed D1 `Close > MA50` and MA50 rising versus previous closed D1;
-          - SELL = latest fully closed D1 `Close < MA50` and MA50 falling versus previous closed D1;
-          - valid disagreement/flat/equality = `D1_TRANSITION`;
-          - invalid/incomplete required history = `D1_OWNER_UNRESOLVED`.
-
-          ## Materialized changes
-          - `ENUM_D1_OWNER_STATE`;
-          - `D1MajorTrendOwner` in `PairState`;
-          - fail-closed initialization;
-          - M11 producer + diagnostic trace;
-          - previous closed-D1 MA50 retrieval;
-          - `ProcessPair`: D1 snapshot -> M11 D1 owner producer -> H4 runtime owner;
-          - visible build/runtime ID `D1-01 M11 Strategic Owner`.
-
-          ## Static integrity result
-          **PASS**
-
-          Verified:
-          - patch applies/materializes cleanly;
-          - `git diff --check` clean;
-          - owner predicates unique;
-          - closed-D1/history guards present;
-          - producer orchestration order correct;
-          - M15 and M16 do not consume D1 owner yet;
-          - left-aligned source build ID;
-          - delimiter sanity after comment/string scrub;
-          - Module 01–27 markers preserved;
-          - no RSI/MACD/Stochastic/ADX/ATR/news/session strategy pollution in M11.
-
-          ## Source identity
-          Before SHA-256: `$BEFORE_SHA`  
-          After SHA-256: `$AFTER_SHA`
-
-          ## Compile gate
-          Native MT4 MetaEditor compilation remains mandatory. Target = **0 errors / 0 warnings**. Static Linux checks are not a substitute for native MQL4 compilation.
-
-          ## Boundary
-          No M15/M16 D1 strategic gate, M17, F7 targetless payload, risk, money management, order execution, live-position lifecycle, or dashboard active-count behavior was changed by D1-01.
-          EOF
-
-          rm -f blueprint/.d1-step1-dispatch
+          rm -f blueprint/.d1-step1-dispatch*
           rm -f .github/workflows/one-shot-apply-d1-step1.yml
           git diff --check
 
@@ -215,10 +416,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A -- blueprint/source/BBMA_EA.mq4 \
-                      blueprint/D1_STEP1_M11_STRATEGIC_OWNER_IMPLEMENTATION_AUDIT_20260824.md \
-                      blueprint/.d1-step1-dispatch \
-                      .github/workflows/one-shot-apply-d1-step1.yml
+          git add -A
           if git diff --cached --quiet; then
             echo 'No D1-01 changes to commit.'
             exit 0

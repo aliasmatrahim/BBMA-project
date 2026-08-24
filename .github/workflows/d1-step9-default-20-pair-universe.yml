@@ -1,0 +1,140 @@
+name: D1 Step9 Default 20 Pair Universe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'blueprint/.run-d1-09-default-20-pairs'
+
+permissions:
+  contents: write
+
+jobs:
+  d1-step9:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: dispatcher
+          fetch-depth: 0
+
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          path: target
+          fetch-depth: 0
+
+      - name: Verify D1-08 input identity
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $blob = (git -C '.\target' rev-parse 'HEAD:blueprint/source/BBMA_EA.mq4').Trim()
+          if ($blob -ne 'a88aa0d18d523a73348d09e205ecd60edd594a1f') { throw "Unexpected D1-08 source blob: $blob" }
+          $head = (git -C '.\target' rev-parse HEAD).Trim()
+          if ($head -ne 'a7c6dbe6c025e79f3785ca25dfa79a0f4d56ea1f') { throw "Unexpected d1-owner-dev head: $head" }
+
+      - name: Apply D1-09 and static audit
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python '.\dispatcher\blueprint\tools\d1_step9_default_20_pair_universe.py' --repo-root '.\target'
+          python '.\dispatcher\blueprint\tools\d1_step9_default_20_pair_universe.py' --repo-root '.\target' --verify
+          git -C '.\target' diff --check
+
+      - name: Acquire official MT4 MetaEditor
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dirs = @('C:\Program Files (x86)\MetaTrader 4','C:\Program Files\MetaTrader 4')
+          $meta = $null
+          foreach ($dir in $dirs) {
+            $candidate = Join-Path $dir 'metaeditor.exe'
+            if (Test-Path $candidate) { $meta = Get-Item $candidate; break }
+          }
+          if (-not $meta) {
+            $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+            Invoke-WebRequest -Uri 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -OutFile $setup -UseBasicParsing
+            $sp = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
+            for ($i=0; $i -lt 72; $i++) {
+              Start-Sleep -Seconds 5
+              foreach ($dir in $dirs) {
+                $candidate = Join-Path $dir 'metaeditor.exe'
+                if (Test-Path $candidate) { $meta = Get-Item $candidate; break }
+              }
+              if ($meta) { break }
+            }
+            if ($sp -and -not $sp.HasExited) { try { $sp.Kill() } catch {} }
+          }
+          if (-not $meta) { throw 'Official MT4 MetaEditor not found' }
+          "METAEDITOR=$($meta.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Native MetaEditor compile D1-09 0E0W
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = (Resolve-Path '.\target\blueprint\source\BBMA_EA.mq4').Path
+          $log = Join-Path $env:RUNNER_TEMP 'd1-step9-metaeditor.log'
+          if (Test-Path $log) { Remove-Item $log -Force }
+          & "$env:METAEDITOR" "/compile:$src" "/log:$log"
+          for ($i=0; $i -lt 30; $i++) {
+            if (Test-Path $log) {
+              $probe = Get-Content $log -Raw -ErrorAction SilentlyContinue
+              if ($probe -match '(?i)Result:\s*\d+\s+errors?,\s*\d+\s+warnings?') { break }
+            }
+            Start-Sleep -Seconds 1
+          }
+          if (-not (Test-Path $log)) { throw 'MetaEditor compile log missing' }
+          $txt = Get-Content $log -Raw
+          $matches = [regex]::Matches($txt, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
+          if ($matches.Count -lt 1) { throw 'Unable to parse MetaEditor summary' }
+          $m = $matches[$matches.Count - 1]
+          $errors = [int]$m.Groups[1].Value
+          $warnings = [int]$m.Groups[2].Value
+          if ($errors -ne 0 -or $warnings -ne 0) { throw "D1-09 compile failed: $errors errors / $warnings warnings" }
+          $ex4 = [System.IO.Path]::ChangeExtension($src,'.ex4')
+          for ($i=0; $i -lt 10 -and -not (Test-Path $ex4); $i++) { Start-Sleep -Seconds 1 }
+          if (-not (Test-Path $ex4)) { throw 'EX4 not produced' }
+          "ERRORS=$errors" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "WARNINGS=$warnings" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $txt | Write-Host
+
+      - name: Finalize audit and push D1-09
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python '.\dispatcher\blueprint\tools\d1_step9_default_20_pair_universe.py' --repo-root '.\target' --finalize
+          python '.\dispatcher\blueprint\tools\d1_step9_default_20_pair_universe.py' --repo-root '.\target' --verify
+          git -C '.\target' diff --check
+
+          $outRel = 'blueprint/runtime/D1_09_DEFAULT_20_PAIR_UNIVERSE_LATEST.txt'
+          $out = Join-Path '.\target' $outRel
+          New-Item -ItemType Directory -Path (Split-Path $out -Parent) -Force | Out-Null
+          @(
+            'D1-09 Default 20 Pair Universe - Latest Verification',
+            "Run=${{ github.run_id }}",
+            "Trigger=${{ github.sha }}",
+            'Stage=PASS',
+            'Static=PASS',
+            "Errors=$env:ERRORS",
+            "Warnings=$env:WARNINGS",
+            'EX4=PRODUCED',
+            'DefaultPairCount=20',
+            'DefaultPairUniverse=EURUSD,GBPUSD,USDJPY,USDCHF,USDCAD,AUDUSD,NZDUSD,EURJPY,GBPJPY,EURGBP,AUDJPY,CADJPY,CHFJPY,NZDJPY,EURAUD,EURCAD,EURCHF,GBPAUD,GBPCAD,AUDCAD',
+            'MaxActivePairDefault=7',
+            'MAX_PAIRS=40'
+          ) | Set-Content $out -Encoding UTF8
+
+          git -C '.\target' config user.name 'github-actions[bot]'
+          git -C '.\target' config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C '.\target' add blueprint/source/BBMA_EA.mq4 blueprint/D1_STEP9_DEFAULT_20_PAIR_UNIVERSE_AUDIT_20260824.md $outRel
+          git -C '.\target' commit -m 'D1-09: set default 20-pair FX universe [skip ci]'
+          $commit = (git -C '.\target' rev-parse HEAD).Trim()
+          git -C '.\target' fetch origin d1-owner-dev
+          $remote = (git -C '.\target' rev-parse origin/d1-owner-dev).Trim()
+          $parent = (git -C '.\target' rev-parse HEAD^).Trim()
+          if ($remote -ne $parent) { throw "d1-owner-dev moved during run: remote=$remote parent=$parent" }
+          git -C '.\target' push origin HEAD:d1-owner-dev
+          Write-Host "D1OwnerDevCommit=$commit"
+          Write-Host "OutputBlob=$((git -C '.\target' rev-parse 'HEAD:blueprint/source/BBMA_EA.mq4').Trim())"

@@ -1,0 +1,62 @@
+name: D1 Step11 Compact Signal Dashboard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'blueprint/.run-d1-11-compact-dashboard'
+
+permissions:
+  contents: write
+
+jobs:
+  compact-dashboard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: dispatcher
+          fetch-depth: 0
+
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          path: target
+          fetch-depth: 0
+
+      - name: Verify D1-10B baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          head_sha="$(git -C target rev-parse HEAD)"
+          blob_sha="$(git -C target rev-parse HEAD:blueprint/source/BBMA_EA.mq4)"
+          test "$head_sha" = "8360c022577c03a76cadf22276b6830392abf11c"
+          test "$blob_sha" = "1a8252e7544ae5f54c5ed12de2e92212fab80141"
+
+      - name: Apply compact dashboard
+        shell: bash
+        run: |
+          set -euo pipefail
+          python dispatcher/blueprint/tools/d1_step11_compact_signal_dashboard.py --repo-root target
+          python dispatcher/blueprint/tools/d1_step11_compact_signal_dashboard.py --repo-root target --verify
+          git -C target diff --check
+          git -C target diff -- blueprint/source/BBMA_EA.mq4
+
+      - name: Commit and push dashboard source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git -C target config user.name 'github-actions[bot]'
+          git -C target config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C target add blueprint/source/BBMA_EA.mq4
+          git -C target commit -m 'D1-11: compact multi-TF signal dashboard [skip ci]'
+          new_commit="$(git -C target rev-parse HEAD)"
+          parent="$(git -C target rev-parse HEAD^)"
+          git -C target fetch origin d1-owner-dev
+          remote="$(git -C target rev-parse origin/d1-owner-dev)"
+          test "$remote" = "$parent"
+          git -C target push origin HEAD:d1-owner-dev
+          echo "D1-11 commit=$new_commit"
+          echo "D1-11 source_blob=$(git -C target rev-parse HEAD:blueprint/source/BBMA_EA.mq4)"

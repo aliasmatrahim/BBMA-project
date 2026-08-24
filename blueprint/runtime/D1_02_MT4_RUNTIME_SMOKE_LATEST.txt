@@ -1,56 +1,56 @@
 D1-02 MT4 Runtime Smoke - Latest GitHub CI Result
-Run: 32687878046
-Triggered commit: 5b129c75ceea80f13d606f2b85107620a72d084a
+Run: 32688276386
+Triggered commit: f3376e2bff91c61fcddce6c594f8a6d674487de6
 
-Stage=INSPECT_LOGS
-Classification=FAIL
+Stage=PASS_ENVIRONMENT_LIMIT
+Classification=ENVIRONMENT_BLOCKED_PRE_ATTACH_NO_BROKER_SESSION
 GitBlob=72c4ad75b8e167095acbcc13639eeb48fe4dceba
 MetaEditorErrors=0
 MetaEditorWarnings=0
 MetaEditor=C:\Program Files (x86)\MetaTrader 4\metaeditor.exe
 Terminal=C:\Program Files (x86)\MetaTrader 4\terminal.exe
-Detail=MT4 launched but EA initialization could not be positively classified from Journal/Experts logs
+Detail=Fresh GitHub MT4 terminal launched without broker login/server credentials; no EA initialization trace was produced and no fatal runtime signature was detected. EA attach/runtime behavior therefore remains unverified until a real broker/demo terminal is used.
 
 --- Journal/Experts tail ---
 
 ===== D:\a\_temp\mt4portable\logs\20260824.log =====
-0	03:52:32.223	Migration: data to 'D:\a\_temp\mt4portable' migration started
-0	03:52:32.223	Migration: data migration finished, no virtual folder
-0	03:52:32.223	LiveUpdate: update D:\a\_temp\mt4portable\MQL4 folder started
-0	03:52:32.266	LiveUpdate: update D:\a\_temp\mt4portable\MQL4 folder finished
-0	03:52:32.467	MetaTrader 4 build 1478 started (MetaQuotes Software Corp.)
-0	03:52:32.469	Windows Server 2025 Datacenter x64, UAC, 2 x INTEL XEON PLATINUM 8573C, Memory: 5709 / 8186 Mb, Disk: 109 / 109 Gb, GMT+0
-0	03:52:32.469	Data Folder: D:\a\_temp\mt4portable
-0	03:52:32.721	Sources recompilation started
-0	03:52:41.731	Sources recompilation finished (28 compiled in 9000 msec)
+0	03:59:22.585	Migration: data to 'D:\a\_temp\mt4portable' migration started
+0	03:59:22.585	Migration: data migration finished, no virtual folder
+0	03:59:22.587	LiveUpdate: update D:\a\_temp\mt4portable\MQL4 folder started
+0	03:59:22.658	LiveUpdate: update D:\a\_temp\mt4portable\MQL4 folder finished
+0	03:59:22.715	MetaTrader 4 build 1478 started (MetaQuotes Software Corp.)
+0	03:59:22.717	Windows Server 2025 Datacenter x64, UAC, 2 x AMD EPYC 9V74 80-Core Processor , Memory: 5714 / 8186 Mb, Disk: 72 / 74 Gb, GMT+0
+0	03:59:22.717	Data Folder: D:\a\_temp\mt4portable
+0	03:59:22.827	Sources recompilation started
+0	03:59:27.287	Sources recompilation finished (28 compiled in 4453 msec)
 
 ===== D:\a\_temp\mt4portable\MQL4\Logs\20260824.log =====
-0	03:52:32.721	Compiling 'MACD Sample'
-0	03:52:32.721	Compiling 'Moving Average'
-0	03:52:33.517	Compiling 'Accelerator'
-0	03:52:33.517	Compiling 'Accumulation'
-0	03:52:33.517	Compiling 'Alligator'
-0	03:52:33.517	Compiling 'ATR'
-0	03:52:33.517	Compiling 'Awesome'
-0	03:52:33.517	Compiling 'Bands'
-0	03:52:33.517	Compiling 'Bears'
-0	03:52:33.517	Compiling 'Bulls'
-0	03:52:33.517	Compiling 'CCI'
-0	03:52:33.517	Compiling 'Custom Moving Averages'
-0	03:52:33.517	Compiling 'Heiken Ashi'
-0	03:52:33.517	Compiling 'Ichimoku'
-0	03:52:33.517	Compiling 'iExposure'
-0	03:52:33.517	Compiling 'MACD'
-0	03:52:33.517	Compiling 'Momentum'
-0	03:52:33.517	Compiling 'OsMA'
-0	03:52:33.517	Compiling 'Parabolic'
-0	03:52:33.517	Compiling 'RSI'
-0	03:52:33.517	Compiling 'Stochastic'
-0	03:52:33.517	Compiling 'ZigZag'
-0	03:52:33.517	Compiling 'SimplePanel'
-0	03:52:39.321	Compiling 'PeriodConverter'
-0	03:52:39.323	Compiling 'DLLSampleTester'
-0	03:52:39.323	Compiling 'PipeClient'
-0	03:52:39.323	Compiling 'PipeClientPure'
-0	03:52:41.071	Compiling 'stdlib'
+0	03:59:22.827	Compiling 'MACD Sample'
+0	03:59:22.827	Compiling 'Moving Average'
+0	03:59:23.471	Compiling 'Accelerator'
+0	03:59:23.471	Compiling 'Accumulation'
+0	03:59:23.471	Compiling 'Alligator'
+0	03:59:23.471	Compiling 'ATR'
+0	03:59:23.471	Compiling 'Awesome'
+0	03:59:23.471	Compiling 'Bands'
+0	03:59:23.471	Compiling 'Bears'
+0	03:59:23.471	Compiling 'Bulls'
+0	03:59:23.471	Compiling 'CCI'
+0	03:59:23.471	Compiling 'Custom Moving Averages'
+0	03:59:23.471	Compiling 'Heiken Ashi'
+0	03:59:23.471	Compiling 'Ichimoku'
+0	03:59:23.471	Compiling 'iExposure'
+0	03:59:23.471	Compiling 'MACD'
+0	03:59:23.471	Compiling 'Momentum'
+0	03:59:23.471	Compiling 'OsMA'
+0	03:59:23.471	Compiling 'Parabolic'
+0	03:59:23.471	Compiling 'RSI'
+0	03:59:23.471	Compiling 'Stochastic'
+0	03:59:23.471	Compiling 'ZigZag'
+0	03:59:23.471	Compiling 'SimplePanel'
+0	03:59:26.277	Compiling 'PeriodConverter'
+0	03:59:26.277	Compiling 'DLLSampleTester'
+0	03:59:26.277	Compiling 'PipeClient'
+0	03:59:26.277	Compiling 'PipeClientPure'
+0	03:59:26.955	Compiling 'stdlib'
 

@@ -2,6 +2,9 @@
 """Correlate N1 NMJE journey observations with N2 validated-decision shadow tags.
 
 Research/diagnostic only. This tool never changes EA source or trading logic.
+N2-01A encodes whitespace inside DecisionID as `~` so each diagnostic field
+remains one log token; this parser restores the original DecisionID before any
+identity correlation.
 
 Usage:
   python blueprint/tools/n2_nmje_decision_correlator.py path/to/log.txt
@@ -40,7 +43,12 @@ N2_RE = re.compile(
     r"P=(?P<parent>\S+)\s+"
     r"J=(?P<journey>\S+)\s+"
     r"DID=(?P<decision_id>\S+)"
+    r"(?:\s+DIDH=(?P<decision_hash>\S+))?"
 )
+
+
+def decode_identity_token(token: str) -> str:
+    return token.replace("~", " ")
 
 
 @dataclass(frozen=True)
@@ -69,6 +77,7 @@ class DecisionShadow:
     parent: str
     journey: str
     decision_id: str
+    decision_hash: str = ""
 
 
 def iter_records(paths: Iterable[Path]) -> tuple[list[JourneyObservation], list[DecisionShadow]]:
@@ -87,8 +96,11 @@ def iter_records(paths: Iterable[Path]) -> tuple[list[JourneyObservation], list[
 
                 n2 = N2_RE.search(line)
                 if n2:
+                    fields = n2.groupdict()
+                    fields["decision_id"] = decode_identity_token(fields["decision_id"])
+                    fields["decision_hash"] = fields.get("decision_hash") or ""
                     decisions.append(
-                        DecisionShadow(file=str(path), line_no=line_no, **n2.groupdict())
+                        DecisionShadow(file=str(path), line_no=line_no, **fields)
                     )
 
     return observations, decisions
@@ -130,8 +142,6 @@ def correlate(
             context = exact[-1]
             match_mode = "EXACT_JOURNEY"
         elif dec.journey == "-" and previous:
-            # No journey identity exists on the decision, so only a same-pair
-            # previous observation may be shown as weak diagnostic context.
             context = previous[-1]
             match_mode = "PAIR_FALLBACK_NO_JOURNEY"
 

@@ -1,0 +1,174 @@
+name: D1 Step8 Runtime Identity Sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'blueprint/.run-d1-08-runtime-identity-sync'
+
+permissions:
+  contents: write
+
+jobs:
+  d1-step8:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: dispatcher
+          fetch-depth: 0
+
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          path: target
+          fetch-depth: 0
+
+      - name: Verify D1-07 source identity
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $status = Join-Path $env:RUNNER_TEMP 'd1-step8-status.txt'
+          "Stage=VERIFY_INPUT" | Set-Content $status
+          $blob = (git -C '.\target' rev-parse 'HEAD:blueprint/source/BBMA_EA.mq4').Trim()
+          "InputBlob=$blob" | Add-Content $status
+          if ($blob -ne '6e63668fa03f5b1f6f58d587c763454419bc205b') { throw "Unexpected D1-07 source blob: $blob" }
+          $head = (git -C '.\target' rev-parse HEAD).Trim()
+          if ($head -ne 'c788abe4d0c462a9f53cc1372be788e214538512') { throw "Unexpected d1-owner-dev head: $head" }
+
+      - name: Apply D1-08 identity sync and static audit
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $status = Join-Path $env:RUNNER_TEMP 'd1-step8-status.txt'
+          "Stage=APPLY_STATIC" | Set-Content $status
+          python '.\dispatcher\blueprint\tools\d1_step8_runtime_identity_sync.py' --repo-root '.\target'
+          if ($LASTEXITCODE -ne 0) { throw 'D1-08 patcher failed' }
+          python '.\dispatcher\blueprint\tools\d1_step8_runtime_identity_sync.py' --repo-root '.\target' --verify
+          if ($LASTEXITCODE -ne 0) { throw 'D1-08 verifier failed' }
+          git -C '.\target' diff --check
+          if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed' }
+          "Static=PASS" | Add-Content $status
+
+      - name: Acquire official MT4 MetaEditor
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dirs = @('C:\Program Files (x86)\MetaTrader 4','C:\Program Files\MetaTrader 4')
+          $meta = $null
+          foreach ($dir in $dirs) {
+            $candidate = Join-Path $dir 'metaeditor.exe'
+            if (Test-Path $candidate) { $meta = Get-Item $candidate; break }
+          }
+          if (-not $meta) {
+            $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+            Invoke-WebRequest -Uri 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -OutFile $setup -UseBasicParsing
+            $sp = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
+            for ($i=0; $i -lt 72; $i++) {
+              Start-Sleep -Seconds 5
+              foreach ($dir in $dirs) {
+                $candidate = Join-Path $dir 'metaeditor.exe'
+                if (Test-Path $candidate) { $meta = Get-Item $candidate; break }
+              }
+              if ($meta) { break }
+            }
+            if ($sp -and -not $sp.HasExited) { try { $sp.Kill() } catch {} }
+          }
+          if (-not $meta) { throw 'Official MT4 MetaEditor not found' }
+          "METAEDITOR=$($meta.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Native MetaEditor compile D1-08 0E0W
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $status = Join-Path $env:RUNNER_TEMP 'd1-step8-status.txt'
+          "Stage=COMPILE" | Set-Content $status
+          "Static=PASS" | Add-Content $status
+          $src = (Resolve-Path '.\target\blueprint\source\BBMA_EA.mq4').Path
+          $log = Join-Path $env:RUNNER_TEMP 'd1-step8-metaeditor.log'
+          if (Test-Path $log) { Remove-Item $log -Force }
+          & "$env:METAEDITOR" "/compile:$src" "/log:$log"
+          for ($i=0; $i -lt 30; $i++) {
+            if (Test-Path $log) {
+              $probe = Get-Content $log -Raw -ErrorAction SilentlyContinue
+              if ($probe -match '(?i)Result:\s*\d+\s+errors?,\s*\d+\s+warnings?') { break }
+            }
+            Start-Sleep -Seconds 1
+          }
+          if (-not (Test-Path $log)) { throw 'MetaEditor compile log missing' }
+          $txt = Get-Content $log -Raw
+          $matches = [regex]::Matches($txt, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
+          if ($matches.Count -lt 1) { throw 'Unable to parse MetaEditor summary' }
+          $m = $matches[$matches.Count - 1]
+          $errors = [int]$m.Groups[1].Value
+          $warnings = [int]$m.Groups[2].Value
+          if ($errors -ne 0 -or $warnings -ne 0) { throw "D1-08 compile failed: $errors errors / $warnings warnings" }
+          $ex4 = [System.IO.Path]::ChangeExtension($src,'.ex4')
+          for ($i=0; $i -lt 10 -and -not (Test-Path $ex4); $i++) { Start-Sleep -Seconds 1 }
+          if (-not (Test-Path $ex4)) { throw 'EX4 not produced' }
+          "Errors=$errors" | Add-Content $status
+          "Warnings=$warnings" | Add-Content $status
+          "EX4=PRODUCED" | Add-Content $status
+          "ERRORS=$errors" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "WARNINGS=$warnings" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Finalize audit and push D1-08
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $status = Join-Path $env:RUNNER_TEMP 'd1-step8-status.txt'
+          python '.\dispatcher\blueprint\tools\d1_step8_runtime_identity_sync.py' --repo-root '.\target' --finalize
+          python '.\dispatcher\blueprint\tools\d1_step8_runtime_identity_sync.py' --repo-root '.\target' --verify
+          git -C '.\target' diff --check
+          git -C '.\target' config user.name 'github-actions[bot]'
+          git -C '.\target' config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C '.\target' add blueprint/source/BBMA_EA.mq4 blueprint/D1_STEP8_RUNTIME_IDENTITY_SYNC_AUDIT_20260824.md
+          git -C '.\target' commit -m 'D1-08: synchronize runtime and dashboard build identity [skip ci]'
+          $commit = (git -C '.\target' rev-parse HEAD).Trim()
+          git -C '.\target' fetch origin d1-owner-dev
+          $remote = (git -C '.\target' rev-parse origin/d1-owner-dev).Trim()
+          $parent = (git -C '.\target' rev-parse HEAD^).Trim()
+          if ($remote -ne $parent) { throw "d1-owner-dev moved during run: remote=$remote parent=$parent" }
+          git -C '.\target' push origin HEAD:d1-owner-dev
+          "Stage=PASS" | Set-Content $status
+          "Static=PASS" | Add-Content $status
+          "Errors=$env:ERRORS" | Add-Content $status
+          "Warnings=$env:WARNINGS" | Add-Content $status
+          "EX4=PRODUCED" | Add-Content $status
+          "D1OwnerDevCommit=$commit" | Add-Content $status
+          $blob = (git -C '.\target' rev-parse 'HEAD:blueprint/source/BBMA_EA.mq4').Trim()
+          "OutputBlob=$blob" | Add-Content $status
+
+      - name: Persist D1-08 CI status
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $status = Join-Path $env:RUNNER_TEMP 'd1-step8-status.txt'
+          $outRel = 'blueprint/runtime/D1_08_RUNTIME_IDENTITY_SYNC_LATEST.txt'
+          git -C '.\dispatcher' pull --rebase origin main
+          $out = Join-Path '.\dispatcher' $outRel
+          New-Item -ItemType Directory -Path (Split-Path $out -Parent) -Force | Out-Null
+          $lines = New-Object System.Collections.Generic.List[string]
+          $lines.Add('D1-08 Runtime Identity Sync - Latest CI Result')
+          $lines.Add("Run=${{ github.run_id }}")
+          $lines.Add("Trigger=${{ github.sha }}")
+          $lines.Add('')
+          if (Test-Path $status) { foreach ($line in Get-Content $status) { $lines.Add($line) } }
+          else { $lines.Add('Stage=CI_INFRA_FAILURE') }
+          $log = Join-Path $env:RUNNER_TEMP 'd1-step8-metaeditor.log'
+          if (Test-Path $log) {
+            $lines.Add('')
+            $lines.Add('--- MetaEditor tail ---')
+            foreach ($line in (Get-Content $log | Select-Object -Last 40)) { $lines.Add($line) }
+          }
+          $lines | Set-Content $out -Encoding UTF8
+          git -C '.\dispatcher' config user.name 'github-actions[bot]'
+          git -C '.\dispatcher' config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C '.\dispatcher' add $outRel
+          if (-not (git -C '.\dispatcher' diff --cached --quiet)) {
+            git -C '.\dispatcher' commit -m 'Record D1-08 runtime identity sync CI result [skip ci]'
+            git -C '.\dispatcher' push origin HEAD:main
+          }

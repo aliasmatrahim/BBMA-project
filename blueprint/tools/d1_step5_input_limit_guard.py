@@ -64,7 +64,6 @@ def verify_source(src: Path) -> None:
     if norm > validation:
         raise SystemExit("runtime-limit normalization must precede input validation")
 
-    # No strategy-Core module identity changes are permitted by this patch.
     for n in range(1, 28):
         if f"MODULE {n:02d}:" not in s:
             raise SystemExit(f"missing module marker MODULE {n:02d}")
@@ -183,7 +182,6 @@ bool ValidateInputParameters()
 """
     s = replace_once(s, oninit_old, oninit_new, "OnInit normalization ordering")
 
-    # Keep visible runtime identity aligned with the new source build.
     s = s.replace("=== BBMA EA V4.5.1 D1-03 ===", "=== BBMA EA V4.5.1 D1-05 ===")
     s = s.replace("BBMA EA V4.5.1 D1-03 initialized successfully", "BBMA EA V4.5.1 D1-05 initialized successfully")
 
@@ -199,7 +197,7 @@ bool ValidateInputParameters()
 ## D1-05 runtime input-capacity overlay
 `MaxActivePair` remains an M20 hard portfolio-admission limit, but M26 now supplies a sanitized runtime-effective value. The supported pair-state capacity is 40. A requested value below 1 or above 40 is capped to the nearest supported bound with an unconditional Experts/Journal warning; this recoverable input condition must not detach the EA. M20 applies the effective value to both current-portfolio and prospective atomic admission checks. No BBMA signal, direction, SL/TP, or lifecycle semantics change.
 """
-        m20.write_text(text + "\n", encoding="utf-8")
+        m20.write_text(text.rstrip() + "\n", encoding="utf-8")
 
     m26 = root / M26_REL
     text = m26.read_text(encoding="utf-8").rstrip()
@@ -210,7 +208,7 @@ bool ValidateInputParameters()
 ## D1-05 recoverable input sanitation overlay
 Recoverable pair-capacity input errors are sanitized before fatal input validation. `MaxActivePair` is capped to the supported 1..40 runtime range and oversized `PairList` input is truncated by the existing bounded loader after a warning. These conditions do not justify `INIT_PARAMETERS_INCORRECT`; the EA stays attached. Truly fatal initialization failures such as no valid pair, invalid ownership/magic construction, or invalid protection reference remain fail-closed under the existing M26 contract.
 """
-        m26.write_text(text + "\n", encoding="utf-8")
+        m26.write_text(text.rstrip() + "\n", encoding="utf-8")
 
     audit = root / AUDIT_REL
     audit.write_text("""# D1 Step 5 — Input Limit Guard Implementation Audit

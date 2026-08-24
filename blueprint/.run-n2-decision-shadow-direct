@@ -1,0 +1,3 @@
+trigger=2026-08-25T05:24+08:00
+purpose=N2-01 direct d1-owner-dev native MT4 compile fallback
+expected_source_blob=e1329219e8fad10e4242f7cf2769593cdf09063e

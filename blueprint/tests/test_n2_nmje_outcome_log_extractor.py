@@ -17,10 +17,12 @@ with tempfile.TemporaryDirectory() as td:
     td_path = Path(td)
     log = td_path / "expert.log"
     csv_path = td_path / "outcomes.csv"
+    did_full = "EURUSD|2026.08.25 00:30|1|8|ABC"
+    did_token = did_full.replace(" ", "~")
     log.write_text(
         "\n".join(
             [
-                "[N2-NMJE-OUT] PAIR=EURUSD TICKET=101 DID=D1 DIDH=H1 NET=12.50 CLOSE=1770000000 REC=REC_NORMAL",
+                f"[N2-NMJE-OUT] PAIR=EURUSD TICKET=101 DID={did_token} DIDH=H1 NET=12.50 CLOSE=1770000000 REC=REC_NORMAL",
                 "[N2-NMJE-OUT] PAIR=GBPUSD TICKET=102 DID=- DIDH=H2 NET=-3.25 CLOSE=1770000060 REC=REC_IDENTITY_HASH_ONLY",
                 "[N2-NMJE-OUT] PAIR=USDJPY TICKET=103 DID=D3 DIDH=H3 NET=0.00 CLOSE=1770000120 REC=REC_NORMAL",
             ]
@@ -37,11 +39,12 @@ with tempfile.TemporaryDirectory() as td:
     assert report["duplicate_tickets"] == [], report
     assert report["duplicate_decision_ids"] == [], report
     assert report["hash_only_rows"][0]["decision_hash"] == "H2", report
+    assert report["valid_exact_rows"][0]["decision_id"] == did_full, report
 
     mod.write_exact_csv(csv_path, report)
     with csv_path.open("r", encoding="utf-8", newline="") as handle:
         rows = list(csv.DictReader(handle))
-    assert [r["decision_id"] for r in rows] == ["D1", "D3"], rows
+    assert [r["decision_id"] for r in rows] == [did_full, "D3"], rows
     assert rows[0]["net_profit"] == "12.5", rows
 
     dup_log = td_path / "dup.log"
@@ -59,4 +62,4 @@ with tempfile.TemporaryDirectory() as td:
     assert dup["duplicate_decision_ids"] == ["DX"], dup
     assert dup["valid_exact_outcomes"] == 0, dup
 
-print("N2-07 NMJE outcome log extractor synthetic self-test PASS")
+print("N2-13 NMJE outcome log extractor token-safe self-test PASS")

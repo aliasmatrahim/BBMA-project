@@ -1,0 +1,4 @@
+trigger=2026-08-24T21:10+08:00
+target_branch=d1-owner-dev
+expected_source_blob=1a8252e7544ae5f54c5ed12de2e92212fab80141
+purpose=N1-03 NMJE observer native MT4 compile via main dispatcher

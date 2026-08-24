@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.5.1 - D1-07 M16 Empty Decision Guard                 |
+//| Version 4.5.1 - D1-08 Runtime Identity Sync                    |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -6192,7 +6192,7 @@ void RecoverExistingOrders()
 void BuildDashboardSnapshot()
 {
    g_dashboard_snapshot = "";
-   g_dashboard_snapshot += "=== BBMA EA V4.5.1 D1-06 ===\n";
+   g_dashboard_snapshot += "=== BBMA EA V4.5.1 D1-08 ===\n";
    g_dashboard_snapshot += "Time: " + TimeToString(TimeCurrent()) + "\n";
    g_dashboard_snapshot += "Balance: " + DoubleToString(AccountBalance(), 2) + "\n";
    g_dashboard_snapshot += "Equity: " + DoubleToString(AccountEquity(), 2) + "\n";
@@ -6892,7 +6892,7 @@ int OnInit()
       return INIT_FAILED;
    }
    
-   Log(DBG_FULL, "BBMA EA V4.5.1 D1-06 initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.5.1 D1-08 initialized successfully");
    return INIT_SUCCEEDED;
 }
 

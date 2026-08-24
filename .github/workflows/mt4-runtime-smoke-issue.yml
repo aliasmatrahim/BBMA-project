@@ -47,16 +47,33 @@ jobs:
             $blob = (git rev-parse HEAD:blueprint/source/BBMA_EA.mq4).Trim()
 
             $stage = 'ACQUIRE_MT4'
-            $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-            $terminal = Get-ChildItem 'C:\Program Files*' -Filter terminal.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+            $candidateDirs = @('C:\Program Files (x86)\MetaTrader 4','C:\Program Files\MetaTrader 4')
+            $meta = $null
+            $terminal = $null
+            foreach ($dir in $candidateDirs) {
+              $m = Join-Path $dir 'metaeditor.exe'
+              $t = Join-Path $dir 'terminal.exe'
+              if ((Test-Path $m) -and (Test-Path $t)) {
+                $meta = Get-Item $m
+                $terminal = Get-Item $t
+                break
+              }
+            }
             if (-not $meta -or -not $terminal) {
               $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
               Invoke-WebRequest -Uri 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -OutFile $setup -UseBasicParsing
               $procSetup = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
               for ($i=0; $i -lt 60; $i++) {
                 Start-Sleep -Seconds 5
-                $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-                $terminal = Get-ChildItem 'C:\Program Files*' -Filter terminal.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+                foreach ($dir in $candidateDirs) {
+                  $m = Join-Path $dir 'metaeditor.exe'
+                  $t = Join-Path $dir 'terminal.exe'
+                  if ((Test-Path $m) -and (Test-Path $t)) {
+                    $meta = Get-Item $m
+                    $terminal = Get-Item $t
+                    break
+                  }
+                }
                 if ($meta -and $terminal) { break }
               }
               if ($procSetup -and -not $procSetup.HasExited) { try { $procSetup.Kill() } catch {} }

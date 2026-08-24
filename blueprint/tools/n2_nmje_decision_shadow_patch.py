@@ -76,6 +76,16 @@ if module13_start < 0:
 
 shadow_fn = r'''// N2-01: post-M16 shadow tag for validated decisions only.
 // Observation metadata only. It does not mutate decision, candidate, risk or execution state.
+string NMJE_LogIdentityToken(string value)
+{
+   // DecisionID contains a human-readable TimeToString() component with a space.
+   // Encode whitespace so the diagnostic remains a deterministic single token.
+   string token = value;
+   StringReplace(token, " ", "~");
+   StringReplace(token, "\t", "~");
+   return token;
+}
+
 void NMJE_PrintValidatedDecisionShadow(int pairIndex, BBMA_Decision &decision)
 {
    if(pairIndex < 0 || pairIndex >= g_pair_count) return;
@@ -85,13 +95,17 @@ void NMJE_PrintValidatedDecisionShadow(int pairIndex, BBMA_Decision &decision)
    string journeyId = journey.JourneyID;
    if(journeyId == "") journeyId = "-";
 
+   string decisionToken = NMJE_LogIdentityToken(decision.DecisionID);
+   string decisionHash = SHORT_HASH(decision.DecisionID);
+
    Print("[N2-NMJE-DEC] ", decision.Pair,
          " SIG=", EnumToString(decision.SignalType),
          " DIR=", NMJE_DirText(decision.Direction),
          " REL=", NMJE_RelationText(journey.Relation),
          " P=", NMJE_ParentText(journey.ParentKind), "/", NMJE_DirText(journey.ParentDirection),
          " J=", journeyId,
-         " DID=", decision.DecisionID);
+         " DID=", decisionToken,
+         " DIDH=", decisionHash);
 }
 
 '''
@@ -119,6 +133,10 @@ if text.count('OrderSend(') != order_send_before:
     raise SystemExit('OrderSend call count changed')
 if text.count('NMJE_PrintValidatedDecisionShadow(pairIndex, decision);') != 1:
     raise SystemExit('decision shadow call must appear exactly once')
+if 'DIDH=' not in text:
+    raise SystemExit('decision shadow persisted-hash field missing')
+if 'NMJE_LogIdentityToken' not in text:
+    raise SystemExit('decision identity token encoder missing')
 
 block_start = text.find('//| MODULE 12N: NESTED MTF JOURNEY ENGINE')
 block_end = text.find('//| MODULE 13:', block_start)
@@ -134,6 +152,6 @@ for forbidden in [
         raise SystemExit(f'forbidden M12N ownership call: {forbidden}')
 
 SRC.write_text(text, encoding='utf-8', newline='\n')
-print('N2-01 NMJE validated-decision shadow patch applied')
+print('N2-01A NMJE validated-decision shadow patch applied')
 print('baseline_blob=', actual)
 print('new_blob=', git_blob(SRC))

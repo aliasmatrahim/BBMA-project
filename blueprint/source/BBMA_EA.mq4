@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.5.1 - D1-06 MinRR Default Off                        |
+//| Version 4.5.1 - D1-07 M16 Empty Decision Guard                 |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -6801,7 +6801,10 @@ void ProcessPair(int pairIndex)
    PriorityEngine_Atomic(allCandidates, allCandidateCount,
                          g_pair_states[pairIndex], decision, conflict);
 
-   if(decision.DecisionState == DEC_CREATED)
+   // D1-07: M16 may only consume an actual M15-created decision.
+   // ZeroMemory() leaves enum value 0 (= DEC_CREATED), so state alone is not
+   // sufficient to prove that M15 selected/froze a decision.
+   if(decision.Valid && decision.DecisionState == DEC_CREATED)
    {
       InvalidationEngine_Atomic(pairIndex, decision, conflict);
    }

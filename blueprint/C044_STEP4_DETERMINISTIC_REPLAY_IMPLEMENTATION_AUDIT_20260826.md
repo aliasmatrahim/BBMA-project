@@ -3,7 +3,7 @@
 Branch: `d1-owner-dev`
 
 ## Status
-**IMPLEMENTED / STATIC INTEGRITY PASS / DETERMINISTIC MULTI-CANDLE REPLAY / FEATURE GATE OFF / NATIVE METAEDITOR 0E0W PASS / SELF-TEST PENDING**
+**IMPLEMENTED / STATIC INTEGRITY PASS / DETERMINISTIC MULTI-CANDLE REPLAY / FEATURE GATE OFF / NATIVE METAEDITOR 0E0W PASS / DETERMINISTIC SELF-TEST PASS / BROKER-DEMO RUNTIME EVIDENCE PENDING**
 
 ## Source identity
 - Build: `Version 4.5.6 - C044 Deterministic Replay Stage`
@@ -39,4 +39,4 @@ Native MT4 MetaEditor compile for the exact v4.56 source is **PASS — 0 errors 
 The later `close-gate` documentation job failed only because of an artifact subdirectory lookup mismatch; it did not invalidate the compile. Exact-source verification and native compile both passed.
 
 ## Next gate
-Run deterministic replay self-tests against the exact v4.56 blob: checkpoint round-trip integrity, no-gap behavior, one/multi-candle chronological replay, failed-Momentum exit latch, Momentum hold → next Re-Entry re-arm, opposite-Extreme cycle supersession, and missing/corrupt history fail-frozen behavior. No activation is authorized by this audit.
+Deterministic replay self-tests against the exact v4.56 blob are PASS: checkpoint round-trip integrity, no-gap behavior, chronological multi-candle replay, failed-Momentum exit latch, Momentum hold → next Re-Entry re-arm, opposite-Extreme cycle supersession, and missing/corrupt history fail-frozen behavior. Remaining gate before any activation decision is broker/demo runtime evidence for real terminal restart persistence and live owner-candle lifecycle behavior. No activation is authorized by this audit.

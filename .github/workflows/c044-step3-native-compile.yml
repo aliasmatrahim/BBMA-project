@@ -34,17 +34,22 @@ jobs:
           "C044_SOURCE_SHA256=$sha" | Out-File -FilePath $env:GITHUB_ENV -Append
           "C044_SOURCE_BLOB=$blob" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-      - name: Acquire official MT4 MetaEditor
+      - name: Acquire official MT4 MetaEditor using proven bounded pattern
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
           if (-not $meta) {
-            $url = 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe'
-            Invoke-WebRequest -Uri $url -OutFile "$env:RUNNER_TEMP\mt4setup.exe" -UseBasicParsing
-            Start-Process -FilePath "$env:RUNNER_TEMP\mt4setup.exe" -ArgumentList '/auto' -Wait
-            Start-Sleep -Seconds 5
-            $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+            $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+            Invoke-WebRequest -Uri 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -OutFile $setup -UseBasicParsing
+            $proc = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
+            for ($i=0; $i -lt 84; $i++) {
+              Start-Sleep -Seconds 5
+              $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($meta) { break }
+              if ($proc.HasExited -and $i -gt 12) { break }
+            }
+            if ($proc -and -not $proc.HasExited) { try { $proc.Kill() } catch {} }
           }
           if (-not $meta) { throw 'MT4 MetaEditor not found after official installer attempt' }
           "METAEDITOR=$($meta.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
@@ -142,5 +147,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -- blueprint/C044_STEP3_NATIVE_METAEDITOR_COMPILE_20260826.md blueprint/C044_STEP3_OWNER_EVENT_EVALUATOR_IMPLEMENTATION_AUDIT_20260826.md
+          if git diff --cached --quiet; then
+            echo 'C044 Step3 compile closure already recorded.'
+            exit 0
+          fi
           git commit -m "C044 Step3: close native MetaEditor 0E0W gate [skip ci]"
           git push origin HEAD:d1-owner-dev

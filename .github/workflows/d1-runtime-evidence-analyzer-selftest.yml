@@ -1,0 +1,22 @@
+name: D1 runtime evidence analyzer self-test
+on:
+  push:
+    branches: [d1-owner-dev]
+    paths: ['blueprint/.d1-runtime-evidence-analyzer-trigger']
+permissions:
+  contents: read
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+      - name: Python syntax
+        run: |
+          python3 -m py_compile blueprint/tools/d1o_canonical_dedup_log_analyzer.py
+          python3 -m py_compile blueprint/tools/d1_runtime_evidence_analyzer.py
+          python3 -m py_compile blueprint/tools/test_d1_runtime_evidence_analyzer.py
+      - name: Run analyzer self-test
+        run: python3 blueprint/tools/test_d1_runtime_evidence_analyzer.py

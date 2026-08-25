@@ -1,4 +1,4 @@
-trigger=2026-08-25T08:33+08:00
+trigger=2026-08-25T08:35+08:00
 target_head=5cf240fcf426074e2bbfc4c6b5280bd3f42c057d
 source_blob=9199b897551a3383f0f10a6f6d513ac2fbafc22a
-purpose=runtime smoke approved D1 Opportunity execution with trading disabled
+purpose=runtime smoke approved D1 Opportunity execution with trading disabled; retrigger

@@ -20,70 +20,70 @@ This register supersedes older active-next wording in `CURRENT.md` and `MASTER_Q
 
 ## Gap priority classes
 
-### CLASS A — Repo-closable source/contract gaps
-These are the current engineering priority because they can be investigated/closed without a broker session and without starting N1–N3 expansion.
+### CLASS A — Repo/source/contract gaps
 
 #### GAP-A1 — D1 Opportunity `EXTREME_TPW` TP ownership mismatch
 Severity: **HIGH**
-Status: **OPEN — SOURCE/CONTRACT RECONCILIATION REQUIRED**
-Source: `blueprint/audits/TARGETED_SLTP_IMPLEMENTATION_AUDIT_20260826.md`, finding `SLTP-01`.
+Status: **SEMANTIC OWNERSHIP CLOSED / BROKER-EXIT MAPPING REQUIRES TRUE STRATEGY-EXECUTION DECISION**
+Closure record: `blueprint/gap_closure/GAP_A1_D1O_EXTREME_TPW_OWNERSHIP_RECONCILIATION_20260826.md`.
 
-Observed mismatch:
-- D1 Opportunity has an explicit `D1_OPP_EXTREME_TPW` family;
-- executable identity is carried by the fresh LTF Re-Entry cluster;
-- current M17 accepts only the selected Re-Entry component as SL/TP owner;
-- with C044 OFF, TP therefore resolves to the selected Re-Entry source-timeframe outer BB instead of the already source-reconciled Extreme TP-Wajib destination family.
+Resolved:
+- fresh LTF Re-Entry remains the one execution/dedup identity;
+- D1 CycleID/OpportunityFamily remain attribution metadata;
+- the active D1 Extreme TP-Wajib lifecycle is the TP semantic owner for `D1_OPP_EXTREME_TPW`;
+- LTF Re-Entry outer BB is not the semantic TP-Wajib destination for this family;
+- canonical D1 journey completion already evaluates subsequent fully closed D1 candles and completes TP-Wajib when SELL reaches either D1 MA5/MA10 Low or BUY reaches either D1 MA5/MA10 High.
 
-Closure requirement:
-1. reconcile D1O attribution/execution identity vs SL/TP semantic ownership;
-2. preserve LTF Re-Entry executable dedup identity;
-3. do not let D1 CycleID/family create a second execution identity;
-4. define deterministic TP owner for `EXTREME_TPW` from accepted Core evidence;
-5. update contracts before code;
-6. patch only after contract closure; then protected regression + native MetaEditor 0E0W.
+Unresolved material choice:
+- the accepted TP-Wajib structure is a dynamic D1 MA5/MA10 area, not one source-defined frozen broker price;
+- converting it to a static TP requires an unapproved freeze/boundary policy;
+- converting it to a lifecycle broker close changes live exit behaviour and therefore also requires an explicit strategy/execution decision;
+- temporarily fail-closing this D1O family would likewise be a material behavior change.
 
-#### GAP-A2 — Generic static outer-BB TP is incomplete for latest lifecycle evidence
-Severity: **HIGH**
-Status: **OPEN — SOURCE/CONTRACT RECONCILIATION REQUIRED**
-Source: targeted SL/TP audit finding `SLTP-02`.
+No code patch is authorized autonomously for this remaining choice.
 
-Current issue:
-- non-C044 RE/REM/RRE/REE uses one static outer-BB broker TP;
-- current source evidence is lifecycle-sensitive around Re-Entry, Momentum/no-Momentum, MHV and continuation;
-- C044 implements a gated targetless lifecycle path, but runtime broker validation is not complete and the feature remains OFF.
+#### GAP-A2 — Generic static outer-BB TP vs lifecycle evidence
+Severity: **HIGH historical finding**
+Status: **CLOSED AS REPO SOURCE/CONTRACT GAP -> MOVED TO CLASS B RUNTIME/ACTIVATION**
+Closure record: `blueprint/gap_closure/GAP_A2_STATIC_TP_VS_C044_LIFECYCLE_RECLASSIFICATION_20260826.md`.
 
-Closure requirement:
-- reconcile initial broker TP vs lifecycle-close authority explicitly across M17/M23/M24;
-- preserve M20 emergency precedence;
-- do not enable C044 merely to make the gap disappear;
-- keep C044 OFF until its own validation/activation gate is satisfied.
+Resolved by the approved C044 architecture and staged source implementation:
+- C044-managed RE positions use hard SL + `TP=0`;
+- owner-TF outer BB is a lifecycle event boundary rather than competing resting TP;
+- M23/M24 own lifecycle close/recovery;
+- M20 emergency precedence remains intact;
+- targetless MinRR rule is defined;
+- source machinery exists in v4.57 lineage.
+
+Remaining blocker is broker/demo evidence and explicit later activation. `EnableC044Lifecycle` remains OFF.
 
 #### GAP-A3 — Generic Re-Entry structural-range SL provenance
-Severity: **MEDIUM/HIGH**
-Status: **OPEN — SOURCE PROVENANCE REQUIRED**
-Source: targeted SL/TP audit finding `SLTP-03`.
+Severity: **MEDIUM/HIGH historical finding**
+Status: **CLOSED AS PROVENANCE/CLASSIFICATION GAP -> RUNTIME TRACE REMAINS CLASS B**
+Closure record: `blueprint/gap_closure/GAP_A3_REENTRY_SL_PROVENANCE_CLASSIFICATION_CLOSURE_20260826.md`.
 
-Current implementation is deterministic/broker-safe but the exact universal BBMA provenance of `ReEntry lifecycle range extreme +/- safety normalization` is not source-locked for every RE/REM/RRE/REE path.
-
-Closure requirement:
-- cross-check accepted PDF/Home Course/Finale/forum evidence by executable family;
-- retain current formula as project safety mapping until stronger source resolution exists;
-- do not replace it with a guessed universal numeric rule.
+Resolved classification:
+- exact lifecycle-range hard SL is **EA_SAFETY / PROJECT EXECUTION NORMALIZATION**;
+- it is not claimed as universal `BBMA_STRATEGY_CORE`;
+- accepted source does not establish a stronger universal deterministic broker-SL formula for every RE/REM/RRE/REE path;
+- therefore no guessed replacement is authorized;
+- existing static/native implementation evidence remains valid; broker BUY/SELL geometry trace remains pending.
 
 ### CLASS B — Runtime evidence gaps blocked by broker/session availability
-These remain open but are not allowed to block repo-closable Class A work.
+These remain open but do not block safe repo/source reconciliation.
 
-#### GAP-B1 — C044 broker/demo lifecycle runtime
-Status: **BLOCKED — ENVIRONMENT**
-Evidence: `blueprint/C044_STEP5_V456_MT4_ATTACH_RUNTIME_SMOKE_20260826.md`.
+#### GAP-B1 — C044 broker/demo lifecycle runtime + former GAP-A2 activation layer
+Status: **BLOCKED — ENVIRONMENT / EXPLICIT ACTIVATION REVIEW AFTER RUNTIME PASS**
+Evidence: `blueprint/C044_STEP5_V456_MT4_ATTACH_RUNTIME_SMOKE_20260826.md` and GAP-A2 closure record.
 Current result: native compile 0E0W; runtime classification `ENVIRONMENT_BLOCKED_PRE_ATTACH_NO_BROKER_SESSION`; fatal runtime signature NONE; C044 OFF.
 Still unproven on broker/demo:
-- targetless checkpoint persistence over restart;
+- targetless checkpoint persistence across restart;
 - live missed-owner-candle replay;
 - failed-Momentum close timing;
 - Momentum -> wait-next-ReEntry -> re-arm;
 - opposite mature Extreme supersession;
-- no duplicate close/entry authority.
+- no duplicate close/entry authority;
+- M20 emergency precedence under active lifecycle management.
 
 #### GAP-B2 — P3 Step 5 live runtime closure
 Status: **PARTIAL — LIVE RUNTIME EVIDENCE PENDING**
@@ -104,7 +104,7 @@ Required:
 
 #### GAP-B4 — M17/F1–F6/opposite-lock/sequential-risk runtime traces
 Status: **PENDING BROKER/DEMO**
-Static/native gates already exist at recorded revisions; runtime semantic traces remain outstanding and must be closed against the actual active build lineage when a broker-connected environment is available.
+Includes the remaining GAP-A3 live BUY/SELL structural-SL geometry proof. Static/native gates already exist at recorded revisions; runtime semantic traces remain outstanding and must be closed against the active build lineage when a broker-connected environment is available.
 
 ### CLASS C — Canonical Core completeness / source-HOLD gaps
 These are not automatic code tasks.
@@ -127,16 +127,13 @@ Rule:
 - REJECTed literal rules remain rejected unless stronger evidence explicitly reopens them;
 - strategy promotion requires a distinct source decision gate.
 
-## Active execution order
+## Current execution order
 
-1. **GAP-A1** — reconcile D1 Opportunity `EXTREME_TPW` TP semantic ownership.
-2. **GAP-A2** — reconcile static broker TP vs lifecycle close ownership across M17/M23/M24.
-3. **GAP-A3** — close/properly classify Re-Entry protective SL provenance.
-4. Re-audit all three against current v4.57 source and accepted Core; patch only deterministic closed gaps.
-5. For any source patch: assign a unique build identity, protected-surface regression, native MetaEditor 0E0W, and update this register.
-6. Close Class B when broker/demo evidence becomes available.
-7. Continue Class C source completeness only without silently promoting HOLD material.
-8. **Do not resume N1/N2/N3** until no repo-closable HIGH/CRITICAL gap remains or the project owner explicitly changes the priority.
+1. **GAP-A1 remaining material decision** — choose how the dynamic D1 Extreme TP-Wajib area becomes the broker exit for an already-open `D1_OPP_EXTREME_TPW` trade, or choose to fail-close that family pending such mapping.
+2. Do not auto-activate C044; Class-B broker/demo validation remains required.
+3. Continue gap/source classification work that does not promote HOLD or resume N1/N2/N3.
+4. For any later source patch: unique build identity + protected regression + native MetaEditor 0E0W + register update.
+5. **N1/N2/N3 remain parked regardless of the technical close of A2/A3 until the project owner explicitly resumes them.**
 
 ## Do-not-reopen list without new evidence
 

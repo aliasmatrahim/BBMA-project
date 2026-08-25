@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.5.5 - C044 Owner Event Evaluator Stage                 |
+//| Version 4.5.6 - C044 Deterministic Replay Stage                 |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.55"
+#property version   "4.56"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -877,6 +877,13 @@ struct TradeInfo
    ENUM_C044_LIFECYCLE_STATE c044_state;
    ENUM_C044_EXIT_REASON c044_exit_reason;
    datetime             c044_exit_latched_candle;
+
+   // C044 Step4 deterministic replay seed. These are canonical owner snapshots
+   // captured at the runtime cursor and persisted with the lifecycle checkpoint.
+   bool                 c044_replay_seed_valid;
+   ReEntryData          c044_replay_reentry;
+   ExtremeLifecycleData c044_replay_extreme_buy;
+   ExtremeLifecycleData c044_replay_extreme_sell;
 
    ENUM_RECOVERY_STATE  recovery_state;
 };
@@ -7553,44 +7560,6 @@ bool GetC044OwnerExtremeSnapshot(int pairIndex, int timeframe,
    return true;
 }
 
-bool IsC044SameDirectionReEntryEvent(TradeInfo &info, int pairIndex,
-                                     datetime candleTime)
-{
-   ReEntryData reEntry;
-   if(!GetC044OwnerReEntrySnapshot(pairIndex, info.c044_owner_timeframe,
-                                   info.direction, reEntry))
-      return false;
-
-   return (reEntry.State == RE_STATE_CONFIRMED && reEntry.IsValid &&
-           reEntry.Direction == info.direction &&
-           reEntry.Timeframe == info.c044_owner_timeframe &&
-           reEntry.ConfirmationCandle == candleTime &&
-           candleTime > info.c044_epoch_anchor_candle);
-}
-
-bool IsC044OppositeExtremeSupersessionEvent(TradeInfo &info, int pairIndex,
-                                            datetime candleTime)
-{
-   ENUM_DIRECTION opposite = (info.direction == DIR_BUY) ? DIR_SELL :
-                             (info.direction == DIR_SELL ? DIR_BUY : DIR_NONE);
-   if(opposite == DIR_NONE) return false;
-
-   ExtremeLifecycleData extreme;
-   if(!GetC044OwnerExtremeSnapshot(pairIndex, info.c044_owner_timeframe,
-                                   opposite, extreme))
-      return false;
-
-   bool mature = (extreme.Maturity == EXT_MAT_REVERSAL_CONFIRMED ||
-                  extreme.Maturity == EXT_MAT_RETEST_PHASE ||
-                  extreme.Maturity == EXT_MAT_RETEST_READY);
-
-   return (extreme.IsValid && mature &&
-           extreme.Direction == opposite &&
-           extreme.Timeframe == info.c044_owner_timeframe &&
-           extreme.ConfirmationCandleTime == candleTime &&
-           candleTime > info.c044_epoch_anchor_candle);
-}
-
 bool IsC044DirectionSideOuterBBTest(TimeframeData &data,
                                     ENUM_DIRECTION direction)
 {
@@ -7631,6 +7600,8 @@ bool ProcessC044OwnerClosedCandle(TradeInfo &info, int pairIndex,
    if(info.c044_state == C044_LIFE_EXIT_LATCHED ||
       info.c044_state == C044_LIFE_FROZEN)
       return true;
+   if(!info.c044_replay_seed_valid)
+      return FreezeC044Lifecycle(info, "REPLAY_SEED_MISSING");
 
    string pair = g_pair_states[pairIndex].actual_symbol;
    if(pair == "" || info.pair != pair ||
@@ -7648,11 +7619,58 @@ bool ProcessC044OwnerClosedCandle(TradeInfo &info, int pairIndex,
       data.barIndex != shift)
       return FreezeC044Lifecycle(info, "OWNER_EVENT_CLOSED_DATA_UNAVAILABLE");
 
-   // A reversal-confirmed opposite Extreme is an old-cycle supersession event.
-   // It closes the existing lifecycle only; it never creates an opposite order.
-   if(IsC044OppositeExtremeSupersessionEvent(info, pairIndex, candleTime))
+   MovingAverage ma;
+   BollingerBand band;
+   BuildReEntryDirectionInputs(data, ma, band);
+
+   // Deterministic replay uses the same canonical M08 and M12 state machines on
+   // private C044 snapshots. No Extreme/Re-Entry formula is reimplemented here.
+   bool rawBuy = DetectExtreme(pair, DIR_BUY, data, band);
+   bool rawSell = DetectExtreme(pair, DIR_SELL, data, band);
+   UpdateExtremeLifecycle(info.c044_replay_extreme_buy, pair, DIR_BUY,
+                          data, band, rawBuy);
+   UpdateExtremeLifecycle(info.c044_replay_extreme_sell, pair, DIR_SELL,
+                          data, band, rawSell);
+   ResolveOppositeExtremeSupersession(info.c044_replay_extreme_buy,
+                                      info.c044_replay_extreme_sell, data);
+   UpdateReEntryState(info.c044_replay_reentry, pair, info.direction, data);
+
+   bool sameReEntryEvent =
+      (info.c044_replay_reentry.State == RE_STATE_CONFIRMED &&
+       info.c044_replay_reentry.IsValid &&
+       info.c044_replay_reentry.Direction == info.direction &&
+       info.c044_replay_reentry.Timeframe == info.c044_owner_timeframe &&
+       info.c044_replay_reentry.ConfirmationCandle == candleTime &&
+       candleTime > info.c044_epoch_anchor_candle);
+
+   bool oppositeExtremeEvent = false;
+   if(info.direction == DIR_BUY)
    {
-      info.c044_last_processed_owner_candle = candleTime;
+      bool mature =
+         (info.c044_replay_extreme_sell.Maturity == EXT_MAT_REVERSAL_CONFIRMED ||
+          info.c044_replay_extreme_sell.Maturity == EXT_MAT_RETEST_PHASE ||
+          info.c044_replay_extreme_sell.Maturity == EXT_MAT_RETEST_READY);
+      oppositeExtremeEvent =
+         (info.c044_replay_extreme_sell.IsValid && mature &&
+          info.c044_replay_extreme_sell.ConfirmationCandleTime == candleTime &&
+          candleTime > info.c044_epoch_anchor_candle);
+   }
+   else if(info.direction == DIR_SELL)
+   {
+      bool mature =
+         (info.c044_replay_extreme_buy.Maturity == EXT_MAT_REVERSAL_CONFIRMED ||
+          info.c044_replay_extreme_buy.Maturity == EXT_MAT_RETEST_PHASE ||
+          info.c044_replay_extreme_buy.Maturity == EXT_MAT_RETEST_READY);
+      oppositeExtremeEvent =
+         (info.c044_replay_extreme_buy.IsValid && mature &&
+          info.c044_replay_extreme_buy.ConfirmationCandleTime == candleTime &&
+          candleTime > info.c044_epoch_anchor_candle);
+   }
+
+   info.c044_last_processed_owner_candle = candleTime;
+
+   if(oppositeExtremeEvent)
+   {
       if(!LatchC044Exit(info, C044_EXIT_CYCLE_SUPERSEDED, candleTime))
          return FreezeC044Lifecycle(info, "CYCLE_SUPERSESSION_LATCH_FAILED");
       return true;
@@ -7660,19 +7678,14 @@ bool ProcessC044OwnerClosedCandle(TradeInfo &info, int pairIndex,
 
    if(info.c044_state == C044_LIFE_WAIT_NEXT_REENTRY)
    {
-      if(IsC044SameDirectionReEntryEvent(info, pairIndex, candleTime))
+      if(sameReEntryEvent)
       {
-         // Successful Momentum continuation is re-armed only by the next
-         // source-valid same-owner Re-Entry. The confirmation candle itself is
-         // the new epoch anchor and is not re-used as an outer-BB test candle.
          info.c044_owner_reentry_candle = candleTime;
          info.c044_epoch_anchor_candle = candleTime;
          info.c044_state = C044_LIFE_WAIT_OUTER_TEST;
          info.c044_exit_reason = C044_EXIT_NONE;
          info.c044_exit_latched_candle = 0;
       }
-
-      info.c044_last_processed_owner_candle = candleTime;
       if(!SaveC044Checkpoint(info))
          return FreezeC044Lifecycle(info, "WAIT_NEXT_REENTRY_CHECKPOINT_FAILED");
       return true;
@@ -7683,28 +7696,20 @@ bool ProcessC044OwnerClosedCandle(TradeInfo &info, int pairIndex,
 
    if(candleTime <= info.c044_epoch_anchor_candle)
    {
-      info.c044_last_processed_owner_candle = candleTime;
       if(!SaveC044Checkpoint(info))
          return FreezeC044Lifecycle(info, "EPOCH_BOUNDARY_CHECKPOINT_FAILED");
       return true;
    }
 
-   bool outerTest = IsC044DirectionSideOuterBBTest(data, info.direction);
-   if(!outerTest)
+   if(!IsC044DirectionSideOuterBBTest(data, info.direction))
    {
-      info.c044_last_processed_owner_candle = candleTime;
       if(!SaveC044Checkpoint(info))
          return FreezeC044Lifecycle(info, "WAIT_OUTER_TEST_CHECKPOINT_FAILED");
       return true;
    }
 
-   // Canonical Momentum authority stays in M10. C044 consumes DetectCSM()
-   // directly and does not duplicate the close-outside/expanding/directional
-   // Bollinger formula.
    bool momentum = DetectCSM(pair, info.c044_owner_timeframe,
                              info.direction, shift);
-   info.c044_last_processed_owner_candle = candleTime;
-
    if(momentum)
    {
       info.c044_state = C044_LIFE_WAIT_NEXT_REENTRY;
@@ -7729,6 +7734,8 @@ bool AdvanceC044OwnerEventOneCandle(TradeInfo &info, int pairIndex)
    if(info.c044_last_processed_owner_candle <= 0 ||
       !IsValidC044OwnerTimeframe(info.c044_owner_timeframe))
       return FreezeC044Lifecycle(info, "OWNER_EVENT_CURSOR_INVALID");
+   if(!info.c044_replay_seed_valid)
+      return FreezeC044Lifecycle(info, "REPLAY_SEED_MISSING");
 
    datetime latestClosed = GetLatestClosedCandleTime(
       info.pair, info.c044_owner_timeframe);
@@ -7741,19 +7748,27 @@ bool AdvanceC044OwnerEventOneCandle(TradeInfo &info, int pairIndex)
                                latestClosed, true);
    int previousShift = iBarShift(info.pair, info.c044_owner_timeframe,
                                  info.c044_last_processed_owner_candle, true);
-   if(latestShift < 1 || previousShift < 1)
+   if(latestShift < 1 || previousShift < 1 || previousShift <= latestShift)
       return FreezeC044Lifecycle(info, "OWNER_EVENT_CURSOR_NOT_IN_HISTORY");
 
-   int pendingClosedBars = previousShift - latestShift;
-   if(pendingClosedBars != 1)
+   // Replay every missed closed owner candle from oldest to newest. Historical
+   // data must be exact; any missing candle freezes the lifecycle rather than
+   // guessing whether a Re-Entry, Extreme or failed Momentum occurred.
+   for(int shift = previousShift - 1; shift >= latestShift; shift--)
    {
-      // Current M08/M12 state contains only current owner truth. With >1 missed
-      // owner candle, an intermediate Re-Entry/Extreme event could already have
-      // been superseded, so replay would be inference rather than evidence.
-      return FreezeC044Lifecycle(info, "MULTI_CANDLE_OWNER_EVENT_GAP");
+      datetime candleTime = iTime(info.pair, info.c044_owner_timeframe, shift);
+      if(candleTime <= info.c044_last_processed_owner_candle)
+         return FreezeC044Lifecycle(info, "REPLAY_CANDLE_ORDER_INVALID");
+      if(!ProcessC044OwnerClosedCandle(info, pairIndex, candleTime))
+         return false;
+      if(info.c044_state == C044_LIFE_EXIT_LATCHED ||
+         info.c044_state == C044_LIFE_FROZEN)
+         return true;
    }
 
-   return ProcessC044OwnerClosedCandle(info, pairIndex, latestClosed);
+   if(info.c044_last_processed_owner_candle != latestClosed)
+      return FreezeC044Lifecycle(info, "REPLAY_CURSOR_DID_NOT_REACH_LATEST");
+   return true;
 }
 
 void AdvanceC044OwnerEventsForPair(int pairIndex)
@@ -7914,12 +7929,44 @@ void ResetC044TradeState(TradeInfo &info)
    info.c044_state = C044_LIFE_NONE;
    info.c044_exit_reason = C044_EXIT_NONE;
    info.c044_exit_latched_candle = 0;
+   info.c044_replay_seed_valid = false;
+   ZeroMemory(info.c044_replay_reentry);
+   ZeroMemory(info.c044_replay_extreme_buy);
+   ZeroMemory(info.c044_replay_extreme_sell);
 }
 
 bool IsValidC044OwnerTimeframe(int timeframe)
 {
    return (timeframe == PERIOD_M15 || timeframe == PERIOD_H1 ||
            timeframe == PERIOD_H4 || timeframe == PERIOD_D1);
+}
+
+bool CaptureC044ReplaySeed(TradeInfo &info, int pairIndex)
+{
+   if(pairIndex < 0 || pairIndex >= g_pair_count) return false;
+   if(info.direction != DIR_BUY && info.direction != DIR_SELL) return false;
+   if(!IsValidC044OwnerTimeframe(info.c044_owner_timeframe)) return false;
+
+   if(!GetC044OwnerReEntrySnapshot(pairIndex, info.c044_owner_timeframe,
+                                   info.direction, info.c044_replay_reentry))
+      return false;
+   if(!GetC044OwnerExtremeSnapshot(pairIndex, info.c044_owner_timeframe,
+                                   DIR_BUY, info.c044_replay_extreme_buy))
+      return false;
+   if(!GetC044OwnerExtremeSnapshot(pairIndex, info.c044_owner_timeframe,
+                                   DIR_SELL, info.c044_replay_extreme_sell))
+      return false;
+
+   if(info.c044_replay_reentry.Direction != info.direction ||
+      info.c044_replay_reentry.Timeframe != info.c044_owner_timeframe ||
+      info.c044_replay_extreme_buy.Direction != DIR_BUY ||
+      info.c044_replay_extreme_buy.Timeframe != info.c044_owner_timeframe ||
+      info.c044_replay_extreme_sell.Direction != DIR_SELL ||
+      info.c044_replay_extreme_sell.Timeframe != info.c044_owner_timeframe)
+      return false;
+
+   info.c044_replay_seed_valid = true;
+   return true;
 }
 
 bool InitializeC044TradeStateFromDecision(TradeInfo &info, BBMA_Decision &decision)
@@ -7933,14 +7980,45 @@ bool InitializeC044TradeStateFromDecision(TradeInfo &info, BBMA_Decision &decisi
       decision.SLTPSourceComponent.CandleTime <= 0)
       return false;
 
+   int pairIndex = FindPairStateIndex(decision.Pair);
+   if(pairIndex < 0)
+   {
+      for(int i = 0; i < g_pair_count; i++)
+      {
+         if(g_pair_states[i].actual_symbol == decision.Pair)
+         {
+            pairIndex = i;
+            break;
+         }
+      }
+   }
+   if(pairIndex < 0) return false;
+
+   string ownerPair = g_pair_states[pairIndex].actual_symbol;
+   if(ownerPair == "") return false;
+   datetime latestClosed = GetLatestClosedCandleTime(
+      ownerPair, decision.SLTPSourceComponent.Timeframe);
+   if(latestClosed <= 0 || latestClosed < decision.SLTPSourceComponent.CandleTime)
+      return false;
+
    info.c044_lifecycle_managed = true;
    info.c044_owner_timeframe = decision.SLTPSourceComponent.Timeframe;
    info.c044_owner_reentry_candle = decision.SLTPSourceComponent.CandleTime;
    info.c044_epoch_anchor_candle = decision.SLTPSourceComponent.CandleTime;
-   info.c044_last_processed_owner_candle = decision.SLTPSourceComponent.CandleTime;
+
+   // Runtime ownership starts when the broker position exists. Closed owner
+   // candles between the source Re-Entry and actual order creation are provenance,
+   // not lifecycle events for a position that did not yet exist.
+   info.c044_last_processed_owner_candle = latestClosed;
    info.c044_state = C044_LIFE_WAIT_OUTER_TEST;
    info.c044_exit_reason = C044_EXIT_NONE;
    info.c044_exit_latched_candle = 0;
+
+   if(!CaptureC044ReplaySeed(info, pairIndex))
+   {
+      ResetC044TradeState(info);
+      return false;
+   }
    return true;
 }
 
@@ -7950,6 +8028,205 @@ string C044CheckpointBase(TradeInfo &info)
           IntegerToString(InstanceID) + "|T" + IntegerToString(info.ticket) + "|";
 }
 
+string C044ReplayGVBase(TradeInfo &info)
+{
+   return C044CheckpointBase(info) + "R|";
+}
+
+string C044ReplayGVKey(string base, string group, int index)
+{
+   return base + group + IntegerToString(index);
+}
+
+void ClearC044ReplaySeed(TradeInfo &info)
+{
+   if(info.ticket <= 0) return;
+   string base = C044ReplayGVBase(info);
+   if(GlobalVariableCheck(base + "V")) GlobalVariableDel(base + "V");
+   for(int i = 0; i < 20; i++)
+      if(GlobalVariableCheck(C044ReplayGVKey(base, "R", i)))
+         GlobalVariableDel(C044ReplayGVKey(base, "R", i));
+   for(int j = 0; j < 19; j++)
+   {
+      if(GlobalVariableCheck(C044ReplayGVKey(base, "B", j)))
+         GlobalVariableDel(C044ReplayGVKey(base, "B", j));
+      if(GlobalVariableCheck(C044ReplayGVKey(base, "S", j)))
+         GlobalVariableDel(C044ReplayGVKey(base, "S", j));
+   }
+}
+
+bool SaveC044ReplaySeed(TradeInfo &info)
+{
+   if(!info.c044_replay_seed_valid || info.ticket <= 0) return false;
+   if(info.c044_replay_reentry.Direction != info.direction ||
+      info.c044_replay_reentry.Timeframe != info.c044_owner_timeframe ||
+      info.c044_replay_extreme_buy.Direction != DIR_BUY ||
+      info.c044_replay_extreme_buy.Timeframe != info.c044_owner_timeframe ||
+      info.c044_replay_extreme_sell.Direction != DIR_SELL ||
+      info.c044_replay_extreme_sell.Timeframe != info.c044_owner_timeframe)
+      return false;
+
+   string base = C044ReplayGVBase(info);
+   GlobalVariableSet(base + "V", 1.0);
+
+   GlobalVariableSet(C044ReplayGVKey(base,"R",0),  (double)info.c044_replay_reentry.Type);
+   GlobalVariableSet(C044ReplayGVKey(base,"R",1),  (double)info.c044_replay_reentry.State);
+   GlobalVariableSet(C044ReplayGVKey(base,"R",2),  (double)info.c044_replay_reentry.Direction);
+   GlobalVariableSet(C044ReplayGVKey(base,"R",3),  (double)info.c044_replay_reentry.Timeframe);
+   GlobalVariableSet(C044ReplayGVKey(base,"R",4),  (double)info.c044_replay_reentry.StartBar);
+   GlobalVariableSet(C044ReplayGVKey(base,"R",5),  (double)info.c044_replay_reentry.StartCandleTime);
+   GlobalVariableSet(C044ReplayGVKey(base,"R",6),  (double)info.c044_replay_reentry.LastUpdateBar);
+   GlobalVariableSet(C044ReplayGVKey(base,"R",7),  (double)info.c044_replay_reentry.LastUpdateCandleTime);
+   GlobalVariableSet(C044ReplayGVKey(base,"R",8),  (double)info.c044_replay_reentry.ConfirmationBar);
+   GlobalVariableSet(C044ReplayGVKey(base,"R",9),  (double)info.c044_replay_reentry.ConfirmationCandle);
+   GlobalVariableSet(C044ReplayGVKey(base,"R",10), (double)info.c044_replay_reentry.ExpiryBar);
+   GlobalVariableSet(C044ReplayGVKey(base,"R",11), (double)info.c044_replay_reentry.ExpiryCandleTime);
+   GlobalVariableSet(C044ReplayGVKey(base,"R",12), (double)info.c044_replay_reentry.MinCandlesRequired);
+   GlobalVariableSet(C044ReplayGVKey(base,"R",13), (double)info.c044_replay_reentry.QualifyingCandles);
+   GlobalVariableSet(C044ReplayGVKey(base,"R",14), (double)info.c044_replay_reentry.Type1ContextState);
+   GlobalVariableSet(C044ReplayGVKey(base,"R",15), (double)info.c044_replay_reentry.Type1OwnerSignal);
+   GlobalVariableSet(C044ReplayGVKey(base,"R",16), (double)info.c044_replay_reentry.Type1OwnerCandleTime);
+   GlobalVariableSet(C044ReplayGVKey(base,"R",17), (double)info.c044_replay_reentry.Type1RangingStartCandleTime);
+   GlobalVariableSet(C044ReplayGVKey(base,"R",18), info.c044_replay_reentry.Type1PreviousClose);
+   GlobalVariableSet(C044ReplayGVKey(base,"R",19), info.c044_replay_reentry.IsValid ? 1.0 : 0.0);
+
+   ExtremeLifecycleData buy = info.c044_replay_extreme_buy;
+   ExtremeLifecycleData sell = info.c044_replay_extreme_sell;
+   GlobalVariableSet(C044ReplayGVKey(base,"B",0),  (double)buy.Maturity);
+   GlobalVariableSet(C044ReplayGVKey(base,"B",1),  (double)buy.Direction);
+   GlobalVariableSet(C044ReplayGVKey(base,"B",2),  (double)buy.Timeframe);
+   GlobalVariableSet(C044ReplayGVKey(base,"B",3),  (double)buy.RawBar);
+   GlobalVariableSet(C044ReplayGVKey(base,"B",4),  (double)buy.RawCandleTime);
+   GlobalVariableSet(C044ReplayGVKey(base,"B",5),  (double)buy.ConfirmationBar);
+   GlobalVariableSet(C044ReplayGVKey(base,"B",6),  (double)buy.ConfirmationCandleTime);
+   GlobalVariableSet(C044ReplayGVKey(base,"B",7),  buy.ConfirmationClose);
+   GlobalVariableSet(C044ReplayGVKey(base,"B",8),  (double)buy.LastUpdateBar);
+   GlobalVariableSet(C044ReplayGVKey(base,"B",9),  (double)buy.LastUpdateCandleTime);
+   GlobalVariableSet(C044ReplayGVKey(base,"B",10), buy.PreviousClose);
+   GlobalVariableSet(C044ReplayGVKey(base,"B",11), buy.ProvisionalBodyAnchor);
+   GlobalVariableSet(C044ReplayGVKey(base,"B",12), buy.FrozenBodyAnchor);
+   GlobalVariableSet(C044ReplayGVKey(base,"B",13), buy.RelevantMA5);
+   GlobalVariableSet(C044ReplayGVKey(base,"B",14), (double)buy.RetestStartBar);
+   GlobalVariableSet(C044ReplayGVKey(base,"B",15), (double)buy.RetestStartCandleTime);
+   GlobalVariableSet(C044ReplayGVKey(base,"B",16), (double)buy.RetestCompletionBar);
+   GlobalVariableSet(C044ReplayGVKey(base,"B",17), (double)buy.RetestCompletionCandleTime);
+   GlobalVariableSet(C044ReplayGVKey(base,"B",18), buy.IsValid ? 1.0 : 0.0);
+
+   GlobalVariableSet(C044ReplayGVKey(base,"S",0),  (double)sell.Maturity);
+   GlobalVariableSet(C044ReplayGVKey(base,"S",1),  (double)sell.Direction);
+   GlobalVariableSet(C044ReplayGVKey(base,"S",2),  (double)sell.Timeframe);
+   GlobalVariableSet(C044ReplayGVKey(base,"S",3),  (double)sell.RawBar);
+   GlobalVariableSet(C044ReplayGVKey(base,"S",4),  (double)sell.RawCandleTime);
+   GlobalVariableSet(C044ReplayGVKey(base,"S",5),  (double)sell.ConfirmationBar);
+   GlobalVariableSet(C044ReplayGVKey(base,"S",6),  (double)sell.ConfirmationCandleTime);
+   GlobalVariableSet(C044ReplayGVKey(base,"S",7),  sell.ConfirmationClose);
+   GlobalVariableSet(C044ReplayGVKey(base,"S",8),  (double)sell.LastUpdateBar);
+   GlobalVariableSet(C044ReplayGVKey(base,"S",9),  (double)sell.LastUpdateCandleTime);
+   GlobalVariableSet(C044ReplayGVKey(base,"S",10), sell.PreviousClose);
+   GlobalVariableSet(C044ReplayGVKey(base,"S",11), sell.ProvisionalBodyAnchor);
+   GlobalVariableSet(C044ReplayGVKey(base,"S",12), sell.FrozenBodyAnchor);
+   GlobalVariableSet(C044ReplayGVKey(base,"S",13), sell.RelevantMA5);
+   GlobalVariableSet(C044ReplayGVKey(base,"S",14), (double)sell.RetestStartBar);
+   GlobalVariableSet(C044ReplayGVKey(base,"S",15), (double)sell.RetestStartCandleTime);
+   GlobalVariableSet(C044ReplayGVKey(base,"S",16), (double)sell.RetestCompletionBar);
+   GlobalVariableSet(C044ReplayGVKey(base,"S",17), (double)sell.RetestCompletionCandleTime);
+   GlobalVariableSet(C044ReplayGVKey(base,"S",18), sell.IsValid ? 1.0 : 0.0);
+   return true;
+}
+
+bool ReadC044ReplayGV(string base, string group, int index, double &value)
+{
+   string key = C044ReplayGVKey(base, group, index);
+   if(!GlobalVariableCheck(key)) return false;
+   value = GlobalVariableGet(key);
+   return true;
+}
+
+bool LoadC044ReplaySeed(TradeInfo &info)
+{
+   string base = C044ReplayGVBase(info);
+   if(!GlobalVariableCheck(base + "V") ||
+      (int)GlobalVariableGet(base + "V") != 1)
+      return false;
+
+   ZeroMemory(info.c044_replay_reentry);
+   ZeroMemory(info.c044_replay_extreme_buy);
+   ZeroMemory(info.c044_replay_extreme_sell);
+   double v = 0.0;
+
+   if(!ReadC044ReplayGV(base,"R",0,v)) return false; info.c044_replay_reentry.Type=(ENUM_RE_TYPE)((int)v);
+   if(!ReadC044ReplayGV(base,"R",1,v)) return false; info.c044_replay_reentry.State=(ENUM_RE_STATE)((int)v);
+   if(!ReadC044ReplayGV(base,"R",2,v)) return false; info.c044_replay_reentry.Direction=(ENUM_DIRECTION)((int)v);
+   if(!ReadC044ReplayGV(base,"R",3,v)) return false; info.c044_replay_reentry.Timeframe=(int)v;
+   if(!ReadC044ReplayGV(base,"R",4,v)) return false; info.c044_replay_reentry.StartBar=(int)v;
+   if(!ReadC044ReplayGV(base,"R",5,v)) return false; info.c044_replay_reentry.StartCandleTime=(datetime)((int)v);
+   if(!ReadC044ReplayGV(base,"R",6,v)) return false; info.c044_replay_reentry.LastUpdateBar=(int)v;
+   if(!ReadC044ReplayGV(base,"R",7,v)) return false; info.c044_replay_reentry.LastUpdateCandleTime=(datetime)((int)v);
+   if(!ReadC044ReplayGV(base,"R",8,v)) return false; info.c044_replay_reentry.ConfirmationBar=(int)v;
+   if(!ReadC044ReplayGV(base,"R",9,v)) return false; info.c044_replay_reentry.ConfirmationCandle=(datetime)((int)v);
+   if(!ReadC044ReplayGV(base,"R",10,v)) return false; info.c044_replay_reentry.ExpiryBar=(int)v;
+   if(!ReadC044ReplayGV(base,"R",11,v)) return false; info.c044_replay_reentry.ExpiryCandleTime=(datetime)((int)v);
+   if(!ReadC044ReplayGV(base,"R",12,v)) return false; info.c044_replay_reentry.MinCandlesRequired=(int)v;
+   if(!ReadC044ReplayGV(base,"R",13,v)) return false; info.c044_replay_reentry.QualifyingCandles=(int)v;
+   if(!ReadC044ReplayGV(base,"R",14,v)) return false; info.c044_replay_reentry.Type1ContextState=(ENUM_TYPE1_CONTEXT_STATE)((int)v);
+   if(!ReadC044ReplayGV(base,"R",15,v)) return false; info.c044_replay_reentry.Type1OwnerSignal=(ENUM_SIGNAL_TYPE)((int)v);
+   if(!ReadC044ReplayGV(base,"R",16,v)) return false; info.c044_replay_reentry.Type1OwnerCandleTime=(datetime)((int)v);
+   if(!ReadC044ReplayGV(base,"R",17,v)) return false; info.c044_replay_reentry.Type1RangingStartCandleTime=(datetime)((int)v);
+   if(!ReadC044ReplayGV(base,"R",18,v)) return false; info.c044_replay_reentry.Type1PreviousClose=v;
+   if(!ReadC044ReplayGV(base,"R",19,v)) return false; info.c044_replay_reentry.IsValid=(v > 0.5);
+
+   if(!ReadC044ReplayGV(base,"B",0,v)) return false; info.c044_replay_extreme_buy.Maturity=(ENUM_EXTREME_MATURITY)((int)v);
+   if(!ReadC044ReplayGV(base,"B",1,v)) return false; info.c044_replay_extreme_buy.Direction=(ENUM_DIRECTION)((int)v);
+   if(!ReadC044ReplayGV(base,"B",2,v)) return false; info.c044_replay_extreme_buy.Timeframe=(int)v;
+   if(!ReadC044ReplayGV(base,"B",3,v)) return false; info.c044_replay_extreme_buy.RawBar=(int)v;
+   if(!ReadC044ReplayGV(base,"B",4,v)) return false; info.c044_replay_extreme_buy.RawCandleTime=(datetime)((int)v);
+   if(!ReadC044ReplayGV(base,"B",5,v)) return false; info.c044_replay_extreme_buy.ConfirmationBar=(int)v;
+   if(!ReadC044ReplayGV(base,"B",6,v)) return false; info.c044_replay_extreme_buy.ConfirmationCandleTime=(datetime)((int)v);
+   if(!ReadC044ReplayGV(base,"B",7,v)) return false; info.c044_replay_extreme_buy.ConfirmationClose=v;
+   if(!ReadC044ReplayGV(base,"B",8,v)) return false; info.c044_replay_extreme_buy.LastUpdateBar=(int)v;
+   if(!ReadC044ReplayGV(base,"B",9,v)) return false; info.c044_replay_extreme_buy.LastUpdateCandleTime=(datetime)((int)v);
+   if(!ReadC044ReplayGV(base,"B",10,v)) return false; info.c044_replay_extreme_buy.PreviousClose=v;
+   if(!ReadC044ReplayGV(base,"B",11,v)) return false; info.c044_replay_extreme_buy.ProvisionalBodyAnchor=v;
+   if(!ReadC044ReplayGV(base,"B",12,v)) return false; info.c044_replay_extreme_buy.FrozenBodyAnchor=v;
+   if(!ReadC044ReplayGV(base,"B",13,v)) return false; info.c044_replay_extreme_buy.RelevantMA5=v;
+   if(!ReadC044ReplayGV(base,"B",14,v)) return false; info.c044_replay_extreme_buy.RetestStartBar=(int)v;
+   if(!ReadC044ReplayGV(base,"B",15,v)) return false; info.c044_replay_extreme_buy.RetestStartCandleTime=(datetime)((int)v);
+   if(!ReadC044ReplayGV(base,"B",16,v)) return false; info.c044_replay_extreme_buy.RetestCompletionBar=(int)v;
+   if(!ReadC044ReplayGV(base,"B",17,v)) return false; info.c044_replay_extreme_buy.RetestCompletionCandleTime=(datetime)((int)v);
+   if(!ReadC044ReplayGV(base,"B",18,v)) return false; info.c044_replay_extreme_buy.IsValid=(v > 0.5);
+
+   if(!ReadC044ReplayGV(base,"S",0,v)) return false; info.c044_replay_extreme_sell.Maturity=(ENUM_EXTREME_MATURITY)((int)v);
+   if(!ReadC044ReplayGV(base,"S",1,v)) return false; info.c044_replay_extreme_sell.Direction=(ENUM_DIRECTION)((int)v);
+   if(!ReadC044ReplayGV(base,"S",2,v)) return false; info.c044_replay_extreme_sell.Timeframe=(int)v;
+   if(!ReadC044ReplayGV(base,"S",3,v)) return false; info.c044_replay_extreme_sell.RawBar=(int)v;
+   if(!ReadC044ReplayGV(base,"S",4,v)) return false; info.c044_replay_extreme_sell.RawCandleTime=(datetime)((int)v);
+   if(!ReadC044ReplayGV(base,"S",5,v)) return false; info.c044_replay_extreme_sell.ConfirmationBar=(int)v;
+   if(!ReadC044ReplayGV(base,"S",6,v)) return false; info.c044_replay_extreme_sell.ConfirmationCandleTime=(datetime)((int)v);
+   if(!ReadC044ReplayGV(base,"S",7,v)) return false; info.c044_replay_extreme_sell.ConfirmationClose=v;
+   if(!ReadC044ReplayGV(base,"S",8,v)) return false; info.c044_replay_extreme_sell.LastUpdateBar=(int)v;
+   if(!ReadC044ReplayGV(base,"S",9,v)) return false; info.c044_replay_extreme_sell.LastUpdateCandleTime=(datetime)((int)v);
+   if(!ReadC044ReplayGV(base,"S",10,v)) return false; info.c044_replay_extreme_sell.PreviousClose=v;
+   if(!ReadC044ReplayGV(base,"S",11,v)) return false; info.c044_replay_extreme_sell.ProvisionalBodyAnchor=v;
+   if(!ReadC044ReplayGV(base,"S",12,v)) return false; info.c044_replay_extreme_sell.FrozenBodyAnchor=v;
+   if(!ReadC044ReplayGV(base,"S",13,v)) return false; info.c044_replay_extreme_sell.RelevantMA5=v;
+   if(!ReadC044ReplayGV(base,"S",14,v)) return false; info.c044_replay_extreme_sell.RetestStartBar=(int)v;
+   if(!ReadC044ReplayGV(base,"S",15,v)) return false; info.c044_replay_extreme_sell.RetestStartCandleTime=(datetime)((int)v);
+   if(!ReadC044ReplayGV(base,"S",16,v)) return false; info.c044_replay_extreme_sell.RetestCompletionBar=(int)v;
+   if(!ReadC044ReplayGV(base,"S",17,v)) return false; info.c044_replay_extreme_sell.RetestCompletionCandleTime=(datetime)((int)v);
+   if(!ReadC044ReplayGV(base,"S",18,v)) return false; info.c044_replay_extreme_sell.IsValid=(v > 0.5);
+
+   if(info.c044_replay_reentry.Direction != info.direction ||
+      info.c044_replay_reentry.Timeframe != info.c044_owner_timeframe ||
+      info.c044_replay_extreme_buy.Direction != DIR_BUY ||
+      info.c044_replay_extreme_buy.Timeframe != info.c044_owner_timeframe ||
+      info.c044_replay_extreme_sell.Direction != DIR_SELL ||
+      info.c044_replay_extreme_sell.Timeframe != info.c044_owner_timeframe)
+      return false;
+
+   info.c044_replay_seed_valid = true;
+   return true;
+}
+
 void ClearC044Checkpoint(TradeInfo &info)
 {
    if(info.ticket <= 0) return;
@@ -7957,6 +8234,7 @@ void ClearC044Checkpoint(TradeInfo &info)
    string keys[10] = {"D","TF","OR","EP","LP","ST","XR","XL","OT","MG"};
    for(int i = 0; i < 10; i++)
       if(GlobalVariableCheck(base + keys[i])) GlobalVariableDel(base + keys[i]);
+   ClearC044ReplaySeed(info);
 }
 
 bool SaveC044Checkpoint(TradeInfo &info)
@@ -7966,7 +8244,12 @@ bool SaveC044Checkpoint(TradeInfo &info)
       (info.direction != DIR_BUY && info.direction != DIR_SELL) ||
       !IsValidC044OwnerTimeframe(info.c044_owner_timeframe) ||
       info.c044_owner_reentry_candle <= 0 || info.c044_epoch_anchor_candle <= 0 ||
+      info.c044_last_processed_owner_candle <= 0 ||
       info.c044_state == C044_LIFE_NONE)
+      return false;
+
+   if(info.c044_state != C044_LIFE_FROZEN &&
+      (!info.c044_replay_seed_valid || !SaveC044ReplaySeed(info)))
       return false;
 
    string base = C044CheckpointBase(info);
@@ -8011,9 +8294,9 @@ bool LoadC044Checkpoint(TradeInfo &info)
 
    if(direction != info.direction || magic != info.magic_number || openTime != info.open_time)
       return false;
-   if(!IsValidC044OwnerTimeframe(timeframe) || ownerRe <= 0 || epoch <= 0)
+   if(!IsValidC044OwnerTimeframe(timeframe) || ownerRe <= 0 || epoch <= 0 ||
+      lastProcessed <= 0)
       return false;
-   if(lastProcessed < epoch) return false;
    if(state != C044_LIFE_WAIT_OUTER_TEST &&
       state != C044_LIFE_WAIT_NEXT_REENTRY &&
       state != C044_LIFE_EXIT_LATCHED && state != C044_LIFE_FROZEN)
@@ -8034,7 +8317,13 @@ bool LoadC044Checkpoint(TradeInfo &info)
    info.c044_state = state;
    info.c044_exit_reason = exitReason;
    info.c044_exit_latched_candle = exitCandle;
-   return true;
+
+   if(state == C044_LIFE_FROZEN)
+   {
+      info.c044_replay_seed_valid = false;
+      return true;
+   }
+   return LoadC044ReplaySeed(info);
 }
 
 string H4OwnerGVBase(PairState &state)

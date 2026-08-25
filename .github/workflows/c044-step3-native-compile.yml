@@ -1,4 +1,4 @@
-name: C044 Step3 native MT4 compile
+name: C044 Step4 native MT4 compile
 
 on:
   push:
@@ -19,17 +19,17 @@ jobs:
           ref: d1-owner-dev
           fetch-depth: 0
 
-      - name: Verify exact C044 Step3 source
+      - name: Verify exact C044 Step4 source
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           $src = '.\blueprint\source\BBMA_EA.mq4'
-          if (-not (Test-Path $src)) { throw 'C044 Step3 source missing' }
+          if (-not (Test-Path $src)) { throw 'C044 Step4 source missing' }
           $text = Get-Content $src -Raw
-          if ($text -notmatch 'Version 4\.5\.5 - C044 Owner Event Evaluator Stage') { throw 'Unexpected build identifier' }
+          if ($text -notmatch 'Version 4\.5\.6 - C044 Deterministic Replay Stage') { throw 'Unexpected build identifier' }
           if ($text -notmatch 'bool\s+EnableC044Lifecycle\s*=\s*false;') { throw 'C044 feature gate is not OFF' }
           $blob = (git rev-parse 'HEAD:blueprint/source/BBMA_EA.mq4').Trim()
-          if ($blob -ne '2ea9eca6616e3140c5acf78c986d86b9bc1911c5') { throw "Unexpected C044 Step3 source blob: $blob" }
+          if ($blob -ne 'f0f80decbdbda836c12b6073f5dbc6e347662b13') { throw "Unexpected C044 Step4 source blob: $blob" }
           $sha = (Get-FileHash $src -Algorithm SHA256).Hash.ToLower()
           "C044_SOURCE_SHA256=$sha" | Out-File -FilePath $env:GITHUB_ENV -Append
           "C044_SOURCE_BLOB=$blob" | Out-File -FilePath $env:GITHUB_ENV -Append
@@ -60,7 +60,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $src = (Resolve-Path '.\blueprint\source\BBMA_EA.mq4').Path
-          $log = Join-Path $env:RUNNER_TEMP 'c044-step3-metaeditor.log'
+          $log = Join-Path $env:RUNNER_TEMP 'c044-step4-metaeditor.log'
           & "$env:METAEDITOR" "/compile:$src" "/log:$log"
           Start-Sleep -Seconds 2
           if (-not (Test-Path $log)) { throw 'MetaEditor compile log missing' }
@@ -75,20 +75,20 @@ jobs:
           $warnings = [int]$m.Groups[2].Value
           if ($errors -ne 0 -or $warnings -ne 0) { throw "Native compile failed: $errors errors / $warnings warnings" }
           @"
-          C044_STEP3_NATIVE_METAEDITOR=PASS
+          C044_STEP4_NATIVE_METAEDITOR=PASS
           SOURCE_BLOB=$env:C044_SOURCE_BLOB
           SOURCE_SHA256=$env:C044_SOURCE_SHA256
           ERRORS=$errors
           WARNINGS=$warnings
-          "@ | Set-Content (Join-Path $env:RUNNER_TEMP 'c044-step3-compile-result.txt')
+          "@ | Set-Content (Join-Path $env:RUNNER_TEMP 'c044-step4-compile-result.txt')
 
       - uses: actions/upload-artifact@v4
         with:
-          name: c044-step3-native-compile-evidence
+          name: c044-step4-native-compile-evidence
           path: |
             blueprint/source/BBMA_EA.ex4
-            ${{ runner.temp }}/c044-step3-metaeditor.log
-            ${{ runner.temp }}/c044-step3-compile-result.txt
+            ${{ runner.temp }}/c044-step4-metaeditor.log
+            ${{ runner.temp }}/c044-step4-compile-result.txt
           if-no-files-found: error
 
   close-gate:
@@ -101,55 +101,55 @@ jobs:
           fetch-depth: 0
       - uses: actions/download-artifact@v4
         with:
-          name: c044-step3-native-compile-evidence
+          name: c044-step4-native-compile-evidence
           path: /tmp/c044-native
-      - name: Record C044 Step3 native compile closure
+      - name: Record C044 Step4 native compile closure
         shell: bash
         run: |
           set -euo pipefail
-          result=/tmp/c044-native/c044-step3-compile-result.txt
-          grep -Fq 'C044_STEP3_NATIVE_METAEDITOR=PASS' "$result"
-          grep -Fq 'SOURCE_BLOB=2ea9eca6616e3140c5acf78c986d86b9bc1911c5' "$result"
+          result=/tmp/c044-native/c044-step4-compile-result.txt
+          grep -Fq 'C044_STEP4_NATIVE_METAEDITOR=PASS' "$result"
+          grep -Fq 'SOURCE_BLOB=f0f80decbdbda836c12b6073f5dbc6e347662b13' "$result"
           grep -Fq 'ERRORS=0' "$result"
           grep -Fq 'WARNINGS=0' "$result"
           sha256="$(sed -n 's/^[[:space:]]*SOURCE_SHA256=//p' "$result" | tr -d '\r' | tail -n1)"
           test -n "$sha256"
-          cat > blueprint/C044_STEP3_NATIVE_METAEDITOR_COMPILE_20260826.md <<EOF
-          # C044 Step 3 — Native MT4 MetaEditor Compile Closure
+          cat > blueprint/C044_STEP4_NATIVE_METAEDITOR_COMPILE_20260826.md <<EOF
+          # C044 Step 4 — Native MT4 MetaEditor Compile Closure
 
           Date: 2026-08-26  
           Branch: \`d1-owner-dev\`  
-          Build: \`Version 4.5.5 - C044 Owner Event Evaluator Stage\`  
-          Source Git blob: \`2ea9eca6616e3140c5acf78c986d86b9bc1911c5\`  
+          Build: \`Version 4.5.6 - C044 Deterministic Replay Stage\`  
+          Source Git blob: \`f0f80decbdbda836c12b6073f5dbc6e347662b13\`  
           Source SHA-256: \`$sha256\`
 
           Status: **NATIVE METAEDITOR PASS — 0 ERRORS / 0 WARNINGS**
 
-          The exact C044 Step3 source above was compiled with MT4 MetaEditor on a Windows GitHub runner using the official MetaQuotes MT4 installer path when MetaEditor was not preinstalled.
+          The exact C044 Step4 source above was compiled with MT4 MetaEditor on a Windows GitHub runner using the official MetaQuotes MT4 installer path with the proven bounded acquisition pattern.
 
-          Compile evidence artifact: \`c044-step3-native-compile-evidence\` containing the EX4, MetaEditor compile log and machine-readable result summary.
+          Compile evidence artifact: \`c044-step4-native-compile-evidence\` containing the EX4, MetaEditor compile log and machine-readable result summary.
 
-          Safety boundary: \`EnableC044Lifecycle=false\` remains locked OFF. This compile closure does not activate targetless execution. The multi-candle restart/replay completeness gap remains a blocker before activation.
+          Safety boundary: \`EnableC044Lifecycle=false\` remains locked OFF. This compile closure does not activate targetless execution. Deterministic replay self-tests remain required before any activation decision.
           EOF
           python3 - <<'PY'
           from pathlib import Path
-          p = Path('blueprint/C044_STEP3_OWNER_EVENT_EVALUATOR_IMPLEMENTATION_AUDIT_20260826.md')
+          p = Path('blueprint/C044_STEP4_DETERMINISTIC_REPLAY_IMPLEMENTATION_AUDIT_20260826.md')
           s = p.read_text(encoding='utf-8')
           s = s.replace(
-              '**IMPLEMENTED / STATIC INTEGRITY PASS / SINGLE-CANDLE OWNER EVENT ADVANCE ONLY / MULTI-CANDLE GAP FAIL-FROZEN / FEATURE GATE OFF / NATIVE METAEDITOR COMPILE PENDING**',
-              '**IMPLEMENTED / STATIC INTEGRITY PASS / SINGLE-CANDLE OWNER EVENT ADVANCE ONLY / MULTI-CANDLE GAP FAIL-FROZEN / FEATURE GATE OFF / NATIVE METAEDITOR 0E0W PASS**')
+              '**IMPLEMENTED / STATIC INTEGRITY PASS / DETERMINISTIC MULTI-CANDLE REPLAY / FEATURE GATE OFF / NATIVE METAEDITOR COMPILE PENDING**',
+              '**IMPLEMENTED / STATIC INTEGRITY PASS / DETERMINISTIC MULTI-CANDLE REPLAY / FEATURE GATE OFF / NATIVE METAEDITOR 0E0W PASS**')
           s = s.replace(
-              'Run native MT4 MetaEditor compile for the exact v4.55 source and require 0 errors / 0 warnings. Then close the remaining restart/replay completeness gap before any atomic switch of `EnableC044Lifecycle` to ON.',
-              'Native MT4 MetaEditor compile is PASS — 0 errors / 0 warnings. Next close the remaining restart/replay completeness gap before any atomic switch of `EnableC044Lifecycle` to ON.')
+              'Native MT4 MetaEditor compile is required for the exact v4.56 source, target **0 errors / 0 warnings**. Then run deterministic replay self-tests before any activation decision.',
+              'Native MT4 MetaEditor compile is PASS — 0 errors / 0 warnings. Next run deterministic replay self-tests before any activation decision.')
           p.write_text(s, encoding='utf-8')
           PY
           git diff --check
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- blueprint/C044_STEP3_NATIVE_METAEDITOR_COMPILE_20260826.md blueprint/C044_STEP3_OWNER_EVENT_EVALUATOR_IMPLEMENTATION_AUDIT_20260826.md
+          git add -- blueprint/C044_STEP4_NATIVE_METAEDITOR_COMPILE_20260826.md blueprint/C044_STEP4_DETERMINISTIC_REPLAY_IMPLEMENTATION_AUDIT_20260826.md
           if git diff --cached --quiet; then
-            echo 'C044 Step3 compile closure already recorded.'
+            echo 'C044 Step4 compile closure already recorded.'
             exit 0
           fi
-          git commit -m "C044 Step3: close native MetaEditor 0E0W gate [skip ci]"
+          git commit -m "C044 Step4: close native MetaEditor 0E0W gate [skip ci]"
           git push origin HEAD:d1-owner-dev

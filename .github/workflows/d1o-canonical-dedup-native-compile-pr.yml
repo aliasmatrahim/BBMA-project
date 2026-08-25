@@ -1,0 +1,105 @@
+name: D1O-07 Canonical LTF Dedup Native Compile
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'blueprint/.run-d1o-canonical-dedup-native-compile'
+
+permissions:
+  contents: read
+
+jobs:
+  compile-d1o07:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: dispatcher
+          fetch-depth: 1
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          path: target
+          fetch-depth: 1
+
+      - name: Apply D1O-06 and D1O-07 with static guards
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Push-Location target
+          try {
+            $blob = (git rev-parse HEAD:blueprint/source/BBMA_EA.mq4).Trim()
+            if ($blob -ne '9199b897551a3383f0f10a6f6d513ac2fbafc22a') { throw "Unexpected D1O-02 baseline blob: $blob" }
+            python ..\dispatcher\blueprint\tools\d1o_ltf_cluster_telemetry_patch.py
+            python ..\dispatcher\blueprint\tools\d1o_canonical_ltf_dedup_patch.py
+            git diff --check
+            $src = '.\blueprint\source\BBMA_EA.mq4'
+            $txt = Get-Content $src -Raw
+            foreach ($required in @(
+              'Version 4.5.1 - D1O-07 Canonical LTF Dedup',
+              'D1OpportunityLTFClusterText',
+              'string canonicalIdentity = "RE_ENTRY|',
+              'candidate.SequenceStartTime = identityRE.ConfirmationCandle;'
+            )) {
+              if ($txt -notmatch [regex]::Escape($required)) { throw "Missing D1O-07 materialization: $required" }
+            }
+            if ($txt -match [regex]::Escape('SHORT_HASH("D1OPP|" + opportunity.CycleID')) { throw 'Old D1 opportunity label-based execution hash remains' }
+            if (([regex]::Matches($txt, 'BuildD1OpportunityCandidate\(pairIndex, d1OpportunityCandidate\);')).Count -ne 1) { throw 'D1O build hook count changed' }
+            if (([regex]::Matches($txt, 'RunEntryPreflightAndExecute\(decision, actual\);')).Count -ne 1) { throw 'Execution hook count changed' }
+            "D1O07_BLOB=$((git hash-object $src).Trim())" | Out-File $env:GITHUB_ENV -Append
+            "D1O07_SHA256=$((Get-FileHash $src -Algorithm SHA256).Hash.ToLower())" | Out-File $env:GITHUB_ENV -Append
+          }
+          finally { Pop-Location }
+
+      - name: Acquire official MT4
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $meta) {
+            $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+            Invoke-WebRequest -Uri 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -OutFile $setup -UseBasicParsing
+            $proc = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
+            for ($i=0; $i -lt 84; $i++) {
+              Start-Sleep -Seconds 5
+              $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($meta) { break }
+              if ($proc.HasExited -and $i -gt 12) { break }
+            }
+            if ($proc -and -not $proc.HasExited) { try { $proc.Kill() } catch {} }
+          }
+          if (-not $meta) { throw 'Official MT4 MetaEditor not found' }
+          "METAEDITOR=$($meta.FullName)" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Native MetaEditor 0E0W compile
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = (Resolve-Path '.\target\blueprint\source\BBMA_EA.mq4').Path
+          $log = Join-Path $env:RUNNER_TEMP 'd1o-07-metaeditor.log'
+          & "$env:METAEDITOR" "/compile:$src" "/log:$log"
+          Start-Sleep -Seconds 2
+          if (-not (Test-Path $log)) { throw 'MetaEditor compile log missing' }
+          $txt = Get-Content $log -Raw
+          $txt | Write-Host
+          $matches = [regex]::Matches($txt, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
+          if ($matches.Count -lt 1) { throw 'Unable to parse compile summary' }
+          $m = $matches[$matches.Count - 1]
+          $errors = [int]$m.Groups[1].Value
+          $warnings = [int]$m.Groups[2].Value
+          if ($errors -ne 0 -or $warnings -ne 0) { throw "Native compile failed: $errors errors / $warnings warnings" }
+          if (-not (Test-Path ([System.IO.Path]::ChangeExtension($src,'.ex4')))) { throw 'EX4 missing' }
+
+      - name: Upload D1O-07 compile evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: d1o-07-native-compile-evidence
+          path: |
+            target/blueprint/source/BBMA_EA.ex4
+            ${{ runner.temp }}/d1o-07-metaeditor.log
+          if-no-files-found: warn

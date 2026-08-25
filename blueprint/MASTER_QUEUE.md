@@ -347,3 +347,26 @@ Implementation gate:
 3. Keep structural SL provenance separate from broker hard-SL normalization.
 4. Native MetaEditor 0E0W + focused BUY-unchanged/SELL-only static regression.
 5. Broker/demo runtime evidence on at least one JPY cross and one non-JPY FX pair.
+
+---
+
+## 2026-08-25 — Locked Next-Update Item: Re-Entry Structural-Range SL + SELL Spread Normalization
+
+Priority: **HIGH / NEXT APPROVED SOURCE UPDATE**
+Status: **LOCKED / APPROVED / QUEUED / NOT YET IMPLEMENTED**
+Active decision: `blueprint/decisions/M17_REENTRY_STRUCTURAL_RANGE_SL_EXECUTION_NORMALIZATION_DECISION_20260825.md`
+
+This item **supersedes** the earlier `SELL Spread-Buffer Execution Normalization` queue item. The earlier SELL-only decision is historical only and must not be implemented independently.
+
+Locked implementation summary:
+- Structural window = matching M12 `ReEntryData.StartCandleTime` through `ConfirmationCandle`, inclusive, on the approved `SLTPSourceComponent` timeframe.
+- BUY anchor = lowest Low in that validated window; `BUY StructuralSL = StructuralLow - 1 Point`; **no spread buffer**.
+- SELL anchor = highest High in that validated window; `SELL StructuralSL = StructuralHigh + 1 Point`.
+- SELL broker buffer remains `SpreadBufferPips = max(2.0, ceil(CurrentSpreadPips))` from the frozen preflight snapshot.
+- Do not substitute arbitrary lookback, fractal/swing detector, Top/Low BB, MA5/MA10 line, ATR or session high/low as hard-SL coordinates.
+- Fail closed if the exact M12 lifecycle range cannot be matched/reconstructed.
+- Resolve final hard SL before M21 AutoLot; wider valid SL therefore reduces AutoLot while preserving configured risk %, subject to broker lot constraints.
+- RR is recalculated from final broker SL; TP is not moved merely to preserve old nominal RR.
+- Classification: `EA_SAFETY / PROJECT EXECUTION NORMALIZATION`, not a new BBMA Strategy Core rule.
+
+Current `BBMA_EA.mq4` remains unchanged until this queued source update is executed.

@@ -20,7 +20,7 @@ Opportunity context is never a direct order trigger. M15 remains the sole final 
 - Requires a reversal-confirmed D1 Extreme; RAW Extreme is insufficient.
 - Extreme and its normal TP-Wajib path are one journey, not two opportunities.
 - The journey is inactive once normal TP Wajib has structurally completed.
-- This is the only tactical family allowed to oppose the MA50 strategic-owner direction.
+- This is the only tactical family allowed to oppose the MA50 strategic-owner direction or operate while the otherwise-valid MA50 context is transitional.
 - Tactical execution requires stronger LTF confirmation: recovered/valid aligned H4 directional owner plus a fresh confirmed H1 Re-Entry in the opportunity direction.
 
 ### D1_OPP_CSD
@@ -46,7 +46,7 @@ Opportunity context is never a direct order trigger. M15 remains the sole final 
 - D1 eCSD: WATCH ONLY; no independent ordinary execution authority.
 
 ## Temporal safety
-A D1 event becomes usable only after its source D1 candle has closed. LTF setup readiness must occur strictly after the D1 opportunity activation time; no H1/M15 setup that was already complete before the D1 event became knowable may be reused.
+A D1 event becomes usable only after its source D1 candle has closed. The activation time is the source D1 close boundary. LTF setup readiness must occur strictly after that boundary; no H1/M15 setup that was already complete before the D1 event became knowable may be reused.
 
 ## LTF execution and deduplication
 - Phase 1 execution uses confirmed H1 and M15 Re-Entry structures only; no raw LTF Extreme/CSD/eCSD/Momentum becomes a direct entry.

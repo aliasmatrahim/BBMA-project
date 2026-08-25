@@ -37,7 +37,8 @@ Final decision:
 - first valid MA5/MA10 TP-Wajib completion ends the normal TPW objective; Mid BB is farther/maximum context only;
 - `MinRRRatio > 0` fails closed for this targetless lifecycle unless a future approved deterministic reward reference exists;
 - M20 emergency protection retains precedence;
-- recovery must fail frozen on missing/ambiguous D1 Extreme/Opportunity identity.
+- recovery must fail frozen on missing/ambiguous D1 Extreme/Opportunity identity;
+- the bounded repeated-LTF/HTF Extreme exception does not apply at D1 because D1 is the current top approved owner.
 
 Remaining A1 work is an implementation/static/native/runtime task, not a BBMA Core or strategy ambiguity.
 
@@ -72,9 +73,9 @@ Resolved classification:
 These remain open but are not BBMA Core semantic gaps.
 
 #### GAP-B0 — Implement GAP-A1 D1 TP-Wajib lifecycle
-Status: **OPEN — REPO-CLOSABLE IMPLEMENTATION TASK**
-Required:
-- introduce an explicit `EXTREME_TPW` lifecycle-managed payload distinct from C044;
+Status: **IN PROGRESS — SOURCE-BOUND v4.58 GATE**
+Required/under gate:
+- explicit `EXTREME_TPW` lifecycle-managed payload distinct from C044;
 - preserve LTF Re-Entry hard-SL ownership and execution/dedup identity;
 - broker TP `0`;
 - M23 full-close on canonical closed-D1 TPW completion;
@@ -83,6 +84,8 @@ Required:
 - targetless MinRR rule;
 - protected-surface regression + native MetaEditor 0E0W;
 - broker/demo runtime validation before production activation.
+
+The implementation feature gate must remain OFF until broker/demo validation passes. While OFF, a D1 `EXTREME_TPW` candidate must fail closed rather than fall back to the legacy LTF Re-Entry outer-BB TP.
 
 #### GAP-B1 — C044 broker/demo lifecycle runtime + former GAP-A2 activation layer
 Status: **BLOCKED — ENVIRONMENT / EXPLICIT ACTIVATION REVIEW AFTER RUNTIME PASS**
@@ -122,19 +125,21 @@ Includes the remaining GAP-A3 live BUY/SELL structural-SL geometry proof. Static
 Status: **CLOSED — 49/49 EXPLICITLY CLASSIFIED / 0 UNRESOLVED CORE HOLDS**
 Authority:
 - `blueprint/decisions/CORE_REMAINING_GAPS_CLOSURE_DECISION_20260826.md`;
+- `blueprint/decisions/ADVANCED_REPEATED_EXTREME_TPW_EXCEPTION_DECISION_20260826.md`;
 - `docs/references/BBMA_CORE_49_FAMILY_CLOSURE_REBASELINE_20260826.md`.
 
 Historical 2026-08-25 split of `28 COVERED + 10 PARTIAL + 11 MISSING/HOLD` is preserved as history only. Subsequent bounded decisions plus the 2026-08-26 research closure now give every family an explicit terminal status:
 - accepted Core;
 - accepted source-consistent/context-only;
 - deterministic project mapping with provenance label;
+- bounded advanced MTF exception;
 - or rejected from current Core.
 
 Important closures include:
 - C018 Mid-BB break/retest/failure-to-recross -> direction-confirmation context only;
 - C024 MHV Momentum/no-Momentum management -> source-supported lifecycle principle;
 - C034 Candle Arah Top/Low-BB destination -> structural destination, not universal resting broker TP;
-- advanced/higher-timeframe Extreme no-TP exception -> rejected from current Core for lack of sufficiently authoritative deterministic evidence;
+- repeated same-direction LTF Extreme with valid immediate HTF MHV/RE -> bounded advanced exception may remove the need for a fresh **local** TPW/local MHV cycle; it does not remotely confirm HTF or mature a raw LTF Extreme and does not apply at D1 in the current hierarchy;
 - C044 source lifecycle principle accepted while conservative outer-test implementation remains labelled project mapping;
 - C048 Extreme Magic -> source-supported strength subtype, no independent execution.
 
@@ -142,11 +147,10 @@ Important closures include:
 
 ## Current execution order
 
-1. **GAP-B0** — implement the now-approved D1 `EXTREME_TPW` lifecycle exit without changing its LTF execution identity or hard-SL ownership.
-2. Run protected-surface regression + native MetaEditor 0E0W on any source patch.
-3. Keep C044 OFF until Class-B broker/demo validation passes; do not activate it merely because its Core semantics are closed.
-4. Close broker/runtime B1-B4 when an authenticated MT4 demo/broker environment is available.
-5. **N1/N2/N3 remain parked until the project owner explicitly resumes them.**
+1. Finish **GAP-B0** v4.58 protected/native gate; keep D1 TPW lifecycle feature OFF after materialization pending broker/demo proof.
+2. Keep C044 OFF until Class-B broker/demo validation passes; do not activate it merely because its Core semantics are closed.
+3. Close broker/runtime B1-B4 when an authenticated MT4 demo/broker environment is available.
+4. **N1/N2/N3 remain parked until the project owner explicitly resumes them.**
 
 ## Do-not-reopen list without new evidence
 

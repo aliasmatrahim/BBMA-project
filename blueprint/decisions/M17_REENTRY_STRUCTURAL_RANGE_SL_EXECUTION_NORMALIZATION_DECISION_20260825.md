@@ -1,6 +1,6 @@
 # M17 Re-Entry Structural-Range SL + SELL Spread Normalization Decision — 2026-08-25
 
-Status: **LOCKED / APPROVED / QUEUED FOR NEXT SOURCE UPDATE / NO CURRENT MQL4 CHANGE**
+Status: **IMPLEMENTED / STATIC REGRESSION PASS / NATIVE METAEDITOR 0E0W PASS / RUNTIME TRACE PENDING**
 
 Supersedes:
 `blueprint/decisions/M17_SELL_SPREAD_BUFFER_EXECUTION_NORMALIZATION_DECISION_20260825.md`
@@ -150,3 +150,18 @@ This decision does not change:
 - Locked by explicit user approval on 2026-08-25.
 - This decision **supersedes** the prior SELL-spread-only queued decision because BUY/SELL structural anchor ownership is now intentionally upgraded from exact confirmation candle High/Low to the full validated M12 Re-Entry structural window.
 - The old decision remains historical provenance only and must not be implemented independently.
+
+
+## Implementation closure — 2026-08-25
+
+Implemented in `blueprint/source/BBMA_EA.mq4` version 4.52.
+
+Final source Git blob: `4ccd444a96a34b494653143a7560516a4147b5bc`.
+
+Implementation audit: `blueprint/M17_STRUCTURAL_RANGE_SL_EXECUTION_NORMALIZATION_IMPLEMENTATION_AUDIT_20260825.md`.
+
+Final native compile: run `32849850304`, job `97807956720`, **0 errors / 0 warnings**.
+
+Static protected/MM regression: run `32849979993`, **PASS**.
+
+TP semantics remain unchanged and separately governed by `blueprint/M17_TP_AUTHORITY_RECONCILIATION_AUDIT_20260825.md`. Runtime BUY/SELL broker evidence remains pending.

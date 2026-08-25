@@ -405,3 +405,14 @@ Status: **CLOSED / PASS / NATIVE METAEDITOR 0E0W**
 - Audit records: `blueprint/P2_REJ_INVALID_LOT_DIAGNOSTICS_AUDIT_20260825.md` and `blueprint/P2_DASHBOARD_LIVE_TRADE_COUNT_AUDIT_20260825.md`.
 - No BBMA strategy, D1/NMJE authority, SL/TP, risk percentage, money-management admission or broker execution semantics were changed by these two items.
 - Next evidence layer: broker/demo runtime D1 owner matrix + D1O canonical dedup + validation-candle/order-open timing when market-connected evidence is available.
+
+
+# 2026-08-25 M17 Structural-Range SL Implementation Overlay
+- **Source version:** 4.52 — M17 Structural SL Normalization.
+- **Current source Git blob:** `4ccd444a96a34b494653143a7560516a4147b5bc`.
+- **Windows checkout SHA-256:** `0b6fd57c56b193918c828db5270fa5239d02b4c2f7b5f103f712c260d9539d52`.
+- **Native MetaEditor final:** run `32849850304`, job `97807956720`, **0 errors / 0 warnings / 151 ms**.
+- **Compile artifact:** `9564102891`, digest `sha256:5309c228855aa728edfceb97b8146d643327d8e8f2e91cccf96a153df8d9c1ac`.
+- **Protected/MM regression:** run `32849979993` PASS; `ResolveSelectedSLTPSourceComponent`, `RunEntryPreflightAndExecute`, and `CalculateLotSize` unchanged from pre-M17 baseline.
+- **M17 state:** source/static/native compile closed; broker/demo runtime trace pending.
+- **TP boundary:** TP implementation unchanged; 2026-08-25 authoritative reconciliation retains material Re-Entry TP/no-Momentum lifecycle behavior as strategy HOLD.

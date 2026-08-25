@@ -353,7 +353,7 @@ Implementation gate:
 ## 2026-08-25 — Locked Next-Update Item: Re-Entry Structural-Range SL + SELL Spread Normalization
 
 Priority: **HIGH / NEXT APPROVED SOURCE UPDATE**
-Status: **LOCKED / APPROVED / QUEUED / NOT YET IMPLEMENTED**
+Status: **IMPLEMENTED / STATIC REGRESSION PASS / NATIVE METAEDITOR 0E0W PASS / RUNTIME TRACE PENDING**
 Active decision: `blueprint/decisions/M17_REENTRY_STRUCTURAL_RANGE_SL_EXECUTION_NORMALIZATION_DECISION_20260825.md`
 
 This item **supersedes** the earlier `SELL Spread-Buffer Execution Normalization` queue item. The earlier SELL-only decision is historical only and must not be implemented independently.
@@ -370,3 +370,15 @@ Locked implementation summary:
 - Classification: `EA_SAFETY / PROJECT EXECUTION NORMALIZATION`, not a new BBMA Strategy Core rule.
 
 Current `BBMA_EA.mq4` remains unchanged until this queued source update is executed.
+
+
+### M17 structural-range SL implementation closure — 2026-08-25
+Status: **CLOSED AT SOURCE/STATIC/NATIVE-COMPILE LEVEL — RUNTIME TRACE PENDING**
+- version: `4.52`; source blob: `4ccd444a96a34b494653143a7560516a4147b5bc`;
+- implementation audit: `blueprint/M17_STRUCTURAL_RANGE_SL_EXECUTION_NORMALIZATION_IMPLEMENTATION_AUDIT_20260825.md`;
+- protected/MM regression run `32849979993`: PASS;
+- native MetaEditor run `32849850304`: 0 errors / 0 warnings;
+- BUY uses lifecycle minimum Low - Point with no spread buffer; SELL uses lifecycle maximum High + Point + `max(2, ceil(frozen spread pips))`;
+- AutoLot uses the final SL through unchanged M21 sizing;
+- TP code is unchanged. Latest authoritative 2026-08-25 Core keeps material Re-Entry TP/lifecycle changes on strategy HOLD; see `blueprint/M17_TP_AUTHORITY_RECONCILIATION_AUDIT_20260825.md`;
+- next M17 action: broker/demo BUY+SELL runtime evidence, including JPY/non-JPY where practical.

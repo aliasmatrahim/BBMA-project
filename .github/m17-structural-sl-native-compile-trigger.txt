@@ -1,1 +1,1 @@
-trigger 2026-08-25 m17 structural-range native compile
+trigger 2026-08-25 m17 structural-range native compile final cleanup

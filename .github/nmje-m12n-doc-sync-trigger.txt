@@ -1,1 +1,1 @@
-trigger 2026-08-25 nmje m12n architecture documentation sync
+trigger 2026-08-25 nmje m12n architecture documentation sync retry-1

@@ -293,3 +293,29 @@ Evidence:
 2. Dashboard active-trade count refresh — display/registry correctness only; no strategy change.
 3. Broker/demo runtime D1 owner/dedup/timing evidence when market-connected environment is available.
 4. Material Workbook HOLD rules remain blocked pending explicit strategy decision.
+
+---
+
+## 2026-08-25 — P2 Observability/UI Closure
+
+Status: **CLOSED / PASS / CURRENT SOURCE 0E0W**
+
+Completed:
+1. `REJ_INVALID_LOT` diagnostics — **CLOSED/PASS**, observability-only.
+2. Dashboard active-trade count refresh — **CLOSED/PASS**, display-only.
+
+Evidence:
+- canonical Git blob `532f15b224f7e2594ed83f85e077e76aa13f7ed3`;
+- repository/LF SHA-256 `6a34cc999e18e96bcda8cec9ba90bcc6455a201da6ff1f2d957f5476fee83c1c`;
+- Windows compile checkout SHA-256 `2fd43ecda4edee45e641463215be70d1c043b36941906a7507946b606cc3826b` (same blob; CRLF/LF only);
+- official MT4 MetaEditor run `32823122900`, job `97725322914`: **0 errors / 0 warnings**;
+- compile artifact `9554031975`;
+- `P2_REJ_INVALID_LOT_DIAGNOSTICS_AUDIT_20260825.md`;
+- `P2_DASHBOARD_LIVE_TRADE_COUNT_AUDIT_20260825.md`.
+
+### Active next safe order
+1. Broker/demo runtime evidence: D1 owner BUY/SELL/TRANSITION/UNRESOLVED matrix.
+2. D1 Opportunity canonical dedup telemetry: same fresh LTF identity retains execution hash across D1 attribution changes; execution hash never changes direction.
+3. Validation-candle-before-order-open timing evidence.
+4. Continue NMJE/runtime research evidence only within its read-only contract.
+5. Material Workbook HOLD rules remain blocked until an explicit strategy-decision gate.

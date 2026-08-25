@@ -46,7 +46,7 @@ Path:
 `blueprint/source/BBMA_EA.mq4`
 
 SHA-256:
-`c911790b45fb7a75270fdee1204a7c97313605dca194f57380441b92a66896c2`
+`6a34cc999e18e96bcda8cec9ba90bcc6455a201da6ff1f2d957f5476fee83c1c`
 
 Native MetaEditor result reported and verified from the user compile session:
 **0 errors, 0 warnings**.
@@ -388,3 +388,20 @@ Workbook forensic HOLD families remain excluded from executable behavior. Safe V
 - Audit records: `blueprint/P3_M1_D1O07_MODE1_COMPLIANCE_REAUDIT_20260825.md` and `blueprint/D1O07_CROSS_MODULE_REGRESSION_AUDIT_20260825.md`.
 - No EA code fix required from these two gates. Broker/demo runtime evidence remains separate.
 - Next safe engineering work: queued non-strategy observability/UI defects (`REJ_INVALID_LOT` diagnostics, then dashboard active-trade count refresh).
+
+---
+
+## 2026-08-25 P2 Observability/UI Closure — LOTDIAG + DASHCOUNT
+
+Status: **CLOSED / PASS / NATIVE METAEDITOR 0E0W**
+
+- Canonical Git blob: `532f15b224f7e2594ed83f85e077e76aa13f7ed3`.
+- Repository/LF SHA-256: `6a34cc999e18e96bcda8cec9ba90bcc6455a201da6ff1f2d957f5476fee83c1c`.
+- Native Windows checkout SHA-256: `2fd43ecda4edee45e641463215be70d1c043b36941906a7507946b606cc3826b`; line-ending transformation only, same Git blob.
+- `REJ_INVALID_LOT` diagnostics: **PASS**. M21 sizing logic is unchanged; diagnostics explain an already-failed result from the same frozen snapshot.
+- Dashboard active-trade count: **PASS**. `Trades:` now counts current broker-pool orders accepted by exact symbol+magic ownership, not raw `g_monitored_count`.
+- Final combined official MT4 MetaEditor compile: **0 errors / 0 warnings**.
+- Compile evidence: run `32823122900`, job `97725322914`, artifact `9554031975`.
+- Audit records: `blueprint/P2_REJ_INVALID_LOT_DIAGNOSTICS_AUDIT_20260825.md` and `blueprint/P2_DASHBOARD_LIVE_TRADE_COUNT_AUDIT_20260825.md`.
+- No BBMA strategy, D1/NMJE authority, SL/TP, risk percentage, money-management admission or broker execution semantics were changed by these two items.
+- Next evidence layer: broker/demo runtime D1 owner matrix + D1O canonical dedup + validation-candle/order-open timing when market-connected evidence is available.

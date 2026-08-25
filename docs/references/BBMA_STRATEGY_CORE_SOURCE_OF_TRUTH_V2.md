@@ -105,13 +105,16 @@ This refines the earlier broad digest wording “MA5/MA10 or Mid BB” without c
 
 Source basis: primary PDF page 2 plus Finale V04 00:41:02–00:42:42 and V05 00:16:41–00:18:02.
 
-### 5.3 Extreme rules that remain HOLD
-The following are **not authoritative Core rules yet**:
-- MA5 merely touching the outer BB as equivalent to the established outside-BB Extreme condition.
-- A reversal candle remaining outside BB but inside MA5 as a universal acceptance rule.
-- Advanced / higher-timeframe Extreme exceptions without the normal TP-Wajib behaviour.
+### 5.3 Extreme edge-case closure
+The former broad HOLD is closed by the 2026-08-26 source/forum/web reconciliation:
+- **MA5 merely touching the outer BB is not equivalent to canonical Extreme.** The established Extreme condition requires the relevant MA extension outside the band. Touch/equality may be context only and cannot create Extreme/TP-Wajib/execution authority.
+- **A reversal-direction candle that remains closed outside the relevant outer BB is not a universal valid-Extreme shortcut merely because it is inside MA5.** Accepted outside-close/Momentum invalidation retains precedence over maturity promotion.
+- **Advanced repeated-Extreme behavior is a bounded MTF exception, not a blanket no-TP rule.** Later same-direction LTF Extremes may omit a fresh local TPW/local MHV cycle only when no opposite LTF Extreme intervenes and the immediate HTF independently owns a valid mature MHV/MLV or Re-Entry compatible with the sequence. The HTF state must be proven by its own owner; RAW LTF Extreme maturity cannot be bypassed.
+- The bounded repeated-LTF exception does **not** apply to the current D1 `EXTREME_TPW` path because D1 is the top approved owner in the EA hierarchy and has no independently validated larger parent.
 
-These remain governed by `BBMA_FINALE_SOURCE_CONFLICT_REGISTER.md`.
+Authority:
+- `blueprint/decisions/CORE_V2_RESIDUAL_HOLD_CLOSURE_DECISION_20260826.md`;
+- `blueprint/decisions/ADVANCED_REPEATED_EXTREME_TPW_EXCEPTION_DECISION_20260826.md`.
 
 ### 5.4 Extreme maturity and deterministic reversal/retest lifecycle
 **User-approved project Core decision:** an Extreme used as a component of executable REM/REE must be at least **reversal-confirmed**, while a standalone Extreme entry requires the later **retest/entry-ready** stage.
@@ -184,7 +187,7 @@ Rules:
 - prior Extreme BUY -> opposite MA5/MA10 High area;
 - Mid BB remains farther/maximum context rather than the canonical first TP prerequisite;
 - TP-Wajib completion is market-structure evidence, not broker/order status;
-- advanced Extreme without normal TP Wajib remains `HOLD / UNCERTAIN` and cannot bypass this canonical rule;
+- the bounded repeated-LTF/valid-HTF exception does not manufacture a fresh same-timeframe MHV parent and does not weaken this canonical same-TF MHV provenance rule;
 - a generic consolidation, local double/triple top/bottom or loss of impulse without a provable prior Extreme chain is not canonical MHV/MLV.
 
 ### 6.3 Loss-of-momentum state and concrete formation
@@ -363,14 +366,20 @@ Source basis: primary PDF page 10.
 
 Source basis: primary PDF page 10.
 
-### 8.6 First-candle validation / second-candle entry wording
-Finale repeatedly uses the teaching phrase “first Re-Entry candle validates; second candle is entry.” This is **accepted as a semantic/timing clarification to verify**, not as authorization to insert an additional full-candle delay.
+### 8.6 Validation-candle / immediately-following live-candle timing
+The teaching phrase “first Re-Entry candle validates; second candle is entry” is now **closed at semantic/project-mapping level**.
 
-The project’s closed-candle architecture may already implement the intended semantics by validating after the first candle closes and executing during the next candle. Exact runtime mapping must be verified before any code change.
+Canonical mapping:
+- the source-timeframe Re-Entry validation candle must be fully closed;
+- after that closed candle confirms the Re-Entry, execution may become eligible during the **immediately following live source-timeframe candle**, subject to the normal M15/final-authority and downstream validation gates;
+- no extra full source-timeframe candle must close merely to reinterpret the teaching phrase;
+- `EntryCandle` observability metadata refers to the immediately following source-TF candle and must not duplicate `ConfirmationCandle`.
 
-Status: **CLARIFY / VERIFY — not a new Core timing rule yet**.
+This is consistent with `CORE_V2_F6_TIMING_VERIFICATION_AUDIT.md`. Remaining broker `OrderOpenTime()` traces are runtime evidence, not a Strategy-Core semantic HOLD.
 
-Source basis: Finale V06 00:30:46–00:31:06 and 00:52:48–00:56:27.
+Evidence classification:
+- first-validating / next-entry-candle teaching = **SOURCE-SUPPORTED**;
+- exact closed-candle autonomous-EA timing = **PROJECT DETERMINISTIC MAPPING / ENGINEERING**.
 
 ---
 
@@ -507,28 +516,39 @@ Do not promote the following into BBMA Strategy Core without stronger source evi
 - psychology/money-management teaching;
 - literal guarantees from qualitative phrases such as “pasti”, “100%” or “paling selamat”;
 - EA implementation mechanisms such as trade lock, scheduler, dashboard, logging, broker handling, portfolio cap or execution plumbing.
-### 11.1 Home Course 19-page completeness boundary — reviewed but not silently promoted
+### 11.1 Home Course / 49-family completeness boundary — fully classified
 
-The 49-family revalidation is recorded in `HOME_COURSE_49_FAMILY_CORE_REVALIDATION_20260825.md`. All non-fully-covered families are intentionally visible rather than omitted.
+The historical 2026-08-25 revalidation recorded `28 COVERED + 10 PARTIAL/mixed + 11 MISSING/HOLD`. Subsequent dated source decisions supersede that count as the current gap status.
 
-Safe/context-only families remain bounded by their existing contracts. The following material is specifically **not universal executable Core authority** unless a later explicit source/strategy decision promotes it:
-- detailed horizontal-BB wick/body/close -> Mid-BB reversion table;
-- absolute 10–20 pip horizontal-BB breakout threshold;
-- MA5 close / MA5-hugging-BB as an independent Momentum validity tier;
-- Mid-BB break -> retest -> failure-to-recross as a universal standalone detector;
-- deterministic MHV post-event Momentum/no-Momentum TP/hold/close rules;
-- guaranteed Candle Arah outer-BB destination;
-- pre-Re-Entry/post-direction outer-BB hold/no-TP exception;
-- broad literal `D1 says Buy, H4 says Sell -> always follow D1` rule beyond the already approved scoped D1/MA50 strategic-owner contract;
-- Double H1 Extreme -> deterministic H4 MHV inference;
-- H4 MHV -> direct lower-TF Extreme execution shortcut;
-- claim that valid H4 MHV means no further H1 MHV;
-- deterministic next-day prediction from today's D1 close;
-- universal Re-Entry -> no Momentum mandatory TP/reversal exit;
-- `Extrem Magic` as independent executable detector/authority;
-- unrestricted recursive lower-TF replay/add-on authority.
+Current authority:
+- `docs/references/BBMA_CORE_49_FAMILY_CLOSURE_REBASELINE_20260826.md`;
+- `blueprint/decisions/CORE_REMAINING_GAPS_CLOSURE_DECISION_20260826.md`;
+- `blueprint/decisions/CORE_V2_RESIDUAL_HOLD_CLOSURE_DECISION_20260826.md`;
+- `blueprint/decisions/ADVANCED_REPEATED_EXTREME_TPW_EXCEPTION_DECISION_20260826.md`.
 
-Precedence note: where historical 2026-08-24 F7 lifecycle audits describe post-Re-Entry no-Momentum/hold behavior as source/spec-level `RESOLVED`, executable promotion is superseded by the later 2026-08-25 cross-source reconciliation and this current authoritative Core, which retain the material behavior as HOLD. Historical evidence remains useful; it does not itself grant execution authority.
+Current result: **49/49 Home Course families explicitly classified and 0 unresolved Core semantic HOLDs.**
+
+“Closed” does not mean “directly executable.” Each former non-full family now terminates in one explicit category:
+- accepted Core;
+- accepted bounded/source-consistent context only;
+- bounded advanced MTF interpretation;
+- deterministic project/engineering mapping with provenance label;
+- or rejected from current universal Core.
+
+Important bounded outcomes:
+- horizontal-BB rejection/compression, zones, Mid-BB slope and MA5-strength wording remain context/annotation unless an existing canonical setup owns execution;
+- C018 Mid-BB break/retest/failure-to-recross is direction-confirmation context, not a standalone CSD detector;
+- C024 MHV Momentum/no-Momentum behavior is a lifecycle principle, without inventing a new MHV direct-entry path;
+- C034 Candle Arah Top/Low-BB destination is structural context, not a guaranteed universal resting broker TP;
+- C035 pre-Re-Entry outer-BB hold is bounded to the pre-ReEntry stage;
+- C038 D1 precedence is scoped strategic ownership, not an unconditional raw D1-vs-H4 shortcut;
+- C039/C040/C041 repeated-Extreme/HTF-MHV relationships are bounded nested context and never manufacture HTF confirmation or suppress genuine LTF detectors;
+- C042 prior-day D1 is strategic prior/context, not deterministic next-day prediction;
+- C044 post-Re-Entry failed-Momentum is accepted as lifecycle source principle, while its exact automated outer-test/latch/recovery machinery is labelled project mapping and remains feature-gated pending broker validation;
+- C048 Extreme Magic is a strength subtype, not independent execution authority;
+- repeated same-direction LTF Extreme may omit a fresh local TPW/local MHV cycle only under the separately accepted bounded valid-HTF MHV/RE condition; D1 is excluded in the current hierarchy.
+
+No historical HOLD/rejected wording may silently re-enter execution after this closure rebaseline.
 
 
 ---
@@ -562,6 +582,11 @@ Relative to the earlier Core, accepted material now includes these specific clar
 - **standalone H1 final higher-timeframe alignment now requires same-direction confirmed D1 strategic owner + same-direction active H4 owner**;
 - **`D1_TRANSITION` / `D1_OWNER_UNRESOLVED` block new entries rather than freezing the previous D1 owner as executable authority**;
 - **REM/RRE/REE signatures remain unchanged; D1 strategic gating is separate from component identity**;
-- H4 restart uses verified checkpoint + deterministic replay as engineering policy; D1 current strategic state is rebuilt from closed-D1 price/MA50 history.
+- H4 restart uses verified checkpoint + deterministic replay as engineering policy; D1 current strategic state is rebuilt from closed-D1 price/MA50 history;
+- the 49-family Home Course completeness set is fully classified with no unresolved Core semantic HOLD;
+- residual Extreme touch/outside-reversal ambiguities are closed by rejection of unsupported universal shortcuts;
+- the repeated-LTF Extreme / valid-HTF MHV-or-ReEntry exception is accepted only in bounded MTF scope and does not apply to D1 in the current hierarchy;
+- Re-Entry validation-candle / immediately-following live-candle timing is closed at semantic/project-mapping level;
+- SL/TP items without universal BBMA broker formulas are explicitly classified as Core, lifecycle principle, context, or project/EA-safety mapping rather than left as undefined Core obligations.
 
-The unresolved Extreme exceptions, personal/workflow material, and any still-unresolved SL/TP provenance issues remain outside authoritative Core until their own explicit reconciliation is complete.
+**Current unresolved BBMA Core semantic HOLD count: 0.**

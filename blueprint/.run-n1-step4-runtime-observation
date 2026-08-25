@@ -1,3 +1,3 @@
-trigger=2026-08-24T21:39+08:00
-source_blob=e1329219e8fad10e4242f7cf2769593cdf09063e
-purpose=N1-04 NMJE runtime observation smoke retrigger after N1-05 analyzer staging
+trigger=2026-08-26T04:05+08:00
+purpose=post-C044 repo reconciliation and safe triage
+source_blob=f0f80decbdbda836c12b6073f5dbc6e347662b13

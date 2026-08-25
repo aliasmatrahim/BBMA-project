@@ -1,0 +1,138 @@
+name: NMJE M12N architecture doc sync
+
+on:
+  push:
+    branches: [d1-owner-dev]
+    paths: [.github/nmje-m12n-doc-sync-trigger.txt]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          fetch-depth: 0
+
+      - name: Reconcile M12N architecture documentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED_BLOB="4ccd444a96a34b494653143a7560516a4147b5bc"
+          test "$(git rev-parse HEAD:blueprint/source/BBMA_EA.mq4)" = "$EXPECTED_BLOB"
+
+          python - <<'PY'
+          from pathlib import Path
+
+          # 1) Project governance: make logical M12N placement explicit without renumbering M01-M27.
+          p = Path('PROJECT_INSTRUCTIONS.md')
+          s = p.read_text(encoding='utf-8')
+          old = "**Architecture:** M01–M27  \n**Primary Source of Truth:** GitHub"
+          new = "**Architecture:** M01–M27  \n**Logical architecture overlay:** M12N — Nested MTF Journey Engine, positioned between M12 and M13 without consuming a numeric module slot or renumbering M13–M27  \n**Primary Source of Truth:** GitHub"
+          if old in s:
+              s = s.replace(old, new, 1)
+          elif new not in s:
+              raise SystemExit('PROJECT_INSTRUCTIONS architecture header marker missing')
+
+          anchor = "- D1, H4, H1 and M15 retain their defined BBMA roles.\n"
+          insert = (
+              anchor
+              + "- Canonical logical signal flow includes `M06–M12 owner updates -> M12N NMJE read-only context/lineage -> M13 collector -> M14 validator -> M15 final authority -> M16 revalidation`.\n"
+              + "- M12N is a logical sub-module only: M13 remains Module 13, M27 remains Module 27/orchestrator, and the project remains an M01–M27 numbered architecture.\n"
+              + "- M12N/NMJE may observe or carry diagnostic/shadow lineage only under its active contract; it may not create, reject, rank or execute a trade unless a future strategy-changing gate is separately evidenced and explicitly approved.\n"
+          )
+          if 'Canonical logical signal flow includes `M06–M12 owner updates -> M12N NMJE' not in s:
+              if anchor not in s:
+                  raise SystemExit('PROJECT_INSTRUCTIONS processing anchor missing')
+              s = s.replace(anchor, insert, 1)
+          p.write_text(s, encoding='utf-8', newline='\n')
+
+          # 2) M13 contract: record M12N as the read-only layer before collection.
+          p = Path('blueprint/contracts/M13_COMBINATION_COLLECTOR_CONTRACT.md')
+          s = p.read_text(encoding='utf-8')
+          old = (
+              "- calls M08/M09/M10/M12 owners;\n"
+              "- stamps raw `Signal` snapshots with their real timeframe, bar index, candle time and close;\n"
+              "- passes immutable copies into M13;\n"
+          )
+          new = (
+              "- calls M08/M09/M10/M12 owners;\n"
+              "- invokes M12N/NMJE after current-cycle owner updates and before M13 as a read-only context/lineage layer;\n"
+              "- stamps raw `Signal` snapshots with their real timeframe, bar index, candle time and close;\n"
+              "- passes the same immutable strategy-owner copies into M13; M12N metadata does not add, replace or mature a REM/RRE/REE component;\n"
+          )
+          if old in s:
+              s = s.replace(old, new, 1)
+          elif new not in s:
+              raise SystemExit('M13 routing marker missing')
+
+          section = "## M12N / NMJE boundary\n"
+          if section not in s:
+              before = "## Scope guard\n"
+              if before not in s:
+                  raise SystemExit('M13 scope marker missing')
+              block = (
+                  "## M12N / NMJE boundary\n"
+                  "M12N is the logical read-only architecture layer between M12 owner completion and M13 collection. It does not consume a numeric module slot: M13 remains M13 and M27 remains the orchestration owner.\n\n"
+                  "M13 must receive the same source-owned strategy snapshots regardless of M12N relation/lineage output. NMJE metadata is non-component context only and cannot change exact REM/RRE/REE signatures, candidate direction, maturity, count, eligibility or SL/TP source ownership.\n\n"
+              )
+              s = s.replace(before, block + before, 1)
+          p.write_text(s, encoding='utf-8', newline='\n')
+
+          # 3) Current-state topology: include the already-locked M12N contract and canonical order.
+          p = Path('blueprint/CURRENT.md')
+          s = p.read_text(encoding='utf-8')
+          m12line = "- `blueprint/contracts/M12_REENTRY_SOURCE_CONTRACT.md`\n"
+          m12nline = "- `blueprint/contracts/M12N_NESTED_MTF_JOURNEY_ENGINE_CONTRACT.md`\n"
+          if m12nline not in s:
+              if m12line not in s:
+                  raise SystemExit('CURRENT M12 contract marker missing')
+              s = s.replace(m12line, m12line + m12nline, 1)
+
+          oldorder = "`M06-M12 -> M13 -> M14 -> M15 -> M16 -> M17 -> M21 -> M19 -> M20 -> M22`"
+          neworder = "`M06-M12 -> M12N NMJE (read-only) -> M13 -> M14 -> M15 -> M16 -> M17 -> M21 -> M19 -> M20 -> M22`"
+          if oldorder in s:
+              s = s.replace(oldorder, neworder, 1)
+          elif neworder not in s:
+              raise SystemExit('CURRENT canonical pipeline marker missing')
+
+          marker = "# 2026-08-25 NMJE / M12N Architecture Documentation Sync"
+          if marker not in s:
+              s += f'''\n\n{marker}\n- **Status:** CLOSED / PASS / DOCUMENTATION-ONLY.\n- **Logical placement:** `M12 -> M12N NMJE -> M13`; the wider signal pipeline remains owner updates -> NMJE read-only lineage -> M13 collector -> M14 validator -> M15 final authority -> M16 revalidation.\n- **Numbering invariant:** M12N does not consume a numeric module slot; M01–M27 numbering is preserved, M13 remains M13, and M27 remains the orchestrator.\n- **Authority invariant:** M12N remains read-only/non-execution-authority; exact REM/RRE/REE, candidate eligibility, SL/TP, risk and execution semantics are unchanged.\n- **D1 watch-only invariant:** D1 MHV/MLV and D1 eCSD remain context/watch-only and cannot create an LTF entry shortcut.\n- **EA source:** unchanged; Git blob remains `4ccd444a96a34b494653143a7560516a4147b5bc`.\n- **Audit:** `blueprint/NMJE_M12N_ARCHITECTURE_DOC_SYNC_20260825.md`.\n'''
+          p.write_text(s, encoding='utf-8', newline='\n')
+
+          # 4) Queue closure record, without changing strategy/runtime priority.
+          p = Path('blueprint/MASTER_QUEUE.md')
+          s = p.read_text(encoding='utf-8')
+          marker = "## 2026-08-25 — NMJE M12N Architecture Documentation Sync"
+          if marker not in s:
+              s += f'''\n\n---\n\n{marker}\nStatus: **CLOSED / PASS / DOCUMENTATION-ONLY**\n- Top-level governance/current topology now explicitly records `M12 -> M12N NMJE -> M13`.\n- M01–M27 numbering is preserved; M12N is a logical non-number-consuming sub-module and M27 remains orchestration owner.\n- M13 routing text now records that NMJE observes after owner updates and before collection without altering the immutable strategy snapshots.\n- Exact REM/RRE/REE, D1 Opportunity, D1 watch-only boundary, M15 authority, SL/TP, risk and execution semantics are unchanged.\n- EA source remains blob `4ccd444a96a34b494653143a7560516a4147b5bc`.\n- Audit: `blueprint/NMJE_M12N_ARCHITECTURE_DOC_SYNC_20260825.md`.\n'''
+          p.write_text(s, encoding='utf-8', newline='\n')
+
+          # 5) Dedicated reproducibility audit.
+          audit = Path('blueprint/NMJE_M12N_ARCHITECTURE_DOC_SYNC_20260825.md')
+          if not audit.exists():
+              audit.write_text('''# NMJE / M12N Architecture Documentation Sync Audit — 2026-08-25\n\nStatus: **CLOSED / PASS / DOCUMENTATION-ONLY**\n\n## Finding\nThe live M12N contract and M27 end-to-end contract already defined NMJE as a read-only logical layer between M12 and M13, but top-level governance/current-state documentation and the M13 routing narrative were not fully synchronized. In particular, `CURRENT.md` still displayed `M06-M12 -> M13` and the M13 routing section described M27 passing owner snapshots directly to M13 without naming the intervening NMJE observation step.\n\n## Reconciliation\n- `PROJECT_INSTRUCTIONS.md`: explicitly records M12N as a logical, non-number-consuming sub-module between M12 and M13.\n- `blueprint/CURRENT.md`: adds the M12N contract to the locked-supporting-contract list and updates the canonical pipeline to `M06-M12 -> M12N NMJE (read-only) -> M13 -> ...`.\n- `blueprint/contracts/M13_COMBINATION_COLLECTOR_CONTRACT.md`: records that M27 invokes/coordinates NMJE after owner updates and before M13, while M13 receives unchanged source-owned strategy snapshots.\n- `blueprint/MASTER_QUEUE.md`: records this documentation closure without changing runtime/strategy priority.\n\n## Preserved invariants\n- Numbered architecture remains M01–M27.\n- M12N does not become M13 and does not shift M13–M27 numbering.\n- M27 remains orchestration owner.\n- M12N remains read-only/non-execution-authority.\n- Exact REM/RRE/REE signatures are unchanged.\n- D1 MHV/MLV and D1 eCSD remain watch/context-only.\n- M15 final authority, M16 revalidation, SL/TP, risk, money management and broker execution are unchanged.\n\n## Source guard\n`blueprint/source/BBMA_EA.mq4` was not edited. Expected and post-sync Git blob: `4ccd444a96a34b494653143a7560516a4147b5bc`.\n\nNo native MetaEditor compile is required because this reconciliation changes documentation only.\n''', encoding='utf-8', newline='\n')
+          PY
+
+          test "$(git rev-parse HEAD:blueprint/source/BBMA_EA.mq4)" = "$EXPECTED_BLOB"
+          git diff --check
+
+      - name: Commit docs and self-clean temporary CI
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED_BLOB="4ccd444a96a34b494653143a7560516a4147b5bc"
+          git rm -f -- .github/workflows/nmje-m12n-doc-sync.yml .github/nmje-m12n-doc-sync-trigger.txt
+          test "$(git rev-parse HEAD:blueprint/source/BBMA_EA.mq4)" = "$EXPECTED_BLOB"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- PROJECT_INSTRUCTIONS.md blueprint/CURRENT.md blueprint/MASTER_QUEUE.md blueprint/contracts/M13_COMBINATION_COLLECTOR_CONTRACT.md blueprint/NMJE_M12N_ARCHITECTURE_DOC_SYNC_20260825.md
+          git diff --cached --check
+          git commit -m "docs: synchronize M12N NMJE architecture topology"
+          git pull --rebase origin d1-owner-dev
+          test "$(git rev-parse HEAD:blueprint/source/BBMA_EA.mq4)" = "$EXPECTED_BLOB"
+          git push origin HEAD:d1-owner-dev

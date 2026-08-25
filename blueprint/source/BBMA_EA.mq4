@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.5.3 - C044 Targetless Payload Stage                 |
+//| Version 4.5.4 - C044 Lifecycle State Stage                 |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.53"
+#property version   "4.54"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -327,6 +327,24 @@ enum ENUM_OPPOSITE_CONFLICT_TYPE
 
 enum ENUM_RECOVERY_STATE { REC_NORMAL, REC_CORRUPTED, REC_RECOVERY_INVALID, REC_PARTIAL_INFERRED,
                            REC_IDENTITY_HASH_ONLY, REC_IDENTITY_MISSING_FROZEN };
+
+// C044 staged targetless lifecycle state. Execution remains gated OFF until
+// owner-event evaluation and recovery activation pass their final gate.
+enum ENUM_C044_LIFECYCLE_STATE
+{
+   C044_LIFE_NONE,
+   C044_LIFE_WAIT_OUTER_TEST,
+   C044_LIFE_WAIT_NEXT_REENTRY,
+   C044_LIFE_EXIT_LATCHED,
+   C044_LIFE_FROZEN
+};
+
+enum ENUM_C044_EXIT_REASON
+{
+   C044_EXIT_NONE,
+   C044_EXIT_FAILED_MOMENTUM,
+   C044_EXIT_CYCLE_SUPERSEDED
+};
 
 //--- STRUCTS
 struct ComponentIdentity
@@ -848,6 +866,18 @@ struct TradeInfo
    string               decision_id;
    string               execution_hash;
    string               sequence_hash_short;
+
+   // C044 immutable lifecycle owner + restart state. These fields are dormant
+   // while EnableC044Lifecycle=false.
+   bool                 c044_lifecycle_managed;
+   int                  c044_owner_timeframe;
+   datetime             c044_owner_reentry_candle;
+   datetime             c044_epoch_anchor_candle;
+   datetime             c044_last_processed_owner_candle;
+   ENUM_C044_LIFECYCLE_STATE c044_state;
+   ENUM_C044_EXIT_REASON c044_exit_reason;
+   datetime             c044_exit_latched_candle;
+
    ENUM_RECOVERY_STATE  recovery_state;
 };
 
@@ -7087,6 +7117,8 @@ void CompactMonitoredTrades()
       {
          // Emit at most once: the row is discarded immediately afterwards.
          NMJE_PrintClosedOutcomeShadow(g_monitored_trades[i]);
+         if(g_monitored_trades[i].c044_lifecycle_managed)
+            ClearC044Checkpoint(g_monitored_trades[i]);
          continue;
       }
       if(write != i) g_monitored_trades[write] = g_monitored_trades[i];
@@ -7129,6 +7161,18 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
    bool tpPayloadValid = decision.C044LifecycleManaged
       ? (decision.TakeProfit == 0.0)
       : (decision.TakeProfit > 0.0);
+
+   if(decision.C044LifecycleManaged &&
+      (!decision.HasSLTPSourceComponent ||
+       decision.SLTPSourceComponent.ComponentType != SIGNAL_RE_ENTRY ||
+       decision.SLTPSourceComponent.Direction != decision.Direction ||
+       decision.SLTPSourceComponent.Timeframe <= 0 ||
+       decision.SLTPSourceComponent.CandleTime <= 0))
+   {
+      decision.DecisionState = DEC_REJECTED;
+      decision.RejectionReason = REJ_INVALID_DECISION_STATE;
+      return;
+   }
 
    if(pair == "" || decision.Pair != pair || decision.DecisionID == "" ||
       decision.Direction == DIR_NONE || decision.EntryPrice <= 0 ||
@@ -7254,6 +7298,11 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
          info.decision_id = decision.DecisionID;
          info.sequence_hash_short = SHORT_HASH(decision.SequenceHash);
 
+         ResetC044TradeState(info);
+         bool c044StateReady = true;
+         if(decision.C044LifecycleManaged)
+            c044StateReady = InitializeC044TradeStateFromDecision(info, decision);
+
          string expectedExecutionHash = SHORT_HASH(decision.DecisionID);
          string persistedExecutionHash = "";
          string persistedComment = OrderComment();
@@ -7261,7 +7310,12 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
          bool persistedHashMatch = (persistedHashFound &&
                                     persistedExecutionHash == expectedExecutionHash);
          info.execution_hash = persistedHashMatch ? persistedExecutionHash : "";
-         info.recovery_state = REC_NORMAL;
+         info.recovery_state = c044StateReady ? REC_NORMAL : REC_IDENTITY_MISSING_FROZEN;
+         if(info.c044_lifecycle_managed && c044StateReady && !SaveC044Checkpoint(info))
+         {
+            info.recovery_state = REC_IDENTITY_MISSING_FROZEN;
+            Log(DBG_ERROR, "C044 checkpoint persist failed ticket=" + IntegerToString(ticket));
+         }
 
          Print("[P3S5][EXEC_ID] Ticket=", IntegerToString(ticket),
                " Pair=", pair,
@@ -7436,6 +7490,63 @@ bool RunEntryPreflightAndExecute(BBMA_Decision &decision, string pair)
 //| LEVEL: EXPERT-RESTRICTED                                         |
 //+------------------------------------------------------------------+
 
+// C044 Step2: M23 owns only the close latch/execution action. Strategy
+// evidence that creates a latch is intentionally not wired in this stage.
+bool LatchC044Exit(TradeInfo &info, ENUM_C044_EXIT_REASON reason, datetime candleTime)
+{
+   if(!EnableC044Lifecycle || !info.c044_lifecycle_managed) return false;
+   if(reason == C044_EXIT_NONE || candleTime <= 0) return false;
+
+   if(info.c044_state == C044_LIFE_EXIT_LATCHED)
+      return (info.c044_exit_reason == reason);
+
+   if(info.c044_state != C044_LIFE_WAIT_OUTER_TEST &&
+      info.c044_state != C044_LIFE_WAIT_NEXT_REENTRY)
+      return false;
+
+   info.c044_state = C044_LIFE_EXIT_LATCHED;
+   info.c044_exit_reason = reason;
+   info.c044_exit_latched_candle = candleTime;
+   if(!SaveC044Checkpoint(info))
+      Log(DBG_ERROR, "C044 latch checkpoint failed ticket=" + IntegerToString(info.ticket));
+   return true;
+}
+
+bool ExecuteLatchedC044Close(TradeInfo &info)
+{
+   if(!EnableC044Lifecycle || !info.c044_lifecycle_managed) return false;
+   if(info.c044_state != C044_LIFE_EXIT_LATCHED ||
+      info.c044_exit_reason == C044_EXIT_NONE) return false;
+   if(info.ticket <= 0 || info.pair == "" || info.magic_number <= 0) return false;
+
+   ResetLastError();
+   if(!OrderSelect(info.ticket, SELECT_BY_TICKET)) return false;
+   if(OrderCloseTime() != 0)
+   {
+      ClearC044Checkpoint(info);
+      return true;
+   }
+   if(OrderSymbol() != info.pair || OrderMagicNumber() != info.magic_number)
+      return false;
+
+   double closePrice = (info.direction == DIR_BUY)
+      ? MarketInfo(info.pair, MODE_BID)
+      : (info.direction == DIR_SELL ? MarketInfo(info.pair, MODE_ASK) : 0.0);
+   if(closePrice <= 0.0) return false;
+
+   ResetLastError();
+   if(OrderClose(info.ticket, OrderLots(), closePrice, Slippage))
+   {
+      ClearC044Checkpoint(info);
+      return true;
+   }
+
+   int error = GetLastError();
+   Log(DBG_ERROR, "C044 close failed ticket=" + IntegerToString(info.ticket) +
+       " error=" + IntegerToString(error));
+   return false;
+}
+
 void ManagePositions()
 {
    if(g_is_managing_trade) return;
@@ -7486,6 +7597,15 @@ void ManagePositions()
       {
          continue;
       }
+
+      // C044 close execution is dormant while the internal feature gate is OFF.
+      // M20 emergency handling above retains precedence.
+      if(EnableC044Lifecycle && g_monitored_trades[i].c044_lifecycle_managed &&
+         g_monitored_trades[i].c044_state == C044_LIFE_EXIT_LATCHED)
+      {
+         ExecuteLatchedC044Close(g_monitored_trades[i]);
+         continue;
+      }
    }
    
    g_is_managing_trade = false;
@@ -7495,6 +7615,134 @@ void ManagePositions()
 //| MODULE 24: RECOVERY ENGINE                                       |
 //| LEVEL: EXPERT                                                    |
 //+------------------------------------------------------------------+
+
+void ResetC044TradeState(TradeInfo &info)
+{
+   info.c044_lifecycle_managed = false;
+   info.c044_owner_timeframe = 0;
+   info.c044_owner_reentry_candle = 0;
+   info.c044_epoch_anchor_candle = 0;
+   info.c044_last_processed_owner_candle = 0;
+   info.c044_state = C044_LIFE_NONE;
+   info.c044_exit_reason = C044_EXIT_NONE;
+   info.c044_exit_latched_candle = 0;
+}
+
+bool IsValidC044OwnerTimeframe(int timeframe)
+{
+   return (timeframe == PERIOD_M15 || timeframe == PERIOD_H1 ||
+           timeframe == PERIOD_H4 || timeframe == PERIOD_D1);
+}
+
+bool InitializeC044TradeStateFromDecision(TradeInfo &info, BBMA_Decision &decision)
+{
+   ResetC044TradeState(info);
+   if(!decision.C044LifecycleManaged) return true;
+   if(!decision.HasSLTPSourceComponent ||
+      decision.SLTPSourceComponent.ComponentType != SIGNAL_RE_ENTRY ||
+      decision.SLTPSourceComponent.Direction != decision.Direction ||
+      !IsValidC044OwnerTimeframe(decision.SLTPSourceComponent.Timeframe) ||
+      decision.SLTPSourceComponent.CandleTime <= 0)
+      return false;
+
+   info.c044_lifecycle_managed = true;
+   info.c044_owner_timeframe = decision.SLTPSourceComponent.Timeframe;
+   info.c044_owner_reentry_candle = decision.SLTPSourceComponent.CandleTime;
+   info.c044_epoch_anchor_candle = decision.SLTPSourceComponent.CandleTime;
+   info.c044_last_processed_owner_candle = decision.SLTPSourceComponent.CandleTime;
+   info.c044_state = C044_LIFE_WAIT_OUTER_TEST;
+   info.c044_exit_reason = C044_EXIT_NONE;
+   info.c044_exit_latched_candle = 0;
+   return true;
+}
+
+string C044CheckpointBase(TradeInfo &info)
+{
+   return "C044|S" + IntegerToString(StrategyID) + "|I" +
+          IntegerToString(InstanceID) + "|T" + IntegerToString(info.ticket) + "|";
+}
+
+void ClearC044Checkpoint(TradeInfo &info)
+{
+   if(info.ticket <= 0) return;
+   string base = C044CheckpointBase(info);
+   string keys[10] = {"D","TF","OR","EP","LP","ST","XR","XL","OT","MG"};
+   for(int i = 0; i < 10; i++)
+      if(GlobalVariableCheck(base + keys[i])) GlobalVariableDel(base + keys[i]);
+}
+
+bool SaveC044Checkpoint(TradeInfo &info)
+{
+   if(!info.c044_lifecycle_managed || info.ticket <= 0 ||
+      info.magic_number <= 0 || info.open_time <= 0 ||
+      (info.direction != DIR_BUY && info.direction != DIR_SELL) ||
+      !IsValidC044OwnerTimeframe(info.c044_owner_timeframe) ||
+      info.c044_owner_reentry_candle <= 0 || info.c044_epoch_anchor_candle <= 0 ||
+      info.c044_state == C044_LIFE_NONE)
+      return false;
+
+   string base = C044CheckpointBase(info);
+   GlobalVariableSet(base + "D",  (double)info.direction);
+   GlobalVariableSet(base + "TF", (double)info.c044_owner_timeframe);
+   GlobalVariableSet(base + "OR", (double)info.c044_owner_reentry_candle);
+   GlobalVariableSet(base + "EP", (double)info.c044_epoch_anchor_candle);
+   GlobalVariableSet(base + "LP", (double)info.c044_last_processed_owner_candle);
+   GlobalVariableSet(base + "ST", (double)info.c044_state);
+   GlobalVariableSet(base + "XR", (double)info.c044_exit_reason);
+   GlobalVariableSet(base + "XL", (double)info.c044_exit_latched_candle);
+   GlobalVariableSet(base + "OT", (double)info.open_time);
+   GlobalVariableSet(base + "MG", (double)info.magic_number);
+   GlobalVariablesFlush();
+
+   string keys[10] = {"D","TF","OR","EP","LP","ST","XR","XL","OT","MG"};
+   for(int i = 0; i < 10; i++)
+      if(!GlobalVariableCheck(base + keys[i])) return false;
+   return true;
+}
+
+bool LoadC044Checkpoint(TradeInfo &info)
+{
+   if(info.ticket <= 0 || info.magic_number <= 0 || info.open_time <= 0) return false;
+   string base = C044CheckpointBase(info);
+   string keys[10] = {"D","TF","OR","EP","LP","ST","XR","XL","OT","MG"};
+   for(int i = 0; i < 10; i++)
+      if(!GlobalVariableCheck(base + keys[i])) return false;
+
+   ENUM_DIRECTION direction = (ENUM_DIRECTION)((int)GlobalVariableGet(base + "D"));
+   int timeframe = (int)GlobalVariableGet(base + "TF");
+   datetime ownerRe = (datetime)((int)GlobalVariableGet(base + "OR"));
+   datetime epoch = (datetime)((int)GlobalVariableGet(base + "EP"));
+   datetime lastProcessed = (datetime)((int)GlobalVariableGet(base + "LP"));
+   ENUM_C044_LIFECYCLE_STATE state =
+      (ENUM_C044_LIFECYCLE_STATE)((int)GlobalVariableGet(base + "ST"));
+   ENUM_C044_EXIT_REASON exitReason =
+      (ENUM_C044_EXIT_REASON)((int)GlobalVariableGet(base + "XR"));
+   datetime exitCandle = (datetime)((int)GlobalVariableGet(base + "XL"));
+   datetime openTime = (datetime)((int)GlobalVariableGet(base + "OT"));
+   int magic = (int)GlobalVariableGet(base + "MG");
+
+   if(direction != info.direction || magic != info.magic_number || openTime != info.open_time)
+      return false;
+   if(!IsValidC044OwnerTimeframe(timeframe) || ownerRe <= 0 || epoch <= 0)
+      return false;
+   if(state != C044_LIFE_WAIT_OUTER_TEST &&
+      state != C044_LIFE_WAIT_NEXT_REENTRY &&
+      state != C044_LIFE_EXIT_LATCHED && state != C044_LIFE_FROZEN)
+      return false;
+   if(state == C044_LIFE_EXIT_LATCHED &&
+      (exitReason == C044_EXIT_NONE || exitCandle <= 0))
+      return false;
+
+   info.c044_lifecycle_managed = true;
+   info.c044_owner_timeframe = timeframe;
+   info.c044_owner_reentry_candle = ownerRe;
+   info.c044_epoch_anchor_candle = epoch;
+   info.c044_last_processed_owner_candle = lastProcessed;
+   info.c044_state = state;
+   info.c044_exit_reason = exitReason;
+   info.c044_exit_latched_candle = exitCandle;
+   return true;
+}
 
 string H4OwnerGVBase(PairState &state)
 {
@@ -7903,19 +8151,36 @@ void RecoverExistingOrders()
       info.execution_hash = executionHash;
       info.sequence_hash_short = sequenceHash;
 
+      ResetC044TradeState(info);
+      bool c044Targetless = (info.initial_take_profit == 0.0);
+      bool c044Recovered = false;
+      if(c044Targetless)
+         c044Recovered = LoadC044Checkpoint(info);
+
       bool geometryValid = (info.initial_entry_price > 0 &&
-                            info.initial_stop_loss > 0 &&
-                            info.initial_take_profit > 0);
+                            info.initial_stop_loss > 0);
       if(geometryValid && liveDirection == DIR_BUY)
          geometryValid = (info.initial_stop_loss < info.initial_entry_price &&
-                          info.initial_entry_price < info.initial_take_profit);
+                          (c044Targetless ? c044Recovered
+                                         : info.initial_entry_price < info.initial_take_profit));
       else if(geometryValid && liveDirection == DIR_SELL)
-         geometryValid = (info.initial_take_profit < info.initial_entry_price &&
-                          info.initial_entry_price < info.initial_stop_loss);
+         geometryValid = (info.initial_stop_loss > info.initial_entry_price &&
+                          (c044Targetless ? c044Recovered
+                                         : info.initial_take_profit < info.initial_entry_price));
 
       string recoveryCause = "";
       double currentLot = OrderLots();
-      if(!geometryValid)
+      if(c044Targetless && !c044Recovered)
+      {
+         info.recovery_state = REC_IDENTITY_MISSING_FROZEN;
+         recoveryCause = "C044_CHECKPOINT_MISSING_OR_INVALID";
+      }
+      else if(c044Targetless && !fullMetadata)
+      {
+         info.recovery_state = REC_IDENTITY_MISSING_FROZEN;
+         recoveryCause = "C044_FULL_METADATA_REQUIRED";
+      }
+      else if(!geometryValid)
       {
          info.recovery_state = REC_RECOVERY_INVALID;
          recoveryCause = "INVALID_GEOMETRY";

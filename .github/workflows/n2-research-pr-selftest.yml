@@ -32,6 +32,7 @@ jobs:
           python blueprint/tests/test_n2_nmje_hash_identity_reconciler.py
           python blueprint/tests/test_n2_nmje_auto_research_pipeline.py
           python blueprint/tests/test_d1o_opportunity_telemetry.py
+          python blueprint/tests/test_d1o_opportunity_log_analyzer.py
 
       - name: Verify research guardrails
         shell: bash
@@ -42,3 +43,4 @@ jobs:
           grep -q 'UNIQUE_SHORT_HASH_PLUS_PAIR' blueprint/tools/n2_nmje_hash_identity_reconciler.py
           grep -q 'opportunity_family' blueprint/tools/n2_nmje_decision_correlator.py
           grep -q 'by_opportunity_family' blueprint/tools/n2_nmje_outcome_attributor.py
+          grep -q 'cycle_identity_conflicts' blueprint/tools/d1o_opportunity_log_analyzer.py

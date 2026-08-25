@@ -1,0 +1,460 @@
+from pathlib import Path
+
+p = Path('blueprint/source/BBMA_EA.mq4')
+s = p.read_text(encoding='utf-8')
+baseline_order_close_count = s.count('OrderClose(')
+
+
+def replace_once(old, new, label):
+    global s
+    n = s.count(old)
+    if n != 1:
+        raise SystemExit(f'{label}: expected 1 match, found {n}')
+    s = s.replace(old, new, 1)
+
+
+replace_once('Version 4.5.4 - C044 Lifecycle State Stage',
+             'Version 4.5.5 - C044 Owner Event Evaluator Stage',
+             'header version')
+replace_once('#property version   "4.54"',
+             '#property version   "4.55"',
+             'property version')
+
+helper_anchor = '''// C044 Step2: M23 owns only the close latch/execution action. Strategy
+// evidence that creates a latch is intentionally not wired in this stage.
+'''
+
+helper_block = r'''// C044 Step3: strategy evidence is consumed only after M08/M12 owners have
+// been updated by the closed-M15 ProcessPair cycle. M23 still owns the latch
+// and close action; these helpers never redetect or mutate upstream owners.
+bool GetC044OwnerReEntrySnapshot(int pairIndex, int timeframe,
+                                  ENUM_DIRECTION direction,
+                                  ReEntryData &reEntry)
+{
+   ZeroMemory(reEntry);
+   if(pairIndex < 0 || pairIndex >= g_pair_count) return false;
+   if(direction != DIR_BUY && direction != DIR_SELL) return false;
+
+   if(timeframe == PERIOD_M15 && direction == DIR_BUY)
+      reEntry = g_pair_states[pairIndex].re_m15_buy_state;
+   else if(timeframe == PERIOD_M15 && direction == DIR_SELL)
+      reEntry = g_pair_states[pairIndex].re_m15_sell_state;
+   else if(timeframe == PERIOD_H1 && direction == DIR_BUY)
+      reEntry = g_pair_states[pairIndex].re_h1_buy_state;
+   else if(timeframe == PERIOD_H1 && direction == DIR_SELL)
+      reEntry = g_pair_states[pairIndex].re_h1_sell_state;
+   else if(timeframe == PERIOD_H4 && direction == DIR_BUY)
+      reEntry = g_pair_states[pairIndex].re_h4_buy_state;
+   else if(timeframe == PERIOD_H4 && direction == DIR_SELL)
+      reEntry = g_pair_states[pairIndex].re_h4_sell_state;
+   else if(timeframe == PERIOD_D1 && direction == DIR_BUY)
+      reEntry = g_pair_states[pairIndex].re_d1_buy_state;
+   else if(timeframe == PERIOD_D1 && direction == DIR_SELL)
+      reEntry = g_pair_states[pairIndex].re_d1_sell_state;
+   else
+      return false;
+
+   return true;
+}
+
+bool GetC044OwnerExtremeSnapshot(int pairIndex, int timeframe,
+                                 ENUM_DIRECTION direction,
+                                 ExtremeLifecycleData &extreme)
+{
+   ZeroMemory(extreme);
+   if(pairIndex < 0 || pairIndex >= g_pair_count) return false;
+   if(direction != DIR_BUY && direction != DIR_SELL) return false;
+
+   if(timeframe == PERIOD_M15 && direction == DIR_BUY)
+      extreme = g_pair_states[pairIndex].extreme_m15_buy_lifecycle;
+   else if(timeframe == PERIOD_M15 && direction == DIR_SELL)
+      extreme = g_pair_states[pairIndex].extreme_m15_sell_lifecycle;
+   else if(timeframe == PERIOD_H1 && direction == DIR_BUY)
+      extreme = g_pair_states[pairIndex].extreme_h1_buy_lifecycle;
+   else if(timeframe == PERIOD_H1 && direction == DIR_SELL)
+      extreme = g_pair_states[pairIndex].extreme_h1_sell_lifecycle;
+   else if(timeframe == PERIOD_H4 && direction == DIR_BUY)
+      extreme = g_pair_states[pairIndex].extreme_h4_buy_lifecycle;
+   else if(timeframe == PERIOD_H4 && direction == DIR_SELL)
+      extreme = g_pair_states[pairIndex].extreme_h4_sell_lifecycle;
+   else if(timeframe == PERIOD_D1 && direction == DIR_BUY)
+      extreme = g_pair_states[pairIndex].extreme_d1_buy_lifecycle;
+   else if(timeframe == PERIOD_D1 && direction == DIR_SELL)
+      extreme = g_pair_states[pairIndex].extreme_d1_sell_lifecycle;
+   else
+      return false;
+
+   return true;
+}
+
+bool IsC044SameDirectionReEntryEvent(TradeInfo &info, int pairIndex,
+                                     datetime candleTime)
+{
+   ReEntryData reEntry;
+   if(!GetC044OwnerReEntrySnapshot(pairIndex, info.c044_owner_timeframe,
+                                   info.direction, reEntry))
+      return false;
+
+   return (reEntry.State == RE_STATE_CONFIRMED && reEntry.IsValid &&
+           reEntry.Direction == info.direction &&
+           reEntry.Timeframe == info.c044_owner_timeframe &&
+           reEntry.ConfirmationCandle == candleTime &&
+           candleTime > info.c044_epoch_anchor_candle);
+}
+
+bool IsC044OppositeExtremeSupersessionEvent(TradeInfo &info, int pairIndex,
+                                            datetime candleTime)
+{
+   ENUM_DIRECTION opposite = (info.direction == DIR_BUY) ? DIR_SELL :
+                             (info.direction == DIR_SELL ? DIR_BUY : DIR_NONE);
+   if(opposite == DIR_NONE) return false;
+
+   ExtremeLifecycleData extreme;
+   if(!GetC044OwnerExtremeSnapshot(pairIndex, info.c044_owner_timeframe,
+                                   opposite, extreme))
+      return false;
+
+   bool mature = (extreme.Maturity == EXT_MAT_REVERSAL_CONFIRMED ||
+                  extreme.Maturity == EXT_MAT_RETEST_PHASE ||
+                  extreme.Maturity == EXT_MAT_RETEST_READY);
+
+   return (extreme.IsValid && mature &&
+           extreme.Direction == opposite &&
+           extreme.Timeframe == info.c044_owner_timeframe &&
+           extreme.ConfirmationCandleTime == candleTime &&
+           candleTime > info.c044_epoch_anchor_candle);
+}
+
+bool IsC044DirectionSideOuterBBTest(TimeframeData &data,
+                                    ENUM_DIRECTION direction)
+{
+   if(!data.is_valid || !data.is_closed || data.candle_time <= 0 ||
+      data.high <= 0.0 || data.low <= 0.0 ||
+      data.bollinger[0] <= 0.0 || data.bollinger[2] <= 0.0)
+      return false;
+
+   if(direction == DIR_BUY)
+      return (data.high >= data.bollinger[0]);
+   if(direction == DIR_SELL)
+      return (data.low <= data.bollinger[2]);
+   return false;
+}
+
+bool FreezeC044Lifecycle(TradeInfo &info, string reason)
+{
+   if(!info.c044_lifecycle_managed) return false;
+
+   info.c044_state = C044_LIFE_FROZEN;
+   info.recovery_state = REC_IDENTITY_MISSING_FROZEN;
+   info.c044_exit_reason = C044_EXIT_NONE;
+   info.c044_exit_latched_candle = 0;
+   if(!SaveC044Checkpoint(info))
+      Log(DBG_ERROR, "C044 freeze checkpoint failed ticket=" + IntegerToString(info.ticket));
+
+   Log(DBG_ERROR, "C044 lifecycle frozen ticket=" + IntegerToString(info.ticket) +
+       " pair=" + info.pair + " reason=" + reason);
+   return false;
+}
+
+bool ProcessC044OwnerClosedCandle(TradeInfo &info, int pairIndex,
+                                  datetime candleTime)
+{
+   if(!EnableC044Lifecycle || !info.c044_lifecycle_managed) return true;
+   if(pairIndex < 0 || pairIndex >= g_pair_count || candleTime <= 0)
+      return FreezeC044Lifecycle(info, "INVALID_OWNER_EVENT_IDENTITY");
+   if(info.c044_state == C044_LIFE_EXIT_LATCHED ||
+      info.c044_state == C044_LIFE_FROZEN)
+      return true;
+
+   string pair = g_pair_states[pairIndex].actual_symbol;
+   if(pair == "" || info.pair != pair ||
+      !IsValidC044OwnerTimeframe(info.c044_owner_timeframe))
+      return FreezeC044Lifecycle(info, "OWNER_EVENT_PAIR_OR_TF_MISMATCH");
+
+   int shift = iBarShift(pair, info.c044_owner_timeframe, candleTime, true);
+   if(shift < 1)
+      return FreezeC044Lifecycle(info, "OWNER_EVENT_CANDLE_NOT_EXACT_CLOSED_BAR");
+
+   TimeframeData data;
+   InitTimeframeData(data);
+   GetDataForTimeframe(pair, info.c044_owner_timeframe, candleTime, data);
+   if(!data.is_valid || !data.is_closed || data.candle_time != candleTime ||
+      data.barIndex != shift)
+      return FreezeC044Lifecycle(info, "OWNER_EVENT_CLOSED_DATA_UNAVAILABLE");
+
+   // A reversal-confirmed opposite Extreme is an old-cycle supersession event.
+   // It closes the existing lifecycle only; it never creates an opposite order.
+   if(IsC044OppositeExtremeSupersessionEvent(info, pairIndex, candleTime))
+   {
+      info.c044_last_processed_owner_candle = candleTime;
+      if(!LatchC044Exit(info, C044_EXIT_CYCLE_SUPERSEDED, candleTime))
+         return FreezeC044Lifecycle(info, "CYCLE_SUPERSESSION_LATCH_FAILED");
+      return true;
+   }
+
+   if(info.c044_state == C044_LIFE_WAIT_NEXT_REENTRY)
+   {
+      if(IsC044SameDirectionReEntryEvent(info, pairIndex, candleTime))
+      {
+         // Successful Momentum continuation is re-armed only by the next
+         // source-valid same-owner Re-Entry. The confirmation candle itself is
+         // the new epoch anchor and is not re-used as an outer-BB test candle.
+         info.c044_owner_reentry_candle = candleTime;
+         info.c044_epoch_anchor_candle = candleTime;
+         info.c044_state = C044_LIFE_WAIT_OUTER_TEST;
+         info.c044_exit_reason = C044_EXIT_NONE;
+         info.c044_exit_latched_candle = 0;
+      }
+
+      info.c044_last_processed_owner_candle = candleTime;
+      if(!SaveC044Checkpoint(info))
+         return FreezeC044Lifecycle(info, "WAIT_NEXT_REENTRY_CHECKPOINT_FAILED");
+      return true;
+   }
+
+   if(info.c044_state != C044_LIFE_WAIT_OUTER_TEST)
+      return FreezeC044Lifecycle(info, "UNEXPECTED_OWNER_EVENT_STATE");
+
+   if(candleTime <= info.c044_epoch_anchor_candle)
+   {
+      info.c044_last_processed_owner_candle = candleTime;
+      if(!SaveC044Checkpoint(info))
+         return FreezeC044Lifecycle(info, "EPOCH_BOUNDARY_CHECKPOINT_FAILED");
+      return true;
+   }
+
+   bool outerTest = IsC044DirectionSideOuterBBTest(data, info.direction);
+   if(!outerTest)
+   {
+      info.c044_last_processed_owner_candle = candleTime;
+      if(!SaveC044Checkpoint(info))
+         return FreezeC044Lifecycle(info, "WAIT_OUTER_TEST_CHECKPOINT_FAILED");
+      return true;
+   }
+
+   // Canonical Momentum authority stays in M10. C044 consumes DetectCSM()
+   // directly and does not duplicate the close-outside/expanding/directional
+   // Bollinger formula.
+   bool momentum = DetectCSM(pair, info.c044_owner_timeframe,
+                             info.direction, shift);
+   info.c044_last_processed_owner_candle = candleTime;
+
+   if(momentum)
+   {
+      info.c044_state = C044_LIFE_WAIT_NEXT_REENTRY;
+      info.c044_exit_reason = C044_EXIT_NONE;
+      info.c044_exit_latched_candle = 0;
+      if(!SaveC044Checkpoint(info))
+         return FreezeC044Lifecycle(info, "MOMENTUM_HOLD_CHECKPOINT_FAILED");
+      return true;
+   }
+
+   if(!LatchC044Exit(info, C044_EXIT_FAILED_MOMENTUM, candleTime))
+      return FreezeC044Lifecycle(info, "FAILED_MOMENTUM_LATCH_FAILED");
+   return true;
+}
+
+bool AdvanceC044OwnerEventOneCandle(TradeInfo &info, int pairIndex)
+{
+   if(!EnableC044Lifecycle || !info.c044_lifecycle_managed) return true;
+   if(info.c044_state == C044_LIFE_EXIT_LATCHED ||
+      info.c044_state == C044_LIFE_FROZEN)
+      return true;
+   if(info.c044_last_processed_owner_candle <= 0 ||
+      !IsValidC044OwnerTimeframe(info.c044_owner_timeframe))
+      return FreezeC044Lifecycle(info, "OWNER_EVENT_CURSOR_INVALID");
+
+   datetime latestClosed = GetLatestClosedCandleTime(
+      info.pair, info.c044_owner_timeframe);
+   if(latestClosed <= 0)
+      return FreezeC044Lifecycle(info, "LATEST_OWNER_CANDLE_UNAVAILABLE");
+   if(latestClosed <= info.c044_last_processed_owner_candle)
+      return true;
+
+   int latestShift = iBarShift(info.pair, info.c044_owner_timeframe,
+                               latestClosed, true);
+   int previousShift = iBarShift(info.pair, info.c044_owner_timeframe,
+                                 info.c044_last_processed_owner_candle, true);
+   if(latestShift < 1 || previousShift < 1)
+      return FreezeC044Lifecycle(info, "OWNER_EVENT_CURSOR_NOT_IN_HISTORY");
+
+   int pendingClosedBars = previousShift - latestShift;
+   if(pendingClosedBars != 1)
+   {
+      // Current M08/M12 state contains only current owner truth. With >1 missed
+      // owner candle, an intermediate Re-Entry/Extreme event could already have
+      // been superseded, so replay would be inference rather than evidence.
+      return FreezeC044Lifecycle(info, "MULTI_CANDLE_OWNER_EVENT_GAP");
+   }
+
+   return ProcessC044OwnerClosedCandle(info, pairIndex, latestClosed);
+}
+
+void AdvanceC044OwnerEventsForPair(int pairIndex)
+{
+   if(!EnableC044Lifecycle) return;
+   if(pairIndex < 0 || pairIndex >= g_pair_count) return;
+
+   string pair = g_pair_states[pairIndex].actual_symbol;
+   for(int i = 0; i < g_monitored_count; i++)
+   {
+      // Avoid a local reference alias: pass the registry element directly for
+      // conservative MQL4 compiler compatibility.
+      if(!g_monitored_trades[i].c044_lifecycle_managed ||
+         g_monitored_trades[i].pair != pair)
+         continue;
+      if(g_monitored_trades[i].recovery_state != REC_NORMAL &&
+         g_monitored_trades[i].recovery_state != REC_PARTIAL_INFERRED)
+         continue;
+      if(g_monitored_trades[i].c044_state == C044_LIFE_EXIT_LATCHED ||
+         g_monitored_trades[i].c044_state == C044_LIFE_FROZEN)
+         continue;
+
+      AdvanceC044OwnerEventOneCandle(g_monitored_trades[i], pairIndex);
+   }
+}
+
+'''
+
+replace_once(helper_anchor, helper_block, 'C044 Step3 evaluator helpers')
+
+process_pair_anchor = '''   }
+
+   // D1O-02: all D1/H4/H1/M15 owners are now current. Materialize one
+'''
+process_pair_block = '''   }
+
+   // C044 Step3: consume lifecycle events only after both direction passes have
+   // updated canonical M08 Extreme and M12 Re-Entry owner state for this closed
+   // M15 processing cycle. The feature gate is still OFF in this staged build.
+   AdvanceC044OwnerEventsForPair(pairIndex);
+
+   // D1O-02: all D1/H4/H1/M15 owners are now current. Materialize one
+'''
+replace_once(process_pair_anchor, process_pair_block, 'ProcessPair post-owner C044 hook')
+
+load_anchor = '''   if(!IsValidC044OwnerTimeframe(timeframe) || ownerRe <= 0 || epoch <= 0)
+      return false;
+   if(state != C044_LIFE_WAIT_OUTER_TEST &&
+      state != C044_LIFE_WAIT_NEXT_REENTRY &&
+      state != C044_LIFE_EXIT_LATCHED && state != C044_LIFE_FROZEN)
+      return false;
+   if(state == C044_LIFE_EXIT_LATCHED &&
+      (exitReason == C044_EXIT_NONE || exitCandle <= 0))
+      return false;
+'''
+load_block = '''   if(!IsValidC044OwnerTimeframe(timeframe) || ownerRe <= 0 || epoch <= 0)
+      return false;
+   if(lastProcessed < epoch) return false;
+   if(state != C044_LIFE_WAIT_OUTER_TEST &&
+      state != C044_LIFE_WAIT_NEXT_REENTRY &&
+      state != C044_LIFE_EXIT_LATCHED && state != C044_LIFE_FROZEN)
+      return false;
+   if(state == C044_LIFE_EXIT_LATCHED &&
+      (exitReason == C044_EXIT_NONE || exitCandle <= 0 ||
+       exitCandle > lastProcessed))
+      return false;
+   if(state != C044_LIFE_EXIT_LATCHED &&
+      (exitReason != C044_EXIT_NONE || exitCandle != 0))
+      return false;
+'''
+replace_once(load_anchor, load_block, 'C044 checkpoint invariants')
+
+recovery_anchor = '''      string recoveryCause = "";
+      double currentLot = OrderLots();
+      if(c044Targetless && !c044Recovered)
+      {
+         info.recovery_state = REC_IDENTITY_MISSING_FROZEN;
+         recoveryCause = "C044_CHECKPOINT_MISSING_OR_INVALID";
+      }
+      else if(c044Targetless && !fullMetadata)
+'''
+recovery_block = '''      string recoveryCause = "";
+      double currentLot = OrderLots();
+      if(c044Targetless && c044Recovered && info.c044_state == C044_LIFE_FROZEN)
+      {
+         info.recovery_state = REC_IDENTITY_MISSING_FROZEN;
+         recoveryCause = "C044_CHECKPOINT_FROZEN";
+      }
+      else if(c044Targetless && !c044Recovered)
+      {
+         info.recovery_state = REC_IDENTITY_MISSING_FROZEN;
+         recoveryCause = "C044_CHECKPOINT_MISSING_OR_INVALID";
+      }
+      else if(c044Targetless && !fullMetadata)
+'''
+replace_once(recovery_anchor, recovery_block, 'C044 frozen restart preservation')
+
+# Static safety assertions.
+if s.count('bool           EnableC044Lifecycle                = false;') != 1:
+    raise SystemExit('C044 feature gate is not uniquely OFF')
+
+for name in [
+    'GetC044OwnerReEntrySnapshot',
+    'GetC044OwnerExtremeSnapshot',
+    'IsC044SameDirectionReEntryEvent',
+    'IsC044OppositeExtremeSupersessionEvent',
+    'IsC044DirectionSideOuterBBTest',
+    'FreezeC044Lifecycle',
+    'ProcessC044OwnerClosedCandle',
+    'AdvanceC044OwnerEventOneCandle',
+    'AdvanceC044OwnerEventsForPair',
+]:
+    if s.count('bool ' + name + '(') + s.count('void ' + name + '(') != 1:
+        raise SystemExit(f'{name}: definition not unique')
+
+helper_start = s.index('// C044 Step3: strategy evidence is consumed only after')
+helper_end = s.index('bool LatchC044Exit(', helper_start)
+helper_slice = s[helper_start:helper_end]
+if 'DetectCSM(' not in helper_slice:
+    raise SystemExit('C044 evaluator does not consume canonical DetectCSM')
+if 'bbExpanding' in helper_slice or 'currentBand.Width > previousBand.Width' in helper_slice:
+    raise SystemExit('C044 evaluator duplicated Momentum formula')
+if 'UpdateReEntryState(' in helper_slice or 'UpdateExtremeLifecycle(' in helper_slice:
+    raise SystemExit('C044 evaluator mutates/redetects upstream owner state')
+if 'MULTI_CANDLE_OWNER_EVENT_GAP' not in helper_slice:
+    raise SystemExit('C044 owner-gap fail-freeze guard missing')
+if 'TradeInfo &info = g_monitored_trades[i];' in helper_slice:
+    raise SystemExit('local TradeInfo reference alias is not allowed')
+if s.count('AdvanceC044OwnerEventsForPair(pairIndex);') != 1:
+    raise SystemExit('C044 post-owner hook not unique')
+if s.count('OrderClose(') != baseline_order_close_count:
+    raise SystemExit('Step3 must not add OrderClose authority')
+
+p.write_text(s, encoding='utf-8')
+
+audit = Path('blueprint/C044_STEP3_OWNER_EVENT_EVALUATOR_IMPLEMENTATION_AUDIT_20260826.md')
+audit.write_text('''# C044 Step 3 — Closed Owner Event Evaluator Implementation Audit — 2026-08-26
+
+Branch: `d1-owner-dev`
+
+## Status
+**IMPLEMENTED / STATIC INTEGRITY PASS / SINGLE-CANDLE OWNER EVENT ADVANCE ONLY / MULTI-CANDLE GAP FAIL-FROZEN / FEATURE GATE OFF / NATIVE METAEDITOR COMPILE PENDING**
+
+## Scope
+Wire the approved C044 lifecycle event evaluator to already-owned BBMA state without enabling targetless live management.
+
+## Implemented
+- build identifier advanced to `4.55 - C044 Owner Event Evaluator Stage`;
+- C044 evaluation runs only after both direction passes in the closed-M15 `ProcessPair` cycle have updated canonical M08 Extreme and M12 Re-Entry state;
+- M23 `ManagePositions()` remains close-execution only, avoiding the pre-`ProcessPair` stale-owner race;
+- direction-side outer-BB test is evaluated on the fully closed owner-TF candle (`BUY: High >= TOP_BB`, `SELL: Low <= LOW_BB`);
+- Momentum is consumed exclusively through canonical `DetectCSM()`; no CSM formula is duplicated;
+- outer-BB test + canonical Momentum -> `WAIT_NEXT_REENTRY`;
+- next same-direction confirmed owner-TF Re-Entry -> new epoch / `WAIT_OUTER_TEST`;
+- outer-BB test + no canonical Momentum -> `C044_EXIT_FAILED_MOMENTUM` latch;
+- opposite reversal-confirmed/mature owner-TF Extreme -> `C044_EXIT_CYCLE_SUPERSEDED` latch only, never an opposite entry;
+- checkpoint load now enforces cursor/epoch and exit-latch consistency;
+- a persisted `C044_LIFE_FROZEN` checkpoint remains recovery-frozen after restart.
+
+## Recovery / replay boundary
+Current M08/M12 owner structs preserve current canonical owner truth, not a complete historical event journal. Therefore Step 3 advances only when exactly one newly closed owner-TF bar follows the saved cursor. If more than one owner candle was missed, the lifecycle is fail-frozen with `MULTI_CANDLE_OWNER_EVENT_GAP` instead of inferring whether an intermediate Re-Entry or opposite Extreme occurred.
+
+This is a recovery-safety limitation, not a new BBMA strategy rule. Full multi-candle restart replay requires a later evidence/journal solution before live activation can be considered complete.
+
+## Safety boundary
+`EnableC044Lifecycle=false` remains internal and locked OFF. Static outer-BB TP behavior therefore remains active in this staged build. No new `OrderClose()` authority is added in Step 3; M20 emergency close retains precedence and the existing C044 M23 executor remains dormant.
+
+## Next gate
+Run native MT4 MetaEditor compile for the exact v4.55 source and require 0 errors / 0 warnings. Then close the remaining restart/replay completeness gap before any atomic switch of `EnableC044Lifecycle` to ON.
+''', encoding='utf-8')

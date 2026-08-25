@@ -271,3 +271,25 @@ Status: **CLOSED / PASS / DOCUMENTATION-ONLY**
 - Safe descriptive clarifications are documented; material strategy HOLDs remain non-executable.
 - Historical F7 no-Momentum lifecycle conclusions are precedence-guarded against accidental future promotion.
 - No MQL4 strategy change; no native compile required for this docs-only correction. Future strategy promotion from a HOLD still requires an explicit decision gate.
+
+---
+
+## 2026-08-25 — D1O-07 Static Re-Audit Closure
+
+Status: **CLOSED / PASS**
+
+Completed from the prior active execution order:
+1. P3-M1 Mode-1 static compliance against current D1O-07 source — **PASS**.
+2. Focused cross-module regression `M15 -> M16 -> M17 -> M22 -> M24` — **PASS**.
+
+Evidence:
+- workflow run `32817790689`;
+- EA SHA-256 `c911790b45fb7a75270fdee1204a7c97313605dca194f57380441b92a66896c2`;
+- `P3_M1_D1O07_MODE1_COMPLIANCE_REAUDIT_20260825.md`;
+- `D1O07_CROSS_MODULE_REGRESSION_AUDIT_20260825.md`.
+
+### Active next safe engineering order
+1. `REJ_INVALID_LOT` diagnostics — observability only; no sizing/risk semantic change.
+2. Dashboard active-trade count refresh — display/registry correctness only; no strategy change.
+3. Broker/demo runtime D1 owner/dedup/timing evidence when market-connected environment is available.
+4. Material Workbook HOLD rules remain blocked pending explicit strategy decision.

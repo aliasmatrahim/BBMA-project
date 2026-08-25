@@ -1,7 +1,7 @@
 # BBMA Master Blueprint Development Status
 
 ## Current branch
-`blueprint-dev`
+`d1-owner-dev`
 
 ## Source of truth
 GitHub `aliasmatrahim/BBMA-project` is authoritative for the active Master Blueprint. BBMA strategy semantics are governed by the user-supplied references indexed under `docs/references/`.
@@ -46,7 +46,7 @@ Path:
 `blueprint/source/BBMA_EA.mq4`
 
 SHA-256:
-`30363d08437b85f253e6baf3e9c82af0d59d70727639ac0e6420a7677f975bc9`
+`c911790b45fb7a75270fdee1204a7c97313605dca194f57380441b92a66896c2`
 
 Native MetaEditor result reported and verified from the user compile session:
 **0 errors, 0 warnings**.
@@ -374,3 +374,17 @@ Workbook forensic HOLD families remain excluded from executable behavior. Safe V
 - Historical F7 lifecycle-exit promotion is precedence-guarded by the 2026-08-25 reconciliation; no no-Momentum execution rule is silently enabled.
 - D1 MHV/MLV and D1 eCSD remain watch/context-only in NMJE/D1 Opportunity execution paths.
 - **EA source unchanged by this revalidation.**
+
+---
+
+## 2026-08-25 D1O-07 Mode1 + Cross-Module Static Closure
+
+- Current active implementation branch: `d1-owner-dev`.
+- Current EA build: `Version 4.5.1 - D1O-07 Canonical LTF Dedup`.
+- Current source SHA-256: `c911790b45fb7a75270fdee1204a7c97313605dca194f57380441b92a66896c2`.
+- P3-M1 Mode-1 static compliance re-audit: **PASS**.
+- Focused M15 -> M16 -> M17 -> M22 -> M24 cross-module regression: **PASS**.
+- Automated evidence: GitHub Actions run `32817790689`, job `97709483350`.
+- Audit records: `blueprint/P3_M1_D1O07_MODE1_COMPLIANCE_REAUDIT_20260825.md` and `blueprint/D1O07_CROSS_MODULE_REGRESSION_AUDIT_20260825.md`.
+- No EA code fix required from these two gates. Broker/demo runtime evidence remains separate.
+- Next safe engineering work: queued non-strategy observability/UI defects (`REJ_INVALID_LOT` diagnostics, then dashboard active-trade count refresh).

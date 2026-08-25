@@ -1,0 +1,221 @@
+name: D1O-03 Opportunity Runtime Smoke Dispatcher
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'blueprint/.run-d1o-opportunity-runtime-smoke-main'
+
+permissions:
+  contents: write
+
+jobs:
+  runtime-smoke:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          fetch-depth: 0
+
+      - name: Verify materialized D1O target
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = '.\blueprint\source\BBMA_EA.mq4'
+          if (-not (Test-Path $src)) { throw 'EA source missing' }
+          $txt = Get-Content $src -Raw
+          if ($txt -notmatch 'Version 4\.5\.1 - D1O-02 Opportunity Execution') { throw 'Unexpected D1O build' }
+          if (-not (Test-Path '.\blueprint\D1O_STEP2_OPPORTUNITY_EXECUTION_AUDIT_20260825.md')) { throw 'D1O-02 compile audit missing' }
+          $head = (git rev-parse HEAD).Trim()
+          $blob = (git rev-parse HEAD:blueprint/source/BBMA_EA.mq4).Trim()
+          if ($blob -ne '9199b897551a3383f0f10a6f6d513ac2fbafc22a') { throw "Unexpected D1O source blob: $blob" }
+          "TARGET_HEAD=$head" | Out-File $env:GITHUB_ENV -Append
+          "D1O_BLOB=$blob" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Acquire official MT4 runtime
+        id: acquire
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dirs = @('C:\Program Files (x86)\MetaTrader 4','C:\Program Files\MetaTrader 4')
+          $installDir = $null
+          foreach ($dir in $dirs) {
+            if ((Test-Path (Join-Path $dir 'metaeditor.exe')) -and (Test-Path (Join-Path $dir 'terminal.exe'))) { $installDir = $dir; break }
+          }
+          if (-not $installDir) {
+            $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+            Invoke-WebRequest -Uri 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -OutFile $setup -UseBasicParsing
+            $proc = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
+            for ($i=0; $i -lt 84; $i++) {
+              Start-Sleep -Seconds 5
+              foreach ($dir in $dirs) {
+                if ((Test-Path (Join-Path $dir 'metaeditor.exe')) -and (Test-Path (Join-Path $dir 'terminal.exe'))) { $installDir = $dir; break }
+              }
+              if ($installDir) { break }
+              if ($proc.HasExited -and $i -gt 12) { break }
+            }
+            if ($proc -and -not $proc.HasExited) { try { $proc.Kill() } catch {} }
+          }
+          if (-not $installDir) { throw 'Official MT4 terminal/metaeditor not found' }
+          $portable = Join-Path $env:RUNNER_TEMP 'mt4-d1o03'
+          if (Test-Path $portable) { Remove-Item $portable -Recurse -Force }
+          New-Item -ItemType Directory -Path $portable | Out-Null
+          Copy-Item "$installDir\*" $portable -Recurse -Force
+          "MT4DIR=$portable" | Out-File $env:GITHUB_ENV -Append
+          "ACQUIRE_RESULT=PASS" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Native pre-runtime compile
+        id: compile
+        if: steps.acquire.outcome == 'success'
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $experts = Join-Path $env:MT4DIR 'MQL4\Experts'
+          New-Item -ItemType Directory -Path $experts -Force | Out-Null
+          $dst = Join-Path $experts 'BBMA_EA.mq4'
+          Copy-Item '.\blueprint\source\BBMA_EA.mq4' $dst -Force
+          $log = Join-Path $env:RUNNER_TEMP 'd1o-03-compile.log'
+          & (Join-Path $env:MT4DIR 'metaeditor.exe') "/compile:$dst" "/log:$log"
+          Start-Sleep -Seconds 2
+          if (-not (Test-Path $log)) { throw 'Compile log missing' }
+          $txt = Get-Content $log -Raw
+          $txt | Write-Host
+          $matches = [regex]::Matches($txt, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
+          if ($matches.Count -lt 1) { throw 'Unable to parse compile summary' }
+          $m = $matches[$matches.Count - 1]
+          $errors = [int]$m.Groups[1].Value
+          $warnings = [int]$m.Groups[2].Value
+          if ($errors -ne 0 -or $warnings -ne 0) { throw "Compile failed: $errors errors / $warnings warnings" }
+          if (-not (Test-Path ([System.IO.Path]::ChangeExtension($dst,'.ex4')))) { throw 'EX4 missing' }
+          "COMPILE_RESULT=0E0W" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Launch MT4 with trading disabled
+        id: runtime
+        if: steps.compile.outcome == 'success'
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $ini = Join-Path $env:RUNNER_TEMP 'd1o-03.ini'
+          @'
+[Common]
+EnableNews=false
+
+[Experts]
+ExpertsEnable=true
+ExpertsDllImport=false
+ExpertsExpImport=false
+ExpertsTrades=false
+
+[StartUp]
+Symbol=EURUSD
+Period=M15
+Expert=BBMA_EA
+'@ | Set-Content -Path $ini -Encoding Ascii
+          $proc = Start-Process -FilePath (Join-Path $env:MT4DIR 'terminal.exe') -ArgumentList '/portable', "/config:$ini" -PassThru
+          for ($i=0; $i -lt 15; $i++) { Start-Sleep -Seconds 5; if ($proc.HasExited) { break } }
+          if (-not $proc.HasExited) { try { $proc.CloseMainWindow() | Out-Null } catch {}; Start-Sleep -Seconds 2 }
+          if (-not $proc.HasExited) { try { $proc.Kill() } catch {} }
+          "RUNTIME_LAUNCH=PASS" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Inspect runtime evidence
+        if: always()
+        shell: pwsh
+        run: |
+          $classification = 'ENVIRONMENT_BLOCKED'
+          $fatal = 'NONE'
+          $combinedPath = Join-Path $env:RUNNER_TEMP 'd1o-03-runtime-combined.log'
+          if ($env:ACQUIRE_RESULT -ne 'PASS') {
+            $classification = 'ENVIRONMENT_BLOCKED_MT4_ACQUIRE'
+          } elseif ($env:COMPILE_RESULT -ne '0E0W') {
+            $classification = 'COMPILE_NOT_VERIFIED'
+          } elseif ($env:RUNTIME_LAUNCH -ne 'PASS') {
+            $classification = 'ENVIRONMENT_BLOCKED_RUNTIME_LAUNCH'
+          } else {
+            $journal = @(Get-ChildItem (Join-Path $env:MT4DIR 'logs') -Filter '*.log' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime)
+            $experts = @(Get-ChildItem (Join-Path $env:MT4DIR 'MQL4\Logs') -Filter '*.log' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime)
+            $all = @($journal) + @($experts)
+            $combined = ''
+            foreach ($f in $all) {
+              $combined += "`r`n===== $($f.FullName) =====`r`n"
+              $combined += (Get-Content $f.FullName -Raw -ErrorAction SilentlyContinue)
+            }
+            $combined | Set-Content $combinedPath -Encoding UTF8
+            if ($all.Count -eq 0) {
+              $classification = 'ENVIRONMENT_BLOCKED_NO_LOGS'
+            } else {
+              foreach ($p in @('array out of range','zero divide','critical runtime error','access violation','stack overflow','invalid pointer','cannot load expert','expert initialization failed','init failed')) {
+                if ($combined -match [regex]::Escape($p)) { $fatal = $p; break }
+              }
+              if ($fatal -ne 'NONE') {
+                $classification = 'RUNTIME_FATAL'
+              } elseif ($combined -match '\[D1-OPP\]') {
+                $classification = 'D1O_RUNTIME_MARKER_OBSERVED'
+              } elseif ($combined -match '\[P3S1\]\[PASS\] EA initialized successfully') {
+                $classification = 'EA_INIT_OK_NO_OPP_CYCLE_YET'
+              } elseif ($combined -match '(?i)not connected|no prices|waiting for update|no valid pairs loaded|symbol resolution failed') {
+                $classification = 'ENVIRONMENT_BLOCKED_NO_BROKER_DATA'
+              } else {
+                $classification = 'ATTACH_LOGS_PRESENT_NO_MARKER'
+              }
+            }
+          }
+          "RUNTIME_CLASSIFICATION=$classification" | Out-File $env:GITHUB_ENV -Append
+          "RUNTIME_FATAL=$fatal" | Out-File $env:GITHUB_ENV -Append
+          Write-Host "D1O_RUNTIME_CLASSIFICATION=$classification FATAL=$fatal"
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: d1o-03-runtime-smoke-evidence
+          path: |
+            ${{ runner.temp }}/d1o-03-compile.log
+            ${{ runner.temp }}/d1o-03-runtime-combined.log
+          if-no-files-found: warn
+
+      - name: Record audit on target
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $classification = $env:RUNTIME_CLASSIFICATION
+          if ([string]::IsNullOrWhiteSpace($classification)) { $classification = 'WORKFLOW_ENVIRONMENT_BLOCKED' }
+          $compile = $env:COMPILE_RESULT
+          if ([string]::IsNullOrWhiteSpace($compile)) { $compile = 'NOT_VERIFIED_IN_THIS_RUN' }
+          $fatal = $env:RUNTIME_FATAL
+          if ([string]::IsNullOrWhiteSpace($fatal)) { $fatal = 'NONE/NOT_OBSERVED' }
+          $audit = @"
+# D1O-03 — Opportunity Execution MT4 Runtime Smoke Audit
+
+Date: 2026-08-25  
+Branch: ``d1-owner-dev``  
+Source blob: ``$env:D1O_BLOB``
+
+## Result
+- Native MT4 pre-runtime compile: **$compile**
+- Runtime classification: **$classification**
+- Fatal runtime signature: **$fatal**
+- Trading was disabled during this smoke.
+
+## Interpretation
+``D1O_RUNTIME_MARKER_OBSERVED`` proves the D1 opportunity observer reached runtime code in this unauthenticated environment. ``EA_INIT_OK_NO_OPP_CYCLE_YET`` confirms init only. ``ENVIRONMENT_BLOCKED_*`` is infrastructure limitation and is not broker-connected semantic validation. ``RUNTIME_FATAL`` is a hard failure.
+
+## Next gate
+Broker-connected demo/VPS forward logs are required to validate real D1 opportunity frequency, H1/M15 dedup behavior, DecisionID identity and realized outcomes by opportunity family.
+"@
+          Set-Content '.\blueprint\D1O_STEP3_RUNTIME_SMOKE_AUDIT_20260825.md' $audit -Encoding UTF8
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add blueprint/D1O_STEP3_RUNTIME_SMOKE_AUDIT_20260825.md
+          git commit -m 'D1O-03: record opportunity runtime smoke [skip ci]'
+          $parent = (git rev-parse HEAD^).Trim()
+          git fetch origin d1-owner-dev
+          $remote = (git rev-parse origin/d1-owner-dev).Trim()
+          if ($remote -ne $parent) { throw "d1-owner-dev moved during D1O-03: remote=$remote parent=$parent" }
+          git push origin HEAD:d1-owner-dev

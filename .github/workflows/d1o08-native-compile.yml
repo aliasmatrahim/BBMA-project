@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Verify current-baseline materializer contract
         shell: bash
         run: |
@@ -25,6 +27,7 @@ jobs:
           test -f blueprint/tools/d1o_current_baseline_materialize.py
           python3 -m py_compile blueprint/tools/d1o_current_baseline_materialize.py
           grep -Fq 'D1O' blueprint/tools/d1o_current_baseline_materialize.py
+          git fetch --no-tags origin d1-owner-dev:refs/remotes/origin/d1-owner-dev
           git diff --check origin/d1-owner-dev...HEAD
 
   native-mt4-compile:

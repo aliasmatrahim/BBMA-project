@@ -1,0 +1,82 @@
+name: N3 NMJE v4.58 staging selftest
+
+on:
+  pull_request:
+    branches:
+      - d1-owner-dev
+    paths:
+      - 'blueprint/contracts/N3_NMJE_EXECUTION_INTELLIGENCE_STAGING_CONTRACT.md'
+      - 'blueprint/N3_NMJE_STAGING_RUNBOOK.md'
+      - 'blueprint/tools/n3_nmje_policy_readiness.py'
+      - 'blueprint/tests/test_n3_nmje_policy_readiness.py'
+      - 'blueprint/source/BBMA_EA.mq4'
+      - 'blueprint/.n3-v458-selftest-trigger'
+      - '.github/workflows/n3-nmje-v458-staging-selftest.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  n3-staging-selftest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          fetch-depth: 0
+
+      - name: Verify EA remains free of N3 execution authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('blueprint/source/BBMA_EA.mq4')
+          s = p.read_text(encoding='utf-8')
+          required = [
+              'Version 4.5.8 - D1 TP-Wajib Lifecycle Stage',
+              '#property version   "4.58"',
+              'UpdateNestedJourneyObservation(pairIndex);',
+              'NMJE_PrintValidatedDecisionShadow(pairIndex, decision);',
+          ]
+          for marker in required:
+              if marker not in s:
+                  raise SystemExit(f'missing baseline marker: {marker}')
+          forbidden = [
+              'EnableNMJEExecutionGate',
+              'EnableNestedExecutionGate',
+              'N3_EXECUTION_POLICY',
+              'N3_POLICY_ACTIVE',
+          ]
+          for marker in forbidden:
+              if marker in s:
+                  raise SystemExit(f'unapproved N3 source authority found: {marker}')
+          print('N3_SOURCE_ACTIVATION_FIREWALL=PASS')
+          PY
+
+      - name: Run N3 policy-readiness selftest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 blueprint/tests/test_n3_nmje_policy_readiness.py
+          python3 -m py_compile blueprint/tools/n3_nmje_policy_readiness.py blueprint/tests/test_n3_nmje_policy_readiness.py
+          echo 'N3_STAGING_SELFTEST=PASS'
+
+      - name: Verify contract firewall text
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          contract = Path('blueprint/contracts/N3_NMJE_EXECUTION_INTELLIGENCE_STAGING_CONTRACT.md').read_text(encoding='utf-8')
+          for marker in (
+              'execution_policy = NONE',
+              'automatic_policy_authorized = false',
+              'source_modification_authorized = false',
+              'activation_authorized = false',
+              'requires explicit user approval',
+          ):
+              if marker not in contract:
+                  raise SystemExit(f'missing N3 firewall contract marker: {marker}')
+          print('N3_CONTRACT_FIREWALL=PASS')
+          PY

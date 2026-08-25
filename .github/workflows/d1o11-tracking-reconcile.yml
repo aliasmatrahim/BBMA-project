@@ -1,0 +1,109 @@
+name: D1O-11 tracking reconciliation
+
+on:
+  push:
+    branches: [ d1-owner-dev ]
+    paths:
+      - 'blueprint/.run-d1o11-tracking-reconcile'
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          fetch-depth: 0
+      - name: Append authoritative current-state overlays
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          current = Path('blueprint/CURRENT.md')
+          queue = Path('blueprint/MASTER_QUEUE.md')
+          marker_current = '## 2026-08-25 — D1/D1O Authoritative Current-State Overlay'
+          marker_queue = '## 2026-08-25 — D1/D1O Queue Reconciliation Overlay'
+
+          current_overlay = r'''
+
+## 2026-08-25 — D1/D1O Authoritative Current-State Overlay
+
+> This dated overlay supersedes older statements in this file that describe D1 strategic ownership or D1 opportunity execution as deferred/unimplemented. Historical sections are retained for provenance.
+
+### Current implementation owner
+- Active implementation branch: `d1-owner-dev`.
+- Current EA build: `Version 4.5.1 - D1O-07 Canonical LTF Dedup`.
+- D1 Step 1–9 strategic-owner implementation/audit lineage is present on this branch.
+- D1 opportunity execution is materialized; D1 CycleID/family are attribution metadata, while fresh LTF Re-Entry owns executable dedup identity.
+
+### Current validation status
+- D1O-07 current-baseline static materialization: PASS.
+- Canonical dedup analyzer synthetic self-test: PASS.
+- Execution-identity drift guard: PASS.
+- Current owner native MetaEditor compile: PASS — 0 errors / 0 warnings.
+- MT4 attach/runtime smoke with `ExpertsTrades=false`: PASS, classified `ATTACH_OK_NO_BROKER_DATA`.
+- No fatal runtime signatures found in offline smoke.
+
+### Remaining evidence gate
+Broker-connected D1 opportunity/decision telemetry is still required to prove runtime behavior under real market data. Specifically:
+- same fresh LTF identity must retain the same execution hash across D1 CycleID/family attribution changes;
+- a single execution hash must never change direction;
+- Mode-1/D1/H4/M15 runtime matrix still needs broker/demo traces.
+
+### Strategy/source guard
+Workbook forensic HOLD families remain excluded from executable behavior. Safe V2.x Workbook clarifications are documentation/context only unless already covered by accepted canonical implementation contracts.
+'''
+
+          queue_overlay = r'''
+
+## 2026-08-25 — D1/D1O Queue Reconciliation Overlay
+
+> This overlay supersedes older queue entries saying D1 strategic ownership is deferred or absent. Those entries remain only as historical provenance.
+
+### Completed / closed
+- D1 Step 1–9 strategic-owner implementation lineage: completed at static/native-validation level on `d1-owner-dev`.
+- D1O-07 canonical LTF dedup materialized on current owner baseline.
+- D1O-07 static owner-baseline audit: PASS.
+- D1O-09 canonical dedup analyzer self-test: PASS.
+- D1O-09 execution identity contract self-test: PASS.
+- D1O-08 current owner native MT4 compile: PASS, 0E/0W.
+- D1O-10 trading-disabled runtime attach smoke: PASS / `ATTACH_OK_NO_BROKER_DATA`.
+- Temporary D1O validation PRs closed without merge after evidence harvest.
+
+### Active next execution order
+1. Re-run P3-M1 Mode-1 static compliance against current D1O-07 source.
+2. Re-run focused cross-module regression for D1/D1O changes: M15 selection -> M16 revalidation -> M17 source SL/TP -> M22 idempotent execution -> M24 recovery identity.
+3. Audit queued technical observability defects that do not change strategy (including `REJ_INVALID_LOT` diagnostics and dashboard live-trade count refresh).
+4. Broker/demo runtime evidence when available: D1 owner matrix + D1 opportunity canonical dedup telemetry + validation-candle-before-order-open timing.
+5. Do not promote Workbook HOLD rules or strategy-changing lifecycle/TP behavior without an explicit strategy decision gate.
+
+### Non-blocking environment limitation
+GitHub offline MT4 smoke has no broker market feed. Lack of D1 decision telemetry in that environment is not a source failure and must not block safe static/audit work.
+'''
+
+          c = current.read_text(encoding='utf-8')
+          q = queue.read_text(encoding='utf-8')
+          if marker_current not in c:
+              current.write_text(c.rstrip() + current_overlay + '\n', encoding='utf-8')
+          if marker_queue not in q:
+              queue.write_text(q.rstrip() + queue_overlay + '\n', encoding='utf-8')
+          PY
+          grep -Fq 'D1/D1O Authoritative Current-State Overlay' blueprint/CURRENT.md
+          grep -Fq 'D1/D1O Queue Reconciliation Overlay' blueprint/MASTER_QUEUE.md
+          git diff --check
+      - name: Commit reconciliation and self-clean
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f blueprint/.run-d1o11-tracking-reconcile
+          rm -f .github/workflows/d1o11-tracking-reconcile.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "D1O-11: reconcile current status and master queue [skip ci]"
+          git push origin HEAD:d1-owner-dev

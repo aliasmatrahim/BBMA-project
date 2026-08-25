@@ -1,0 +1,47 @@
+name: D1O-07 Canonical LTF Dedup Static Gate
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'blueprint/.run-d1o-canonical-dedup-static'
+
+permissions:
+  contents: read
+
+jobs:
+  static-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: dispatcher
+          fetch-depth: 1
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          path: target
+          fetch-depth: 1
+      - name: Apply D1O-06 then D1O-07 and verify dedup invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd target
+          blob=$(git rev-parse HEAD:blueprint/source/BBMA_EA.mq4)
+          test "$blob" = '9199b897551a3383f0f10a6f6d513ac2fbafc22a'
+          python ../dispatcher/blueprint/tools/d1o_ltf_cluster_telemetry_patch.py
+          python ../dispatcher/blueprint/tools/d1o_canonical_ltf_dedup_patch.py
+          git diff --check
+          grep -q 'Version 4.5.1 - D1O-07 Canonical LTF Dedup' blueprint/source/BBMA_EA.mq4
+          grep -q 'D1OpportunityLTFClusterText' blueprint/source/BBMA_EA.mq4
+          grep -q 'string canonicalIdentity = "RE_ENTRY|' blueprint/source/BBMA_EA.mq4
+          grep -q 'candidate.SequenceStartTime = identityRE.ConfirmationCandle;' blueprint/source/BBMA_EA.mq4
+          if grep -q 'SHORT_HASH("D1OPP|" + opportunity.CycleID' blueprint/source/BBMA_EA.mq4; then
+            echo 'old opportunity-label execution identity remains' >&2
+            exit 1
+          fi
+          test "$(grep -c 'BuildD1OpportunityCandidate(pairIndex, d1OpportunityCandidate);' blueprint/source/BBMA_EA.mq4)" -eq 1
+          test "$(grep -c 'RunEntryPreflightAndExecute(decision, actual);' blueprint/source/BBMA_EA.mq4)" -eq 1

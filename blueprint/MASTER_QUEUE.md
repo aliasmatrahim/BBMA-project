@@ -229,3 +229,27 @@ Current D1/F7 contract reconciliation is documentation-only specifically so the 
 - Stronger source evidence may reopen an older implementation PASS; old PASS records remain historical evidence but cannot override the newer canonical Core.
 - No optimization, score-based entry authority, win-rate gating, RSI/MACD/Stochastic/ADX/news/correlation filters, or unsupported strategy additions may enter through these queue items.
 - Completed queue items must receive a dedicated audit/fix/closure record and then be marked here.
+
+## 2026-08-25 — D1/D1O Queue Reconciliation Overlay
+
+> This overlay supersedes older queue entries saying D1 strategic ownership is deferred or absent. Those entries remain only as historical provenance.
+
+### Completed / closed
+- D1 Step 1–9 strategic-owner implementation lineage: completed at static/native-validation level on `d1-owner-dev`.
+- D1O-07 canonical LTF dedup materialized on current owner baseline.
+- D1O-07 static owner-baseline audit: PASS.
+- D1O-09 canonical dedup analyzer self-test: PASS.
+- D1O-09 execution identity contract self-test: PASS.
+- D1O-08 current owner native MT4 compile: PASS, 0E/0W.
+- D1O-10 trading-disabled runtime attach smoke: PASS / `ATTACH_OK_NO_BROKER_DATA`.
+- Temporary D1O validation PRs closed without merge after evidence harvest.
+
+### Active next execution order
+1. Re-run P3-M1 Mode-1 static compliance against current D1O-07 source.
+2. Re-run focused cross-module regression for D1/D1O changes: M15 selection -> M16 revalidation -> M17 source SL/TP -> M22 idempotent execution -> M24 recovery identity.
+3. Audit queued technical observability defects that do not change strategy (including `REJ_INVALID_LOT` diagnostics and dashboard live-trade count refresh).
+4. Broker/demo runtime evidence when available: D1 owner matrix + D1 opportunity canonical dedup telemetry + validation-candle-before-order-open timing.
+5. Do not promote Workbook HOLD rules or strategy-changing lifecycle/TP behavior without an explicit strategy decision gate.
+
+### Non-blocking environment limitation
+GitHub offline MT4 smoke has no broker market feed. Lack of D1 decision telemetry in that environment is not a source failure and must not block safe static/audit work.

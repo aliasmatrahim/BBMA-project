@@ -327,3 +327,30 @@ Confirmed current code gaps:
 8. run focused runtime traces for D1 BUY/SELL/TRANSITION/UNRESOLVED and D1/H4 disagreement cases.
 
 Until that implementation series is deliberately started, **documentation/specification is ahead of code by design** and the existing runtime candidate must not be relabelled as compliant with the new D1 strategic-owner contract.
+
+## 2026-08-25 — D1/D1O Authoritative Current-State Overlay
+
+> This dated overlay supersedes older statements in this file that describe D1 strategic ownership or D1 opportunity execution as deferred/unimplemented. Historical sections are retained for provenance.
+
+### Current implementation owner
+- Active implementation branch: `d1-owner-dev`.
+- Current EA build: `Version 4.5.1 - D1O-07 Canonical LTF Dedup`.
+- D1 Step 1–9 strategic-owner implementation/audit lineage is present on this branch.
+- D1 opportunity execution is materialized; D1 CycleID/family are attribution metadata, while fresh LTF Re-Entry owns executable dedup identity.
+
+### Current validation status
+- D1O-07 current-baseline static materialization: PASS.
+- Canonical dedup analyzer synthetic self-test: PASS.
+- Execution-identity drift guard: PASS.
+- Current owner native MetaEditor compile: PASS — 0 errors / 0 warnings.
+- MT4 attach/runtime smoke with `ExpertsTrades=false`: PASS, classified `ATTACH_OK_NO_BROKER_DATA`.
+- No fatal runtime signatures found in offline smoke.
+
+### Remaining evidence gate
+Broker-connected D1 opportunity/decision telemetry is still required to prove runtime behavior under real market data. Specifically:
+- same fresh LTF identity must retain the same execution hash across D1 CycleID/family attribution changes;
+- a single execution hash must never change direction;
+- Mode-1/D1/H4/M15 runtime matrix still needs broker/demo traces.
+
+### Strategy/source guard
+Workbook forensic HOLD families remain excluded from executable behavior. Safe V2.x Workbook clarifications are documentation/context only unless already covered by accepted canonical implementation contracts.

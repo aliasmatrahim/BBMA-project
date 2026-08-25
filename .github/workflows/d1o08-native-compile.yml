@@ -1,0 +1,82 @@
+name: D1O-08 current-baseline native MT4 compile
+
+on:
+  pull_request:
+    branches: [ d1-owner-dev ]
+    paths:
+      - 'blueprint/source/BBMA_EA.mq4'
+      - 'blueprint/tools/d1o_current_baseline_materialize.py'
+      - 'blueprint/validation/D1O08_TRIGGER.md'
+      - '.github/workflows/d1o08-native-compile.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  static-materializer-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify current-baseline materializer contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f blueprint/source/BBMA_EA.mq4
+          test -f blueprint/tools/d1o_current_baseline_materialize.py
+          python3 -m py_compile blueprint/tools/d1o_current_baseline_materialize.py
+          grep -Fq 'D1O' blueprint/tools/d1o_current_baseline_materialize.py
+          git diff --check origin/d1-owner-dev...HEAD
+
+  native-mt4-compile:
+    needs: static-materializer-gate
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Acquire official MT4 MetaEditor
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $meta) {
+            $url = 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe'
+            Invoke-WebRequest -Uri $url -OutFile "$env:RUNNER_TEMP\mt4setup.exe" -UseBasicParsing
+            Start-Process -FilePath "$env:RUNNER_TEMP\mt4setup.exe" -ArgumentList '/auto' -Wait
+            Start-Sleep -Seconds 5
+            $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          }
+          if (-not $meta) { throw 'MT4 MetaEditor not found after official installer attempt' }
+          "METAEDITOR=$($meta.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - name: Compile current BBMA EA source 0E0W
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = (Resolve-Path '.\blueprint\source\BBMA_EA.mq4').Path
+          $sha = (Get-FileHash $src -Algorithm SHA256).Hash.ToLower()
+          $log = Join-Path $env:RUNNER_TEMP 'd1o08-metaeditor.log'
+          & "$env:METAEDITOR" "/compile:$src" "/log:$log"
+          Start-Sleep -Seconds 2
+          if (-not (Test-Path $log)) { throw 'MetaEditor compile log missing' }
+          $txt = Get-Content $log -Raw
+          $txt | Write-Host
+          $ex4 = [System.IO.Path]::ChangeExtension($src,'.ex4')
+          if (-not (Test-Path $ex4)) { throw 'MetaEditor did not produce EX4' }
+          $matches = [regex]::Matches($txt, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
+          if ($matches.Count -lt 1) { throw 'Unable to parse MetaEditor error/warning summary' }
+          $m = $matches[$matches.Count - 1]
+          $errors = [int]$m.Groups[1].Value
+          $warnings = [int]$m.Groups[2].Value
+          if ($errors -ne 0 -or $warnings -ne 0) { throw "Native compile failed: $errors errors / $warnings warnings" }
+          @"
+          D1O08_NATIVE_METAEDITOR=PASS
+          SOURCE_SHA256=$sha
+          ERRORS=$errors
+          WARNINGS=$warnings
+          "@ | Set-Content (Join-Path $env:RUNNER_TEMP 'd1o08-compile-result.txt')
+      - uses: actions/upload-artifact@v4
+        with:
+          name: d1o08-native-compile-evidence
+          path: |
+            blueprint/source/BBMA_EA.ex4
+            ${{ runner.temp }}/d1o08-metaeditor.log
+            ${{ runner.temp }}/d1o08-compile-result.txt
+          if-no-files-found: error

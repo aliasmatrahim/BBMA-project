@@ -2,7 +2,7 @@ name: Queue SELL spread-buffer normalization
 on:
   push:
     branches: [d1-owner-dev]
-    paths: ['blueprint/.queue-sell-spread-buffer-trigger']
+    paths: ['blueprint/.queue-sell-spread-buffer-trigger-v2']
 permissions:
   contents: write
 jobs:

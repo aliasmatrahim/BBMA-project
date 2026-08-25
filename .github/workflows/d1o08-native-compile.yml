@@ -1,4 +1,4 @@
-name: D1O-08 current-baseline native MT4 compile
+name: D1O-08 materialized canonical LTF dedup native MT4 compile
 
 on:
   pull_request:
@@ -19,37 +19,56 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Verify current-baseline materializer contract
+      - name: Materialize and verify D1O-07 contract
         shell: bash
         run: |
           set -euo pipefail
           test -f blueprint/source/BBMA_EA.mq4
-          test -f blueprint/tools/d1o_current_baseline_materialize.py
           python3 -m py_compile blueprint/tools/d1o_current_baseline_materialize.py
-          grep -Fq 'D1O' blueprint/tools/d1o_current_baseline_materialize.py
-          git fetch --no-tags origin d1-owner-dev:refs/remotes/origin/d1-owner-dev
-          git diff --check origin/d1-owner-dev...HEAD
+          python3 blueprint/tools/d1o_current_baseline_materialize.py
+          grep -Fq 'Version 4.5.1 - D1O-07 Canonical LTF Dedup' blueprint/source/BBMA_EA.mq4
+          grep -Fq 'D1OpportunityLTFClusterText' blueprint/source/BBMA_EA.mq4
+          grep -Fq 'canonicalIdentity = "RE_ENTRY|' blueprint/source/BBMA_EA.mq4
+          if grep -Fq 'SHORT_HASH("D1OPP|" + opportunity.CycleID' blueprint/source/BBMA_EA.mq4; then
+            echo 'legacy D1-owned execution hash remains' >&2
+            exit 1
+          fi
+          git diff --check
 
   native-mt4-compile:
     needs: static-materializer-gate
     runs-on: windows-latest
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
+      - name: Materialize D1O-07 source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python blueprint/tools/d1o_current_baseline_materialize.py
+          $text = Get-Content '.\blueprint\source\BBMA_EA.mq4' -Raw
+          if ($text -notmatch 'Version 4\.5\.1 - D1O-07 Canonical LTF Dedup') { throw 'Materialized build identifier missing' }
       - name: Acquire official MT4 MetaEditor
         shell: pwsh
+        timeout-minutes: 5
         run: |
           $ErrorActionPreference = 'Stop'
           $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
           if (-not $meta) {
             $url = 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe'
             Invoke-WebRequest -Uri $url -OutFile "$env:RUNNER_TEMP\mt4setup.exe" -UseBasicParsing
-            Start-Process -FilePath "$env:RUNNER_TEMP\mt4setup.exe" -ArgumentList '/auto' -Wait
+            $proc = Start-Process -FilePath "$env:RUNNER_TEMP\mt4setup.exe" -ArgumentList '/auto' -PassThru
+            if (-not $proc.WaitForExit(180000)) {
+              try { $proc.Kill() } catch {}
+              throw 'MT4 installer exceeded 180 second acquisition limit'
+            }
             Start-Sleep -Seconds 5
             $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
           }
           if (-not $meta) { throw 'MT4 MetaEditor not found after official installer attempt' }
           "METAEDITOR=$($meta.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
-      - name: Compile current BBMA EA source 0E0W
+          Write-Host "Using $($meta.FullName)"
+      - name: Compile materialized BBMA EA 0E0W
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -70,14 +89,15 @@ jobs:
           $warnings = [int]$m.Groups[2].Value
           if ($errors -ne 0 -or $warnings -ne 0) { throw "Native compile failed: $errors errors / $warnings warnings" }
           @"
-          D1O08_NATIVE_METAEDITOR=PASS
+          D1O08_MATERIALIZED_NATIVE_METAEDITOR=PASS
+          BUILD=Version 4.5.1 - D1O-07 Canonical LTF Dedup
           SOURCE_SHA256=$sha
           ERRORS=$errors
           WARNINGS=$warnings
           "@ | Set-Content (Join-Path $env:RUNNER_TEMP 'd1o08-compile-result.txt')
       - uses: actions/upload-artifact@v4
         with:
-          name: d1o08-native-compile-evidence
+          name: d1o08-materialized-native-compile-evidence
           path: |
             blueprint/source/BBMA_EA.ex4
             ${{ runner.temp }}/d1o08-metaeditor.log

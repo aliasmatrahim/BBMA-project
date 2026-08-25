@@ -1,0 +1,204 @@
+name: D1 TPW v4.58 hosted MT4 runtime probe
+
+on:
+  push:
+    branches: [d1-owner-dev]
+    paths:
+      - 'blueprint/.run-d1-tpw-v458-runtime-probe'
+
+permissions:
+  contents: write
+
+jobs:
+  runtime-probe:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          fetch-depth: 0
+
+      - name: Verify exact v4.58 source identity and gates
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = '.\blueprint\source\BBMA_EA.mq4'
+          $txt = Get-Content $src -Raw
+          foreach ($m in @(
+            'Version 4.5.8 - D1 TP-Wajib Lifecycle Stage',
+            '#property version   "4.58"',
+            'bool           EnableD1TPWLifecycle               = false;',
+            'bool           EnableC044Lifecycle                = false;'
+          )) {
+            if ($txt -notmatch [regex]::Escape($m)) { throw "Missing source marker: $m" }
+          }
+          $blob = (git rev-parse HEAD:blueprint/source/BBMA_EA.mq4).Trim()
+          if ($blob -ne 'a166ffb23aba5e6b4011a28d9de8896cd00e33a1') { throw "Unexpected source blob: $blob" }
+          $sha256 = (Get-FileHash $src -Algorithm SHA256).Hash.ToLower()
+          "EA_BLOB=$blob" | Out-File $env:GITHUB_ENV -Append
+          "EA_SHA256=$sha256" | Out-File $env:GITHUB_ENV -Append
+          Write-Host "EA_BLOB=$blob"
+          Write-Host "EA_SHA256=$sha256"
+
+      - name: Acquire official MT4 and prepare portable copy
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          $terminal = Get-ChildItem 'C:\Program Files*' -Filter terminal.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $meta -or -not $terminal) {
+            $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+            & curl.exe -L --fail --retry 3 --retry-delay 3 --connect-timeout 20 --max-time 180 `
+              'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -o $setup
+            if (-not (Test-Path $setup) -or (Get-Item $setup).Length -lt 1000000) { throw 'Official MT4 installer download failed' }
+            $proc = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
+            for ($i=0; $i -lt 84; $i++) {
+              Start-Sleep -Seconds 5
+              $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+              $terminal = Get-ChildItem 'C:\Program Files*' -Filter terminal.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($meta -and $terminal) { break }
+              if ($proc.HasExited -and $i -gt 12) { break }
+            }
+            if ($proc -and -not $proc.HasExited) { try { $proc.Kill() } catch {} }
+          }
+          if (-not $meta -or -not $terminal) { throw 'Official MT4 terminal/metaeditor not found' }
+          $installDir = Split-Path $terminal.FullName -Parent
+          $portable = Join-Path $env:RUNNER_TEMP 'mt4portable'
+          if (Test-Path $portable) { Remove-Item $portable -Recurse -Force }
+          New-Item -ItemType Directory -Path $portable | Out-Null
+          Copy-Item "$installDir\*" $portable -Recurse -Force
+          "MT4DIR=$portable" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Native MetaEditor compile in portable MQL4 tree
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $experts = Join-Path $env:MT4DIR 'MQL4\Experts'
+          New-Item -ItemType Directory -Path $experts -Force | Out-Null
+          $dst = Join-Path $experts 'BBMA_EA.mq4'
+          Copy-Item '.\blueprint\source\BBMA_EA.mq4' $dst -Force
+          $log = Join-Path $env:RUNNER_TEMP 'd1-tpw-v458-runtime-compile.log'
+          & (Join-Path $env:MT4DIR 'metaeditor.exe') "/compile:$dst" "/log:$log"
+          Start-Sleep -Seconds 2
+          if (-not (Test-Path $log)) { throw 'MetaEditor compile log missing' }
+          $txt = Get-Content $log -Raw
+          $txt | Write-Host
+          $matches = [regex]::Matches($txt, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
+          if ($matches.Count -lt 1) { throw 'Unable to parse compile summary' }
+          $m = $matches[$matches.Count - 1]
+          $errors = [int]$m.Groups[1].Value
+          $warnings = [int]$m.Groups[2].Value
+          if ($errors -ne 0 -or $warnings -ne 0) { throw "Native compile failed: $errors errors / $warnings warnings" }
+          $ex4 = [System.IO.Path]::ChangeExtension($dst,'.ex4')
+          if (-not (Test-Path $ex4)) { throw 'EX4 missing' }
+          "COMPILE_LOG=$log" | Out-File $env:GITHUB_ENV -Append
+          Write-Host 'METAEDITOR_0E0W=PASS'
+
+      - name: Launch MT4 with EA attached and trading disabled
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $ini = Join-Path $env:RUNNER_TEMP 'd1-tpw-v458-runtime.ini'
+          @'
+[Common]
+EnableNews=false
+
+[Experts]
+ExpertsEnable=true
+ExpertsDllImport=false
+ExpertsExpImport=false
+ExpertsTrades=false
+
+[StartUp]
+Symbol=EURUSD
+Period=M15
+Expert=BBMA_EA
+'@ | Set-Content -Path $ini -Encoding Ascii
+          $terminal = Join-Path $env:MT4DIR 'terminal.exe'
+          $proc = Start-Process -FilePath $terminal -ArgumentList '/portable', "/config:$ini" -PassThru
+          for ($i=0; $i -lt 12; $i++) {
+            Start-Sleep -Seconds 5
+            if ($proc.HasExited) { break }
+          }
+          if (-not $proc.HasExited) { try { $proc.CloseMainWindow() | Out-Null } catch {}; Start-Sleep -Seconds 2 }
+          if (-not $proc.HasExited) { try { $proc.Kill() } catch {} }
+
+      - name: Inspect Journal and Experts logs
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $journal = @(Get-ChildItem (Join-Path $env:MT4DIR 'logs') -Filter '*.log' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime)
+          $experts = @(Get-ChildItem (Join-Path $env:MT4DIR 'MQL4\Logs') -Filter '*.log' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime)
+          $all = @($journal) + @($experts)
+          if ($all.Count -eq 0) { throw 'No MT4 Journal/Experts logs produced' }
+          $combinedPath = Join-Path $env:RUNNER_TEMP 'd1-tpw-v458-runtime-combined.log'
+          $combined = ''
+          foreach ($f in $all) {
+            $combined += "`r`n===== $($f.FullName) =====`r`n"
+            $combined += (Get-Content $f.FullName -Raw -ErrorAction SilentlyContinue)
+          }
+          $combined | Set-Content $combinedPath -Encoding UTF8
+          $tail = $combined -split "`r?`n" | Select-Object -Last 250
+          $tail | ForEach-Object { Write-Host $_ }
+          $fatalPatterns = @('array out of range','zero divide','critical runtime error','access violation','stack overflow','invalid pointer','unresolved import','cannot load expert','expert initialization failed','init failed')
+          foreach ($p in $fatalPatterns) {
+            if ($combined -match [regex]::Escape($p)) { throw "Fatal MT4 runtime signature detected: $p" }
+          }
+          $class = ''
+          if ($combined -match '\[P3S1\]\[PASS\] EA initialized successfully') {
+            $class = 'ATTACH_OK_TRADING_DISABLED'
+          } else {
+            $envBlock = ($combined -match '\[P3S1\]\[FAIL\] No valid pairs loaded') -or
+                        ($combined -match '\[P3S1\]\[FAIL\] Symbol resolution failed') -or
+                        ($combined -match '(?i)not connected') -or
+                        ($combined -match '(?i)no prices') -or
+                        ($combined -match '(?i)waiting for update')
+            if ($envBlock) { $class = 'ENVIRONMENT_BLOCKED_NO_BROKER_SYMBOL_DATA' }
+          }
+          if ($class -eq '') { throw 'MT4 runtime could not be positively classified' }
+          "SMOKE_CLASS=$class" | Out-File $env:GITHUB_ENV -Append
+          "COMBINED_LOG=$combinedPath" | Out-File $env:GITHUB_ENV -Append
+          Write-Host "MT4_RUNTIME_CLASS=$class"
+
+      - name: Materialize runtime probe record and cleanup
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $now = Get-Date -Format 'yyyy-MM-ddTHH:mm:ssK'
+          @"
+# D1 TP-Wajib v4.58 Hosted MT4 Runtime Probe — 2026-08-26
+
+Status: **$env:SMOKE_CLASS**
+
+- Build: `Version 4.5.8 - D1 TP-Wajib Lifecycle Stage`
+- Source blob: `$env:EA_BLOB`
+- Source SHA-256: `$env:EA_SHA256`
+- Native portable MetaEditor: **0 errors / 0 warnings**
+- `EnableD1TPWLifecycle=false`
+- `EnableC044Lifecycle=false`
+- Expert trading in probe: **disabled**
+- Probe timestamp: `$now`
+
+This probe is startup/environment evidence only. It does not validate D1 TP-Wajib lifecycle semantics, order execution, restart checkpoint behavior, replay, TP-Wajib close timing, C044 interaction, or M20 precedence because lifecycle gates remain OFF and no authenticated broker/demo trading session is supplied by the hosted runner.
+
+If status is `ENVIRONMENT_BLOCKED_NO_BROKER_SYMBOL_DATA`, authenticated broker/demo runtime evidence remains the blocking gate and must not be inferred from this hosted smoke.
+"@ | Set-Content '.\blueprint\D1_TPW_V458_HOSTED_MT4_RUNTIME_PROBE_20260826.md'
+          Remove-Item '.\blueprint\.run-d1-tpw-v458-runtime-probe' -ErrorAction SilentlyContinue
+          Remove-Item '.\.github\workflows\d1-tpw-v458-runtime-probe.yml' -ErrorAction SilentlyContinue
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Record v4.58 hosted MT4 runtime probe [skip ci]'
+          git push origin HEAD:d1-owner-dev
+
+      - name: Publish runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: d1-tpw-v458-hosted-runtime-evidence
+          path: |
+            ${{ runner.temp }}/d1-tpw-v458-runtime-compile.log
+            ${{ runner.temp }}/d1-tpw-v458-runtime-combined.log
+          if-no-files-found: warn

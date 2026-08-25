@@ -1,4 +1,4 @@
-name: REJ invalid lot native MT4 compile
+name: P2 observability native MT4 compile
 on:
   push:
     branches: [d1-owner-dev]
@@ -14,7 +14,7 @@ jobs:
         with:
           ref: d1-owner-dev
           fetch-depth: 0
-      - name: Verify diagnostics source
+      - name: Verify observability source
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -22,6 +22,8 @@ jobs:
           $text = Get-Content $src -Raw
           if ($text -notmatch 'P2-LOTDIAG-01') { throw 'LOTDIAG marker missing' }
           if ($text -notmatch '\[LOT_DIAG\]\[REJ_INVALID_LOT\]') { throw 'LOTDIAG telemetry missing' }
+          if ($text -notmatch 'P2-DASHCOUNT-01') { throw 'DASHCOUNT marker missing' }
+          if ($text -notmatch 'CountDashboardLiveEAOwnedTrades') { throw 'DASHCOUNT helper missing' }
           $sha = (Get-FileHash $src -Algorithm SHA256).Hash.ToLower()
           Write-Host "EA_SHA256=$sha"
           "EA_SHA256=$sha" | Out-File -FilePath $env:GITHUB_ENV -Append
@@ -50,11 +52,11 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $src = (Resolve-Path '.\blueprint\source\BBMA_EA.mq4').Path
-          $work = Join-Path $env:RUNNER_TEMP 'lotdiag-compile'
+          $work = Join-Path $env:RUNNER_TEMP 'p2-observability-compile'
           New-Item -ItemType Directory -Path $work -Force | Out-Null
           $dst = Join-Path $work 'BBMA_EA.mq4'
           Copy-Item $src $dst -Force
-          $log = Join-Path $env:RUNNER_TEMP 'rej-invalid-lot-native-compile.log'
+          $log = Join-Path $env:RUNNER_TEMP 'p2-observability-native-compile.log'
           & $env:METAEDITOR "/compile:$dst" "/log:$log"
           Start-Sleep -Seconds 2
           if (-not (Test-Path $log)) { throw 'MetaEditor compile log missing' }
@@ -70,11 +72,11 @@ jobs:
           if ($errors -ne 0 -or $warnings -ne 0) { throw "MetaEditor produced $errors errors / $warnings warnings" }
           $ex4 = [System.IO.Path]::ChangeExtension($dst,'.ex4')
           if (-not (Test-Path $ex4)) { throw 'EX4 not produced' }
-          Write-Host 'LOTDIAG_NATIVE_METAEDITOR=PASS'
+          Write-Host 'P2_OBSERVABILITY_NATIVE_METAEDITOR=PASS'
       - name: Publish compile evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rej-invalid-lot-native-compile-evidence
-          path: ${{ runner.temp }}/rej-invalid-lot-native-compile.log
+          name: p2-observability-native-compile-evidence
+          path: ${{ runner.temp }}/p2-observability-native-compile.log
           if-no-files-found: warn

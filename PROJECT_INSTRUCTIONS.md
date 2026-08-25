@@ -3,6 +3,7 @@
 **Status:** ACTIVE PROJECT GOVERNANCE  
 **Platform:** MetaTrader 4 / MQL4  
 **Architecture:** M01–M27  
+**Logical architecture overlay:** M12N — Nested MTF Journey Engine, positioned between M12 and M13 without consuming a numeric module slot or renumbering M13–M27
 **Primary Source of Truth:** GitHub
 
 ---
@@ -37,6 +38,9 @@ The immediate development priority is to complete, audit and lock the **Master B
 - M15 is the **sole processing clock** for the current architecture unless the Master Blueprint explicitly defines an approved exception.
 - Signal processing must use **closed candles** where specified by the architecture.
 - D1, H4, H1 and M15 retain their defined BBMA roles.
+- Canonical logical signal flow includes `M06–M12 owner updates -> M12N NMJE read-only context/lineage -> M13 collector -> M14 validator -> M15 final authority -> M16 revalidation`.
+- M12N is a logical sub-module only: M13 remains Module 13, M27 remains Module 27/orchestrator, and the project remains an M01–M27 numbered architecture.
+- M12N/NMJE may observe or carry diagnostic/shadow lineage only under its active contract; it may not create, reject, rank or execute a trade unless a future strategy-changing gate is separately evidenced and explicitly approved.
 - A module must not independently introduce an alternative processing clock.
 - Timing assumptions must be explicit and consistent across producer and consumer modules.
 

@@ -60,6 +60,7 @@ The pre-compile-repair Step 3 materialized SHA `e81b91a96d95b4446531b445a54c7d60
 - `blueprint/contracts/M10_DIRECTION_MOMENTUM_SOURCE_CONTRACT.md`
 - `blueprint/contracts/M11_D1_MAJOR_TREND_OWNER_CONTRACT.md`
 - `blueprint/contracts/M12_REENTRY_SOURCE_CONTRACT.md`
+- `blueprint/contracts/M12N_NESTED_MTF_JOURNEY_ENGINE_CONTRACT.md`
 - `blueprint/contracts/M13_COMBINATION_COLLECTOR_CONTRACT.md`
 - `blueprint/contracts/M14_COMBINATION_VALIDATION_CONTRACT.md`
 - `blueprint/contracts/M15_FINAL_SIGNAL_AUTHORITY_CONTRACT.md`
@@ -106,7 +107,7 @@ Core locked outcomes:
 - M27 is orchestration-only with one owner/one pass for pre-execution validation and exclusive emergency-liquidation state.
 
 Locked end-to-end entry order:
-`M06-M12 -> M13 -> M14 -> M15 -> M16 -> M17 -> M21 -> M19 -> M20 -> M22`
+`M06-M12 -> M12N NMJE (read-only) -> M13 -> M14 -> M15 -> M16 -> M17 -> M21 -> M19 -> M20 -> M22`
 
 Locked tick/lifecycle order:
 `M20 ManagePortfolio() -> M23 ManagePositions() -> emergency-latch gate -> strategy scan`
@@ -416,3 +417,13 @@ Status: **CLOSED / PASS / NATIVE METAEDITOR 0E0W**
 - **Protected/MM regression:** run `32849979993` PASS; `ResolveSelectedSLTPSourceComponent`, `RunEntryPreflightAndExecute`, and `CalculateLotSize` unchanged from pre-M17 baseline.
 - **M17 state:** source/static/native compile closed; broker/demo runtime trace pending.
 - **TP boundary:** TP implementation unchanged; 2026-08-25 authoritative reconciliation retains material Re-Entry TP/no-Momentum lifecycle behavior as strategy HOLD.
+
+
+# 2026-08-25 NMJE / M12N Architecture Documentation Sync
+- **Status:** CLOSED / PASS / DOCUMENTATION-ONLY.
+- **Logical placement:** `M12 -> M12N NMJE -> M13`; wider flow remains owner updates -> NMJE read-only lineage -> M13 collector -> M14 validator -> M15 final authority -> M16 revalidation.
+- **Numbering invariant:** M12N does not consume a numeric module slot; M01–M27 numbering is preserved, M13 remains M13, and M27 remains the orchestrator.
+- **Authority invariant:** M12N remains read-only/non-execution-authority; exact REM/RRE/REE, candidate eligibility, SL/TP, risk and execution semantics are unchanged.
+- **D1 watch-only invariant:** D1 MHV/MLV and D1 eCSD remain context/watch-only and cannot create an LTF entry shortcut.
+- **EA source:** unchanged; Git blob remains `4ccd444a96a34b494653143a7560516a4147b5bc`.
+- **Audit:** `blueprint/NMJE_M12N_ARCHITECTURE_DOC_SYNC_20260825.md`.

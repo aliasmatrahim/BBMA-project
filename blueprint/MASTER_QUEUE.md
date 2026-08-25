@@ -382,3 +382,15 @@ Status: **CLOSED AT SOURCE/STATIC/NATIVE-COMPILE LEVEL — RUNTIME TRACE PENDING
 - AutoLot uses the final SL through unchanged M21 sizing;
 - TP code is unchanged. Latest authoritative 2026-08-25 Core keeps material Re-Entry TP/lifecycle changes on strategy HOLD; see `blueprint/M17_TP_AUTHORITY_RECONCILIATION_AUDIT_20260825.md`;
 - next M17 action: broker/demo BUY+SELL runtime evidence, including JPY/non-JPY where practical.
+
+
+---
+
+## 2026-08-25 — NMJE M12N Architecture Documentation Sync
+Status: **CLOSED / PASS / DOCUMENTATION-ONLY**
+- Top-level governance/current topology now explicitly records `M12 -> M12N NMJE -> M13`.
+- M01–M27 numbering is preserved; M12N is a logical non-number-consuming sub-module and M27 remains orchestration owner.
+- M13 routing records that NMJE observes after owner updates and before collection without altering immutable strategy snapshots.
+- Exact REM/RRE/REE, D1 Opportunity, D1 watch-only boundary, M15 authority, SL/TP, risk and execution semantics are unchanged.
+- EA source remains blob `4ccd444a96a34b494653143a7560516a4147b5bc`.
+- Audit: `blueprint/NMJE_M12N_ARCHITECTURE_DOC_SYNC_20260825.md`.

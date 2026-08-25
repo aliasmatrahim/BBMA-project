@@ -81,11 +81,17 @@ M27 now:
 - creates H1/H4/M15 numeric BB snapshots from frozen `TimeframeData` regardless of whether optional BB-shape classification is enabled;
 - optionally asks M07 to classify H1/H4 BB shape;
 - calls M08/M09/M10/M12 owners;
+- invokes M12N/NMJE after current-cycle owner updates and before M13 as a read-only context/lineage layer;
 - stamps raw `Signal` snapshots with their real timeframe, bar index, candle time and close;
-- passes immutable copies into M13;
+- passes the same immutable strategy-owner copies into M13; M12N metadata does not add, replace or mature a REM/RRE/REE component;
 - exports confirmed H4/D1 Re-Entry snapshots through the existing M12 export contract.
 
 The numeric-BB routing change prevents disabling `EnableBBShapeEngine` from accidentally zeroing the TOP/LOW BB values required by source-valid Extreme detection.
+
+## M12N / NMJE boundary
+M12N is the logical read-only architecture layer between M12 owner completion and M13 collection. It does not consume a numeric module slot: M13 remains M13 and M27 remains the orchestration owner.
+
+M13 must receive the same source-owned strategy snapshots regardless of M12N relation/lineage output. NMJE metadata is non-component context only and cannot change exact REM/RRE/REE signatures, candidate direction, maturity, count, eligibility or SL/TP source ownership.
 
 ## Scope guard
 Step 4 does not certify or change:

@@ -49,8 +49,7 @@ jobs:
           $terminal = Get-ChildItem 'C:\Program Files*' -Filter terminal.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
           if (-not $meta -or -not $terminal) {
             $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
-            & curl.exe -L --fail --retry 3 --retry-delay 3 --connect-timeout 20 --max-time 180 `
-              'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -o $setup
+            & curl.exe -L --fail --retry 3 --retry-delay 3 --connect-timeout 20 --max-time 180 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -o $setup
             if (-not (Test-Path $setup) -or (Get-Item $setup).Length -lt 1000000) { throw 'Official MT4 installer download failed' }
             $proc = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
             for ($i=0; $i -lt 84; $i++) {
@@ -100,21 +99,8 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $ini = Join-Path $env:RUNNER_TEMP 'd1-tpw-v458-runtime.ini'
-          @'
-[Common]
-EnableNews=false
-
-[Experts]
-ExpertsEnable=true
-ExpertsDllImport=false
-ExpertsExpImport=false
-ExpertsTrades=false
-
-[StartUp]
-Symbol=EURUSD
-Period=M15
-Expert=BBMA_EA
-'@ | Set-Content -Path $ini -Encoding Ascii
+          $cfg = @('[Common]','EnableNews=false','','[Experts]','ExpertsEnable=true','ExpertsDllImport=false','ExpertsExpImport=false','ExpertsTrades=false','','[StartUp]','Symbol=EURUSD','Period=M15','Expert=BBMA_EA')
+          $cfg | Set-Content -Path $ini -Encoding Ascii
           $terminal = Join-Path $env:MT4DIR 'terminal.exe'
           $proc = Start-Process -FilePath $terminal -ArgumentList '/portable', "/config:$ini" -PassThru
           for ($i=0; $i -lt 12; $i++) {
@@ -139,8 +125,7 @@ Expert=BBMA_EA
             $combined += (Get-Content $f.FullName -Raw -ErrorAction SilentlyContinue)
           }
           $combined | Set-Content $combinedPath -Encoding UTF8
-          $tail = $combined -split "`r?`n" | Select-Object -Last 250
-          $tail | ForEach-Object { Write-Host $_ }
+          ($combined -split "`r?`n" | Select-Object -Last 250) | ForEach-Object { Write-Host $_ }
           $fatalPatterns = @('array out of range','zero divide','critical runtime error','access violation','stack overflow','invalid pointer','unresolved import','cannot load expert','expert initialization failed','init failed')
           foreach ($p in $fatalPatterns) {
             if ($combined -match [regex]::Escape($p)) { throw "Fatal MT4 runtime signature detected: $p" }
@@ -149,11 +134,7 @@ Expert=BBMA_EA
           if ($combined -match '\[P3S1\]\[PASS\] EA initialized successfully') {
             $class = 'ATTACH_OK_TRADING_DISABLED'
           } else {
-            $envBlock = ($combined -match '\[P3S1\]\[FAIL\] No valid pairs loaded') -or
-                        ($combined -match '\[P3S1\]\[FAIL\] Symbol resolution failed') -or
-                        ($combined -match '(?i)not connected') -or
-                        ($combined -match '(?i)no prices') -or
-                        ($combined -match '(?i)waiting for update')
+            $envBlock = ($combined -match '\[P3S1\]\[FAIL\] No valid pairs loaded') -or ($combined -match '\[P3S1\]\[FAIL\] Symbol resolution failed') -or ($combined -match '(?i)not connected') -or ($combined -match '(?i)no prices') -or ($combined -match '(?i)waiting for update')
             if ($envBlock) { $class = 'ENVIRONMENT_BLOCKED_NO_BROKER_SYMBOL_DATA' }
           }
           if ($class -eq '') { throw 'MT4 runtime could not be positively classified' }
@@ -166,24 +147,25 @@ Expert=BBMA_EA
         run: |
           $ErrorActionPreference = 'Stop'
           $now = Get-Date -Format 'yyyy-MM-ddTHH:mm:ssK'
-          @"
-# D1 TP-Wajib v4.58 Hosted MT4 Runtime Probe — 2026-08-26
-
-Status: **$env:SMOKE_CLASS**
-
-- Build: `Version 4.5.8 - D1 TP-Wajib Lifecycle Stage`
-- Source blob: `$env:EA_BLOB`
-- Source SHA-256: `$env:EA_SHA256`
-- Native portable MetaEditor: **0 errors / 0 warnings**
-- `EnableD1TPWLifecycle=false`
-- `EnableC044Lifecycle=false`
-- Expert trading in probe: **disabled**
-- Probe timestamp: `$now`
-
-This probe is startup/environment evidence only. It does not validate D1 TP-Wajib lifecycle semantics, order execution, restart checkpoint behavior, replay, TP-Wajib close timing, C044 interaction, or M20 precedence because lifecycle gates remain OFF and no authenticated broker/demo trading session is supplied by the hosted runner.
-
-If status is `ENVIRONMENT_BLOCKED_NO_BROKER_SYMBOL_DATA`, authenticated broker/demo runtime evidence remains the blocking gate and must not be inferred from this hosted smoke.
-"@ | Set-Content '.\blueprint\D1_TPW_V458_HOSTED_MT4_RUNTIME_PROBE_20260826.md'
+          $lines = @(
+            '# D1 TP-Wajib v4.58 Hosted MT4 Runtime Probe — 2026-08-26',
+            '',
+            "Status: **$env:SMOKE_CLASS**",
+            '',
+            '- Build: `Version 4.5.8 - D1 TP-Wajib Lifecycle Stage`',
+            "- Source blob: ``$env:EA_BLOB``",
+            "- Source SHA-256: ``$env:EA_SHA256``",
+            '- Native portable MetaEditor: **0 errors / 0 warnings**',
+            '- `EnableD1TPWLifecycle=false`',
+            '- `EnableC044Lifecycle=false`',
+            '- Expert trading in probe: **disabled**',
+            "- Probe timestamp: ``$now``",
+            '',
+            'This probe is startup/environment evidence only. It does not validate D1 TP-Wajib lifecycle semantics, order execution, restart checkpoint behavior, replay, TP-Wajib close timing, C044 interaction, or M20 precedence because lifecycle gates remain OFF and no authenticated broker/demo trading session is supplied by the hosted runner.',
+            '',
+            'If status is `ENVIRONMENT_BLOCKED_NO_BROKER_SYMBOL_DATA`, authenticated broker/demo runtime evidence remains the blocking gate and must not be inferred from this hosted smoke.'
+          )
+          $lines | Set-Content '.\blueprint\D1_TPW_V458_HOSTED_MT4_RUNTIME_PROBE_20260826.md' -Encoding UTF8
           Remove-Item '.\blueprint\.run-d1-tpw-v458-runtime-probe' -ErrorAction SilentlyContinue
           Remove-Item '.\.github\workflows\d1-tpw-v458-runtime-probe.yml' -ErrorAction SilentlyContinue
           git diff --check

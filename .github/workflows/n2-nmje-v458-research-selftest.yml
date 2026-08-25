@@ -1,0 +1,82 @@
+name: N2 NMJE v4.58 research selftest
+
+on:
+  pull_request:
+    branches:
+      - d1-owner-dev
+    paths:
+      - 'blueprint/tools/n2_nmje_*.py'
+      - 'blueprint/tests/test_n2_nmje_*.py'
+      - 'blueprint/source/BBMA_EA.mq4'
+      - 'blueprint/.n2-v458-selftest-trigger'
+      - '.github/workflows/n2-nmje-v458-research-selftest.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  n2-selftest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          fetch-depth: 0
+
+      - name: Verify v4.58 source and N2 read-only hooks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('blueprint/source/BBMA_EA.mq4')
+          s = p.read_text(encoding='utf-8')
+          required = [
+              'Version 4.5.8 - D1 TP-Wajib Lifecycle Stage',
+              '#property version   "4.58"',
+              'void NMJE_PrintValidatedDecisionShadow',
+              '[N2-NMJE-DEC]',
+              'void NMJE_PrintClosedOutcomeShadow',
+              '[N2-NMJE-OUT]',
+              'NMJE_PrintClosedOutcomeShadow(g_monitored_trades[i]);',
+              'NMJE_PrintValidatedDecisionShadow(pairIndex, decision);',
+          ]
+          for marker in required:
+              if marker not in s:
+                  raise SystemExit(f'missing N2 source marker: {marker}')
+          # N2 helpers must remain telemetry-only; no broker write calls inside either function body.
+          for fn in ('NMJE_PrintValidatedDecisionShadow', 'NMJE_PrintClosedOutcomeShadow'):
+              start = s.index('void ' + fn)
+              nxt = s.find('\nvoid ', start + 5)
+              body = s[start:] if nxt < 0 else s[start:nxt]
+              for forbidden in ('OrderSend(', 'OrderClose(', 'OrderModify('):
+                  if forbidden in body:
+                      raise SystemExit(f'{fn} contains forbidden broker write: {forbidden}')
+          print('N2_SOURCE_OWNERSHIP_GUARD=PASS')
+          PY
+
+      - name: Run N2 synthetic research suite
+        shell: bash
+        run: |
+          set -euo pipefail
+          tests=(
+            blueprint/tests/test_n2_nmje_decision_correlator.py
+            blueprint/tests/test_n2_nmje_outcome_attributor.py
+            blueprint/tests/test_n2_nmje_evidence_sufficiency.py
+            blueprint/tests/test_n2_nmje_research_pipeline.py
+            blueprint/tests/test_n2_nmje_outcome_log_extractor.py
+            blueprint/tests/test_n2_nmje_hash_identity_reconciler.py
+            blueprint/tests/test_n2_nmje_auto_research_pipeline.py
+          )
+          for t in "${tests[@]}"; do
+            echo "== $t =="
+            python3 "$t"
+          done
+          echo 'N2_SYNTHETIC_SUITE=PASS'
+
+      - name: Verify research stack compiles as Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile blueprint/tools/n2_nmje_*.py blueprint/tests/test_n2_nmje_*.py
+          echo 'N2_PYCOMPILE=PASS'

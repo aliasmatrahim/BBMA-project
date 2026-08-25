@@ -280,6 +280,8 @@ The largest unresolved execution-sensitive gaps remain:
 
 Nested MTF is confirmed **PARTIAL**, not absent: Core already contains MTF scaling/alignment and REM/RRE/REE architecture, while the Workbook describes a broader recursive lower-TF replay model.
 
-## Next gate
+## Post-reconciliation status
 
-Do not modify executable strategy from the HOLD families automatically. Next safe work is cross-source reconciliation of PARTIAL/MISSING families against the primary operational PDF, secondary PDF, Finale evidence and existing conflict register. Non-conflicting descriptive clarifications may be proposed for Core V2.x; execution-authority changes remain strategy-decision gates.
+The cross-source reconciliation requested by the former `Next gate` has now been completed in `HOME_COURSE_19P_CROSS_SOURCE_RECONCILIATION_20260825.md`, and all 21 non-fully-covered families are revalidated in `HOME_COURSE_49_FAMILY_CORE_REVALIDATION_20260825.md`.
+
+Do not modify executable strategy from HOLD families automatically. Safe descriptive clarifications may enter Core only with explicit non-execution guards; any execution-authority promotion from a HOLD remains a strategy-decision gate.

@@ -17,9 +17,9 @@ spec.loader.exec_module(mod)
 LOG = """
 2026.08.25 00:00 [D1-OPP] EURUSD F=CSD DIR=B ACTIVE=Y TACT=N SRC=2026.08.24 00:00 ACT=2026.08.25 00:00 CYCLE=AAA111 R=Confirmed D1 CSD opportunity
 2026.08.25 00:15 [D1-OPP-WATCH] EURUSD eCSD=B Action=WATCH_ONLY
-2026.08.25 01:00 [N2-NMJE-DEC] EURUSD SIG=SIGNAL_RE_ENTRY DIR=B REL=ALIGNED P=H4_OWNER/B J=J1 DID=X DIDH=H1 AUTH=OPP OFAM=CSD OC=AAA111
+2026.08.25 01:00 [N2-NMJE-DEC] EURUSD SIG=SIGNAL_RE_ENTRY DIR=B REL=ALIGNED P=H4_OWNER/B J=J1 DID=X DIDH=H1 AUTH=OPP OFAM=CSD OC=AAA111 LTF=H1 OSH=SEQ1
 2026.08.25 02:00 [D1-OPP] GBPUSD F=EXT_TPW DIR=S ACTIVE=Y TACT=Y SRC=2026.08.24 00:00 ACT=2026.08.25 00:00 CYCLE=BBB222 R=Reversal-confirmed D1 Extreme with active TP-Wajib path
-2026.08.25 03:00 [N2-NMJE-DEC] GBPUSD SIG=SIGNAL_RE_ENTRY DIR=S REL=BUILDING P=H4_OWNER/S J=J2 DID=Y DIDH=H2 AUTH=OPP OFAM=EXT_TPW OC=BBB222
+2026.08.25 03:00 [N2-NMJE-DEC] GBPUSD SIG=SIGNAL_RE_ENTRY DIR=S REL=BUILDING P=H4_OWNER/S J=J2 DID=Y DIDH=H2 AUTH=OPP OFAM=EXT_TPW OC=BBB222 LTF=H1+M15 OSH=SEQ2
 """.strip()
 
 with tempfile.TemporaryDirectory() as td:
@@ -34,8 +34,11 @@ assert report["watch_only_ecsd_rows"] == 1
 assert report["active_cycles_by_family"] == {"CSD": 1, "EXT_TPW": 1}
 assert report["opportunity_validated_decisions"] == 2
 assert report["decisions_by_opportunity_family"] == {"CSD": 1, "EXT_TPW": 1}
+assert report["decisions_by_ltf_cluster"] == {"H1": 1, "H1+M15": 1}
+assert report["decisions_by_family_ltf_cluster"] == {"CSD|H1": 1, "EXT_TPW|H1+M15": 1}
 assert report["cycles_without_validated_decision"] == []
 assert report["integrity"]["cycle_identity_conflicts"] == []
 assert report["integrity"]["unknown_cycle_decisions"] == []
 assert report["integrity"]["family_mismatch_decisions"] == []
-print("D1O opportunity log analyzer synthetic self-test: PASS")
+assert report["integrity"]["sequence_hash_conflicts"] == []
+print("D1O opportunity log analyzer LTF-cluster synthetic self-test: PASS")

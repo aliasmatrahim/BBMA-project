@@ -1,8 +1,8 @@
-name: 2026-08-26 Post-C044 repo reconciliation
+name: Post-C044 repo reconciliation
 
 on:
   push:
-    branches: [ d1-owner-dev ]
+    branches: [d1-owner-dev]
     paths:
       - 'blueprint/.run-c044-step4-selftest'
 
@@ -18,161 +18,16 @@ jobs:
         with:
           ref: d1-owner-dev
           fetch-depth: 0
-
-      - name: Verify exact current source and evidence
-        shell: bash
-        run: |
-          set -euo pipefail
-          src=blueprint/source/BBMA_EA.mq4
-          test "$(git rev-parse HEAD:$src)" = "f0f80decbdbda836c12b6073f5dbc6e347662b13"
-          grep -Fq 'Version 4.5.6 - C044 Deterministic Replay Stage' "$src"
-          grep -Fq '#property version   "4.56"' "$src"
-          grep -Fq 'bool           EnableC044Lifecycle                = false;' "$src"
-          grep -Fq 'Status: **NATIVE METAEDITOR PASS — 0 ERRORS / 0 WARNINGS**' blueprint/C044_STEP4_NATIVE_METAEDITOR_COMPILE_20260826.md
-          grep -Fq 'Status: **PASS — SOURCE-BOUND STATIC INVARIANTS + CHECKPOINT ROUND-TRIP + DETERMINISTIC REPLAY MATRIX**' blueprint/C044_STEP4_DETERMINISTIC_REPLAY_SELFTEST_20260826.md
-          grep -Fq 'Runtime classification: **ENVIRONMENT_BLOCKED_PRE_ATTACH_NO_BROKER_SESSION**' blueprint/C044_STEP5_V456_MT4_ATTACH_RUNTIME_SMOKE_20260826.md
-          grep -Fq 'Fatal runtime signature: **NONE**' blueprint/C044_STEP5_V456_MT4_ATTACH_RUNTIME_SMOKE_20260826.md
-
-      - name: Reconcile CURRENT and MASTER_QUEUE
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-
-          current = Path('blueprint/CURRENT.md')
-          queue = Path('blueprint/MASTER_QUEUE.md')
-          marker = '## 2026-08-26 — C044 v4.56 Authoritative Runtime-Blocked Overlay'
-
-          current_overlay = r'''
-
----
-
-## 2026-08-26 — C044 v4.56 Authoritative Runtime-Blocked Overlay
-
-> This overlay supersedes older current-state lines that stop at v4.52 or describe C044 TP/lifecycle work as strategy HOLD. Historical records remain provenance only.
-
-### Active implementation identity
-- Branch: `d1-owner-dev`.
-- EA build: `Version 4.5.6 - C044 Deterministic Replay Stage`.
-- Source Git blob: `f0f80decbdbda836c12b6073f5dbc6e347662b13`.
-- Source SHA-256: `d2d94e5f7cf0f5b513fd2f8dfd877264fe33aad1425d54e056effccb33d782f4`.
-- `EnableC044Lifecycle=false` remains locked OFF.
-
-### C044 implementation/validation state
-- TP architecture reconciliation: APPROVED; C044 lifecycle exit is primary for future Re-Entry-owned targetless trades and static outer-BB broker TP cannot coexist when C044 is enabled.
-- Staged implementation reached v4.56: targetless payload support, lifecycle state/owner evidence, M23 latch/idempotency, M24 checkpoint/recovery, owner-event evaluator, deterministic chronological restart replay.
-- Native MT4 MetaEditor exact-source compile: PASS, `0 errors / 0 warnings`, run `32887687562`, job `97931884635`, artifact `9578625237`.
-- Deterministic replay self-test: PASS, run `32890012644`.
-- MT4 Step5 smoke: run `32890330036`; official terminal launched, exact v4.56 pre-runtime compile 0E0W, fatal runtime signature `NONE`, classification `ENVIRONMENT_BLOCKED_PRE_ATTACH_NO_BROKER_SESSION`.
-
-### Current safety/live-behavior boundary
-Because the feature gate remains OFF, targetless C044 execution and C044 lifecycle closes are dormant. Current live behavior continues to use the existing static TP path. No C044 activation is authorized.
-
-### Remaining C044 closure blocker
-Broker/demo runtime evidence is still required for a managed targetless position, including real terminal GlobalVariable persistence/restart replay, failed-Momentum close, Momentum -> next Re-Entry re-arm, opposite mature-Extreme supersession, and emergency precedence under an authenticated broker session.
-
-### 2026-08-26 strategy-spec decisions not independently executable
-- C042 prior-day D1: approved bounded strategic context only; no direct execution authority and no MQL4 change authorized by C042 alone.
-- C048 Extreme Magic: approved Extreme strength subtype/metadata context only; no independent execution authority and no MQL4 change authorized by C048 alone.
-
-### Next safe repository work while broker runtime is blocked
-Run a source-bound post-C044 v4.56 cross-module regression to prove protected entry/combinations/risk/MM/emergency surfaces remain aligned. This is static/compile evidence only and must not activate C044 or add strategy semantics.
-'''
-
-          qmarker = '## 2026-08-26 — Post-C044 Queue Reconciliation / Runtime Blocker Split'
-          queue_overlay = r'''
-
----
-
-## 2026-08-26 — Post-C044 Queue Reconciliation / Runtime Blocker Split
-
-Status: **RECONCILED TO v4.56 / C044 FEATURE GATE OFF**
-
-### Active source
-- `Version 4.5.6 - C044 Deterministic Replay Stage`.
-- Git blob `f0f80decbdbda836c12b6073f5dbc6e347662b13`.
-- Native MetaEditor exact-source compile PASS 0E0W.
-- Deterministic replay self-test PASS.
-
-### BLOCKED — broker/demo runtime required
-1. C044 live targetless lifecycle validation and restart persistence.
-2. D1 owner BUY/SELL/TRANSITION/UNRESOLVED runtime matrix.
-3. D1 Opportunity canonical-dedup live telemetry / execution-hash invariants.
-4. Validation-candle-before-order-open live timing evidence.
-5. M17 BUY/SELL structural-SL semantic traces, including JPY/non-JPY where practical.
-6. Remaining F1-F6, TradeLock and cumulative-risk runtime traces that require real market/broker evidence.
-
-These items are not code failures; public GitHub hosted MT4 has no authenticated broker session.
-
-### STRATEGY-SPEC / NO INDEPENDENT CODE AUTHORITY
-- C042 prior-day D1 context: documentation/strategic prior only; fresh approved lower-TF structure remains required.
-- C048 Extreme Magic: Extreme strength annotation only; normal Extreme maturity remains required; no standalone execution family.
-- Material Workbook HOLD families remain excluded until their own explicit strategy-decision gate.
-- C044 activation remains prohibited until its broker/demo runtime gate is closed.
-
-### RUNNABLE NOW — GitHub-only / non-strategy
-Priority order:
-1. **Post-C044 v4.56 protected-surface cross-module regression**: EntryMode ownership, exact REM/RRE/REE identity, M15/M16 boundaries, M17 structural-SL preservation, M19/M20 risk/emergency precedence, M21 AutoLot invariants, M22 idempotency, M23/M24 C044 dormancy with gate OFF.
-2. C042 documentation/contract consistency audit only; no execution changes.
-3. C048 observability/NMJE metadata feasibility audit only; no MQL4 execution authority.
-4. CI/workflow hygiene and stale-status cleanup that does not change EA semantics.
-
-### Superseded stale queue lines
-Older `QUEUED` entries for `REJ_INVALID_LOT` diagnostics and dashboard active-trade refresh are CLOSED/PASS by the 2026-08-25 P2 closure and must not be selected again.
-The older SELL-only spread-buffer queue item is superseded by the implemented M17 structural-range SL + SELL normalization decision and must not be implemented independently.
-
-### Next selected item
-**Post-C044 v4.56 protected-surface cross-module regression**. No EA source change is authorized unless that regression identifies a concrete non-strategy bug.
-'''
-
-          s = current.read_text(encoding='utf-8')
-          if marker not in s:
-              current.write_text(s.rstrip() + current_overlay + '\n', encoding='utf-8')
-
-          q = queue.read_text(encoding='utf-8')
-          if qmarker not in q:
-              queue.write_text(q.rstrip() + queue_overlay + '\n', encoding='utf-8')
-
-          audit = Path('blueprint/POST_C044_REPO_RECONCILIATION_TRIAGE_20260826.md')
-          audit.write_text(r'''# Post-C044 Repository Reconciliation & Next-Safe-Item Triage — 2026-08-26
-
-Branch: `d1-owner-dev`
-
-## Status
-**PASS / CANONICAL CURRENT+QUEUE RECONCILED TO v4.56 / RUNTIME-BLOCKED ITEMS SEPARATED / NEXT GITHUB-ONLY ITEM SELECTED**
-
-## Evidence anchor
-- Active EA: `Version 4.5.6 - C044 Deterministic Replay Stage`.
-- Source blob: `f0f80decbdbda836c12b6073f5dbc6e347662b13`.
-- C044 gate: OFF.
-- Native MetaEditor: 0E0W for exact source.
-- Deterministic replay self-test: PASS.
-- Hosted MT4 smoke: no fatal runtime signature; broker/session unavailable, so broker-connected semantics remain unresolved.
-
-## Reconciliation result
-`CURRENT.md` and `MASTER_QUEUE.md` now explicitly supersede stale v4.52/C044-HOLD current-state wording while retaining historical provenance. Completed P2 diagnostics/dashboard work and superseded SELL-only spread-buffer work are excluded from future selection.
-
-## Triage split
-### Broker/runtime blocked
-C044 live lifecycle/restart evidence, D1/D1O runtime matrices/telemetry, timing evidence, M17 live semantic traces, and other broker-dependent runtime traces.
-
-### Strategy-spec only / no independent source authorization
-C042 prior-day D1 context, C048 Extreme Magic strength subtype, unresolved Workbook HOLD families, and C044 activation itself.
-
-### Runnable GitHub-only
-The highest-value next item is a protected-surface cross-module regression against exact v4.56. It may create an audit/fix only if a concrete non-strategy defect is found; it must not activate C044 or invent BBMA semantics.
-
-## Selected next item
-`POST-C044 v4.56 PROTECTED-SURFACE CROSS-MODULE REGRESSION`.
-''', encoding='utf-8')
-          PY
-          git diff --check
-
+      - name: Run reconciliation
+        run: python3 blueprint/tools/post_c044_reconcile_20260826.py
       - name: Commit reconciliation
         shell: bash
         run: |
           set -euo pipefail
+          grep -Fq '## 2026-08-26 — C044 v4.56 Authoritative Runtime-Blocked Overlay' blueprint/CURRENT.md
+          grep -Fq '## 2026-08-26 — Post-C044 Queue Reconciliation / Runtime Blocker Split' blueprint/MASTER_QUEUE.md
+          grep -Fq 'PASS / CANONICAL CURRENT+QUEUE RECONCILED TO v4.56' blueprint/POST_C044_REPO_RECONCILIATION_TRIAGE_20260826.md
+          git diff --check
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add blueprint/CURRENT.md blueprint/MASTER_QUEUE.md blueprint/POST_C044_REPO_RECONCILIATION_TRIAGE_20260826.md

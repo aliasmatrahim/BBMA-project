@@ -1,0 +1,170 @@
+name: N1.1 NMJE Coverage Overlay Native MT4 Gate v2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'blueprint/.run-n1-1-nmje-coverage-v2-main'
+
+permissions:
+  contents: write
+
+jobs:
+  n1-1-coverage-v2:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: dispatcher
+          fetch-depth: 0
+
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          path: target
+          fetch-depth: 0
+
+      - name: Verify exact source baseline
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = '.\target\blueprint\source\BBMA_EA.mq4'
+          $blob = (git -C target rev-parse HEAD:blueprint/source/BBMA_EA.mq4).Trim()
+          if ($blob -ne 'f0f80decbdbda836c12b6073f5dbc6e347662b13') { throw "Unexpected source blob: $blob" }
+          foreach ($p in @(
+            '.\target\blueprint\decisions\N1_1_NMJE_COVERAGE_ONLY_EXTENSION_DECISION_20260826.md',
+            '.\target\blueprint\tools\n1_1_nmje_coverage_patch.py',
+            '.\target\blueprint\tools\n1_1_nmje_coverage_runner.py'
+          )) { if (-not (Test-Path $p)) { throw "Missing: $p" } }
+          $head = (git -C target rev-parse HEAD).Trim()
+          "TARGET_BASE_HEAD=$head" | Out-File $env:GITHUB_ENV -Append
+          "BASELINE_BLOB=$blob" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Apply N1.1 patch and static guards
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Push-Location target
+          try {
+            python .\blueprint\tools\n1_1_nmje_coverage_runner.py
+            git diff --check
+          } finally { Pop-Location }
+          $src = '.\target\blueprint\source\BBMA_EA.mq4'
+          $text = Get-Content $src -Raw
+          foreach ($required in @(
+            'Version 4.5.7 - N1.1 NMJE Coverage Overlay',
+            '[N1.1-NMJE-COV]',
+            'D1OpportunityActive',
+            'NMJE_CaptureReEntryOverlay',
+            'NMJE_CaptureExtremeOverlay',
+            'NMJE_CaptureMLVOverlay'
+          )) { if ($text -notmatch [regex]::Escape($required)) { throw "Missing N1.1 invariant: $required" } }
+          if ($text -notmatch 'EnableC044Lifecycle\s*=\s*false') { throw 'C044 gate drift' }
+          $start = $text.IndexOf('//| MODULE 12N: NESTED MTF JOURNEY ENGINE')
+          $end = $text.IndexOf('//| MODULE 13:', $start)
+          if ($start -lt 0 -or $end -lt 0) { throw 'Unable to isolate M12N' }
+          $block = $text.Substring($start, $end-$start)
+          foreach ($needle in @('DetectExtreme(', 'DetectCSD(', 'DetectECSD(', 'DetectCSM(', 'UpdateReEntryState(', 'BuildPossibleCombinations(', 'ValidateSequence(', 'PriorityEngine_Atomic(', 'OrderSend(')) {
+            if ($block.Contains($needle)) { throw "M12N ownership violation: $needle" }
+          }
+          "N11_SOURCE_BLOB=$((git -C target hash-object blueprint/source/BBMA_EA.mq4).Trim())" | Out-File $env:GITHUB_ENV -Append
+          "N11_SOURCE_SHA256=$((Get-FileHash $src -Algorithm SHA256).Hash.ToLower())" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Acquire official MT4 with polling installer
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $meta) {
+            $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+            Invoke-WebRequest -Uri 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -OutFile $setup -UseBasicParsing
+            $proc = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
+            for ($i=0; $i -lt 84; $i++) {
+              Start-Sleep -Seconds 5
+              $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($meta) { break }
+              if ($proc.HasExited -and $i -gt 12) { break }
+            }
+            if ($proc -and -not $proc.HasExited) { try { $proc.Kill() } catch {} }
+          }
+          if (-not $meta) { throw 'Official MT4 MetaEditor not found after polling installer' }
+          "METAEDITOR=$($meta.FullName)" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Native MetaEditor 0E0W compile
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = (Resolve-Path '.\target\blueprint\source\BBMA_EA.mq4').Path
+          $log = Join-Path $env:RUNNER_TEMP 'n1-1-v2-metaeditor.log'
+          & "$env:METAEDITOR" "/compile:$src" "/log:$log"
+          Start-Sleep -Seconds 2
+          if (-not (Test-Path $log)) { throw 'Compile log missing' }
+          $txt = Get-Content $log -Raw
+          $txt | Write-Host
+          $ex4 = [System.IO.Path]::ChangeExtension($src,'.ex4')
+          if (-not (Test-Path $ex4)) { throw 'EX4 missing' }
+          $matches = [regex]::Matches($txt, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
+          if ($matches.Count -lt 1) { throw 'Compile summary missing' }
+          $m = $matches[$matches.Count-1]
+          $errors = [int]$m.Groups[1].Value
+          $warnings = [int]$m.Groups[2].Value
+          if ($errors -ne 0 -or $warnings -ne 0) { throw "Compile failed: $errors errors / $warnings warnings" }
+          @"
+          N1_1_NATIVE_METAEDITOR=PASS
+          SOURCE_BLOB=$env:N11_SOURCE_BLOB
+          SOURCE_SHA256=$env:N11_SOURCE_SHA256
+          ERRORS=$errors
+          WARNINGS=$warnings
+          "@ | Set-Content (Join-Path $env:RUNNER_TEMP 'n1-1-v2-result.txt')
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: n1-1-nmje-coverage-native-evidence-v2
+          path: |
+            target/blueprint/source/BBMA_EA.ex4
+            ${{ runner.temp }}/n1-1-v2-metaeditor.log
+            ${{ runner.temp }}/n1-1-v2-result.txt
+          if-no-files-found: warn
+
+      - name: Commit N1.1 source and audit
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $audit = @"
+          # N1.1 — NMJE Coverage-Only Extension Implementation Audit
+
+          Date: 2026-08-26  
+          Branch: ``d1-owner-dev``  
+          Build: ``Version 4.5.7 - N1.1 NMJE Coverage Overlay``
+
+          ## Result
+          **PASS — N1.1 read-only coverage materialized / protected-function source guard PASS / M12N ownership scan PASS / official MT4 MetaEditor 0 errors / 0 warnings.**
+
+          Baseline source blob: ``$env:BASELINE_BLOB``  
+          N1.1 source blob: ``$env:N11_SOURCE_BLOB``  
+          N1.1 source SHA-256: ``$env:N11_SOURCE_SHA256``
+
+          Added: D1 Opportunity read-only overlay; secondary RE/Extreme node overlays; M15 RE/Extreme visibility; M15 MHV/MLV simultaneous-state overlay; M15 RE/Extreme child-activity awareness; compact ``[N1.1-NMJE-COV]`` telemetry.
+
+          Unchanged: primary node/parent kinds, exact REM/RRE/REE, D1O candidate construction, M15/M16 authority, SL/TP, risk, MM, execution/lifecycle/recovery. C044 gate remains OFF. N1.1 is ``[ENGINEERING-ONLY]`` observability and grants no execution authority.
+
+          Remaining: transient same-cycle M15 CSD/eCSD/CSM do not have an immutable NMJE snapshot interface and remain outside N1.1. N2 real outcome evidence still requires broker/runtime logs; N3 execution use remains unapproved.
+          "@
+          Set-Content '.\target\blueprint\N1_1_NMJE_COVERAGE_EXTENSION_IMPLEMENTATION_AUDIT_20260826.md' $audit -Encoding UTF8
+          if (Test-Path '.\target\blueprint\source\BBMA_EA.ex4') { Remove-Item '.\target\blueprint\source\BBMA_EA.ex4' -Force }
+          Push-Location target
+          try {
+            git diff --check
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add blueprint/source/BBMA_EA.mq4 blueprint/N1_1_NMJE_COVERAGE_EXTENSION_IMPLEMENTATION_AUDIT_20260826.md
+            git commit -m 'N1.1: extend NMJE read-only coverage native 0E0W [skip ci]'
+            git fetch origin d1-owner-dev
+            $remote = (git rev-parse origin/d1-owner-dev).Trim()
+            if ($remote -ne $env:TARGET_BASE_HEAD) { throw "Branch moved: remote=$remote expected=$env:TARGET_BASE_HEAD" }
+            git push origin HEAD:d1-owner-dev
+          } finally { Pop-Location }

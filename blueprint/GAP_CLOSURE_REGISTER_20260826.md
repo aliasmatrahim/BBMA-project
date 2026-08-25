@@ -8,12 +8,13 @@ This register supersedes older active-next wording in `CURRENT.md` and `MASTER_Q
 
 ## Baseline entering gap closure
 
-- EA build: `Version 4.5.6 - C044 Deterministic Replay Stage`
-- `#property version "4.56"`
-- source Git blob: `f0f80decbdbda836c12b6073f5dbc6e347662b13`
+- EA build: `Version 4.5.7 - N1.1 NMJE Coverage Overlay`
+- `#property version "4.57"`
+- source Git blob: `2285b90b82c4512b50279bb3546f9801dbc652a3`
+- source SHA-256: `82264cf82707a3831262a7e14539432a4dab173fe04d277972f81980f88bf40f`
 - C044 gate: OFF
 - N1/N2/N3: PARKED
-- N1.1: validation-only work exists; source not materialized
+- N1.1: already materialized before park directive; read-only observability only; native MT4 0E0W; now FROZEN/PARKED
 - `REJ_INVALID_LOT` diagnostics: CLOSED/PASS
 - dashboard active-trade count: CLOSED/PASS
 
@@ -131,7 +132,7 @@ Rule:
 1. **GAP-A1** — reconcile D1 Opportunity `EXTREME_TPW` TP semantic ownership.
 2. **GAP-A2** — reconcile static broker TP vs lifecycle close ownership across M17/M23/M24.
 3. **GAP-A3** — close/properly classify Re-Entry protective SL provenance.
-4. Re-audit all three against current v4.56 source and accepted Core; patch only deterministic closed gaps.
+4. Re-audit all three against current v4.57 source and accepted Core; patch only deterministic closed gaps.
 5. For any source patch: assign a unique build identity, protected-surface regression, native MetaEditor 0E0W, and update this register.
 6. Close Class B when broker/demo evidence becomes available.
 7. Continue Class C source completeness only without silently promoting HOLD material.

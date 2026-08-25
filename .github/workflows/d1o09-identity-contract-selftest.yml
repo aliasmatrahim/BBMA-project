@@ -1,0 +1,50 @@
+name: D1O-09 execution identity contract self-test
+
+on:
+  push:
+    branches: [ d1-owner-dev ]
+    paths:
+      - 'blueprint/.run-d1o09-identity-contract'
+
+permissions:
+  contents: write
+
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          fetch-depth: 0
+      - name: Verify execution identity drift guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 blueprint/tests/test_d1o_execution_identity_contract.py
+          git diff --check
+      - name: Record closure and self-clean
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > blueprint/D1O_STEP9_EXECUTION_IDENTITY_CONTRACT_SELFTEST_20260825.md <<'EOF'
+          # D1O Step 9 — Execution Identity Contract Self-Test
+
+          Date: 2026-08-25
+          Branch: `d1-owner-dev`
+
+          Status: **PASS**
+
+          Regression guard confirms:
+          - standalone H1 Re-Entry and D1-opportunity Re-Entry use the same canonical execution identity fields;
+          - D1 CycleID / OpportunityFamily do not participate in DecisionID generation;
+          - H1 remains the D1-opportunity cluster anchor when present;
+          - legacy D1-owned execution hash is absent.
+          EOF
+          rm -f blueprint/.run-d1o09-identity-contract
+          rm -f .github/workflows/d1o09-identity-contract-selftest.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "D1O-09: close execution identity contract self-test [skip ci]"
+          git push origin HEAD:d1-owner-dev

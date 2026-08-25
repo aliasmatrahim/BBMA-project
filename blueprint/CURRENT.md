@@ -427,3 +427,37 @@ Status: **CLOSED / PASS / NATIVE METAEDITOR 0E0W**
 - **D1 watch-only invariant:** D1 MHV/MLV and D1 eCSD remain context/watch-only and cannot create an LTF entry shortcut.
 - **EA source:** unchanged; Git blob remains `4ccd444a96a34b494653143a7560516a4147b5bc`.
 - **Audit:** `blueprint/NMJE_M12N_ARCHITECTURE_DOC_SYNC_20260825.md`.
+
+
+# 2026-08-26 v4.58 D1 TP-Wajib Lifecycle Materialization Overlay
+
+This dated overlay supersedes older current-build / next-action wording where it conflicts. Historical sections remain provenance only.
+
+## Canonical active source
+- Build: `Version 4.5.8 - D1 TP-Wajib Lifecycle Stage`
+- `#property version "4.58"`
+- Source Git blob: `a166ffb23aba5e6b4011a28d9de8896cd00e33a1`
+- Source SHA-256: `ba2e5815d1b221d7bba46ed0be4793aa5bc6154e29e9b19562dfffbd28c8f0bc`
+- Source materialization commit: `02e5434e4f59ea538976df7254bbaf2fc9f1da9d`
+- Native MetaEditor: **0 errors / 0 warnings**
+- Protected-surface regression: **PASS**
+- Compile workflow run: `32902824738`, successful rerun job `97983428115`
+- Evidence artifact: `9584323165`, digest `sha256:5adec6eab3cae7f9303998a21609245252267be4660ade08c23b48be540c01cd`
+- `EnableD1TPWLifecycle=false`
+- `EnableC044Lifecycle=false`
+
+## Gap state
+- BBMA Core semantic classification: **49/49 explicit, 0 unresolved Core semantic HOLDs**.
+- D1 `EXTREME_TPW` ownership mismatch: **CLOSED at decision/contract/source/static/native level**.
+- v4.58 prevents `D1_OPP_EXTREME_TPW` from falling back to the legacy LTF Re-Entry outer-BB TP while its lifecycle gate is OFF.
+- Dynamic D1 TP-Wajib lifecycle machinery is implemented but remains deliberately dormant until authenticated broker/demo validation.
+- Canonical repo/source/contract synchronization is complete by this overlay.
+
+## Remaining open work
+Remaining known gaps are **runtime evidence / activation gates**, not undefined BBMA Core or repo-source semantics:
+1. D1 TP-Wajib targetless checkpoint/restart/replay + BUY/SELL MA5/MA10 close + duplicate-close + M20 precedence + C044 ambiguity tests.
+2. C044 broker/demo lifecycle tests.
+3. D1 owner and D1O execution-hash/direction/timing broker telemetry.
+4. M17/F1-F6/opposite-lock/sequential-risk/P3 live traces.
+
+No lifecycle gate may be enabled merely because static/native validation passed. N1/N2/N3 remain parked unless explicitly resumed.

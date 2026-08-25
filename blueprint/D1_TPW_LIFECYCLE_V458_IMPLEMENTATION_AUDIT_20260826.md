@@ -8,10 +8,10 @@ Branch: d1-owner-dev
 
 ## Source identity
 - Build: Version 4.5.8 - D1 TP-Wajib Lifecycle Stage
-- Git blob: $blob
-- SHA-256: $sha256
-- EnableD1TPWLifecycle=false
-- EnableC044Lifecycle=false
+- Git blob: `a166ffb23aba5e6b4011a28d9de8896cd00e33a1`
+- SHA-256: `ba2e5815d1b221d7bba46ed0be4793aa5bc6154e29e9b19562dfffbd28c8f0bc`
+- `EnableD1TPWLifecycle=false`
+- `EnableC044Lifecycle=false`
 
 ## Implemented
 - D1 EXTREME_TPW is fail-closed while its lifecycle gate is OFF; it cannot fall back to the legacy LTF Re-Entry outer-BB TP.

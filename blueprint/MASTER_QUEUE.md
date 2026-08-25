@@ -394,3 +394,33 @@ Status: **CLOSED / PASS / DOCUMENTATION-ONLY**
 - Exact REM/RRE/REE, D1 Opportunity, D1 watch-only boundary, M15 authority, SL/TP, risk and execution semantics are unchanged.
 - EA source remains blob `4ccd444a96a34b494653143a7560516a4147b5bc`.
 - Audit: `blueprint/NMJE_M12N_ARCHITECTURE_DOC_SYNC_20260825.md`.
+
+
+## 2026-08-26 — v4.58 Gap-Closure Queue Overlay
+
+> This overlay supersedes stale earlier queue entries that still describe D1 owner implementation, invalid-lot diagnostics, dashboard count, D1 TPW source implementation, or unresolved Core semantics as future work. Preserve those entries as historical provenance only.
+
+### Closed / do not requeue without new evidence
+- BBMA Core semantic classification: **0 unresolved Core semantic gaps**.
+- D1 strategic owner source implementation and static/native compliance.
+- D1 Opportunity family materialization/dedup static layers.
+- D1 `EXTREME_TPW` TP ownership decision + dedicated contract.
+- D1 TP-Wajib v4.58 source implementation: **PASS static / PASS protected surfaces / PASS native 0E0W**.
+- `REJ_INVALID_LOT` observability diagnostics.
+- dashboard live exact-owned trade count.
+- SELL structural-SL spread-buffer issue previously closed.
+
+### Active source identity
+- v4.58 source blob: `a166ffb23aba5e6b4011a28d9de8896cd00e33a1`
+- SHA-256: `ba2e5815d1b221d7bba46ed0be4793aa5bc6154e29e9b19562dfffbd28c8f0bc`
+- materialization commit: `02e5434e4f59ea538976df7254bbaf2fc9f1da9d`
+- both lifecycle gates remain **OFF**.
+
+### Active queue — environment blocked
+1. **D1 TPW runtime gate** — authenticated broker/demo restart, replay, BUY/SELL TPW close, duplicate-close, M20 precedence, lifecycle disambiguation.
+2. **C044 runtime gate** — checkpoint/replay, failed-Momentum close, Momentum -> next Re-Entry re-arm, opposite mature Extreme supersession, M20 precedence.
+3. **D1/D1O runtime telemetry** — owner matrix, stable execution hash, invariant direction, validation/order timing.
+4. **P3/M17/Core runtime traces** — remaining live Tests B/C/D and F1-F6 / TradeLock / cumulative-risk geometry/sequence evidence.
+
+### Development rule
+There is currently no known repo/source/contract gap that justifies another strategy source patch before new evidence. Do not activate `EnableD1TPWLifecycle` or `EnableC044Lifecycle` without their broker/demo runtime gate. N1/N2/N3 remain parked.

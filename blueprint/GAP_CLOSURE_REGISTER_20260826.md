@@ -164,3 +164,27 @@ Important closures include:
 - M21 money-management ownership;
 - M22 dumb/idempotent execution ownership;
 - no unsupported RSI/MACD/Stochastic/ADX/news/correlation/session filters.
+
+
+## 2026-08-26 v4.58 Materialization Closure Overlay
+
+This overlay supersedes the earlier `GAP-B0 — OPEN — REPO-CLOSABLE IMPLEMENTATION TASK` status.
+
+### GAP-B0 — D1 TP-Wajib lifecycle implementation
+Status: **CLOSED AT REPO/SOURCE/STATIC/NATIVE LEVEL**
+
+Evidence:
+- v4.58 source blob `a166ffb23aba5e6b4011a28d9de8896cd00e33a1`;
+- SHA-256 `ba2e5815d1b221d7bba46ed0be4793aa5bc6154e29e9b19562dfffbd28c8f0bc`;
+- materialization commit `02e5434e4f59ea538976df7254bbaf2fc9f1da9d`;
+- protected-surface regression PASS;
+- official MetaEditor `0 errors, 0 warnings`;
+- run `32902824738`, successful rerun job `97983428115`;
+- artifact `9584323165`, digest `sha256:5adec6eab3cae7f9303998a21609245252267be4660ade08c23b48be540c01cd`.
+
+Runtime portion is reclassified as an environment-blocked activation gate and remains open until authenticated MT4 broker/demo evidence exists. Both lifecycle gates remain OFF.
+
+### Current gap classification
+- Known BBMA Core semantic gaps: **0**.
+- Known repo/source/contract gaps from this closure register: **0 after this synchronization**.
+- Remaining gaps: **broker/runtime evidence only** (former B0 runtime portion + B1-B4).

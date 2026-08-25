@@ -319,3 +319,31 @@ Evidence:
 3. Validation-candle-before-order-open timing evidence.
 4. Continue NMJE/runtime research evidence only within its read-only contract.
 5. Material Workbook HOLD rules remain blocked until an explicit strategy-decision gate.
+
+---
+
+## 2026-08-25 — Locked Next-Update Item: SELL Spread-Buffer Execution Normalization
+
+Priority: **HIGH / NEXT APPROVED SOURCE UPDATE**
+Status: **LOCKED / APPROVED / QUEUED / NOT YET IMPLEMENTED**
+Decision record: `blueprint/decisions/M17_SELL_SPREAD_BUFFER_EXECUTION_NORMALIZATION_DECISION_20260825.md`
+
+Locked scope:
+- **BUY path unchanged**: no spread added to BUY structural hard SL.
+- **SELL only**: final broker hard SL adds a frozen current-spread buffer above the existing BBMA structural SELL SL.
+- SELL buffer formula: `SpreadBufferPips = max(2.0, ceil(CurrentSpreadPips))`.
+- Examples: 1.1 -> 2 pip, 1.8 -> 2 pip, 2.1 -> 3 pip; minimum buffer is 2 pip.
+- Use the same preflight/frozen `RiskValidationSnapshot`; do not chase live spread after entry.
+- `MaxSpreadPips` remains an entry rejection filter and is **not** the SL buffer.
+- Final SELL broker SL must be resolved before M21 AutoLot sizing, so AutoLot naturally decreases to preserve the configured risk percentage.
+- FixedLot remains fixed; existing risk/portfolio gates stay authoritative.
+- RR is recalculated from final broker SL; TP is not manufactured to preserve old RR.
+- SELL TP Bid/Ask normalization is **separate / not approved by this item**.
+- Classification: `EA_SAFETY / broker execution normalization`, **not BBMA Strategy Core semantics**.
+
+Implementation gate:
+1. Preserve current runtime/evidence attribution checkpoint first.
+2. Implement in the next approved M17/M21 source update.
+3. Keep structural SL provenance separate from broker hard-SL normalization.
+4. Native MetaEditor 0E0W + focused BUY-unchanged/SELL-only static regression.
+5. Broker/demo runtime evidence on at least one JPY cross and one non-JPY FX pair.

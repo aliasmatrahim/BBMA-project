@@ -1,4 +1,4 @@
-name: C044 Step3 owner event evaluator stage
+name: C044 Step4 deterministic replay stage
 
 on:
   push:
@@ -19,30 +19,83 @@ jobs:
           ref: d1-owner-dev
           fetch-depth: 0
 
-      - name: Verify exact C044 Step2 source
+      - name: Verify exact C044 Step3 source
         shell: bash
         run: |
           set -euo pipefail
           blob="$(git rev-parse HEAD:blueprint/source/BBMA_EA.mq4)"
-          test "$blob" = "69771ee092822217b1277f5300b77cf6a99c07ec"
+          test "$blob" = "2ea9eca6616e3140c5acf78c986d86b9bc1911c5"
+          grep -Fq 'Version 4.5.5 - C044 Owner Event Evaluator Stage' blueprint/source/BBMA_EA.mq4
+          grep -Fq 'bool           EnableC044Lifecycle                = false;' blueprint/source/BBMA_EA.mq4
 
-      - name: Stage C044 closed owner event evaluator
+      - name: Apply C044 Step4 deterministic replay
         shell: bash
         run: |
           set -euo pipefail
-          python3 .github/scripts/c044_step3_patch.py
+          python3 blueprint/tools/apply_c044_step4_replay.py
+
+      - name: Static integrity gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          src=blueprint/source/BBMA_EA.mq4
+          grep -Fq 'Version 4.5.6 - C044 Deterministic Replay Stage' "$src"
+          grep -Fq '#property version   "4.56"' "$src"
+          grep -Fq 'bool           EnableC044Lifecycle                = false;' "$src"
+          grep -Fq 'CaptureC044ReplaySeed' "$src"
+          grep -Fq 'SaveC044ReplaySeed' "$src"
+          grep -Fq 'LoadC044ReplaySeed' "$src"
+          grep -Fq 'UpdateReEntryState(info.c044_replay_reentry' "$src"
+          grep -Fq 'UpdateExtremeLifecycle(info.c044_replay_extreme_buy' "$src"
+          grep -Fq 'ResolveOppositeExtremeSupersession(info.c044_replay_extreme_buy' "$src"
+          grep -Fq 'for(int shift = previousShift - 1; shift >= latestShift; shift--)' "$src"
+          grep -Fq 'info.c044_last_processed_owner_candle = latestClosed;' "$src"
+          ! grep -Fq 'MULTI_CANDLE_OWNER_EVENT_GAP' "$src"
+          ! grep -Fq 'IsC044SameDirectionReEntryEvent' "$src"
+          ! grep -Fq 'IsC044OppositeExtremeSupersessionEvent' "$src"
           git diff --check
 
-      - name: Commit C044 Step3 staged evaluator
+      - name: Record audit and commit Step4
         shell: bash
         run: |
           set -euo pipefail
+          blob="$(git hash-object blueprint/source/BBMA_EA.mq4)"
+          cat > blueprint/C044_STEP4_DETERMINISTIC_REPLAY_IMPLEMENTATION_AUDIT_20260826.md <<EOF
+          # C044 Step 4 — Deterministic Restart / Replay Implementation Audit — 2026-08-26
+
+          Branch: \`d1-owner-dev\`
+
+          ## Status
+          **IMPLEMENTED / STATIC INTEGRITY PASS / DETERMINISTIC MULTI-CANDLE REPLAY / FEATURE GATE OFF / NATIVE METAEDITOR COMPILE PENDING**
+
+          ## Source identity
+          - Build: \`Version 4.5.6 - C044 Deterministic Replay Stage\`
+          - Source Git blob after patch: \`$blob\`
+          - \`EnableC044Lifecycle=false\` remains locked OFF.
+
+          ## Closed gap
+          Step 3 froze any gap larger than one owner-TF candle because current M08/M12 owner state could not prove intermediate events. Step 4 removes that limitation without inferring strategy events.
+
+          Each C044-managed trade now persists a replay seed containing the same-direction canonical Re-Entry owner state, both BUY/SELL Extreme lifecycle states, and the exact processed owner-TF cursor.
+
+          On restart or any multi-candle gap, every missed fully closed owner-TF candle is replayed oldest-to-newest through existing canonical functions: \`UpdateReEntryState()\`, \`DetectExtreme()\` + \`UpdateExtremeLifecycle()\`, \`ResolveOppositeExtremeSupersession()\`, and \`DetectCSM()\` for the approved C044 failed-Momentum test. No Re-Entry, Extreme or Momentum formula is duplicated inside C044.
+
+          ## Runtime cursor correction
+          The Re-Entry confirmation candle remains immutable lifecycle provenance / epoch. The processed runtime cursor now initializes to the latest fully closed owner-TF candle when the broker position actually exists, preventing pre-position candles from being treated as missed lifecycle events.
+
+          ## Fail-closed boundary
+          Missing/corrupt replay seed, missing exact historical candle, invalid cursor ordering, or unavailable owner data freezes the lifecycle rather than guessing an event.
+
+          ## Execution authority
+          No new \`OrderClose()\` authority was added. M23 remains the only C044 close executor, M20 emergency close retains precedence, and the feature gate remains OFF. Static outer-BB TP therefore remains current live behavior in this staged build.
+
+          ## Next gate
+          Native MT4 MetaEditor compile is required for the exact v4.56 source, target **0 errors / 0 warnings**. Then run deterministic replay self-tests before any activation decision.
+          EOF
+
+          git diff --check
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- blueprint/source/BBMA_EA.mq4 blueprint/C044_STEP3_OWNER_EVENT_EVALUATOR_IMPLEMENTATION_AUDIT_20260826.md
-          if git diff --cached --quiet; then
-            echo 'No source changes to commit.'
-            exit 0
-          fi
-          git commit -m "C044 Step3: stage closed owner event evaluator [skip ci]"
+          git add -- blueprint/source/BBMA_EA.mq4 blueprint/C044_STEP4_DETERMINISTIC_REPLAY_IMPLEMENTATION_AUDIT_20260826.md
+          git commit -m "C044 Step4: deterministic restart replay [skip ci]"
           git push origin HEAD:d1-owner-dev

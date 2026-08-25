@@ -90,21 +90,22 @@ jobs:
         run: |
           $ErrorActionPreference='Stop'
           $ini=Join-Path $env:RUNNER_TEMP 'd1o10-runtime.ini'
-          @'
-[Common]
-EnableNews=false
-
-[Experts]
-ExpertsEnable=true
-ExpertsDllImport=false
-ExpertsExpImport=false
-ExpertsTrades=false
-
-[StartUp]
-Symbol=EURUSD
-Period=M15
-Expert=BBMA_EA
-'@ | Set-Content -Path $ini -Encoding Ascii
+          $cfg=@(
+            '[Common]',
+            'EnableNews=false',
+            '',
+            '[Experts]',
+            'ExpertsEnable=true',
+            'ExpertsDllImport=false',
+            'ExpertsExpImport=false',
+            'ExpertsTrades=false',
+            '',
+            '[StartUp]',
+            'Symbol=EURUSD',
+            'Period=M15',
+            'Expert=BBMA_EA'
+          )
+          $cfg | Set-Content -Path $ini -Encoding Ascii
           $proc=Start-Process -FilePath (Join-Path $env:MT4DIR 'terminal.exe') -ArgumentList '/portable', "/config:$ini" -PassThru
           for($i=0;$i -lt 18;$i++){
             Start-Sleep -Seconds 5

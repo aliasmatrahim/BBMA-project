@@ -1,0 +1,92 @@
+name: NMJE D1 watch-only boundary reconciliation
+
+on:
+  push:
+    branches: [d1-owner-dev]
+    paths:
+      - 'blueprint/.nmje-d1-watch-boundary-reconcile-trigger'
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          fetch-depth: 0
+
+      - name: Reconcile NMJE structure and D1 watch-only boundary
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          # 1) M12N contract: make the D1 watch-only boundary explicit.
+          p = Path('blueprint/contracts/M12N_NESTED_MTF_JOURNEY_ENGINE_CONTRACT.md')
+          s = p.read_text(encoding='utf-8')
+          if '## D1 watch-only / non-execution-authority boundary' not in s:
+              anchor = '## M13/M14 boundary\n'
+              block = '''## D1 watch-only / non-execution-authority boundary\nThe following D1-origin states are deliberately context-only for NMJE and may never become a shortcut to lower-timeframe execution:\n- **D1 MHV/MLV = WATCH ONLY / CONTEXT ONLY.** It may be represented in diagnostics or node history, but it must not be selected as an executable D1 parent, install a D1 opportunity family, create an M15 candidate, or authorize an LTF entry.\n- **D1 eCSD = WATCH ONLY / DIRECTION-STAGE CONTEXT ONLY.** It may be observed/logged, but it must not install a D1 opportunity family, create an M15 candidate, or authorize an LTF entry.\n- **D1 CSD remains a direction signal, not a direct entry.** The separately approved D1 Opportunity Journey may use confirmed D1 CSD only as opportunity context and still requires the approved fresh lower-timeframe Re-Entry readiness; this does not grant raw CSD direct execution authority.\n- For D1-origin N1 parent selection, only the already-approved **D1 Re-Entry** parent and **D1 strategic owner** broad context are eligible parent kinds. D1 MHV/MLV and D1 eCSD are not parent kinds.\n- No `higher-TF MHV/MLV -> direct lower-TF entry` shortcut is authorized. Such deterministic shortcut behavior remains outside accepted executable Core unless separately source-resolved and approved.\n\nThis boundary is consistent with the canonical Core distinction `MHV/MLV = setup/context`, `eCSD/CSD = direction`, `Re-Entry = entry/setup zone`, the exact REM/RRE/REE signatures, and the D1 Opportunity decision record.\n\n'''
+              if anchor not in s:
+                  raise SystemExit('M12N insertion anchor missing')
+              s = s.replace(anchor, block + anchor, 1)
+              p.write_text(s, encoding='utf-8')
+
+          # 2) M27: synchronize the canonical architecture pipeline with logical M12N.
+          p = Path('blueprint/contracts/M27_ORCHESTRATOR_END_TO_END_CONTRACT.md')
+          s = p.read_text(encoding='utf-8')
+          old = '''1. M06-M12 owner detectors/state engines produce frozen source snapshots.\n2. M13 collects snapshots only.\n3. M14 validates REM/RRE/REE only.\n4. M15 performs one pair-level atomic final-authority pass after BUY and SELL candidates have both been collected.\n5. M16 invalidates conflicts only.\n6. M17 resolves and validates the source-owned BBMA TP destination and protective structural SL.\n7. M21 calculates one deterministic lot from the frozen risk snapshot.\n8. M19 evaluates live spread/drawdown/basket/EA-wide prospective risk using that proposed lot.\n9. M20 performs the final prospective portfolio/protection gate.\n10. M22 executes the immutable approved payload once, with idempotent ambiguous-result handling.\n'''
+          new = '''1. M06-M12 owner detectors/state engines produce frozen source snapshots.\n2. M12N NMJE reads the already-owned snapshots as a read-only nested context/lineage layer; it cannot create/reject/rank candidates or alter execution authority.\n3. M13 collects snapshots only.\n4. M14 validates REM/RRE/REE only.\n5. M15 performs one pair-level atomic final-authority pass after BUY and SELL candidates have both been collected.\n6. M16 invalidates conflicts only.\n7. M17 resolves and validates the source-owned BBMA TP destination and protective structural SL.\n8. M21 calculates one deterministic lot from the frozen risk snapshot.\n9. M19 evaluates live spread/drawdown/basket/EA-wide prospective risk using that proposed lot.\n10. M20 performs the final prospective portfolio/protection gate.\n11. M22 executes the immutable approved payload once, with idempotent ambiguous-result handling.\n'''
+          if old in s:
+              s = s.replace(old, new, 1)
+          elif 'M12N NMJE reads the already-owned snapshots' not in s:
+              raise SystemExit('M27 pipeline anchor missing')
+          p.write_text(s, encoding='utf-8')
+
+          # 3) Dedicated audit/closure record.
+          audit = Path('blueprint/NMJE_D1_WATCH_ONLY_BOUNDARY_RECONCILIATION_20260825.md')
+          audit.write_text('''# NMJE D1 Watch-Only / Non-Execution-Authority Boundary Reconciliation\n\nDate: 2026-08-25  \nBranch: `d1-owner-dev`\nStatus: **PASS / DOCUMENTATION GAP CLOSED / NO EA SOURCE CHANGE**\n\n## Question revalidated\nCan D1 MHV/MLV or D1 eCSD be used by NMJE as a higher-timeframe trigger/parent that directly authorizes a lower-timeframe entry?\n\n**Answer: NO.**\n\n## Source/Core basis\n- Canonical Core: MHV/MLV is setup/context rather than standalone direct execution authority.\n- Canonical Core/Finale: eCSD/CSD is direction intent; raw direction is not direct entry authority and the taught execution setup is Re-Entry.\n- Exact executable MTF signatures remain REM = H4 RE + H1 Extreme + M15 MHV/MLV; RRE = D1 RE + H4 RE + H1 Extreme; REE = D1 RE + H4 Extreme + H1 Extreme.\n- Home Course cross-source reconciliation keeps `higher-TF MHV -> direct lower-TF entry` as HOLD; it is not promoted to executable Core.\n- Forum evidence is corroborating only and does not provide higher-precedence authority for a D1 MHV/eCSD -> direct LTF shortcut.\n\n## D1 Opportunity boundary\nThe approved D1 Opportunity Journey explicitly keeps **D1 MHV/MLV and D1 eCSD WATCH ONLY**. Active D1 opportunity families remain the separately approved Extreme->TPW tactical context, confirmed CSD context, confirmed D1 Re-Entry, and Momentum/CSM retrace context, each subject to its own LTF readiness/authority rules.\n\n## Current-source verification\n- `ENUM_D1_OPPORTUNITY_FAMILY` contains no D1 MHV/MLV or eCSD executable family.\n- D1 eCSD is detected through a watch helper and only emits `[D1-OPP-WATCH] ... Action=WATCH_ONLY`; it never installs a D1 opportunity family.\n- NMJE parent kinds contain D1 Re-Entry and D1 strategic owner, but no D1 MHV/MLV or D1 eCSD parent kind.\n- M12N remains read-only and M15 remains sole final new-entry authority.\n\n## Documentation finding\nBefore this reconciliation, the D1 Opportunity decision captured the watch-only rule, but the M12N contract and top-level M27 pipeline did not state the boundary/placement explicitly enough. That was a documentation gap, not a current EA execution bug.\n\n## Locked guard\n`D1 MHV/MLV or D1 eCSD -> NMJE context only -> NO direct LTF execution authority.`\n\nAny future proposal to promote either state into an executable D1 parent requires a separate source reconciliation and explicit strategy decision.\n''', encoding='utf-8')
+
+          # 4) Append current-status overlays without rewriting historical provenance.
+          overlay_current = '''\n\n# 2026-08-25 NMJE D1 Watch-Only Boundary Overlay\n- `M12N` is the logical read-only Nested MTF Journey Engine between M12 owner state and M13/M14/M15 processing.\n- **D1 MHV/MLV and D1 eCSD are WATCH ONLY / non-execution-authority states for NMJE.** They cannot act as executable D1 parents, create M15 candidates, or directly authorize LTF entries.\n- D1 CSD remains direction context, not raw direct entry; its separately approved D1 Opportunity use still requires the approved fresh LTF Re-Entry readiness.\n- Exact REM/RRE/REE signatures remain unchanged.\n- Record: `blueprint/NMJE_D1_WATCH_ONLY_BOUNDARY_RECONCILIATION_20260825.md`.\n- Documentation-only reconciliation; EA source/trading behavior unchanged.\n'''
+          p = Path('blueprint/CURRENT.md')
+          s = p.read_text(encoding='utf-8').rstrip() + '\n'
+          if '# 2026-08-25 NMJE D1 Watch-Only Boundary Overlay' not in s:
+              s = s.rstrip() + overlay_current
+          p.write_text(s.rstrip() + '\n', encoding='utf-8')
+
+          overlay_queue = '''\n\n## 2026-08-25 — NMJE D1 Watch-Only Boundary Closure\nStatus: **CLOSED / PASS / DOCUMENTATION-ONLY**\n- D1 MHV/MLV and D1 eCSD are locked as NMJE watch/context-only states with no direct LTF execution authority.\n- No higher-TF MHV/MLV -> direct LTF entry shortcut is authorized.\n- M12N contract and M27 canonical pipeline are synchronized with this boundary.\n- Exact REM/RRE/REE and D1 Opportunity execution contracts remain unchanged.\n- Audit: `blueprint/NMJE_D1_WATCH_ONLY_BOUNDARY_RECONCILIATION_20260825.md`.\n'''
+          p = Path('blueprint/MASTER_QUEUE.md')
+          s = p.read_text(encoding='utf-8').rstrip() + '\n'
+          if '## 2026-08-25 — NMJE D1 Watch-Only Boundary Closure' not in s:
+              s = s.rstrip() + overlay_queue
+          p.write_text(s.rstrip() + '\n', encoding='utf-8')
+          PY
+
+          grep -q 'D1 MHV/MLV = WATCH ONLY' blueprint/contracts/M12N_NESTED_MTF_JOURNEY_ENGINE_CONTRACT.md
+          grep -q 'D1 eCSD = WATCH ONLY' blueprint/contracts/M12N_NESTED_MTF_JOURNEY_ENGINE_CONTRACT.md
+          grep -q 'M12N NMJE reads the already-owned snapshots' blueprint/contracts/M27_ORCHESTRATOR_END_TO_END_CONTRACT.md
+          grep -q 'NMJE D1 Watch-Only Boundary Overlay' blueprint/CURRENT.md
+          grep -q 'NMJE D1 Watch-Only Boundary Closure' blueprint/MASTER_QUEUE.md
+          grep -q 'NO direct LTF execution authority' blueprint/NMJE_D1_WATCH_ONLY_BOUNDARY_RECONCILIATION_20260825.md
+          git diff --check
+
+      - name: Commit reconciliation and self-clean
+        shell: bash
+        run: |
+          rm -f blueprint/.nmje-d1-watch-boundary-reconcile-trigger
+          rm -f .github/workflows/nmje-d1-watch-boundary-reconcile.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add blueprint/contracts/M12N_NESTED_MTF_JOURNEY_ENGINE_CONTRACT.md \
+                  blueprint/contracts/M27_ORCHESTRATOR_END_TO_END_CONTRACT.md \
+                  blueprint/NMJE_D1_WATCH_ONLY_BOUNDARY_RECONCILIATION_20260825.md \
+                  blueprint/CURRENT.md blueprint/MASTER_QUEUE.md \
+                  blueprint/.nmje-d1-watch-boundary-reconcile-trigger \
+                  .github/workflows/nmje-d1-watch-boundary-reconcile.yml
+          git diff --cached --check
+          git commit -m 'NMJE: lock D1 watch-only execution boundary'
+          git push origin HEAD:d1-owner-dev

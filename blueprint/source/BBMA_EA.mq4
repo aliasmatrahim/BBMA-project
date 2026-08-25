@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.5.1 - D1O-02 Opportunity Execution                 |
+//| Version 4.5.1 - D1O-07 Canonical LTF Dedup                 |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -4693,6 +4693,22 @@ string NMJE_LogIdentityToken(string value)
    return token;
 }
 
+string D1OpportunityLTFClusterText(BBMA_Decision &decision)
+{
+   if(decision.D1AuthorityMode != D1_AUTH_OPPORTUNITY) return "-";
+   bool hasH1=false, hasM15=false;
+   for(int i=0; i<decision.ComponentCount && i<3; i++)
+   {
+      if(decision.Components[i].ComponentType != SIGNAL_RE_ENTRY) continue;
+      if(decision.Components[i].Timeframe == PERIOD_H1) hasH1=true;
+      if(decision.Components[i].Timeframe == PERIOD_M15) hasM15=true;
+   }
+   if(hasH1 && hasM15) return "H1+M15";
+   if(hasH1) return "H1";
+   if(hasM15) return "M15";
+   return "-";
+}
+
 void NMJE_PrintValidatedDecisionShadow(int pairIndex, BBMA_Decision &decision)
 {
    if(pairIndex < 0 || pairIndex >= g_pair_count) return;
@@ -4715,7 +4731,9 @@ void NMJE_PrintValidatedDecisionShadow(int pairIndex, BBMA_Decision &decision)
          " DIDH=", decisionHash,
          " AUTH=", D1AuthorityModeText(decision.D1AuthorityMode),
          " OFAM=", D1OpportunityFamilyText(decision.D1OpportunityFamily),
-         " OC=", (decision.D1OpportunityCycleID == "" ? "-" : decision.D1OpportunityCycleID));
+         " OC=", (decision.D1OpportunityCycleID == "" ? "-" : decision.D1OpportunityCycleID),
+         " LTF=", D1OpportunityLTFClusterText(decision),
+         " OSH=", (decision.SequenceHash == "" ? "-" : decision.SequenceHash));
 }
 
 //+------------------------------------------------------------------+
@@ -5239,9 +5257,13 @@ void BuildD1OpportunityCandidate(int pairIndex,
    candidate.SequenceType = SIGNAL_RE_ENTRY;
    candidate.Direction = opportunity.Direction;
    candidate.ComponentCount = componentCount;
-   candidate.SequenceStartTime = opportunity.SourceCandleTime;
-   candidate.SequenceHash = SHORT_HASH("D1OPP|" + opportunity.CycleID + "|" +
-                                      IntegerToString((int)opportunity.Family) + ltfIdentity, 16);
+   // D1O-07: fresh LTF Re-Entry owns execution identity; D1 is attribution only.
+   ReEntryData identityRE = h1Fresh ? h1 : m15;
+   candidate.SequenceStartTime = identityRE.ConfirmationCandle;
+   string canonicalIdentity = "RE_ENTRY|" + IntegerToString(identityRE.Direction) + "|" +
+                              IntegerToString(identityRE.Timeframe) + "|" +
+                              TimeToString(identityRE.ConfirmationCandle);
+   candidate.SequenceHash = SHORT_HASH(canonicalIdentity, 16);
    candidate.Expiry = expiry;
    candidate.SLTPSource = SIGNAL_RE_ENTRY;
    candidate.PriorityTier = TIER_NONE;
@@ -5261,12 +5283,18 @@ void BuildD1OpportunityCandidate(int pairIndex,
 
 datetime GetCandidateAnchorTime(ValidatedSequenceCandidate &candidate)
 {
-   datetime anchor = candidate.Components[0].CandleTime;
-   for(int i = 1; i < 3; i++)
+   if(candidate.UsesD1Opportunity)
    {
-      if(candidate.Components[i].CandleTime > anchor)
-         anchor = candidate.Components[i].CandleTime;
+      for(int i=0; i<candidate.ComponentCount && i<3; i++)
+      {
+         if(candidate.Components[i].ComponentType == SIGNAL_RE_ENTRY &&
+            candidate.Components[i].Timeframe == PERIOD_H1 &&
+            candidate.Components[i].CandleTime > 0)
+            return candidate.Components[i].CandleTime;
+      }
    }
+   datetime anchor=candidate.Components[0].CandleTime;
+   for(int i=1;i<3;i++) if(candidate.Components[i].CandleTime>anchor) anchor=candidate.Components[i].CandleTime;
    return anchor;
 }
 

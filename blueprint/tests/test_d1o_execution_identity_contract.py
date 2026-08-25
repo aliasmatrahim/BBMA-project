@@ -28,6 +28,7 @@ anchor_start = src.index('datetime GetCandidateAnchorTime(')
 anchor_end = src.index('bool ResolveSelectedSLTPSourceComponent(', anchor_start)
 anchor_fn = src[anchor_start:anchor_end]
 assert 'candidate.UsesD1Opportunity' in anchor_fn
-assert 'component.Timeframe == PERIOD_H1' in anchor_fn
+assert 'candidate.Components[i].Timeframe == PERIOD_H1' in anchor_fn
+assert 'return candidate.Components[i].CandleTime;' in anchor_fn
 
 print('D1O execution identity contract drift guard: PASS')

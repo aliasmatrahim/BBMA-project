@@ -1,0 +1,36 @@
+name: D1 TPW v4.58 runtime probe 2
+
+on:
+  push:
+    branches:
+      - d1-owner-dev
+    paths:
+      - blueprint/.run-d1-tpw-v458-runtime-probe2
+
+permissions:
+  contents: read
+
+jobs:
+  runtime-probe:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          fetch-depth: 0
+
+      - name: Run source-bound MT4 probe
+        shell: pwsh
+        run: .\blueprint\ci\d1_tpw_v458_runtime_probe.ps1
+
+      - name: Upload probe evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: d1-tpw-v458-runtime-probe2-evidence
+          path: |
+            ${{ runner.temp }}/d1-tpw-v458-runtime-summary.txt
+            ${{ runner.temp }}/d1-tpw-v458-runtime-compile.log
+            ${{ runner.temp }}/d1-tpw-v458-runtime-combined.log
+          if-no-files-found: warn

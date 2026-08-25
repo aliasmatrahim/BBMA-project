@@ -1,4 +1,4 @@
-name: M17 status reconciliation
+name: M17 final temporary-file cleanup
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  reconcile:
+  cleanup:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,65 +17,36 @@ jobs:
           ref: d1-owner-dev
           fetch-depth: 0
 
-      - name: Reconcile M17 decision queue and current status
+      - name: Remove completed M17 temporary tooling
         shell: bash
         run: |
-          python - <<'PY'
-          from pathlib import Path
+          set -euo pipefail
+          EXPECTED_BLOB="4ccd444a96a34b494653143a7560516a4147b5bc"
+          test "$(git rev-parse HEAD:blueprint/source/BBMA_EA.mq4)" = "$EXPECTED_BLOB"
 
-          decision = Path('blueprint/decisions/M17_REENTRY_STRUCTURAL_RANGE_SL_EXECUTION_NORMALIZATION_DECISION_20260825.md')
-          d = decision.read_text(encoding='utf-8')
-          old = 'Status: **LOCKED / APPROVED / QUEUED FOR NEXT SOURCE UPDATE / NO CURRENT MQL4 CHANGE**'
-          new = 'Status: **IMPLEMENTED / STATIC REGRESSION PASS / NATIVE METAEDITOR 0E0W PASS / RUNTIME TRACE PENDING**'
-          if old in d:
-              d = d.replace(old, new, 1)
-          elif new not in d:
-              raise SystemExit('unexpected M17 decision status')
-          marker = '## Implementation closure — 2026-08-25'
-          if marker not in d:
-              d += f'''\n\n{marker}\n\nImplemented in `blueprint/source/BBMA_EA.mq4` version 4.52.\n\nFinal source Git blob: `4ccd444a96a34b494653143a7560516a4147b5bc`.\n\nImplementation audit: `blueprint/M17_STRUCTURAL_RANGE_SL_EXECUTION_NORMALIZATION_IMPLEMENTATION_AUDIT_20260825.md`.\n\nFinal native compile: run `32849850304`, job `97807956720`, **0 errors / 0 warnings**.\n\nStatic protected/MM regression: run `32849979993`, **PASS**.\n\nTP semantics remain unchanged and separately governed by `blueprint/M17_TP_AUTHORITY_RECONCILIATION_AUDIT_20260825.md`. Runtime BUY/SELL broker evidence remains pending.\n'''
-          decision.write_text(d, encoding='utf-8', newline='\n')
+          git rm -f --ignore-unmatch -- \
+            blueprint/tools/apply_m17_structural_sl_patch.py \
+            blueprint/tools/remove_m17_protected_flow_telemetry.py \
+            .github/workflows/m17-structural-sl-implementation.yml \
+            .github/m17-structural-sl-trigger.txt \
+            .github/workflows/m17-protected-flow-cleanup.yml \
+            .github/m17-protected-flow-cleanup-trigger.txt \
+            .github/workflows/m17-structural-sl-native-compile.yml \
+            .github/m17-structural-sl-native-compile-trigger.txt \
+            .github/workflows/m17-structural-sl-regression-audit.yml \
+            .github/m17-structural-sl-regression-trigger.txt \
+            .github/workflows/m17-status-reconciliation.yml \
+            .github/m17-status-reconciliation-trigger.txt
 
-          queue = Path('blueprint/MASTER_QUEUE.md')
-          q = queue.read_text(encoding='utf-8')
-          oldq = 'Status: **LOCKED / APPROVED / QUEUED / NOT YET IMPLEMENTED**'
-          newq = 'Status: **IMPLEMENTED / STATIC REGRESSION PASS / NATIVE METAEDITOR 0E0W PASS / RUNTIME TRACE PENDING**'
-          header = '## 2026-08-25 — Locked Next-Update Item: Re-Entry Structural-Range SL + SELL Spread Normalization'
-          hp = q.find(header)
-          if hp < 0:
-              raise SystemExit('M17 queue overlay header missing')
-          sp = q.find(oldq, hp)
-          if sp >= 0:
-              q = q[:sp] + newq + q[sp+len(oldq):]
-          elif q.find(newq, hp) < 0:
-              raise SystemExit('unexpected M17 queue status')
-          stale = 'Current `BBMA_EA.mq4` remains unchanged until this queued source update is executed.'
-          if stale in q:
-              q = q.replace(stale,
-                            'Source update is complete; only broker/demo runtime semantic evidence remains pending for this M17 item.',
-                            1)
-          closure = '### M17 structural-range SL implementation closure — 2026-08-25'
-          if closure not in q:
-              q += f'''\n\n{closure}\nStatus: **CLOSED AT SOURCE/STATIC/NATIVE-COMPILE LEVEL — RUNTIME TRACE PENDING**\n- version: `4.52`; source blob: `4ccd444a96a34b494653143a7560516a4147b5bc`;\n- implementation audit: `blueprint/M17_STRUCTURAL_RANGE_SL_EXECUTION_NORMALIZATION_IMPLEMENTATION_AUDIT_20260825.md`;\n- protected/MM regression run `32849979993`: PASS;\n- native MetaEditor run `32849850304`: 0 errors / 0 warnings;\n- BUY uses lifecycle minimum Low - Point with no spread buffer; SELL uses lifecycle maximum High + Point + `max(2, ceil(frozen spread pips))`;\n- AutoLot uses the final SL through unchanged M21 sizing;\n- TP code is unchanged. Latest authoritative 2026-08-25 Core keeps material Re-Entry TP/lifecycle changes on strategy HOLD; see `blueprint/M17_TP_AUTHORITY_RECONCILIATION_AUDIT_20260825.md`;\n- next M17 action: broker/demo BUY+SELL runtime evidence, including JPY/non-JPY where practical.\n'''
-          queue.write_text(q, encoding='utf-8', newline='\n')
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo "No M17 temporary files remained"
+            exit 0
+          fi
 
-          current = Path('blueprint/CURRENT.md')
-          c = current.read_text(encoding='utf-8')
-          current_marker = '# 2026-08-25 M17 Structural-Range SL Implementation Overlay'
-          if current_marker not in c:
-              c += f'''\n\n{current_marker}\n- **Source version:** 4.52 — M17 Structural SL Normalization.\n- **Current source Git blob:** `4ccd444a96a34b494653143a7560516a4147b5bc`.\n- **Windows checkout SHA-256:** `0b6fd57c56b193918c828db5270fa5239d02b4c2f7b5f103f712c260d9539d52`.\n- **Native MetaEditor final:** run `32849850304`, job `97807956720`, **0 errors / 0 warnings / 151 ms**.\n- **Compile artifact:** `9564102891`, digest `sha256:5309c228855aa728edfceb97b8146d643327d8e8f2e91cccf96a153df8d9c1ac`.\n- **Protected/MM regression:** run `32849979993` PASS; `ResolveSelectedSLTPSourceComponent`, `RunEntryPreflightAndExecute`, and `CalculateLotSize` unchanged from pre-M17 baseline.\n- **M17 state:** source/static/native compile closed; broker/demo runtime trace pending.\n- **TP boundary:** TP implementation unchanged; 2026-08-25 authoritative reconciliation retains material Re-Entry TP/no-Momentum lifecycle behavior as strategy HOLD.\n'''
-          current.write_text(c, encoding='utf-8', newline='\n')
-          PY
-
-      - name: Verify no source change and commit docs
-        shell: bash
-        run: |
-          test "$(git rev-parse HEAD:blueprint/source/BBMA_EA.mq4)" = "4ccd444a96a34b494653143a7560516a4147b5bc"
-          git diff --check
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- blueprint/decisions/M17_REENTRY_STRUCTURAL_RANGE_SL_EXECUTION_NORMALIZATION_DECISION_20260825.md blueprint/MASTER_QUEUE.md blueprint/CURRENT.md
-          git commit -m "docs: reconcile final M17 status wording"
+          git commit -m "chore: remove completed M17 temporary CI tooling"
           git pull --rebase origin d1-owner-dev
-          test "$(git rev-parse HEAD:blueprint/source/BBMA_EA.mq4)" = "4ccd444a96a34b494653143a7560516a4147b5bc"
+          test "$(git rev-parse HEAD:blueprint/source/BBMA_EA.mq4)" = "$EXPECTED_BLOB"
           git push origin HEAD:d1-owner-dev

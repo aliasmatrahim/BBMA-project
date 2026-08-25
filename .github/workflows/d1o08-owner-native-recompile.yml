@@ -1,0 +1,91 @@
+name: D1O-08 Current Owner Native Recompile
+
+on:
+  pull_request:
+    branches: [ d1-owner-dev ]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'blueprint/.run-d1o08-owner-native-recompile'
+      - '.github/workflows/d1o08-owner-native-recompile.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  compile:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify current D1O-07 owner source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $src='.\blueprint\source\BBMA_EA.mq4'
+          if(-not (Test-Path $src)){ throw 'source missing' }
+          $txt=Get-Content $src -Raw
+          foreach($required in @(
+            'Version 4.5.1 - D1O-07 Canonical LTF Dedup',
+            'D1OpportunityLTFClusterText',
+            'string canonicalIdentity = "RE_ENTRY|',
+            'candidate.SequenceStartTime = identityRE.ConfirmationCandle;',
+            'D1O-07 Canonical LTF Dedup initialized successfully'
+          )){
+            if($txt -notmatch [regex]::Escape($required)){ throw "missing invariant: $required" }
+          }
+          if($txt -match 'ltfIdentity'){ throw 'stale ltfIdentity remains' }
+          if($txt -match [regex]::Escape('SHORT_HASH("D1OPP|" + opportunity.CycleID')){ throw 'legacy D1-owned hash remains' }
+          "SOURCE_SHA256=$((Get-FileHash $src -Algorithm SHA256).Hash.ToLower())" | Out-File $env:GITHUB_ENV -Append
+      - name: Acquire official MT4 using proven D1O-07 loop
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $meta=Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if(-not $meta){
+            $setup=Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+            Invoke-WebRequest -Uri 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -OutFile $setup -UseBasicParsing
+            $proc=Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
+            for($i=0;$i -lt 84;$i++){
+              Start-Sleep -Seconds 5
+              $meta=Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+              if($meta){ break }
+              if($proc.HasExited -and $i -gt 12){ break }
+            }
+            if($proc -and -not $proc.HasExited){ try{$proc.Kill()}catch{} }
+          }
+          if(-not $meta){ throw 'Official MT4 MetaEditor not found' }
+          "METAEDITOR=$($meta.FullName)" | Out-File $env:GITHUB_ENV -Append
+      - name: Native MetaEditor 0E0W compile
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $src=(Resolve-Path '.\blueprint\source\BBMA_EA.mq4').Path
+          $log=Join-Path $env:RUNNER_TEMP 'd1o08-owner-native.log'
+          & "$env:METAEDITOR" "/compile:$src" "/log:$log"
+          Start-Sleep -Seconds 2
+          if(-not (Test-Path $log)){ throw 'MetaEditor compile log missing' }
+          $txt=Get-Content $log -Raw
+          $txt | Write-Host
+          $matches=[regex]::Matches($txt,'(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
+          if($matches.Count -lt 1){ throw 'Unable to parse compile summary' }
+          $m=$matches[$matches.Count-1]
+          $errors=[int]$m.Groups[1].Value
+          $warnings=[int]$m.Groups[2].Value
+          if($errors -ne 0 -or $warnings -ne 0){ throw "Native compile failed: $errors errors / $warnings warnings" }
+          $ex4=[System.IO.Path]::ChangeExtension($src,'.ex4')
+          if(-not (Test-Path $ex4)){ throw 'EX4 missing' }
+          @"
+          D1O08_OWNER_NATIVE=PASS
+          SOURCE_SHA256=$env:SOURCE_SHA256
+          ERRORS=$errors
+          WARNINGS=$warnings
+          "@ | Set-Content (Join-Path $env:RUNNER_TEMP 'd1o08-owner-result.txt')
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: d1o08-owner-native-evidence
+          path: |
+            blueprint/source/BBMA_EA.ex4
+            ${{ runner.temp }}/d1o08-owner-native.log
+            ${{ runner.temp }}/d1o08-owner-result.txt
+          if-no-files-found: warn

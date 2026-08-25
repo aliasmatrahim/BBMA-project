@@ -21,78 +21,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-
-          current = Path('blueprint/CURRENT.md')
-          queue = Path('blueprint/MASTER_QUEUE.md')
-          marker_current = '## 2026-08-25 — D1/D1O Authoritative Current-State Overlay'
-          marker_queue = '## 2026-08-25 — D1/D1O Queue Reconciliation Overlay'
-
-          current_overlay = r'''
-
-## 2026-08-25 — D1/D1O Authoritative Current-State Overlay
-
-> This dated overlay supersedes older statements in this file that describe D1 strategic ownership or D1 opportunity execution as deferred/unimplemented. Historical sections are retained for provenance.
-
-### Current implementation owner
-- Active implementation branch: `d1-owner-dev`.
-- Current EA build: `Version 4.5.1 - D1O-07 Canonical LTF Dedup`.
-- D1 Step 1–9 strategic-owner implementation/audit lineage is present on this branch.
-- D1 opportunity execution is materialized; D1 CycleID/family are attribution metadata, while fresh LTF Re-Entry owns executable dedup identity.
-
-### Current validation status
-- D1O-07 current-baseline static materialization: PASS.
-- Canonical dedup analyzer synthetic self-test: PASS.
-- Execution-identity drift guard: PASS.
-- Current owner native MetaEditor compile: PASS — 0 errors / 0 warnings.
-- MT4 attach/runtime smoke with `ExpertsTrades=false`: PASS, classified `ATTACH_OK_NO_BROKER_DATA`.
-- No fatal runtime signatures found in offline smoke.
-
-### Remaining evidence gate
-Broker-connected D1 opportunity/decision telemetry is still required to prove runtime behavior under real market data. Specifically:
-- same fresh LTF identity must retain the same execution hash across D1 CycleID/family attribution changes;
-- a single execution hash must never change direction;
-- Mode-1/D1/H4/M15 runtime matrix still needs broker/demo traces.
-
-### Strategy/source guard
-Workbook forensic HOLD families remain excluded from executable behavior. Safe V2.x Workbook clarifications are documentation/context only unless already covered by accepted canonical implementation contracts.
-'''
-
-          queue_overlay = r'''
-
-## 2026-08-25 — D1/D1O Queue Reconciliation Overlay
-
-> This overlay supersedes older queue entries saying D1 strategic ownership is deferred or absent. Those entries remain only as historical provenance.
-
-### Completed / closed
-- D1 Step 1–9 strategic-owner implementation lineage: completed at static/native-validation level on `d1-owner-dev`.
-- D1O-07 canonical LTF dedup materialized on current owner baseline.
-- D1O-07 static owner-baseline audit: PASS.
-- D1O-09 canonical dedup analyzer self-test: PASS.
-- D1O-09 execution identity contract self-test: PASS.
-- D1O-08 current owner native MT4 compile: PASS, 0E/0W.
-- D1O-10 trading-disabled runtime attach smoke: PASS / `ATTACH_OK_NO_BROKER_DATA`.
-- Temporary D1O validation PRs closed without merge after evidence harvest.
-
-### Active next execution order
-1. Re-run P3-M1 Mode-1 static compliance against current D1O-07 source.
-2. Re-run focused cross-module regression for D1/D1O changes: M15 selection -> M16 revalidation -> M17 source SL/TP -> M22 idempotent execution -> M24 recovery identity.
-3. Audit queued technical observability defects that do not change strategy (including `REJ_INVALID_LOT` diagnostics and dashboard live-trade count refresh).
-4. Broker/demo runtime evidence when available: D1 owner matrix + D1 opportunity canonical dedup telemetry + validation-candle-before-order-open timing.
-5. Do not promote Workbook HOLD rules or strategy-changing lifecycle/TP behavior without an explicit strategy decision gate.
-
-### Non-blocking environment limitation
-GitHub offline MT4 smoke has no broker market feed. Lack of D1 decision telemetry in that environment is not a source failure and must not block safe static/audit work.
-'''
-
-          c = current.read_text(encoding='utf-8')
-          q = queue.read_text(encoding='utf-8')
-          if marker_current not in c:
-              current.write_text(c.rstrip() + current_overlay + '\n', encoding='utf-8')
-          if marker_queue not in q:
-              queue.write_text(q.rstrip() + queue_overlay + '\n', encoding='utf-8')
-          PY
+          CURRENT_B64='IyMgMjAyNi0wOC0yNSDigJQgRDEvRDFPIEF1dGhvcml0YXRpdmUgQ3VycmVudC1TdGF0ZSBPdmVybGF5Cgo+IFRoaXMgZGF0ZWQgb3ZlcmxheSBzdXBlcnNlZGVzIG9sZGVyIHN0YXRlbWVudHMgaW4gdGhpcyBmaWxlIHRoYXQgZGVzY3JpYmUgRDEgc3RyYXRlZ2ljIG93bmVyc2hpcCBvciBEMSBvcHBvcnR1bml0eSBleGVjdXRpb24gYXMgZGVmZXJyZWQvdW5pbXBsZW1lbnRlZC4gSGlzdG9yaWNhbCBzZWN0aW9ucyBhcmUgcmV0YWluZWQgZm9yIHByb3ZlbmFuY2UuCgojIyMgQ3VycmVudCBpbXBsZW1lbnRhdGlvbiBvd25lcgotIEFjdGl2ZSBpbXBsZW1lbnRhdGlvbiBicmFuY2g6IGBkMS1vd25lci1kZXZgLgotIEN1cnJlbnQgRUEgYnVpbGQ6IGBWZXJzaW9uIDQuNS4xIC0gRDFPLTA3IENhbm9uaWNhbCBMVEYgRGVkdXBgLgotIEQxIFN0ZXAgMeKAkzkgc3RyYXRlZ2ljLW93bmVyIGltcGxlbWVudGF0aW9uL2F1ZGl0IGxpbmVhZ2UgaXMgcHJlc2VudCBvbiB0aGlzIGJyYW5jaC4KLSBEMSBvcHBvcnR1bml0eSBleGVjdXRpb24gaXMgbWF0ZXJpYWxpemVkOyBEMSBDeWNsZUlEL2ZhbWlseSBhcmUgYXR0cmlidXRpb24gbWV0YWRhdGEsIHdoaWxlIGZyZXNoIExURiBSZS1FbnRyeSBvd25zIGV4ZWN1dGFibGUgZGVkdXAgaWRlbnRpdHkuCgojIyMgQ3VycmVudCB2YWxpZGF0aW9uIHN0YXR1cwotIEQxTy0wNyBjdXJyZW50LWJhc2VsaW5lIHN0YXRpYyBtYXRlcmlhbGl6YXRpb246IFBBU1MuCi0gQ2Fub25pY2FsIGRlZHVwIGFuYWx5emVyIHN5bnRoZXRpYyBzZWxmLXRlc3Q6IFBBU1MuCi0gRXhlY3V0aW9uLWlkZW50aXR5IGRyaWZ0IGd1YXJkOiBQQVNTLgotIEN1cnJlbnQgb3duZXIgbmF0aXZlIE1ldGFFZGl0b3IgY29tcGlsZTogUEFTUyDigJQgMCBlcnJvcnMgLyAwIHdhcm5pbmdzLgotIE1UNCBhdHRhY2gvcnVudGltZSBzbW9rZSB3aXRoIGBFeHBlcnRzVHJhZGVzPWZhbHNlYDogUEFTUywgY2xhc3NpZmllZCBgQVRUQUNIX09LX05PX0JST0tFUl9EQVRBYC4KLSBObyBmYXRhbCBydW50aW1lIHNpZ25hdHVyZXMgZm91bmQgaW4gb2ZmbGluZSBzbW9rZS4KCiMjIyBSZW1haW5pbmcgZXZpZGVuY2UgZ2F0ZQpCcm9rZXItY29ubmVjdGVkIEQxIG9wcG9ydHVuaXR5L2RlY2lzaW9uIHRlbGVtZXRyeSBpcyBzdGlsbCByZXF1aXJlZCB0byBwcm92ZSBydW50aW1lIGJlaGF2aW9yIHVuZGVyIHJlYWwgbWFya2V0IGRhdGEuIFNwZWNpZmljYWxseToKLSBzYW1lIGZyZXNoIExURiBpZGVudGl0eSBtdXN0IHJldGFpbiB0aGUgc2FtZSBleGVjdXRpb24gaGFzaCBhY3Jvc3MgRDEgQ3ljbGVJRC9mYW1pbHkgYXR0cmlidXRpb24gY2hhbmdlczsKLSBhIHNpbmdsZSBleGVjdXRpb24gaGFzaCBtdXN0IG5ldmVyIGNoYW5nZSBkaXJlY3Rpb247Ci0gTW9kZS0xL0QxL0g0L00xNSBydW50aW1lIG1hdHJpeCBzdGlsbCBuZWVkcyBicm9rZXIvZGVtbyB0cmFjZXMuCgojIyMgU3RyYXRlZ3kvc291cmNlIGd1YXJkCldvcmtib29rIGZvcmVuc2ljIEhPTEQgZmFtaWxpZXMgcmVtYWluIGV4Y2x1ZGVkIGZyb20gZXhlY3V0YWJsZSBiZWhhdmlvci4gU2FmZSBWMi54IFdvcmtib29rIGNsYXJpZmljYXRpb25zIGFyZSBkb2N1bWVudGF0aW9uL2NvbnRleHQgb25seSB1bmxlc3MgYWxyZWFkeSBjb3ZlcmVkIGJ5IGFjY2VwdGVkIGNhbm9uaWNhbCBpbXBsZW1lbnRhdGlvbiBjb250cmFjdHMuCg=='
+          QUEUE_B64='IyMgMjAyNi0wOC0yNSDigJQgRDEvRDFPIFF1ZXVlIFJlY29uY2lsaWF0aW9uIE92ZXJsYXkKCj4gVGhpcyBvdmVybGF5IHN1cGVyc2VkZXMgb2xkZXIgcXVldWUgZW50cmllcyBzYXlpbmcgRDEgc3RyYXRlZ2ljIG93bmVyc2hpcCBpcyBkZWZlcnJlZCBvciBhYnNlbnQuIFRob3NlIGVudHJpZXMgcmVtYWluIG9ubHkgYXMgaGlzdG9yaWNhbCBwcm92ZW5hbmNlLgoKIyMjIENvbXBsZXRlZCAvIGNsb3NlZAotIEQxIFN0ZXAgMeKAkzkgc3RyYXRlZ2ljLW93bmVyIGltcGxlbWVudGF0aW9uIGxpbmVhZ2U6IGNvbXBsZXRlZCBhdCBzdGF0aWMvbmF0aXZlLXZhbGlkYXRpb24gbGV2ZWwgb24gYGQxLW93bmVyLWRldmAuCi0gRDFPLTA3IGNhbm9uaWNhbCBMVEYgZGVkdXAgbWF0ZXJpYWxpemVkIG9uIGN1cnJlbnQgb3duZXIgYmFzZWxpbmUuCi0gRDFPLTA3IHN0YXRpYyBvd25lci1iYXNlbGluZSBhdWRpdDogUEFTUy4KLSBEMU8tMDkgY2Fub25pY2FsIGRlZHVwIGFuYWx5emVyIHNlbGYtdGVzdDogUEFTUy4KLSBEMU8tMDkgZXhlY3V0aW9uIGlkZW50aXR5IGNvbnRyYWN0IHNlbGYtdGVzdDogUEFTUy4KLSBEMU8tMDggY3VycmVudCBvd25lciBuYXRpdmUgTVQ0IGNvbXBpbGU6IFBBU1MsIDBFLzBXLgotIEQxTy0xMCB0cmFkaW5nLWRpc2FibGVkIHJ1bnRpbWUgYXR0YWNoIHNtb2tlOiBQQVNTIC8gYEFUVEFDSF9PS19OT19CUk9LRVJfREFUQWAuCi0gVGVtcG9yYXJ5IEQxTyB2YWxpZGF0aW9uIFBScyBjbG9zZWQgd2l0aG91dCBtZXJnZSBhZnRlciBldmlkZW5jZSBoYXJ2ZXN0LgoKIyMjIEFjdGl2ZSBuZXh0IGV4ZWN1dGlvbiBvcmRlcgoxLiBSZS1ydW4gUDMtTTEgTW9kZS0xIHN0YXRpYyBjb21wbGlhbmNlIGFnYWluc3QgY3VycmVudCBEMU8tMDcgc291cmNlLgoyLiBSZS1ydW4gZm9jdXNlZCBjcm9zcy1tb2R1bGUgcmVncmVzc2lvbiBmb3IgRDEvRDFPIGNoYW5nZXM6IE0xNSBzZWxlY3Rpb24gLT4gTTE2IHJldmFsaWRhdGlvbiAtPiBNMTcgc291cmNlIFNML1RQIC0+IE0yMiBpZGVtcG90ZW50IGV4ZWN1dGlvbiAtPiBNMjQgcmVjb3ZlcnkgaWRlbnRpdHkuCjMuIEF1ZGl0IHF1ZXVlZCB0ZWNobmljYWwgb2JzZXJ2YWJpbGl0eSBkZWZlY3RzIHRoYXQgZG8gbm90IGNoYW5nZSBzdHJhdGVneSAoaW5jbHVkaW5nIGBSRUpfSU5WQUxJRF9MT1RgIGRpYWdub3N0aWNzIGFuZCBkYXNoYm9hcmQgbGl2ZS10cmFkZSBjb3VudCByZWZyZXNoKS4KNC4gQnJva2VyL2RlbW8gcnVudGltZSBldmlkZW5jZSB3aGVuIGF2YWlsYWJsZTogRDEgb3duZXIgbWF0cml4ICsgRDEgb3Bwb3J0dW5pdHkgY2Fub25pY2FsIGRlZHVwIHRlbGVtZXRyeSArIHZhbGlkYXRpb24tY2FuZGxlLWJlZm9yZS1vcmRlci1vcGVuIHRpbWluZy4KNS4gRG8gbm90IHByb21vdGUgV29ya2Jvb2sgSE9MRCBydWxlcyBvciBzdHJhdGVneS1jaGFuZ2luZyBsaWZlY3ljbGUvVFAgYmVoYXZpb3Igd2l0aG91dCBhbiBleHBsaWNpdCBzdHJhdGVneSBkZWNpc2lvbiBnYXRlLgoKIyMjIE5vbi1ibG9ja2luZyBlbnZpcm9ubWVudCBsaW1pdGF0aW9uCkdpdEh1YiBvZmZsaW5lIE1UNCBzbW9rZSBoYXMgbm8gYnJva2VyIG1hcmtldCBmZWVkLiBMYWNrIG9mIEQxIGRlY2lzaW9uIHRlbGVtZXRyeSBpbiB0aGF0IGVudmlyb25tZW50IGlzIG5vdCBhIHNvdXJjZSBmYWlsdXJlIGFuZCBtdXN0IG5vdCBibG9jayBzYWZlIHN0YXRpYy9hdWRpdCB3b3JrLgo='
+          if ! grep -Fq 'D1/D1O Authoritative Current-State Overlay' blueprint/CURRENT.md; then
+            printf '\n' >> blueprint/CURRENT.md
+            printf '%s' "$CURRENT_B64" | base64 -d >> blueprint/CURRENT.md
+            printf '\n' >> blueprint/CURRENT.md
+          fi
+          if ! grep -Fq 'D1/D1O Queue Reconciliation Overlay' blueprint/MASTER_QUEUE.md; then
+            printf '\n' >> blueprint/MASTER_QUEUE.md
+            printf '%s' "$QUEUE_B64" | base64 -d >> blueprint/MASTER_QUEUE.md
+            printf '\n' >> blueprint/MASTER_QUEUE.md
+          fi
           grep -Fq 'D1/D1O Authoritative Current-State Overlay' blueprint/CURRENT.md
           grep -Fq 'D1/D1O Queue Reconciliation Overlay' blueprint/MASTER_QUEUE.md
           git diff --check

@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
-"""Correlate N1 NMJE journey observations with N2 validated-decision shadow tags.
+"""Correlate NMJE observations with validated-decision shadow tags.
 
 Research/diagnostic only. This tool never changes EA source or trading logic.
-N2-01A encodes whitespace inside DecisionID as `~` so each diagnostic field
-remains one log token; this parser restores the original DecisionID before any
-identity correlation.
-
-Usage:
-  python blueprint/tools/n2_nmje_decision_correlator.py path/to/log.txt
-  python blueprint/tools/n2_nmje_decision_correlator.py logs/*.log --json out.json
+N2-01A encodes whitespace inside DecisionID as `~`; this parser restores the
+original DecisionID. D1O-02 optionally appends AUTH/OFAM/OC fields so outcomes
+can be measured separately for legacy strategic and D1 Opportunity decisions.
 """
 
 from __future__ import annotations
@@ -44,6 +40,9 @@ N2_RE = re.compile(
     r"J=(?P<journey>\S+)\s+"
     r"DID=(?P<decision_id>\S+)"
     r"(?:\s+DIDH=(?P<decision_hash>\S+))?"
+    r"(?:\s+AUTH=(?P<authority>\S+))?"
+    r"(?:\s+OFAM=(?P<opportunity_family>\S+))?"
+    r"(?:\s+OC=(?P<opportunity_cycle>\S+))?"
 )
 
 
@@ -78,6 +77,9 @@ class DecisionShadow:
     journey: str
     decision_id: str
     decision_hash: str = ""
+    authority: str = ""
+    opportunity_family: str = ""
+    opportunity_cycle: str = ""
 
 
 def iter_records(paths: Iterable[Path]) -> tuple[list[JourneyObservation], list[DecisionShadow]]:
@@ -98,7 +100,8 @@ def iter_records(paths: Iterable[Path]) -> tuple[list[JourneyObservation], list[
                 if n2:
                     fields = n2.groupdict()
                     fields["decision_id"] = decode_identity_token(fields["decision_id"])
-                    fields["decision_hash"] = fields.get("decision_hash") or ""
+                    for key in ("decision_hash", "authority", "opportunity_family", "opportunity_cycle"):
+                        fields[key] = fields.get(key) or ""
                     decisions.append(
                         DecisionShadow(file=str(path), line_no=line_no, **fields)
                     )
@@ -125,14 +128,11 @@ def correlate(
         seen_decision_ids.add(dec.decision_id)
 
         previous = [
-            obs
-            for obs in by_pair.get(dec.pair, [])
+            obs for obs in by_pair.get(dec.pair, [])
             if obs.file == dec.file and obs.line_no < dec.line_no
         ]
-
         exact = [
-            obs
-            for obs in previous
+            obs for obs in previous
             if dec.journey != "-" and obs.journey == dec.journey
         ]
 
@@ -161,20 +161,15 @@ def correlate(
             decision_value = getattr(dec, field)
             context_value = getattr(context, field)
             if decision_value != context_value:
-                mismatches[field] = {
-                    "decision": decision_value,
-                    "context": context_value,
-                }
+                mismatches[field] = {"decision": decision_value, "context": context_value}
 
         if mismatches:
-            context_mismatches.append(
-                {
-                    "decision_id": dec.decision_id,
-                    "pair": dec.pair,
-                    "match_mode": match_mode,
-                    "mismatches": mismatches,
-                }
-            )
+            context_mismatches.append({
+                "decision_id": dec.decision_id,
+                "pair": dec.pair,
+                "match_mode": match_mode,
+                "mismatches": mismatches,
+            })
 
     signal_names = sorted({d.signal for d in decisions})
     relation_names = sorted({d.relation for d in decisions})
@@ -187,6 +182,8 @@ def correlate(
         "decision_relation_counts": dict(Counter(d.relation for d in decisions)),
         "decision_signal_counts": dict(Counter(d.signal for d in decisions)),
         "decision_direction_counts": dict(Counter(d.direction for d in decisions)),
+        "decision_authority_counts": dict(Counter((d.authority or "LEGACY_UNSPECIFIED") for d in decisions)),
+        "decision_opportunity_family_counts": dict(Counter((d.opportunity_family or "NONE") for d in decisions)),
         "decision_relation_by_signal": {
             signal: dict(Counter(d.relation for d in decisions if d.signal == signal))
             for signal in signal_names
@@ -195,12 +192,8 @@ def correlate(
             relation: dict(Counter(d.signal for d in decisions if d.relation == relation))
             for relation in relation_names
         },
-        "exact_journey_matches": sum(
-            1 for row in rows if row["match_mode"] == "EXACT_JOURNEY"
-        ),
-        "pair_fallback_matches": sum(
-            1 for row in rows if row["match_mode"] == "PAIR_FALLBACK_NO_JOURNEY"
-        ),
+        "exact_journey_matches": sum(1 for row in rows if row["match_mode"] == "EXACT_JOURNEY"),
+        "pair_fallback_matches": sum(1 for row in rows if row["match_mode"] == "PAIR_FALLBACK_NO_JOURNEY"),
         "orphan_decisions": orphan_decisions,
         "context_mismatches": context_mismatches,
         "duplicate_decision_ids": duplicate_decision_ids,
@@ -209,28 +202,27 @@ def correlate(
 
 
 def print_report(report: dict) -> None:
-    print("N2 NMJE DECISION CORRELATION")
-    print("============================")
-    print(f"N1 observations       : {report['n1_observation_count']}")
-    print(f"N2 validated decisions: {report['n2_decision_count']}")
-    print(f"Unique DecisionIDs    : {report['unique_decision_ids']}")
-    print(f"Decision journeys     : {report['unique_decision_journeys']}")
+    print("N2/D1O DECISION CORRELATION")
+    print("===========================")
+    print(f"N1 observations        : {report['n1_observation_count']}")
+    print(f"Validated decisions    : {report['n2_decision_count']}")
+    print(f"Unique DecisionIDs     : {report['unique_decision_ids']}")
+    print(f"Decision journeys      : {report['unique_decision_journeys']}")
     print()
 
     print("Validated decisions by nested relation")
     for key, value in sorted(report["decision_relation_counts"].items()):
-        print(f"  {key:12s} {value}")
+        print(f"  {key:16s} {value}")
     print()
 
-    print("Validated decisions by signal")
-    for key, value in sorted(report["decision_signal_counts"].items()):
-        print(f"  {key:22s} {value}")
+    print("Validated decisions by D1 authority")
+    for key, value in sorted(report["decision_authority_counts"].items()):
+        print(f"  {key:16s} {value}")
     print()
 
-    print("Relation by signal")
-    for signal, values in report["decision_relation_by_signal"].items():
-        summary = ", ".join(f"{k}={v}" for k, v in sorted(values.items()))
-        print(f"  {signal}: {summary}")
+    print("Validated opportunity families")
+    for key, value in sorted(report["decision_opportunity_family_counts"].items()):
+        print(f"  {key:16s} {value}")
     print()
 
     print("Correlation integrity")
@@ -253,18 +245,13 @@ def main() -> int:
     missing = [str(path) for path in args.paths if not path.is_file()]
     if missing:
         raise SystemExit("Missing log file(s): " + ", ".join(missing))
-
     observations, decisions = iter_records(args.paths)
     report = correlate(observations, decisions)
     print_report(report)
-
     if args.json_path:
         args.json_path.parent.mkdir(parents=True, exist_ok=True)
-        args.json_path.write_text(
-            json.dumps(report, indent=2, sort_keys=True), encoding="utf-8"
-        )
+        args.json_path.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
         print(f"\nJSON: {args.json_path}")
-
     return 0
 
 

@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.5.2 - M17 Structural SL Normalization                 |
+//| Version 4.5.3 - C044 Targetless Payload Stage                 |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.52"
+#property version   "4.53"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -123,6 +123,9 @@ bool           EnableRE_Type1                     = true;
 bool           EnableRE_Type2                     = true;
 bool           EnableRE_Type3                     = true;
 bool           EnableRE_Type4                     = true;
+// C044 staged implementation gate. Keep OFF until M23/M24 lifecycle
+// close + restart reconstruction are implemented and verified.
+bool           EnableC044Lifecycle                = false;
 double         BasketProfitPercent                = 5.0;        // Display compatibility only; not execution TP
 int            MaxRetry                           = 3;
 int            BERetryInterval                    = 60;
@@ -667,6 +670,7 @@ struct BBMA_Decision
    bool                         D1OpportunitySnapshotValid;
    
    // MUTABLE LIFECYCLE
+   bool                 C044LifecycleManaged;
    ENUM_DECISION_STATE  DecisionState;
    ENUM_REJECTION_REASON RejectionReason;
 };
@@ -5975,11 +5979,21 @@ bool ResolveApprovedInitialSLTP(BBMA_Decision &decision,
                                           confirmationWick))
       return false;
 
-   if(!ResolveApprovedBBDestination(decision.Pair,
-                                    decision.SLTPSourceComponent,
-                                    decision.Direction,
-                                    destination))
-      return false;
+   // C044 is intentionally fail-safe gated OFF until M23/M24 lifecycle support
+   // is complete. While OFF, preserve the v4.52 static destination exactly.
+   if(!EnableC044Lifecycle)
+   {
+      if(!ResolveApprovedBBDestination(decision.Pair,
+                                       decision.SLTPSourceComponent,
+                                       decision.Direction,
+                                       destination))
+         return false;
+
+      if(decision.Direction == DIR_BUY && destination <= decision.EntryPrice)
+         return false;
+      if(decision.Direction == DIR_SELL && destination >= decision.EntryPrice)
+         return false;
+   }
 
    if(snapshot.Point <= 0.0 || decision.EntryPrice <= 0.0) return false;
 
@@ -6007,38 +6021,39 @@ bool ResolveApprovedInitialSLTP(BBMA_Decision &decision,
       brokerSL += roundedSpreadBufferPips * pipValue;
    }
 
-   if(decision.Direction == DIR_BUY && destination <= decision.EntryPrice)
-      return false;
-   if(decision.Direction == DIR_SELL && destination >= decision.EntryPrice)
-      return false;
-
    if(snapshot.TickSize_Price <= 0.0 || snapshot.Digits < 0) return false;
 
    double slTicks = brokerSL / snapshot.TickSize_Price;
-   double tpTicks = destination / snapshot.TickSize_Price;
    double normalizedSL = 0.0;
-   double normalizedTP = 0.0;
-
    if(decision.Direction == DIR_BUY)
-   {
       normalizedSL = MathFloor(slTicks + 0.000000001) * snapshot.TickSize_Price;
-      normalizedTP = MathFloor(tpTicks + 0.000000001) * snapshot.TickSize_Price;
-   }
    else if(decision.Direction == DIR_SELL)
-   {
       normalizedSL = MathCeil(slTicks - 0.000000001) * snapshot.TickSize_Price;
-      normalizedTP = MathCeil(tpTicks - 0.000000001) * snapshot.TickSize_Price;
-   }
    else
       return false;
 
    normalizedSL = NormalizeDouble(normalizedSL, snapshot.Digits);
-   normalizedTP = NormalizeDouble(normalizedTP, snapshot.Digits);
-   if(normalizedSL <= 0.0 || normalizedTP <= 0.0) return false;
+   if(normalizedSL <= 0.0) return false;
+
+   double normalizedTP = 0.0;
+   if(!EnableC044Lifecycle)
+   {
+      double tpTicks = destination / snapshot.TickSize_Price;
+      if(decision.Direction == DIR_BUY)
+         normalizedTP = MathFloor(tpTicks + 0.000000001) * snapshot.TickSize_Price;
+      else if(decision.Direction == DIR_SELL)
+         normalizedTP = MathCeil(tpTicks - 0.000000001) * snapshot.TickSize_Price;
+      else
+         return false;
+
+      normalizedTP = NormalizeDouble(normalizedTP, snapshot.Digits);
+      if(normalizedTP <= 0.0) return false;
+   }
 
    decision.StopLoss = normalizedSL;
-   decision.TakeProfit = normalizedTP;
+   decision.TakeProfit = EnableC044Lifecycle ? 0.0 : normalizedTP;
    decision.SLTPSource = decision.SLTPSourceComponent.ComponentType;
+   decision.C044LifecycleManaged = EnableC044Lifecycle;
 
    if(DebugLevel >= DBG_TRADE)
    {
@@ -6053,7 +6068,8 @@ bool ResolveApprovedInitialSLTP(BBMA_Decision &decision,
             " SpreadBufferPips=", DoubleToString(roundedSpreadBufferPips, 1),
             " StructuralSL=", DoubleToString(structuralSL, snapshot.Digits),
             " FinalBrokerSL=", DoubleToString(decision.StopLoss, snapshot.Digits),
-            " TP=", DoubleToString(decision.TakeProfit, snapshot.Digits));
+            " TP=", DoubleToString(decision.TakeProfit, snapshot.Digits),
+            " C044=", decision.C044LifecycleManaged ? "Y" : "N");
    }
    return true;
 }
@@ -6081,11 +6097,23 @@ bool ResolveExecutionReferencePrice(BBMA_Decision &decision, RiskValidationSnaps
 bool HasSourceResolvedSLTP(BBMA_Decision &decision)
 {
    if(decision.SLTPSource == SIGNAL_NONE) return false;
+   if(decision.C044LifecycleManaged)
+      return (decision.StopLoss > 0.0 && decision.TakeProfit == 0.0);
    return (decision.StopLoss > 0.0 && decision.TakeProfit > 0.0);
 }
 
 bool ValidateDirectionalSLTPGeometry(BBMA_Decision &decision)
 {
+   if(decision.C044LifecycleManaged)
+   {
+      if(decision.TakeProfit != 0.0) return false;
+      if(decision.Direction == DIR_BUY)
+         return (decision.StopLoss < decision.EntryPrice);
+      if(decision.Direction == DIR_SELL)
+         return (decision.StopLoss > decision.EntryPrice);
+      return false;
+   }
+
    if(decision.Direction == DIR_BUY)
       return (decision.StopLoss < decision.EntryPrice &&
               decision.TakeProfit > decision.EntryPrice);
@@ -6118,6 +6146,59 @@ bool ValidateSLTP(BBMA_Decision &decision, RiskValidationSnapshot &snapshot,
    {
       rejection = REJ_INVALID_SL;
       return false;
+   }
+
+   if(decision.C044LifecycleManaged)
+   {
+      if(decision.TakeProfit != 0.0)
+      {
+         rejection = REJ_INVALID_TP;
+         return false;
+      }
+
+      if(!ValidateDirectionalSLTPGeometry(decision))
+      {
+         rejection = REJ_INVALID_SL;
+         return false;
+      }
+
+      double slDistance = MathAbs(decision.EntryPrice - decision.StopLoss);
+      if(slDistance <= 0.0)
+      {
+         rejection = REJ_INVALID_SL;
+         return false;
+      }
+
+      double pipPrice = GetPipValue(decision.Pair);
+      if(MaxSLPips > 0.0 && pipPrice > 0.0 && slDistance > MaxSLPips * pipPrice)
+      {
+         rejection = REJ_INVALID_SL;
+         return false;
+      }
+
+      // C044 targetless lifecycle has no deterministic reward coordinate.
+      // Never manufacture one merely to satisfy an explicitly enabled MinRR.
+      if(MinRRRatio > 0.0)
+      {
+         rejection = REJ_INVALID_RR;
+         return false;
+      }
+
+      double closePrice = GetDirectionalClosePrice(snapshot, decision.Direction);
+      double minDistance = snapshot.StopLevel * snapshot.Point;
+      if(closePrice <= 0.0)
+      {
+         rejection = REJ_MARKET_PRICE_INVALID;
+         return false;
+      }
+      if(minDistance > 0.0 && MathAbs(decision.StopLoss - closePrice) < minDistance)
+      {
+         rejection = REJ_INVALID_SL;
+         return false;
+      }
+
+      decision.StopLossPoints = slDistance / snapshot.Point;
+      return true;
    }
 
    if(decision.TakeProfit <= 0.0)
@@ -6903,7 +6984,7 @@ int SendOrderWithRetry(string pair, int direction, double lot,
                        int magicNumber, double frozenAllowedDeviation, 
                        double decisionEntryPrice, string decisionID)
 {
-   if(MaxRetry <= 0 || pair == "" || lot <= 0 || stopLoss <= 0 || takeProfit <= 0 ||
+   if(MaxRetry <= 0 || pair == "" || lot <= 0 || stopLoss <= 0 || takeProfit < 0.0 ||
       magicNumber <= 0 || decisionID == "")
       return -1;
 
@@ -7045,9 +7126,13 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
 {
    if(decision.DecisionState != DEC_VALIDATED) return;
 
+   bool tpPayloadValid = decision.C044LifecycleManaged
+      ? (decision.TakeProfit == 0.0)
+      : (decision.TakeProfit > 0.0);
+
    if(pair == "" || decision.Pair != pair || decision.DecisionID == "" ||
       decision.Direction == DIR_NONE || decision.EntryPrice <= 0 ||
-      decision.StopLoss <= 0 || decision.TakeProfit <= 0)
+      decision.StopLoss <= 0 || !tpPayloadValid)
    {
       decision.DecisionState = DEC_REJECTED;
       decision.RejectionReason = REJ_INVALID_DECISION_STATE;

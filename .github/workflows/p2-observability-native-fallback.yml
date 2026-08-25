@@ -1,0 +1,96 @@
+name: P2 observability native MT4 fallback
+on:
+  push:
+    branches: [d1-owner-dev]
+    paths: ['blueprint/.p2-observability-native-fallback-trigger']
+permissions:
+  contents: read
+jobs:
+  native-compile:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          fetch-depth: 0
+
+      - name: Verify current P2 observability source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = '.\blueprint\source\BBMA_EA.mq4'
+          if (-not (Test-Path $src)) { throw 'EA source missing' }
+          $text = Get-Content $src -Raw
+          if ($text -notmatch 'Version 4\.5\.1 - D1O-07 Canonical LTF Dedup') { throw 'Unexpected EA build' }
+          if ($text -notmatch 'P2-LOTDIAG-01') { throw 'LOTDIAG marker missing' }
+          if ($text -notmatch '\[LOT_DIAG\]\[REJ_INVALID_LOT\]') { throw 'LOTDIAG telemetry missing' }
+          if ($text -notmatch 'P2-DASHCOUNT-01') { throw 'DASHCOUNT marker missing' }
+          if ($text -notmatch 'CountDashboardLiveEAOwnedTrades') { throw 'DASHCOUNT helper missing' }
+          $sha = (Get-FileHash $src -Algorithm SHA256).Hash.ToLower()
+          Write-Host "EA_SHA256=$sha"
+          "EA_SHA256=$sha" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Acquire official MT4 using proven D1O-10 path
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          $terminal = Get-ChildItem 'C:\Program Files*' -Filter terminal.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $meta -or -not $terminal) {
+            $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+            Write-Host 'Downloading official MT4 installer...'
+            Invoke-WebRequest -Uri 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -OutFile $setup -UseBasicParsing
+            Write-Host 'Launching official MT4 installer...'
+            $proc = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
+            for ($i=0; $i -lt 60; $i++) {
+              Start-Sleep -Seconds 5
+              $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+              $terminal = Get-ChildItem 'C:\Program Files*' -Filter terminal.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($meta -and $terminal) { break }
+            }
+            if ($proc -and -not $proc.HasExited) { try { $proc.Kill() } catch {} }
+          }
+          if (-not $meta -or -not $terminal) { throw 'Official MT4 terminal/metaeditor not found' }
+
+          $installDir = Split-Path $terminal.FullName -Parent
+          $portable = Join-Path $env:RUNNER_TEMP 'mt4portable'
+          if (Test-Path $portable) { Remove-Item $portable -Recurse -Force }
+          New-Item -ItemType Directory -Path $portable | Out-Null
+          Copy-Item "$installDir\*" $portable -Recurse -Force
+          if (-not (Test-Path (Join-Path $portable 'metaeditor.exe'))) { throw 'Portable metaeditor copy failed' }
+          "MT4DIR=$portable" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Native MetaEditor compile 0E0W
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $experts = Join-Path $env:MT4DIR 'MQL4\Experts'
+          New-Item -ItemType Directory -Path $experts -Force | Out-Null
+          $dst = Join-Path $experts 'BBMA_EA.mq4'
+          Copy-Item '.\blueprint\source\BBMA_EA.mq4' $dst -Force
+          $log = Join-Path $env:RUNNER_TEMP 'p2-observability-fallback-compile.log'
+          & (Join-Path $env:MT4DIR 'metaeditor.exe') "/compile:$dst" "/log:$log"
+          Start-Sleep -Seconds 2
+          if (-not (Test-Path $log)) { throw 'MetaEditor compile log missing' }
+          $txt = Get-Content $log -Raw
+          $txt | Write-Host
+          $matches = [regex]::Matches($txt, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
+          if ($matches.Count -lt 1) { throw 'Unable to parse MetaEditor summary' }
+          $m = $matches[$matches.Count - 1]
+          $errors = [int]$m.Groups[1].Value
+          $warnings = [int]$m.Groups[2].Value
+          Write-Host "ERRORS=$errors"
+          Write-Host "WARNINGS=$warnings"
+          if ($errors -ne 0 -or $warnings -ne 0) { throw "MetaEditor produced $errors errors / $warnings warnings" }
+          $ex4 = [System.IO.Path]::ChangeExtension($dst,'.ex4')
+          if (-not (Test-Path $ex4)) { throw 'EX4 not produced' }
+          Write-Host 'P2_OBSERVABILITY_NATIVE_FALLBACK=PASS'
+
+      - name: Publish compile evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p2-observability-native-fallback-evidence
+          path: ${{ runner.temp }}/p2-observability-fallback-compile.log
+          if-no-files-found: warn

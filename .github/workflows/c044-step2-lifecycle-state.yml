@@ -1,0 +1,126 @@
+name: C044 Step2 lifecycle state stage
+
+on:
+  push:
+    branches: [ d1-owner-dev ]
+    paths:
+      - 'blueprint/.run-c044-step2-lifecycle'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          fetch-depth: 0
+
+      - name: Verify exact C044 Step1 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          blob="$(git rev-parse HEAD:blueprint/source/BBMA_EA.mq4)"
+          test "$blob" = "5d25163cc5a0dd1c71b84d5b454a61a78ab88746"
+
+      - name: Stage C044 immutable lifecycle state and recovery
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('blueprint/source/BBMA_EA.mq4')
+          s = p.read_text(encoding='utf-8')
+
+          def replace_once(old, new, label):
+              global s
+              n = s.count(old)
+              if n != 1:
+                  raise SystemExit(f'{label}: expected 1 match, found {n}')
+              s = s.replace(old, new, 1)
+
+          replace_once('Version 4.5.3 - C044 Targetless Payload Stage',
+                       'Version 4.5.4 - C044 Lifecycle State Stage',
+                       'header version')
+          replace_once('#property version   "4.53"',
+                       '#property version   "4.54"',
+                       'property version')
+
+          enum_anchor = '''enum ENUM_RECOVERY_STATE { REC_NORMAL, REC_CORRUPTED, REC_RECOVERY_INVALID, REC_PARTIAL_INFERRED,\n                           REC_IDENTITY_HASH_ONLY, REC_IDENTITY_MISSING_FROZEN };\n'''
+          enum_block = enum_anchor + '''\n// C044 staged targetless lifecycle state. Execution remains gated OFF until\n// owner-event evaluation and recovery activation pass their final gate.\nenum ENUM_C044_LIFECYCLE_STATE\n{\n   C044_LIFE_NONE,\n   C044_LIFE_WAIT_OUTER_TEST,\n   C044_LIFE_WAIT_NEXT_REENTRY,\n   C044_LIFE_EXIT_LATCHED,\n   C044_LIFE_FROZEN\n};\n\nenum ENUM_C044_EXIT_REASON\n{\n   C044_EXIT_NONE,\n   C044_EXIT_FAILED_MOMENTUM,\n   C044_EXIT_CYCLE_SUPERSEDED\n};\n'''
+          replace_once(enum_anchor, enum_block, 'C044 enums')
+
+          trade_anchor = '''   string               decision_id;\n   string               execution_hash;\n   string               sequence_hash_short;\n   ENUM_RECOVERY_STATE  recovery_state;\n'''
+          trade_block = '''   string               decision_id;\n   string               execution_hash;\n   string               sequence_hash_short;\n\n   // C044 immutable lifecycle owner + restart state. These fields are dormant\n   // while EnableC044Lifecycle=false.\n   bool                 c044_lifecycle_managed;\n   int                  c044_owner_timeframe;\n   datetime             c044_owner_reentry_candle;\n   datetime             c044_epoch_anchor_candle;\n   datetime             c044_last_processed_owner_candle;\n   ENUM_C044_LIFECYCLE_STATE c044_state;\n   ENUM_C044_EXIT_REASON c044_exit_reason;\n   datetime             c044_exit_latched_candle;\n\n   ENUM_RECOVERY_STATE  recovery_state;\n'''
+          replace_once(trade_anchor, trade_block, 'TradeInfo C044 fields')
+
+          process_guard_anchor = '''   bool tpPayloadValid = decision.C044LifecycleManaged\n      ? (decision.TakeProfit == 0.0)\n      : (decision.TakeProfit > 0.0);\n\n'''
+          process_guard_block = process_guard_anchor + '''   if(decision.C044LifecycleManaged &&\n      (!decision.HasSLTPSourceComponent ||\n       decision.SLTPSourceComponent.ComponentType != SIGNAL_RE_ENTRY ||\n       decision.SLTPSourceComponent.Direction != decision.Direction ||\n       decision.SLTPSourceComponent.Timeframe <= 0 ||\n       decision.SLTPSourceComponent.CandleTime <= 0))\n   {\n      decision.DecisionState = DEC_REJECTED;\n      decision.RejectionReason = REJ_INVALID_DECISION_STATE;\n      return;\n   }\n\n'''
+          replace_once(process_guard_anchor, process_guard_block, 'C044 pre-send owner guard')
+
+          process_init_anchor = '''         info.decision_id = decision.DecisionID;\n         info.sequence_hash_short = SHORT_HASH(decision.SequenceHash);\n\n         string expectedExecutionHash = SHORT_HASH(decision.DecisionID);\n'''
+          process_init_block = '''         info.decision_id = decision.DecisionID;\n         info.sequence_hash_short = SHORT_HASH(decision.SequenceHash);\n\n         ResetC044TradeState(info);\n         bool c044StateReady = true;\n         if(decision.C044LifecycleManaged)\n            c044StateReady = InitializeC044TradeStateFromDecision(info, decision);\n\n         string expectedExecutionHash = SHORT_HASH(decision.DecisionID);\n'''
+          replace_once(process_init_anchor, process_init_block, 'ProcessEntry C044 init')
+
+          recovery_assign_anchor = '''         info.execution_hash = persistedHashMatch ? persistedExecutionHash : "";\n         info.recovery_state = REC_NORMAL;\n\n         Print("[P3S5][EXEC_ID] Ticket=", IntegerToString(ticket),\n'''
+          recovery_assign_block = '''         info.execution_hash = persistedHashMatch ? persistedExecutionHash : "";\n         info.recovery_state = c044StateReady ? REC_NORMAL : REC_IDENTITY_MISSING_FROZEN;\n         if(info.c044_lifecycle_managed && c044StateReady && !SaveC044Checkpoint(info))\n         {\n            info.recovery_state = REC_IDENTITY_MISSING_FROZEN;\n            Log(DBG_ERROR, "C044 checkpoint persist failed ticket=" + IntegerToString(ticket));\n         }\n\n         Print("[P3S5][EXEC_ID] Ticket=", IntegerToString(ticket),\n'''
+          replace_once(recovery_assign_anchor, recovery_assign_block, 'ProcessEntry C044 persistence')
+
+          m23_anchor = '''//+------------------------------------------------------------------+\n//| MODULE 23: POSITION MANAGEMENT (TICK-DRIVEN)                     |\n//| LEVEL: EXPERT-RESTRICTED                                         |\n//+------------------------------------------------------------------+\n\nvoid ManagePositions()\n'''
+          m23_block = '''//+------------------------------------------------------------------+\n//| MODULE 23: POSITION MANAGEMENT (TICK-DRIVEN)                     |\n//| LEVEL: EXPERT-RESTRICTED                                         |\n//+------------------------------------------------------------------+\n\n// C044 Step2: M23 owns only the close latch/execution action. Strategy\n// evidence that creates a latch is intentionally not wired in this stage.\nbool LatchC044Exit(TradeInfo &info, ENUM_C044_EXIT_REASON reason, datetime candleTime)\n{\n   if(!EnableC044Lifecycle || !info.c044_lifecycle_managed) return false;\n   if(reason == C044_EXIT_NONE || candleTime <= 0) return false;\n\n   if(info.c044_state == C044_LIFE_EXIT_LATCHED)\n      return (info.c044_exit_reason == reason);\n\n   if(info.c044_state != C044_LIFE_WAIT_OUTER_TEST &&\n      info.c044_state != C044_LIFE_WAIT_NEXT_REENTRY)\n      return false;\n\n   info.c044_state = C044_LIFE_EXIT_LATCHED;\n   info.c044_exit_reason = reason;\n   info.c044_exit_latched_candle = candleTime;\n   if(!SaveC044Checkpoint(info))\n      Log(DBG_ERROR, "C044 latch checkpoint failed ticket=" + IntegerToString(info.ticket));\n   return true;\n}\n\nbool ExecuteLatchedC044Close(TradeInfo &info)\n{\n   if(!EnableC044Lifecycle || !info.c044_lifecycle_managed) return false;\n   if(info.c044_state != C044_LIFE_EXIT_LATCHED ||\n      info.c044_exit_reason == C044_EXIT_NONE) return false;\n   if(info.ticket <= 0 || info.pair == "" || info.magic_number <= 0) return false;\n\n   ResetLastError();\n   if(!OrderSelect(info.ticket, SELECT_BY_TICKET)) return false;\n   if(OrderCloseTime() != 0)\n   {\n      ClearC044Checkpoint(info);\n      return true;\n   }\n   if(OrderSymbol() != info.pair || OrderMagicNumber() != info.magic_number)\n      return false;\n\n   double closePrice = (info.direction == DIR_BUY)\n      ? MarketInfo(info.pair, MODE_BID)\n      : (info.direction == DIR_SELL ? MarketInfo(info.pair, MODE_ASK) : 0.0);\n   if(closePrice <= 0.0) return false;\n\n   ResetLastError();\n   if(OrderClose(info.ticket, OrderLots(), closePrice, Slippage))\n   {\n      ClearC044Checkpoint(info);\n      return true;\n   }\n\n   int error = GetLastError();\n   Log(DBG_ERROR, "C044 close failed ticket=" + IntegerToString(info.ticket) +\n       " error=" + IntegerToString(error));\n   return false;\n}\n\nvoid ManagePositions()\n'''
+          replace_once(m23_anchor, m23_block, 'M23 C044 latch helpers')
+
+          manage_anchor = '''      if(g_monitored_trades[i].recovery_state == REC_CORRUPTED ||\n         g_monitored_trades[i].recovery_state == REC_RECOVERY_INVALID ||\n         g_monitored_trades[i].recovery_state == REC_IDENTITY_MISSING_FROZEN)\n      {\n         continue;\n      }\n   }\n'''
+          manage_block = '''      if(g_monitored_trades[i].recovery_state == REC_CORRUPTED ||\n         g_monitored_trades[i].recovery_state == REC_RECOVERY_INVALID ||\n         g_monitored_trades[i].recovery_state == REC_IDENTITY_MISSING_FROZEN)\n      {\n         continue;\n      }\n\n      // C044 close execution is dormant while the internal feature gate is OFF.\n      // M20 emergency handling above retains precedence.\n      if(EnableC044Lifecycle && g_monitored_trades[i].c044_lifecycle_managed &&\n         g_monitored_trades[i].c044_state == C044_LIFE_EXIT_LATCHED)\n      {\n         ExecuteLatchedC044Close(g_monitored_trades[i]);\n         continue;\n      }\n   }\n'''
+          replace_once(manage_anchor, manage_block, 'ManagePositions C044 close execution')
+
+          m24_anchor = '''//+------------------------------------------------------------------+\n//| MODULE 24: RECOVERY ENGINE                                       |\n//| LEVEL: EXPERT                                                    |\n//+------------------------------------------------------------------+\n\nstring H4OwnerGVBase(PairState &state)\n'''
+          m24_block = '''//+------------------------------------------------------------------+\n//| MODULE 24: RECOVERY ENGINE                                       |\n//| LEVEL: EXPERT                                                    |\n//+------------------------------------------------------------------+\n\nvoid ResetC044TradeState(TradeInfo &info)\n{\n   info.c044_lifecycle_managed = false;\n   info.c044_owner_timeframe = 0;\n   info.c044_owner_reentry_candle = 0;\n   info.c044_epoch_anchor_candle = 0;\n   info.c044_last_processed_owner_candle = 0;\n   info.c044_state = C044_LIFE_NONE;\n   info.c044_exit_reason = C044_EXIT_NONE;\n   info.c044_exit_latched_candle = 0;\n}\n\nbool IsValidC044OwnerTimeframe(int timeframe)\n{\n   return (timeframe == PERIOD_M15 || timeframe == PERIOD_H1 ||\n           timeframe == PERIOD_H4 || timeframe == PERIOD_D1);\n}\n\nbool InitializeC044TradeStateFromDecision(TradeInfo &info, BBMA_Decision &decision)\n{\n   ResetC044TradeState(info);\n   if(!decision.C044LifecycleManaged) return true;\n   if(!decision.HasSLTPSourceComponent ||\n      decision.SLTPSourceComponent.ComponentType != SIGNAL_RE_ENTRY ||\n      decision.SLTPSourceComponent.Direction != decision.Direction ||\n      !IsValidC044OwnerTimeframe(decision.SLTPSourceComponent.Timeframe) ||\n      decision.SLTPSourceComponent.CandleTime <= 0)\n      return false;\n\n   info.c044_lifecycle_managed = true;\n   info.c044_owner_timeframe = decision.SLTPSourceComponent.Timeframe;\n   info.c044_owner_reentry_candle = decision.SLTPSourceComponent.CandleTime;\n   info.c044_epoch_anchor_candle = decision.SLTPSourceComponent.CandleTime;\n   info.c044_last_processed_owner_candle = decision.SLTPSourceComponent.CandleTime;\n   info.c044_state = C044_LIFE_WAIT_OUTER_TEST;\n   info.c044_exit_reason = C044_EXIT_NONE;\n   info.c044_exit_latched_candle = 0;\n   return true;\n}\n\nstring C044CheckpointBase(TradeInfo &info)\n{\n   return "C044|S" + IntegerToString(StrategyID) + "|I" +\n          IntegerToString(InstanceID) + "|T" + IntegerToString(info.ticket) + "|";\n}\n\nvoid ClearC044Checkpoint(TradeInfo &info)\n{\n   if(info.ticket <= 0) return;\n   string base = C044CheckpointBase(info);\n   string keys[10] = {"D","TF","OR","EP","LP","ST","XR","XL","OT","MG"};\n   for(int i = 0; i < 10; i++)\n      if(GlobalVariableCheck(base + keys[i])) GlobalVariableDel(base + keys[i]);\n}\n\nbool SaveC044Checkpoint(TradeInfo &info)\n{\n   if(!info.c044_lifecycle_managed || info.ticket <= 0 ||\n      info.magic_number <= 0 || info.open_time <= 0 ||\n      (info.direction != DIR_BUY && info.direction != DIR_SELL) ||\n      !IsValidC044OwnerTimeframe(info.c044_owner_timeframe) ||\n      info.c044_owner_reentry_candle <= 0 || info.c044_epoch_anchor_candle <= 0 ||\n      info.c044_state == C044_LIFE_NONE)\n      return false;\n\n   string base = C044CheckpointBase(info);\n   GlobalVariableSet(base + "D",  (double)info.direction);\n   GlobalVariableSet(base + "TF", (double)info.c044_owner_timeframe);\n   GlobalVariableSet(base + "OR", (double)info.c044_owner_reentry_candle);\n   GlobalVariableSet(base + "EP", (double)info.c044_epoch_anchor_candle);\n   GlobalVariableSet(base + "LP", (double)info.c044_last_processed_owner_candle);\n   GlobalVariableSet(base + "ST", (double)info.c044_state);\n   GlobalVariableSet(base + "XR", (double)info.c044_exit_reason);\n   GlobalVariableSet(base + "XL", (double)info.c044_exit_latched_candle);\n   GlobalVariableSet(base + "OT", (double)info.open_time);\n   GlobalVariableSet(base + "MG", (double)info.magic_number);\n   GlobalVariablesFlush();\n\n   string keys[10] = {"D","TF","OR","EP","LP","ST","XR","XL","OT","MG"};\n   for(int i = 0; i < 10; i++)\n      if(!GlobalVariableCheck(base + keys[i])) return false;\n   return true;\n}\n\nbool LoadC044Checkpoint(TradeInfo &info)\n{\n   if(info.ticket <= 0 || info.magic_number <= 0 || info.open_time <= 0) return false;\n   string base = C044CheckpointBase(info);\n   string keys[10] = {"D","TF","OR","EP","LP","ST","XR","XL","OT","MG"};\n   for(int i = 0; i < 10; i++)\n      if(!GlobalVariableCheck(base + keys[i])) return false;\n\n   ENUM_DIRECTION direction = (ENUM_DIRECTION)((int)GlobalVariableGet(base + "D"));\n   int timeframe = (int)GlobalVariableGet(base + "TF");\n   datetime ownerRe = (datetime)((int)GlobalVariableGet(base + "OR"));\n   datetime epoch = (datetime)((int)GlobalVariableGet(base + "EP"));\n   datetime lastProcessed = (datetime)((int)GlobalVariableGet(base + "LP"));\n   ENUM_C044_LIFECYCLE_STATE state =\n      (ENUM_C044_LIFECYCLE_STATE)((int)GlobalVariableGet(base + "ST"));\n   ENUM_C044_EXIT_REASON exitReason =\n      (ENUM_C044_EXIT_REASON)((int)GlobalVariableGet(base + "XR"));\n   datetime exitCandle = (datetime)((int)GlobalVariableGet(base + "XL"));\n   datetime openTime = (datetime)((int)GlobalVariableGet(base + "OT"));\n   int magic = (int)GlobalVariableGet(base + "MG");\n\n   if(direction != info.direction || magic != info.magic_number || openTime != info.open_time)\n      return false;\n   if(!IsValidC044OwnerTimeframe(timeframe) || ownerRe <= 0 || epoch <= 0)\n      return false;\n   if(state != C044_LIFE_WAIT_OUTER_TEST &&\n      state != C044_LIFE_WAIT_NEXT_REENTRY &&\n      state != C044_LIFE_EXIT_LATCHED && state != C044_LIFE_FROZEN)\n      return false;\n   if(state == C044_LIFE_EXIT_LATCHED &&\n      (exitReason == C044_EXIT_NONE || exitCandle <= 0))\n      return false;\n\n   info.c044_lifecycle_managed = true;\n   info.c044_owner_timeframe = timeframe;\n   info.c044_owner_reentry_candle = ownerRe;\n   info.c044_epoch_anchor_candle = epoch;\n   info.c044_last_processed_owner_candle = lastProcessed;\n   info.c044_state = state;\n   info.c044_exit_reason = exitReason;\n   info.c044_exit_latched_candle = exitCandle;\n   return true;\n}\n\nstring H4OwnerGVBase(PairState &state)\n'''
+          replace_once(m24_anchor, m24_block, 'M24 C044 persistence helpers')
+
+          recover_init_anchor = '''      info.decision_id = "";\n      info.execution_hash = executionHash;\n      info.sequence_hash_short = sequenceHash;\n\n      bool geometryValid = (info.initial_entry_price > 0 &&\n                            info.initial_stop_loss > 0 &&\n                            info.initial_take_profit > 0);\n      if(geometryValid && liveDirection == DIR_BUY)\n         geometryValid = (info.initial_stop_loss < info.initial_entry_price &&\n                          info.initial_entry_price < info.initial_take_profit);\n      else if(geometryValid && liveDirection == DIR_SELL)\n         geometryValid = (info.initial_take_profit < info.initial_entry_price &&\n                          info.initial_entry_price < info.initial_stop_loss);\n\n      string recoveryCause = "";\n      double currentLot = OrderLots();\n      if(!geometryValid)\n'''
+          recover_init_block = '''      info.decision_id = "";\n      info.execution_hash = executionHash;\n      info.sequence_hash_short = sequenceHash;\n\n      ResetC044TradeState(info);\n      bool c044Targetless = (info.initial_take_profit == 0.0);\n      bool c044Recovered = false;\n      if(c044Targetless)\n         c044Recovered = LoadC044Checkpoint(info);\n\n      bool geometryValid = (info.initial_entry_price > 0 &&\n                            info.initial_stop_loss > 0);\n      if(geometryValid && liveDirection == DIR_BUY)\n         geometryValid = (info.initial_stop_loss < info.initial_entry_price &&\n                          (c044Targetless ? c044Recovered\n                                         : info.initial_entry_price < info.initial_take_profit));\n      else if(geometryValid && liveDirection == DIR_SELL)\n         geometryValid = (info.initial_stop_loss > info.initial_entry_price &&\n                          (c044Targetless ? c044Recovered\n                                         : info.initial_take_profit < info.initial_entry_price));\n\n      string recoveryCause = "";\n      double currentLot = OrderLots();\n      if(c044Targetless && !c044Recovered)\n      {\n         info.recovery_state = REC_IDENTITY_MISSING_FROZEN;\n         recoveryCause = "C044_CHECKPOINT_MISSING_OR_INVALID";\n      }\n      else if(c044Targetless && !fullMetadata)\n      {\n         info.recovery_state = REC_IDENTITY_MISSING_FROZEN;\n         recoveryCause = "C044_FULL_METADATA_REQUIRED";\n      }\n      else if(!geometryValid)\n'''
+          replace_once(recover_init_anchor, recover_init_block, 'M24 targetless recovery geometry')
+
+          compact_anchor = '''      if(removeClosed)\n      {\n         // Emit at most once: the row is discarded immediately afterwards.\n         NMJE_PrintClosedOutcomeShadow(g_monitored_trades[i]);\n         continue;\n      }\n'''
+          compact_block = '''      if(removeClosed)\n      {\n         // Emit at most once: the row is discarded immediately afterwards.\n         NMJE_PrintClosedOutcomeShadow(g_monitored_trades[i]);\n         if(g_monitored_trades[i].c044_lifecycle_managed)\n            ClearC044Checkpoint(g_monitored_trades[i]);\n         continue;\n      }\n'''
+          replace_once(compact_anchor, compact_block, 'C044 checkpoint cleanup')
+
+          # Static guardrails: Step2 must remain dormant and must not invent strategy events.
+          checks = {
+              'gate remains OFF': 'bool           EnableC044Lifecycle                = false;',
+              'C044 wait state': 'C044_LIFE_WAIT_OUTER_TEST',
+              'C044 latch helper': 'bool LatchC044Exit(',
+              'C044 close helper': 'bool ExecuteLatchedC044Close(',
+              'M24 saver': 'bool SaveC044Checkpoint(',
+              'M24 loader': 'bool LoadC044Checkpoint(',
+              'targetless recovery freeze': 'C044_CHECKPOINT_MISSING_OR_INVALID',
+          }
+          for label, token in checks.items():
+              if token not in s:
+                  raise SystemExit(f'missing static guard: {label}')
+
+          # No strategy event source is wired to LatchC044Exit in Step2: definition only.
+          if s.count('LatchC044Exit(') != 1:
+              raise SystemExit('C044 exit latch unexpectedly wired before owner-event stage')
+          if s.count('ExecuteLatchedC044Close(') != 2:
+              raise SystemExit('C044 close helper must have exactly one definition and one gated call')
+          if s.count('EnableC044Lifecycle                = false;') != 1:
+              raise SystemExit('C044 feature gate not uniquely OFF')
+
+          p.write_text(s, encoding='utf-8')
+
+          audit = Path('blueprint/C044_STEP2_LIFECYCLE_STATE_RECOVERY_IMPLEMENTATION_AUDIT_20260826.md')
+          audit.write_text('''# C044 Step 2 — Lifecycle State / Recovery Implementation Audit — 2026-08-26\n\nBranch: `d1-owner-dev`\n\n## Status\n**IMPLEMENTED / STATIC INTEGRITY PASS / FEATURE GATE REMAINS OFF / OWNER-EVENT EVALUATION NOT YET WIRED / NATIVE COMPILE PENDING**\n\n## Scope\nStage immutable C044 lifecycle-owner state, M23 close latch/idempotent execution plumbing, and M24 restart checkpoint/recovery without enabling targetless live management.\n\n## Implemented\n- build identifier advanced to `4.54 - C044 Lifecycle State Stage`;\n- added C044 lifecycle/exit enums and dormant TradeInfo state;\n- exact frozen Re-Entry source timeframe/candle is copied from the executed decision into trade lifecycle state;\n- M23 has a single idempotent exit latch plus full-position close executor; M20 emergency close remains earlier/authoritative;\n- no BBMA detector is recreated inside M23; no C044 strategy event is wired to the latch in Step2;\n- M24 GlobalVariable checkpoint stores direction, owner timeframe, owner Re-Entry candle, current epoch, last processed owner candle, lifecycle state, exit reason/latch candle, open time and magic;\n- targetless restart requires both a valid C044 checkpoint and full persisted order metadata; otherwise recovery is fail-frozen;\n- closed monitored C044 orders clear their checkpoint;\n- existing static-TP trades retain the old geometry/recovery path.\n\n## Safety boundary\n`EnableC044Lifecycle=false` remains internal and locked OFF. Therefore this staged code cannot create C044 targetless orders or execute C044 lifecycle closes in the current build behavior. The existing static outer-BB project-policy TP remains active until the later atomic activation gate.\n\n## Not implemented in Step2\n- closed-owner-candle outer-BB test evaluation;\n- canonical Momentum event consumption;\n- same-owner Re-Entry re-arm;\n- opposite reversal-confirmed Extreme cycle-supersession event;\n- activation of targetless execution.\n\n## Next gate\nImplement immutable owner-event evaluation/replay feeding the existing M23 latch, static regression, then native MetaEditor 0E0W. Only after M24 restart semantics and event replay are proven may the internal C044 gate be switched ON atomically.\n''', encoding='utf-8')
+          PY
+
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- blueprint/source/BBMA_EA.mq4 blueprint/C044_STEP2_LIFECYCLE_STATE_RECOVERY_IMPLEMENTATION_AUDIT_20260826.md
+          git commit -m "C044 Step2: stage lifecycle state and recovery [skip ci]"
+          git push origin HEAD:d1-owner-dev

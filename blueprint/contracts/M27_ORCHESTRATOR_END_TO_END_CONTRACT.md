@@ -12,15 +12,16 @@ Live account/broker conditions are intentionally evaluated only after the strate
 The final entry pipeline is:
 
 1. M06-M12 owner detectors/state engines produce frozen source snapshots.
-2. M13 collects snapshots only.
-3. M14 validates REM/RRE/REE only.
-4. M15 performs one pair-level atomic final-authority pass after BUY and SELL candidates have both been collected.
-5. M16 invalidates conflicts only.
-6. M17 resolves and validates the source-owned BBMA TP destination and protective structural SL.
-7. M21 calculates one deterministic lot from the frozen risk snapshot.
-8. M19 evaluates live spread/drawdown/basket/EA-wide prospective risk using that proposed lot.
-9. M20 performs the final prospective portfolio/protection gate.
-10. M22 executes the immutable approved payload once, with idempotent ambiguous-result handling.
+2. M12N NMJE reads the already-owned snapshots as a read-only nested context/lineage layer; it cannot create/reject/rank candidates or alter execution authority.
+3. M13 collects snapshots only.
+4. M14 validates REM/RRE/REE only.
+5. M15 performs one pair-level atomic final-authority pass after BUY and SELL candidates have both been collected.
+6. M16 invalidates conflicts only.
+7. M17 resolves and validates the source-owned BBMA TP destination and protective structural SL.
+8. M21 calculates one deterministic lot from the frozen risk snapshot.
+9. M19 evaluates live spread/drawdown/basket/EA-wide prospective risk using that proposed lot.
+10. M20 performs the final prospective portfolio/protection gate.
+11. M22 executes the immutable approved payload once, with idempotent ambiguous-result handling.
 
 M21 must precede M19 because M19 prospective total-risk calculation requires the proposed lot. Any documentation suggesting M19 precedes M21 is superseded by this dependency-correct ordering.
 

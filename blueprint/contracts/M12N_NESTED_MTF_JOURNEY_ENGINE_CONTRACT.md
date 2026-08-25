@@ -160,6 +160,16 @@ After restart:
 - never reconstruct a journey from current price guesses;
 - never use a last-known direction as current proof unless the owning module contract explicitly does so.
 
+## D1 watch-only / non-execution-authority boundary
+The following D1-origin states are deliberately context-only for NMJE and may never become a shortcut to lower-timeframe execution:
+- **D1 MHV/MLV = WATCH ONLY / CONTEXT ONLY.** It may be represented in diagnostics or node history, but it must not be selected as an executable D1 parent, install a D1 opportunity family, create an M15 candidate, or authorize an LTF entry.
+- **D1 eCSD = WATCH ONLY / DIRECTION-STAGE CONTEXT ONLY.** It may be observed/logged, but it must not install a D1 opportunity family, create an M15 candidate, or authorize an LTF entry.
+- **D1 CSD remains a direction signal, not a direct entry.** The separately approved D1 Opportunity Journey may use confirmed D1 CSD only as opportunity context and still requires approved fresh lower-timeframe Re-Entry readiness.
+- For D1-origin N1 parent selection, only the already-approved **D1 Re-Entry** parent and **D1 strategic owner** broad context are eligible parent kinds. D1 MHV/MLV and D1 eCSD are not parent kinds.
+- No `higher-TF MHV/MLV -> direct lower-TF entry` shortcut is authorized.
+
+This boundary is consistent with the canonical Core distinction `MHV/MLV = setup/context`, `eCSD/CSD = direction`, `Re-Entry = entry/setup zone`, exact REM/RRE/REE signatures, and the D1 Opportunity decision record.
+
 ## M13/M14 boundary
 M13 and M14 must remain unchanged in strategy semantics.
 

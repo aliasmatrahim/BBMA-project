@@ -253,3 +253,11 @@ Current D1/F7 contract reconciliation is documentation-only specifically so the 
 
 ### Non-blocking environment limitation
 GitHub offline MT4 smoke has no broker market feed. Lack of D1 decision telemetry in that environment is not a source failure and must not block safe static/audit work.
+
+## 2026-08-25 — NMJE D1 Watch-Only Boundary Closure
+Status: **CLOSED / PASS / DOCUMENTATION-ONLY**
+- D1 MHV/MLV and D1 eCSD are locked as NMJE watch/context-only states with no direct LTF execution authority.
+- No higher-TF MHV/MLV -> direct LTF entry shortcut is authorized.
+- M12N contract and M27 canonical pipeline are synchronized with this boundary.
+- Exact REM/RRE/REE and D1 Opportunity execution contracts remain unchanged.
+- Audit: `blueprint/NMJE_D1_WATCH_ONLY_BOUNDARY_RECONCILIATION_20260825.md`.

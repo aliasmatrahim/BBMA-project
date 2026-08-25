@@ -354,3 +354,11 @@ Broker-connected D1 opportunity/decision telemetry is still required to prove ru
 
 ### Strategy/source guard
 Workbook forensic HOLD families remain excluded from executable behavior. Safe V2.x Workbook clarifications are documentation/context only unless already covered by accepted canonical implementation contracts.
+
+# 2026-08-25 NMJE D1 Watch-Only Boundary Overlay
+- `M12N` is the logical read-only Nested MTF Journey Engine between M12 owner state and M13/M14/M15 processing.
+- **D1 MHV/MLV and D1 eCSD are WATCH ONLY / non-execution-authority states for NMJE.** They cannot act as executable D1 parents, create M15 candidates, or directly authorize LTF entries.
+- D1 CSD remains direction context, not raw direct entry; approved D1 Opportunity use still requires fresh LTF Re-Entry readiness.
+- Exact REM/RRE/REE signatures remain unchanged.
+- Record: `blueprint/NMJE_D1_WATCH_ONLY_BOUNDARY_RECONCILIATION_20260825.md`.
+- Documentation-only reconciliation; EA source/trading behavior unchanged.

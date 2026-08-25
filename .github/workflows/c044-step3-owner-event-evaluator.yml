@@ -32,7 +32,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 blueprint/tools/apply_c044_step4_replay_v3.py
+          python3 blueprint/tools/apply_c044_step4_replay_v4.py
 
       - name: Static integrity gate
         shell: bash

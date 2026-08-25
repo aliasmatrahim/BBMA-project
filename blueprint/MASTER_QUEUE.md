@@ -369,7 +369,7 @@ Locked implementation summary:
 - RR is recalculated from final broker SL; TP is not moved merely to preserve old nominal RR.
 - Classification: `EA_SAFETY / PROJECT EXECUTION NORMALIZATION`, not a new BBMA Strategy Core rule.
 
-Current `BBMA_EA.mq4` remains unchanged until this queued source update is executed.
+Source update is complete; only broker/demo runtime semantic evidence remains pending for this M17 item.
 
 
 ### M17 structural-range SL implementation closure — 2026-08-25

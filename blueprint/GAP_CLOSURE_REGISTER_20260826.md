@@ -23,24 +23,23 @@ This register supersedes older active-next wording in `CURRENT.md` and `MASTER_Q
 ### CLASS A — Repo/source/contract gaps
 
 #### GAP-A1 — D1 Opportunity `EXTREME_TPW` TP ownership mismatch
-Severity: **HIGH**
-Status: **SEMANTIC OWNERSHIP CLOSED / BROKER-EXIT MAPPING REQUIRES TRUE STRATEGY-EXECUTION DECISION**
-Closure record: `blueprint/gap_closure/GAP_A1_D1O_EXTREME_TPW_OWNERSHIP_RECONCILIATION_20260826.md`.
+Severity: **HIGH historical finding**
+Status: **CORE/STRATEGY DECISION CLOSED -> IMPLEMENTATION/VALIDATION REMAINS**
+Closure records:
+- `blueprint/gap_closure/GAP_A1_D1O_EXTREME_TPW_OWNERSHIP_RECONCILIATION_20260826.md`;
+- `blueprint/gap_closure/GAP_A1_D1O_EXTREME_TPW_LIFECYCLE_EXIT_DECISION_20260826.md`.
 
-Resolved:
-- fresh LTF Re-Entry remains the one execution/dedup identity;
-- D1 CycleID/OpportunityFamily remain attribution metadata;
-- the active D1 Extreme TP-Wajib lifecycle is the TP semantic owner for `D1_OPP_EXTREME_TPW`;
-- LTF Re-Entry outer BB is not the semantic TP-Wajib destination for this family;
-- canonical D1 journey completion already evaluates subsequent fully closed D1 candles and completes TP-Wajib when SELL reaches either D1 MA5/MA10 Low or BUY reaches either D1 MA5/MA10 High.
+Final decision:
+- fresh LTF Re-Entry remains the one execution/dedup identity and hard-SL source;
+- D1 Extreme is the TP-Wajib semantic owner for `D1_OPP_EXTREME_TPW`;
+- broker TP for this lifecycle is `0` / absent;
+- full position closes through lifecycle management when a later fully closed D1 candle reaches either opposite D1 MA5/MA10 area under the existing canonical dynamic calculation;
+- first valid MA5/MA10 TP-Wajib completion ends the normal TPW objective; Mid BB is farther/maximum context only;
+- `MinRRRatio > 0` fails closed for this targetless lifecycle unless a future approved deterministic reward reference exists;
+- M20 emergency protection retains precedence;
+- recovery must fail frozen on missing/ambiguous D1 Extreme/Opportunity identity.
 
-Unresolved material choice:
-- the accepted TP-Wajib structure is a dynamic D1 MA5/MA10 area, not one source-defined frozen broker price;
-- converting it to a static TP requires an unapproved freeze/boundary policy;
-- converting it to a lifecycle broker close changes live exit behaviour and therefore also requires an explicit strategy/execution decision;
-- temporarily fail-closing this D1O family would likewise be a material behavior change.
-
-No code patch is authorized autonomously for this remaining choice.
+Remaining A1 work is an implementation/static/native/runtime task, not a BBMA Core or strategy ambiguity.
 
 #### GAP-A2 — Generic static outer-BB TP vs lifecycle evidence
 Severity: **HIGH historical finding**
@@ -69,8 +68,21 @@ Resolved classification:
 - therefore no guessed replacement is authorized;
 - existing static/native implementation evidence remains valid; broker BUY/SELL geometry trace remains pending.
 
-### CLASS B — Runtime evidence gaps blocked by broker/session availability
-These remain open but do not block safe repo/source reconciliation.
+### CLASS B — Runtime / implementation evidence gaps
+These remain open but are not BBMA Core semantic gaps.
+
+#### GAP-B0 — Implement GAP-A1 D1 TP-Wajib lifecycle
+Status: **OPEN — REPO-CLOSABLE IMPLEMENTATION TASK**
+Required:
+- introduce an explicit `EXTREME_TPW` lifecycle-managed payload distinct from C044;
+- preserve LTF Re-Entry hard-SL ownership and execution/dedup identity;
+- broker TP `0`;
+- M23 full-close on canonical closed-D1 TPW completion;
+- M24 persistence/recovery and fail-frozen behavior;
+- idempotent restart replay;
+- targetless MinRR rule;
+- protected-surface regression + native MetaEditor 0E0W;
+- broker/demo runtime validation before production activation.
 
 #### GAP-B1 — C044 broker/demo lifecycle runtime + former GAP-A2 activation layer
 Status: **BLOCKED — ENVIRONMENT / EXPLICIT ACTIVATION REVIEW AFTER RUNTIME PASS**
@@ -106,37 +118,39 @@ Required:
 Status: **PENDING BROKER/DEMO**
 Includes the remaining GAP-A3 live BUY/SELL structural-SL geometry proof. Static/native gates already exist at recorded revisions; runtime semantic traces remain outstanding and must be closed against the active build lineage when a broker-connected environment is available.
 
-### CLASS C — Canonical Core completeness / source-HOLD gaps
-These are not automatic code tasks.
+### CLASS C — BBMA Core semantic completeness
+Status: **CLOSED — 49/49 EXPLICITLY CLASSIFIED / 0 UNRESOLVED CORE HOLDS**
+Authority:
+- `blueprint/decisions/CORE_REMAINING_GAPS_CLOSURE_DECISION_20260826.md`;
+- `docs/references/BBMA_CORE_49_FAMILY_CLOSURE_REBASELINE_20260826.md`.
 
-Evidence: `docs/references/HOME_COURSE_49_FAMILY_CORE_REVALIDATION_20260825.md`.
-Current strict split:
-- 28 fully COVERED;
-- 10 PARTIAL/mixed;
-- 11 MISSING/HOLD.
+Historical 2026-08-25 split of `28 COVERED + 10 PARTIAL + 11 MISSING/HOLD` is preserved as history only. Subsequent bounded decisions plus the 2026-08-26 research closure now give every family an explicit terminal status:
+- accepted Core;
+- accepted source-consistent/context-only;
+- deterministic project mapping with provenance label;
+- or rejected from current Core.
 
-Partial/mixed IDs:
-`C007, C008, C009, C014, C018, C024, C032, C034, C037, C047`.
+Important closures include:
+- C018 Mid-BB break/retest/failure-to-recross -> direction-confirmation context only;
+- C024 MHV Momentum/no-Momentum management -> source-supported lifecycle principle;
+- C034 Candle Arah Top/Low-BB destination -> structural destination, not universal resting broker TP;
+- advanced/higher-timeframe Extreme no-TP exception -> rejected from current Core for lack of sufficiently authoritative deterministic evidence;
+- C044 source lifecycle principle accepted while conservative outer-test implementation remains labelled project mapping;
+- C048 Extreme Magic -> source-supported strength subtype, no independent execution.
 
-MISSING/HOLD IDs:
-`C005, C006, C012, C035, C038, C039, C040, C041, C042, C044, C048`.
-
-Rule:
-- documentation/source classification may continue;
-- no HOLD becomes executable merely because gap closure is active;
-- REJECTed literal rules remain rejected unless stronger evidence explicitly reopens them;
-- strategy promotion requires a distinct source decision gate.
+**Current BBMA Core semantic gap count = 0.**
 
 ## Current execution order
 
-1. **GAP-A1 remaining material decision** — choose how the dynamic D1 Extreme TP-Wajib area becomes the broker exit for an already-open `D1_OPP_EXTREME_TPW` trade, or choose to fail-close that family pending such mapping.
-2. Do not auto-activate C044; Class-B broker/demo validation remains required.
-3. Continue gap/source classification work that does not promote HOLD or resume N1/N2/N3.
-4. For any later source patch: unique build identity + protected regression + native MetaEditor 0E0W + register update.
-5. **N1/N2/N3 remain parked regardless of the technical close of A2/A3 until the project owner explicitly resumes them.**
+1. **GAP-B0** — implement the now-approved D1 `EXTREME_TPW` lifecycle exit without changing its LTF execution identity or hard-SL ownership.
+2. Run protected-surface regression + native MetaEditor 0E0W on any source patch.
+3. Keep C044 OFF until Class-B broker/demo validation passes; do not activate it merely because its Core semantics are closed.
+4. Close broker/runtime B1-B4 when an authenticated MT4 demo/broker environment is available.
+5. **N1/N2/N3 remain parked until the project owner explicitly resumes them.**
 
 ## Do-not-reopen list without new evidence
 
+- BBMA Core 49-family semantic completeness;
 - P2 invalid-lot diagnostics;
 - dashboard active-trade count;
 - exact REM/RRE/REE component signatures;

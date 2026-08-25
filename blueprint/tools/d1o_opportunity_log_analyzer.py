@@ -2,8 +2,9 @@
 """Analyze D1 Opportunity Journey runtime logs.
 
 Research/diagnostic only. Counts unique D1 opportunity cycles, watch-only eCSD
-observations, validated decisions attributed to opportunity families/cycles, and
-basic identity anomalies. It never changes EA strategy or execution state.
+observations, validated decisions attributed to opportunity families/cycles and
+LTF clusters, and basic identity anomalies. It never changes EA strategy or
+execution state.
 """
 
 from __future__ import annotations
@@ -32,6 +33,8 @@ WATCH_RE = re.compile(
 DEC_RE = re.compile(
     r"\[N2-NMJE-DEC\]\s+(?P<pair>\S+).*?\sAUTH=(?P<authority>\S+)\s+"
     r"OFAM=(?P<family>\S+)\s+OC=(?P<cycle>\S+)"
+    r"(?:\s+LTF=(?P<ltf_cluster>\S+))?"
+    r"(?:\s+OSH=(?P<opportunity_sequence_hash>\S+))?"
 )
 
 
@@ -66,6 +69,8 @@ class DecisionRecord:
     authority: str
     family: str
     cycle: str
+    ltf_cluster: str = ""
+    opportunity_sequence_hash: str = ""
 
 
 def parse(paths: Iterable[Path]) -> tuple[list[OpportunityRecord], list[WatchRecord], list[DecisionRecord]]:
@@ -85,7 +90,10 @@ def parse(paths: Iterable[Path]) -> tuple[list[OpportunityRecord], list[WatchRec
                     continue
                 m = DEC_RE.search(line)
                 if m:
-                    decisions.append(DecisionRecord(str(path), line_no, **m.groupdict()))
+                    fields = m.groupdict()
+                    fields["ltf_cluster"] = fields.get("ltf_cluster") or ""
+                    fields["opportunity_sequence_hash"] = fields.get("opportunity_sequence_hash") or ""
+                    decisions.append(DecisionRecord(str(path), line_no, **fields))
     return opportunities, watches, decisions
 
 
@@ -117,6 +125,10 @@ def analyze(opportunities: list[OpportunityRecord], watches: list[WatchRecord], 
 
     opp_decisions = [d for d in decisions if d.authority == "OPP"]
     decisions_by_family = Counter(d.family for d in opp_decisions)
+    decisions_by_ltf_cluster = Counter((d.ltf_cluster or "UNKNOWN") for d in opp_decisions)
+    decisions_by_family_ltf = Counter(
+        f"{d.family}|{d.ltf_cluster or 'UNKNOWN'}" for d in opp_decisions
+    )
     decisions_by_cycle = Counter((d.pair, d.cycle) for d in opp_decisions if d.cycle not in ("", "-"))
     unknown_cycle_decisions = [
         asdict(d) for d in opp_decisions
@@ -133,6 +145,25 @@ def analyze(opportunities: list[OpportunityRecord], watches: list[WatchRecord], 
                 "cycle_direction": identity[1],
             })
 
+    sequence_hash_conflicts = []
+    sequence_owner: dict[tuple[str, str], tuple[str, str]] = {}
+    for d in opp_decisions:
+        if d.opportunity_sequence_hash in ("", "-"):
+            continue
+        key = (d.pair, d.opportunity_sequence_hash)
+        identity = (d.cycle, d.ltf_cluster)
+        prior = sequence_owner.get(key)
+        if prior is not None and prior != identity:
+            sequence_hash_conflicts.append({
+                "pair": d.pair,
+                "sequence_hash": d.opportunity_sequence_hash,
+                "first": {"cycle": prior[0], "ltf_cluster": prior[1]},
+                "later": {"cycle": d.cycle, "ltf_cluster": d.ltf_cluster},
+                "line_no": d.line_no,
+            })
+        else:
+            sequence_owner[key] = identity
+
     cycles_without_decision = [
         {"pair": pair, "cycle": cycle, "family": cycle_identity[(pair, cycle)][0]}
         for pair, cycle in sorted(active_cycles)
@@ -147,6 +178,8 @@ def analyze(opportunities: list[OpportunityRecord], watches: list[WatchRecord], 
         "watch_only_ecsd_by_direction": dict(Counter(w.direction for w in watches)),
         "opportunity_validated_decisions": len(opp_decisions),
         "decisions_by_opportunity_family": dict(sorted(decisions_by_family.items())),
+        "decisions_by_ltf_cluster": dict(sorted(decisions_by_ltf_cluster.items())),
+        "decisions_by_family_ltf_cluster": dict(sorted(decisions_by_family_ltf.items())),
         "decisions_by_cycle": {
             f"{pair}|{cycle}": count for (pair, cycle), count in sorted(decisions_by_cycle.items())
         },
@@ -155,6 +188,7 @@ def analyze(opportunities: list[OpportunityRecord], watches: list[WatchRecord], 
             "cycle_identity_conflicts": cycle_conflicts,
             "unknown_cycle_decisions": unknown_cycle_decisions,
             "family_mismatch_decisions": family_mismatch_decisions,
+            "sequence_hash_conflicts": sequence_hash_conflicts,
         },
     }
 
@@ -171,15 +205,16 @@ def print_report(report: dict) -> None:
     for family, count in report["active_cycles_by_family"].items():
         print(f"  {family:12s} {count}")
     print()
-    print("Validated decisions by family")
-    for family, count in report["decisions_by_opportunity_family"].items():
-        print(f"  {family:12s} {count}")
+    print("Validated decisions by LTF cluster")
+    for cluster, count in report["decisions_by_ltf_cluster"].items():
+        print(f"  {cluster:12s} {count}")
     print()
     integ = report["integrity"]
     print("Integrity")
     print(f"  cycle identity conflicts : {len(integ['cycle_identity_conflicts'])}")
     print(f"  unknown-cycle decisions  : {len(integ['unknown_cycle_decisions'])}")
     print(f"  family mismatches        : {len(integ['family_mismatch_decisions'])}")
+    print(f"  sequence hash conflicts  : {len(integ['sequence_hash_conflicts'])}")
 
 
 def main() -> int:
@@ -202,6 +237,8 @@ def main() -> int:
         return 2
     if integ["family_mismatch_decisions"]:
         return 3
+    if integ["sequence_hash_conflicts"]:
+        return 4
     return 0
 
 

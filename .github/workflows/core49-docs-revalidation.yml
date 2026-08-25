@@ -25,7 +25,9 @@ jobs:
         run: sha256sum blueprint/source/BBMA_EA.mq4 | tee /tmp/ea-before.sha256
 
       - name: Apply docs-only Core revalidation
-        run: python3 .github/scripts/core49_docs_revalidation.py
+        run: |
+          python3 .github/scripts/core49_docs_revalidation.py
+          python3 .github/scripts/core49_postfix.py
 
       - name: Verify docs-only diff
         shell: bash
@@ -40,6 +42,8 @@ jobs:
           grep -F '28 / 49 = 57.14% fully covered' docs/references/HOME_COURSE_19P_CANONICAL_ROW_MAP_20260825.md
           grep -F '10 / 49 = 20.41% partial/mixed' docs/references/HOME_COURSE_19P_CANONICAL_ROW_MAP_20260825.md
           ! grep -F '30 / 49 = 61.22% fully covered' docs/references/HOME_COURSE_19P_CANONICAL_ROW_MAP_20260825.md
+          grep -F '## Post-reconciliation status' docs/references/HOME_COURSE_19P_CANONICAL_ROW_MAP_20260825.md
+          grep -F 'HOME_COURSE_49_FAMILY_CORE_REVALIDATION_20260825.md' docs/references/HOME_COURSE_19P_CANONICAL_ROW_MAP_20260825.md
           grep -F 'Buying Zone' docs/references/BBMA_STRATEGY_CORE_SOURCE_OF_TRUTH_V2.md
           grep -F 'Mid-BB slope' docs/references/BBMA_STRATEGY_CORE_SOURCE_OF_TRUTH_V2.md
           grep -F 'Extrem Magic' docs/references/BBMA_STRATEGY_CORE_SOURCE_OF_TRUTH_V2.md

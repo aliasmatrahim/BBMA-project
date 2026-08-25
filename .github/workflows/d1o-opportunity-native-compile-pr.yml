@@ -1,0 +1,148 @@
+name: D1O-02 Opportunity Execution Native MT4 Compile
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'blueprint/.run-d1o-opportunity-native-compile'
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  compile-d1-target:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          fetch-depth: 0
+
+      - name: Verify exact D1O baseline
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = '.\blueprint\source\BBMA_EA.mq4'
+          $patcher = '.\blueprint\tools\d1_opportunity_execution_patch.py'
+          if (-not (Test-Path $src)) { throw 'EA source missing' }
+          if (-not (Test-Path $patcher)) { throw 'D1O patcher missing' }
+          $head = (git rev-parse HEAD).Trim()
+          $blob = (git rev-parse HEAD:blueprint/source/BBMA_EA.mq4).Trim()
+          if ($blob -ne '33dbf8d89ef79b6d7700d00a5380c74238cbf9c8') { throw "Unexpected N2-13 source blob: $blob" }
+          $txt = Get-Content $src -Raw
+          if ($txt -notmatch 'Version 4\.5\.1 - N2-13 Closed Outcome Shadow') { throw 'Unexpected baseline build identity' }
+          "TARGET_HEAD=$head" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "BASELINE_BLOB=$blob" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Apply D1O-02 execution patch
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python .\blueprint\tools\d1_opportunity_execution_patch.py
+          git diff --check
+          $src = '.\blueprint\source\BBMA_EA.mq4'
+          $txt = Get-Content $src -Raw
+          foreach ($required in @(
+            'Version 4.5.1 - D1O-02 Opportunity Execution',
+            'D1_OPP_EXTREME_TPW',
+            'D1_OPP_CSD',
+            'D1_OPP_RE_ENTRY',
+            'D1_OPP_MOMENTUM_RETRACE',
+            'BuildD1OpportunityCandidate',
+            'ValidateDecisionD1AuthoritySnapshot',
+            're_m15_buy_state',
+            're_m15_sell_state'
+          )) {
+            if ($txt -notmatch [regex]::Escape($required)) { throw "Missing D1O materialization: $required" }
+          }
+          if (([regex]::Matches($txt, 'BuildD1OpportunityCandidate\(pairIndex, d1OpportunityCandidate\);')).Count -ne 1) { throw 'Expected exactly one D1O candidate build hook' }
+          if (([regex]::Matches($txt, 'AppendValidatedCandidate\(d1OpportunityCandidate, allCandidates, allCandidateCount\);')).Count -ne 1) { throw 'Expected exactly one D1O candidate append hook' }
+          "D1O_SOURCE_BLOB=$((git hash-object $src).Trim())" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "D1O_SOURCE_SHA256=$((Get-FileHash $src -Algorithm SHA256).Hash.ToLower())" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Acquire official MT4 with polling installer
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $meta) {
+            $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+            Invoke-WebRequest -Uri 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -OutFile $setup -UseBasicParsing
+            $proc = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
+            for ($i=0; $i -lt 84; $i++) {
+              Start-Sleep -Seconds 5
+              $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($meta) { break }
+              if ($proc.HasExited -and $i -gt 12) { break }
+            }
+            if ($proc -and -not $proc.HasExited) { try { $proc.Kill() } catch {} }
+          }
+          if (-not $meta) { throw 'Official MT4 MetaEditor not found after polling installer' }
+          "METAEDITOR=$($meta.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "Using $($meta.FullName)"
+
+      - name: Native MetaEditor 0E0W compile
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = (Resolve-Path '.\blueprint\source\BBMA_EA.mq4').Path
+          $log = Join-Path $env:RUNNER_TEMP 'd1o-02-metaeditor.log'
+          & "$env:METAEDITOR" "/compile:$src" "/log:$log"
+          Start-Sleep -Seconds 2
+          if (-not (Test-Path $log)) { throw 'MetaEditor compile log missing' }
+          $txt = Get-Content $log -Raw
+          $txt | Write-Host
+          $ex4 = [System.IO.Path]::ChangeExtension($src,'.ex4')
+          if (-not (Test-Path $ex4)) { throw 'MetaEditor did not produce EX4' }
+          $matches = [regex]::Matches($txt, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
+          if ($matches.Count -lt 1) { throw 'Unable to parse MetaEditor summary' }
+          $m = $matches[$matches.Count - 1]
+          $errors = [int]$m.Groups[1].Value
+          $warnings = [int]$m.Groups[2].Value
+          if ($errors -ne 0 -or $warnings -ne 0) { throw "Native compile failed: $errors errors / $warnings warnings" }
+          "COMPILE_RESULT=0E0W" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Upload native evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: d1o-02-native-mt4-evidence
+          path: |
+            blueprint/source/BBMA_EA.ex4
+            ${{ runner.temp }}/d1o-02-metaeditor.log
+          if-no-files-found: warn
+
+      - name: Commit verified D1O-02 to d1-owner-dev
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $audit = @"
+          # D1O-02 — D1 BBMA Opportunity Execution Native Compile Audit
+
+          Date: 2026-08-25  
+          Branch: ``d1-owner-dev``  
+          Build: ``Version 4.5.1 - D1O-02 Opportunity Execution``
+
+          ## Result
+          **PASS — approved D1 Opportunity execution extension materialized / native MT4 MetaEditor 0 errors / 0 warnings.**
+
+          Baseline source blob: ``$env:BASELINE_BLOB``  
+          D1O source blob: ``$env:D1O_SOURCE_BLOB``  
+          D1O source SHA-256: ``$env:D1O_SOURCE_SHA256``
+
+          Execution scope: Mode 2 only. Active families are Extreme->TP Wajib tactical, confirmed CSD, confirmed D1 Re-Entry, and Momentum->fresh LTF Re-Entry. D1 MHV/MLV and eCSD remain WATCH ONLY. Tactical Extreme requires aligned H4 owner + fresh H1 Re-Entry. H1/M15 simultaneous fresh Re-Entries are one cluster. Existing REM/RRE/REE signatures, portfolio/risk caps and structural SL/TP formula are preserved.
+          "@
+          Set-Content '.\blueprint\D1O_STEP2_OPPORTUNITY_EXECUTION_AUDIT_20260825.md' $audit -Encoding UTF8
+          if (Test-Path '.\blueprint\source\BBMA_EA.ex4') { Remove-Item '.\blueprint\source\BBMA_EA.ex4' -Force }
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add blueprint/source/BBMA_EA.mq4 blueprint/D1O_STEP2_OPPORTUNITY_EXECUTION_AUDIT_20260825.md
+          git commit -m 'D1O-02: materialize opportunity execution native 0E0W [skip ci]'
+          git fetch origin d1-owner-dev
+          $remote = (git rev-parse origin/d1-owner-dev).Trim()
+          if ($remote -ne $env:TARGET_HEAD) { throw "d1-owner-dev moved during compile: remote=$remote expected=$env:TARGET_HEAD" }
+          git push origin HEAD:d1-owner-dev

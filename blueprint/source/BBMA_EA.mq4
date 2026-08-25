@@ -5233,14 +5233,12 @@ void BuildD1OpportunityCandidate(int pairIndex,
 
    int componentCount = 0;
    datetime expiry = 0;
-   string ltfIdentity = "";
 
    if(h1Fresh)
    {
       SetOpportunityREComponent(candidate.Components[componentCount], h1);
       componentCount++;
       expiry = MinPositiveExpiry(expiry, h1.ExpiryCandleTime);
-      ltfIdentity += "|H1:" + IntegerToString((int)h1.ConfirmationCandle);
    }
 
    // Same-cycle M15 is folded into the same cluster when H4 confirms lineage.
@@ -5249,7 +5247,6 @@ void BuildD1OpportunityCandidate(int pairIndex,
       SetOpportunityREComponent(candidate.Components[componentCount], m15);
       componentCount++;
       expiry = MinPositiveExpiry(expiry, m15.ExpiryCandleTime);
-      ltfIdentity += "|M15:" + IntegerToString((int)m15.ConfirmationCandle);
    }
 
    if(componentCount <= 0 || componentCount > 2) return;
@@ -8489,7 +8486,7 @@ int OnInit()
       return INIT_FAILED;
    }
    
-   Log(DBG_FULL, "BBMA EA V4.5.1 D1O-02 initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.5.1 D1O-07 Canonical LTF Dedup initialized successfully");
    return INIT_SUCCEEDED;
 }
 

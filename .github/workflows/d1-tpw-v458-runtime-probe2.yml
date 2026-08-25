@@ -1,9 +1,13 @@
 name: D1 TPW v4.58 runtime probe 2
 
 on:
-  push:
+  pull_request:
     branches:
       - d1-owner-dev
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 permissions:
   contents: read

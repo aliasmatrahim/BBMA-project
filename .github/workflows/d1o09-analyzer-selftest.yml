@@ -1,0 +1,53 @@
+name: D1O-09 canonical dedup analyzer self-test
+
+on:
+  push:
+    branches: [ d1-owner-dev ]
+    paths:
+      - 'blueprint/.run-d1o09-analyzer-selftest'
+
+permissions:
+  contents: write
+
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          fetch-depth: 0
+      - name: Run canonical dedup analyzer synthetic tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile blueprint/tools/d1o_canonical_dedup_log_analyzer.py
+          python3 blueprint/tests/test_d1o_canonical_dedup_log_analyzer.py
+          git diff --check
+      - name: Record self-test closure and self-clean
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > blueprint/D1O_STEP9_CANONICAL_DEDUP_ANALYZER_SELFTEST_20260825.md <<'EOF'
+          # D1O Step 9 — Canonical Dedup Analyzer Self-Test
+
+          Date: 2026-08-25
+          Branch: `d1-owner-dev`
+
+          Status: **PASS**
+
+          The D1O-09 runtime-log analyzer is aligned with D1O-07 execution identity semantics:
+          - reuse of one canonical execution hash across D1 CycleID/family attribution changes is diagnostic/expected when the LTF identity is unchanged;
+          - the same execution hash changing direction is an integrity failure;
+          - D1 opportunity decisions missing OSH are an integrity failure;
+          - family/cycle attribution consistency remains independently checked.
+
+          Synthetic self-test includes both an expected cross-attribution reuse case and a forbidden same-hash/opposite-direction case.
+          EOF
+          rm -f blueprint/.run-d1o09-analyzer-selftest
+          rm -f .github/workflows/d1o09-analyzer-selftest.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "D1O-09: close canonical dedup analyzer self-test [skip ci]"
+          git push origin HEAD:d1-owner-dev

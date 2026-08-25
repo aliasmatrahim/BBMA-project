@@ -1,0 +1,70 @@
+name: D1O-08 one-shot owner materialization
+
+on:
+  push:
+    branches: [ d1-owner-dev ]
+    paths:
+      - 'blueprint/.d1o08-materialize-trigger'
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          fetch-depth: 0
+      - name: Materialize D1O-07 canonical LTF dedup
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile blueprint/tools/d1o_current_baseline_materialize.py
+          python3 blueprint/tools/d1o_current_baseline_materialize.py
+          grep -Fq 'Version 4.5.1 - D1O-07 Canonical LTF Dedup' blueprint/source/BBMA_EA.mq4
+          grep -Fq 'D1OpportunityLTFClusterText' blueprint/source/BBMA_EA.mq4
+          grep -Fq 'canonicalIdentity = "RE_ENTRY|' blueprint/source/BBMA_EA.mq4
+          grep -Fq 'candidate.D1OpportunityCycleID = opportunity.CycleID;' blueprint/source/BBMA_EA.mq4
+          grep -Fq 'candidate.D1OpportunityFamily = opportunity.Family;' blueprint/source/BBMA_EA.mq4
+          grep -Fq 'ResolveSelectedSLTPSourceComponent' blueprint/source/BBMA_EA.mq4
+          grep -Fq 'RunEntryPreflightAndExecute(decision, actual)' blueprint/source/BBMA_EA.mq4
+          if grep -Fq 'SHORT_HASH("D1OPP|" + opportunity.CycleID' blueprint/source/BBMA_EA.mq4; then
+            echo 'legacy D1-owned execution hash remains' >&2
+            exit 1
+          fi
+          git diff --check
+      - name: Record materialization closure and self-clean
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > blueprint/D1O_STEP8_CURRENT_BASELINE_MATERIALIZATION_20260825.md <<'EOF'
+          # D1O Step 8 — Current-Baseline Materialization Closure
+
+          Date: 2026-08-25
+          Branch: `d1-owner-dev`
+          Build: `Version 4.5.1 - D1O-07 Canonical LTF Dedup`
+
+          Status: **MATERIALIZED / STATIC CONTRACT PASS**
+
+          The D1O-07 canonical LTF dedup patch was re-materialized directly on the current owner baseline using the guarded `d1o_current_baseline_materialize.py` tool.
+
+          Locked invariants preserved:
+          - fresh LTF Re-Entry owns executable opportunity identity;
+          - D1 cycle/family remains attribution metadata;
+          - H1 owns the anchor when H1+M15 fresh Re-Entry coexist;
+          - approved REM/RRE/REE signatures are unchanged;
+          - SL/TP source selection and entry preflight anchors remain present;
+          - no Workbook HOLD rule is promoted into executable behavior.
+
+          Native MT4 compilation remains a separate validation gate; prior Windows installer acquisition was infrastructure-blocked and is not treated as source failure.
+          EOF
+          rm -f blueprint/.d1o08-materialize-trigger
+          rm -f .github/workflows/d1o08-materialize-owner.yml
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "D1O-08: materialize canonical LTF dedup on current owner baseline [skip ci]"
+          git push origin HEAD:d1-owner-dev

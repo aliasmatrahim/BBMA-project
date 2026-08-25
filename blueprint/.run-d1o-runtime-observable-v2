@@ -1,0 +1,4 @@
+trigger=2026-08-25T10:48+08:00
+target_head=5cf240fcf426074e2bbfc4c6b5280bd3f42c057d
+source_blob=9199b897551a3383f0f10a6f6d513ac2fbafc22a
+purpose=D1O-03 observable runtime V2

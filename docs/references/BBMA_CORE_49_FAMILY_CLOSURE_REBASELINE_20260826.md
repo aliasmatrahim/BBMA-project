@@ -3,8 +3,9 @@
 Status: **CORE SEMANTIC REBASELINE COMPLETE / 49 OF 49 ACCOUNTED / 0 UNRESOLVED CORE HOLDS**
 Branch: `d1-owner-dev`
 
-Authority decision:
-`blueprint/decisions/CORE_REMAINING_GAPS_CLOSURE_DECISION_20260826.md`
+Authority decisions:
+- `blueprint/decisions/CORE_REMAINING_GAPS_CLOSURE_DECISION_20260826.md`
+- `blueprint/decisions/ADVANCED_REPEATED_EXTREME_TPW_EXCEPTION_DECISION_20260826.md`
 
 ## Why this rebaseline exists
 
@@ -13,14 +14,14 @@ Authority decision:
 - 10 PARTIAL/mixed;
 - 11 MISSING/HOLD.
 
-Subsequent dated decisions narrowed or resolved many of those items. The older 28/10/11 count must therefore remain historical and must not be used as the current Core-gap count.
+Subsequent dated decisions narrowed or resolved those items. The older 28/10/11 count remains historical and must not be used as the current Core-gap count.
 
-The project now uses a stricter closure model: a family is not required to become executable in order to be closed. A family may be conclusively accepted as Core, bounded as context-only, mapped as an explicitly labelled project policy, or rejected from current Core.
+The project now uses a strict closure model: a family need not become executable to be semantically closed. A family may be conclusively accepted as Core, bounded as context-only, mapped as explicitly labelled project policy, accepted as a bounded advanced MTF interpretation, or rejected from current Core.
 
 ## Current count
 
 - previously fully COVERED and unchanged: **28**;
-- previously non-full families now explicitly closed by bounded acceptance/rejection/mapping: **21**;
+- previously non-full families now explicitly classified/closed: **21**;
 - unresolved Core semantic families: **0**.
 
 Current accounting: **49 / 49 = 100% explicitly classified**.
@@ -51,30 +52,50 @@ This is a completeness statement about **semantic classification**, not a claim 
 | C042 | CLOSED — prior-day D1 strategic prior accepted; deterministic prediction rejected | fresh current-day structure still required |
 | C044 | CLOSED AT CORE/CONTRACT LEVEL — post-RE failed-Momentum TP principle accepted; deterministic outer-test mapping labelled project policy | runtime/activation remains separate |
 | C047 | CLOSED — large-TF sideways/replay -> smaller-TF structure | context only; no arbitrary timeframe substitution |
-| C048 | CLOSED — Extreme Magic accepted as strength subtype | no independent execution; normal Extreme lifecycle/TPW preserved |
+| C048 | CLOSED — Extreme Magic accepted as strength subtype | no independent execution; normal Extreme lifecycle/TPW preserved unless the bounded repeated-LTF parent exception applies |
 
-## Advanced Extreme exception
+## Advanced repeated-Extreme / local TP-Wajib exception
 
-A previously carried `advanced/higher-timeframe Extreme may skip normal TP-Wajib` uncertainty is now **closed by rejection from current Core**.
+The normal default remains:
 
-Reason:
-- uploaded primary/basic source firmly supports normal Extreme TP-Wajib;
-- Home Course/Finale public evidence supports Extreme Magic as a stronger subtype but still inside the Extreme lifecycle;
-- public forum material confirms that proprietary/advanced BBMA material existed, but does not provide a sufficiently authoritative and deterministic rule to override normal TP-Wajib;
-- therefore absence of evidence cannot be converted into an executable exception.
+`VALID NORMAL STANDALONE EXTREME -> NORMAL TP-WAJIB`.
 
-Current rule:
-`VALID NORMAL EXTREME ON ANY TF -> NORMAL TP-WAJIB APPLIES`, unless a future stronger source-specific decision explicitly defines and authorizes an exception.
+Further source/forum/public-manual research supports a **narrow multi-timeframe exception**, not a blanket no-TP rule:
+- repeated same-direction LTF Extremes with no opposite Extreme between them may indicate a larger-timeframe MHV/structural process;
+- the uploaded Home Course explicitly links Double H1 Extreme with H4 MHV context and states that when H4 MHV is already valid, a compatible LTF Extreme may be used without waiting for another LTF MHV merely to repeat the same nested structure;
+- advanced public BBMA teaching mirrors go one step further and describe later repeated/triple LTF Extremes as not requiring a fresh local TPW/local MHV when a larger timeframe already has a complete MHV or Re-Entry.
+
+Bounded acceptance:
+1. multiple source-valid same-direction LTF Extremes in one structural sequence;
+2. no source-valid opposite LTF Extreme intervenes;
+3. immediate HTF independently owns a valid mature MHV/MLV or Re-Entry compatible with the sequence;
+4. HTF ownership is proven by its own detector/lifecycle and is never manufactured from the LTF count;
+5. current LTF Extreme still requires its own validity/maturity;
+6. no source-valid invalidation or higher-owner conflict supersedes the sequence.
+
+Only then may a later LTF Extreme be read without requiring a **fresh local** TPW -> local MHV cycle merely to restate the already-established HTF structure.
+
+This is not a new direct-entry rule and does not alter REM/RRE/REE.
+
+### D1 exclusion
+
+The approved EA hierarchy currently stops at D1 as its top strategic owner. Therefore `D1_OPP_EXTREME_TPW` has no independently validated larger parent inside the approved hierarchy and **does not qualify** for this exception. Normal D1 TP-Wajib remains authoritative.
+
+Provenance:
+- repeated-LTF/HTF structural relationship: `[BBMA-SOURCE-CONSISTENT][MTF-CONTEXT]`;
+- explicit later-LTF no-local-TPW/no-local-MHV wording: `[ADVANCED-BBMA][PUBLIC/FORUM-CORROBORATED][BOUNDED]`;
+- any future coded execution use: `[PROJECT-EXTENSION]` and separately gated.
 
 ## D1 EXTREME_TPW attribution boundary
 
-`D1_OPP_EXTREME_TPW` remains a project D1-to-LTF opportunity extension. The underlying Extreme/TP-Wajib concept is Core; the opportunity family is not relabelled as literal original nomenclature.
+`D1_OPP_EXTREME_TPW` remains a project D1-to-LTF opportunity extension. The underlying D1 Extreme/TP-Wajib concept is Core; the family name/execution wrapper is not relabelled as literal original nomenclature.
 
 Final split:
 - D1 Extreme = TP semantic owner;
-- fresh LTF Re-Entry = execution/dedup identity;
+- fresh LTF Re-Entry = execution/dedup identity + protective structural-SL source;
 - H4/LTF safeguards = project execution policy;
-- broker implementation of dynamic D1 TPW completion = engineering/project mapping.
+- broker implementation of dynamic D1 TPW completion = engineering/project mapping;
+- bounded repeated-LTF exception above = not applicable at D1.
 
 ## Provenance tags used going forward
 
@@ -83,19 +104,21 @@ Final split:
 - `[PROJECT-EXTENSION]`
 - `[ENGINEERING-ONLY]`
 - `[CONTEXT-ONLY]`
+- `[ADVANCED-BBMA][PUBLIC/FORUM-CORROBORATED][BOUNDED]`
 - `[REJECTED-FROM-CURRENT-CORE]`
 
 A single rule may carry more than one tag where the source concept and deterministic EA mapping are different layers.
 
 ## What is no longer a Core gap
 
-The following must not be counted again as unresolved Core solely because they are non-executable or partially project-mapped:
+The following must not be counted again as unresolved Core solely because they are non-executable, bounded or partially project-mapped:
 - descriptive BB zones/slope;
 - horizontal-BB context;
 - MA5 strength annotations;
 - bounded nested-MTF readings;
 - scoped D1/H4 precedence;
 - Extreme Magic subtype;
+- bounded repeated-LTF/HTF Extreme exception;
 - C044 deterministic engineering details;
 - broker SL/TP normalization.
 

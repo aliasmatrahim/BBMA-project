@@ -1,0 +1,41 @@
+name: REJ invalid lot diagnostics
+on:
+  push:
+    branches: [d1-owner-dev]
+    paths: ['blueprint/.rej-invalid-lot-diag-trigger']
+permissions:
+  contents: write
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          fetch-depth: 0
+      - name: Apply diagnostics patch
+        run: python3 .github/scripts/rej_invalid_lot_diag_patch.py
+      - name: Verify patch
+        shell: bash
+        run: |
+          git diff --check
+          test "$(git diff --name-only | sort | tr '\n' ' ')" = "blueprint/contracts/M21_MONEY_MANAGEMENT_CONTRACT.md blueprint/source/BBMA_EA.mq4 "
+          grep -F 'P2-LOTDIAG-01' blueprint/source/BBMA_EA.mq4
+          grep -F '[LOT_DIAG][REJ_INVALID_LOT]' blueprint/source/BBMA_EA.mq4
+          grep -F '"BROKER_SNAPSHOT_INVALID"' blueprint/source/BBMA_EA.mq4
+          grep -F '"BELOW_MIN"' blueprint/source/BBMA_EA.mq4
+          grep -F '"ABOVE_MAX"' blueprint/source/BBMA_EA.mq4
+          grep -F '"STEP_MISMATCH"' blueprint/source/BBMA_EA.mq4
+          grep -F '"MAXAUTOLOT_BELOW_MIN"' blueprint/source/BBMA_EA.mq4
+          grep -F '"FIXEDLOT_INVALID"' blueprint/source/BBMA_EA.mq4
+          grep -F 'double lot = CalculateLotSize(decision, snapshot, lotValid);' blueprint/source/BBMA_EA.mq4
+          grep -F 'Diagnostics boundary — P2-LOTDIAG-01' blueprint/contracts/M21_MONEY_MANAGEMENT_CONTRACT.md
+      - name: Commit patch
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add blueprint/source/BBMA_EA.mq4 blueprint/contracts/M21_MONEY_MANAGEMENT_CONTRACT.md
+          git commit -m 'P2: add REJ_INVALID_LOT observability diagnostics'
+          git push origin HEAD:d1-owner-dev

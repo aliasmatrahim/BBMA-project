@@ -15,7 +15,7 @@ Closure follows this order:
 5. ForexFactory `BBMA strategy by Oma Ally` thread — community corroboration only;
 6. public BBMA teaching/manual mirrors — corroboration only.
 
-Forum/web material never overrides a stronger uploaded/core source. Unsupported advanced claims are closed by rejection/non-authority rather than being promoted merely to eliminate a HOLD.
+Forum/web material never overrides a stronger uploaded/core source. Unsupported broad claims are closed by bounded interpretation or rejection rather than being promoted merely to eliminate a HOLD.
 
 ## 2. Closure principle
 
@@ -56,7 +56,7 @@ Accepted for a position genuinely opened from the MHV retest lifecycle:
 - failure to produce Momentum, with the relevant continuation candle closing back inside the BB at the direction-side boundary -> close/TP the MHV position;
 - once same-cycle Candle Arah/CSD and Re-Entry form, management ownership has progressed out of the pure-MHV stage and later post-Re-Entry management belongs to C044, not C024.
 
-No new standalone MHV execution path is created by this decision. If the EA does not execute an MHV-retet position directly, this remains lifecycle specification/context only.
+No new standalone MHV execution path is created by this decision. If the EA does not execute an MHV-retest position directly, this remains lifecycle specification/context only.
 
 Tag: `[BBMA-ORIGINAL][LIFECYCLE]` with broker timing/implementation classified separately as engineering.
 
@@ -75,17 +75,29 @@ Guard:
 
 Tag: `[BBMA-ORIGINAL][STRUCTURAL-DESTINATION]`, while any universal hard-TP conversion is `[PROJECT-EXTENSION]` or rejected unless separately approved.
 
-### Advanced / higher-timeframe Extreme no-TP exception
-**Final classification: CLOSED BY REJECTION / NOT PART OF CURRENT CORE.**
+### Advanced repeated-Extreme / local TP-Wajib exception
+**Final classification: CLOSED / BOUNDED ADVANCED MTF EXCEPTION / D1 EXCLUDED.**
 
-Research did not establish a sufficiently strong primary/source-authoritative deterministic exception allowing an otherwise normal valid Extreme to skip normal TP-Wajib merely because it is higher-timeframe, nested, `Extreme Magic`, or described as advanced.
+Further research after the first closure pass found stronger evidence for a narrow exception:
+- the uploaded Home Course states that repeated same-direction H1 Extremes without an opposite Extreme between them point to a larger-timeframe structure, including Double H1 Extreme -> H4 MHV context;
+- the uploaded Home Course also states that when the higher-timeframe MHV is valid, a compatible lower-timeframe Extreme can be used without waiting for another lower-timeframe MHV;
+- advanced/public BBMA teaching mirrors explicitly add that later repeated/triple Extreme stages may omit the ordinary local TP-Wajib/MHV step when a larger timeframe already has a complete MHV or Re-Entry.
 
-Therefore:
-- normal Extreme TP-Wajib remains the default accepted rule on every timeframe;
-- `Extreme Magic` is only a strength subtype and inherits normal Extreme maturity + TP-Wajib;
-- an alleged advanced/no-TP exception cannot suppress TP-Wajib without future explicit source evidence that is stronger and specific enough to define the exception deterministically.
+Accepted bounded rule:
+- normal standalone Extreme still carries normal TP-Wajib;
+- a later repeated same-direction **lower-timeframe** Extreme may omit a fresh local TPW/MHV cycle only when there is no intervening opposite LTF Extreme and the immediate higher timeframe independently owns a valid mature MHV/MLV or Re-Entry compatible with the sequence;
+- HTF state must be proven by its own canonical detector/lifecycle; LTF count cannot manufacture HTF confirmation;
+- the LTF Extreme must still satisfy its own validity/maturity; parent context cannot remotely mature RAW Extreme;
+- this exception creates no new direct entry path or combination signature.
 
-Tag: `[REJECTED-FROM-CURRENT-CORE]`.
+D1 boundary:
+- current EA hierarchy uses D1 as the top approved owner;
+- `D1_OPP_EXTREME_TPW` therefore does not qualify for this LTF-with-valid-parent exception and keeps normal D1 TP-Wajib.
+
+Authority record:
+`blueprint/decisions/ADVANCED_REPEATED_EXTREME_TPW_EXCEPTION_DECISION_20260826.md`.
+
+Tag: repeated-LTF parent relationship `[BBMA-SOURCE-CONSISTENT][MTF-CONTEXT]`; explicit local no-TPW/no-local-MHV exception `[ADVANCED-BBMA][PUBLIC/FORUM-CORROBORATED][BOUNDED]`.
 
 ## 4. Previously narrowed families reclassified as closed
 
@@ -144,7 +156,8 @@ To remove the existing semantic mismatch:
 - the D1 Extreme remains the **TP-Wajib semantic owner** for `D1_OPP_EXTREME_TPW`;
 - Re-Entry ownership of the execution hash does not transfer TP semantics away from the Extreme lifecycle;
 - the normal D1 TP-Wajib completion event is the first later fully closed D1 candle whose range reaches either opposite D1 MA5 or MA10 area under the canonical dynamic calculation already used by `D1OpportunityTPWCompletedSince()`;
-- Mid BB remains farther/maximum context, not a mandatory extension after first normal MA5/MA10 TP-Wajib completion.
+- Mid BB remains farther/maximum context, not a mandatory extension after first normal MA5/MA10 TP-Wajib completion;
+- the bounded repeated-LTF/HTF exception above does not apply at D1 because the current approved EA hierarchy has no independently validated larger parent above D1.
 
 A broker implementation must not freeze an arbitrary MA5/MA10 value and call it original BBMA. Preferred implementation is lifecycle-managed `TP=0` with a hard protective SL retained, then full close when the canonical closed-D1 TP-Wajib completion event is observed. This broker mapping is `[PROJECT-EXTENSION]` and must be source-bound, idempotent and recoverable before activation.
 
@@ -156,6 +169,7 @@ This does **not** mean every historical sentence is executable. Instead every fa
 - accepted Core;
 - accepted bounded/context-only;
 - deterministic project mapping with provenance label;
+- bounded advanced MTF exception;
 - or rejected from current Core.
 
 No unresolved `HOLD` is allowed to leak into execution. Future stronger source evidence may reopen a rejected/context-only item through a new dated decision, but current production design no longer depends on an undefined Core rule.
@@ -165,9 +179,9 @@ No unresolved `HOLD` is allowed to leak into execution. Future stronger source e
 The following are not Core semantic gaps and are not falsely declared closed by this record:
 - broker/demo runtime evidence for C044;
 - broker runtime D1/D1O hash/direction/timing matrix;
-- M17 runtime BUY/SELL/JYP/non-JPY structural-SL traces;
+- M17 runtime BUY/SELL/JPY/non-JPY structural-SL traces;
 - P3 live runtime closure items;
-- implementation of lifecycle-managed D1 `EXTREME_TPW` exit if/when patched;
+- implementation/runtime validation of lifecycle-managed D1 `EXTREME_TPW` exit;
 - any remaining canonical repo/CI hygiene.
 
 Those belong to implementation/runtime closure, not BBMA Core source closure.

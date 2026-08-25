@@ -54,6 +54,24 @@ Initialization must reject:
 - non-positive MaxAutoLot in AutoLot mode;
 - non-positive FixedLot in FixedLot mode.
 
+## Diagnostics boundary — P2-LOTDIAG-01
+
+`REJ_INVALID_LOT` remains the downstream rejection enum. Observability may attach a reason tag and frozen-snapshot values **after** M21 has already failed, but diagnostics MUST NOT alter sizing or admission.
+
+Approved diagnostic tags include at minimum:
+- `BROKER_SNAPSHOT_INVALID`;
+- `BELOW_MIN`;
+- `ABOVE_MAX`;
+- `STEP_MISMATCH`;
+- `MAXAUTOLOT_BELOW_MIN`;
+- `FIXEDLOT_INVALID`.
+
+Additional explanatory tags may distinguish invalid decision payload, payload mismatch, invalid MM configuration, invalid SL distance/risk-per-lot/risk amount, unknown MMMode, or an otherwise-unclassified failure.
+
+Diagnostic capture may include `rawLot`, normalized lot, `MinLot`, `MaxLot`, effective maximum lot, `LotStep`, `LotDigits`, `TickValue`, `TickSize_Price`, point size, SL distance, Entry, SL, frozen Equity, AutoLotPercent, MaxAutoLot, FixedLot and MMMode.
+
+Hard guard: diagnostics consume only the already-frozen decision/snapshot and user inputs. They may not re-query live broker/account state, clamp/normalize a rejected trade into acceptance, change `CalculateLotSize()`, or replace `REJ_INVALID_LOT` with a new trading decision.
+
 ## Failure behavior
 M21 returns `valid=false` and lot `0`. Downstream orchestration maps that to `REJ_INVALID_LOT`.
 

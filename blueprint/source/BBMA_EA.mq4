@@ -6463,6 +6463,115 @@ bool IsValidSnapshotLotStep(double lot, RiskValidationSnapshot &snapshot)
    return MathAbs(ratio - MathRound(ratio)) < 0.00001;
 }
 
+// P2-LOTDIAG-01: observability-only explanation for an already-failed M21 lot result.
+// IMPORTANT: CalculateLotSize() remains the sole sizing authority and is unchanged.
+// This helper never queries live broker/account state, changes lot, clamps values,
+// or changes rejection semantics. It only reads the same frozen decision/snapshot.
+string DiagnoseInvalidLotReason(BBMA_Decision &decision,
+                                RiskValidationSnapshot &snapshot,
+                                double &rawLot,
+                                double &normalizedLot,
+                                double &effectiveMaxLot)
+{
+   rawLot = 0.0;
+   normalizedLot = 0.0;
+   effectiveMaxLot = 0.0;
+
+   if(decision.DecisionState != DEC_VALIDATED || decision.Pair == "" ||
+      decision.EntryPrice <= 0 || decision.StopLoss <= 0)
+      return "INVALID_DECISION";
+
+   if(snapshot.Point <= 0 || snapshot.TickSize_Price <= 0 || snapshot.TickValue <= 0 ||
+      snapshot.LotStep <= 0 || snapshot.MinLot <= 0 ||
+      snapshot.MaxLot < snapshot.MinLot || snapshot.LotDigits < 0 || snapshot.Equity <= 0)
+      return "BROKER_SNAPSHOT_INVALID";
+
+   double payloadTolerance = snapshot.Point * 0.5;
+   if(MathAbs(snapshot.EntryPrice - decision.EntryPrice) > payloadTolerance ||
+      MathAbs(snapshot.StopLoss - decision.StopLoss) > payloadTolerance)
+      return "PAYLOAD_MISMATCH";
+
+   if(MMMode == 1)
+   {
+      if(AutoLotPercent <= 0 || MaxAutoLot <= 0)
+         return "MM_CONFIG_INVALID";
+
+      double slDistance = MathAbs(decision.EntryPrice - decision.StopLoss);
+      if(slDistance <= 0)
+         return "SL_DISTANCE_INVALID";
+
+      double riskPerLot = slDistance * snapshot.TickValue / snapshot.TickSize_Price;
+      if(riskPerLot <= 0)
+         return "RISK_PER_LOT_INVALID";
+
+      double riskAmount = snapshot.Equity * (AutoLotPercent / 100.0);
+      if(riskAmount <= 0)
+         return "RISK_AMOUNT_INVALID";
+
+      rawLot = riskAmount / riskPerLot;
+      normalizedLot = NormalizeLotDownFromSnapshot(rawLot, snapshot);
+      effectiveMaxLot = MathMin(snapshot.MaxLot, MaxAutoLot);
+
+      if(normalizedLot < snapshot.MinLot)
+         return "BELOW_MIN";
+      if(effectiveMaxLot < snapshot.MinLot)
+         return "MAXAUTOLOT_BELOW_MIN";
+      if(normalizedLot > effectiveMaxLot)
+         return "ABOVE_MAX";
+      if(!IsValidSnapshotLotStep(normalizedLot, snapshot))
+         return "STEP_MISMATCH";
+
+      return "AUTOLOT_FAILURE_UNCLASSIFIED";
+   }
+
+   if(MMMode == 2)
+   {
+      rawLot = FixedLot;
+      normalizedLot = FixedLot;
+      effectiveMaxLot = snapshot.MaxLot;
+
+      if(FixedLot <= 0 || FixedLot < snapshot.MinLot || FixedLot > snapshot.MaxLot)
+         return "FIXEDLOT_INVALID";
+      if(!IsValidSnapshotLotStep(FixedLot, snapshot))
+         return "STEP_MISMATCH";
+
+      return "FIXEDLOT_FAILURE_UNCLASSIFIED";
+   }
+
+   return "MMMODE_INVALID";
+}
+
+void PrintInvalidLotDiagnostic(BBMA_Decision &decision,
+                               RiskValidationSnapshot &snapshot,
+                               string reasonTag,
+                               double rawLot,
+                               double normalizedLot,
+                               double effectiveMaxLot)
+{
+   double slDistance = MathAbs(decision.EntryPrice - decision.StopLoss);
+
+   Print("[LOT_DIAG][REJ_INVALID_LOT] Pair=", decision.Pair,
+         " Reason=", reasonTag,
+         " MMMode=", IntegerToString(MMMode),
+         " RawLot=", DoubleToString(rawLot, 8),
+         " NormalizedLot=", DoubleToString(normalizedLot, 8),
+         " MinLot=", DoubleToString(snapshot.MinLot, 8),
+         " MaxLot=", DoubleToString(snapshot.MaxLot, 8),
+         " EffectiveMaxLot=", DoubleToString(effectiveMaxLot, 8),
+         " LotStep=", DoubleToString(snapshot.LotStep, 8),
+         " LotDigits=", IntegerToString(snapshot.LotDigits),
+         " TickValue=", DoubleToString(snapshot.TickValue, 8),
+         " TickSize=", DoubleToString(snapshot.TickSize_Price, 8),
+         " Point=", DoubleToString(snapshot.Point, 10),
+         " SLDistance=", DoubleToString(slDistance, 10),
+         " Entry=", DoubleToString(decision.EntryPrice, snapshot.Digits),
+         " SL=", DoubleToString(decision.StopLoss, snapshot.Digits),
+         " Equity=", DoubleToString(snapshot.Equity, 2),
+         " AutoPct=", DoubleToString(AutoLotPercent, 4),
+         " MaxAutoLot=", DoubleToString(MaxAutoLot, 8),
+         " FixedLot=", DoubleToString(FixedLot, 8));
+}
+
 double CalculateLotSize(BBMA_Decision &decision, RiskValidationSnapshot &snapshot, bool &valid)
 {
    valid = true;
@@ -7043,6 +7152,16 @@ bool RunEntryPreflightAndExecute(BBMA_Decision &decision, string pair)
    double lot = CalculateLotSize(decision, snapshot, lotValid);
    if(!lotValid || lot <= 0)
    {
+      double rawLotDiagnostic = 0.0;
+      double normalizedLotDiagnostic = 0.0;
+      double effectiveMaxLotDiagnostic = 0.0;
+      string lotReasonTag = DiagnoseInvalidLotReason(
+         decision, snapshot, rawLotDiagnostic, normalizedLotDiagnostic,
+         effectiveMaxLotDiagnostic);
+      PrintInvalidLotDiagnostic(decision, snapshot, lotReasonTag,
+                                rawLotDiagnostic, normalizedLotDiagnostic,
+                                effectiveMaxLotDiagnostic);
+
       decision.DecisionState = DEC_REJECTED;
       decision.RejectionReason = REJ_INVALID_LOT;
       return false;

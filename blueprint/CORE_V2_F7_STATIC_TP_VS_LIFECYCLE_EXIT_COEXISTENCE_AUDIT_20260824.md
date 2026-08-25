@@ -1,5 +1,8 @@
 # CORE-V2-F7 — Static TP vs Lifecycle Exit Coexistence Audit
 
+> **2026-08-25 EXECUTABLE-PRECEDENCE NOTICE**
+> This document is retained as historical/provisional evidence reconstruction. Where it treats post-Re-Entry no-Momentum, re-arm, hold/no-TP, or related lifecycle-close behavior as executable/source-spec `RESOLVED`, that promotion is superseded by `docs/references/HOME_COURSE_19P_CROSS_SOURCE_RECONCILIATION_20260825.md`, `docs/references/HOME_COURSE_49_FAMILY_CORE_REVALIDATION_20260825.md`, and the current authoritative Strategy Core. Those material lifecycle behaviors remain HOLD unless a later explicit strategy decision reopens them. No EA execution authority may be derived from the superseded conclusion alone.
+
 Date: 2026-08-24  
 Branch: `blueprint-dev`  
 Scope: executable H1 Re-Entry / REM / RRE / REE take-profit architecture under Path A  

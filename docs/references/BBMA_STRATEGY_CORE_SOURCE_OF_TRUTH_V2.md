@@ -66,6 +66,20 @@ Authoritative rule:
 This is a corroborated rule, not a new post-Finale filter.
 
 Source basis: historical PDF basic BBMA laws; Finale V02 00:13:51–00:18:07 and 00:24:44–00:26:18.
+### 4.1 Mid-BB descriptive zones and slope context — non-executable clarification
+
+Home Course terminology retained for completeness:
+- area from Mid BB toward Top BB = `Buying Zone`;
+- area from Mid BB toward Low BB = `Selling Zone`;
+- Mid-BB slope up/down/horizontal is a same-timeframe descriptive trend guide.
+
+Execution guard:
+- zone membership is context only and is **not** standalone entry authority;
+- Mid-BB slope alone is **not** a detector, entry filter, exit rule, TP/SL rule or timeframe-owner override;
+- accepted eCSD/CSD, Re-Entry, Extreme, MHV/MLV, Momentum and exact REM/RRE/REE contracts remain unchanged.
+
+Source/reconciliation basis: Home Course 19-page rows HC-P03-002 through HC-P03-007, constrained by `HOME_COURSE_19P_CROSS_SOURCE_RECONCILIATION_20260825.md`.
+
 
 ---
 
@@ -493,6 +507,29 @@ Do not promote the following into BBMA Strategy Core without stronger source evi
 - psychology/money-management teaching;
 - literal guarantees from qualitative phrases such as “pasti”, “100%” or “paling selamat”;
 - EA implementation mechanisms such as trade lock, scheduler, dashboard, logging, broker handling, portfolio cap or execution plumbing.
+### 11.1 Home Course 19-page completeness boundary — reviewed but not silently promoted
+
+The 49-family revalidation is recorded in `HOME_COURSE_49_FAMILY_CORE_REVALIDATION_20260825.md`. All non-fully-covered families are intentionally visible rather than omitted.
+
+Safe/context-only families remain bounded by their existing contracts. The following material is specifically **not universal executable Core authority** unless a later explicit source/strategy decision promotes it:
+- detailed horizontal-BB wick/body/close -> Mid-BB reversion table;
+- absolute 10–20 pip horizontal-BB breakout threshold;
+- MA5 close / MA5-hugging-BB as an independent Momentum validity tier;
+- Mid-BB break -> retest -> failure-to-recross as a universal standalone detector;
+- deterministic MHV post-event Momentum/no-Momentum TP/hold/close rules;
+- guaranteed Candle Arah outer-BB destination;
+- pre-Re-Entry/post-direction outer-BB hold/no-TP exception;
+- broad literal `D1 says Buy, H4 says Sell -> always follow D1` rule beyond the already approved scoped D1/MA50 strategic-owner contract;
+- Double H1 Extreme -> deterministic H4 MHV inference;
+- H4 MHV -> direct lower-TF Extreme execution shortcut;
+- claim that valid H4 MHV means no further H1 MHV;
+- deterministic next-day prediction from today's D1 close;
+- universal Re-Entry -> no Momentum mandatory TP/reversal exit;
+- `Extrem Magic` as independent executable detector/authority;
+- unrestricted recursive lower-TF replay/add-on authority.
+
+Precedence note: where historical 2026-08-24 F7 lifecycle audits describe post-Re-Entry no-Momentum/hold behavior as source/spec-level `RESOLVED`, executable promotion is superseded by the later 2026-08-25 cross-source reconciliation and this current authoritative Core, which retain the material behavior as HOLD. Historical evidence remains useful; it does not itself grant execution authority.
+
 
 ---
 

@@ -261,3 +261,13 @@ Status: **CLOSED / PASS / DOCUMENTATION-ONLY**
 - M12N contract and M27 canonical pipeline are synchronized with this boundary.
 - Exact REM/RRE/REE and D1 Opportunity execution contracts remain unchanged.
 - Audit: `blueprint/NMJE_D1_WATCH_ONLY_BOUNDARY_RECONCILIATION_20260825.md`.
+
+---
+
+## Core 49-Family Revalidation Closure — CLOSED / PASS / DOCS-ONLY
+
+- Correct canonical-family strict split: **28 COVERED / 10 PARTIAL-MIXED / 11 MISSING-HOLD**.
+- All non-full families are retained by ID in the 2026-08-25 revalidation audit.
+- Safe descriptive clarifications are documented; material strategy HOLDs remain non-executable.
+- Historical F7 no-Momentum lifecycle conclusions are precedence-guarded against accidental future promotion.
+- No MQL4 strategy change; no native compile required for this docs-only correction. Future strategy promotion from a HOLD still requires an explicit decision gate.

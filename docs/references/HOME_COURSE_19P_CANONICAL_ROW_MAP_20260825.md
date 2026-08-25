@@ -241,19 +241,25 @@ This prevents the summary section from artificially increasing either the denomi
 
 After semantic deduplication and NON_CORE exclusion, the Workbook yields **49 canonical Strategy-Core families**.
 
-Classification by family:
-- Fully COVERED: **30**
-- PARTIAL (including mixed covered/partial families): **8**
+Classification by family under the strict heading-status rule:
+- Fully COVERED (status exactly `COVERED`): **28**
+- PARTIAL / mixed (any status containing `PARTIAL`, including `COVERED/PARTIAL` and `PARTIAL/HOLD`): **10**
 - MISSING/HOLD: **11**
 - Total applicable canonical families: **49**
 
 Strict full-coverage metric:
 
-`30 / 49 = 61.22% fully covered`
+`28 / 49 = 57.14% fully covered`
 
-Representation metric (COVERED + PARTIAL, without pretending PARTIAL is complete):
+Partial/mixed metric:
 
-`(30 + 8) / 49 = 77.55% represented at least partially`
+`10 / 49 = 20.41% partial/mixed`
+
+Representation metric (COVERED + PARTIAL/mixed, without pretending PARTIAL is complete):
+
+`(28 + 10) / 49 = 77.55% represented at least partially`
+
+Counting guard: a mixed heading such as `COVERED/PARTIAL` or `PARTIAL/HOLD` never counts as fully covered. This corrects the earlier 30/8 split while preserving the same represented-at-least-partially total of 38 families.
 
 Unresolved material families:
 

@@ -362,3 +362,15 @@ Workbook forensic HOLD families remain excluded from executable behavior. Safe V
 - Exact REM/RRE/REE signatures remain unchanged.
 - Record: `blueprint/NMJE_D1_WATCH_ONLY_BOUNDARY_RECONCILIATION_20260825.md`.
 - Documentation-only reconciliation; EA source/trading behavior unchanged.
+
+---
+
+## 2026-08-25 Core 49-family revalidation overlay — PASS / DOCS-ONLY
+
+- Mechanical canonical count corrected to **28 fully covered + 10 partial/mixed + 11 MISSING/HOLD = 49**.
+- Strict full coverage = **57.14%**; represented at least partially = **77.55%**; unresolved hard HOLD = **22.45%**.
+- All 21 non-fully-covered families are explicitly accounted for in `docs/references/HOME_COURSE_49_FAMILY_CORE_REVALIDATION_20260825.md`.
+- Safe Mid-BB zone/slope context is visible in authoritative Core with non-execution guards.
+- Historical F7 lifecycle-exit promotion is precedence-guarded by the 2026-08-25 reconciliation; no no-Momentum execution rule is silently enabled.
+- D1 MHV/MLV and D1 eCSD remain watch/context-only in NMJE/D1 Opportunity execution paths.
+- **EA source unchanged by this revalidation.**

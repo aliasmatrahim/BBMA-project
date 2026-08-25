@@ -21,6 +21,15 @@ Guard:
 - zone membership is structural/context vocabulary only;
 - being inside a named zone is **not** standalone entry authority;
 - no existing Re-Entry, Extreme, MHV/MLV, Momentum or combination eligibility condition is weakened by this terminology.
+## V2.x-C1b — Mid-BB slope context
+
+The Workbook describes Mid-BB slope (up/down/horizontal) as a same-timeframe trend guide.
+
+Guard:
+- slope is descriptive/context evidence only;
+- Mid-BB slope alone is not a detector, entry gate, exit trigger, TP/SL rule, score, or owner-timeframe override;
+- no existing eCSD/CSD, Re-Entry, Momentum, Extreme, MHV/MLV or combination condition is weakened or replaced.
+
 
 ## V2.x-C2 — Direction-strength hierarchy
 

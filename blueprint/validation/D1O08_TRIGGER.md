@@ -7,4 +7,6 @@ Purpose:
 - validate the current owner baseline before D1O-07 canonical LTF dedup is materialized;
 - this file has zero EA/runtime/strategy effect.
 
+Retrigger: D1O-08-specific static + native MT4 compile workflow installed on validation branch.
+
 Do not merge this validation marker into `d1-owner-dev`; close the validation PR after checks are harvested.

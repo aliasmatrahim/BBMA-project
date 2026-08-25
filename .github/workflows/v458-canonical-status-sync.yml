@@ -1,0 +1,112 @@
+name: v4.58 canonical status sync
+
+on:
+  push:
+    branches: [d1-owner-dev]
+    paths:
+      - 'blueprint/.run-v458-canonical-status-sync'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d1-owner-dev
+          fetch-depth: 0
+
+      - name: Verify v4.58 source and synchronize canonical records
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, subprocess
+
+          src = Path('blueprint/source/BBMA_EA.mq4')
+          raw = src.read_bytes()
+          text = raw.decode('utf-8')
+          required = [
+              'Version 4.5.8 - D1 TP-Wajib Lifecycle Stage',
+              '#property version   "4.58"',
+              'bool           EnableC044Lifecycle                = false;',
+              'bool           EnableD1TPWLifecycle               = false;',
+              'bool IsD1TPWCompletionAtShift',
+              'bool ExecuteLatchedD1TPWClose',
+              'bool SaveD1TPWCheckpoint',
+              'bool LoadD1TPWCheckpoint',
+          ]
+          for marker in required:
+              if marker not in text:
+                  raise SystemExit(f'missing v4.58 marker: {marker}')
+          if 'EnableC044Lifecycle                = true' in text:
+              raise SystemExit('C044 unexpectedly enabled')
+          if 'EnableD1TPWLifecycle               = true' in text:
+              raise SystemExit('D1 TPW unexpectedly enabled')
+
+          blob = subprocess.check_output(['git','hash-object',str(src)], text=True).strip()
+          expected_blob = 'a166ffb23aba5e6b4011a28d9de8896cd00e33a1'
+          if blob != expected_blob:
+              raise SystemExit(f'unexpected v4.58 source blob: {blob}')
+          sha256 = hashlib.sha256(raw).hexdigest()
+          source_commit = subprocess.check_output(
+              ['git','log','-1','--format=%H','--',str(src)], text=True
+          ).strip()
+
+          impl = Path('blueprint/D1_TPW_LIFECYCLE_V458_IMPLEMENTATION_AUDIT_20260826.md')
+          impl_text = impl.read_text(encoding='utf-8')
+          lines = []
+          for line in impl_text.splitlines():
+              if line.startswith('- Git blob:'):
+                  line = f'- Git blob: `{blob}`'
+              elif line.startswith('- SHA-256:'):
+                  line = f'- SHA-256: `{sha256}`'
+              elif line.startswith('- EnableD1TPWLifecycle='):
+                  line = '- `EnableD1TPWLifecycle=false`'
+              elif line.startswith('- EnableC044Lifecycle='):
+                  line = '- `EnableC044Lifecycle=false`'
+              lines.append(line)
+          impl.write_text('\n'.join(lines).rstrip()+'\n', encoding='utf-8')
+
+          current_marker = '# 2026-08-26 v4.58 D1 TP-Wajib Lifecycle Materialization Overlay'
+          current = Path('blueprint/CURRENT.md')
+          c = current.read_text(encoding='utf-8')
+          if current_marker not in c:
+              c += f'''\n\n{current_marker}\n\nThis dated overlay supersedes older current-build / next-action wording where it conflicts. Historical sections remain provenance only.\n\n## Canonical active source\n- Build: `Version 4.5.8 - D1 TP-Wajib Lifecycle Stage`\n- `#property version "4.58"`\n- Source Git blob: `{blob}`\n- Source SHA-256: `{sha256}`\n- Source materialization commit: `{source_commit}`\n- Native MetaEditor: **0 errors / 0 warnings**\n- Protected-surface regression: **PASS**\n- Compile workflow run: `32902824738`, successful rerun job `97983428115`\n- Evidence artifact: `9584323165`, digest `sha256:5adec6eab3cae7f9303998a21609245252267be4660ade08c23b48be540c01cd`\n- `EnableD1TPWLifecycle=false`\n- `EnableC044Lifecycle=false`\n\n## Gap state\n- BBMA Core semantic classification: **49/49 explicit, 0 unresolved Core semantic HOLDs**.\n- D1 `EXTREME_TPW` ownership mismatch: **CLOSED at decision/contract/source/static/native level**.\n- v4.58 prevents `D1_OPP_EXTREME_TPW` from falling back to the legacy LTF Re-Entry outer-BB TP while its lifecycle gate is OFF.\n- Dynamic D1 TP-Wajib lifecycle machinery is implemented but remains deliberately dormant until authenticated broker/demo validation.\n- Canonical repo/source/contract synchronization is complete by this overlay.\n\n## Remaining open work\nRemaining known gaps are **runtime evidence / activation gates**, not undefined BBMA Core or repo-source semantics:\n1. D1 TP-Wajib targetless checkpoint/restart/replay + BUY/SELL MA5/MA10 close + duplicate-close + M20 precedence + C044 ambiguity tests.\n2. C044 broker/demo lifecycle tests.\n3. D1 owner and D1O execution-hash/direction/timing broker telemetry.\n4. M17/F1-F6/opposite-lock/sequential-risk/P3 live traces.\n\nNo lifecycle gate may be enabled merely because static/native validation passed. N1/N2/N3 remain parked unless explicitly resumed.\n'''
+              current.write_text(c, encoding='utf-8')
+
+          queue_marker = '## 2026-08-26 — v4.58 Gap-Closure Queue Overlay'
+          queue = Path('blueprint/MASTER_QUEUE.md')
+          q = queue.read_text(encoding='utf-8')
+          if queue_marker not in q:
+              q += f'''\n\n{queue_marker}\n\n> This overlay supersedes stale earlier queue entries that still describe D1 owner implementation, invalid-lot diagnostics, dashboard count, D1 TPW source implementation, or unresolved Core semantics as future work. Preserve those entries as historical provenance only.\n\n### Closed / do not requeue without new evidence\n- BBMA Core semantic classification: **0 unresolved Core semantic gaps**.\n- D1 strategic owner source implementation and static/native compliance.\n- D1 Opportunity family materialization/dedup static layers.\n- D1 `EXTREME_TPW` TP ownership decision + dedicated contract.\n- D1 TP-Wajib v4.58 source implementation: **PASS static / PASS protected surfaces / PASS native 0E0W**.\n- `REJ_INVALID_LOT` observability diagnostics.\n- dashboard live exact-owned trade count.\n- SELL structural-SL spread-buffer issue previously closed.\n\n### Active source identity\n- v4.58 source blob: `{blob}`\n- SHA-256: `{sha256}`\n- materialization commit: `{source_commit}`\n- both lifecycle gates remain **OFF**.\n\n### Active queue — environment blocked\n1. **D1 TPW runtime gate** — authenticated broker/demo restart, replay, BUY/SELL TPW close, duplicate-close, M20 precedence, lifecycle disambiguation.\n2. **C044 runtime gate** — checkpoint/replay, failed-Momentum close, Momentum -> next Re-Entry re-arm, opposite mature Extreme supersession, M20 precedence.\n3. **D1/D1O runtime telemetry** — owner matrix, stable execution hash, invariant direction, validation/order timing.\n4. **P3/M17/Core runtime traces** — remaining live Tests B/C/D and F1-F6 / TradeLock / cumulative-risk geometry/sequence evidence.\n\n### Development rule\nThere is currently no known repo/source/contract gap that justifies another strategy source patch before new evidence. Do not activate `EnableD1TPWLifecycle` or `EnableC044Lifecycle` without their broker/demo runtime gate. N1/N2/N3 remain parked.\n'''
+              queue.write_text(q, encoding='utf-8')
+
+          reg_marker = '## 2026-08-26 v4.58 Materialization Closure Overlay'
+          reg = Path('blueprint/GAP_CLOSURE_REGISTER_20260826.md')
+          r = reg.read_text(encoding='utf-8')
+          if reg_marker not in r:
+              r += f'''\n\n{reg_marker}\n\nThis overlay supersedes the earlier `GAP-B0 — OPEN — REPO-CLOSABLE IMPLEMENTATION TASK` status.\n\n### GAP-B0 — D1 TP-Wajib lifecycle implementation\nStatus: **CLOSED AT REPO/SOURCE/STATIC/NATIVE LEVEL**\n\nEvidence:\n- v4.58 source blob `{blob}`;\n- SHA-256 `{sha256}`;\n- materialization commit `{source_commit}`;\n- protected-surface regression PASS;\n- official MetaEditor `0 errors, 0 warnings`;\n- run `32902824738`, successful rerun job `97983428115`;\n- artifact `9584323165`, digest `sha256:5adec6eab3cae7f9303998a21609245252267be4660ade08c23b48be540c01cd`.\n\nRuntime portion is reclassified as an environment-blocked activation gate and remains open until authenticated MT4 broker/demo evidence exists. Both lifecycle gates remain OFF.\n\n### Current gap classification\n- Known BBMA Core semantic gaps: **0**.\n- Known repo/source/contract gaps from this closure register: **0 after this synchronization**.\n- Remaining gaps: **broker/runtime evidence only** (former B0 runtime portion + B1-B4).\n'''
+              reg.write_text(r, encoding='utf-8')
+
+          sync = Path('blueprint/V458_CANONICAL_STATUS_SYNC_20260826.md')
+          sync.write_text(f'''# v4.58 Canonical Status Sync — 2026-08-26\n\nStatus: **PASS / CANONICAL STATUS RECONCILED**\n\n- Source: `blueprint/source/BBMA_EA.mq4`\n- Build: `Version 4.5.8 - D1 TP-Wajib Lifecycle Stage`\n- Git blob: `{blob}`\n- SHA-256: `{sha256}`\n- Materialization commit: `{source_commit}`\n- Native MetaEditor: `0 errors, 0 warnings`\n- Protected surfaces: PASS\n- `EnableD1TPWLifecycle=false`\n- `EnableC044Lifecycle=false`\n- Core semantic gaps: 0\n- Repo/source/contract gaps in active gap register: 0 after sync\n- Remaining gaps are authenticated broker/runtime evidence and later activation review only.\n\nSynchronized records:\n- `blueprint/CURRENT.md`\n- `blueprint/MASTER_QUEUE.md`\n- `blueprint/GAP_CLOSURE_REGISTER_20260826.md`\n- `blueprint/D1_TPW_LIFECYCLE_V458_IMPLEMENTATION_AUDIT_20260826.md`\n''', encoding='utf-8')
+
+          print('BLOB='+blob)
+          print('SHA256='+sha256)
+          print('SOURCE_COMMIT='+source_commit)
+          print('CANONICAL_SYNC=PASS')
+          PY
+
+          rm -f blueprint/.run-v458-canonical-status-sync
+          rm -f .github/workflows/v458-canonical-status-sync.yml
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Reconcile v4.58 canonical gap status [skip ci]'
+          git push origin HEAD:d1-owner-dev

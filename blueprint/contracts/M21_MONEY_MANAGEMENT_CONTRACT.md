@@ -1,6 +1,6 @@
 # M21 Money Management Contract
 
-Status: LOCKED for the P0 architecture-repair cycle.
+Status: **ACTIVE / LOCKED — compatible with M17-SLRANGE-01**.
 
 ## Role
 M21 is a sizing-only module. It consumes a fully validated M15–M17 decision plus the frozen `RiskValidationSnapshot` and returns either one broker-valid lot size or failure.
@@ -35,6 +35,23 @@ If the risk-based lot is below minimum lot, above the effective maximum, cannot 
 
 `MaxAutoLot` applies only to AutoLot mode.
 
+## M17-SLRANGE-01 compatibility
+
+M21 always sizes from the **final normalized hard SL produced by M17**.
+
+For v4.52 this means the M17 input to M21 may already include:
+- BUY: lowest Low across the exact source-owned Re-Entry lifecycle, minus one broker Point, with no spread buffer;
+- SELL: highest High across the exact source-owned Re-Entry lifecycle, plus one broker Point and the approved rounded SELL spread buffer.
+
+M21 applies **no second spread adjustment and no independent SL compensation**.
+
+Consequences:
+- if the final Entry-to-SL distance increases, AutoLot naturally decreases under the unchanged risk formula;
+- if the final Entry-to-SL distance is unchanged, AutoLot is unchanged;
+- FixedLot does not shrink automatically and therefore monetary risk may increase with a wider final SL.
+
+This behavior is a consequence of the existing risk-distance formula, not a new lot-sizing strategy.
+
 ## FixedLot mode
 `MMMode == 2` only.
 
@@ -42,6 +59,8 @@ If the risk-based lot is below minimum lot, above the effective maximum, cannot 
 
 ## Atomic snapshot rule
 M21 uses the same frozen decision/snapshot pair that is subsequently checked by M19. `snapshot.EntryPrice` and `snapshot.StopLoss` must still match the M17-approved decision payload within broker-point tolerance.
+
+M17 resolves and normalizes the final SL before that value is frozen into `snapshot.StopLoss` and before M21 sizing begins.
 
 Live `AccountEquity()`, live `GetMaxLot()`, live `GetLotStep()`, and similar re-queries are not permitted inside the sizing calculation because they can make one decision produce different lots across ticks.
 
@@ -76,7 +95,7 @@ Hard guard: diagnostics consume only the already-frozen decision/snapshot and us
 M21 returns `valid=false` and lot `0`. Downstream orchestration maps that to `REJ_INVALID_LOT`.
 
 ## Ownership boundary
-M17 owns Entry/SL/TP.
+M17 owns Entry/SL/TP and broker-side structural normalization.
 M21 owns lot calculation only.
 M19 owns prospective risk approval using the returned lot.
 M20 owns portfolio admission/protection state.

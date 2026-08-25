@@ -3,11 +3,12 @@
 Branch: `d1-owner-dev`
 
 ## Status
-**IMPLEMENTED / STATIC INTEGRITY PASS / DETERMINISTIC MULTI-CANDLE REPLAY / FEATURE GATE OFF / NATIVE METAEDITOR COMPILE PENDING**
+**IMPLEMENTED / STATIC INTEGRITY PASS / DETERMINISTIC MULTI-CANDLE REPLAY / FEATURE GATE OFF / NATIVE METAEDITOR 0E0W PASS / SELF-TEST PENDING**
 
 ## Source identity
 - Build: `Version 4.5.6 - C044 Deterministic Replay Stage`
 - Source Git blob after patch: `f0f80decbdbda836c12b6073f5dbc6e347662b13`
+- Source SHA-256: `d2d94e5f7cf0f5b513fd2f8dfd877264fe33aad1425d54e056effccb33d782f4`
 - `EnableC044Lifecycle=false` remains locked OFF.
 
 ## Closed gap
@@ -26,5 +27,16 @@ Missing/corrupt replay seed, missing exact historical candle, invalid cursor ord
 ## Execution authority
 No new `OrderClose()` authority was added. M23 remains the only C044 close executor, M20 emergency close retains precedence, and the feature gate remains OFF. Static outer-BB TP therefore remains current live behavior in this staged build.
 
+## Native compile closure
+Native MT4 MetaEditor compile for the exact v4.56 source is **PASS — 0 errors / 0 warnings**.
+
+- Workflow run: `32887687562`
+- Compile job: `97931884635`
+- Artifact: `c044-step4-native-compile-evidence`
+- Artifact ID: `9578625237`
+- Artifact digest: `sha256:ddbcbe332ae8c4a50c68d07177fb76393eb1b4e8a7a62d73b5efca44ce2624ea`
+
+The later `close-gate` documentation job failed only because of an artifact subdirectory lookup mismatch; it did not invalidate the compile. Exact-source verification and native compile both passed.
+
 ## Next gate
-Native MT4 MetaEditor compile is required for the exact v4.56 source, target **0 errors / 0 warnings**. Then run deterministic replay self-tests before any activation decision.
+Run deterministic replay self-tests against the exact v4.56 blob: checkpoint round-trip integrity, no-gap behavior, one/multi-candle chronological replay, failed-Momentum exit latch, Momentum hold → next Re-Entry re-arm, opposite-Extreme cycle supersession, and missing/corrupt history fail-frozen behavior. No activation is authorized by this audit.

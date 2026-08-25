@@ -4,7 +4,7 @@ on:
   push:
     branches: [ d1-owner-dev ]
     paths:
-      - 'blueprint/.run-post-c044-reconcile'
+      - 'blueprint/.run-c044-step4-selftest'
 
 permissions:
   contents: write

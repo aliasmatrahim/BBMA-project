@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - d1-owner-dev
-    paths:
-      - blueprint/.run-d1-tpw-v458-runtime-probe2
 
 permissions:
   contents: read

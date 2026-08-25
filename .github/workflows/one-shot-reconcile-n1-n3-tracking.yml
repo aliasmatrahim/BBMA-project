@@ -24,6 +24,12 @@ jobs:
         run: |
           set -euo pipefail
           python3 blueprint/ci/reconcile_n1_n3_tracking.py
+          python3 - <<'PY'
+          from pathlib import Path
+          for name in ('blueprint/CURRENT.md', 'blueprint/MASTER_QUEUE.md'):
+              p = Path(name)
+              p.write_text(p.read_text(encoding='utf-8').rstrip() + '\n', encoding='utf-8')
+          PY
           git diff --check
           git status --short
 

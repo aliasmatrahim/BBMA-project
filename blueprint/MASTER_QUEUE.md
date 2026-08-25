@@ -424,3 +424,31 @@ Status: **CLOSED / PASS / DOCUMENTATION-ONLY**
 
 ### Development rule
 There is currently no known repo/source/contract gap that justifies another strategy source patch before new evidence. Do not activate `EnableD1TPWLifecycle` or `EnableC044Lifecycle` without their broker/demo runtime gate. N1/N2/N3 remain parked.
+
+## 2026-08-26 — N1-N3 Completion / Runtime-First Queue Overlay
+
+> This overlay supersedes the earlier v4.58 queue sentence stating `N1/N2/N3 remain parked`. N1-N3 technical work is now complete. Historical queue entries remain provenance only.
+
+### Closed — do not requeue without new evidence
+- **N1/N1.1 NMJE observation/coverage:** CLOSED / PASS.
+- **N2 NMJE research/telemetry/identity pipeline:** CLOSED / PASS.
+- **N3 NMJE evidence-to-policy staging:** TECHNICALLY COMPLETE / CLOSED; `execution_policy=NONE`, activation inactive.
+- N1-N3 protected-surface comparison confirms no EA source change; v4.58 source remains blob `a166ffb23aba5e6b4011a28d9de8896cd00e33a1`.
+
+### Active execution order — broker/runtime closure
+1. **D1 TP-Wajib lifecycle runtime gate** — restart/checkpoint, closed-D1 TPW completion, close idempotency, no duplicate close/new entry.
+2. **C044 runtime gate** — checkpoint/replay, failed-Momentum close, Momentum -> next Re-Entry re-arm, opposite mature Extreme supersession, M20 precedence.
+3. **D1 owner / D1O runtime matrix** — BUY/SELL/TRANSITION/UNRESOLVED, stable execution hash, invariant direction, D1O dedup identity.
+4. **Validation -> order timing** — prove closed validation candle can execute only in the intended following live candle; capture actual `OrderOpenTime()`.
+5. **M17 structural SL runtime** — BUY/SELL and JPY/non-JPY geometry with live broker specifications.
+6. **Remaining P3/Core runtime traces** — F1-F6, TradeLock, cumulative prospective risk and remaining live Tests B/C/D.
+7. **N2 real forward outcome collection** — collect broker-connected `[N1-NMJE] -> [N2-NMJE-DEC] -> [N2-NMJE-OUT]` evidence for any future N3 policy review.
+
+### N3 activation boundary
+`REVIEW_READY` is only evidence-review readiness. It is never automatic trading authority. Any future relation-based execution policy requires a new dated strategy decision, explicit approval, default-OFF implementation, protected-surface regression, native 0E0W and broker/demo validation.
+
+### Freeze rule
+Do not modify v4.58 strategy source opportunistically while these runtime gates are being attributed. A source patch requires either a concrete runtime defect or a separately approved strategy change.
+
+Phase freeze record:
+`blueprint/N1_N3_V458_PHASE_COMPLETION_RC_FREEZE_20260826.md`

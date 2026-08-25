@@ -461,3 +461,32 @@ Remaining known gaps are **runtime evidence / activation gates**, not undefined 
 4. M17/F1-F6/opposite-lock/sequential-risk/P3 live traces.
 
 No lifecycle gate may be enabled merely because static/native validation passed. N1/N2/N3 remain parked unless explicitly resumed.
+
+# 2026-08-26 N1-N3 Technical Completion Overlay
+
+This is the latest NMJE phase-status overlay and supersedes older wording that says N1/N2/N3 are parked or unfinished. Historical sections remain provenance only.
+
+## N1-N3 status
+- **N1/N1.1: CLOSED / PASS — observation-only.** Coverage and call-order reconciliation are recorded in `blueprint/N1_NMJE_V458_FINAL_CLOSURE_AUDIT_20260826.md`.
+- **N2: CLOSED / PASS — research & telemetry complete.** Source ownership guard + synthetic identity/research suite passed run `32912134419`, job `98008262714`. Real forward outcomes remain an evidence dependency, not an N2 implementation gap.
+- **N3: TECHNICALLY COMPLETE / CLOSED — execution policy NONE / inactive.** Evidence-to-policy review-readiness tooling and activation firewall passed run `32912473753`, job `98009255525`. Any future execution policy still requires real N2 forward evidence plus separate explicit strategy approval.
+
+## Frozen EA candidate
+- build: `Version 4.5.8 - D1 TP-Wajib Lifecycle Stage`;
+- `#property version "4.58"`;
+- source blob: `a166ffb23aba5e6b4011a28d9de8896cd00e33a1`;
+- canonical SHA-256: `ba2e5815d1b221d7bba46ed0be4793aa5bc6154e29e9b19562dfffbd28c8f0bc`;
+- native MetaEditor: **0 errors / 0 warnings**;
+- `EnableD1TPWLifecycle=false`;
+- `EnableC044Lifecycle=false`.
+
+N1-N3 completion changed only documentation/contracts/research tools/tests/CI. `blueprint/source/BBMA_EA.mq4` remained unchanged throughout the phase.
+
+## Hosted smoke
+v4.58 hosted MT4 probe run `32909061219`, job `97999302151` compiled 0E0W and launched MT4 build 1478 with no fatal runtime signature. Classification remained `HOSTED_ENVIRONMENT_UNCLASSIFIED_NO_FATAL_SIGNATURE`; this is smoke evidence only, not broker-runtime closure.
+
+## Current next gate
+**Broker/runtime closure against the frozen v4.58 candidate.** Do not reopen N1-N3 source work without new runtime evidence or a separately approved N3 strategy policy.
+
+Canonical phase freeze record:
+`blueprint/N1_N3_V458_PHASE_COMPLETION_RC_FREEZE_20260826.md`

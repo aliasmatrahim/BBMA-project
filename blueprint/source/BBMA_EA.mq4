@@ -7304,16 +7304,6 @@ bool RunEntryPreflightAndExecute(BBMA_Decision &decision, string pair)
       return false;
    }
 
-   if(DebugLevel >= DBG_TRADE)
-   {
-      Print("[M17-SL][LOT] Pair=", pair,
-            " Dir=", EnumToString(decision.Direction),
-            " Entry=", DoubleToString(decision.EntryPrice, snapshot.Digits),
-            " FinalSL=", DoubleToString(decision.StopLoss, snapshot.Digits),
-            " FinalTP=", DoubleToString(decision.TakeProfit, snapshot.Digits),
-            " FinalLot=", DoubleToString(lot, snapshot.LotDigits));
-   }
-
    RiskStatus riskStatus = CheckRiskBeforeTrade(decision, snapshot, lot);
    if(!riskStatus.allowed)
    {

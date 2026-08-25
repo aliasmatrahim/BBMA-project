@@ -36,7 +36,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 blueprint/tools/c044_step4_replay_selftest.py | tee /tmp/c044-step4-selftest.txt
+          python3 blueprint/tools/c044_step4_replay_selftest_v2.py | tee /tmp/c044-step4-selftest.txt
           grep -Fq 'C044_STEP4_REPLAY_SELFTEST=PASS' /tmp/c044-step4-selftest.txt
           grep -Fq 'STATIC_INVARIANTS=PASS' /tmp/c044-step4-selftest.txt
           grep -Fq 'CHECKPOINT_ROUNDTRIP=PASS' /tmp/c044-step4-selftest.txt

@@ -8,7 +8,7 @@ permissions:
 jobs:
   native-compile:
     runs-on: windows-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,23 +28,44 @@ jobs:
           Write-Host "EA_SHA256=$sha"
           "EA_SHA256=$sha" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Acquire official MT4 MetaEditor
-        timeout-minutes: 8
+        timeout-minutes: 12
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+
+          function Find-MetaEditor {
+            $roots = @('C:\Program Files', 'C:\Program Files (x86)', $env:LOCALAPPDATA)
+            foreach ($root in $roots) {
+              if (-not $root -or -not (Test-Path $root)) { continue }
+              $hit = Get-ChildItem $root -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($hit) { return $hit }
+            }
+            return $null
+          }
+
+          $meta = Find-MetaEditor
           if (-not $meta) {
             $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
             Invoke-WebRequest -Uri 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -OutFile $setup -UseBasicParsing
             $proc = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
-            for ($i=0; $i -lt 84; $i++) {
+
+            # Bounded acquisition window. Previous 8-minute step could expire
+            # before the installer/search loop completed on Windows 2025 runners.
+            for ($i=0; $i -lt 108; $i++) {
               Start-Sleep -Seconds 5
-              $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+              $meta = Find-MetaEditor
               if ($meta) { break }
+              if ($proc.HasExited -and $i -gt 12) {
+                # Installer exited: continue a short grace period for final files.
+                if ($i -gt 24) { break }
+              }
             }
+
             if ($proc -and -not $proc.HasExited) { try { $proc.Kill() } catch {} }
+            if (-not $meta) { $meta = Find-MetaEditor }
           }
-          if (-not $meta) { throw 'Official MT4 MetaEditor not found' }
+
+          if (-not $meta) { throw 'Official MT4 MetaEditor not found after bounded acquisition window' }
           "METAEDITOR=$($meta.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
           Write-Host "METAEDITOR=$($meta.FullName)"
       - name: Compile current owner source 0E0W

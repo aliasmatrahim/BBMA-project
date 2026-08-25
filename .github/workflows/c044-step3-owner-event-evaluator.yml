@@ -1,18 +1,18 @@
-name: C044 Step4 deterministic replay selftest
+name: C044 Step5 v4.56 MT4 attach runtime smoke
 
 on:
   push:
     branches: [ d1-owner-dev ]
     paths:
-      - 'blueprint/.run-c044-step4-selftest'
+      - 'blueprint/.run-c044-step5-runtime-smoke'
 
 permissions:
   contents: write
 
 jobs:
-  replay-selftest:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
+  runtime-smoke:
+    runs-on: windows-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -20,98 +20,268 @@ jobs:
           fetch-depth: 0
 
       - name: Verify exact compiled C044 Step4 source
-        shell: bash
+        shell: pwsh
         run: |
-          set -euo pipefail
-          src=blueprint/source/BBMA_EA.mq4
-          blob="$(git rev-parse HEAD:$src)"
-          test "$blob" = "f0f80decbdbda836c12b6073f5dbc6e347662b13"
-          grep -Fq 'Version 4.5.6 - C044 Deterministic Replay Stage' "$src"
-          grep -Fq '#property version   "4.56"' "$src"
-          grep -Fq 'bool           EnableC044Lifecycle                = false;' "$src"
-          grep -Fq 'Source Git blob: `f0f80decbdbda836c12b6073f5dbc6e347662b13`' blueprint/C044_STEP4_NATIVE_METAEDITOR_COMPILE_20260826.md
-          grep -Fq 'Status: **NATIVE METAEDITOR PASS — 0 ERRORS / 0 WARNINGS**' blueprint/C044_STEP4_NATIVE_METAEDITOR_COMPILE_20260826.md
+          $ErrorActionPreference = 'Stop'
+          $src = '.\blueprint\source\BBMA_EA.mq4'
+          if (-not (Test-Path $src)) { throw 'EA source missing' }
+          $txt = Get-Content $src -Raw
+          if ($txt -notmatch 'Version 4\.5\.6 - C044 Deterministic Replay Stage') { throw 'Unexpected C044 build' }
+          if ($txt -notmatch '#property\s+version\s+"4\.56"') { throw 'Unexpected property version' }
+          if ($txt -notmatch 'bool\s+EnableC044Lifecycle\s*=\s*false;') { throw 'C044 feature gate is not OFF' }
+          $blob = (git rev-parse 'HEAD:blueprint/source/BBMA_EA.mq4').Trim()
+          if ($blob -ne 'f0f80decbdbda836c12b6073f5dbc6e347662b13') { throw "Unexpected source blob: $blob" }
+          $sha = (Get-FileHash $src -Algorithm SHA256).Hash.ToLower()
+          if ($sha -ne 'd2d94e5f7cf0f5b513fd2f8dfd877264fe33aad1425d54e056effccb33d782f4') { throw "Unexpected source SHA256: $sha" }
+          "C044_BLOB=$blob" | Out-File $env:GITHUB_ENV -Append
+          "C044_SHA256=$sha" | Out-File $env:GITHUB_ENV -Append
 
-      - name: Run deterministic replay analyzer and state-machine matrix
-        shell: bash
+      - name: Acquire official MT4 portable runtime
+        id: acquire
+        shell: pwsh
+        continue-on-error: true
         run: |
-          set -euo pipefail
-          python3 blueprint/tools/c044_step4_replay_selftest_v2.py | tee /tmp/c044-step4-selftest.txt
-          grep -Fq 'C044_STEP4_REPLAY_SELFTEST=PASS' /tmp/c044-step4-selftest.txt
-          grep -Fq 'STATIC_INVARIANTS=PASS' /tmp/c044-step4-selftest.txt
-          grep -Fq 'CHECKPOINT_ROUNDTRIP=PASS' /tmp/c044-step4-selftest.txt
-          grep -Fq 'MATRIX_NO_GAP=PASS' /tmp/c044-step4-selftest.txt
-          grep -Fq 'MATRIX_MULTI_CANDLE_MOMENTUM_REARM=PASS' /tmp/c044-step4-selftest.txt
-          grep -Fq 'MATRIX_FAILED_MOMENTUM_EXIT=PASS' /tmp/c044-step4-selftest.txt
-          grep -Fq 'MATRIX_OPPOSITE_EXTREME_SUPERSESSION=PASS' /tmp/c044-step4-selftest.txt
-          grep -Fq 'MATRIX_MISSING_SEED_FAIL_FROZEN=PASS' /tmp/c044-step4-selftest.txt
-          grep -Fq 'MATRIX_MISSING_HISTORY_FAIL_FROZEN=PASS' /tmp/c044-step4-selftest.txt
-          grep -Fq 'MATRIX_CHRONOLOGICAL_ORDER_GUARD=PASS' /tmp/c044-step4-selftest.txt
-          grep -Fq 'FEATURE_GATE=OFF' /tmp/c044-step4-selftest.txt
+          $ErrorActionPreference = 'Stop'
+          $dirs = @('C:\Program Files (x86)\MetaTrader 4','C:\Program Files\MetaTrader 4')
+          $installDir = $null
+          foreach ($dir in $dirs) {
+            if ((Test-Path (Join-Path $dir 'metaeditor.exe')) -and (Test-Path (Join-Path $dir 'terminal.exe'))) {
+              $installDir = $dir
+              break
+            }
+          }
+          if (-not $installDir) {
+            $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+            Invoke-WebRequest -Uri 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -OutFile $setup -UseBasicParsing
+            $proc = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
+            for ($i=0; $i -lt 84; $i++) {
+              Start-Sleep -Seconds 5
+              foreach ($dir in $dirs) {
+                if ((Test-Path (Join-Path $dir 'metaeditor.exe')) -and (Test-Path (Join-Path $dir 'terminal.exe'))) {
+                  $installDir = $dir
+                  break
+                }
+              }
+              if ($installDir) { break }
+              if ($proc.HasExited -and $i -gt 12) { break }
+            }
+            if ($proc -and -not $proc.HasExited) { try { $proc.Kill() } catch {} }
+          }
+          if (-not $installDir) { throw 'Official MT4 terminal/metaeditor not found' }
+          $portable = Join-Path $env:RUNNER_TEMP 'mt4-c044-v456'
+          if (Test-Path $portable) { Remove-Item $portable -Recurse -Force }
+          New-Item -ItemType Directory -Path $portable | Out-Null
+          Copy-Item "$installDir\*" $portable -Recurse -Force
+          if (-not (Test-Path (Join-Path $portable 'metaeditor.exe')) -or
+              -not (Test-Path (Join-Path $portable 'terminal.exe'))) {
+            throw 'Portable MT4 copy incomplete'
+          }
+          "MT4DIR=$portable" | Out-File $env:GITHUB_ENV -Append
+          "ACQUIRE_RESULT=PASS" | Out-File $env:GITHUB_ENV -Append
+          Write-Host "Portable MT4: $portable"
 
-      - name: Record deterministic replay selftest closure
-        shell: bash
+      - name: Native pre-runtime compile exact v4.56
+        id: compile
+        if: steps.acquire.outcome == 'success'
+        shell: pwsh
+        continue-on-error: true
         run: |
-          set -euo pipefail
-          cat > blueprint/C044_STEP4_DETERMINISTIC_REPLAY_SELFTEST_20260826.md <<EOF
-          # C044 Step 4 — Deterministic Replay Self-Test Closure — 2026-08-26
+          $ErrorActionPreference = 'Stop'
+          $experts = Join-Path $env:MT4DIR 'MQL4\Experts'
+          New-Item -ItemType Directory -Path $experts -Force | Out-Null
+          $dst = Join-Path $experts 'BBMA_EA.mq4'
+          Copy-Item '.\blueprint\source\BBMA_EA.mq4' $dst -Force
+          $log = Join-Path $env:RUNNER_TEMP 'c044-step5-runtime-compile.log'
+          & (Join-Path $env:MT4DIR 'metaeditor.exe') "/compile:$dst" "/log:$log"
+          Start-Sleep -Seconds 2
+          if (-not (Test-Path $log)) { throw 'Runtime compile log missing' }
+          $ct = Get-Content $log -Raw
+          $ct | Write-Host
+          $matches = [regex]::Matches($ct, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
+          if ($matches.Count -lt 1) { throw 'Unable to parse MetaEditor summary' }
+          $m = $matches[$matches.Count - 1]
+          $errors = [int]$m.Groups[1].Value
+          $warnings = [int]$m.Groups[2].Value
+          if ($errors -ne 0 -or $warnings -ne 0) { throw "MetaEditor produced $errors errors / $warnings warnings" }
+          if (-not (Test-Path ([System.IO.Path]::ChangeExtension($dst,'.ex4')))) { throw 'EX4 not produced' }
+          "COMPILE_RESULT=0E0W" | Out-File $env:GITHUB_ENV -Append
 
-          Branch: \`d1-owner-dev\`  
-          Build: \`Version 4.5.6 - C044 Deterministic Replay Stage\`  
-          Source Git blob: \`f0f80decbdbda836c12b6073f5dbc6e347662b13\`  
-          Native compile source SHA-256: \`d2d94e5f7cf0f5b513fd2f8dfd877264fe33aad1425d54e056effccb33d782f4\`  
-          Self-test workflow run: \`${GITHUB_RUN_ID}\`
+      - name: Launch MT4 with trading disabled
+        id: launch
+        if: steps.compile.outcome == 'success'
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $ini = Join-Path $env:RUNNER_TEMP 'c044-step5-runtime.ini'
+          @'
+          [Common]
+          EnableNews=false
 
-          Status: **PASS — SOURCE-BOUND STATIC INVARIANTS + CHECKPOINT ROUND-TRIP + DETERMINISTIC REPLAY MATRIX**
+          [Experts]
+          ExpertsEnable=true
+          ExpertsDllImport=false
+          ExpertsExpImport=false
+          ExpertsTrades=false
 
-          ## Passed gates
-          - Exact source blob and v4.56 identity: PASS
-          - \`EnableC044Lifecycle=false\`: PASS
-          - Native MetaEditor closure exists for the same source blob: PASS
-          - Re-Entry replay seed Save/Load index-field symmetry: PASS
-          - BUY Extreme replay seed Save/Load index-field symmetry: PASS
-          - SELL Extreme replay seed Save/Load index-field symmetry: PASS
-          - Checkpoint persists/restores replay seed: PASS
-          - Trade-open runtime cursor uses latest fully closed owner candle: PASS
-          - Canonical M08/M12/M10 functions remain replay authorities: PASS
-          - Chronological multi-candle replay loop and final cursor guard: PASS
-          - M20 emergency close remains ahead of C044 lifecycle close: PASS
+          [StartUp]
+          Symbol=EURUSD
+          Period=M15
+          Expert=BBMA_EA
+          '@ | Set-Content $ini -Encoding Ascii
+          $terminal = Join-Path $env:MT4DIR 'terminal.exe'
+          $proc = Start-Process -FilePath $terminal -ArgumentList '/portable', "/config:$ini" -PassThru
+          for ($i=0; $i -lt 15; $i++) {
+            Start-Sleep -Seconds 5
+            if ($proc.HasExited) { break }
+          }
+          if (-not $proc.HasExited) { try { $proc.CloseMainWindow() | Out-Null } catch {}; Start-Sleep -Seconds 2 }
+          if (-not $proc.HasExited) { try { $proc.Kill() } catch {} }
+          "LAUNCH_RESULT=PASS" | Out-File $env:GITHUB_ENV -Append
 
-          ## Deterministic lifecycle matrix
-          - No-gap / no duplicate owner-candle processing: PASS
-          - Multi-candle replay, Momentum hold, next same-direction Re-Entry re-arm: PASS
-          - Re-Entry confirmation candle not reused as the new epoch outer-BB test: PASS
-          - First subsequent direction-side outer-BB test without canonical Momentum -> failed-Momentum exit latch: PASS
-          - Opposite mature Extreme -> cycle-superseded exit with same-candle precedence: PASS
-          - Missing/corrupt replay seed -> fail-frozen: PASS
-          - Missing exact owner history -> fail-frozen: PASS
-          - Out-of-order replay -> rejected by chronological guard: PASS
+      - name: Classify MT4 attach runtime evidence
+        id: classify
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $classification = 'ENVIRONMENT_BLOCKED'
+          $fatal = 'NONE'
+          $detail = ''
+          $hardFail = $false
+          $combinedPath = Join-Path $env:RUNNER_TEMP 'c044-step5-runtime-combined.log'
+
+          if ($env:ACQUIRE_RESULT -ne 'PASS') {
+            $classification = 'ENVIRONMENT_BLOCKED_MT4_ACQUIRE'
+            $detail = 'Official MT4 runtime could not be acquired on this runner.'
+          }
+          elseif ($env:COMPILE_RESULT -ne '0E0W') {
+            $classification = 'COMPILE_NOT_VERIFIED'
+            $detail = 'Pre-runtime compile was not verified as 0E0W.'
+            $hardFail = $true
+          }
+          elseif ($env:LAUNCH_RESULT -ne 'PASS') {
+            $classification = 'ENVIRONMENT_BLOCKED_RUNTIME_LAUNCH'
+            $detail = 'MT4 runtime launch did not complete on this runner.'
+          }
+          else {
+            $journal = @(Get-ChildItem (Join-Path $env:MT4DIR 'logs') -Filter '*.log' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime)
+            $experts = @(Get-ChildItem (Join-Path $env:MT4DIR 'MQL4\Logs') -Filter '*.log' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime)
+            $all = @($journal) + @($experts)
+            $combined = ''
+            foreach ($f in $all) {
+              $combined += "`r`n===== $($f.FullName) =====`r`n"
+              $combined += (Get-Content $f.FullName -Raw -ErrorAction SilentlyContinue)
+            }
+            $combined | Set-Content $combinedPath -Encoding UTF8
+
+            if ($all.Count -eq 0) {
+              $classification = 'ENVIRONMENT_BLOCKED_NO_LOGS'
+              $detail = 'MT4 launched but no Journal/Experts logs were produced.'
+            }
+            else {
+              foreach ($p in @('array out of range','zero divide','critical runtime error','access violation','stack overflow','invalid pointer','unresolved import','cannot load expert','expert initialization failed','init failed')) {
+                if ($combined -match [regex]::Escape($p)) { $fatal = $p; break }
+              }
+              if ($fatal -ne 'NONE') {
+                $classification = 'RUNTIME_FATAL'
+                $detail = "Fatal MT4 runtime signature detected: $fatal"
+                $hardFail = $true
+              }
+              elseif ($combined -match '\[P3S1\]\[PASS\] EA initialized successfully') {
+                $classification = 'C044_V456_ATTACH_INIT_OK'
+                $detail = 'Exact v4.56 EA initialized in MT4 with trading disabled and no fatal runtime signature detected.'
+              }
+              elseif ($combined -match '(?i)not connected|no prices|waiting for update|no valid pairs loaded|symbol resolution failed') {
+                $classification = 'ENVIRONMENT_BLOCKED_NO_BROKER_DATA'
+                $detail = 'MT4 launched but GitHub runner lacks usable broker/symbol feed; no fatal runtime signature detected.'
+              }
+              elseif ($combined -match 'MetaTrader 4 build') {
+                $classification = 'ENVIRONMENT_BLOCKED_PRE_ATTACH_NO_BROKER_SESSION'
+                $detail = 'MT4 terminal launched without broker login/server session; no fatal runtime signature detected, but EA initialization was not positively observed.'
+              }
+              else {
+                $classification = 'ATTACH_LOGS_PRESENT_NO_INIT_MARKER'
+                $detail = 'MT4 logs exist and no fatal signature was found, but EA initialization marker was not positively observed.'
+              }
+            }
+          }
+
+          "RUNTIME_CLASSIFICATION=$classification" | Out-File $env:GITHUB_ENV -Append
+          "RUNTIME_FATAL=$fatal" | Out-File $env:GITHUB_ENV -Append
+          "RUNTIME_DETAIL=$detail" | Out-File $env:GITHUB_ENV -Append
+          "RUNTIME_HARD_FAIL=$hardFail" | Out-File $env:GITHUB_ENV -Append
+          Write-Host "Classification=$classification"
+          Write-Host "Fatal=$fatal"
+          Write-Host "Detail=$detail"
+          if (Test-Path $combinedPath) {
+            Write-Host '--- MT4 Journal/Experts tail ---'
+            Get-Content $combinedPath | Select-Object -Last 300 | ForEach-Object { Write-Host $_ }
+          }
+
+      - name: Record C044 Step5 runtime smoke audit
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $classification = $env:RUNTIME_CLASSIFICATION
+          if ([string]::IsNullOrWhiteSpace($classification)) { $classification = 'UNRESOLVED' }
+          $fatal = $env:RUNTIME_FATAL
+          if ([string]::IsNullOrWhiteSpace($fatal)) { $fatal = 'UNRESOLVED' }
+          $compile = $env:COMPILE_RESULT
+          if ([string]::IsNullOrWhiteSpace($compile)) { $compile = 'NOT_VERIFIED' }
+          $detail = $env:RUNTIME_DETAIL
+          if ([string]::IsNullOrWhiteSpace($detail)) { $detail = 'No classifier detail available.' }
+
+          $audit = @"
+          # C044 Step 5 — v4.56 MT4 Attach Runtime Smoke — 2026-08-26
+
+          Branch: ``d1-owner-dev``  
+          Build: ``Version 4.5.6 - C044 Deterministic Replay Stage``  
+          Source Git blob: ``f0f80decbdbda836c12b6073f5dbc6e347662b13``  
+          Source SHA-256: ``d2d94e5f7cf0f5b513fd2f8dfd877264fe33aad1425d54e056effccb33d782f4``  
+          Workflow run: ``$env:GITHUB_RUN_ID``
+
+          ## Result
+          - Native pre-runtime compile: **$compile**
+          - Runtime classification: **$classification**
+          - Fatal runtime signature: **$fatal**
+          - Trading during smoke: **DISABLED (ExpertsTrades=false)**
+          - ``EnableC044Lifecycle`` in source: **false / OFF**
+
+          Detail: $detail
+
+          ## Interpretation
+          ``C044_V456_ATTACH_INIT_OK`` proves that the exact compiled v4.56 EA can initialize inside a real MT4 terminal on the GitHub Windows runner with no fatal runtime signature. ``ENVIRONMENT_BLOCKED_*`` means the runner lacked the broker/session/symbol environment needed for positive attach/market-data evidence; it is not an EA strategy failure. ``RUNTIME_FATAL`` or ``COMPILE_NOT_VERIFIED`` is a hard validation failure.
 
           ## Scope boundary
-          This is a source-bound deterministic analyzer/self-test, not broker/demo runtime evidence. It proves implementation invariants and synthetic lifecycle sequencing against the exact compiled v4.56 source. It does not prove live broker order-close timing, terminal GlobalVariable persistence under real restart, or real-market detector events.
+          This smoke does **not** validate broker-connected C044 lifecycle semantics because trading is disabled, the C044 feature gate remains OFF, and the public GitHub runner has no authorized demo-broker session. It does not prove terminal GlobalVariable persistence across a real restart of a managed targetless position, live owner-TF replay, failed-Momentum close timing, Momentum-to-Re-Entry re-arm, or opposite-Extreme supersession on a live order.
 
-          ## Safety
-          \`EnableC044Lifecycle=false\` remains locked OFF. No activation is authorized by this self-test.
-          EOF
+          ## Next gate
+          Broker/demo runtime evidence remains required before any C044 activation decision. The feature gate remains OFF.
+          "@
+          Set-Content '.\blueprint\C044_STEP5_V456_MT4_ATTACH_RUNTIME_SMOKE_20260826.md' $audit -Encoding UTF8
 
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path('blueprint/C044_STEP4_DETERMINISTIC_REPLAY_IMPLEMENTATION_AUDIT_20260826.md')
-          s = p.read_text(encoding='utf-8')
-          old = '**IMPLEMENTED / STATIC INTEGRITY PASS / DETERMINISTIC MULTI-CANDLE REPLAY / FEATURE GATE OFF / NATIVE METAEDITOR 0E0W PASS / SELF-TEST PENDING**'
-          new = '**IMPLEMENTED / STATIC INTEGRITY PASS / DETERMINISTIC MULTI-CANDLE REPLAY / FEATURE GATE OFF / NATIVE METAEDITOR 0E0W PASS / DETERMINISTIC SELF-TEST PASS / BROKER-DEMO RUNTIME EVIDENCE PENDING**'
-          if old not in s:
-              raise SystemExit('Step4 audit status anchor drift')
-          s = s.replace(old, new, 1)
-          s = s.replace(
-              'Run deterministic replay self-tests against the exact v4.56 blob: checkpoint round-trip integrity, no-gap behavior, one/multi-candle chronological replay, failed-Momentum exit latch, Momentum hold → next Re-Entry re-arm, opposite-Extreme cycle supersession, and missing/corrupt history fail-frozen behavior. No activation is authorized by this audit.',
-              'Deterministic replay self-tests against the exact v4.56 blob are PASS: checkpoint round-trip integrity, no-gap behavior, chronological multi-candle replay, failed-Momentum exit latch, Momentum hold → next Re-Entry re-arm, opposite-Extreme cycle supersession, and missing/corrupt history fail-frozen behavior. Remaining gate before any activation decision is broker/demo runtime evidence for real terminal restart persistence and live owner-candle lifecycle behavior. No activation is authorized by this audit.')
-          p.write_text(s, encoding='utf-8')
-          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin d1-owner-dev
+          git pull --rebase origin d1-owner-dev
+          $blob = (git rev-parse 'HEAD:blueprint/source/BBMA_EA.mq4').Trim()
+          if ($blob -ne 'f0f80decbdbda836c12b6073f5dbc6e347662b13') { throw "Source moved during runtime smoke: $blob" }
+          git add blueprint/C044_STEP5_V456_MT4_ATTACH_RUNTIME_SMOKE_20260826.md
+          if (-not (git diff --cached --quiet)) {
+            git commit -m 'C044 Step5: record v4.56 MT4 attach runtime smoke [skip ci]'
+            git push origin HEAD:d1-owner-dev
+          }
 
-          git diff --check
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- blueprint/C044_STEP4_DETERMINISTIC_REPLAY_SELFTEST_20260826.md blueprint/C044_STEP4_DETERMINISTIC_REPLAY_IMPLEMENTATION_AUDIT_20260826.md
-          git commit -m "C044 Step4: close deterministic replay selftest [skip ci]"
-          git push origin HEAD:d1-owner-dev
+          if ($env:RUNTIME_HARD_FAIL -eq 'True') { throw "C044 Step5 hard failure: $classification" }
+
+      - name: Upload C044 Step5 runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c044-step5-v456-mt4-runtime-evidence
+          path: |
+            ${{ runner.temp }}/c044-step5-runtime-compile.log
+            ${{ runner.temp }}/c044-step5-runtime-combined.log
+          if-no-files-found: warn

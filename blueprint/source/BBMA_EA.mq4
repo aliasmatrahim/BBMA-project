@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.5.6 - C044 Deterministic Replay Stage                 |
+//| Version 4.5.7 - N1.1 NMJE Coverage Overlay                 |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.56"
+#property version   "4.57"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -582,6 +582,27 @@ struct NestedTFNode
    bool                 Valid;
    bool                 Resolved;
    string               Label;
+
+   // N1.1 coverage-only secondary overlays. These never own strategy state.
+   ENUM_RE_STATE        ReEntryBuyState;
+   ENUM_RE_STATE        ReEntrySellState;
+   bool                 ReEntryBuyValid;
+   bool                 ReEntrySellValid;
+   datetime             ReEntryBuyCandleTime;
+   datetime             ReEntrySellCandleTime;
+   ENUM_EXTREME_MATURITY ExtremeBuyMaturity;
+   ENUM_EXTREME_MATURITY ExtremeSellMaturity;
+   bool                 ExtremeBuyValid;
+   bool                 ExtremeSellValid;
+   datetime             ExtremeBuyCandleTime;
+   datetime             ExtremeSellCandleTime;
+   ENUM_MLV_STATE       MLVBuyState;
+   ENUM_MLV_STATE       MLVSellState;
+   bool                 MLVBuyValid;
+   bool                 MLVSellValid;
+   datetime             MLVBuyCandleTime;
+   datetime             MLVSellCandleTime;
+   string               OverlayLabel;
 };
 
 // N1-03: one pair-level nested journey observation per closed-M15 cycle.
@@ -604,6 +625,17 @@ struct NestedJourneyState
    NestedTFNode            H4Node;
    NestedTFNode            H1Node;
    NestedTFNode            M15Node;
+
+   // N1.1 read-only D1 Opportunity overlay; not parent or execution authority.
+   bool                       D1OpportunityActive;
+   ENUM_D1_OPPORTUNITY_FAMILY D1OpportunityFamily;
+   ENUM_DIRECTION             D1OpportunityDirection;
+   ENUM_SIGNAL_TYPE           D1OpportunitySourceSignal;
+   datetime                   D1OpportunitySourceCandleTime;
+   datetime                   D1OpportunityActivationTime;
+   bool                       D1OpportunityTactical;
+   bool                       D1OpportunityTPWCompleted;
+   string                     D1OpportunityCycleID;
 };
 
 struct TimeframeSnapshot
@@ -4306,9 +4338,102 @@ void NMJE_SetMLVNode(NestedTFNode &node, MLVData &state)
    node.Label = "MHV:" + NMJE_MLVStateText(state.State) + "/" + NMJE_DirText(state.Direction);
 }
 
+
+// N1.1 coverage-only helpers. Consume existing owner snapshots only.
+datetime NMJE_REOverlayCandle(ReEntryData &state)
+{
+   if(state.ConfirmationCandle > 0) return state.ConfirmationCandle;
+   return state.StartCandleTime;
+}
+
+datetime NMJE_ExtremeOverlayCandle(ExtremeLifecycleData &state)
+{
+   if(state.ConfirmationCandleTime > 0) return state.ConfirmationCandleTime;
+   return state.RawCandleTime;
+}
+
+datetime NMJE_MLVOverlayCandle(MLVData &state)
+{
+   if(state.ConfirmationCandleTime > 0) return state.ConfirmationCandleTime;
+   return state.LastUpdateCandleTime;
+}
+
+void NMJE_CaptureReEntryOverlay(NestedTFNode &node,
+                                ReEntryData &buyState, ReEntryData &sellState)
+{
+   node.ReEntryBuyState = buyState.State;
+   node.ReEntrySellState = sellState.State;
+   node.ReEntryBuyValid = buyState.IsValid;
+   node.ReEntrySellValid = sellState.IsValid;
+   node.ReEntryBuyCandleTime = NMJE_REOverlayCandle(buyState);
+   node.ReEntrySellCandleTime = NMJE_REOverlayCandle(sellState);
+}
+
+void NMJE_CaptureExtremeOverlay(NestedTFNode &node,
+                                ExtremeLifecycleData &buyState,
+                                ExtremeLifecycleData &sellState)
+{
+   node.ExtremeBuyMaturity = buyState.Maturity;
+   node.ExtremeSellMaturity = sellState.Maturity;
+   node.ExtremeBuyValid = buyState.IsValid;
+   node.ExtremeSellValid = sellState.IsValid;
+   node.ExtremeBuyCandleTime = NMJE_ExtremeOverlayCandle(buyState);
+   node.ExtremeSellCandleTime = NMJE_ExtremeOverlayCandle(sellState);
+}
+
+void NMJE_CaptureMLVOverlay(NestedTFNode &node,
+                            MLVData &buyState, MLVData &sellState)
+{
+   node.MLVBuyState = buyState.State;
+   node.MLVSellState = sellState.State;
+   node.MLVBuyValid = buyState.IsValid;
+   node.MLVSellValid = sellState.IsValid;
+   node.MLVBuyCandleTime = NMJE_MLVOverlayCandle(buyState);
+   node.MLVSellCandleTime = NMJE_MLVOverlayCandle(sellState);
+}
+
+void NMJE_RefreshOverlayLabel(NestedTFNode &node)
+{
+   node.OverlayLabel =
+      "RE=" + EnumToString(node.ReEntryBuyState) + "/" + EnumToString(node.ReEntrySellState) +
+      "|X=" + EnumToString(node.ExtremeBuyMaturity) + "/" + EnumToString(node.ExtremeSellMaturity) +
+      "|MHV=" + EnumToString(node.MLVBuyState) + "/" + EnumToString(node.MLVSellState);
+}
+
+void NMJE_CaptureD1OpportunityOverlay(PairState &state, NestedJourneyState &journey)
+{
+   D1OpportunityJourney opportunity = state.d1_opportunity;
+   journey.D1OpportunityActive = opportunity.Active;
+   journey.D1OpportunityFamily = opportunity.Family;
+   journey.D1OpportunityDirection = opportunity.Direction;
+   journey.D1OpportunitySourceSignal = opportunity.SourceSignal;
+   journey.D1OpportunitySourceCandleTime = opportunity.SourceCandleTime;
+   journey.D1OpportunityActivationTime = opportunity.ActivationTime;
+   journey.D1OpportunityTactical = opportunity.Tactical;
+   journey.D1OpportunityTPWCompleted = opportunity.TPWCompleted;
+   journey.D1OpportunityCycleID = opportunity.CycleID;
+}
+
+void NMJE_PrintCoverageOverlay(NestedJourneyState &journey)
+{
+   if(DebugLevel < DBG_SIGNAL) return;
+   Print("[N1.1-NMJE-COV] ", journey.Pair,
+         " OPP=", D1OpportunityFamilyText(journey.D1OpportunityFamily), "/",
+                    NMJE_DirText(journey.D1OpportunityDirection), "/",
+                    (journey.D1OpportunityActive ? "Y" : "N"),
+         " OC=", (journey.D1OpportunityCycleID == "" ? "-" : journey.D1OpportunityCycleID),
+         " D1{", journey.D1Node.OverlayLabel, "}",
+         " H4{", journey.H4Node.OverlayLabel, "}",
+         " H1{", journey.H1Node.OverlayLabel, "}",
+         " M15{", journey.M15Node.OverlayLabel, "}");
+}
+
 void NMJE_BuildD1Node(PairState &state, NestedTFNode &node)
 {
    NMJE_ResetNode(node, PERIOD_D1);
+   NMJE_CaptureReEntryOverlay(node, state.re_d1_buy_state, state.re_d1_sell_state);
+   NMJE_CaptureExtremeOverlay(node, state.extreme_d1_buy_lifecycle, state.extreme_d1_sell_lifecycle);
+   NMJE_RefreshOverlayLabel(node);
    ReEntryData selected;
    bool ambiguous = false;
    if(NMJE_SelectConfirmedRE(state.re_d1_buy_state, state.re_d1_sell_state,
@@ -4349,6 +4474,9 @@ void NMJE_BuildD1Node(PairState &state, NestedTFNode &node)
 void NMJE_BuildH4Node(PairState &state, NestedTFNode &node)
 {
    NMJE_ResetNode(node, PERIOD_H4);
+   NMJE_CaptureReEntryOverlay(node, state.re_h4_buy_state, state.re_h4_sell_state);
+   NMJE_CaptureExtremeOverlay(node, state.extreme_h4_buy_lifecycle, state.extreme_h4_sell_lifecycle);
+   NMJE_RefreshOverlayLabel(node);
    ReEntryData selected;
    bool ambiguous = false;
    if(NMJE_SelectConfirmedRE(state.re_h4_buy_state, state.re_h4_sell_state,
@@ -4403,6 +4531,9 @@ void NMJE_BuildH4Node(PairState &state, NestedTFNode &node)
 void NMJE_BuildH1Node(PairState &state, NestedTFNode &node)
 {
    NMJE_ResetNode(node, PERIOD_H1);
+   NMJE_CaptureReEntryOverlay(node, state.re_h1_buy_state, state.re_h1_sell_state);
+   NMJE_CaptureExtremeOverlay(node, state.extreme_h1_buy_lifecycle, state.extreme_h1_sell_lifecycle);
+   NMJE_RefreshOverlayLabel(node);
    ReEntryData selected;
    bool ambiguous = false;
    if(NMJE_SelectConfirmedRE(state.re_h1_buy_state, state.re_h1_sell_state,
@@ -4443,6 +4574,10 @@ void NMJE_BuildH1Node(PairState &state, NestedTFNode &node)
 void NMJE_BuildM15Node(PairState &state, NestedTFNode &node)
 {
    NMJE_ResetNode(node, PERIOD_M15);
+   NMJE_CaptureReEntryOverlay(node, state.re_m15_buy_state, state.re_m15_sell_state);
+   NMJE_CaptureExtremeOverlay(node, state.extreme_m15_buy_lifecycle, state.extreme_m15_sell_lifecycle);
+   NMJE_CaptureMLVOverlay(node, state.mlv_buy_state, state.mlv_sell_state);
+   NMJE_RefreshOverlayLabel(node);
    bool buyMLV = NMJE_IsMLVActive(state.mlv_buy_state);
    bool sellMLV = NMJE_IsMLVActive(state.mlv_sell_state);
    if(buyMLV != sellMLV)
@@ -4540,6 +4675,9 @@ bool NMJE_HasChildActivity(PairState &state)
    if(NMJE_IsCandidateRE(state.re_h1_buy_state) || NMJE_IsCandidateRE(state.re_h1_sell_state)) return true;
    if(NMJE_IsConfirmedRE(state.re_h1_buy_state) || NMJE_IsConfirmedRE(state.re_h1_sell_state)) return true;
    if(NMJE_IsExtremeActive(state.extreme_h1_buy_lifecycle) || NMJE_IsExtremeActive(state.extreme_h1_sell_lifecycle)) return true;
+   if(NMJE_IsCandidateRE(state.re_m15_buy_state) || NMJE_IsCandidateRE(state.re_m15_sell_state)) return true;
+   if(NMJE_IsConfirmedRE(state.re_m15_buy_state) || NMJE_IsConfirmedRE(state.re_m15_sell_state)) return true;
+   if(NMJE_IsExtremeActive(state.extreme_m15_buy_lifecycle) || NMJE_IsExtremeActive(state.extreme_m15_sell_lifecycle)) return true;
    if(NMJE_IsMLVActive(state.mlv_buy_state) || NMJE_IsMLVActive(state.mlv_sell_state)) return true;
    return false;
 }
@@ -4568,6 +4706,7 @@ void UpdateNestedJourneyObservation(int pairIndex)
    journey.StrategicDirection = DIR_NONE;
    journey.UpdateCandleTime = g_pair_states[pairIndex].m15_data.candle_time;
    journey.Reason = "NO_ACTIVE_JOURNEY";
+   NMJE_CaptureD1OpportunityOverlay(g_pair_states[pairIndex], journey);
 
    NMJE_BuildD1Node(g_pair_states[pairIndex], journey.D1Node);
    NMJE_BuildH4Node(g_pair_states[pairIndex], journey.H4Node);
@@ -4583,6 +4722,7 @@ void UpdateNestedJourneyObservation(int pairIndex)
       journey.Relation = NESTED_UNRESOLVED;
       journey.Reason = "D1_OWNER_UNRESOLVED";
       g_nested_journeys[pairIndex] = journey;
+      NMJE_PrintCoverageOverlay(journey);
       Print("[N1-NMJE] ", journey.Pair, " REL=UNRESOLVED P=NONE J=- D1=", journey.D1Node.Label,
             " H4=", journey.H4Node.Label, " H1=", journey.H1Node.Label,
             " M15=", journey.M15Node.Label, " R=", journey.Reason);
@@ -4614,6 +4754,7 @@ void UpdateNestedJourneyObservation(int pairIndex)
          journey.Resolved = true;
       }
       g_nested_journeys[pairIndex] = journey;
+      NMJE_PrintCoverageOverlay(journey);
       Print("[N1-NMJE] ", journey.Pair, " REL=", NMJE_RelationText(journey.Relation),
             " P=NONE J=- D1=", journey.D1Node.Label, " H4=", journey.H4Node.Label,
             " H1=", journey.H1Node.Label, " M15=", journey.M15Node.Label,
@@ -4674,6 +4815,8 @@ void UpdateNestedJourneyObservation(int pairIndex)
          bool supporting =
             NMJE_IsExtremeSupporting(g_pair_states[pairIndex].extreme_h1_buy_lifecycle) ||
             NMJE_IsExtremeSupporting(g_pair_states[pairIndex].extreme_h1_sell_lifecycle) ||
+            NMJE_IsExtremeSupporting(g_pair_states[pairIndex].extreme_m15_buy_lifecycle) ||
+            NMJE_IsExtremeSupporting(g_pair_states[pairIndex].extreme_m15_sell_lifecycle) ||
             NMJE_IsMLVSupporting(g_pair_states[pairIndex].mlv_buy_state) ||
             NMJE_IsMLVSupporting(g_pair_states[pairIndex].mlv_sell_state);
 
@@ -4711,6 +4854,7 @@ void UpdateNestedJourneyObservation(int pairIndex)
    }
 
    g_nested_journeys[pairIndex] = journey;
+   NMJE_PrintCoverageOverlay(journey);
    Print("[N1-NMJE] ", journey.Pair,
          " REL=", NMJE_RelationText(journey.Relation),
          " P=", NMJE_ParentText(journey.ParentKind), "/", NMJE_DirText(journey.ParentDirection),

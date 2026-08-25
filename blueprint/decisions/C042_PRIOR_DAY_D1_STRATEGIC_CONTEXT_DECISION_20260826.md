@@ -60,3 +60,43 @@ This decision is a strategy-spec clarification only. It does not authorize a new
 
 ## Change control
 Documentation/strategy-spec decision only. No MQL4 source change is authorized by this record alone.
+
+---
+
+## 2026-08-26 Contract-Consistency Clarification
+
+This clarification narrows terminology only; it does **not** change C042 strategy semantics or authorize source changes.
+
+### Observation / interpretation is not execution eligibility
+The phrase `lower-timeframe opposite-looking structures must still be interpreted` applies to analysis/NMJE observation only. It means an opposite-looking child structure may be read as `BUILDING`, `SUPPORTING`, `ALIGNED`, `CONFLICT` or `UNRESOLVED` under the existing nested-MTF contract instead of being declared an autonomous reversal merely from nominal direction.
+
+It does **not** mean that an opposite-direction lower-timeframe structure remains executable against the current M11 strategic owner.
+
+When a structure reaches the executable candidate path:
+- M11 remains the sole producer of the current D1 major-trend strategic owner;
+- M15 remains the sole final new-entry direction / eligibility authority;
+- confirmed D1 BUY permits only BUY execution candidates;
+- confirmed D1 SELL permits only SELL execution candidates;
+- `D1_TRANSITION` / `D1_OWNER_UNRESOLVED` block new strategy entries;
+- NMJE/C042 context cannot override or bypass this gate.
+
+Canonical distinction:
+
+`OPPOSITE-LOOKING LTF STRUCTURE -> MAY STILL BE OBSERVED / INTERPRETED IN NESTED CONTEXT`
+
+but
+
+`EXECUTABLE CANDIDATE -> MUST STILL PASS CURRENT M11 D1 OWNER + M15 FINAL AUTHORITY`
+
+### Prior-day context does not create a second D1 owner
+C042 does not install a separate persisted `prior-day bias` execution variable and does not compete with the current M11 owner snapshot. For new-entry authority, the M11 result derived from the latest fully closed D1 state remains canonical.
+
+D1 Momentum/CSM, CSD/direction and Re-Entry mentioned by C042 may remain source-owned higher-timeframe context under their existing modules/contracts, but they do not substitute for M11 MA50 strategic-owner confirmation and do not gain direct-entry authority through C042.
+
+### D1 Opportunity boundary preserved
+C042 does not create, extend or re-rank a D1 Opportunity family. Any existing D1 Opportunity execution still requires its separately approved fresh lower-timeframe readiness and identity contracts.
+
+### Implementation consequence
+**No MQL4 change required or authorized.** The current execution hierarchy remains:
+
+`M11 D1 OWNER -> owner-valid H4/H1/M15 structures -> M13/M14 where applicable -> M15 FINAL AUTHORITY -> M16 revalidation -> downstream SL/risk/execution`

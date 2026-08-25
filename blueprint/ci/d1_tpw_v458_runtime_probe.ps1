@@ -10,10 +10,13 @@ if ($sourceText -notmatch 'EnableC044Lifecycle\s*=\s*false;') { throw 'C044 life
 
 $blob = (git rev-parse HEAD:blueprint/source/BBMA_EA.mq4).Trim()
 if ($blob -ne 'a166ffb23aba5e6b4011a28d9de8896cd00e33a1') { throw "Unexpected source blob: $blob" }
-$sha256 = (Get-FileHash $src -Algorithm SHA256).Hash.ToLower()
-if ($sha256 -ne 'ba2e5815d1b221d7bba46ed0be4793aa5bc6154e29e9b19562dfffbd28c8f0bc') { throw "Unexpected source SHA256: $sha256" }
+$sha256 = (& python -c "import subprocess,hashlib; d=subprocess.check_output(['git','cat-file','blob','$blob']); print(hashlib.sha256(d).hexdigest())").Trim()
+if ($LASTEXITCODE -ne 0) { throw 'Unable to hash canonical Git blob' }
+if ($sha256 -ne 'ba2e5815d1b221d7bba46ed0be4793aa5bc6154e29e9b19562dfffbd28c8f0bc') { throw "Unexpected canonical source SHA256: $sha256" }
+$workingTreeSha = (Get-FileHash $src -Algorithm SHA256).Hash.ToLower()
 Write-Host "EA_BLOB=$blob"
-Write-Host "EA_SHA256=$sha256"
+Write-Host "EA_CANONICAL_SHA256=$sha256"
+Write-Host "EA_WORKTREE_SHA256=$workingTreeSha"
 Write-Host 'LIFECYCLE_GATES=OFF_OFF'
 
 $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -112,7 +115,8 @@ $summaryPath = Join-Path $env:RUNNER_TEMP 'd1-tpw-v458-runtime-summary.txt'
 @(
   "STATUS=$class",
   "SOURCE_BLOB=$blob",
-  "SOURCE_SHA256=$sha256",
+  "SOURCE_CANONICAL_SHA256=$sha256",
+  "SOURCE_WORKTREE_SHA256=$workingTreeSha",
   'METAEDITOR=0E0W',
   'D1_TPW_GATE=OFF',
   'C044_GATE=OFF',

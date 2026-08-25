@@ -18,10 +18,11 @@ Watch only: D1 MHV/MLV and D1 eCSD. Neither has independent execution authority.
 Temporal rule: a D1 opportunity is usable only after its source D1 candle has closed. LTF readiness must occur strictly after activation; no pre-existing LTF setup may be reused via look-ahead.
 
 LTF execution:
-- Mode 2 only; Mode 1 preserves previous behavior.
+- `MODE_2_ALL_VALIDATED_BBMA` only; Mode 1 preserves previous behavior.
 - Confirmed H1 and M15 Re-Entry are the initial executable LTF structures.
 - M15 Re-Entry requires aligned recovered H4 owner.
-- If H1 and M15 are simultaneously fresh, canonicalize as one opportunity cluster and prefer H1 as structural SL/TP source.
+- If H1 and M15 are simultaneously fresh in the same D1 journey and processing cycle, canonicalize them as one opportunity cluster; H1 is the preferred structural SL/TP source.
 - A later genuinely fresh LTF Re-Entry with a distinct confirmation/sequence identity may create another trade subject to existing caps.
+- The same cluster identity must not be executed twice.
 
-Exact REM/RRE/REE signatures, risk limits and structural M17 SL/TP formula remain unchanged. No score/weighting/voting is introduced.
+Exact REM/RRE/REE signatures, legacy strategic-owner behavior, risk limits and structural M17 SL/TP formula remain unchanged. No score/weighting/voting is introduced.

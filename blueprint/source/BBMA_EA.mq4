@@ -7761,14 +7761,33 @@ void RecoverExistingOrders()
 //| LEVEL: BEGINNER                                                  |
 //+------------------------------------------------------------------+
 
+int CountDashboardLiveEAOwnedTrades()
+{
+   int count = 0;
+   int total = OrdersTotal();
+   for(int i = 0; i < total; i++)
+   {
+      if(!OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) continue;
+
+      int pairIdx = -1;
+      if(IsExactEAOwnedSelectedOrder(pairIdx))
+         count++;
+   }
+   return count;
+}
+
 void BuildDashboardSnapshot()
 {
+   // P2-DASHCOUNT-01: broker live-order pool + exact symbol/magic ownership is
+   // the display source of truth. No registry compaction or lifecycle mutation.
+   int liveTradeCount = CountDashboardLiveEAOwnedTrades();
+
    g_dashboard_snapshot = "";
-   g_dashboard_snapshot += "=== BBMA EA V4.5.1 D1-09 ===\n";
+   g_dashboard_snapshot += "=== BBMA EA V4.5.1 D1O-07 ===\n";
    g_dashboard_snapshot += "Time: " + TimeToString(TimeCurrent()) + "\n";
    g_dashboard_snapshot += "Balance: " + DoubleToString(AccountBalance(), 2) + "\n";
    g_dashboard_snapshot += "Equity: " + DoubleToString(AccountEquity(), 2) + "\n";
-   g_dashboard_snapshot += "Trades: " + IntegerToString(g_monitored_count) + "\n";
+   g_dashboard_snapshot += "Trades: " + IntegerToString(liveTradeCount) + "\n";
    g_dashboard_snapshot += "Protection Ref: " + DoubleToString(g_protection_reference_equity, 2) + "\n";
    
    g_dashboard_snapshot += "\n--- SIGNALS ---\n";
@@ -7796,6 +7815,20 @@ void UpdateDashboard()
 {
    if(!ShowDashboard) return;
    Comment(g_dashboard_snapshot);
+}
+
+void RefreshDashboardLiveTradeCount()
+{
+   if(!ShowDashboard) return;
+
+   static int lastDisplayedLiveCount = -1;
+   int currentLiveCount = CountDashboardLiveEAOwnedTrades();
+   if(currentLiveCount == lastDisplayedLiveCount) return;
+
+   BuildDashboardSnapshot();
+   UpdateDashboard();
+   g_dashboard_needs_update = false;
+   lastDisplayedLiveCount = currentLiveCount;
 }
 
 //+------------------------------------------------------------------+
@@ -8658,6 +8691,10 @@ void OnTimer()
 
    if(!IsTerminalConnected()) return;
    OnTickMain();
+
+   // P2-DASHCOUNT-01: refresh presentation only when live exact-owned count
+   // changes. Timer cadence prevents stale closed-trade rows on the display.
+   RefreshDashboardLiveTradeCount();
 }
 
 //+------------------------------------------------------------------+

@@ -14,7 +14,12 @@ M25 is strictly presentation/observability. It may read already-owned runtime st
 
 `PriorityTier` is not displayed as a trade-quality signal because the current architecture has removed numeric/ranking authority from M18 and does not permit the dashboard to imply an unsupported quality hierarchy.
 
-The current dashboard may display signal type, direction, decision state, rejection reason, account balance/equity, monitored-trade count and protection reference as observability only.
+The current dashboard may display signal type, direction, decision state, rejection reason, account balance/equity, **live exact-owned open-trade count**, and protection reference as observability only.
+
+### P2-DASHCOUNT-01 live-count rule
+The displayed `Trades` value must not use raw `g_monitored_count`, because the registry may legitimately retain a closed row until a later compaction path. The dashboard scans the current broker `MODE_TRADES` pool and counts only orders accepted by `IsExactEAOwnedSelectedOrder()`: open BUY/SELL orders whose symbol and magic exactly match a configured EA pair owner.
+
+A timer-side display refresh may rebuild the dashboard when this live count changes. That refresh is presentation-only: it must not compact the monitored registry, mutate recovery/lifecycle state, create broker actions, or alter strategy/risk/MM authority.
 
 ## M26 — initialization ordering
 Initialization must remain fail-closed until all ownership/recovery prerequisites are complete.

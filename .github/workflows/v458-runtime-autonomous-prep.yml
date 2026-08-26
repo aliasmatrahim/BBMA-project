@@ -14,6 +14,51 @@ on:
       - '.github/workflows/v458-runtime-autonomous-prep.yml'
 
 jobs:
+  r1-source-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify synchronized EA release identity
+        run: python ./blueprint/tools/check_release_identity.py
+      - name: Generate exact R1 source-bound variant
+        shell: bash
+        run: |
+          mkdir -p dist/r1
+          python blueprint/tools/v458_runtime_variant_builder.py \
+            --repo-root "$PWD" \
+            --profile r1-d1tpw \
+            --output dist/r1/BBMA_EA_V458_R1_D1TPW_TEST_ONLY.mq4 \
+            --metadata dist/r1/BBMA_EA_V458_R1_D1TPW_TEST_ONLY.metadata.json
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('dist/r1/BBMA_EA_V458_R1_D1TPW_TEST_ONLY.mq4')
+          t = p.read_text(encoding='utf-8')
+          assert 'bool           EnableD1TPWLifecycle               = true;' in t
+          assert 'bool           EnableC044Lifecycle                = false;' in t
+          print('R1_SOURCE_GATE_ASSERTIONS=PASS')
+          PY
+          printf '%s\n' \
+            'TEST-ONLY R1 SOURCE PACKAGE' \
+            'Canonical release: BBMA EA v4.58' \
+            'Profile: R1 D1TPW' \
+            'EnableD1TPWLifecycle=true' \
+            'EnableC044Lifecycle=false' \
+            'Generated source-bound from frozen canonical EA. Do not replace canonical source.' \
+            > dist/r1/README.txt
+      - name: Upload fast R1 source package
+        uses: actions/upload-artifact@v4
+        with:
+          name: BBMA-V458-R1-D1TPW-SOURCE-TEST-ONLY
+          path: dist/r1
+          if-no-files-found: error
+          retention-days: 30
+
   native-prep-gate:
     runs-on: windows-latest
     timeout-minutes: 20

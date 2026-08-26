@@ -1,0 +1,135 @@
+name: P0 EXEC_ID final native gate v2
+
+on:
+  push:
+    branches: [p0-exec-id-persistence-fix]
+    paths:
+      - 'blueprint/.run-p0-exec-id-final-v2'
+
+permissions:
+  contents: write
+
+jobs:
+  final-native:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: p0-exec-id-persistence-fix
+          fetch-depth: 0
+
+      - name: Verify baseline and sync runtime build identity
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $baseBlob = '115856015ba1459a6a30531e587e9fe7faa1e99e'
+          $blob = (git rev-parse HEAD:blueprint/source/BBMA_EA.mq4).Trim()
+          if ($blob -ne $baseBlob) { throw "Unexpected source blob before final P0 gate: $blob" }
+          python .\blueprint\tools\p0_exec_id_runtime_identity_sync.py
+          git diff --check
+          $src = '.\blueprint\source\BBMA_EA.mq4'
+          $txt = Get-Content $src -Raw
+          foreach ($required in @(
+            'Version 4.5.9 - P0 Execution Identity Persistence Fix',
+            '#property version   "4.59"',
+            '=== BBMA EA V4.5.9 P0 EXEC_ID Persistence Fix ===',
+            'BBMA EA V4.5.9 P0 EXEC_ID Persistence Fix initialized successfully',
+            'return "BBMA|H:" + SHORT_HASH(decisionID);',
+            'SaveExecutionIdentityHash',
+            'LoadPersistedExecutionHashForTicket',
+            'FindPersistedExecutionTicket',
+            'TARGETLESS_DURABLE_IDENTITY_REQUIRED',
+            'error == 4 || error == 6 || error == 128 || error == 141'
+          )) {
+            if ($txt -notmatch [regex]::Escape($required)) { throw "Missing final P0 marker: $required" }
+          }
+          if ($txt -match [regex]::Escape('error == 135 || error == 138 || error == 128 || error == 146')) { throw 'Timeout 128 remains retryable' }
+          if ($txt -match [regex]::Escape('BBMA EA V4.5.8 D1 TP-Wajib Lifecycle Stage')) { throw 'Stale runtime build identity remains' }
+          $newBlob = (git hash-object blueprint/source/BBMA_EA.mq4).Trim()
+          $sha256 = (Get-FileHash $src -Algorithm SHA256).Hash.ToLower()
+          "BASE_BLOB=$baseBlob" | Out-File $env:GITHUB_ENV -Append
+          "FINAL_BLOB=$newBlob" | Out-File $env:GITHUB_ENV -Append
+          "FINAL_SHA256=$sha256" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Download official MT4 installer with curl retry
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+          & curl.exe -L --fail --retry 3 --retry-delay 3 --connect-timeout 30 --max-time 240 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -o $setup
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path $setup)) { throw 'Official MT4 installer download failed' }
+          if ((Get-Item $setup).Length -lt 1000000) { throw 'MT4 installer unexpectedly small' }
+          "MT4SETUP=$setup" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Install and locate official MetaEditor
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $meta) {
+            $proc = Start-Process -FilePath $env:MT4SETUP -ArgumentList '/auto' -PassThru
+            for ($i=0; $i -lt 90; $i++) {
+              Start-Sleep -Seconds 5
+              $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($meta) { break }
+              if ($proc.HasExited -and $i -gt 12) { break }
+            }
+            if ($proc -and -not $proc.HasExited) { try { $proc.Kill() } catch {} }
+          }
+          if (-not $meta) { throw 'Official MetaEditor not found after installer polling' }
+          "METAEDITOR=$($meta.FullName)" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Native MetaEditor 0E0W compile
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = (Resolve-Path '.\blueprint\source\BBMA_EA.mq4').Path
+          $log = Join-Path $env:RUNNER_TEMP 'p0-exec-id-final-v2-metaeditor.log'
+          & "$env:METAEDITOR" "/compile:$src" "/log:$log"
+          Start-Sleep -Seconds 2
+          if (-not (Test-Path $log)) { throw 'Compile log missing' }
+          $txt = Get-Content $log -Raw
+          $txt | Write-Host
+          $ex4 = [System.IO.Path]::ChangeExtension($src,'.ex4')
+          if (-not (Test-Path $ex4)) { throw 'EX4 missing' }
+          $matches = [regex]::Matches($txt, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
+          if ($matches.Count -lt 1) { throw 'Compile summary missing' }
+          $m = $matches[$matches.Count-1]
+          $errors = [int]$m.Groups[1].Value
+          $warnings = [int]$m.Groups[2].Value
+          if ($errors -ne 0 -or $warnings -ne 0) { throw "Native compile failed: $errors errors / $warnings warnings" }
+          "ERRORS=$errors" | Out-File $env:GITHUB_ENV -Append
+          "WARNINGS=$warnings" | Out-File $env:GITHUB_ENV -Append
+          @"
+          P0_EXEC_ID_FINAL_NATIVE=PASS
+          SOURCE_BLOB=$env:FINAL_BLOB
+          SOURCE_SHA256=$env:FINAL_SHA256
+          ERRORS=$errors
+          WARNINGS=$warnings
+          "@ | Set-Content (Join-Path $env:RUNNER_TEMP 'p0-exec-id-final-v2-result.txt')
+
+      - name: Materialize exact compiled source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git fetch origin p0-exec-id-persistence-fix
+          $remoteBlob = (git rev-parse origin/p0-exec-id-persistence-fix:blueprint/source/BBMA_EA.mq4).Trim()
+          if ($remoteBlob -ne $env:BASE_BLOB) { throw "Remote source drift before materialize: $remoteBlob" }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add blueprint/source/BBMA_EA.mq4
+          git commit -m 'P0: sync runtime build identity native 0E0W [skip ci]'
+          git push origin HEAD:p0-exec-id-persistence-fix
+
+      - name: Upload final EX4 and evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p0-exec-id-final-native-v2-evidence
+          path: |
+            blueprint/source/BBMA_EA.mq4
+            blueprint/source/BBMA_EA.ex4
+            ${{ runner.temp }}/p0-exec-id-final-v2-metaeditor.log
+            ${{ runner.temp }}/p0-exec-id-final-v2-result.txt
+          if-no-files-found: warn

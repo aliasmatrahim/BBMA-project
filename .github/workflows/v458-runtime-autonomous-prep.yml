@@ -26,9 +26,9 @@ jobs:
         shell: pwsh
         run: |
           $blob = (git rev-parse HEAD:blueprint/source/BBMA_EA.mq4).Trim()
-          if ($blob -ne 'a166ffb23aba5e6b4011a28d9de8896cd00e33a1') { throw "Unexpected canonical source blob: $blob" }
+          if ($blob -ne '5c1b93d7783a00877cb7fd233673ca1ac1340151') { throw "Unexpected canonical source blob: $blob" }
           $sha = (& python -c "import subprocess,hashlib; d=subprocess.check_output(['git','cat-file','blob','$blob']); print(hashlib.sha256(d).hexdigest())").Trim()
-          if ($sha -ne 'ba2e5815d1b221d7bba46ed0be4793aa5bc6154e29e9b19562dfffbd28c8f0bc') { throw "Unexpected canonical SHA256: $sha" }
+          if ($sha -ne '6fd9eb52b63dee8861ebf205b1c031d80646b58e0b4941ef21ece9431fe6be5a') { throw "Unexpected canonical SHA256: $sha" }
           Write-Host "CANONICAL_SOURCE_FROZEN=PASS blob=$blob sha256=$sha"
       - name: Run autonomous native prep matrix
         shell: pwsh

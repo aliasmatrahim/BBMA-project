@@ -1,0 +1,114 @@
+name: TEMP P0 v4.59 integration exact-source native compile
+
+on:
+  push:
+    branches: [tmp-p0-v459-integration-native-compile-20260827]
+    paths:
+      - 'blueprint/.run-tmp-p0-v459-integration-native-compile'
+
+permissions:
+  contents: read
+
+jobs:
+  native-compile:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: tmp-p0-v459-integration-native-compile-20260827
+          fetch-depth: 0
+
+      - name: Verify exact integration source identity
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = '.\blueprint\source\BBMA_EA.mq4'
+          if (-not (Test-Path $src)) { throw 'Integrated source missing' }
+          $blob = (git rev-parse HEAD:blueprint/source/BBMA_EA.mq4).Trim()
+          if ($blob -ne 'dc83e62748c93171d89a312e9f7a53c06d97e261') { throw "Unexpected integrated source blob: $blob" }
+          $sha256 = (Get-FileHash $src -Algorithm SHA256).Hash.ToLower()
+          if ($sha256 -ne '0a42ee2e6c32810f655b592d8738f500e8b63b4e08c4c874e82452f75ce94b2e') { throw "Unexpected integrated source SHA256: $sha256" }
+          $txt = Get-Content $src -Raw
+          foreach ($required in @(
+            'Version 4.5.9 - P0 Execution Identity Persistence Fix',
+            '#property version   "4.59"',
+            'return "BBMA|H:" + SHORT_HASH(decisionID);',
+            'SaveExecutionIdentityHash',
+            'LoadPersistedExecutionHashForTicket',
+            'FindPersistedExecutionTicket',
+            'error == 4 || error == 6 || error == 128 || error == 141'
+          )) {
+            if ($txt -notmatch [regex]::Escape($required)) { throw "Missing v4.59 marker: $required" }
+          }
+          if ($txt -match [regex]::Escape('error == 135 || error == 138 || error == 128 || error == 146')) { throw 'Timeout 128 remains retryable' }
+          "SOURCE_BLOB=$blob" | Out-File $env:GITHUB_ENV -Append
+          "SOURCE_SHA256=$sha256" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Download official MT4 installer
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+          & curl.exe -L --fail --retry 3 --retry-delay 3 --connect-timeout 30 --max-time 240 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -o $setup
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path $setup)) { throw 'Official MT4 installer download failed' }
+          if ((Get-Item $setup).Length -lt 1000000) { throw 'MT4 installer unexpectedly small' }
+          "MT4SETUP=$setup" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Install and locate official MetaEditor
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $meta) {
+            $proc = Start-Process -FilePath $env:MT4SETUP -ArgumentList '/auto' -PassThru
+            for ($i=0; $i -lt 90; $i++) {
+              Start-Sleep -Seconds 5
+              $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($meta) { break }
+              if ($proc.HasExited -and $i -gt 12) { break }
+            }
+            if ($proc -and -not $proc.HasExited) { try { $proc.Kill() } catch {} }
+          }
+          if (-not $meta) { throw 'Official MetaEditor not found after installer polling' }
+          "METAEDITOR=$($meta.FullName)" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Native MetaEditor 0E0W compile
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = (Resolve-Path '.\blueprint\source\BBMA_EA.mq4').Path
+          $log = Join-Path $env:RUNNER_TEMP 'p0-v459-integration-metaeditor.log'
+          & "$env:METAEDITOR" "/compile:$src" "/log:$log"
+          Start-Sleep -Seconds 2
+          if (-not (Test-Path $log)) { throw 'Compile log missing' }
+          $txt = Get-Content $log -Raw
+          $txt | Write-Host
+          $ex4 = [System.IO.Path]::ChangeExtension($src,'.ex4')
+          if (-not (Test-Path $ex4)) { throw 'EX4 missing' }
+          $matches = [regex]::Matches($txt, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
+          if ($matches.Count -lt 1) { throw 'Compile summary missing' }
+          $m = $matches[$matches.Count-1]
+          $errors = [int]$m.Groups[1].Value
+          $warnings = [int]$m.Groups[2].Value
+          if ($errors -ne 0 -or $warnings -ne 0) { throw "Native compile failed: $errors errors / $warnings warnings" }
+          $ex4sha = (Get-FileHash $ex4 -Algorithm SHA256).Hash.ToLower()
+          @"
+          P0_V459_INTEGRATION_NATIVE=PASS
+          SOURCE_BLOB=$env:SOURCE_BLOB
+          SOURCE_SHA256=$env:SOURCE_SHA256
+          EX4_SHA256=$ex4sha
+          ERRORS=$errors
+          WARNINGS=$warnings
+          "@ | Set-Content (Join-Path $env:RUNNER_TEMP 'p0-v459-integration-result.txt')
+
+      - name: Upload exact compile evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: p0-v459-integration-native-evidence
+          path: |
+            blueprint/source/BBMA_EA.mq4
+            blueprint/source/BBMA_EA.ex4
+            ${{ runner.temp }}/p0-v459-integration-metaeditor.log
+            ${{ runner.temp }}/p0-v459-integration-result.txt
+          if-no-files-found: error

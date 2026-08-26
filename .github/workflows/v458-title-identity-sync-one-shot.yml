@@ -1,0 +1,100 @@
+name: v458 title identity sync one-shot
+
+on:
+  push:
+    branches: [d1-owner-dev]
+    paths:
+      - '.github/workflows/v458-title-identity-sync-one-shot.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Synchronize v4.58 user-facing identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, subprocess
+
+          src = Path('blueprint/source/BBMA_EA.mq4')
+          raw = src.read_bytes()
+          text = raw.decode('utf-8')
+          old_dash = '=== BBMA EA V4.5.1 D1O-07 ==='
+          new_dash = '=== BBMA EA V4.5.8 D1 TP-Wajib Lifecycle Stage ==='
+          old_init = 'BBMA EA V4.5.1 D1O-07 Canonical LTF Dedup initialized successfully'
+          new_init = 'BBMA EA V4.5.8 D1 TP-Wajib Lifecycle Stage initialized successfully'
+          if text.count(old_dash) != 1:
+              raise SystemExit(f'expected exactly one old dashboard title, got {text.count(old_dash)}')
+          if text.count(old_init) != 1:
+              raise SystemExit(f'expected exactly one old init title, got {text.count(old_init)}')
+          if 'Version 4.5.8 - D1 TP-Wajib Lifecycle Stage' not in text:
+              raise SystemExit('v4.58 build marker missing')
+          if '#property version   "4.58"' not in text:
+              raise SystemExit('property 4.58 missing')
+          text = text.replace(old_dash, new_dash, 1).replace(old_init, new_init, 1)
+          if old_dash in text or old_init in text:
+              raise SystemExit('stale user-facing v4.5.1 identity remains')
+          src.write_text(text, encoding='utf-8', newline='\n')
+
+          new_bytes = src.read_bytes()
+          new_blob = subprocess.check_output(['git','hash-object',str(src)], text=True).strip()
+          new_sha = hashlib.sha256(new_bytes).hexdigest()
+          old_blob = 'a166ffb23aba5e6b4011a28d9de8896cd00e33a1'
+          old_sha = 'ba2e5815d1b221d7bba46ed0be4793aa5bc6154e29e9b19562dfffbd28c8f0bc'
+
+          builder = Path('blueprint/tools/v458_runtime_variant_builder.py')
+          b = builder.read_text(encoding='utf-8')
+          if b.count(old_blob) != 1 or b.count(old_sha) != 1:
+              raise SystemExit('builder frozen identity occurrence mismatch')
+          b = b.replace(old_blob, new_blob, 1).replace(old_sha, new_sha, 1)
+          builder.write_text(b, encoding='utf-8', newline='\n')
+
+          wf = Path('.github/workflows/v458-runtime-autonomous-prep.yml')
+          w = wf.read_text(encoding='utf-8')
+          if w.count(old_blob) != 1 or w.count(old_sha) != 1:
+              raise SystemExit('autonomous workflow frozen identity occurrence mismatch')
+          w = w.replace(old_blob, new_blob, 1).replace(old_sha, new_sha, 1)
+          wf.write_text(w, encoding='utf-8', newline='\n')
+
+          runbook = Path('blueprint/V458_BROKER_RUNTIME_VALIDATION_RUNBOOK_20260826.md')
+          r = runbook.read_text(encoding='utf-8')
+          r = r.replace(f'- Git blob: `{old_blob}`', f'- Git blob: `{new_blob}`', 1)
+          r = r.replace(f'- SHA-256: `{old_sha}`', f'- SHA-256: `{new_sha}`', 1)
+          runbook.write_text(r, encoding='utf-8', newline='\n')
+
+          overlay = f'''\n\n# 2026-08-26 v4.58 User-Facing Identity Synchronization Overlay\n- Engineering/display-only correction: dashboard and init log now match `Version 4.5.8 - D1 TP-Wajib Lifecycle Stage`.\n- Removed stale user-facing label `V4.5.1 D1O-07`; internal `D1O-07` provenance comments remain unchanged.\n- New source Git blob: `{new_blob}`.\n- New source SHA-256: `{new_sha}`.\n- `#property version "4.58"`, strategy semantics, lifecycle gates, N1-N3 authority, SL/TP, risk, MM and execution logic are unchanged.\n- Native runtime-package revalidation is required after this identity-only source change.\n'''
+          for p in [Path('blueprint/CURRENT.md'), Path('blueprint/MASTER_QUEUE.md')]:
+              t = p.read_text(encoding='utf-8')
+              if 'v4.58 User-Facing Identity Synchronization Overlay' not in t:
+                  p.write_text(t.rstrip() + overlay + '\n', encoding='utf-8', newline='\n')
+
+          add = Path('blueprint/V458_AUTONOMOUS_RUNTIME_PREP_CLOSURE_20260826.md')
+          a = add.read_text(encoding='utf-8')
+          note = f'''\n\n## User-facing identity synchronization addendum\nA display/init-title-only source correction superseded the prior source blob without changing trading semantics.\n- superseded blob: `{old_blob}`\n- replacement blob: `{new_blob}`\n- replacement SHA-256: `{new_sha}`\n- stale dashboard/init `V4.5.1 D1O-07` labels removed; internal milestone comments retained.\n- native runtime-package revalidation is pending immediately after this commit.\n'''
+          if 'User-facing identity synchronization addendum' not in a:
+              add.write_text(a.rstrip() + note + '\n', encoding='utf-8', newline='\n')
+
+          Path('.v458-new-identity').write_text(new_blob + '\n' + new_sha + '\n', encoding='utf-8')
+          print('NEW_BLOB=' + new_blob)
+          print('NEW_SHA256=' + new_sha)
+          PY
+
+          git diff --check
+          git diff -- blueprint/source/BBMA_EA.mq4 | tee /tmp/source.diff
+          changed=$(grep -E '^[+-].*(BBMA EA V4\.5\.1 D1O-07|BBMA EA V4\.5\.8 D1 TP-Wajib Lifecycle Stage)' /tmp/source.diff | wc -l)
+          test "$changed" -eq 4
+          rm -f .v458-new-identity
+          git rm .github/workflows/v458-title-identity-sync-one-shot.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add blueprint/source/BBMA_EA.mq4 blueprint/tools/v458_runtime_variant_builder.py .github/workflows/v458-runtime-autonomous-prep.yml blueprint/V458_BROKER_RUNTIME_VALIDATION_RUNBOOK_20260826.md blueprint/V458_AUTONOMOUS_RUNTIME_PREP_CLOSURE_20260826.md blueprint/CURRENT.md blueprint/MASTER_QUEUE.md
+          git commit -m 'Sync v4.58 dashboard and init identity [skip ci]'
+          git push origin HEAD:d1-owner-dev

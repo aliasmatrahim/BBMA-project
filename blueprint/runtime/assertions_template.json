@@ -1,0 +1,5 @@
+{
+  "schema": "BBMA_V458_RUNTIME_ASSERTIONS_V1",
+  "instructions": "Add only evidence-backed PASS/FAIL assertions. Each evidence_ref must be raw/<copied-log-name>#<exact substring present in that file>. Leave assertions empty when a case has not been run.",
+  "assertions": []
+}

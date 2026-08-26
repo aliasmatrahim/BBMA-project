@@ -1,0 +1,160 @@
+name: P0 EXEC_ID persistence fix
+
+on:
+  push:
+    branches: [p0-exec-id-persistence-fix]
+    paths:
+      - blueprint/tools/p0_exec_id_persistence_fix.py
+      - blueprint/tools/p0_exec_id_persistence_fix_v2.py
+      - .github/workflows/p0-exec-id-persistence-fix.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: p0-exec-id-persistence-fix
+          fetch-depth: 0
+
+      - name: Apply P0 execution identity persistence patch
+        run: python blueprint/tools/p0_exec_id_persistence_fix_v2.py
+
+      - name: Static fail-closed verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          src=blueprint/source/BBMA_EA.mq4
+          grep -F 'Version 4.5.9 - P0 Execution Identity Persistence Fix' "$src"
+          grep -F '#property version   "4.59"' "$src"
+          grep -F 'return "BBMA|H:" + SHORT_HASH(decisionID);' "$src"
+          grep -F 'SaveExecutionIdentityHash' "$src"
+          grep -F 'LoadPersistedExecutionHashForTicket' "$src"
+          grep -F 'FindPersistedExecutionTicket' "$src"
+          grep -F 'TARGETLESS_DURABLE_IDENTITY_REQUIRED' "$src"
+          grep -F 'error == 4 || error == 6 || error == 128 || error == 141' "$src"
+          ! grep -F 'error == 135 || error == 138 || error == 128 || error == 146' "$src"
+          ! grep -F 'TARGETLESS_FULL_METADATA_REQUIRED' "$src"
+          ! grep -F 'StringSetChar' "$src"
+          git diff --check
+
+      - name: Commit patched source
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- blueprint/source/BBMA_EA.mq4; then
+            echo 'Source already patched; no commit required.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add blueprint/source/BBMA_EA.mq4
+          git commit -m 'P0: harden execution identity persistence [skip ci]'
+          git push origin HEAD:p0-exec-id-persistence-fix
+
+  native-compile:
+    needs: apply
+    runs-on: windows-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: p0-exec-id-persistence-fix
+          fetch-depth: 1
+
+      - name: Verify patched source markers
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = '.\blueprint\source\BBMA_EA.mq4'
+          $txt = Get-Content $src -Raw
+          foreach ($required in @(
+            'Version 4.5.9 - P0 Execution Identity Persistence Fix',
+            '#property version   "4.59"',
+            'return "BBMA|H:" + SHORT_HASH(decisionID);',
+            'SaveExecutionIdentityHash',
+            'LoadPersistedExecutionHashForTicket',
+            'FindPersistedExecutionTicket',
+            'TARGETLESS_DURABLE_IDENTITY_REQUIRED'
+          )) {
+            if ($txt -notmatch [regex]::Escape($required)) { throw "Missing P0 marker: $required" }
+          }
+          if ($txt -match [regex]::Escape('error == 135 || error == 138 || error == 128 || error == 146')) {
+            throw 'MT4 timeout 128 still retryable'
+          }
+          $blob = (git rev-parse HEAD:blueprint/source/BBMA_EA.mq4).Trim()
+          $sha256 = (Get-FileHash $src -Algorithm SHA256).Hash.ToLower()
+          "SOURCE_BLOB=$blob" | Out-File $env:GITHUB_ENV -Append
+          "WINDOWS_SHA256=$sha256" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Acquire official MT4 MetaEditor
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $meta) {
+            $setup = Join-Path $env:RUNNER_TEMP 'mt4setup.exe'
+            Invoke-WebRequest -Uri 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe' -OutFile $setup -UseBasicParsing
+            $proc = Start-Process -FilePath $setup -ArgumentList '/auto' -PassThru
+            for ($i=0; $i -lt 84; $i++) {
+              Start-Sleep -Seconds 5
+              $meta = Get-ChildItem 'C:\Program Files*' -Filter metaeditor.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($meta) { break }
+              if ($proc.HasExited -and $i -gt 12) { break }
+            }
+            if ($proc -and -not $proc.HasExited) { try { $proc.Kill() } catch {} }
+          }
+          if (-not $meta) { throw 'Official MT4 MetaEditor not found' }
+          "METAEDITOR=$($meta.FullName)" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Native MetaEditor 0E0W compile
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $src = (Resolve-Path '.\blueprint\source\BBMA_EA.mq4').Path
+          $log = Join-Path $env:RUNNER_TEMP 'p0-exec-id-metaeditor.log'
+          & "$env:METAEDITOR" "/compile:$src" "/log:$log"
+          Start-Sleep -Seconds 2
+          if (-not (Test-Path $log)) { throw 'MetaEditor compile log missing' }
+          $txt = Get-Content $log -Raw
+          $txt | Write-Host
+          $matches = [regex]::Matches($txt, '(?i)(\d+)\s+errors?,\s*(\d+)\s+warnings?')
+          if ($matches.Count -lt 1) { throw 'Unable to parse compile summary' }
+          $m = $matches[$matches.Count - 1]
+          $errors = [int]$m.Groups[1].Value
+          $warnings = [int]$m.Groups[2].Value
+          if ($errors -ne 0 -or $warnings -ne 0) { throw "Native compile failed: $errors errors / $warnings warnings" }
+          $ex4 = [System.IO.Path]::ChangeExtension($src,'.ex4')
+          if (-not (Test-Path $ex4)) { throw 'EX4 missing' }
+          "COMPILE_ERRORS=$errors" | Out-File $env:GITHUB_ENV -Append
+          "COMPILE_WARNINGS=$warnings" | Out-File $env:GITHUB_ENV -Append
+
+      - name: Write evidence summary
+        if: success()
+        shell: pwsh
+        run: |
+          @"
+          P0_EXEC_ID_NATIVE_METAEDITOR=PASS
+          SOURCE_BLOB=$env:SOURCE_BLOB
+          WINDOWS_SHA256=$env:WINDOWS_SHA256
+          COMPILE_ERRORS=$env:COMPILE_ERRORS
+          COMPILE_WARNINGS=$env:COMPILE_WARNINGS
+          "@ | Set-Content '.\p0-exec-id-compile-summary.txt'
+
+      - name: Upload EX4 and compile evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p0-exec-id-persistence-evidence
+          path: |
+            blueprint/source/BBMA_EA.ex4
+            ${{ runner.temp }}/p0-exec-id-metaeditor.log
+            p0-exec-id-compile-summary.txt
+          if-no-files-found: warn

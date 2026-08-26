@@ -38,3 +38,30 @@ jobs:
       - name: Run autonomous native prep matrix
         shell: pwsh
         run: ./blueprint/runtime/v458_native_compile_matrix.ps1 -RepoRoot $PWD
+      - name: Package R1 D1TPW runtime build
+        shell: pwsh
+        run: |
+          $work = Join-Path $env:RUNNER_TEMP 'bbma-v458-runtime-prep'
+          $pkg = Join-Path $env:RUNNER_TEMP 'bbma-v458-r1-package'
+          New-Item -ItemType Directory -Path $pkg -Force | Out-Null
+          Copy-Item (Join-Path $work 'R1_D1TPW.mq4') (Join-Path $pkg 'BBMA_EA_V458_R1_D1TPW_TEST_ONLY.mq4') -Force
+          Copy-Item (Join-Path $work 'R1_D1TPW.json') (Join-Path $pkg 'BBMA_EA_V458_R1_D1TPW_TEST_ONLY.metadata.json') -Force
+          $ex4 = Join-Path $work 'mt4portable\MQL4\Experts\R1_D1TPW.ex4'
+          if (-not (Test-Path $ex4)) { throw 'R1 compiled EX4 missing after native matrix' }
+          Copy-Item $ex4 (Join-Path $pkg 'BBMA_EA_V458_R1_D1TPW_TEST_ONLY.ex4') -Force
+          @"
+          TEST-ONLY R1 PACKAGE
+          Canonical release: BBMA EA v4.58
+          Profile: R1 D1TPW
+          EnableD1TPWLifecycle=true
+          EnableC044Lifecycle=false
+          Generated from frozen canonical source and native-compiled 0E0W in this workflow run.
+          Do not replace the canonical source with this file.
+          "@ | Set-Content (Join-Path $pkg 'README.txt') -Encoding UTF8
+      - name: Upload R1 D1TPW test package
+        uses: actions/upload-artifact@v4
+        with:
+          name: BBMA-V458-R1-D1TPW-TEST-ONLY
+          path: ${{ runner.temp }}\bbma-v458-r1-package
+          if-no-files-found: error
+          retention-days: 30

@@ -74,13 +74,13 @@ jobs:
           for p in [Path('blueprint/CURRENT.md'), Path('blueprint/MASTER_QUEUE.md')]:
               t = p.read_text(encoding='utf-8')
               if 'v4.58 User-Facing Identity Synchronization Overlay' not in t:
-                  p.write_text(t.rstrip() + overlay + '\n', encoding='utf-8', newline='\n')
+                  p.write_text((t.rstrip() + overlay).rstrip() + '\n', encoding='utf-8', newline='\n')
 
           add = Path('blueprint/V458_AUTONOMOUS_RUNTIME_PREP_CLOSURE_20260826.md')
           a = add.read_text(encoding='utf-8')
           note = f'''\n\n## User-facing identity synchronization addendum\nA display/init-title-only source correction superseded the prior source blob without changing trading semantics.\n- superseded blob: `{old_blob}`\n- replacement blob: `{new_blob}`\n- replacement SHA-256: `{new_sha}`\n- stale dashboard/init `V4.5.1 D1O-07` labels removed; internal milestone comments retained.\n- native runtime-package revalidation is pending immediately after this commit.\n'''
           if 'User-facing identity synchronization addendum' not in a:
-              add.write_text(a.rstrip() + note + '\n', encoding='utf-8', newline='\n')
+              add.write_text((a.rstrip() + note).rstrip() + '\n', encoding='utf-8', newline='\n')
 
           Path('.v458-new-identity').write_text(new_blob + '\n' + new_sha + '\n', encoding='utf-8')
           print('NEW_BLOB=' + new_blob)
@@ -96,5 +96,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add blueprint/source/BBMA_EA.mq4 blueprint/tools/v458_runtime_variant_builder.py .github/workflows/v458-runtime-autonomous-prep.yml blueprint/V458_BROKER_RUNTIME_VALIDATION_RUNBOOK_20260826.md blueprint/V458_AUTONOMOUS_RUNTIME_PREP_CLOSURE_20260826.md blueprint/CURRENT.md blueprint/MASTER_QUEUE.md
-          git commit -m 'Sync v4.58 dashboard and init identity [skip ci]'
+          git commit -m 'Sync v4.58 dashboard and init identity'
           git push origin HEAD:d1-owner-dev

@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "source_path": "blueprint/source/BBMA_EA.mq4",
+  "product_name": "BBMA EA",
+  "display_version": "4.5.8",
+  "property_version": "4.58",
+  "release_stage": "D1 TP-Wajib Lifecycle Stage"
+}

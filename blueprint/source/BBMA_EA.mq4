@@ -9408,7 +9408,7 @@ void BuildDashboardSnapshot()
    int liveTradeCount = CountDashboardLiveEAOwnedTrades();
 
    g_dashboard_snapshot = "";
-   g_dashboard_snapshot += "=== BBMA EA V4.5.1 D1O-07 ===\n";
+   g_dashboard_snapshot += "=== BBMA EA V4.5.8 D1 TP-Wajib Lifecycle Stage ===\n";
    g_dashboard_snapshot += "Time: " + TimeToString(TimeCurrent()) + "\n";
    g_dashboard_snapshot += "Balance: " + DoubleToString(AccountBalance(), 2) + "\n";
    g_dashboard_snapshot += "Equity: " + DoubleToString(AccountEquity(), 2) + "\n";
@@ -10269,7 +10269,7 @@ int OnInit()
       return INIT_FAILED;
    }
    
-   Log(DBG_FULL, "BBMA EA V4.5.1 D1O-07 Canonical LTF Dedup initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.5.8 D1 TP-Wajib Lifecycle Stage initialized successfully");
    return INIT_SUCCEEDED;
 }
 

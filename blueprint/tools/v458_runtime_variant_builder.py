@@ -14,8 +14,8 @@ import subprocess
 from pathlib import Path
 
 CANONICAL_PATH = "blueprint/source/BBMA_EA.mq4"
-EXPECTED_BLOB = "a166ffb23aba5e6b4011a28d9de8896cd00e33a1"
-EXPECTED_SHA256 = "ba2e5815d1b221d7bba46ed0be4793aa5bc6154e29e9b19562dfffbd28c8f0bc"
+EXPECTED_BLOB = "5c1b93d7783a00877cb7fd233673ca1ac1340151"
+EXPECTED_SHA256 = "6fd9eb52b63dee8861ebf205b1c031d80646b58e0b4941ef21ece9431fe6be5a"
 BUILD_MARKER = "Version 4.5.8 - D1 TP-Wajib Lifecycle Stage"
 VERSION_MARKER = '#property version   "4.58"'
 # Exact canonical declarations are intentionally spacing-sensitive. If source

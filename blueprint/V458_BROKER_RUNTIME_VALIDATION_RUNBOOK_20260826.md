@@ -7,8 +7,8 @@ Status: autonomous-prep package for broker/demo validation only. Canonical EA re
 - Source: `blueprint/source/BBMA_EA.mq4`
 - Build: `Version 4.5.8 - D1 TP-Wajib Lifecycle Stage`
 - Property: `4.58`
-- Git blob: `a166ffb23aba5e6b4011a28d9de8896cd00e33a1`
-- SHA-256: `ba2e5815d1b221d7bba46ed0be4793aa5bc6154e29e9b19562dfffbd28c8f0bc`
+- Git blob: `5c1b93d7783a00877cb7fd233673ca1ac1340151`
+- SHA-256: `6fd9eb52b63dee8861ebf205b1c031d80646b58e0b4941ef21ece9431fe6be5a`
 - Canonical gates: `EnableD1TPWLifecycle=false`, `EnableC044Lifecycle=false`
 
 The runtime variant builder is source-bound to the identity above and must fail closed if the canonical source changes.

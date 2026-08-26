@@ -468,3 +468,10 @@ This overlay supersedes older queue wording where it conflicts.
 - R6: N2 real forward identity/outcome chain; N3 remains activation-firewalled.
 - Runtime evidence must come from an authenticated connected MT4 demo/broker session. Hosted smoke is not a substitute.
 
+# 2026-08-26 v4.58 User-Facing Identity Synchronization Overlay
+- Engineering/display-only correction: dashboard and init log now match `Version 4.5.8 - D1 TP-Wajib Lifecycle Stage`.
+- Removed stale user-facing label `V4.5.1 D1O-07`; internal `D1O-07` provenance comments remain unchanged.
+- New source Git blob: `5c1b93d7783a00877cb7fd233673ca1ac1340151`.
+- New source SHA-256: `6fd9eb52b63dee8861ebf205b1c031d80646b58e0b4941ef21ece9431fe6be5a`.
+- `#property version "4.58"`, strategy semantics, lifecycle gates, N1-N3 authority, SL/TP, risk, MM and execution logic are unchanged.
+- Native runtime-package revalidation required after this identity-only source change.

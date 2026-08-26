@@ -61,3 +61,11 @@ This record does **not** claim broker-runtime PASS. Final closure still requires
 Freeze v4.58 strategy/source semantics and proceed to **authenticated broker/demo runtime validation using `blueprint/V458_BROKER_RUNTIME_VALIDATION_RUNBOOK_20260826.md`**.
 
 Any defect found during runtime must be repaired with the smallest scoped fix and re-tested against the same frozen identity or a newly frozen replacement RC. No N3 execution policy may be activated automatically from collected evidence.
+
+## User-facing identity synchronization addendum
+A display/init-title-only correction superseded the prior source blob without changing trading semantics.
+- superseded blob: `a166ffb23aba5e6b4011a28d9de8896cd00e33a1`
+- replacement blob: `5c1b93d7783a00877cb7fd233673ca1ac1340151`
+- replacement SHA-256: `6fd9eb52b63dee8861ebf205b1c031d80646b58e0b4941ef21ece9431fe6be5a`
+- stale dashboard/init `V4.5.1 D1O-07` labels removed; internal milestone comments retained.
+- native runtime-package revalidation follows this commit.

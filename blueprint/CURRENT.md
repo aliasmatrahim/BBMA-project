@@ -490,3 +490,15 @@ v4.58 hosted MT4 probe run `32909061219`, job `97999302151` compiled 0E0W and la
 
 Canonical phase freeze record:
 `blueprint/N1_N3_V458_PHASE_COMPLETION_RC_FREEZE_20260826.md`
+
+# 2026-08-26 v4.58 Autonomous Runtime Preparation Closure Overlay
+- **AUTONOMOUS BROKER-RUNTIME PREPARATION: CLOSED / PASS.**
+- Validation package commit: `d3e209c86ad702a4d2edefb2951e07dbd876cfc4`.
+- Native validation workflow run `32917428334`, job `98023961888`: SUCCESS.
+- Official MetaEditor gates: BASELINE 0E0W, R1 D1TPW 0E0W, R2 C044 0E0W, Runtime Observer 0E0W.
+- Variant-builder selftest, unified-analyzer selftest, observer read-only static guard, and frozen-source identity guard all PASS.
+- Canonical EA remains v4.58 blob `a166ffb23aba5e6b4011a28d9de8896cd00e33a1`; canonical D1TPW/C044 gates remain OFF and N3 execution remains NONE/inactive.
+- Full evidence: `blueprint/V458_AUTONOMOUS_RUNTIME_PREP_CLOSURE_20260826.md`.
+- **Next authoritative action: authenticated broker/demo MT4 runtime validation R1–R6 using `blueprint/V458_BROKER_RUNTIME_VALIDATION_RUNBOOK_20260826.md`.**
+- No further strategy/NMJE feature work should precede this runtime gate unless runtime evidence reveals a scoped defect.
+

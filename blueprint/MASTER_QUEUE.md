@@ -452,3 +452,19 @@ Do not modify v4.58 strategy source opportunistically while these runtime gates 
 
 Phase freeze record:
 `blueprint/N1_N3_V458_PHASE_COMPLETION_RC_FREEZE_20260826.md`
+
+## 2026-08-26 — Autonomous Preparation Complete / Broker Runtime Next Overlay
+This overlay supersedes older queue wording where it conflicts.
+
+- N1/N2/N3 technical preparation is complete; N3 execution policy remains `NONE`.
+- v4.58 autonomous runtime package is CLOSED/PASS, including native 0E0W for BASELINE, R1 D1TPW, R2 C044, and Runtime Observer.
+- Canonical strategy/source remains frozen at Git blob `a166ffb23aba5e6b4011a28d9de8896cd00e33a1`.
+- **ACTIVE QUEUE: broker/demo runtime closure R1 -> R2 -> R3 -> R4 -> R5 -> R6.**
+- R1: D1 TP-Wajib lifecycle checkpoint/restart/completion/idempotency.
+- R2: C044 failed-Momentum/rearm/supersession/M20 precedence/restart.
+- R3: D1 owner matrix + D1O identity/dedup.
+- R4: validation-to-order timing + M17 live SL geometry.
+- R5: TradeLock + cumulative risk + P3 B/C/D.
+- R6: N2 real forward identity/outcome chain; N3 remains activation-firewalled.
+- Runtime evidence must come from an authenticated connected MT4 demo/broker session. Hosted smoke is not a substitute.
+

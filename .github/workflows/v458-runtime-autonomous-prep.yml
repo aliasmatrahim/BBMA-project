@@ -6,8 +6,10 @@ on:
     branches: [d1-owner-dev]
     paths:
       - 'blueprint/source/BBMA_EA.mq4'
+      - 'blueprint/source/EA_RELEASE_IDENTITY.json'
       - 'blueprint/runtime/**'
       - 'blueprint/tools/v458_*'
+      - 'blueprint/tools/check_release_identity.py'
       - 'blueprint/tests/test_v458_*'
       - '.github/workflows/v458-runtime-autonomous-prep.yml'
 
@@ -22,6 +24,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Verify synchronized EA release identity
+        shell: pwsh
+        run: python ./blueprint/tools/check_release_identity.py
       - name: Verify frozen canonical source identity
         shell: pwsh
         run: |

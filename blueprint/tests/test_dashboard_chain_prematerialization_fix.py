@@ -86,7 +86,7 @@ def main() -> int:
     assert old_signature not in out
     assert out.count('string DashLivePositionSignature()') == 1
 
-    # Setup/chain family consistency.
+    # Setup/chain family consistency: complete family or same-family DEC fallback.
     assert 'chain = "DEC:REM" + arrow;' in out
     assert 'chain = "DEC:RRE" + arrow;' in out
     assert 'chain = "DEC:REE" + arrow;' in out
@@ -95,6 +95,16 @@ def main() -> int:
     assert 'else if(finalSetup == "RRE")' in out
     assert 'else if(finalSetup == "REE")' in out
     assert 'else if(finalSetup == "RE")' in out
+    assert 'DashREConfirmed(h4re, direction) &&' in out
+    assert 'DashMLVReady(m15mlv, direction))' in out
+    assert 'DashREConfirmed(d1re, direction) &&' in out
+    assert 'DashExtremeReady(h4ext, direction) &&' in out
+    assert 'chain = "H4:RE" + arrow + ">H1:EXT" + arrow +' in out
+    assert 'chain = "D1:RE" + arrow + ">H4:RE" + arrow +' in out
+    assert 'chain = "D1:RE" + arrow + ">H4:EXT" + arrow +' in out
+    assert 'chain = "H4:RE" + arrow;\n               if(DashExtremeReady(h1ext, direction))' not in out
+    assert 'chain = "D1:RE" + arrow;\n               if(DashREConfirmed(h4re, direction))' not in out
+    assert 'chain = "D1:RE" + arrow;\n               if(DashExtremeReady(h4ext, direction))' not in out
     assert 'setup += "✓";' in out
     assert 'setup += "~";' in out
 

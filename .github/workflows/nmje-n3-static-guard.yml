@@ -1,0 +1,30 @@
+name: NMJE N3 static guard
+
+on:
+  pull_request:
+    branches: [ d1-owner-dev ]
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'blueprint/source/BBMA_EA.mq4'
+      - 'blueprint/ci/nmje_n3_static_guard.ps1'
+      - '.github/workflows/nmje-n3-static-guard.yml'
+      - 'blueprint/implementation/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  nmje-static:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Run NMJE N3 branch-aware static guard
+        shell: pwsh
+        run: |
+          .\blueprint\ci\nmje_n3_static_guard.ps1
+          git diff --check

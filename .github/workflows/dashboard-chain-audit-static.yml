@@ -1,0 +1,28 @@
+name: Dashboard chain audit static selftest
+
+on:
+  push:
+    branches:
+      - dashboard-chain-audit-20260827
+    paths:
+      - 'blueprint/tools/dashboard_chain_safety_fix.py'
+      - 'blueprint/tests/test_dashboard_chain_safety_fix.py'
+      - 'blueprint/audits/DASHBOARD_PR98_PREMATERIALIZATION_AUDIT_ACCEPTANCE_20260827.md'
+      - '.github/workflows/dashboard-chain-audit-static.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  static-selftest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Python syntax and dashboard transformation selftest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile \
+            blueprint/tools/dashboard_chain_safety_fix.py \
+            blueprint/tests/test_dashboard_chain_safety_fix.py
+          python3 blueprint/tests/test_dashboard_chain_safety_fix.py

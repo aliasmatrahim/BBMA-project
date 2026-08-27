@@ -10,6 +10,7 @@ on:
       - 'blueprint/tools/n3_nmje_policy_readiness.py'
       - 'blueprint/tests/test_n3_nmje_policy_readiness.py'
       - 'blueprint/tests/test_nmje_n3_replay_identity_static.py'
+      - 'blueprint/tests/test_nmje_n3_recovery_failclosed_static.py'
       - 'blueprint/source/BBMA_EA.mq4'
       - 'blueprint/.n3-v458-selftest-trigger'
       - '.github/workflows/n3-nmje-v458-staging-selftest.yml'
@@ -68,6 +69,13 @@ jobs:
           set -euo pipefail
           python3 blueprint/tests/test_nmje_n3_replay_identity_static.py
           python3 -m py_compile blueprint/tests/test_nmje_n3_replay_identity_static.py
+
+      - name: Run N3 recovery fail-closed static selftest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 blueprint/tests/test_nmje_n3_recovery_failclosed_static.py
+          python3 -m py_compile blueprint/tests/test_nmje_n3_recovery_failclosed_static.py
 
       - name: Verify contract firewall text
         shell: bash

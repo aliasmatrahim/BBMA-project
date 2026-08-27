@@ -6,6 +6,8 @@ Display-only fixes:
    first selected order.
 2. Represent equal-rank opposing BUY/SELL signal chains explicitly as MIX
    instead of arbitrarily preferring BUY.
+3. Refresh broker-position presentation only when the exact-owned live order
+   identity changes, avoiding a full label redraw every 1-second timer tick.
 
 This script intentionally changes dashboard presentation only. It does not
 call or add trade, risk, validation, lifecycle, or execution authorities.
@@ -141,9 +143,49 @@ def main() -> int:
 
    position = DashLivePosition(pairIndex, positionDirection);'''
 
+    old_refresh = '''void RefreshDashboardLiveTradeCount()
+{
+   if(!ShowDashboard) return;
+   // Timer refresh keeps both chain lifecycle and live broker position in sync.
+   UpdateDashboard();
+   g_dashboard_needs_update = false;
+}'''
+
+    new_refresh = '''string DashLivePositionSignature()
+{
+   string signature = "";
+   int total = OrdersTotal();
+   for(int i = 0; i < total; i++)
+   {
+      if(!OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) continue;
+      int selectedPairIndex = -1;
+      if(!IsExactEAOwnedSelectedOrder(selectedPairIndex)) continue;
+      signature += IntegerToString(selectedPairIndex) + ":" +
+                   IntegerToString(OrderTicket()) + ":" +
+                   IntegerToString(OrderType()) + ";";
+   }
+   return signature;
+}
+
+void RefreshDashboardLiveTradeCount()
+{
+   if(!ShowDashboard) return;
+
+   // M15 lifecycle changes already raise g_dashboard_needs_update in OnTickMain.
+   // Timer refresh is only needed when exact-owned broker positions change.
+   static string lastLiveSignature = "__INIT__";
+   string currentLiveSignature = DashLivePositionSignature();
+   if(currentLiveSignature == lastLiveSignature) return;
+
+   UpdateDashboard();
+   g_dashboard_needs_update = false;
+   lastLiveSignature = currentLiveSignature;
+}'''
+
     try:
         text = replace_once(text, old_live, new_live, 'live-position aggregation')
         text = replace_once(text, old_rank, new_rank, 'equal-rank direction handling')
+        text = replace_once(text, old_refresh, new_refresh, 'timer refresh efficiency')
     except RuntimeError as exc:
         print(f'ERROR: {exc}', file=sys.stderr)
         return 3
@@ -155,6 +197,10 @@ def main() -> int:
         'POS↓x',
         'status = "MIX";',
         'chain = "B:" + buyChain + " | S:" + sellChain;',
+        'string DashLivePositionSignature()',
+        'IntegerToString(OrderTicket())',
+        'static string lastLiveSignature = "__INIT__";',
+        'if(currentLiveSignature == lastLiveSignature) return;',
     ]
     for token in required:
         if token not in text:
@@ -163,10 +209,11 @@ def main() -> int:
 
     forbidden = [
         'if(buyRank >= sellRank)',
+        '// Timer refresh keeps both chain lifecycle and live broker position in sync.\n   UpdateDashboard();',
     ]
     for token in forbidden:
         if token in text:
-            print(f'ERROR: forbidden biased dashboard token remains: {token}', file=sys.stderr)
+            print(f'ERROR: forbidden dashboard safety token remains: {token}', file=sys.stderr)
             return 5
 
     SRC.write_text(text, encoding='utf-8')

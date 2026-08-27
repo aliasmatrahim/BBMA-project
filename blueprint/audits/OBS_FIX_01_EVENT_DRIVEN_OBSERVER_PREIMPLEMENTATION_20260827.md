@@ -114,3 +114,18 @@ Before any future Observer replacement is considered:
 6. no existing R1 evidence may be invalidated by changing Observer mid-run.
 
 Until these gates are met, this branch is PREPARED ONLY / DO NOT DEPLOY / DO NOT MERGE TO CANONICAL.
+
+## 8. PR #100 and CI execution status
+
+Draft PR #100 (`obs-fix-01-event-driven-dev` → `d1-owner-dev`) is the review container for this work and remains **DRAFT / NO MERGE / NO DEPLOY**.
+
+At the reviewed PR head `3cb3ca5d4a254e91fccb2ee4d6ecd9bb14761d68`, GitHub Actions run `33087175935` (`OBS-FIX-01 event-driven observer static guard`) completed with conclusion `failure`, but its only job `98569893600` exposes `steps=null` / zero executable steps and no usable logs. The workflow itself is read-only (`contents: read`) and contains only checkout plus Python/static guard execution.
+
+Classification: **repository / GitHub Actions execution-availability anomaly**. This run is not attributable evidence that the Observer static guard passed or failed. It must not be used as source-verification evidence.
+
+Required next evidence remains unchanged:
+
+- a future non-empty attributable static-guard run;
+- native MetaEditor compile 0 errors / 0 warnings;
+- controlled Observer runtime acceptance for OBS-00..OBS-12 and OBS-15;
+- explicit release of the current R1 freeze before any replacement/deployment.

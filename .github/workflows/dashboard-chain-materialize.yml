@@ -55,7 +55,11 @@ jobs:
               'int buyCount = 0;',
               'int sellCount = 0;',
               'status = "MIX";',
-              'chain = "B:" + buyChain + " | S:" + sellChain;'
+              'chain = "B:" + buyChain + " | S:" + sellChain;',
+              'string DashLivePositionSignature()',
+              'IntegerToString(OrderTicket())',
+              'static string lastLiveSignature = "__INIT__";',
+              'if(currentLiveSignature == lastLiveSignature) return;'
           ]:
               if marker not in s:
                   raise SystemExit(f'missing dashboard marker: {marker}')
@@ -65,11 +69,12 @@ jobs:
           forbidden=[
               'OrderSend(', 'OrderClose(', 'OrderModify(', 'OrderDelete(',
               'PriorityEngine_Atomic(', 'InvalidationEngine_Atomic(',
-              'if(buyRank >= sellRank)'
+              'if(buyRank >= sellRank)',
+              '// Timer refresh keeps both chain lifecycle and live broker position in sync.\n   UpdateDashboard();'
           ]
           for marker in forbidden:
               if marker in block:
-                  raise SystemExit(f'forbidden M25 authority/bias marker: {marker}')
+                  raise SystemExit(f'forbidden M25 authority/bias/perf marker: {marker}')
           print('DASHBOARD_M25_DISPLAY_ONLY_GUARD=PASS')
           PY
 

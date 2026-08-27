@@ -92,7 +92,7 @@ function Compile-Mq4([string]$Path, [string]$Label) {
   $Warnings = [int]$Last.Groups[2].Value
   $Ex4 = [System.IO.Path]::ChangeExtension($Path, '.ex4')
   if (!(Test-Path $Ex4)) { throw "EX4 missing: $Label" }
-  if ($Errors -ne 0 -or $Warnings -ne 0) { throw "Native compile failed $Label: $Errors errors / $Warnings warnings" }
+  if ($Errors -ne 0 -or $Warnings -ne 0) { throw "Native compile failed ${Label}: $Errors errors / $Warnings warnings" }
   return [ordered]@{ label=$Label; mq4=$Path; ex4=$Ex4; log=$Log; errors=$Errors; warnings=$Warnings }
 }
 

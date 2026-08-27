@@ -1,4 +1,4 @@
-name: N3 NMJE v4.58 staging selftest
+name: N3 NMJE staging selftest
 
 on:
   pull_request:
@@ -22,7 +22,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: d1-owner-dev
           fetch-depth: 0
 
       - name: Verify EA remains free of N3 execution authority
@@ -34,8 +33,8 @@ jobs:
           p = Path('blueprint/source/BBMA_EA.mq4')
           s = p.read_text(encoding='utf-8')
           required = [
-              'Version 4.5.8 - D1 TP-Wajib Lifecycle Stage',
-              '#property version   "4.58"',
+              'Version 4.5.9 - P0 Execution Identity Persistence Fix',
+              '#property version   "4.59"',
               'UpdateNestedJourneyObservation(pairIndex);',
               'NMJE_PrintValidatedDecisionShadow(pairIndex, decision);',
           ]

@@ -3,16 +3,25 @@
 //| TEST/OBSERVABILITY ONLY - NO BROKER WRITE AUTHORITY              |
 //+------------------------------------------------------------------+
 #property strict
-#property version   "1.00"
+#property version   "1.10"
 
 input int StrategyID = 1;
 input int InstanceID = 0;
-input int SnapshotSeconds = 5;
+input int SnapshotSeconds = 5;          // Poll cadence; unchanged state is silent.
 input int HistoryLookbackHours = 168;
+input int ObserverDebugLevel = 0;       // 0=event-only, 1=verbose every poll.
+input bool EmitInitialHistoryDetails = false;
 
 #define MAGIC_BASE 100000
 #define PAIR_ID_MIN 1
 #define PAIR_ID_MAX 99
+
+string g_last_environment = "";
+string g_last_gv_records[];
+string g_last_open_records[];
+string g_last_history_records[];
+string g_last_printed_record = "";
+bool   g_first_poll = true;
 
 string TokenSafe(string value)
 {
@@ -55,55 +64,163 @@ bool IsRelevantGV(string name)
            StringFind(name, ticketPrefix, 0) == 0);
 }
 
-void PrintEnvironment(datetime now)
+void EmitLine(string record)
 {
-   Print("[V459-OBS][ENV] TS=", (int)now,
-         " Connected=", (IsConnected() ? "Y" : "N"),
-         " TradeAllowed=", (IsTradeAllowed() ? "Y" : "N"));
+   // OBS-FIX-01: identical consecutive observer records are never repeated.
+   if(record == g_last_printed_record) return;
+   Print(record);
+   g_last_printed_record = record;
 }
 
-void PrintGlobals(datetime now)
+string TaggedRecord(string tag, datetime now, string payload)
 {
+   string record = "[V459-OBS][" + tag + "] TS=" + IntegerToString((int)now);
+   if(payload != "") record += " " + payload;
+   return record;
+}
+
+void SortRecords(string &records[])
+{
+   int count = ArraySize(records);
+   for(int i = 1; i < count; i++)
+   {
+      string key = records[i];
+      int j = i - 1;
+      while(j >= 0 && StringCompare(records[j], key) > 0)
+      {
+         records[j + 1] = records[j];
+         j--;
+      }
+      records[j + 1] = key;
+   }
+}
+
+bool RecordsEqual(string &left[], string &right[])
+{
+   int leftCount = ArraySize(left);
+   int rightCount = ArraySize(right);
+   if(leftCount != rightCount) return false;
+   for(int i = 0; i < leftCount; i++)
+      if(left[i] != right[i]) return false;
+   return true;
+}
+
+bool ContainsRecord(string &records[], string value)
+{
+   int count = ArraySize(records);
+   for(int i = 0; i < count; i++)
+      if(records[i] == value) return true;
+   return false;
+}
+
+void CopyRecords(string &source[], string &destination[])
+{
+   int count = ArraySize(source);
+   ArrayResize(destination, count);
+   for(int i = 0; i < count; i++)
+      destination[i] = source[i];
+}
+
+void EmitAllRecords(string tag, datetime now, string &records[])
+{
+   int count = ArraySize(records);
+   for(int i = 0; i < count; i++)
+      EmitLine(TaggedRecord(tag, now, records[i]));
+}
+
+void EmitNewOrChangedRecords(string tag, datetime now,
+                             string &current[], string &previous[])
+{
+   int count = ArraySize(current);
+   for(int i = 0; i < count; i++)
+      if(!ContainsRecord(previous, current[i]))
+         EmitLine(TaggedRecord(tag, now, current[i]));
+}
+
+string EnvironmentRecord()
+{
+   return "Connected=" + string(IsConnected() ? "Y" : "N") +
+          " TradeAllowed=" + string(IsTradeAllowed() ? "Y" : "N");
+}
+
+void CollectGlobals(string &records[])
+{
+   ArrayResize(records, 0);
    int total = GlobalVariablesTotal();
    for(int i = 0; i < total; i++)
    {
       string name = GlobalVariableName(i);
       if(!IsRelevantGV(name)) continue;
       if(!GlobalVariableCheck(name)) continue;
-      double value = GlobalVariableGet(name);
-      Print("[V459-OBS][GV] TS=", (int)now,
-            " Name=", TokenSafe(name),
-            " Value=", DoubleToString(value, 8));
+
+      int size = ArraySize(records);
+      ArrayResize(records, size + 1);
+      records[size] = "Name=" + TokenSafe(name) +
+                      " Value=" + DoubleToString(GlobalVariableGet(name), 8);
    }
+   SortRecords(records);
 }
 
-void PrintOpenOrders(datetime now)
+string SelectedOpenOrderRecord()
 {
+   string symbol = OrderSymbol();
+   int digits = (int)MarketInfo(symbol, MODE_DIGITS);
+   return "Ticket=" + IntegerToString(OrderTicket()) +
+          " Pair=" + TokenSafe(symbol) +
+          " Type=" + OrderTypeText(OrderType()) +
+          " Magic=" + IntegerToString(OrderMagicNumber()) +
+          " OpenTime=" + IntegerToString((int)OrderOpenTime()) +
+          " Open=" + DoubleToString(OrderOpenPrice(), digits) +
+          " SL=" + DoubleToString(OrderStopLoss(), digits) +
+          " TP=" + DoubleToString(OrderTakeProfit(), digits) +
+          " Lots=" + DoubleToString(OrderLots(), 4) +
+          " Comment=" + TokenSafe(OrderComment());
+}
+
+void CollectOpenOrders(string &records[])
+{
+   ArrayResize(records, 0);
    for(int pos = OrdersTotal() - 1; pos >= 0; pos--)
    {
       if(!OrderSelect(pos, SELECT_BY_POS, MODE_TRADES)) continue;
       int type = OrderType();
       if(type != OP_BUY && type != OP_SELL) continue;
       if(!IsOwnedMagic(OrderMagicNumber())) continue;
-      Print("[V459-OBS][OPEN] TS=", (int)now,
-            " Ticket=", OrderTicket(),
-            " Pair=", TokenSafe(OrderSymbol()),
-            " Type=", OrderTypeText(type),
-            " Magic=", OrderMagicNumber(),
-            " OpenTime=", (int)OrderOpenTime(),
-            " Open=", DoubleToString(OrderOpenPrice(), (int)MarketInfo(OrderSymbol(), MODE_DIGITS)),
-            " SL=", DoubleToString(OrderStopLoss(), (int)MarketInfo(OrderSymbol(), MODE_DIGITS)),
-            " TP=", DoubleToString(OrderTakeProfit(), (int)MarketInfo(OrderSymbol(), MODE_DIGITS)),
-            " Lots=", DoubleToString(OrderLots(), 4),
-            " Comment=", TokenSafe(OrderComment()));
+
+      int size = ArraySize(records);
+      ArrayResize(records, size + 1);
+      records[size] = SelectedOpenOrderRecord();
    }
+   SortRecords(records);
 }
 
-void PrintRecentHistory(datetime now)
+string SelectedHistoryRecord()
 {
+   string symbol = OrderSymbol();
+   int digits = (int)MarketInfo(symbol, MODE_DIGITS);
+   double net = OrderProfit() + OrderSwap() + OrderCommission();
+   return "Ticket=" + IntegerToString(OrderTicket()) +
+          " Pair=" + TokenSafe(symbol) +
+          " Type=" + OrderTypeText(OrderType()) +
+          " Magic=" + IntegerToString(OrderMagicNumber()) +
+          " OpenTime=" + IntegerToString((int)OrderOpenTime()) +
+          " CloseTime=" + IntegerToString((int)OrderCloseTime()) +
+          " Open=" + DoubleToString(OrderOpenPrice(), digits) +
+          " Close=" + DoubleToString(OrderClosePrice(), digits) +
+          " SL=" + DoubleToString(OrderStopLoss(), digits) +
+          " TP=" + DoubleToString(OrderTakeProfit(), digits) +
+          " Lots=" + DoubleToString(OrderLots(), 4) +
+          " Net=" + DoubleToString(net, 2) +
+          " Comment=" + TokenSafe(OrderComment());
+}
+
+void CollectRecentHistory(datetime now, string &records[])
+{
+   ArrayResize(records, 0);
    int hours = HistoryLookbackHours;
    if(hours < 1) hours = 1;
    datetime cutoff = now - hours * 3600;
+
    for(int pos = OrdersHistoryTotal() - 1; pos >= 0; pos--)
    {
       if(!OrderSelect(pos, SELECT_BY_POS, MODE_HISTORY)) continue;
@@ -111,60 +228,123 @@ void PrintRecentHistory(datetime now)
       if(type != OP_BUY && type != OP_SELL) continue;
       if(!IsOwnedMagic(OrderMagicNumber())) continue;
       if(OrderCloseTime() <= 0 || OrderCloseTime() < cutoff) continue;
-      double net = OrderProfit() + OrderSwap() + OrderCommission();
-      Print("[V459-OBS][HIST] TS=", (int)now,
-            " Ticket=", OrderTicket(),
-            " Pair=", TokenSafe(OrderSymbol()),
-            " Type=", OrderTypeText(type),
-            " Magic=", OrderMagicNumber(),
-            " OpenTime=", (int)OrderOpenTime(),
-            " CloseTime=", (int)OrderCloseTime(),
-            " Open=", DoubleToString(OrderOpenPrice(), (int)MarketInfo(OrderSymbol(), MODE_DIGITS)),
-            " Close=", DoubleToString(OrderClosePrice(), (int)MarketInfo(OrderSymbol(), MODE_DIGITS)),
-            " SL=", DoubleToString(OrderStopLoss(), (int)MarketInfo(OrderSymbol(), MODE_DIGITS)),
-            " TP=", DoubleToString(OrderTakeProfit(), (int)MarketInfo(OrderSymbol(), MODE_DIGITS)),
-            " Lots=", DoubleToString(OrderLots(), 4),
-            " Net=", DoubleToString(net, 2),
-            " Comment=", TokenSafe(OrderComment()));
+
+      int size = ArraySize(records);
+      ArrayResize(records, size + 1);
+      records[size] = SelectedHistoryRecord();
    }
+   SortRecords(records);
 }
 
-void EmitSnapshot()
+bool PollObservableState()
 {
    datetime now = TimeCurrent();
-   PrintEnvironment(now);
-   PrintGlobals(now);
-   PrintOpenOrders(now);
-   PrintRecentHistory(now);
-   Print("[V459-OBS][SNAP_END] TS=", (int)now);
+   bool verbose = (ObserverDebugLevel > 0);
+   bool changed = false;
+
+   string environment = EnvironmentRecord();
+   if(g_first_poll || environment != g_last_environment || verbose)
+   {
+      EmitLine(TaggedRecord("ENV", now, environment));
+      if(g_first_poll || environment != g_last_environment) changed = true;
+   }
+
+   string gvRecords[];
+   CollectGlobals(gvRecords);
+   bool gvChanged = !RecordsEqual(gvRecords, g_last_gv_records);
+   if(g_first_poll || gvChanged || verbose)
+   {
+      EmitLine(TaggedRecord("GV_CHANGE", now,
+               "Count=" + IntegerToString(ArraySize(gvRecords)) +
+               " Prev=" + IntegerToString(ArraySize(g_last_gv_records))));
+      if(verbose || g_first_poll)
+         EmitAllRecords("GV", now, gvRecords);
+      else
+         EmitNewOrChangedRecords("GV", now, gvRecords, g_last_gv_records);
+      if(g_first_poll || gvChanged) changed = true;
+   }
+
+   string openRecords[];
+   CollectOpenOrders(openRecords);
+   bool openChanged = !RecordsEqual(openRecords, g_last_open_records);
+   if(g_first_poll || openChanged || verbose)
+   {
+      EmitLine(TaggedRecord("OPEN_CHANGE", now,
+               "Count=" + IntegerToString(ArraySize(openRecords)) +
+               " Prev=" + IntegerToString(ArraySize(g_last_open_records))));
+      if(verbose || g_first_poll)
+         EmitAllRecords("OPEN", now, openRecords);
+      else
+         EmitNewOrChangedRecords("OPEN", now, openRecords, g_last_open_records);
+      if(g_first_poll || openChanged) changed = true;
+   }
+
+   string historyRecords[];
+   CollectRecentHistory(now, historyRecords);
+   bool historyChanged = !RecordsEqual(historyRecords, g_last_history_records);
+   if(g_first_poll || historyChanged || verbose)
+   {
+      string baselineFlag = g_first_poll ? "Y" : "N";
+      EmitLine(TaggedRecord("HIST_CHANGE", now,
+               "Count=" + IntegerToString(ArraySize(historyRecords)) +
+               " Prev=" + IntegerToString(ArraySize(g_last_history_records)) +
+               " Baseline=" + baselineFlag));
+
+      if(verbose || (g_first_poll && EmitInitialHistoryDetails))
+         EmitAllRecords("HIST", now, historyRecords);
+      else if(!g_first_poll)
+         EmitNewOrChangedRecords("HIST", now, historyRecords, g_last_history_records);
+
+      if(g_first_poll || historyChanged) changed = true;
+   }
+
+   if(g_first_poll)
+      EmitLine(TaggedRecord("BASELINE_END", now, "State=READY"));
+   else if(changed)
+      EmitLine(TaggedRecord("CHANGE_END", now, "State=CHANGED"));
+   else if(verbose)
+      EmitLine(TaggedRecord("POLL_END", now, "State=UNCHANGED"));
+
+   g_last_environment = environment;
+   CopyRecords(gvRecords, g_last_gv_records);
+   CopyRecords(openRecords, g_last_open_records);
+   CopyRecords(historyRecords, g_last_history_records);
+   g_first_poll = false;
+   return changed;
 }
 
 int OnInit()
 {
    int seconds = SnapshotSeconds;
    if(seconds < 1) seconds = 1;
-   Print("[V459-OBS][START] TS=", (int)TimeCurrent(),
-         " StrategyID=", StrategyID,
-         " InstanceID=", InstanceID,
-         " MagicMin=", MinOwnedMagic(),
-         " MagicMax=", MaxOwnedMagic());
+
+   EmitLine(TaggedRecord("START", TimeCurrent(),
+            "StrategyID=" + IntegerToString(StrategyID) +
+            " InstanceID=" + IntegerToString(InstanceID) +
+            " MagicMin=" + IntegerToString(MinOwnedMagic()) +
+            " MagicMax=" + IntegerToString(MaxOwnedMagic()) +
+            " PollSeconds=" + IntegerToString(seconds) +
+            " DebugLevel=" + IntegerToString(ObserverDebugLevel)));
+
    EventSetTimer(seconds);
-   EmitSnapshot();
+   PollObservableState();
    return INIT_SUCCEEDED;
 }
 
 void OnTimer()
 {
-   EmitSnapshot();
+   // Event-only mode is silent when environment/GV/open/history state is unchanged.
+   PollObservableState();
 }
 
 void OnDeinit(const int reason)
 {
    EventKillTimer();
-   Print("[V459-OBS][STOP] TS=", (int)TimeCurrent(), " Reason=", reason);
+   EmitLine(TaggedRecord("STOP", TimeCurrent(),
+            "Reason=" + IntegerToString(reason)));
 }
 
 void OnTick()
 {
-   // Intentionally empty. Observation is timer-driven.
+   // Intentionally empty. Observation is timer-polled but event-emitted.
 }

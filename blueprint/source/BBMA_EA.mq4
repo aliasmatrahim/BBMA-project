@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.5.8 - D1 TP-Wajib Lifecycle Stage                 |
+//| Version 4.5.9 - P0 Execution Identity Persistence Fix        |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.58"
+#property version   "4.59"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -1700,6 +1700,181 @@ bool ExtractExecutionHash(string comment, string &executionHash)
    return (executionHash != "");
 }
 
+
+// P0 durable execution identity persistence.
+// MT4 terminal GlobalVariables are authoritative; OrderComment is fallback only.
+string ExecutionHashGVBase(string executionHash)
+{
+   return "BBXH|S" + IntegerToString(StrategyID) + "|I" +
+          IntegerToString(InstanceID) + "|H" + executionHash + "|";
+}
+
+string ExecutionTicketGVBase(int ticket)
+{
+   return "BBXT|S" + IntegerToString(StrategyID) + "|I" +
+          IntegerToString(InstanceID) + "|T" + IntegerToString(ticket) + "|";
+}
+
+int HexDigitValue(string digit)
+{
+   string hex = "0123456789ABCDEF";
+   return StringFind(hex, digit);
+}
+
+double Hex4ToNumber(string chunk)
+{
+   if(StringLen(chunk) != 4) return -1.0;
+   int value = 0;
+   for(int i = 0; i < 4; i++)
+   {
+      int nibble = HexDigitValue(StringSubstr(chunk, i, 1));
+      if(nibble < 0) return -1.0;
+      value = value * 16 + nibble;
+   }
+   return (double)value;
+}
+
+string NumberToHex4(double encoded)
+{
+   int value = (int)MathRound(encoded);
+   if(value < 0 || value > 65535) return "";
+   string hex = "0123456789ABCDEF";
+   string result = "";
+   int divisor = 4096;
+   for(int pos = 0; pos < 4; pos++)
+   {
+      int nibble = value / divisor;
+      result += StringSubstr(hex, nibble, 1);
+      value = value % divisor;
+      if(divisor > 1) divisor /= 16;
+   }
+   return result;
+}
+
+bool LoadPersistedExecutionHashForTicket(int ticket, string pair,
+                                         ENUM_DIRECTION direction, int magic,
+                                         datetime openTime, string &executionHash)
+{
+   executionHash = "";
+   if(ticket <= 0 || pair == "" || magic <= 0 || openTime <= 0 ||
+      (direction != DIR_BUY && direction != DIR_SELL))
+      return false;
+
+   string base = ExecutionTicketGVBase(ticket);
+   string keys[7] = {"H0","H1","H2","H3","M","O","D"};
+   for(int i = 0; i < 7; i++)
+      if(!GlobalVariableCheck(base + keys[i])) return false;
+
+   int storedMagic = (int)GlobalVariableGet(base + "M");
+   datetime storedOpen = (datetime)((int)GlobalVariableGet(base + "O"));
+   ENUM_DIRECTION storedDirection =
+      (ENUM_DIRECTION)((int)GlobalVariableGet(base + "D"));
+   if(storedMagic != magic || storedOpen != openTime || storedDirection != direction)
+      return false;
+
+   string h0 = NumberToHex4(GlobalVariableGet(base + "H0"));
+   string h1 = NumberToHex4(GlobalVariableGet(base + "H1"));
+   string h2 = NumberToHex4(GlobalVariableGet(base + "H2"));
+   string h3 = NumberToHex4(GlobalVariableGet(base + "H3"));
+   if(h0 == "" || h1 == "" || h2 == "" || h3 == "") return false;
+   executionHash = h0 + h1 + h2 + h3;
+
+   string hashBase = ExecutionHashGVBase(executionHash);
+   string hashKeys[4] = {"T","M","O","D"};
+   for(int k = 0; k < 4; k++)
+      if(!GlobalVariableCheck(hashBase + hashKeys[k]))
+      {
+         executionHash = "";
+         return false;
+      }
+
+   if((int)GlobalVariableGet(hashBase + "T") != ticket ||
+      (int)GlobalVariableGet(hashBase + "M") != magic ||
+      (datetime)((int)GlobalVariableGet(hashBase + "O")) != openTime ||
+      (ENUM_DIRECTION)((int)GlobalVariableGet(hashBase + "D")) != direction)
+   {
+      executionHash = "";
+      return false;
+   }
+   return true;
+}
+
+bool SaveExecutionIdentityHash(string executionHash, int ticket, string pair,
+                               ENUM_DIRECTION direction, int magic,
+                               datetime openTime)
+{
+   if(StringLen(executionHash) != 16 || ticket <= 0 || pair == "" ||
+      magic <= 0 || openTime <= 0 ||
+      (direction != DIR_BUY && direction != DIR_SELL))
+      return false;
+
+   double h0 = Hex4ToNumber(StringSubstr(executionHash, 0, 4));
+   double h1 = Hex4ToNumber(StringSubstr(executionHash, 4, 4));
+   double h2 = Hex4ToNumber(StringSubstr(executionHash, 8, 4));
+   double h3 = Hex4ToNumber(StringSubstr(executionHash, 12, 4));
+   if(h0 < 0 || h1 < 0 || h2 < 0 || h3 < 0) return false;
+
+   string hashBase = ExecutionHashGVBase(executionHash);
+   string ticketBase = ExecutionTicketGVBase(ticket);
+
+   if(GlobalVariableSet(hashBase + "T", (double)ticket) == 0) return false;
+   if(GlobalVariableSet(hashBase + "M", (double)magic) == 0) return false;
+   if(GlobalVariableSet(hashBase + "O", (double)openTime) == 0) return false;
+   if(GlobalVariableSet(hashBase + "D", (double)direction) == 0) return false;
+
+   if(GlobalVariableSet(ticketBase + "H0", h0) == 0) return false;
+   if(GlobalVariableSet(ticketBase + "H1", h1) == 0) return false;
+   if(GlobalVariableSet(ticketBase + "H2", h2) == 0) return false;
+   if(GlobalVariableSet(ticketBase + "H3", h3) == 0) return false;
+   if(GlobalVariableSet(ticketBase + "M", (double)magic) == 0) return false;
+   if(GlobalVariableSet(ticketBase + "O", (double)openTime) == 0) return false;
+   if(GlobalVariableSet(ticketBase + "D", (double)direction) == 0) return false;
+   GlobalVariablesFlush();
+
+   string verifyHash = "";
+   return LoadPersistedExecutionHashForTicket(ticket, pair, direction, magic,
+                                              openTime, verifyHash) &&
+          verifyHash == executionHash;
+}
+
+int FindPersistedExecutionTicket(string decisionID, string pair, int orderType,
+                                 int magicNumber)
+{
+   if(decisionID == "" || pair == "" || magicNumber <= 0 ||
+      (orderType != OP_BUY && orderType != OP_SELL))
+      return -1;
+
+   string executionHash = SHORT_HASH(decisionID);
+   string base = ExecutionHashGVBase(executionHash);
+   string keys[4] = {"T","M","O","D"};
+   for(int i = 0; i < 4; i++)
+      if(!GlobalVariableCheck(base + keys[i])) return -1;
+
+   int ticket = (int)GlobalVariableGet(base + "T");
+   int storedMagic = (int)GlobalVariableGet(base + "M");
+   datetime storedOpen = (datetime)((int)GlobalVariableGet(base + "O"));
+   ENUM_DIRECTION storedDirection =
+      (ENUM_DIRECTION)((int)GlobalVariableGet(base + "D"));
+   ENUM_DIRECTION expectedDirection =
+      (orderType == OP_BUY) ? DIR_BUY : DIR_SELL;
+
+   if(ticket <= 0 || storedMagic != magicNumber || storedOpen <= 0 ||
+      storedDirection != expectedDirection)
+      return -1;
+   if(!OrderSelect(ticket, SELECT_BY_TICKET)) return -1;
+   if(OrderCloseTime() != 0 || OrderSymbol() != pair ||
+      OrderMagicNumber() != magicNumber || OrderType() != orderType ||
+      OrderOpenTime() != storedOpen)
+      return -1;
+
+   string ticketHash = "";
+   if(!LoadPersistedExecutionHashForTicket(ticket, pair, expectedDirection,
+                                           magicNumber, storedOpen, ticketHash))
+      return -1;
+   if(ticketHash != executionHash) return -1;
+   return ticket;
+}
+
 bool IsExactEAOwnedSelectedOrder(int &pairIdx)
 {
    pairIdx = -1;
@@ -1773,10 +1948,18 @@ void RebuildExecutionHistory()
          }
          if(pairIdx < 0) continue;
 
-         string executionHash;
-         if(!ExtractExecutionHash(OrderComment(), executionHash)) continue;
-
          ENUM_DIRECTION liveDirection = (OrderType() == OP_BUY) ? DIR_BUY : DIR_SELL;
+         string executionHash = "";
+         bool localIdentity = LoadPersistedExecutionHashForTicket(
+            OrderTicket(), symbol, liveDirection, magic, OrderOpenTime(), executionHash);
+         if(!localIdentity)
+         {
+            if(!ExtractExecutionHash(OrderComment(), executionHash)) continue;
+            // Migrate legacy/comment-backed identity into the durable terminal store.
+            SaveExecutionIdentityHash(executionHash, OrderTicket(), symbol,
+                                      liveDirection, magic, OrderOpenTime());
+         }
+
          UpsertExecutionHashTombstone(executionHash, OrderTicket(), symbol,
                                       liveDirection, OrderOpenTime());
       }
@@ -1800,13 +1983,9 @@ string CreateOrderComment(string decisionID, string pair,
                           double intendedLot, double intendedRisk,
                           string sequenceHash, datetime candleTime)
 {
-   string hash = SHORT_HASH(decisionID);
-   string seqHash = SHORT_HASH(sequenceHash);
-   return "BBMA|H:" + hash + "|C:" + TimeToString(candleTime) + "|P:" + pair + 
-          "|D:" + IntegerToString(direction) + "|T:" + IntegerToString(signalType) + 
-          "|E:" + DoubleToString(intendedEntry, 5) + "|S:" + DoubleToString(intendedSL, 5) + 
-          "|L:" + DoubleToString(intendedLot, 2) + "|R:" + DoubleToString(intendedRisk, 2) + 
-          "|Q:" + seqHash;
+   // P0: broker comments are not an authoritative persistence store.
+   // Keep only the compact execution hash for secondary/fallback evidence.
+   return "BBMA|H:" + SHORT_HASH(decisionID);
 }
 
 bool ParseOrderCommentFull(string comment, string &decisionHash, string &pair,
@@ -7153,7 +7332,7 @@ double CalculateLotSize(BBMA_Decision &decision, RiskValidationSnapshot &snapsho
 
 bool IsRetryableError(int error)
 {
-   return (error == 135 || error == 138 || error == 128 || error == 146);
+   return (error == 135 || error == 138 || error == 146);
 }
 
 bool IsFatalError(int error)
@@ -7163,7 +7342,7 @@ bool IsFatalError(int error)
 
 bool IsAmbiguousError(int error)
 {
-   return (error == 4 || error == 6 || error == 141);
+   return (error == 4 || error == 6 || error == 128 || error == 141);
 }
 
 int FindExistingExecutionTicket(string pair, int direction, int magicNumber,
@@ -7171,8 +7350,13 @@ int FindExistingExecutionTicket(string pair, int direction, int magicNumber,
 {
    if(pair == "" || magicNumber <= 0 || decisionID == "") return -1;
 
-   string executionTag = "BBMA|H:" + SHORT_HASH(decisionID);
+   // P0: durable terminal identity is authoritative.
+   int persistedTicket = FindPersistedExecutionTicket(decisionID, pair,
+                                                       direction, magicNumber);
+   if(persistedTicket > 0) return persistedTicket;
 
+   // Secondary fallback for legacy/current brokers that preserve the compact tag.
+   string executionTag = "BBMA|H:" + SHORT_HASH(decisionID);
    int total = OrdersTotal();
    for(int i = 0; i < total; i++)
    {
@@ -7528,13 +7712,24 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
             lifecycleStateReady = InitializeC044TradeStateFromDecision(info, decision);
 
          string expectedExecutionHash = SHORT_HASH(decision.DecisionID);
-         string persistedExecutionHash = "";
+         bool localIdentityPersisted = SaveExecutionIdentityHash(
+            expectedExecutionHash, ticket, pair, decision.Direction, magic, OrderOpenTime());
+
          string persistedComment = OrderComment();
-         bool persistedHashFound = ExtractExecutionHash(persistedComment, persistedExecutionHash);
-         bool persistedHashMatch = (persistedHashFound &&
-                                    persistedExecutionHash == expectedExecutionHash);
-         info.execution_hash = persistedHashMatch ? persistedExecutionHash : "";
-         info.recovery_state = lifecycleStateReady ? REC_NORMAL : REC_IDENTITY_MISSING_FROZEN;
+         string brokerExecutionHash = "";
+         bool brokerHashFound = ExtractExecutionHash(persistedComment, brokerExecutionHash);
+         bool brokerHashMatch = (brokerHashFound &&
+                                 brokerExecutionHash == expectedExecutionHash);
+
+         info.execution_hash = localIdentityPersisted
+            ? expectedExecutionHash
+            : (brokerHashMatch ? brokerExecutionHash : "");
+         info.recovery_state = (localIdentityPersisted && lifecycleStateReady)
+            ? REC_NORMAL : REC_IDENTITY_MISSING_FROZEN;
+
+         if(!localIdentityPersisted)
+            Log(DBG_ERROR, "Execution identity persistence failed ticket=" + IntegerToString(ticket));
+
          if(info.d1_tpw_lifecycle_managed && lifecycleStateReady &&
             !SaveD1TPWCheckpoint(info))
          {
@@ -7550,11 +7745,12 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
 
          Print("[P3S5][EXEC_ID] Ticket=", IntegerToString(ticket),
                " Pair=", pair,
-               " Persist=", persistedHashMatch ? "PASS" : "FAIL",
-               " HashFound=", persistedHashFound ? "Y" : "N",
-               " HashMatch=", persistedHashMatch ? "Y" : "N",
+               " Persist=", localIdentityPersisted ? "PASS" : "FAIL",
+               " Local=", localIdentityPersisted ? "Y" : "N",
+               " BrokerHashFound=", brokerHashFound ? "Y" : "N",
+               " BrokerHashMatch=", brokerHashMatch ? "Y" : "N",
                " ExpectedHash=", expectedExecutionHash,
-               " PersistedHash=", persistedExecutionHash,
+               " BrokerHash=", brokerExecutionHash,
                " RawLen=", IntegerToString(StringLen(persistedComment)),
                " RawComment=<", persistedComment, ">");
          
@@ -9204,17 +9400,27 @@ void RecoverExistingOrders()
       int magic = OrderMagicNumber();
       string pair = OrderSymbol();
       string comment = OrderComment();
-      string executionHash = "";
-      bool hasExecutionHash = ExtractExecutionHash(comment, executionHash);
-
       ENUM_DIRECTION liveDirection = (OrderType() == OP_BUY) ? DIR_BUY : DIR_SELL;
+
+      string executionHash = "";
+      bool localIdentity = LoadPersistedExecutionHashForTicket(
+         OrderTicket(), pair, liveDirection, magic, OrderOpenTime(), executionHash);
+      string brokerExecutionHash = "";
+      bool brokerHashFound = ExtractExecutionHash(comment, brokerExecutionHash);
+      if(!localIdentity && brokerHashFound)
+      {
+         executionHash = brokerExecutionHash;
+         localIdentity = SaveExecutionIdentityHash(executionHash, OrderTicket(), pair,
+                                                   liveDirection, magic, OrderOpenTime());
+      }
+      bool hasExecutionHash = (executionHash != "");
       string decisionHash, parsedPair, sequenceHash;
       ENUM_DIRECTION parsedDirection = DIR_NONE;
       ENUM_SIGNAL_TYPE signalType = SIGNAL_NONE;
       double intendedEntry, intendedSL, intendedLot, intendedRisk;
       datetime candleTime = 0;
 
-      bool fullMetadata = hasExecutionHash &&
+      bool fullMetadata = brokerHashFound &&
                           ParseOrderCommentFull(comment, decisionHash, parsedPair,
                                                 parsedDirection, signalType,
                                                 intendedEntry, intendedSL,
@@ -9222,7 +9428,7 @@ void RecoverExistingOrders()
                                                 sequenceHash, candleTime);
 
       if(fullMetadata &&
-         (decisionHash != executionHash || parsedPair != pair ||
+         (decisionHash != brokerExecutionHash || parsedPair != pair ||
           parsedDirection != liveDirection))
       {
          Log(DBG_ERROR, "Recovery metadata mismatch ticket=" + IntegerToString(OrderTicket()));
@@ -9313,10 +9519,10 @@ void RecoverExistingOrders()
          info.recovery_state = REC_IDENTITY_MISSING_FROZEN;
          recoveryCause = "TARGETLESS_CHECKPOINT_MISSING_OR_INVALID";
       }
-      else if(targetless && !fullMetadata)
+      else if(targetless && !hasExecutionHash)
       {
          info.recovery_state = REC_IDENTITY_MISSING_FROZEN;
-         recoveryCause = "TARGETLESS_FULL_METADATA_REQUIRED";
+         recoveryCause = "TARGETLESS_DURABLE_IDENTITY_REQUIRED";
       }
       else if(!geometryValid)
       {
@@ -9408,7 +9614,7 @@ void BuildDashboardSnapshot()
    int liveTradeCount = CountDashboardLiveEAOwnedTrades();
 
    g_dashboard_snapshot = "";
-   g_dashboard_snapshot += "=== BBMA EA V4.5.8 D1 TP-Wajib Lifecycle Stage ===\n";
+   g_dashboard_snapshot += "=== BBMA EA V4.5.9 P0 EXEC_ID Persistence Fix ===\n";
    g_dashboard_snapshot += "Time: " + TimeToString(TimeCurrent()) + "\n";
    g_dashboard_snapshot += "Balance: " + DoubleToString(AccountBalance(), 2) + "\n";
    g_dashboard_snapshot += "Equity: " + DoubleToString(AccountEquity(), 2) + "\n";
@@ -10269,7 +10475,7 @@ int OnInit()
       return INIT_FAILED;
    }
    
-   Log(DBG_FULL, "BBMA EA V4.5.8 D1 TP-Wajib Lifecycle Stage initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.5.9 P0 EXEC_ID Persistence Fix initialized successfully");
    return INIT_SUCCEEDED;
 }
 

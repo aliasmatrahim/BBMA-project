@@ -509,3 +509,26 @@ Canonical phase freeze record:
 - New source SHA-256: `6fd9eb52b63dee8861ebf205b1c031d80646b58e0b4941ef21ece9431fe6be5a`.
 - `#property version "4.58"`, strategy semantics, lifecycle gates, N1-N3 authority, SL/TP, risk, MM and execution logic are unchanged.
 - Native runtime-package revalidation required after this identity-only source change.
+
+
+---
+
+# 2026-08-27 P0 v4.59 Post-PASS Integration Candidate Overlay
+
+> This dated overlay is authoritative for the post-P0 canonical candidate and supersedes older v4.58/current-next-action wording where it conflicts. Historical sections remain provenance.
+
+- Status: **IP-09 PASS / CANONICAL CANDIDATE READY / IP-10 PENDING**.
+- Integration branch: `p0-v459-postpass-integration-20260827`; pre-IP09 head `d7f6fae6d1af286696f9349dc04ca14e3770574b`; canonical base `5a1e7785f88c2ea1bf8f38917df413cb9cfcfce7`.
+- Source-bearing integration commit: `aa74898ead8725f78141924f8bcb1725f0c113ca`.
+- EA build: `Version 4.5.9 - P0 Execution Identity Persistence Fix` / `#property version "4.59"`.
+- Source Git blob: `dc83e62748c93171d89a312e9f7a53c06d97e261`.
+- Repository/LF MQ4 SHA-256: `07a69ccfca19e19d71c95ca891c66d953343261276d7722107624ce974830843`.
+- Windows compile-checkout MQ4 SHA-256: `0a42ee2e6c32810f655b592d8738f500e8b63b4e08c4c874e82452f75ce94b2e` (same Git blob; line-ending transformation only).
+- Exact official-compile EX4 SHA-256: `89821c5b1ae2d7c28a6cad7569cb2ced0e45090d0897451e0f61e0b46eb8944c`; run `33025004203`, job `98364184047`, artifact `9628390588`, **0E0W**.
+- P0 authenticated HFM runtime: **PASS**; ticket `484701907`, hash `7AADB1796BF36399`, same-installation restart recovered exact ticket with no duplicate observed.
+- Protected-surface regression: **PS-01..PS-30 PASS**.
+- v4.59 runtime tooling: **PASS**; run `33027817870`, artifact `9629222430`; builder/analyzer selftests and BASELINE/R1/R2/observer native matrix passed.
+- Baseline lifecycle defaults remain **D1TPW OFF / C044 OFF**. N3 remains non-execution-authority.
+- Issue #94 remains OPEN intentionally until IP-10 canonical verification and IP-11 closure.
+- R1 is released from the P0 blocker as **INCOMPLETE / READY FOR COLLECTION**, but formal broker evidence collection waits the IP-10..IP-12 canonicalization/freeze sequence. R2-R6 remain blocked by predecessor order.
+- **Next safe action: IP-10 — promote this reviewed integration candidate to `d1-owner-dev`, re-fetch and verify exact source/build/gates. Do not advance `main`.**

@@ -475,3 +475,27 @@ This overlay supersedes older queue wording where it conflicts.
 - New source SHA-256: `6fd9eb52b63dee8861ebf205b1c031d80646b58e0b4941ef21ece9431fe6be5a`.
 - `#property version "4.58"`, strategy semantics, lifecycle gates, N1-N3 authority, SL/TP, risk, MM and execution logic are unchanged.
 - Native runtime-package revalidation required after this identity-only source change.
+
+
+---
+
+## 2026-08-27 — P0 v4.59 Closure / R1 Release Queue Overlay
+
+> This overlay supersedes prior queue text that still treats P0 broker runtime as the active blocker. Historical entries remain provenance.
+
+### P0 state
+- **P0 EXEC_ID defect: PASS / CLOSED AT RUNTIME + INTEGRATION-CANDIDATE LEVEL.**
+- HFM fresh-order/restart/no-duplicate acceptance: PASS (`484701907`, `7AADB1796BF36399`).
+- Integrated source: blob `dc83e62748c93171d89a312e9f7a53c06d97e261`, repository/LF MQ4 `07a69ccfca19e19d71c95ca891c66d953343261276d7722107624ce974830843`, Windows compile-checkout `0a42ee2e6c32810f655b592d8738f500e8b63b4e08c4c874e82452f75ce94b2e`, build 4.5.9 / property 4.59.
+- Protected surfaces: PS-01..PS-30 PASS.
+- Official integration compile: run `33025004203` / artifact `9628390588` / EX4 `89821c5b1ae2d7c28a6cad7569cb2ced0e45090d0897451e0f61e0b46eb8944c` / 0E0W.
+- v4.59 runtime tooling rebaseline: PASS, run `33027817870`, artifact `9629222430`.
+
+### Active ordered queue
+1. **IP-10 canonical development-branch update** — promote the exact reviewed candidate to `d1-owner-dev` and verify blob/SHA/build/gates.
+2. **IP-11 Issue #94 closure** — only after IP-10 canonical verification.
+3. **IP-12 canonical freeze / R1 handoff** — freeze exact identities; defaults remain D1TPW OFF / C044 OFF.
+4. **R1 D1 TP-Wajib broker runtime collection** — tracker status `INCOMPLETE / READY FOR COLLECTION`; test-only profile D1TPW ON / C044 OFF.
+5. R2 -> R3 -> R4 -> R5 -> R6 remain predecessor-blocked until each prior formal stage passes.
+
+No new strategy source patch is authorized by this queue transition. Hosted/disconnected MT4 smoke remains non-runtime evidence.

@@ -12,5 +12,15 @@
   "line_ending_note": "same Git blob; repository LF bytes differ from Windows compile checkout CRLF bytes",
   "canonical_promotion_pr": 95,
   "canonical_promotion_commit": "4373e55b3baca7c99a3ca643cb5fa97629be09b7",
-  "canonical_status": "IP10_CANONICAL_PROMOTION_PASS_IP11_PENDING"
+  "ip10_verification_commit": "5674d2bcc097a025d35859a40250060fc1d70d99",
+  "issue_94_state": "CLOSED_COMPLETED",
+  "issue_94_closed_at": "2026-08-27T02:21:11Z",
+  "canonical_defaults": {
+    "EnableD1TPWLifecycle": false,
+    "EnableC044Lifecycle": false,
+    "N3ExecutionAuthority": false
+  },
+  "canonical_status": "CANONICAL_FROZEN_R1_RELEASED_INCOMPLETE",
+  "freeze_record": "blueprint/audits/P0_V459_IP12_CANONICAL_FREEZE_R1_HANDOFF_20260827.md",
+  "development_history": "docs/DEVELOPMENT_VERIFICATION_RELEASE_HISTORY.md"
 }

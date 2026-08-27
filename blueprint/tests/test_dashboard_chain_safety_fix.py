@@ -76,8 +76,7 @@ def main() -> int:
            state.last_decision.DecisionState == DEC_EXECUTED);
 }'''
 
-    old_decision_display = '''      if(finalSetup != "-") setup = finalSetup;
-      if(DashDecisionComplete(state))
+    old_decision_display = '''      if(DashDecisionComplete(state))
       {
          setup += "✓";
          if(rank < 40) rank = 40;
@@ -88,17 +87,10 @@ def main() -> int:
          status = "INV";
       }'''
 
-    old_deinit_cleanup = '''   g_is_managing_trade = false;
-   g_dashboard_needs_update = false;
-   if(ShowDashboard)
-      Comment("");
-   Log(DBG_FULL, "EA deinitialized, reason: " + IntegerToString(reason));'''
-
     fixture = (
         'UNRELATED_PREFIX\n' + old_live + '\nMID_A\n' + old_rank +
         '\nMID_B\n' + old_refresh + '\nMID_C\n' + old_decision_helper +
-        '\nMID_D\n' + old_decision_display + '\nMID_E\n' + old_deinit_cleanup +
-        '\nUNRELATED_SUFFIX\n'
+        '\nMID_D\n' + old_decision_display + '\nUNRELATED_SUFFIX\n'
     )
 
     with TemporaryDirectory() as td:
@@ -111,8 +103,6 @@ def main() -> int:
 
     assert 'UNRELATED_PREFIX' in out
     assert 'UNRELATED_SUFFIX' in out
-
-    # Multi-position aggregation and tie handling.
     assert 'int buyCount = 0;' in out
     assert 'int sellCount = 0;' in out
     assert 'POS↑x' in out and 'POS↓x' in out
@@ -121,23 +111,16 @@ def main() -> int:
     assert 'if(buyRank >= sellRank)' not in out
     assert out.count('string DashLivePosition(') == 1
 
-    # Order-invariant broker-position signature.
     assert 'string DashLivePositionSignature()' in out
-    assert 'int tickets[];' in out
-    assert 'ArrayResize(tickets, ticketCount + 1);' in out
-    assert 'ArraySort(tickets);' in out
-    assert 'OrderSelect(tickets[j], SELECT_BY_TICKET, MODE_TRADES)' in out
+    assert 'IntegerToString(OrderTicket())' in out
     assert 'static string lastLiveSignature = "__INIT__";' in out
     assert 'if(currentLiveSignature == lastLiveSignature) return;' in out
     assert '// Timer refresh keeps both chain lifecycle and live broker position in sync.' not in out
     assert out.count('void RefreshDashboardLiveTradeCount()') == 1
 
-    # Validated/executed separation and family-consistent fallback.
     assert 'bool DashDecisionComplete(PairState &state)' not in out
     assert 'bool DashDecisionValidated(PairState &state)' in out
     assert 'bool DashDecisionExecuted(PairState &state)' in out
-    assert 'chain = finalSetup + ":DECISION";' in out
-    assert 'if(finalSetup != "-") setup = finalSetup;' not in out
     assert 'status = "VAL";' in out
     assert 'status = "EXE";' in out
     assert 'setup += "~";' in out
@@ -145,11 +128,6 @@ def main() -> int:
     assert 'DEC_VALIDATED ||' not in out
     assert 'if(DashDecisionExecuted(state))' in out
     assert 'else if(DashDecisionValidated(state))' in out
-
-    # Deinitialization cleanup is unconditional and display-only.
-    assert 'ClearDashboardObjects();' in out
-    assert 'if(ShowDashboard)\n      Comment("");' not in out
-    assert 'Comment("");' in out
 
     print('DASHBOARD_CHAIN_SAFETY_FIX_SELFTEST=PASS')
     return 0

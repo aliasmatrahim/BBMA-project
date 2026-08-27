@@ -124,49 +124,42 @@ def main() -> int:
       {
          setup = finalSetup;
 
-         // Keep SETUP and CHAIN in the same family. If the current component
-         // lifecycle no longer reconstructs the full family, show a DEC marker
-         // rather than pairing the decision with another family's chain.
+         // Keep SETUP and CHAIN in the same family. A historical decision must
+         // not borrow a partial chain from current component state. Rebuild the
+         // complete family only when every required component is currently
+         // attributable; otherwise fail closed to an explicit DEC:<family>
+         // marker without inventing missing components.
          if(finalSetup == "REM")
          {
             chain = "DEC:REM" + arrow;
-            if(DashREConfirmed(h4re, direction))
+            if(DashREConfirmed(h4re, direction) &&
+               DashExtremeReady(h1ext, direction) &&
+               DashMLVReady(m15mlv, direction))
             {
-               chain = "H4:RE" + arrow;
-               if(DashExtremeReady(h1ext, direction))
-               {
-                  chain += ">H1:EXT" + arrow;
-                  if(DashMLVReady(m15mlv, direction))
-                     chain += ">M15:MHV" + arrow;
-               }
+               chain = "H4:RE" + arrow + ">H1:EXT" + arrow +
+                       ">M15:MHV" + arrow;
             }
          }
          else if(finalSetup == "RRE")
          {
             chain = "DEC:RRE" + arrow;
-            if(DashREConfirmed(d1re, direction))
+            if(DashREConfirmed(d1re, direction) &&
+               DashREConfirmed(h4re, direction) &&
+               DashExtremeReady(h1ext, direction))
             {
-               chain = "D1:RE" + arrow;
-               if(DashREConfirmed(h4re, direction))
-               {
-                  chain += ">H4:RE" + arrow;
-                  if(DashExtremeReady(h1ext, direction))
-                     chain += ">H1:EXT" + arrow;
-               }
+               chain = "D1:RE" + arrow + ">H4:RE" + arrow +
+                       ">H1:EXT" + arrow;
             }
          }
          else if(finalSetup == "REE")
          {
             chain = "DEC:REE" + arrow;
-            if(DashREConfirmed(d1re, direction))
+            if(DashREConfirmed(d1re, direction) &&
+               DashExtremeReady(h4ext, direction) &&
+               DashExtremeReady(h1ext, direction))
             {
-               chain = "D1:RE" + arrow;
-               if(DashExtremeReady(h4ext, direction))
-               {
-                  chain += ">H4:EXT" + arrow;
-                  if(DashExtremeReady(h1ext, direction))
-                     chain += ">H1:EXT" + arrow;
-               }
+               chain = "D1:RE" + arrow + ">H4:EXT" + arrow +
+                       ">H1:EXT" + arrow;
             }
          }
          else if(finalSetup == "RE")
@@ -236,6 +229,9 @@ def main() -> int:
         'chain = "DEC:RRE" + arrow;',
         'chain = "DEC:REE" + arrow;',
         'chain = "DEC:RE" + arrow;',
+        'DashREConfirmed(h4re, direction) &&',
+        'DashREConfirmed(d1re, direction) &&',
+        'DashExtremeReady(h4ext, direction) &&',
         'ClearDashboardObjects();\n   Comment("");',
     ]
     for token in required:
@@ -247,6 +243,9 @@ def main() -> int:
     forbidden = [
         old_signature,
         'if(ShowDashboard)\n      Comment("");\n   Log(DBG_FULL, "EA deinitialized',
+        'chain = "H4:RE" + arrow;\n               if(DashExtremeReady(h1ext, direction))',
+        'chain = "D1:RE" + arrow;\n               if(DashREConfirmed(h4re, direction))',
+        'chain = "D1:RE" + arrow;\n               if(DashExtremeReady(h4ext, direction))',
     ]
     for token in forbidden:
         if token in text:

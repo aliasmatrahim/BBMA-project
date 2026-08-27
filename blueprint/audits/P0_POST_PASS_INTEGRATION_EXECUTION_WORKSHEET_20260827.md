@@ -355,3 +355,5 @@ No source, lifecycle gate, canonical branch, PR state or issue state is changed 
 | IP-12 freeze | **PENDING** | only after IP-11 |
 
 IP-09 does not modify EA MQ4 source semantics, lifecycle defaults, `d1-owner-dev`, `main`, or Issue #94 state.
+
+IP-09 documentation reconciliation commit: `1805431764f711f7f21a00ed1015e2ea1a44df76`  

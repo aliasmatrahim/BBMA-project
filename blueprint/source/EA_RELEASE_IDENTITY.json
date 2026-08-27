@@ -2,7 +2,13 @@
   "schema_version": 1,
   "source_path": "blueprint/source/BBMA_EA.mq4",
   "product_name": "BBMA EA",
-  "display_version": "4.5.8",
-  "property_version": "4.58",
-  "release_stage": "D1 TP-Wajib Lifecycle Stage"
+  "display_version": "4.5.9",
+  "property_version": "4.59",
+  "release_stage": "P0 Execution Identity Persistence Fix",
+  "source_blob": "dc83e62748c93171d89a312e9f7a53c06d97e261",
+  "repository_lf_sha256": "07a69ccfca19e19d71c95ca891c66d953343261276d7722107624ce974830843",
+  "compile_checkout_sha256": "0a42ee2e6c32810f655b592d8738f500e8b63b4e08c4c874e82452f75ce94b2e",
+  "ex4_sha256": "89821c5b1ae2d7c28a6cad7569cb2ced0e45090d0897451e0f61e0b46eb8944c",
+  "line_ending_note": "same Git blob; repository LF bytes differ from Windows compile checkout CRLF bytes",
+  "canonical_status": "CANONICAL_CANDIDATE_READY_IP09_IP10_PENDING"
 }

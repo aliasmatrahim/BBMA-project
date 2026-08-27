@@ -124,3 +124,15 @@ This permits IP-06 exact identity capture and IP-07 official compile.
 The complete PS-01..PS-30 matrix is intentionally **not yet declared fully closed** because PS-29 and PS-30 are compile/artifact gates. They must be completed only with official MetaEditor 0E0W evidence and exact EX4 attribution from IP-07.
 
 No update to `d1-owner-dev`, no merge to `main`, no lifecycle gate activation and no Issue #94 closure is authorized by this static report.
+
+
+## 8. IP-07 compile closure addendum
+
+Official exact-source MetaEditor evidence subsequently closed the two compile-attribution cases that were pending when Section 7 was written:
+
+- PS-29 Compile cleanliness: **PASS** — run `33025004203`, job `98364184047`, result **0 errors / 0 warnings**.
+- PS-30 Runtime attribution / EX4 identity: **PASS** — artifact `9628390588`, source blob `dc83e62748c93171d89a312e9f7a53c06d97e261`, repository/LF MQ4 SHA-256 `07a69ccfca19e19d71c95ca891c66d953343261276d7722107624ce974830843`, Windows compile-checkout SHA-256 `0a42ee2e6c32810f655b592d8738f500e8b63b4e08c4c874e82452f75ce94b2e`, EX4 SHA-256 `89821c5b1ae2d7c28a6cad7569cb2ced0e45090d0897451e0f61e0b46eb8944c`.
+- Artifact ZIP digest: `sha256:d8b9dac648f26d92f98aae9eba0a1455902a30b3fb4ca7adc4f49a77862dc998`.
+- The two MQ4 byte hashes differ only because the official Windows checkout materializes CRLF; both resolve to the same Git blob `dc83e62748c93171d89a312e9f7a53c06d97e261`.
+
+**Final PS-01..PS-30 verdict: PASS.** No protected strategy/MM/risk/lifecycle surface drift was found.

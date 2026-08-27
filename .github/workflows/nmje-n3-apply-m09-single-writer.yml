@@ -1,10 +1,11 @@
-name: NMJE N3 apply M09 single-writer
+name: NMJE N3 source materializer
 
 on:
   push:
     branches: [ nmje-n3-hardening-dev ]
     paths:
       - 'blueprint/tools/nmje_n3_step1_m09_single_writer_apply.py'
+      - 'blueprint/tools/nmje_n3_step2_event_identity_apply.py'
       - 'blueprint/ci/nmje_n3_static_guard.ps1'
       - '.github/workflows/nmje-n3-apply-m09-single-writer.yml'
   workflow_dispatch:
@@ -21,14 +22,24 @@ jobs:
           ref: nmje-n3-hardening-dev
           fetch-depth: 0
 
-      - name: Apply source refactor if pending
+      - name: Apply Step 1 M09 single-writer if pending
         shell: pwsh
         run: |
           $src = Get-Content .\blueprint\source\BBMA_EA.mq4 -Raw
           if ($src.Contains('InstallMHVSupersessionParent(')) {
             python .\blueprint\tools\nmje_n3_step1_m09_single_writer_apply.py
           } else {
-            Write-Host 'M09 single-writer refactor already materialized; no apply needed.'
+            Write-Host 'Step 1 already materialized.'
+          }
+
+      - name: Apply Step 2 canonical event identity if pending
+        shell: pwsh
+        run: |
+          $src = Get-Content .\blueprint\source\BBMA_EA.mq4 -Raw
+          if (-not $src.Contains('string               CanonicalEventID;')) {
+            python .\blueprint\tools\nmje_n3_step2_event_identity_apply.py
+          } else {
+            Write-Host 'Step 2 already materialized.'
           }
 
       - name: Run static guard
@@ -47,5 +58,5 @@ jobs:
             Write-Host 'No source change to commit.'
             exit 0
           }
-          git commit -m 'N3 step1: enforce M08-only Extreme ownership in M09'
+          git commit -m 'N3: materialize single-writer and canonical event identity'
           git push origin HEAD:nmje-n3-hardening-dev

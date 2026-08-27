@@ -61,7 +61,18 @@ def main() -> int:
 
    position = DashLivePosition(pairIndex, positionDirection);'''
 
-    fixture = 'UNRELATED_PREFIX\n' + old_live + '\nMID\n' + old_rank + '\nUNRELATED_SUFFIX\n'
+    old_refresh = '''void RefreshDashboardLiveTradeCount()
+{
+   if(!ShowDashboard) return;
+   // Timer refresh keeps both chain lifecycle and live broker position in sync.
+   UpdateDashboard();
+   g_dashboard_needs_update = false;
+}'''
+
+    fixture = (
+        'UNRELATED_PREFIX\n' + old_live + '\nMID_A\n' + old_rank +
+        '\nMID_B\n' + old_refresh + '\nUNRELATED_SUFFIX\n'
+    )
 
     with TemporaryDirectory() as td:
         target = Path(td) / 'BBMA_EA.mq4'
@@ -80,6 +91,13 @@ def main() -> int:
     assert 'chain = "B:" + buyChain + " | S:" + sellChain;' in out
     assert 'if(buyRank >= sellRank)' not in out
     assert out.count('string DashLivePosition(') == 1
+
+    assert 'string DashLivePositionSignature()' in out
+    assert 'IntegerToString(OrderTicket())' in out
+    assert 'static string lastLiveSignature = "__INIT__";' in out
+    assert 'if(currentLiveSignature == lastLiveSignature) return;' in out
+    assert '// Timer refresh keeps both chain lifecycle and live broker position in sync.' not in out
+    assert out.count('void RefreshDashboardLiveTradeCount()') == 1
 
     print('DASHBOARD_CHAIN_SAFETY_FIX_SELFTEST=PASS')
     return 0

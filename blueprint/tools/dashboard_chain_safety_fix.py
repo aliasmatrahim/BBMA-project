@@ -8,6 +8,8 @@ Display-only fixes:
    instead of arbitrarily preferring BUY.
 3. Refresh broker-position presentation only when the exact-owned live order
    identity changes, avoiding a full label redraw every 1-second timer tick.
+4. Keep DEC_VALIDATED visually distinct from DEC_EXECUTED so the dashboard
+   never presents validation as an executed trade.
 
 This script intentionally changes dashboard presentation only. It does not
 call or add trade, risk, validation, lifecycle, or execution authorities.
@@ -182,10 +184,64 @@ void RefreshDashboardLiveTradeCount()
    lastLiveSignature = currentLiveSignature;
 }'''
 
+    old_decision_helper = '''bool DashDecisionComplete(PairState &state)
+{
+   if(!state.last_decision.Valid) return false;
+   return (state.last_decision.DecisionState == DEC_VALIDATED ||
+           state.last_decision.DecisionState == DEC_EXECUTED);
+}'''
+
+    new_decision_helper = '''bool DashDecisionValidated(PairState &state)
+{
+   return (state.last_decision.Valid &&
+           state.last_decision.DecisionState == DEC_VALIDATED);
+}
+
+bool DashDecisionExecuted(PairState &state)
+{
+   return (state.last_decision.Valid &&
+           state.last_decision.DecisionState == DEC_EXECUTED);
+}'''
+
+    old_decision_display = '''      if(DashDecisionComplete(state))
+      {
+         setup += "✓";
+         if(rank < 40) rank = 40;
+      }
+      else if(state.last_decision.DecisionState == DEC_REJECTED ||
+              state.last_decision.DecisionState == DEC_EXPIRED)
+      {
+         status = "INV";
+      }'''
+
+    new_decision_display = '''      if(DashDecisionExecuted(state))
+      {
+         setup += "✓";
+         status = "EXE";
+         if(rank < 40) rank = 40;
+      }
+      else if(DashDecisionValidated(state))
+      {
+         // Validation is not execution. Keep it visible without the execution
+         // check mark so operators never infer that a broker order exists.
+         setup += "~";
+         status = "VAL";
+         if(rank < 40) rank = 40;
+      }
+      else if(state.last_decision.DecisionState == DEC_REJECTED ||
+              state.last_decision.DecisionState == DEC_EXPIRED)
+      {
+         status = "INV";
+      }'''
+
     try:
         text = replace_once(text, old_live, new_live, 'live-position aggregation')
         text = replace_once(text, old_rank, new_rank, 'equal-rank direction handling')
         text = replace_once(text, old_refresh, new_refresh, 'timer refresh efficiency')
+        text = replace_once(text, old_decision_helper, new_decision_helper,
+                            'validated/executed helper separation')
+        text = replace_once(text, old_decision_display, new_decision_display,
+                            'validated/executed presentation separation')
     except RuntimeError as exc:
         print(f'ERROR: {exc}', file=sys.stderr)
         return 3
@@ -201,6 +257,12 @@ void RefreshDashboardLiveTradeCount()
         'IntegerToString(OrderTicket())',
         'static string lastLiveSignature = "__INIT__";',
         'if(currentLiveSignature == lastLiveSignature) return;',
+        'bool DashDecisionValidated(PairState &state)',
+        'bool DashDecisionExecuted(PairState &state)',
+        'status = "VAL";',
+        'status = "EXE";',
+        'setup += "~";',
+        'setup += "✓";',
     ]
     for token in required:
         if token not in text:
@@ -210,6 +272,8 @@ void RefreshDashboardLiveTradeCount()
     forbidden = [
         'if(buyRank >= sellRank)',
         '// Timer refresh keeps both chain lifecycle and live broker position in sync.\n   UpdateDashboard();',
+        'bool DashDecisionComplete(PairState &state)',
+        'state.last_decision.DecisionState == DEC_VALIDATED ||\n           state.last_decision.DecisionState == DEC_EXECUTED',
     ]
     for token in forbidden:
         if token in text:

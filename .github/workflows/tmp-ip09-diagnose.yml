@@ -1,0 +1,34 @@
+name: TEMP IP-09 identity diagnostics
+
+on:
+  push:
+    branches: [tmp-ip09-doc-reconcile-20260827]
+    paths:
+      - 'blueprint/.run-ip09-diagnose'
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: tmp-ip09-doc-reconcile-20260827
+          fetch-depth: 0
+      - name: Print target identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin p0-v459-postpass-integration-20260827 p0-exec-id-persistence-fix
+          git checkout -B p0-v459-postpass-integration-20260827 origin/p0-v459-postpass-integration-20260827
+          echo "HEAD=$(git rev-parse HEAD)"
+          echo "BASE_EXISTS=$(git cat-file -t 5a1e7785f88c2ea1bf8f38917df413cb9cfcfce7 || true)"
+          echo "BLOB=$(git hash-object blueprint/source/BBMA_EA.mq4)"
+          echo "WORKTREE_SHA=$(sha256sum blueprint/source/BBMA_EA.mq4 | awk '{print $1}')"
+          echo "GITSHOW_SHA=$(git show HEAD:blueprint/source/BBMA_EA.mq4 | sha256sum | awk '{print $1}')"
+          grep -F 'Version 4.5.9 - P0 Execution Identity Persistence Fix' blueprint/source/BBMA_EA.mq4 | head -1
+          grep -F '#property version   "4.59"' blueprint/source/BBMA_EA.mq4 | head -1
+          grep -F 'bool           EnableC044Lifecycle                = false;' blueprint/source/BBMA_EA.mq4 | head -1
+          grep -F 'bool           EnableD1TPWLifecycle               = false;' blueprint/source/BBMA_EA.mq4 | head -1

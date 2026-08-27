@@ -40,6 +40,24 @@ foreach ($needle in @('IsMHVParentExtremeMature(', 'ParentConfirmationCandleTime
     if (-not $m09.Contains($needle)) { throw "M09 canonical-parent consumer invariant missing: $needle" }
 }
 
+# Step-2 canonical identity must remain deterministic provenance metadata only.
+foreach ($needle in @(
+    'string               CanonicalEventID;',
+    'NMJE_ReEntryEventID(',
+    'NMJE_ExtremeEventID(',
+    'NMJE_MLVEventID(',
+    'NMJE_D1OwnerEventID(',
+    'NMJE_H4OwnerEventID('
+)) {
+    if (-not $src.Contains($needle)) { throw "Canonical event identity invariant missing: $needle" }
+}
+foreach ($forbidden in @('MathRand(', 'GetTickCount(', 'TimeCurrent()')) {
+    # These functions may legitimately exist elsewhere in the EA; they are forbidden only in M12N identity logic.
+    if ($m12n.Contains($forbidden) -and $m12n.Contains('EventID')) {
+        throw "Non-deterministic identity input detected in M12N: $forbidden"
+    }
+}
+
 # Until N3 enforcement is explicitly implemented, M12N stays non-executing infrastructure.
 foreach ($needle in @('UpdateNestedJourneyObservation(', 'NMJE_PrintValidatedDecisionShadow(')) {
     if (-not $m12n.Contains($needle)) { throw "NMJE observer/shadow invariant missing: $needle" }
@@ -55,5 +73,6 @@ if (-not $m16.Contains('InvalidationEngine_Atomic(')) { throw 'M16 revalidation 
 Write-Host 'NMJE_N3_STATIC_GUARD=PASS'
 Write-Host 'M08_CANONICAL_EXTREME_WRITER=PASS'
 Write-Host 'M09_EXTREME_SINGLE_WRITER=PASS'
+Write-Host 'CANONICAL_EVENT_IDENTITY=PASS'
 Write-Host 'M12N_NO_EXECUTION_AUTHORITY=PASS'
 Write-Host 'M15_M16_AUTHORITY_BOUNDARY=PASS'

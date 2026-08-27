@@ -1,0 +1,84 @@
+name: N3 Step5 D1 owner epoch materializer
+
+on:
+  push:
+    branches:
+      - nmje-n3-hardening-dev
+    paths:
+      - 'blueprint/tools/nmje_n3_step5_d1_owner_epoch_apply.py'
+      - 'blueprint/.run-nmje-n3-step5-epoch'
+      - '.github/workflows/nmje-n3-step5-d1-owner-epoch-materialize.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: nmje-n3-hardening-dev
+          fetch-depth: 0
+
+      - name: Apply provenance-only D1 owner epoch anchor
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 blueprint/tools/nmje_n3_step5_d1_owner_epoch_apply.py
+
+      - name: Static provenance firewall
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          s = Path('blueprint/source/BBMA_EA.mq4').read_text(encoding='utf-8')
+          required = [
+              'datetime             SourceCandleTime;',
+              'datetime             EpochStartCandleTime;',
+              'datetime previousEpoch = owner.EpochStartCandleTime;',
+              'owner.State != previousState',
+              'owner.Direction != previousDirection',
+              'if(pair == "" || owner.EpochStartCandleTime <= 0) return "";',
+              'IntegerToString((int)owner.EpochStartCandleTime)',
+          ]
+          for marker in required:
+              if marker not in s:
+                  raise SystemExit(f'missing D1 epoch provenance marker: {marker}')
+
+          # SourceCandleTime must remain the latest closed-D1 snapshot field;
+          # EventID alone moves to the stable epoch anchor.
+          start = s.index('string NMJE_D1OwnerEventID(')
+          end = s.index('\n}', start) + 2
+          event_block = s[start:end]
+          if 'SourceCandleTime' in event_block:
+              raise SystemExit('D1 owner EventID still depends on SourceCandleTime')
+          if 'EpochStartCandleTime' not in event_block:
+              raise SystemExit('D1 owner EventID missing epoch anchor')
+
+          forbidden = [
+              'EnableNMJEExecutionGate',
+              'EnableNestedExecutionGate',
+              'N3_EXECUTION_POLICY',
+              'N3_POLICY_ACTIVE',
+          ]
+          for marker in forbidden:
+              if marker in s:
+                  raise SystemExit(f'unapproved N3 execution authority found: {marker}')
+          print('N3_D1_OWNER_EPOCH_PROVENANCE_FIREWALL=PASS')
+          PY
+
+      - name: Commit materialized source
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- blueprint/source/BBMA_EA.mq4; then
+            echo 'No source change required.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add blueprint/source/BBMA_EA.mq4
+          git commit -m 'N3: materialize stable D1 owner epoch provenance'
+          git push origin HEAD:nmje-n3-hardening-dev

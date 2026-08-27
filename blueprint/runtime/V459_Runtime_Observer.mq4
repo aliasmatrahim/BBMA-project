@@ -139,8 +139,9 @@ void EmitNewOrChangedRecords(string tag, datetime now,
 
 string EnvironmentRecord()
 {
-   return "Connected=" + string(IsConnected() ? "Y" : "N") +
-          " TradeAllowed=" + string(IsTradeAllowed() ? "Y" : "N");
+   string connected = IsConnected() ? "Y" : "N";
+   string tradeAllowed = IsTradeAllowed() ? "Y" : "N";
+   return "Connected=" + connected + " TradeAllowed=" + tradeAllowed;
 }
 
 void CollectGlobals(string &records[])

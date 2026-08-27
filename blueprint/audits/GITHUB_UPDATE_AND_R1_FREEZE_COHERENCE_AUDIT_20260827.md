@@ -24,7 +24,9 @@ R1 remains governed by Issue #96 and the frozen v4.59 lineage:
 
 No opportunistic canonical EA-source edit is permitted during attributable R1 collection.
 
-## 3. New isolated PR — #97 NMJE N3 hardening staging
+A current Issue #96 checkpoint records the HFM demo session as armed/preparation-only: R1 EX4 attached, Observer attached, `MinRRRatio=0` visible, `DBG_FULL` operator-confirmed, Observer reduced to 60-second snapshots / 1-hour history, and MT4 automated trading enabled. At that checkpoint the dashboard still showed `Trades: 0`; no mandatory R1 case was promoted.
+
+## 3. Isolated PR #97 — NMJE N3 hardening staging
 
 PR #97 remains **DRAFT / NO MERGE / NO ACTIVATION**.
 
@@ -38,20 +40,27 @@ Reviewed scope includes:
 
 The current materialized PR source still derives the D1 owner NMJE EventID from `D1MajorTrendOwner.SourceCandleTime`, which refreshes on closed-D1 snapshots. Therefore the known owner-epoch identity gap is not yet closed in the current source patch.
 
-The branch contains `blueprint/tools/nmje_n3_step5_d1_owner_epoch_apply.py`, which is intended to add a provenance-only epoch anchor that changes only with canonical owner State/Direction transition. This is directionally appropriate but must be materialized and revalidated on the isolated branch before any merge-readiness claim.
+The branch contains `blueprint/tools/nmje_n3_step5_d1_owner_epoch_apply.py`, which is intended to add a provenance-only `EpochStartCandleTime` anchor that changes only with canonical owner State/Direction transition while preserving `SourceCandleTime` as the latest closed-D1 snapshot.
+
+Safe preparation advanced on the isolated branch:
+
+- branch head prepared: `edf4397384cdae8d668bd0063566ea8c436dc3b1`;
+- fail-closed workflow added: `.github/workflows/nmje-n3-step5-d1-owner-epoch-materialize.yml`;
+- workflow requires epoch provenance markers and rejects N3 execution-authority markers before committing source;
+- materializer run `33073496983` ended with a failed job that exposed **zero executable steps**.
+
+Therefore the epoch change is **prepared but not materialized/verified**. The zero-step result remains an unclassified CI/runner availability anomaly and must not be promoted to source PASS or source FAIL.
 
 Required boundary:
 
 - preserve N3 non-execution authority;
 - keep PR draft;
-- obtain fresh static/native gates after the unclassified CI availability anomaly;
+- obtain fresh successful static/native gates after CI recovers;
 - do not merge during current R1 attribution.
 
-## 4. New isolated PR — #98 Dashboard compact cycle-aware chain UI
+## 4. Isolated PR #98 — Dashboard compact cycle-aware chain UI
 
 PR #98 remains **DRAFT / NO MERGE**.
-
-Current PR contents are materializer workflow/trigger/apply tooling; the intended M25 source replacement has not yet been materialized into the PR because the dashboard materializer run failed before usable executable-step evidence was available.
 
 The intended combination display signatures were cross-checked against the canonical combination engine and match:
 
@@ -59,19 +68,30 @@ The intended combination display signatures were cross-checked against the canon
 - RRE = D1 Re-Entry + H4 Re-Entry + H1 Extreme;
 - REE = D1 Re-Entry + H4 Extreme + H1 Extreme.
 
-Static review identified display-correctness work required before materialization:
+Earlier static review identified two concrete display-correctness defects in the first materializer design:
 
-1. `DashLivePosition()` must not silently report only the first EA-owned order when multiple positions for one pair can exist;
-2. exact BUY/SELL chain-rank ties must not silently bias BUY;
-3. validated-vs-executed dashboard completion semantics should be explicit so validation is not visually confused with broker execution.
+1. `DashLivePosition()` returned the first EA-owned order and could hide additional same-pair positions;
+2. exact BUY/SELL chain-rank ties silently preferred BUY through `buyRank >= sellRank`.
 
-These findings are display-layer concerns only and do not justify canonical source mutation during R1.
+Safe isolated hardening has now been prepared:
+
+- `blueprint/tools/dashboard_chain_safety_fix.py` aggregates all exact EA-owned BUY/SELL positions for each pair and represents equal-rank opposite chains explicitly as `MIX`;
+- `blueprint/tests/test_dashboard_chain_safety_fix.py` provides a fail-closed textual transformation selftest;
+- `.github/workflows/dashboard-chain-materialize.yml` now runs the selftest, primary materializer, safety hardening and a display-only authority guard;
+- isolated branch head: `cc222347e8928e0df7f8d02f7b7af9eeb925d2d4`;
+- latest dashboard materializer run `33073679983` again ended before executable steps were exposed; job steps are absent.
+
+Thus DASH-SAFE-01/02 are **prepared in isolated tooling but not yet materialized/native-compiled**. The PR must remain draft. Validated-vs-executed presentation semantics also remain subject to final display review before merge-readiness.
+
+These findings and preparations are display-layer only and do not justify canonical source mutation during R1.
 
 ## 5. CI interpretation rule
 
 A workflow conclusion of `failure` without executable job steps/log evidence is **unclassified CI/runner failure**, not proof of an EA source defect or compile defect.
 
 Legacy broad-push workflow failures on isolated branches are not authoritative runtime gates. A branch-specific gate must provide attributable executable evidence before it can be promoted to PASS or FAIL for source correctness.
+
+Repeated zero-step failures currently affect both isolated PR #97 and PR #98 materializers. Repeated reruns are not useful evidence while this infrastructure condition persists.
 
 ## 6. Runtime session evidence hygiene
 
@@ -100,4 +120,4 @@ The large master index is intentionally not rewritten by this audit merely to no
 
 **PASS — R1 CANONICAL FREEZE PRESERVED.**
 
-New NMJE/dashboard work is quarantined in draft PRs, no lifecycle default is activated, no canonical EA source is changed, R1 remains INCOMPLETE, and R2-R6 remain blocked until predecessor evidence is closed.
+New NMJE/dashboard hardening is quarantined in draft PRs, source materialization remains blocked by zero-step CI/runner availability failures, no lifecycle default is activated, canonical EA source remains unchanged, R1 remains INCOMPLETE, and R2-R6 remain blocked until predecessor evidence is closed.

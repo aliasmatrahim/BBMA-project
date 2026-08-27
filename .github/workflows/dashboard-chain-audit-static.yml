@@ -9,6 +9,7 @@ on:
       - 'blueprint/tests/test_dashboard_chain_safety_fix.py'
       - 'blueprint/tools/dashboard_chain_prematerialization_fix.py'
       - 'blueprint/tests/test_dashboard_chain_prematerialization_fix.py'
+      - 'blueprint/tests/test_dashboard_chain_stage_composition.py'
       - 'blueprint/tools/dashboard_chain_scope_guard.py'
       - 'blueprint/audits/DASHBOARD_PR98_PREMATERIALIZATION_AUDIT_ACCEPTANCE_20260827.md'
       - '.github/workflows/dashboard-chain-audit-static.yml'
@@ -30,7 +31,9 @@ jobs:
             blueprint/tests/test_dashboard_chain_safety_fix.py \
             blueprint/tools/dashboard_chain_prematerialization_fix.py \
             blueprint/tests/test_dashboard_chain_prematerialization_fix.py \
+            blueprint/tests/test_dashboard_chain_stage_composition.py \
             blueprint/tools/dashboard_chain_scope_guard.py
           python3 blueprint/tests/test_dashboard_chain_safety_fix.py
           python3 blueprint/tests/test_dashboard_chain_prematerialization_fix.py
+          python3 blueprint/tests/test_dashboard_chain_stage_composition.py
           echo 'DASHBOARD_AUDIT_FIXTURE_ONLY_SELFTEST=PASS'

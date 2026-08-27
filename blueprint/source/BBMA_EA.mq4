@@ -2869,87 +2869,29 @@ bool IsMHVRetestInteraction(MLVData &mlv, TimeframeData &data)
    return false;
 }
 
-void InstallMHVSupersessionParent(MLVData &mlv,
-                                  ExtremeLifecycleData &parent,
-                                  TimeframeData &data)
+bool TryAdvanceMHVSupersessionFromCanonicalParent(MLVData &mlv,
+                                                   TimeframeData &data,
+                                                   ExtremeLifecycleData &parent)
 {
-   ENUM_DIRECTION parentDirection = GetMHVParentExtremeDirection(mlv.Direction);
-   int rawBar = mlv.SupersessionRawBar;
-   datetime rawTime = mlv.SupersessionRawCandleTime;
+   // N3 single-writer invariant: M09 NEVER detects, resets, promotes or mutates
+   // ExtremeLifecycleData. M08 owns the canonical parent lifecycle completely.
+   if(!IsMHVParentExtremeMature(parent)) return false;
+   if(parent.ConfirmationCandleTime <= 0) return false;
 
-   ResetExtremeLifecycle(parent, parentDirection, data.timeframe);
-   parent.Maturity = EXT_MAT_REVERSAL_CONFIRMED;
-   parent.Direction = parentDirection;
-   parent.Timeframe = data.timeframe;
-   parent.RawBar = rawBar;
-   parent.RawCandleTime = rawTime;
-   parent.ConfirmationBar = data.barIndex;
-   parent.ConfirmationCandleTime = data.candle_time;
-   parent.ConfirmationClose = data.close;
-   parent.LastUpdateBar = data.barIndex;
-   parent.LastUpdateCandleTime = data.candle_time;
-   parent.PreviousClose = data.close;
-   parent.ProvisionalBodyAnchor = GetExtremeReversalBodyEdge(data, parentDirection);
-   parent.RelevantMA5 = GetExtremeRelevantMA5(data, parentDirection);
-   parent.IsValid = true;
-   parent.Reason = "Reversal-confirmed M15 Extreme installed by F1 cycle supersession";
-}
-
-bool TryAdvanceMHVSupersessionCandidate(MLVData &mlv, string pair,
-                                        TimeframeData &data, BollingerBand &band,
-                                        ExtremeLifecycleData &parent)
-{
-   ENUM_DIRECTION parentDirection = GetMHVParentExtremeDirection(mlv.Direction);
-   if(parentDirection == DIR_NONE) return false;
-
-   if(mlv.SupersessionCandidateActive)
-   {
-      if(data.candle_time <= mlv.SupersessionRawCandleTime) return false;
-
-      if(IsExtremeLifecycleInvalidation(pair, parentDirection, data, band))
-      {
-         mlv.SupersessionCandidateActive = false;
-         mlv.SupersessionRawBar = 0;
-         mlv.SupersessionRawCandleTime = 0;
-         return false;
-      }
-
-      if(IsExtremeReversalDirection(data, parentDirection))
-      {
-         InstallMHVSupersessionParent(mlv, parent, data);
-         MarkCanonicalMLVSuperseded(
-            mlv, data,
-            "Old MHV/MLV cycle superseded by opposite reversal-confirmed Extreme");
-         if(EntryMode == 2)
-            Print("[P3M2][MLV_SUPERSEDE] MLVDir=", EnumToString(mlv.Direction),
-                  " NewExtremeDir=", EnumToString(parentDirection),
-                  " Raw=", TimeToString(mlv.SupersessionRawCandleTime),
-                  " Confirm=", TimeToString(data.candle_time));
-         return true;
-      }
-      return false;
-   }
-
-   datetime boundary = mlv.ConfirmationCandleTime;
+   datetime boundary = mlv.ParentConfirmationCandleTime;
+   if(boundary <= 0) boundary = mlv.ConfirmationCandleTime;
    if(boundary <= 0) boundary = mlv.VoidCandleTime;
-   if(boundary <= 0 || data.candle_time <= boundary) return false;
+   if(boundary <= 0 || parent.ConfirmationCandleTime <= boundary) return false;
 
-   bool rawDetected = DetectExtreme(pair, parentDirection, data, band);
-   if(!rawDetected) return false;
-
-   // Opposite RAW Extreme is only a new-cycle candidate. It cannot erase the
-   // old MHV provenance until the later reversal-confirmation candle arrives.
-   if(IsExtremeLifecycleInvalidation(pair, parentDirection, data, band))
-      return false;
-
-   mlv.SupersessionCandidateActive = true;
-   mlv.SupersessionRawBar = data.barIndex;
-   mlv.SupersessionRawCandleTime = data.candle_time;
+   MarkCanonicalMLVSuperseded(
+      mlv, data,
+      "Old MHV/MLV cycle superseded by newer canonical M08 reversal-confirmed parent Extreme");
    if(EntryMode == 2)
-      Print("[P3M2][MLV_SUPER_CAND] MLVDir=", EnumToString(mlv.Direction),
-            " ExtremeDir=", EnumToString(parentDirection),
-            " Raw=", TimeToString(data.candle_time));
-   return false;
+      Print("[P3M2][MLV_SUPERSEDE] MLVDir=", EnumToString(mlv.Direction),
+            " NewExtremeDir=", EnumToString(parent.Direction),
+            " NewConfirm=", TimeToString(parent.ConfirmationCandleTime),
+            " ProcessCandle=", TimeToString(data.candle_time));
+   return true;
 }
 
 ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
@@ -3099,7 +3041,7 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
          return mlv.State;
       }
 
-      if(TryAdvanceMHVSupersessionCandidate(mlv, pair, data, band, parent))
+      if(TryAdvanceMHVSupersessionFromCanonicalParent(mlv, data, parent))
          return mlv.State;
 
       if(mlv.State == MLV_FORMATION_ESTABLISHED &&
@@ -3136,7 +3078,7 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
       mlv.InvalidationWindowOpen = false;
       mlv.IsValid = true;
 
-      if(TryAdvanceMHVSupersessionCandidate(mlv, pair, data, band, parent))
+      if(TryAdvanceMHVSupersessionFromCanonicalParent(mlv, data, parent))
          return mlv.State;
 
       mlv.LastUpdateBar = data.barIndex;
@@ -3149,7 +3091,7 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
    {
       // VOID remains non-authoritative. A later RAW opposite-cycle Extreme is
       // only a candidate; a reversal-confirmed Extreme installs the new parent.
-      TryAdvanceMHVSupersessionCandidate(mlv, pair, data, band, parent);
+      TryAdvanceMHVSupersessionFromCanonicalParent(mlv, data, parent);
       mlv.LastUpdateBar = data.barIndex;
       mlv.LastUpdateCandleTime = data.candle_time;
       mlv.PreviousClose = data.close;

@@ -8,6 +8,7 @@ on:
       - 'blueprint/.run-dashboard-chain'
       - 'blueprint/tools/dashboard_chain_compact_apply.py'
       - 'blueprint/tools/dashboard_chain_safety_fix.py'
+      - 'blueprint/tests/test_dashboard_chain_safety_fix.py'
       - '.github/workflows/dashboard-chain-materialize.yml'
 
 permissions:
@@ -21,6 +22,15 @@ jobs:
         with:
           ref: dashboard-chain-dev
           fetch-depth: 0
+
+      - name: Run dashboard safety patch selftest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 blueprint/tests/test_dashboard_chain_safety_fix.py
+          python3 -m py_compile \
+            blueprint/tools/dashboard_chain_safety_fix.py \
+            blueprint/tests/test_dashboard_chain_safety_fix.py
 
       - name: Apply M25 compact chain dashboard
         run: python3 blueprint/tools/dashboard_chain_compact_apply.py

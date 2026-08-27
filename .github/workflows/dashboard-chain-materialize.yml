@@ -11,6 +11,7 @@ on:
       - 'blueprint/tests/test_dashboard_chain_safety_fix.py'
       - 'blueprint/tools/dashboard_chain_prematerialization_fix.py'
       - 'blueprint/tests/test_dashboard_chain_prematerialization_fix.py'
+      - 'blueprint/tests/test_dashboard_chain_stage_composition.py'
       - 'blueprint/tools/dashboard_chain_scope_guard.py'
       - '.github/workflows/dashboard-chain-materialize.yml'
 
@@ -32,11 +33,13 @@ jobs:
           set -euo pipefail
           python3 blueprint/tests/test_dashboard_chain_safety_fix.py
           python3 blueprint/tests/test_dashboard_chain_prematerialization_fix.py
+          python3 blueprint/tests/test_dashboard_chain_stage_composition.py
           python3 -m py_compile \
             blueprint/tools/dashboard_chain_safety_fix.py \
             blueprint/tests/test_dashboard_chain_safety_fix.py \
             blueprint/tools/dashboard_chain_prematerialization_fix.py \
             blueprint/tests/test_dashboard_chain_prematerialization_fix.py \
+            blueprint/tests/test_dashboard_chain_stage_composition.py \
             blueprint/tools/dashboard_chain_scope_guard.py
 
       - name: Apply M25 compact chain dashboard

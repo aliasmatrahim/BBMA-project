@@ -7,6 +7,7 @@ on:
     paths:
       - 'blueprint/.run-dashboard-chain'
       - 'blueprint/tools/dashboard_chain_compact_apply.py'
+      - 'blueprint/tools/dashboard_chain_safety_fix.py'
       - '.github/workflows/dashboard-chain-materialize.yml'
 
 permissions:
@@ -24,6 +25,9 @@ jobs:
       - name: Apply M25 compact chain dashboard
         run: python3 blueprint/tools/dashboard_chain_compact_apply.py
 
+      - name: Apply dashboard safety hardening
+        run: python3 blueprint/tools/dashboard_chain_safety_fix.py
+
       - name: Static dashboard-only guard
         shell: bash
         run: |
@@ -37,17 +41,25 @@ jobs:
               'REM exact signature prefix',
               'RRE exact signature prefix',
               'REE exact signature prefix',
-              'M15 remains authoritative for setup completion/invalidation display.'
+              'M15 remains authoritative for setup completion/invalidation display.',
+              'int buyCount = 0;',
+              'int sellCount = 0;',
+              'status = "MIX";',
+              'chain = "B:" + buyChain + " | S:" + sellChain;'
           ]:
               if marker not in s:
                   raise SystemExit(f'missing dashboard marker: {marker}')
           m25=s.index('//| MODULE 25: DASHBOARD ENGINE')
           m26=s.index('//| MODULE 26: INITIALIZATION & CLEANUP')
           block=s[m25:m26]
-          forbidden=['OrderSend(', 'OrderClose(', 'OrderModify(', 'PriorityEngine_Atomic(', 'InvalidationEngine_Atomic(']
+          forbidden=[
+              'OrderSend(', 'OrderClose(', 'OrderModify(', 'OrderDelete(',
+              'PriorityEngine_Atomic(', 'InvalidationEngine_Atomic(',
+              'if(buyRank >= sellRank)'
+          ]
           for marker in forbidden:
               if marker in block:
-                  raise SystemExit(f'forbidden M25 authority mutation: {marker}')
+                  raise SystemExit(f'forbidden M25 authority/bias marker: {marker}')
           print('DASHBOARD_M25_DISPLAY_ONLY_GUARD=PASS')
           PY
 

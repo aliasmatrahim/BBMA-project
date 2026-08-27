@@ -620,6 +620,8 @@ struct NestedJourneyState
    ENUM_SIGNAL_TYPE        ParentSignal;
    ENUM_DIRECTION          ParentDirection;
    datetime                ParentCandleTime;
+   // N3 provenance-only identity of the exact canonical owner chosen as parent.
+   string                  ParentEventID;
    ENUM_DIRECTION          StrategicDirection;
    ENUM_NESTED_RELATION    Relation;
    bool                    Resolved;
@@ -4834,6 +4836,7 @@ bool NMJE_ResolveParent(PairState &state,
                         ENUM_SIGNAL_TYPE &signalType,
                         ENUM_DIRECTION &direction,
                         datetime &anchor,
+                        string &eventID,
                         string &reason)
 {
    kind = NESTED_PARENT_NONE;
@@ -4841,6 +4844,7 @@ bool NMJE_ResolveParent(PairState &state,
    signalType = SIGNAL_NONE;
    direction = DIR_NONE;
    anchor = 0;
+   eventID = "";
    reason = "NO_PARENT";
 
    ReEntryData selected;
@@ -4853,6 +4857,7 @@ bool NMJE_ResolveParent(PairState &state,
       signalType = SIGNAL_RE_ENTRY;
       direction = selected.Direction;
       anchor = selected.ConfirmationCandle;
+      eventID = NMJE_ReEntryEventID(state.actual_symbol, selected);
       reason = "H4_RE_PARENT";
       return true;
    }
@@ -4872,6 +4877,7 @@ bool NMJE_ResolveParent(PairState &state,
       signalType = state.h4_direction_owner.SourceSignal;
       direction = state.h4_direction_owner.Direction;
       anchor = state.h4_direction_owner.SourceCandleTime;
+      eventID = NMJE_H4OwnerEventID(state.actual_symbol, state.h4_direction_owner);
       reason = "H4_OWNER_PARENT";
       return true;
    }
@@ -4884,6 +4890,7 @@ bool NMJE_ResolveParent(PairState &state,
       signalType = SIGNAL_RE_ENTRY;
       direction = selected.Direction;
       anchor = selected.ConfirmationCandle;
+      eventID = NMJE_ReEntryEventID(state.actual_symbol, selected);
       reason = "D1_RE_PARENT";
       return true;
    }
@@ -4902,6 +4909,7 @@ bool NMJE_ResolveParent(PairState &state,
       signalType = SIGNAL_NONE;
       direction = state.d1_major_trend_owner.Direction;
       anchor = state.d1_major_trend_owner.SourceCandleTime;
+      eventID = NMJE_D1OwnerEventID(state.actual_symbol, state.d1_major_trend_owner);
       reason = "D1_OWNER_PARENT";
       return true;
    }
@@ -4973,10 +4981,11 @@ void UpdateNestedJourneyObservation(int pairIndex)
    ENUM_SIGNAL_TYPE parentSignal = SIGNAL_NONE;
    ENUM_DIRECTION parentDirection = DIR_NONE;
    datetime parentAnchor = 0;
+   string parentEventID = "";
    string parentReason = "";
    bool hasParent = NMJE_ResolveParent(g_pair_states[pairIndex], parentKind, parentTF,
                                        parentSignal, parentDirection, parentAnchor,
-                                       parentReason);
+                                       parentEventID, parentReason);
 
    if(!hasParent)
    {
@@ -5006,6 +5015,7 @@ void UpdateNestedJourneyObservation(int pairIndex)
    journey.ParentSignal = parentSignal;
    journey.ParentDirection = parentDirection;
    journey.ParentCandleTime = parentAnchor;
+   journey.ParentEventID = parentEventID;
    journey.JourneyID = NMJE_BuildJourneyID(journey.Pair, parentKind, parentTF,
                                             parentSignal, parentDirection, parentAnchor);
    journey.Valid = true;
@@ -5097,6 +5107,7 @@ void UpdateNestedJourneyObservation(int pairIndex)
    Print("[N1-NMJE] ", journey.Pair,
          " REL=", NMJE_RelationText(journey.Relation),
          " P=", NMJE_ParentText(journey.ParentKind), "/", NMJE_DirText(journey.ParentDirection),
+         " PE=", (journey.ParentEventID == "" ? "-" : journey.ParentEventID),
          " J=", journey.JourneyID,
          " D1=", journey.D1Node.Label, "#", (journey.D1Node.CanonicalEventID == "" ? "-" : journey.D1Node.CanonicalEventID),
          " H4=", journey.H4Node.Label, "#", (journey.H4Node.CanonicalEventID == "" ? "-" : journey.H4Node.CanonicalEventID),
@@ -5150,6 +5161,7 @@ void NMJE_PrintValidatedDecisionShadow(int pairIndex, BBMA_Decision &decision)
          " DIR=", NMJE_DirText(decision.Direction),
          " REL=", NMJE_RelationText(journey.Relation),
          " P=", NMJE_ParentText(journey.ParentKind), "/", NMJE_DirText(journey.ParentDirection),
+         " PE=", (journey.ParentEventID == "" ? "-" : journey.ParentEventID),
          " J=", journeyId,
          " DID=", decisionToken,
          " DIDH=", decisionHash,

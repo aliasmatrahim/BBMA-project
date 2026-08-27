@@ -585,6 +585,8 @@ struct NestedTFNode
    bool                 Valid;
    bool                 Resolved;
    string               Label;
+   // N3 provenance-only deterministic identity. Never strategy authority.
+   string               CanonicalEventID;
 
    // N1.1 coverage-only secondary overlays. These never own strategy state.
    ENUM_RE_STATE        ReEntryBuyState;
@@ -4380,6 +4382,73 @@ string NMJE_MLVStateText(ENUM_MLV_STATE state)
    return "N";
 }
 
+// N3 Step-2: deterministic provenance identities. These helpers consume
+// canonical owner facts only; they do not detect, score, mature or gate signals.
+string NMJE_IdentityHash(string raw)
+{
+   if(raw == "") return "";
+   return SHORT_HASH(raw, 16);
+}
+
+string NMJE_ReEntryEventID(string pair, ReEntryData &state)
+{
+   if(pair == "" || state.Timeframe <= 0 || state.StartCandleTime <= 0 ||
+      (state.Direction != DIR_BUY && state.Direction != DIR_SELL) ||
+      state.Type == RE_NONE)
+      return "";
+   string raw = "RE|" + pair + "|" + IntegerToString(state.Timeframe) + "|" +
+                IntegerToString((int)state.Direction) + "|" +
+                IntegerToString((int)state.Type) + "|" +
+                IntegerToString((int)state.StartCandleTime);
+   return NMJE_IdentityHash(raw);
+}
+
+string NMJE_ExtremeEventID(string pair, ExtremeLifecycleData &state)
+{
+   if(pair == "" || state.Timeframe <= 0 || state.RawCandleTime <= 0 ||
+      (state.Direction != DIR_BUY && state.Direction != DIR_SELL))
+      return "";
+   string raw = "EXT|" + pair + "|" + IntegerToString(state.Timeframe) + "|" +
+                IntegerToString((int)state.Direction) + "|" +
+                IntegerToString((int)state.RawCandleTime);
+   return NMJE_IdentityHash(raw);
+}
+
+string NMJE_MLVEventID(string pair, MLVData &state)
+{
+   if(pair == "" || state.Timeframe != PERIOD_M15 ||
+      state.ParentRawCandleTime <= 0 || state.ParentConfirmationCandleTime <= 0 ||
+      (state.Direction != DIR_BUY && state.Direction != DIR_SELL))
+      return "";
+   string raw = "MLV|" + pair + "|" + IntegerToString(PERIOD_M15) + "|" +
+                IntegerToString((int)state.Direction) + "|" +
+                IntegerToString((int)state.ParentRawCandleTime) + "|" +
+                IntegerToString((int)state.ParentConfirmationCandleTime);
+   return NMJE_IdentityHash(raw);
+}
+
+string NMJE_D1OwnerEventID(string pair, D1MajorTrendOwner &owner)
+{
+   if(pair == "" || owner.SourceCandleTime <= 0) return "";
+   string raw = "D1OWN|" + pair + "|" + IntegerToString((int)owner.State) + "|" +
+                IntegerToString((int)owner.Direction) + "|" +
+                IntegerToString((int)owner.SourceCandleTime);
+   return NMJE_IdentityHash(raw);
+}
+
+string NMJE_H4OwnerEventID(string pair, H4DirectionalOwner &owner)
+{
+   if(pair == "" || owner.SourceCandleTime <= 0 ||
+      owner.State != H4_OWNER_ACTIVE ||
+      (owner.Direction != DIR_BUY && owner.Direction != DIR_SELL) ||
+      owner.SourceSignal == SIGNAL_NONE)
+      return "";
+   string raw = "H4OWN|" + pair + "|" + IntegerToString((int)owner.Direction) + "|" +
+                IntegerToString((int)owner.SourceSignal) + "|" +
+                IntegerToString((int)owner.SourceCandleTime);
+   return NMJE_IdentityHash(raw);
+}
+
 void NMJE_ResetNode(NestedTFNode &node, int timeframe)
 {
    ZeroMemory(node);
@@ -4391,6 +4460,7 @@ void NMJE_ResetNode(NestedTFNode &node, int timeframe)
    node.Valid = false;
    node.Resolved = false;
    node.Label = "-";
+   node.CanonicalEventID = "";
 }
 
 bool NMJE_IsConfirmedRE(ReEntryData &state)
@@ -4465,7 +4535,7 @@ bool NMJE_SelectCandidateRE(ReEntryData &buyState, ReEntryData &sellState,
    return true;
 }
 
-void NMJE_SetRENode(NestedTFNode &node, ReEntryData &state, bool resolved)
+void NMJE_SetRENode(string pair, NestedTFNode &node, ReEntryData &state, bool resolved)
 {
    node.StageType = SIGNAL_RE_ENTRY;
    node.Direction = state.Direction;
@@ -4474,10 +4544,11 @@ void NMJE_SetRENode(NestedTFNode &node, ReEntryData &state, bool resolved)
       ? state.ConfirmationCandle : state.StartCandleTime;
    node.Valid = state.IsValid;
    node.Resolved = resolved;
+   node.CanonicalEventID = NMJE_ReEntryEventID(pair, state);
    node.Label = "RE:" + NMJE_REStateText(state.State) + "/" + NMJE_DirText(state.Direction);
 }
 
-void NMJE_SetExtremeNode(NestedTFNode &node, ExtremeLifecycleData &state)
+void NMJE_SetExtremeNode(string pair, NestedTFNode &node, ExtremeLifecycleData &state)
 {
    node.StageType = SIGNAL_EXTREME;
    node.Direction = state.Direction;
@@ -4486,10 +4557,11 @@ void NMJE_SetExtremeNode(NestedTFNode &node, ExtremeLifecycleData &state)
       ? state.ConfirmationCandleTime : state.RawCandleTime;
    node.Valid = state.IsValid;
    node.Resolved = false; // Extreme is pre-direction context for N1 lineage.
+   node.CanonicalEventID = NMJE_ExtremeEventID(pair, state);
    node.Label = "EXT:" + NMJE_ExtremeStateText(state.Maturity) + "/" + NMJE_DirText(state.Direction);
 }
 
-void NMJE_SetMLVNode(NestedTFNode &node, MLVData &state)
+void NMJE_SetMLVNode(string pair, NestedTFNode &node, MLVData &state)
 {
    node.StageType = SIGNAL_MLV;
    node.Direction = state.Direction;
@@ -4498,6 +4570,7 @@ void NMJE_SetMLVNode(NestedTFNode &node, MLVData &state)
       ? state.ConfirmationCandleTime : state.LastUpdateCandleTime;
    node.Valid = state.IsValid;
    node.Resolved = false; // MHV/MLV is setup/context, not final direction authority.
+   node.CanonicalEventID = NMJE_MLVEventID(pair, state);
    node.Label = "MHV:" + NMJE_MLVStateText(state.State) + "/" + NMJE_DirText(state.Direction);
 }
 
@@ -4602,7 +4675,7 @@ void NMJE_BuildD1Node(PairState &state, NestedTFNode &node)
    if(NMJE_SelectConfirmedRE(state.re_d1_buy_state, state.re_d1_sell_state,
                              selected, ambiguous))
    {
-      NMJE_SetRENode(node, selected, true);
+      NMJE_SetRENode(state.actual_symbol, node, selected, true);
       return;
    }
    if(ambiguous)
@@ -4619,6 +4692,7 @@ void NMJE_BuildD1Node(PairState &state, NestedTFNode &node)
       node.CandleTime = state.d1_major_trend_owner.SourceCandleTime;
       node.Valid = true;
       node.Resolved = true;
+      node.CanonicalEventID = NMJE_D1OwnerEventID(state.actual_symbol, state.d1_major_trend_owner);
       node.Label = "OWN/" + NMJE_DirText(node.Direction);
       return;
    }
@@ -4627,6 +4701,7 @@ void NMJE_BuildD1Node(PairState &state, NestedTFNode &node)
    {
       node.Valid = true;
       node.Resolved = true;
+      node.CanonicalEventID = NMJE_D1OwnerEventID(state.actual_symbol, state.d1_major_trend_owner);
       node.Label = "TRANSITION";
       return;
    }
@@ -4645,7 +4720,7 @@ void NMJE_BuildH4Node(PairState &state, NestedTFNode &node)
    if(NMJE_SelectConfirmedRE(state.re_h4_buy_state, state.re_h4_sell_state,
                              selected, ambiguous))
    {
-      NMJE_SetRENode(node, selected, true);
+      NMJE_SetRENode(state.actual_symbol, node, selected, true);
       return;
    }
    if(ambiguous)
@@ -4657,7 +4732,7 @@ void NMJE_BuildH4Node(PairState &state, NestedTFNode &node)
    if(NMJE_SelectCandidateRE(state.re_h4_buy_state, state.re_h4_sell_state,
                              selected, ambiguous))
    {
-      NMJE_SetRENode(node, selected, false);
+      NMJE_SetRENode(state.actual_symbol, node, selected, false);
       return;
    }
    if(ambiguous)
@@ -4676,6 +4751,7 @@ void NMJE_BuildH4Node(PairState &state, NestedTFNode &node)
       node.CandleTime = state.h4_direction_owner.SourceCandleTime;
       node.Valid = true;
       node.Resolved = true;
+      node.CanonicalEventID = NMJE_H4OwnerEventID(state.actual_symbol, state.h4_direction_owner);
       node.Label = "OWN/" + NMJE_DirText(node.Direction);
       return;
    }
@@ -4684,8 +4760,8 @@ void NMJE_BuildH4Node(PairState &state, NestedTFNode &node)
    bool sellExtreme = NMJE_IsExtremeActive(state.extreme_h4_sell_lifecycle);
    if(buyExtreme != sellExtreme)
    {
-      if(buyExtreme) NMJE_SetExtremeNode(node, state.extreme_h4_buy_lifecycle);
-      else NMJE_SetExtremeNode(node, state.extreme_h4_sell_lifecycle);
+      if(buyExtreme) NMJE_SetExtremeNode(state.actual_symbol, node, state.extreme_h4_buy_lifecycle);
+      else NMJE_SetExtremeNode(state.actual_symbol, node, state.extreme_h4_sell_lifecycle);
    }
    else if(buyExtreme && sellExtreme)
       node.Label = "EXT:AMB";
@@ -4702,7 +4778,7 @@ void NMJE_BuildH1Node(PairState &state, NestedTFNode &node)
    if(NMJE_SelectConfirmedRE(state.re_h1_buy_state, state.re_h1_sell_state,
                              selected, ambiguous))
    {
-      NMJE_SetRENode(node, selected, true);
+      NMJE_SetRENode(state.actual_symbol, node, selected, true);
       return;
    }
    if(ambiguous)
@@ -4714,7 +4790,7 @@ void NMJE_BuildH1Node(PairState &state, NestedTFNode &node)
    if(NMJE_SelectCandidateRE(state.re_h1_buy_state, state.re_h1_sell_state,
                              selected, ambiguous))
    {
-      NMJE_SetRENode(node, selected, false);
+      NMJE_SetRENode(state.actual_symbol, node, selected, false);
       return;
    }
    if(ambiguous)
@@ -4727,8 +4803,8 @@ void NMJE_BuildH1Node(PairState &state, NestedTFNode &node)
    bool sellExtreme = NMJE_IsExtremeActive(state.extreme_h1_sell_lifecycle);
    if(buyExtreme != sellExtreme)
    {
-      if(buyExtreme) NMJE_SetExtremeNode(node, state.extreme_h1_buy_lifecycle);
-      else NMJE_SetExtremeNode(node, state.extreme_h1_sell_lifecycle);
+      if(buyExtreme) NMJE_SetExtremeNode(state.actual_symbol, node, state.extreme_h1_buy_lifecycle);
+      else NMJE_SetExtremeNode(state.actual_symbol, node, state.extreme_h1_sell_lifecycle);
    }
    else if(buyExtreme && sellExtreme)
       node.Label = "EXT:AMB";
@@ -4745,8 +4821,8 @@ void NMJE_BuildM15Node(PairState &state, NestedTFNode &node)
    bool sellMLV = NMJE_IsMLVActive(state.mlv_sell_state);
    if(buyMLV != sellMLV)
    {
-      if(buyMLV) NMJE_SetMLVNode(node, state.mlv_buy_state);
-      else NMJE_SetMLVNode(node, state.mlv_sell_state);
+      if(buyMLV) NMJE_SetMLVNode(state.actual_symbol, node, state.mlv_buy_state);
+      else NMJE_SetMLVNode(state.actual_symbol, node, state.mlv_sell_state);
    }
    else if(buyMLV && sellMLV)
       node.Label = "MHV:AMB";
@@ -5022,10 +5098,10 @@ void UpdateNestedJourneyObservation(int pairIndex)
          " REL=", NMJE_RelationText(journey.Relation),
          " P=", NMJE_ParentText(journey.ParentKind), "/", NMJE_DirText(journey.ParentDirection),
          " J=", journey.JourneyID,
-         " D1=", journey.D1Node.Label,
-         " H4=", journey.H4Node.Label,
-         " H1=", journey.H1Node.Label,
-         " M15=", journey.M15Node.Label,
+         " D1=", journey.D1Node.Label, "#", (journey.D1Node.CanonicalEventID == "" ? "-" : journey.D1Node.CanonicalEventID),
+         " H4=", journey.H4Node.Label, "#", (journey.H4Node.CanonicalEventID == "" ? "-" : journey.H4Node.CanonicalEventID),
+         " H1=", journey.H1Node.Label, "#", (journey.H1Node.CanonicalEventID == "" ? "-" : journey.H1Node.CanonicalEventID),
+         " M15=", journey.M15Node.Label, "#", (journey.M15Node.CanonicalEventID == "" ? "-" : journey.M15Node.CanonicalEventID),
          " R=", journey.Reason);
 }
 

@@ -1,0 +1,187 @@
+name: TEMP IP-09 v4.59 documentation reconciliation
+
+on:
+  push:
+    branches: [tmp-ip09-doc-reconcile-20260827]
+    paths:
+      - 'blueprint/.run-ip09-doc-reconcile'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: tmp-ip09-doc-reconcile-20260827
+          fetch-depth: 0
+
+      - name: Reconcile IP-09 candidate documentation and release artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TARGET='p0-v459-postpass-integration-20260827'
+          P0='p0-exec-id-persistence-fix'
+          PRE_IP09='d7f6fae6d1af286696f9349dc04ca14e3770574b'
+          BASE='5a1e7785f88c2ea1bf8f38917df413cb9cfcfce7'
+          SOURCE_COMMIT='aa74898ead8725f78141924f8bcb1725f0c113ca'
+          SOURCE_BLOB='dc83e62748c93171d89a312e9f7a53c06d97e261'
+          SOURCE_SHA='0a42ee2e6c32810f655b592d8738f500e8b63b4e08c4c874e82452f75ce94b2e'
+          EX4_SHA='89821c5b1ae2d7c28a6cad7569cb2ced0e45090d0897451e0f61e0b46eb8944c'
+          BUILD='Version 4.5.9 - P0 Execution Identity Persistence Fix'
+
+          git fetch origin "$TARGET" "$P0"
+          git checkout -B "$TARGET" "origin/$TARGET"
+          test "$(git rev-parse HEAD)" = "$PRE_IP09"
+          test "$(git rev-parse "$BASE^{commit}")" = "$BASE"
+          test "$(git hash-object blueprint/source/BBMA_EA.mq4)" = "$SOURCE_BLOB"
+          test "$(sha256sum blueprint/source/BBMA_EA.mq4 | awk '{print $1}')" = "$SOURCE_SHA"
+          grep -Fq "$BUILD" blueprint/source/BBMA_EA.mq4
+          grep -Fq '#property version   "4.59"' blueprint/source/BBMA_EA.mq4
+          grep -Fq 'bool           EnableC044Lifecycle                = false;' blueprint/source/BBMA_EA.mq4
+          grep -Fq 'bool           EnableD1TPWLifecycle               = false;' blueprint/source/BBMA_EA.mq4
+
+          rm -rf "$RUNNER_TEMP/ip07"
+          mkdir -p "$RUNNER_TEMP/ip07"
+          gh run download 33025004203 --repo aliasmatrahim/BBMA-project --name p0-v459-integration-native-evidence --dir "$RUNNER_TEMP/ip07"
+          EX4_SRC="$(find "$RUNNER_TEMP/ip07" -type f -name 'BBMA_EA.ex4' -print -quit)"
+          test -n "$EX4_SRC"
+          test "$(sha256sum "$EX4_SRC" | awk '{print $1}')" = "$EX4_SHA"
+          cp "$EX4_SRC" blueprint/source/BBMA_EA.ex4
+
+          mkdir -p blueprint/audits
+          for f in \
+            P0_EXEC_ID_RUNTIME_PASS_RECORD_20260827.md \
+            MASTER_R1_R6_RUNTIME_EVIDENCE_INDEX_20260827.md \
+            POST_P0_CANONICAL_FREEZE_RELEASE_CHECKLIST_20260827.md \
+            P0_POST_PASS_INTEGRATION_EXECUTION_WORKSHEET_20260827.md; do
+            git show "origin/$P0:blueprint/audits/$f" > "blueprint/audits/$f"
+          done
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+
+          branch = 'p0-v459-postpass-integration-20260827'
+          base = '5a1e7785f88c2ea1bf8f38917df413cb9cfcfce7'
+          pre_ip09 = 'd7f6fae6d1af286696f9349dc04ca14e3770574b'
+          source_commit = 'aa74898ead8725f78141924f8bcb1725f0c113ca'
+          source_blob = 'dc83e62748c93171d89a312e9f7a53c06d97e261'
+          source_sha = '0a42ee2e6c32810f655b592d8738f500e8b63b4e08c4c874e82452f75ce94b2e'
+          ex4_sha = '89821c5b1ae2d7c28a6cad7569cb2ced0e45090d0897451e0f61e0b46eb8944c'
+          build = 'Version 4.5.9 - P0 Execution Identity Persistence Fix'
+          p0_ticket = '484701907'
+          p0_hash = '7AADB1796BF36399'
+
+          # Release identity is metadata only; synchronize it to the exact integrated source.
+          identity = {
+              'schema_version': 1,
+              'source_path': 'blueprint/source/BBMA_EA.mq4',
+              'product_name': 'BBMA EA',
+              'display_version': '4.5.9',
+              'property_version': '4.59',
+              'release_stage': 'P0 Execution Identity Persistence Fix',
+              'source_blob': source_blob,
+              'source_sha256': source_sha,
+              'ex4_sha256': ex4_sha,
+              'canonical_status': 'CANONICAL_CANDIDATE_READY_IP09_IP10_PENDING'
+          }
+          Path('blueprint/source/EA_RELEASE_IDENTITY.json').write_text(json.dumps(identity, indent=2) + '\n', encoding='utf-8')
+
+          tracker_path = Path('blueprint/audits/MASTER_R1_R6_RUNTIME_EVIDENCE_INDEX_20260827.md')
+          tracker = tracker_path.read_text(encoding='utf-8')
+          tracker = tracker.replace(
+              'Preparation branch: `p0-exec-id-persistence-fix`  ',
+              f'Reconciled integration branch: `{branch}`  '
+          )
+          tracker = tracker.replace(
+              'Status: **PREPARED / DOCUMENTATION-ONLY / ALL FORMAL RUNTIME STAGES BLOCKED BY P0 #94**',
+              'Status: **IP-09 RECONCILED / P0 PASS / R1 INCOMPLETE-READY / R2-R6 BLOCKED**'
+          )
+          tracker = tracker.replace(
+              '| P0 | EXEC_ID durable identity + restart + duplicate protection | gate | `BLOCKED` | fresh v4.59 HFM demo runtime evidence |',
+              '| P0 | EXEC_ID durable identity + restart + duplicate protection | gate | `PASS` | HFM runtime record + post-P0 integration evidence |'
+          )
+          tracker = tracker.replace(
+              '| R1 | D1 Extreme TP-Wajib lifecycle | 17 | `BLOCKED` | P0 PASS + canonical integration + post-P0 tooling |',
+              '| R1 | D1 Extreme TP-Wajib lifecycle | 17 | `INCOMPLETE` | released from P0 blocker; authenticated broker evidence not yet collected |'
+          )
+          s = tracker.index('# 6. R1 tracker')
+          e = tracker.index('# 7. R2 tracker')
+          r1 = tracker[s:e].replace('| `BLOCKED` |', '| `INCOMPLETE` |')
+          tracker = tracker[:s] + r1 + tracker[e:]
+          tracker += f'''\n\n---\n\n## 2026-08-27 IP-09 execution overlay\n\nThis overlay supersedes the preparation-time blocker snapshot above where statuses conflict. Historical text is retained for provenance.\n\n- P0 broker-runtime gate: **PASS** — `P0_EXEC_ID_RUNTIME_PASS_RECORD_20260827.md`; ticket `{p0_ticket}`, hash `{p0_hash}`.\n- Integration base: `{base}`.\n- Source-bearing integration commit: `{source_commit}`.\n- Exact source blob: `{source_blob}`.\n- Exact MQ4 SHA-256: `{source_sha}`.\n- Official MetaEditor integration compile: run `33025004203`, job `98364184047`, artifact `9628390588`, **0 errors / 0 warnings**.\n- Exact compiled EX4 SHA-256: `{ex4_sha}`.\n- v4.59 tooling validation: run `33027817870`, artifact `9629222430`, PASS; baseline/R1/R2/observer native matrix 0E0W.\n- Canonical defaults remain `EnableD1TPWLifecycle=false` and `EnableC044Lifecycle=false`; N3 remains execution-firewalled.\n- **R1 is now `INCOMPLETE / READY FOR COLLECTION`**, not PASS. Its 17 cases require authenticated broker/demo evidence.\n- R2-R6 remain `BLOCKED` by predecessor order; no later stage is promoted.\n- Canonical promotion/freeze sequence IP-10..IP-12 remains pending before formal R1 evidence collection.\n'''
+          tracker_path.write_text(tracker, encoding='utf-8')
+
+          freeze_path = Path('blueprint/audits/POST_P0_CANONICAL_FREEZE_RELEASE_CHECKLIST_20260827.md')
+          freeze = freeze_path.read_text(encoding='utf-8')
+          freeze += f'''\n\n---\n\n# 2026-08-27 Execution Reconciliation Overlay — IP-09\n\nThis overlay is the current execution status and supersedes the preparation verdict above where it conflicts. Preparation text remains immutable provenance.\n\n| Gate | Status | Evidence |\n|---|---|---|\n| CF-00 P0 broker runtime | **PASS** | `P0_EXEC_ID_RUNTIME_PASS_RECORD_20260827.md`; ticket `{p0_ticket}` / hash `{p0_hash}` |\n| CF-01 fresh base | **PASS** | `d1-owner-dev` base `{base}` |\n| CF-02 integration branch | **PASS** | `{branch}` created from exact base |\n| CF-03 allowed source delta | **PASS** | source-bearing commit `{source_commit}`; P0 identity/recovery scope only |\n| CF-04 protected surfaces | **PASS** | `POST_P0_PROTECTED_SURFACE_REGRESSION_EXECUTION_20260827.md`; PS-01..PS-30 closed after IP-07 |\n| CF-05 exact identity | **PASS** | blob `{source_blob}` / MQ4 `{source_sha}` / build 4.5.9 / property 4.59 / both lifecycle gates OFF |\n| CF-06 official compile | **PASS** | run `33025004203`, job `98364184047`, artifact `9628390588`; EX4 `{ex4_sha}`; 0E0W |\n| CF-07 v4.59 tooling | **PASS** | run `33027817870`, artifact `9629222430`; builder/analyzer selftests + native matrix PASS |\n| CF-08 documentation | **PASS at IP-09** | dedicated closure audit + CURRENT + MASTER_QUEUE + tracker + release identity reconciled in this execution |\n| CF-09 canonical branch update | **PENDING** | IP-10 next; `d1-owner-dev` intentionally untouched by IP-09 |\n| CF-10 Issue #94 closure | **PENDING** | issue remains OPEN until canonical verification at IP-11 |\n| CF-11 freeze | **PENDING** | IP-12 only after #94 closure/canonical verification |\n| CF-12 R1 handoff | **PENDING FINAL FREEZE** | tracker releases R1 from P0 blocker as INCOMPLETE/ready; collection waits canonical freeze |\n\nCurrent verdict: **`CANONICAL CANDIDATE READY` / IP-10 NEXT**.\n\nThis status does not enable D1TPW/C044 in the canonical baseline and does not advance `main`.\n'''
+          freeze_path.write_text(freeze, encoding='utf-8')
+
+          worksheet_path = Path('blueprint/audits/P0_POST_PASS_INTEGRATION_EXECUTION_WORKSHEET_20260827.md')
+          worksheet = worksheet_path.read_text(encoding='utf-8')
+          worksheet += f'''\n\n---\n\n# 2026-08-27 Execution Overlay\n\n| Step | Status | Evidence |\n|---|---|---|\n| IP-01 fresh base | **PASS** | `{base}` |\n| IP-02 integration branch | **PASS** | `{branch}` |\n| IP-03 reviewed P0 delta | **PASS** | source-bearing commit `{source_commit}` |\n| IP-04 changed-file classification | **PASS** | production source only at source-integration point; temporary P0 plumbing excluded |\n| IP-05 protected regression | **PASS** | `POST_P0_PROTECTED_SURFACE_REGRESSION_EXECUTION_20260827.md` |\n| IP-06 exact identity | **PASS** | blob `{source_blob}` / MQ4 `{source_sha}` / build 4.5.9 / property 4.59 |\n| IP-07 MetaEditor | **PASS** | run `33025004203`, job `98364184047`, artifact `9628390588`; EX4 `{ex4_sha}`; 0E0W |\n| IP-08 v4.59 tooling | **PASS** | run `33027817870`, artifact `9629222430` |\n| IP-09 documentation | **PASS** | closure audit, CURRENT, MASTER_QUEUE, tracker, freeze checklist, release identity, exact EX4 sync |\n| IP-10 canonical update | **PENDING** | next step |\n| IP-11 #94 closure | **PENDING** | only after IP-10 verification |\n| IP-12 freeze | **PENDING** | only after IP-11 |\n\nIP-09 does not modify EA MQ4 source semantics, lifecycle defaults, `d1-owner-dev`, `main`, or Issue #94 state.\n'''
+          worksheet_path.write_text(worksheet, encoding='utf-8')
+
+          runtime_record = Path('blueprint/audits/P0_EXEC_ID_RUNTIME_PASS_RECORD_20260827.md')
+          assert runtime_record.exists()
+
+          regression_path = Path('blueprint/audits/POST_P0_PROTECTED_SURFACE_REGRESSION_EXECUTION_20260827.md')
+          regression = regression_path.read_text(encoding='utf-8')
+          if '## 8. IP-07 compile closure addendum' not in regression:
+              regression += f'''\n\n## 8. IP-07 compile closure addendum\n\nOfficial exact-source MetaEditor evidence subsequently closed the two compile-attribution cases that were pending when Section 7 was written:\n\n- PS-29 Compile cleanliness: **PASS** — run `33025004203`, job `98364184047`, result **0 errors / 0 warnings**.\n- PS-30 Runtime attribution / EX4 identity: **PASS** — artifact `9628390588`, source blob `{source_blob}`, MQ4 SHA-256 `{source_sha}`, EX4 SHA-256 `{ex4_sha}`.\n- Artifact ZIP digest: `sha256:d8b9dac648f26d92f98aae9eba0a1455902a30b3fb4ca7adc4f49a77862dc998`.\n\n**Final PS-01..PS-30 verdict: PASS.** No protected strategy/MM/risk/lifecycle surface drift was found.\n'''
+              regression_path.write_text(regression, encoding='utf-8')
+
+          current_path = Path('blueprint/CURRENT.md')
+          current = current_path.read_text(encoding='utf-8')
+          marker = '# 2026-08-27 P0 v4.59 Post-PASS Integration Candidate Overlay'
+          assert marker not in current
+          current += f'''\n\n---\n\n# 2026-08-27 P0 v4.59 Post-PASS Integration Candidate Overlay\n\n> This dated overlay is authoritative for the post-P0 canonical candidate and supersedes older v4.58/current-next-action wording where it conflicts. Historical sections remain provenance.\n\n- Status: **IP-09 PASS / CANONICAL CANDIDATE READY / IP-10 PENDING**.\n- Integration branch: `{branch}`; pre-IP09 head `{pre_ip09}`; canonical base `{base}`.\n- Source-bearing integration commit: `{source_commit}`.\n- EA build: `{build}` / `#property version "4.59"`.\n- Source Git blob: `{source_blob}`.\n- MQ4 SHA-256: `{source_sha}`.\n- Exact official-compile EX4 SHA-256: `{ex4_sha}`; run `33025004203`, job `98364184047`, artifact `9628390588`, **0E0W**.\n- P0 authenticated HFM runtime: **PASS**; ticket `{p0_ticket}`, hash `{p0_hash}`, same-installation restart recovered exact ticket with no duplicate observed.\n- Protected-surface regression: **PS-01..PS-30 PASS**.\n- v4.59 runtime tooling: **PASS**; run `33027817870`, artifact `9629222430`; builder/analyzer selftests and BASELINE/R1/R2/observer native matrix passed.\n- Baseline lifecycle defaults remain **D1TPW OFF / C044 OFF**. N3 remains non-execution-authority.\n- Issue #94 remains OPEN intentionally until IP-10 canonical verification and IP-11 closure.\n- R1 is released from the P0 blocker as **INCOMPLETE / READY FOR COLLECTION**, but formal broker evidence collection waits the IP-10..IP-12 canonicalization/freeze sequence. R2-R6 remain blocked by predecessor order.\n- **Next safe action: IP-10 — promote this reviewed integration candidate to `d1-owner-dev`, re-fetch and verify exact source/build/gates. Do not advance `main`.**\n'''
+          current_path.write_text(current, encoding='utf-8')
+
+          queue_path = Path('blueprint/MASTER_QUEUE.md')
+          queue = queue_path.read_text(encoding='utf-8')
+          qmarker = '## 2026-08-27 — P0 v4.59 Closure / R1 Release Queue Overlay'
+          assert qmarker not in queue
+          queue += f'''\n\n---\n\n## 2026-08-27 — P0 v4.59 Closure / R1 Release Queue Overlay\n\n> This overlay supersedes prior queue text that still treats P0 broker runtime as the active blocker. Historical entries remain provenance.\n\n### P0 state\n- **P0 EXEC_ID defect: PASS / CLOSED AT RUNTIME + INTEGRATION-CANDIDATE LEVEL.**\n- HFM fresh-order/restart/no-duplicate acceptance: PASS (`{p0_ticket}`, `{p0_hash}`).\n- Integrated source: blob `{source_blob}`, MQ4 `{source_sha}`, build 4.5.9 / property 4.59.\n- Protected surfaces: PS-01..PS-30 PASS.\n- Official integration compile: run `33025004203` / artifact `9628390588` / EX4 `{ex4_sha}` / 0E0W.\n- v4.59 runtime tooling rebaseline: PASS, run `33027817870`, artifact `9629222430`.\n\n### Active ordered queue\n1. **IP-10 canonical development-branch update** — promote the exact reviewed candidate to `d1-owner-dev` and verify blob/SHA/build/gates.\n2. **IP-11 Issue #94 closure** — only after IP-10 canonical verification.\n3. **IP-12 canonical freeze / R1 handoff** — freeze exact identities; defaults remain D1TPW OFF / C044 OFF.\n4. **R1 D1 TP-Wajib broker runtime collection** — tracker status `INCOMPLETE / READY FOR COLLECTION`; test-only profile D1TPW ON / C044 OFF.\n5. R2 -> R3 -> R4 -> R5 -> R6 remain predecessor-blocked until each prior formal stage passes.\n\nNo new strategy source patch is authorized by this queue transition. Hosted/disconnected MT4 smoke remains non-runtime evidence.\n'''
+          queue_path.write_text(queue, encoding='utf-8')
+
+          audit = f'''# P0 v4.59 Post-PASS Integration Closure Audit — IP-09\n\nDate: 2026-08-27  \nIntegration branch: `{branch}`  \nStatus: **IP-09 PASS / CANONICAL CANDIDATE READY / IP-10 PENDING**\n\n## 1. Scope\n\nThis audit closes the post-P0 integration-candidate documentation gate. It does not update `d1-owner-dev`, does not advance `main`, does not close Issue #94, and does not activate D1TPW/C044/N3.\n\n## 2. P0 broker-runtime predecessor\n\nRepository record: `blueprint/audits/P0_EXEC_ID_RUNTIME_PASS_RECORD_20260827.md`.\n\n- HFM demo fresh EA-created ticket: `{p0_ticket}` (`CHFJPY SELL`).\n- execution hash: `{p0_hash}`.\n- immediate persistence: `Persist=PASS Local=Y`.\n- same-installation full MT4/EA restart: exact ticket recovered as accepted `REC_IDENTITY_HASH_ONLY`.\n- no second live ticket for the same execution hash was observed.\n\nVerdict: **P0 BROKER-RUNTIME PASS**.\n\n## 3. Integration lineage\n\n- fresh canonical base: `{base}`.\n- integration branch: `{branch}`.\n- source-bearing integration commit: `{source_commit}`.\n- pre-IP09 integration head after IP-08 cleanup: `{pre_ip09}`.\n- P0 hotfix branch was not merged wholesale; temporary P0 plumbing was excluded.\n\n## 4. Exact source/build identity\n\n- path: `blueprint/source/BBMA_EA.mq4`.\n- Git blob: `{source_blob}`.\n- MQ4 SHA-256: `{source_sha}`.\n- build marker: `{build}`.\n- property version: `4.59`.\n- `EnableD1TPWLifecycle=false`.\n- `EnableC044Lifecycle=false`.\n- N3 execution policy remains inactive/NONE.\n\n## 5. Protected-surface closure\n\nAudit: `blueprint/audits/POST_P0_PROTECTED_SURFACE_REGRESSION_EXECUTION_20260827.md`.\n\n- PS-01..PS-28 static: PASS.\n- PS-29 exact native compile: PASS.\n- PS-30 exact EX4 attribution: PASS.\n- Final PS-01..PS-30: **PASS**.\n- No unauthorized strategy, SL/TP, MM, risk, lifecycle, timing or module-authority drift found.\n\n## 6. Official exact-source MetaEditor evidence\n\n- workflow run: `33025004203`.\n- job: `98364184047`.\n- artifact: `9628390588` (`p0-v459-integration-native-evidence`).\n- artifact ZIP digest: `sha256:d8b9dac648f26d92f98aae9eba0a1455902a30b3fb4ca7adc4f49a77862dc998`.\n- result: **0 errors / 0 warnings**.\n- exact EX4 SHA-256: `{ex4_sha}`.\n- IP-09 synchronizes `blueprint/source/BBMA_EA.ex4` from that exact accepted artifact; no recompilation or source mutation is used for the sync.\n\n## 7. v4.59 tooling re-baseline\n\nPermanent v4.59 package is present on the integration branch. Validation evidence:\n\n- run: `33027817870`.\n- artifact: `9629222430` (`v459-runtime-tooling-gate-evidence`).\n- artifact digest: `sha256:2bcdef749fed42eb5e40a196125706e49a8fab7928b29ac3307b9e4692e62842`.\n- variant-builder selftest: PASS.\n- analyzer selftest: PASS.\n- BASELINE / R1_D1TPW / R2_C044 / observer native matrix: PASS, 0E0W.\n- baseline remains D1TPW OFF / C044 OFF; observer remains read-only.\n\n## 8. Documentation reconciliation\n\nIP-09 reconciles:\n\n- `blueprint/CURRENT.md`;\n- `blueprint/MASTER_QUEUE.md`;\n- `blueprint/source/EA_RELEASE_IDENTITY.json`;\n- `blueprint/audits/MASTER_R1_R6_RUNTIME_EVIDENCE_INDEX_20260827.md`;\n- `blueprint/audits/POST_P0_CANONICAL_FREEZE_RELEASE_CHECKLIST_20260827.md`;\n- `blueprint/audits/P0_POST_PASS_INTEGRATION_EXECUTION_WORKSHEET_20260827.md`;\n- P0 runtime PASS record copied into the integration lineage;\n- exact accepted EX4 synchronized from IP-07 artifact.\n\nTracker transition is deliberately limited: **P0=PASS; R1=INCOMPLETE/READY; R2-R6=BLOCKED**. No later runtime stage is marked PASS.\n\n## 9. Issue/canonical boundary\n\nIssue #94 remains OPEN at IP-09. That is intentional. Closure requires IP-10 verification of `d1-owner-dev`, followed by IP-11. Canonical freeze and formal R1 handoff are IP-12.\n\n## 10. IP-09 verdict\n\n**PASS — CANONICAL CANDIDATE READY.**\n\nNext authorized step is IP-10 only: update `d1-owner-dev` to the exact reviewed integration candidate, then re-fetch and verify source blob/MQ4 SHA/build/default gates. `main` remains untouched.\n'''
+          Path('blueprint/audits/P0_V459_POSTPASS_INTEGRATION_CLOSURE_AUDIT_20260827.md').write_text(audit, encoding='utf-8')
+          PY
+
+          # Fail closed on all final identity and status invariants before commit.
+          test "$(git hash-object blueprint/source/BBMA_EA.mq4)" = "$SOURCE_BLOB"
+          test "$(sha256sum blueprint/source/BBMA_EA.mq4 | awk '{print $1}')" = "$SOURCE_SHA"
+          test "$(sha256sum blueprint/source/BBMA_EA.ex4 | awk '{print $1}')" = "$EX4_SHA"
+          grep -Fq 'IP-09 PASS / CANONICAL CANDIDATE READY / IP-10 PENDING' blueprint/audits/P0_V459_POSTPASS_INTEGRATION_CLOSURE_AUDIT_20260827.md
+          grep -Fq '| P0 | EXEC_ID durable identity + restart + duplicate protection | gate | `PASS` |' blueprint/audits/MASTER_R1_R6_RUNTIME_EVIDENCE_INDEX_20260827.md
+          grep -Fq '| R1 | D1 Extreme TP-Wajib lifecycle | 17 | `INCOMPLETE` |' blueprint/audits/MASTER_R1_R6_RUNTIME_EVIDENCE_INDEX_20260827.md
+          grep -Fq '| R2 | C044 failed-Momentum lifecycle | 27 | `BLOCKED` |' blueprint/audits/MASTER_R1_R6_RUNTIME_EVIDENCE_INDEX_20260827.md
+          grep -Fq '**Next safe action: IP-10' blueprint/CURRENT.md
+          grep -Fq '**IP-10 canonical development-branch update**' blueprint/MASTER_QUEUE.md
+          git diff --check
+
+          git config user.name 'BBMA Project Automation'
+          git config user.email 'actions@github.com'
+          git add blueprint/CURRENT.md blueprint/MASTER_QUEUE.md blueprint/source/EA_RELEASE_IDENTITY.json blueprint/source/BBMA_EA.ex4 blueprint/audits
+          git commit -m 'IP-09: reconcile v4.59 canonical candidate evidence'
+          DOC_COMMIT="$(git rev-parse HEAD)"
+          printf '\nDocumentation reconciliation commit: `%s`  \n' "$DOC_COMMIT" >> blueprint/audits/P0_V459_POSTPASS_INTEGRATION_CLOSURE_AUDIT_20260827.md
+          printf '\nIP-09 documentation reconciliation commit: `%s`  \n' "$DOC_COMMIT" >> blueprint/audits/P0_POST_PASS_INTEGRATION_EXECUTION_WORKSHEET_20260827.md
+          git add blueprint/audits/P0_V459_POSTPASS_INTEGRATION_CLOSURE_AUDIT_20260827.md blueprint/audits/P0_POST_PASS_INTEGRATION_EXECUTION_WORKSHEET_20260827.md
+          git commit -m 'IP-09: record documentation reconciliation commit'
+          FINAL="$(git rev-parse HEAD)"
+          git push origin "HEAD:$TARGET"
+          echo "IP09_RECONCILIATION=PASS"
+          echo "DOC_COMMIT=$DOC_COMMIT"
+          echo "FINAL_IP09_HEAD=$FINAL"
+          echo "SOURCE_BLOB=$SOURCE_BLOB"
+          echo "SOURCE_SHA256=$SOURCE_SHA"
+          echo "EX4_SHA256=$EX4_SHA"

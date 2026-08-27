@@ -6,6 +6,7 @@ on:
       - nmje-n3-hardening-dev
     paths:
       - 'blueprint/tools/nmje_n3_step5_d1_owner_epoch_apply.py'
+      - 'blueprint/tests/test_nmje_n3_d1_owner_epoch_apply.py'
       - 'blueprint/.run-nmje-n3-step5-epoch'
       - '.github/workflows/nmje-n3-step5-d1-owner-epoch-materialize.yml'
 
@@ -20,6 +21,15 @@ jobs:
         with:
           ref: nmje-n3-hardening-dev
           fetch-depth: 0
+
+      - name: Run D1 owner epoch materializer selftest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 blueprint/tests/test_nmje_n3_d1_owner_epoch_apply.py
+          python3 -m py_compile \
+            blueprint/tools/nmje_n3_step5_d1_owner_epoch_apply.py \
+            blueprint/tests/test_nmje_n3_d1_owner_epoch_apply.py
 
       - name: Apply provenance-only D1 owner epoch anchor
         shell: bash

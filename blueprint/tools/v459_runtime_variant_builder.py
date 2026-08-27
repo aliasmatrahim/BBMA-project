@@ -94,8 +94,10 @@ def build(repo: Path, profile_key: str, output: Path, metadata: Path) -> dict:
         raise ValueError("variant differs from canonical outside approved gate replacement")
 
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(variant, encoding="utf-8")
-    variant_raw = output.read_bytes()
+    # Preserve the canonical newline bytes exactly on Windows runners. Using
+    # write_text() would translate CRLF and can turn existing CRLF into CRCRLF.
+    variant_raw = variant.encode("utf-8")
+    output.write_bytes(variant_raw)
 
     record = {
         "schema": "BBMA_V459_RUNTIME_VARIANT_V1",

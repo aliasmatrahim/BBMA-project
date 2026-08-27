@@ -9,6 +9,7 @@ on:
       - 'blueprint/N3_NMJE_STAGING_RUNBOOK.md'
       - 'blueprint/tools/n3_nmje_policy_readiness.py'
       - 'blueprint/tests/test_n3_nmje_policy_readiness.py'
+      - 'blueprint/tests/test_nmje_n3_replay_identity_static.py'
       - 'blueprint/source/BBMA_EA.mq4'
       - 'blueprint/.n3-v458-selftest-trigger'
       - '.github/workflows/n3-nmje-v458-staging-selftest.yml'
@@ -60,6 +61,13 @@ jobs:
           python3 blueprint/tests/test_n3_nmje_policy_readiness.py
           python3 -m py_compile blueprint/tools/n3_nmje_policy_readiness.py blueprint/tests/test_n3_nmje_policy_readiness.py
           echo 'N3_STAGING_SELFTEST=PASS'
+
+      - name: Run N3 replay identity static selftest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 blueprint/tests/test_nmje_n3_replay_identity_static.py
+          python3 -m py_compile blueprint/tests/test_nmje_n3_replay_identity_static.py
 
       - name: Verify contract firewall text
         shell: bash

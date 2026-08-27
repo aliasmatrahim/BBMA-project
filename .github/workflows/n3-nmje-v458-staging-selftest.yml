@@ -12,6 +12,7 @@ on:
       - 'blueprint/tests/test_nmje_n3_replay_identity_static.py'
       - 'blueprint/tests/test_nmje_n3_recovery_failclosed_static.py'
       - 'blueprint/tests/test_nmje_n3_authority_matrix_static.py'
+      - 'blueprint/tests/test_nmje_n3_identity_domain_static.py'
       - 'blueprint/source/BBMA_EA.mq4'
       - 'blueprint/.n3-v458-selftest-trigger'
       - '.github/workflows/n3-nmje-v458-staging-selftest.yml'
@@ -84,6 +85,13 @@ jobs:
           set -euo pipefail
           python3 blueprint/tests/test_nmje_n3_authority_matrix_static.py
           python3 -m py_compile blueprint/tests/test_nmje_n3_authority_matrix_static.py
+
+      - name: Run N3 identity domain separation selftest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 blueprint/tests/test_nmje_n3_identity_domain_static.py
+          python3 -m py_compile blueprint/tests/test_nmje_n3_identity_domain_static.py
 
       - name: Verify contract firewall text
         shell: bash

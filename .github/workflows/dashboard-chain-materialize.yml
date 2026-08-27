@@ -86,7 +86,14 @@ jobs:
               'chain = "DEC:REM" + arrow;',
               'chain = "DEC:RRE" + arrow;',
               'chain = "DEC:REE" + arrow;',
-              'chain = "DEC:RE" + arrow;'
+              'chain = "DEC:RE" + arrow;',
+              'DashREConfirmed(h4re, direction) &&',
+              'DashMLVReady(m15mlv, direction))',
+              'DashREConfirmed(d1re, direction) &&',
+              'DashExtremeReady(h4ext, direction) &&',
+              'chain = "H4:RE" + arrow + ">H1:EXT" + arrow +',
+              'chain = "D1:RE" + arrow + ">H4:RE" + arrow +',
+              'chain = "D1:RE" + arrow + ">H4:EXT" + arrow +'
           ]:
               if marker not in s:
                   raise SystemExit(f'missing dashboard marker: {marker}')
@@ -100,7 +107,10 @@ jobs:
               'if(buyRank >= sellRank)',
               '// Timer refresh keeps both chain lifecycle and live broker position in sync.\n   UpdateDashboard();',
               'bool DashDecisionComplete(PairState &state)',
-              'state.last_decision.DecisionState == DEC_VALIDATED ||\n           state.last_decision.DecisionState == DEC_EXECUTED'
+              'state.last_decision.DecisionState == DEC_VALIDATED ||\n           state.last_decision.DecisionState == DEC_EXECUTED',
+              'chain = "H4:RE" + arrow;\n               if(DashExtremeReady(h1ext, direction))',
+              'chain = "D1:RE" + arrow;\n               if(DashREConfirmed(h4re, direction))',
+              'chain = "D1:RE" + arrow;\n               if(DashExtremeReady(h4ext, direction))'
           ]
           for marker in forbidden:
               if marker in block:
@@ -115,6 +125,7 @@ jobs:
               raise SystemExit('conditional-only legacy dashboard cleanup remains in OnDeinit')
 
           print('DASHBOARD_M25_DISPLAY_ONLY_GUARD=PASS')
+          print('DASHBOARD_DECISION_FAMILY_GUARD=PASS')
           print('DASHBOARD_DEINIT_CLEANUP_GUARD=PASS')
           PY
 

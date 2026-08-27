@@ -40,14 +40,13 @@ Reviewed scope includes:
 
 The current materialized PR source still derives the D1 owner NMJE EventID from `D1MajorTrendOwner.SourceCandleTime`, which refreshes on closed-D1 snapshots. Therefore the known owner-epoch identity gap is not yet closed in the current source patch.
 
-The branch contains `blueprint/tools/nmje_n3_step5_d1_owner_epoch_apply.py`, which is intended to add a provenance-only `EpochStartCandleTime` anchor that changes only with canonical owner State/Direction transition while preserving `SourceCandleTime` as the latest closed-D1 snapshot.
+Safe isolated preparation now includes:
 
-Safe preparation advanced on the isolated branch:
-
-- branch head prepared: `edf4397384cdae8d668bd0063566ea8c436dc3b1`;
-- fail-closed workflow added: `.github/workflows/nmje-n3-step5-d1-owner-epoch-materialize.yml`;
-- workflow requires epoch provenance markers and rejects N3 execution-authority markers before committing source;
-- materializer run `33073496983` ended with a failed job that exposed **zero executable steps**.
+- branch head: `19b34544515b71ef805008a0e59595d154a99b75`;
+- `blueprint/tools/nmje_n3_step5_d1_owner_epoch_apply.py`, which adds a provenance-only `EpochStartCandleTime` anchor while preserving `SourceCandleTime` as the latest closed-D1 snapshot;
+- `blueprint/tests/test_nmje_n3_d1_owner_epoch_apply.py`, a synthetic fail-closed transformation selftest that checks the epoch migration and rejects execution/trade-operation markers;
+- `.github/workflows/nmje-n3-step5-d1-owner-epoch-materialize.yml`, which runs the selftest plus `py_compile`, applies the helper, verifies epoch provenance markers, rejects N3 execution-authority markers, and commits source only after those checks;
+- latest materializer run `33074399592`; its only job `98524700906` completed as failure with `steps=null` / zero executable steps.
 
 Therefore the epoch change is **prepared but not materialized/verified**. The zero-step result remains an unclassified CI/runner availability anomaly and must not be promoted to source PASS or source FAIL.
 
@@ -68,20 +67,24 @@ The intended combination display signatures were cross-checked against the canon
 - RRE = D1 Re-Entry + H4 Re-Entry + H1 Extreme;
 - REE = D1 Re-Entry + H4 Extreme + H1 Extreme.
 
-Earlier static review identified two concrete display-correctness defects in the first materializer design:
+Static review of the first materializer design found four display-layer correctness/performance issues:
 
 1. `DashLivePosition()` returned the first EA-owned order and could hide additional same-pair positions;
-2. exact BUY/SELL chain-rank ties silently preferred BUY through `buyRank >= sellRank`.
+2. exact BUY/SELL chain-rank ties silently preferred BUY through `buyRank >= sellRank`;
+3. the timer design redrew the complete dashboard every 1 second even if exact-owned broker positions had not changed;
+4. `DEC_VALIDATED` and `DEC_EXECUTED` were both treated as a completed setup with the same execution-style check mark, which could visually imply a broker execution before execution actually occurred.
 
-Safe isolated hardening has now been prepared:
+The fourth distinction was cross-checked against canonical state transitions: M16 sets `DEC_VALIDATED`; the execution path later sets `DEC_EXECUTED` after an execution ticket is obtained. This is an existing canonical distinction; the isolated dashboard change only reflects it.
 
-- `blueprint/tools/dashboard_chain_safety_fix.py` aggregates all exact EA-owned BUY/SELL positions for each pair and represents equal-rank opposite chains explicitly as `MIX`;
-- `blueprint/tests/test_dashboard_chain_safety_fix.py` provides a fail-closed textual transformation selftest;
-- `.github/workflows/dashboard-chain-materialize.yml` now runs the selftest, primary materializer, safety hardening and a display-only authority guard;
-- isolated branch head: `cc222347e8928e0df7f8d02f7b7af9eeb925d2d4`;
-- latest dashboard materializer run `33073679983` again ended before executable steps were exposed; job steps are absent.
+Safe isolated hardening now includes:
 
-Thus DASH-SAFE-01/02 are **prepared in isolated tooling but not yet materialized/native-compiled**. The PR must remain draft. Validated-vs-executed presentation semantics also remain subject to final display review before merge-readiness.
+- branch head: `c37a75cb3461e1516189d74415a7f581c97ae201`;
+- `blueprint/tools/dashboard_chain_safety_fix.py` aggregates all exact EA-owned BUY/SELL positions, represents equal-rank opposite chains as `MIX`, refreshes broker-position presentation only when exact-owned order identity changes, and separates validated (`VAL` / `~`) from executed (`EXE` / `✓`) display states;
+- `blueprint/tests/test_dashboard_chain_safety_fix.py` provides a fail-closed synthetic transformation selftest covering all four hardening items;
+- `.github/workflows/dashboard-chain-materialize.yml` runs the selftest plus `py_compile`, primary materializer, safety hardening, and an M25 display-only authority/performance/semantic guard;
+- latest materializer run `33074855091`; its only materialize job `98526273497` completed as failure with `steps=null` / zero executable steps.
+
+Thus DASH-SAFE-01 through DASH-SAFE-04 are **prepared in isolated tooling but not yet materialized/native-compiled**. The PR must remain draft.
 
 These findings and preparations are display-layer only and do not justify canonical source mutation during R1.
 

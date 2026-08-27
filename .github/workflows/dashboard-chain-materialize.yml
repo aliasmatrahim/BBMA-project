@@ -59,7 +59,13 @@ jobs:
               'string DashLivePositionSignature()',
               'IntegerToString(OrderTicket())',
               'static string lastLiveSignature = "__INIT__";',
-              'if(currentLiveSignature == lastLiveSignature) return;'
+              'if(currentLiveSignature == lastLiveSignature) return;',
+              'bool DashDecisionValidated(PairState &state)',
+              'bool DashDecisionExecuted(PairState &state)',
+              'status = "VAL";',
+              'status = "EXE";',
+              'setup += "~";',
+              'setup += "✓";'
           ]:
               if marker not in s:
                   raise SystemExit(f'missing dashboard marker: {marker}')
@@ -70,11 +76,13 @@ jobs:
               'OrderSend(', 'OrderClose(', 'OrderModify(', 'OrderDelete(',
               'PriorityEngine_Atomic(', 'InvalidationEngine_Atomic(',
               'if(buyRank >= sellRank)',
-              '// Timer refresh keeps both chain lifecycle and live broker position in sync.\n   UpdateDashboard();'
+              '// Timer refresh keeps both chain lifecycle and live broker position in sync.\n   UpdateDashboard();',
+              'bool DashDecisionComplete(PairState &state)',
+              'state.last_decision.DecisionState == DEC_VALIDATED ||\n           state.last_decision.DecisionState == DEC_EXECUTED'
           ]
           for marker in forbidden:
               if marker in block:
-                  raise SystemExit(f'forbidden M25 authority/bias/perf marker: {marker}')
+                  raise SystemExit(f'forbidden M25 authority/bias/perf/semantic marker: {marker}')
           print('DASHBOARD_M25_DISPLAY_ONLY_GUARD=PASS')
           PY
 

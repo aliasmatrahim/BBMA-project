@@ -10,5 +10,7 @@
   "compile_checkout_sha256": "0a42ee2e6c32810f655b592d8738f500e8b63b4e08c4c874e82452f75ce94b2e",
   "ex4_sha256": "89821c5b1ae2d7c28a6cad7569cb2ced0e45090d0897451e0f61e0b46eb8944c",
   "line_ending_note": "same Git blob; repository LF bytes differ from Windows compile checkout CRLF bytes",
-  "canonical_status": "CANONICAL_CANDIDATE_READY_IP09_IP10_PENDING"
+  "canonical_promotion_pr": 95,
+  "canonical_promotion_commit": "4373e55b3baca7c99a3ca643cb5fa97629be09b7",
+  "canonical_status": "IP10_CANONICAL_PROMOTION_PASS_IP11_PENDING"
 }

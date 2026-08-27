@@ -10,23 +10,37 @@ This audit does not authorize or materialize any change to `blueprint/source/BBM
 
 R1 remains active under Issue #96. The frozen v4.59 runtime lineage must not receive opportunistic source edits while attributable R1 evidence is being collected. PR #98 therefore remains DRAFT / NO MERGE until its own source materialization, static guard, native MetaEditor 0E0W and isolated runtime checks are complete.
 
+All follow-up hardening in this record is prepared on isolated branch `dashboard-chain-audit-20260827`. It is not a canonical source change and is not a PASS claim for the future materialized dashboard.
+
 ## 2. Reviewed preparation state
 
-PR #98 preparation currently consists of:
+Original PR #98 preparation consists of:
 - `.github/workflows/dashboard-chain-materialize.yml`
 - `blueprint/.run-dashboard-chain`
 - `blueprint/tests/test_dashboard_chain_safety_fix.py`
 - `blueprint/tools/dashboard_chain_compact_apply.py`
 - `blueprint/tools/dashboard_chain_safety_fix.py`
 
-`blueprint/source/BBMA_EA.mq4` is not currently part of the PR diff.
+The isolated audit branch additionally prepares:
+- `blueprint/tools/dashboard_chain_prematerialization_fix.py`
+- `blueprint/tests/test_dashboard_chain_prematerialization_fix.py`
+- `blueprint/tools/dashboard_chain_scope_guard.py`
+- `.github/workflows/dashboard-chain-audit-static.yml`
+- this audit record
 
-The workflow is ordered fail-closed:
-1. safety selftest + Python compile check
+`blueprint/source/BBMA_EA.mq4` remains absent from the audit-branch delta relative to `dashboard-chain-dev`.
+
+Prepared future materializer ordering is fail-closed:
+1. primary and prematerialization fixture selftests + Python compile check
 2. primary M25 materializer
-3. dashboard safety hardening
-4. M25 authority/performance/semantic static guard
-5. source commit only if the preceding checks pass
+3. primary dashboard safety hardening
+4. prematerialization display hardening
+5. strict source-scope guard
+6. M25 authority/performance/semantic static guard
+7. diff hygiene
+8. source commit only if all preceding checks pass
+
+The primary safety stage and the prematerialization stage are deliberately non-overlapping. Primary safety owns multi-position aggregation, BUY/SELL tie handling, live-position change detection, and VALIDATED-vs-EXECUTED separation. The later prematerialization stage owns deterministic signature ordering, decision-family chain consistency, and OnDeinit chart-object cleanup.
 
 ## 3. Canonical compatibility checks completed
 
@@ -44,33 +58,35 @@ The canonical exact-owned order helper admits only live `OP_BUY` / `OP_SELL` ord
 
 ## 4. Static findings
 
-### DASH-PRE-01 — PASS: multi-position aggregation is prepared
-The post-materialization safety helper replaces first-order-only display with BUY/SELL counts and mixed-direction representation.
+### DASH-PRE-01 — PASS/PREPARED: multi-position aggregation
+The primary safety helper replaces first-order-only display with BUY/SELL counts and mixed-direction representation.
 
-### DASH-PRE-02 — PASS: exact BUY/SELL rank tie is explicit
+### DASH-PRE-02 — PASS/PREPARED: exact BUY/SELL rank tie
 Equal-rank opposite directions are prepared to display `MIX`; the old implicit BUY tie bias is rejected by the safety guard.
 
-### DASH-PRE-03 — PASS: validated and executed states are separated
+### DASH-PRE-03 — PASS/PREPARED: validated and executed states separated
 `DEC_VALIDATED` is prepared as `VAL` / `~`; `DEC_EXECUTED` is prepared as `EXE` / `✓`.
 
-### DASH-PRE-04 — OPEN BLOCKER: chart-object cleanup on deinitialization
-The new dashboard uses `OBJ_LABEL` objects under prefix `BBMA_DASH_`. Canonical `OnDeinit()` currently clears only `Comment("")`; it does not call the proposed `ClearDashboardObjects()`.
+### DASH-PRE-04 — PREPARED, NOT YET MATERIALIZED: chart-object cleanup on deinitialization
+Static review found that the new dashboard uses `OBJ_LABEL` objects under prefix `BBMA_DASH_` while canonical `OnDeinit()` clears only `Comment("")`.
 
-Risk: removing/recompiling the EA can leave stale dashboard labels on the chart until another explicit cleanup path runs.
+The isolated prematerialization helper now prepares unconditional `ClearDashboardObjects();` plus `Comment("");` during deinitialization. The separate scope guard permits only the complete M25 replacement plus this exact display-only OnDeinit delta.
 
-Required before promotion: an attributable display-only cleanup hook must call `ClearDashboardObjects()` on deinitialization, with a static guard proving no trade/risk/lifecycle authority is added.
+This blocker is preparation-complete but cannot be promoted to PASS until actual materialization, static guard and runtime removal/recompile checks prove the labels are removed.
 
-### DASH-PRE-05 — OPEN BLOCKER: setup/chain family mismatch can be displayed
-`DashBuildDirectionChain()` locally selects the highest numeric display rank across REM/RRE/REE, then later overwrites `setup` with `last_decision.SignalType` without necessarily rebuilding `chain` for that same family.
+### DASH-PRE-05 — PREPARED, NOT YET MATERIALIZED: setup/chain family consistency
+Static review found that a decision family could overwrite `SETUP` while retaining another locally ranked family's `CHAIN`.
 
-Example failure mode: current local state ranks REE above REM while `last_decision.SignalType == SIGNAL_REM`; the row can show `SETUP=REM` with an REE component chain.
+The isolated prematerialization helper now reconstructs the chain only inside the selected decision family (`REM`, `RRE`, `REE`, `RE`). Where current component state cannot reconstruct that family, it degrades to an explicit same-family `DEC:<family>` marker rather than reusing another family's chain.
 
-Required before promotion: setup and chain must be family-consistent. If a decision state is displayed as VAL/EXE, its displayed setup must never be paired with another family's chain.
+This blocker is preparation-complete but remains runtime/static-evidence pending.
 
-### DASH-PRE-06 — HARDENING ITEM: live-position refresh signature is order-sensitive
-The prepared signature concatenates exact-owned orders in `OrderSelect(..., SELECT_BY_POS, MODE_TRADES)` enumeration order. If terminal enumeration order changes while the actual set of positions is unchanged, the dashboard can redraw unnecessarily.
+### DASH-PRE-06 — PREPARED, NOT YET MATERIALIZED: order-invariant live-position signature
+The original prepared signature serialized MT4 `SELECT_BY_POS` enumeration order and could redraw if pool order changed without a position-set change.
 
-This is a performance/determinism issue, not trading correctness. Before promotion, prefer an order-invariant signature (for example deterministic ticket sorting) or explicitly accept the harmless redraw behaviour in the runtime matrix.
+The isolated prematerialization helper now captures exact-owned ticket/pair/type triples, sorts them deterministically by unique ticket, and only then serializes the signature. This is presentation determinism only and does not change trading state.
+
+Native/runtime confirmation remains required.
 
 ### DASH-PRE-07 — EVIDENCE REQUIRED: Unicode/native MetaEditor compatibility
 The proposed labels contain arrows and a check mark. Static review cannot establish native MetaEditor encoding/compile behaviour. Native MetaEditor 0 errors / 0 warnings remains mandatory after materialization.
@@ -78,17 +94,24 @@ The proposed labels contain arrows and a check mark. Static review cannot establ
 ### DASH-PRE-08 — PASS: timer does not become strategy authority
 Canonical timer calls `OnTickMain()` and then `RefreshDashboardLiveTradeCount()`. Prepared dashboard timer work is presentation-only and reads exact-owned broker position identity. No strategy/risk/validation/lifecycle/execution authority is permitted in M25.
 
+### DASH-PRE-09 — PASS/PREPARED: transformation stages are non-redundant and fail closed
+A temporary audit-branch overlap was detected when deterministic signature, family consistency and deinit cleanup were added to both the primary safety stage and the later prematerialization stage. That would have made the second textual transform fail because its expected predecessor text had already been consumed.
+
+The audit branch was reconciled so those three responsibilities exist only in `dashboard_chain_prematerialization_fix.py`. The primary `dashboard_chain_safety_fix.py` is restored to its original four responsibilities. This preserves exact stage contracts and avoids redundant transformations.
+
 ## 5. CI zero-step anomaly investigation
 
-Latest dashboard materializer run `33074855091` failed before attributable executable work:
-- dashboard job exists but reports `runner_id=0`
+Dashboard materializer run `33074855091` failed before attributable executable work:
+- dashboard job exists but reports no usable runner execution
 - executable step list is empty
 
-The same dashboard head triggered multiple other repository workflows at the same time, and those runs also failed immediately; at least one sampled sibling run reports zero jobs. Recent repository success evidence exists earlier on 2026-08-27, while the later run group fails before jobs execute.
+A deliberately read-only, fixture-only audit workflow was then created on the isolated audit branch. Run `33083370710`, job `98556304055`, also completed as failure with an empty step list; the job-log fetch has no usable log blob. That workflow had no source materialization and no write permission.
 
-Classification: REPOSITORY / GITHUB ACTIONS EXECUTION AVAILABILITY ANOMALY — exact external cause not proven.
+Multiple unrelated repository workflows triggered around the same periods also fail immediately before useful job execution, while earlier repository workflows on 2026-08-27 have successful executions.
 
-Do not classify the dashboard source or Python tooling as PASS or FAIL from these zero-step runs. A fresh attributable workflow execution is required later.
+Classification: **REPOSITORY / GITHUB ACTIONS EXECUTION AVAILABILITY ANOMALY**. The exact external cause is not proven.
+
+The repeated zero-step result from a read-only fixture-only workflow materially strengthens the conclusion that these runs are not attributable evidence of dashboard Python/source PASS or FAIL. Do not use them as verification. A future non-empty attributable run is still required.
 
 ## 6. Dashboard acceptance matrix
 
@@ -108,20 +131,23 @@ Do not classify the dashboard source or Python tooling as PASS or FAIL from thes
 | DSH-11 | DEC_VALIDATED | `VAL` / `~`; never execution check mark | static + runtime |
 | DSH-12 | DEC_EXECUTED | `EXE` / `✓`; broker position attribution still independently verifiable | static + runtime |
 | DSH-13 | position open/close without new M15 signal | timer refresh updates POS without strategy mutation | runtime |
-| DSH-14 | unchanged order set across timer ticks | no unnecessary redraw where deterministic signature is implemented/accepted | runtime |
+| DSH-14 | unchanged order set across timer ticks | deterministic ticket-sorted signature prevents pool-order-only redraws | static + runtime |
 | DSH-15 | EA remove/recompile | all `BBMA_DASH_` objects removed | runtime |
 | DSH-16 | chart restart / EA reattach | no duplicate stale labels; fresh row set only | runtime |
 | DSH-17 | Unicode labels | native MetaEditor 0E0W and chart text renders acceptably | native + runtime |
+| DSH-18 | decision family differs from highest current local family | displayed SETUP and CHAIN remain in the same decision family or use same-family `DEC:` fallback | static + runtime |
 
 ## 7. Promotion gate
 
 PR #98 must remain DRAFT / NO MERGE until all of the following are true:
-1. DASH-PRE-04 cleanup blocker resolved in preparation tooling.
-2. DASH-PRE-05 setup/chain family-consistency blocker resolved.
-3. DASH-PRE-06 determinism either fixed or explicitly accepted with runtime evidence.
-4. Materializer executes with attributable non-empty steps.
-5. Static display-only guard passes on the actual materialized source.
-6. Native MetaEditor compile is 0 errors / 0 warnings.
-7. DSH-00..DSH-17 mandatory acceptance cases are resolved as PASS or explicitly documented BLOCKED with no false PASS.
-8. No strategy, risk, validation, lifecycle or execution authority change is present.
-9. Frozen R1 canonical lineage remains untouched unless separately authorized after its evidence boundary.
+1. prepared DASH-PRE-04 cleanup is actually materialized and verified.
+2. prepared DASH-PRE-05 family consistency is actually materialized and verified.
+3. prepared DASH-PRE-06 deterministic signature is actually materialized and verified.
+4. materializer executes with attributable non-empty steps.
+5. fixture selftests and Python syntax checks execute with attributable PASS evidence.
+6. strict source-scope guard passes on actual materialized source.
+7. static display-only guard passes on actual materialized source.
+8. native MetaEditor compile is 0 errors / 0 warnings.
+9. DSH-00..DSH-18 are resolved as PASS or explicitly documented BLOCKED with no false PASS.
+10. no strategy, risk, validation, lifecycle or execution authority change is present.
+11. frozen R1 canonical lineage remains untouched unless separately authorized after its evidence boundary.

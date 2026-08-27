@@ -10,11 +10,6 @@ Display-only fixes:
    identity changes, avoiding a full label redraw every 1-second timer tick.
 4. Keep DEC_VALIDATED visually distinct from DEC_EXECUTED so the dashboard
    never presents validation as an executed trade.
-5. Remove BBMA dashboard chart objects on EA deinitialization.
-6. Keep displayed setup family and displayed chain family consistent when a
-   last decision is shown.
-7. Make the live-position refresh signature independent of MT4 pool order by
-   sorting exact-owned tickets before serializing the signature.
 
 This script intentionally changes dashboard presentation only. It does not
 call or add trade, risk, validation, lifecycle, or execution authorities.
@@ -161,27 +156,10 @@ def main() -> int:
     new_refresh = '''string DashLivePositionSignature()
 {
    string signature = "";
-   int tickets[];
-   int ticketCount = 0;
    int total = OrdersTotal();
-
    for(int i = 0; i < total; i++)
    {
       if(!OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) continue;
-      int selectedPairIndex = -1;
-      if(!IsExactEAOwnedSelectedOrder(selectedPairIndex)) continue;
-
-      ArrayResize(tickets, ticketCount + 1);
-      tickets[ticketCount] = OrderTicket();
-      ticketCount++;
-   }
-
-   if(ticketCount > 1)
-      ArraySort(tickets);
-
-   for(int j = 0; j < ticketCount; j++)
-   {
-      if(!OrderSelect(tickets[j], SELECT_BY_TICKET, MODE_TRADES)) continue;
       int selectedPairIndex = -1;
       if(!IsExactEAOwnedSelectedOrder(selectedPairIndex)) continue;
       signature += IntegerToString(selectedPairIndex) + ":" +
@@ -225,8 +203,7 @@ bool DashDecisionExecuted(PairState &state)
            state.last_decision.DecisionState == DEC_EXECUTED);
 }'''
 
-    old_decision_display = '''      if(finalSetup != "-") setup = finalSetup;
-      if(DashDecisionComplete(state))
+    old_decision_display = '''      if(DashDecisionComplete(state))
       {
          setup += "✓";
          if(rank < 40) rank = 40;
@@ -237,17 +214,7 @@ bool DashDecisionExecuted(PairState &state)
          status = "INV";
       }'''
 
-    new_decision_display = '''      if(finalSetup != "-")
-      {
-         // Never pair a decision family label with another family's live chain.
-         // If current component state no longer represents the decision family,
-         // degrade the chain to an explicit decision-family marker rather than
-         // inventing or reusing unrelated components.
-         if(setup != finalSetup)
-            chain = finalSetup + ":DECISION";
-         setup = finalSetup;
-      }
-      if(DashDecisionExecuted(state))
+    new_decision_display = '''      if(DashDecisionExecuted(state))
       {
          setup += "✓";
          status = "EXE";
@@ -267,20 +234,6 @@ bool DashDecisionExecuted(PairState &state)
          status = "INV";
       }'''
 
-    old_deinit_cleanup = '''   g_is_managing_trade = false;
-   g_dashboard_needs_update = false;
-   if(ShowDashboard)
-      Comment("");
-   Log(DBG_FULL, "EA deinitialized, reason: " + IntegerToString(reason));'''
-
-    new_deinit_cleanup = '''   g_is_managing_trade = false;
-   g_dashboard_needs_update = false;
-   // Display-only cleanup must run regardless of the current ShowDashboard
-   // input so labels created by a prior enabled state cannot remain stale.
-   ClearDashboardObjects();
-   Comment("");
-   Log(DBG_FULL, "EA deinitialized, reason: " + IntegerToString(reason));'''
-
     try:
         text = replace_once(text, old_live, new_live, 'live-position aggregation')
         text = replace_once(text, old_rank, new_rank, 'equal-rank direction handling')
@@ -288,9 +241,7 @@ bool DashDecisionExecuted(PairState &state)
         text = replace_once(text, old_decision_helper, new_decision_helper,
                             'validated/executed helper separation')
         text = replace_once(text, old_decision_display, new_decision_display,
-                            'decision-family and validated/executed presentation')
-        text = replace_once(text, old_deinit_cleanup, new_deinit_cleanup,
-                            'dashboard deinitialization cleanup')
+                            'validated/executed presentation separation')
     except RuntimeError as exc:
         print(f'ERROR: {exc}', file=sys.stderr)
         return 3
@@ -303,20 +254,15 @@ bool DashDecisionExecuted(PairState &state)
         'status = "MIX";',
         'chain = "B:" + buyChain + " | S:" + sellChain;',
         'string DashLivePositionSignature()',
-        'int tickets[];',
-        'ArrayResize(tickets, ticketCount + 1);',
-        'ArraySort(tickets);',
-        'OrderSelect(tickets[j], SELECT_BY_TICKET, MODE_TRADES)',
+        'IntegerToString(OrderTicket())',
         'static string lastLiveSignature = "__INIT__";',
         'if(currentLiveSignature == lastLiveSignature) return;',
         'bool DashDecisionValidated(PairState &state)',
         'bool DashDecisionExecuted(PairState &state)',
-        'chain = finalSetup + ":DECISION";',
         'status = "VAL";',
         'status = "EXE";',
         'setup += "~";',
         'setup += "✓";',
-        'ClearDashboardObjects();',
     ]
     for token in required:
         if token not in text:
@@ -328,8 +274,6 @@ bool DashDecisionExecuted(PairState &state)
         '// Timer refresh keeps both chain lifecycle and live broker position in sync.\n   UpdateDashboard();',
         'bool DashDecisionComplete(PairState &state)',
         'state.last_decision.DecisionState == DEC_VALIDATED ||\n           state.last_decision.DecisionState == DEC_EXECUTED',
-        'if(finalSetup != "-") setup = finalSetup;',
-        'if(ShowDashboard)\n      Comment("");',
     ]
     for token in forbidden:
         if token in text:

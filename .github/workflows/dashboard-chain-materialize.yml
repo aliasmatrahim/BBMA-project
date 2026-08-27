@@ -9,6 +9,9 @@ on:
       - 'blueprint/tools/dashboard_chain_compact_apply.py'
       - 'blueprint/tools/dashboard_chain_safety_fix.py'
       - 'blueprint/tests/test_dashboard_chain_safety_fix.py'
+      - 'blueprint/tools/dashboard_chain_prematerialization_fix.py'
+      - 'blueprint/tests/test_dashboard_chain_prematerialization_fix.py'
+      - 'blueprint/tools/dashboard_chain_scope_guard.py'
       - '.github/workflows/dashboard-chain-materialize.yml'
 
 permissions:
@@ -23,20 +26,30 @@ jobs:
           ref: dashboard-chain-dev
           fetch-depth: 0
 
-      - name: Run dashboard safety patch selftest
+      - name: Run dashboard hardening selftests
         shell: bash
         run: |
           set -euo pipefail
           python3 blueprint/tests/test_dashboard_chain_safety_fix.py
+          python3 blueprint/tests/test_dashboard_chain_prematerialization_fix.py
           python3 -m py_compile \
             blueprint/tools/dashboard_chain_safety_fix.py \
-            blueprint/tests/test_dashboard_chain_safety_fix.py
+            blueprint/tests/test_dashboard_chain_safety_fix.py \
+            blueprint/tools/dashboard_chain_prematerialization_fix.py \
+            blueprint/tests/test_dashboard_chain_prematerialization_fix.py \
+            blueprint/tools/dashboard_chain_scope_guard.py
 
       - name: Apply M25 compact chain dashboard
         run: python3 blueprint/tools/dashboard_chain_compact_apply.py
 
       - name: Apply dashboard safety hardening
         run: python3 blueprint/tools/dashboard_chain_safety_fix.py
+
+      - name: Apply prematerialization dashboard hardening
+        run: python3 blueprint/tools/dashboard_chain_prematerialization_fix.py
+
+      - name: Guard source scope
+        run: python3 blueprint/tools/dashboard_chain_scope_guard.py
 
       - name: Static dashboard-only guard
         shell: bash
@@ -57,7 +70,11 @@ jobs:
               'status = "MIX";',
               'chain = "B:" + buyChain + " | S:" + sellChain;',
               'string DashLivePositionSignature()',
-              'IntegerToString(OrderTicket())',
+              'int tickets[];',
+              'int pairIndexes[];',
+              'int orderTypes[];',
+              'ArrayResize(tickets, owned + 1);',
+              'while(b >= 0 && tickets[b] > keyTicket)',
               'static string lastLiveSignature = "__INIT__";',
               'if(currentLiveSignature == lastLiveSignature) return;',
               'bool DashDecisionValidated(PairState &state)',
@@ -65,10 +82,15 @@ jobs:
               'status = "VAL";',
               'status = "EXE";',
               'setup += "~";',
-              'setup += "✓";'
+              'setup += "✓";',
+              'chain = "DEC:REM" + arrow;',
+              'chain = "DEC:RRE" + arrow;',
+              'chain = "DEC:REE" + arrow;',
+              'chain = "DEC:RE" + arrow;'
           ]:
               if marker not in s:
                   raise SystemExit(f'missing dashboard marker: {marker}')
+
           m25=s.index('//| MODULE 25: DASHBOARD ENGINE')
           m26=s.index('//| MODULE 26: INITIALIZATION & CLEANUP')
           block=s[m25:m26]
@@ -83,8 +105,25 @@ jobs:
           for marker in forbidden:
               if marker in block:
                   raise SystemExit(f'forbidden M25 authority/bias/perf/semantic marker: {marker}')
+
+          deinit_start=s.index('void OnDeinit(')
+          tick_start=s.index('//| EXPERT TICK FUNCTION', deinit_start)
+          deinit=s[deinit_start:tick_start]
+          if 'ClearDashboardObjects();' not in deinit:
+              raise SystemExit('missing dashboard object cleanup in OnDeinit')
+          if 'if(ShowDashboard)\n      Comment("");' in deinit:
+              raise SystemExit('conditional-only legacy dashboard cleanup remains in OnDeinit')
+
           print('DASHBOARD_M25_DISPLAY_ONLY_GUARD=PASS')
+          print('DASHBOARD_DEINIT_CLEANUP_GUARD=PASS')
           PY
+
+      - name: Diff hygiene
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          git status --short
 
       - name: Commit materialized source
         shell: bash

@@ -12,6 +12,8 @@ R1 remains active under Issue #96. The frozen v4.59 runtime lineage must not rec
 
 All follow-up hardening in this record is prepared on isolated branch `dashboard-chain-audit-20260827`. It is not a canonical source change and is not a PASS claim for the future materialized dashboard.
 
+Draft PR #99 is the review-only handoff from this audit branch into `dashboard-chain-dev`. It is explicitly DO NOT MERGE while the R1 evidence freeze remains active.
+
 ## 2. Reviewed preparation state
 
 Original PR #98 preparation consists of:
@@ -24,6 +26,7 @@ Original PR #98 preparation consists of:
 The isolated audit branch additionally prepares:
 - `blueprint/tools/dashboard_chain_prematerialization_fix.py`
 - `blueprint/tests/test_dashboard_chain_prematerialization_fix.py`
+- `blueprint/tests/test_dashboard_chain_stage_composition.py`
 - `blueprint/tools/dashboard_chain_scope_guard.py`
 - `.github/workflows/dashboard-chain-audit-static.yml`
 - this audit record
@@ -31,7 +34,7 @@ The isolated audit branch additionally prepares:
 `blueprint/source/BBMA_EA.mq4` remains absent from the audit-branch delta relative to `dashboard-chain-dev`.
 
 Prepared future materializer ordering is fail-closed:
-1. primary and prematerialization fixture selftests + Python compile check
+1. primary, prematerialization and stage-composition fixture selftests + Python compile check
 2. primary M25 materializer
 3. primary dashboard safety hardening
 4. prematerialization display hardening
@@ -77,7 +80,7 @@ This blocker is preparation-complete but cannot be promoted to PASS until actual
 ### DASH-PRE-05 — PREPARED, NOT YET MATERIALIZED: setup/chain family consistency
 Static review found that a decision family could overwrite `SETUP` while retaining another locally ranked family's `CHAIN`.
 
-The isolated prematerialization helper now reconstructs the chain only inside the selected decision family (`REM`, `RRE`, `REE`, `RE`). Where current component state cannot reconstruct that family, it degrades to an explicit same-family `DEC:<family>` marker rather than reusing another family's chain.
+The isolated prematerialization helper now reconstructs the chain only inside the selected decision family (`REM`, `RRE`, `REE`, `RE`). Where current component state cannot reconstruct the complete family, it degrades to an explicit same-family `DEC:<family>` marker rather than reusing another family's or a misleading partial chain.
 
 This blocker is preparation-complete but remains runtime/static-evidence pending.
 
@@ -98,6 +101,13 @@ Canonical timer calls `OnTickMain()` and then `RefreshDashboardLiveTradeCount()`
 A temporary audit-branch overlap was detected when deterministic signature, family consistency and deinit cleanup were added to both the primary safety stage and the later prematerialization stage. That would have made the second textual transform fail because its expected predecessor text had already been consumed.
 
 The audit branch was reconciled so those three responsibilities exist only in `dashboard_chain_prematerialization_fix.py`. The primary `dashboard_chain_safety_fix.py` is restored to its original four responsibilities. This preserves exact stage contracts and avoids redundant transformations.
+
+### DASH-PRE-10 — PASS/PREPARED, EXECUTION EVIDENCE PENDING: producer/consumer stage composition
+Separate fixture tests can pass independently while still hiding an incompatibility between the output of the primary safety stage and the exact input text expected by the prematerialization stage.
+
+`test_dashboard_chain_stage_composition.py` now runs both transformation modules sequentially against one synthetic source fixture. It asserts that the primary stage produces the consumer contract expected by the second stage, then verifies that multi-position/MIX/VAL/EXE protections survive while deterministic signature ordering, complete-family decision-chain fallback and deinitialization cleanup are added exactly once.
+
+Both the read-only audit workflow and the future materializer are prepared to require this composition test before any source materialization step. Hosted execution evidence is still pending because of the repository Actions execution anomaly.
 
 ## 5. CI zero-step anomaly investigation
 
@@ -139,12 +149,12 @@ The repeated zero-step result from a read-only fixture-only workflow materially 
 
 ## 7. Promotion gate
 
-PR #98 must remain DRAFT / NO MERGE until all of the following are true:
+PR #98 and draft follow-up PR #99 must remain NO MERGE until all of the following are true:
 1. prepared DASH-PRE-04 cleanup is actually materialized and verified.
 2. prepared DASH-PRE-05 family consistency is actually materialized and verified.
 3. prepared DASH-PRE-06 deterministic signature is actually materialized and verified.
 4. materializer executes with attributable non-empty steps.
-5. fixture selftests and Python syntax checks execute with attributable PASS evidence.
+5. primary, prematerialization and stage-composition fixture selftests plus Python syntax checks execute with attributable PASS evidence.
 6. strict source-scope guard passes on actual materialized source.
 7. static display-only guard passes on actual materialized source.
 8. native MetaEditor compile is 0 errors / 0 warnings.

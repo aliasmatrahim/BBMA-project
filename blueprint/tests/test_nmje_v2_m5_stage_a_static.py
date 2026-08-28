@@ -21,8 +21,8 @@ def require(text: str, *markers: str) -> None:
 def main() -> None:
     require(
         SRC,
-        "Version 4.6.7 - NMJE v2 Structural Density Telemetry",
-        '#property version   "4.67"',
+        "Version 4.6.8 - NMJE v2 Parent Provenance Stability",
+        '#property version   "4.68"',
         "datetime             EpochStartCandleTime;",
         "NMJE_BuildD1Node(",
         "NMJE_BuildH4Node(",
@@ -42,7 +42,7 @@ def main() -> None:
         "automatic_policy_authorized = false",
         "m5_execution_authority = false",
         "m5_processing_clock_authority = false",
-        "source_modification_authorized = stage_e3_p7_density_metadata",
+        "source_modification_authorized = stage_e4_p8_provenance_stability",
         "activation_authorized = false",
     )
     require(

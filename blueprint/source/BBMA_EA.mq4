@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.6.7 - NMJE v2 Structural Density Telemetry         |
+//| Version 4.6.8 - NMJE v2 Parent Provenance Stability          |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.67"
+#property version   "4.68"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -679,6 +679,8 @@ struct NMJEShadowAttributionState
    bool                 Durable;
    string               JourneyHash;
    string               ParentEventHash;
+   bool                 ParentRetained;
+   string               ParentSelectionReasonHash;
    ENUM_NESTED_RELATION Relation;
    ENUM_NMJE_CONFLICT_SUBTYPE ConflictSubtype;
    ENUM_NMJE_JOURNEY_MATURITY Maturity;
@@ -711,6 +713,8 @@ struct NestedJourneyState
    datetime                ParentCandleTime;
    // N3 provenance-only identity of the exact canonical owner chosen as parent.
    string                  ParentEventID;
+   bool                    ParentRetained;
+   string                  ParentSelectionReason;
    ENUM_DIRECTION          StrategicDirection;
    ENUM_NESTED_RELATION    Relation;
    ENUM_NMJE_CONFLICT_SUBTYPE ConflictSubtype;
@@ -824,6 +828,8 @@ struct BBMA_Decision
    // N3 shadow-only frozen NMJE provenance. No execution authority at this stage.
    string                       NMJEJourneyID;
    string                       NMJEParentEventID;
+   bool                         NMJEParentRetained;
+   string                       NMJEParentSelectionReason;
    ENUM_NESTED_RELATION         NMJERelation;
    ENUM_NMJE_CONFLICT_SUBTYPE   NMJEConflictSubtype;
    ENUM_NMJE_JOURNEY_MATURITY   NMJEMaturity;
@@ -5432,6 +5438,63 @@ bool NMJE_ResolveParent(PairState &state,
    return false;
 }
 
+// Issue #101 P8 provenance-only hysteresis. Retain an exact canonical parent
+// while its event and D1 epoch still exist; never delay or suppress a decision.
+bool NMJE_TryRetainPreviousParent(PairState &state,
+                                  NestedJourneyState &previous,
+                                  ENUM_NESTED_PARENT_KIND &kind,
+                                  int &timeframe,
+                                  ENUM_SIGNAL_TYPE &signalType,
+                                  ENUM_DIRECTION &direction,
+                                  datetime &anchor,
+                                  string &eventID,
+                                  string &reason)
+{
+   if(previous.Pair != state.actual_symbol || !previous.Valid ||
+      !previous.Resolved || previous.ParentKind == NESTED_PARENT_NONE ||
+      previous.ParentEventID == "" || previous.JourneyID == "")
+      return false;
+
+   NestedTFNode currentD1;
+   NMJE_BuildD1Node(state, currentD1);
+   if(previous.D1Node.CanonicalEventID != "" &&
+      currentD1.CanonicalEventID != previous.D1Node.CanonicalEventID)
+      return false;
+
+   bool exact = false;
+   ReEntryData selected;
+   bool ambiguous = false;
+   if(previous.ParentKind == NESTED_PARENT_H4_RE &&
+      NMJE_SelectConfirmedRE(state.re_h4_buy_state, state.re_h4_sell_state,
+                             selected, ambiguous) && !ambiguous)
+      exact = (NMJE_ReEntryEventID(state.actual_symbol, selected) ==
+               previous.ParentEventID);
+   else if(previous.ParentKind == NESTED_PARENT_H4_OWNER)
+      exact = (NMJE_H4OwnerEventID(state.actual_symbol,
+                                   state.h4_direction_owner) ==
+               previous.ParentEventID);
+   else if(previous.ParentKind == NESTED_PARENT_D1_RE &&
+           NMJE_SelectConfirmedRE(state.re_d1_buy_state,
+                                  state.re_d1_sell_state,
+                                  selected, ambiguous) && !ambiguous)
+      exact = (NMJE_ReEntryEventID(state.actual_symbol, selected) ==
+               previous.ParentEventID);
+   else if(previous.ParentKind == NESTED_PARENT_D1_OWNER)
+      exact = (NMJE_D1OwnerEventID(state.actual_symbol,
+                                   state.d1_major_trend_owner) ==
+               previous.ParentEventID);
+   if(!exact) return false;
+
+   kind = previous.ParentKind;
+   timeframe = previous.ParentTimeframe;
+   signalType = previous.ParentSignal;
+   direction = previous.ParentDirection;
+   anchor = previous.ParentCandleTime;
+   eventID = previous.ParentEventID;
+   reason = "PREVIOUS_CANONICAL_PARENT_RETAINED";
+   return true;
+}
+
 bool NMJE_HasChildActivity(PairState &state)
 {
    if(NMJE_IsCandidateRE(state.re_h1_buy_state) || NMJE_IsCandidateRE(state.re_h1_sell_state)) return true;
@@ -5458,6 +5521,7 @@ void UpdateNestedJourneyObservation(int pairIndex)
    if(pairIndex < 0 || pairIndex >= g_pair_count) return;
    if(!g_pair_states[pairIndex].pair_enabled) return;
 
+   NestedJourneyState previousJourney = g_nested_journeys[pairIndex];
    NestedJourneyState journey;
    ZeroMemory(journey);
    journey.Pair = g_pair_states[pairIndex].actual_symbol;
@@ -5470,6 +5534,7 @@ void UpdateNestedJourneyObservation(int pairIndex)
    journey.StrategicDirection = DIR_NONE;
    journey.UpdateCandleTime = g_pair_states[pairIndex].m15_data.candle_time;
    journey.Reason = "NO_ACTIVE_JOURNEY";
+   journey.ParentSelectionReason = "NO_PARENT_SELECTED";
    NMJE_CaptureD1OpportunityOverlay(g_pair_states[pairIndex], journey);
 
    NMJE_BuildD1Node(g_pair_states[pairIndex], journey.D1Node);
@@ -5504,9 +5569,24 @@ void UpdateNestedJourneyObservation(int pairIndex)
    datetime parentAnchor = 0;
    string parentEventID = "";
    string parentReason = "";
-   bool hasParent = NMJE_ResolveParent(g_pair_states[pairIndex], parentKind, parentTF,
-                                       parentSignal, parentDirection, parentAnchor,
-                                       parentEventID, parentReason);
+   bool hadPreviousParent =
+      (previousJourney.Pair == journey.Pair && previousJourney.Valid &&
+       previousJourney.ParentKind != NESTED_PARENT_NONE &&
+       previousJourney.ParentEventID != "" && previousJourney.JourneyID != "");
+   bool parentRetained = NMJE_TryRetainPreviousParent(
+      g_pair_states[pairIndex], previousJourney, parentKind, parentTF,
+      parentSignal, parentDirection, parentAnchor, parentEventID, parentReason);
+   bool hasParent = parentRetained;
+   if(!hasParent)
+      hasParent = NMJE_ResolveParent(g_pair_states[pairIndex], parentKind, parentTF,
+                                     parentSignal, parentDirection, parentAnchor,
+                                     parentEventID, parentReason);
+   journey.ParentRetained = parentRetained;
+   journey.ParentSelectionReason = parentRetained
+      ? "PREVIOUS_CANONICAL_PARENT_RETAINED"
+      : (hasParent
+         ? (hadPreviousParent ? "CANONICAL_PARENT_TRANSITION" : "CANONICAL_PARENT_SELECTED")
+         : (hadPreviousParent ? "PREVIOUS_PARENT_INVALID_NO_REPLACEMENT" : "NO_PARENT_SELECTED"));
 
    if(!hasParent)
    {
@@ -5531,6 +5611,7 @@ void UpdateNestedJourneyObservation(int pairIndex)
       Print("[N1-NMJE] ", journey.Pair, " REL=", NMJE_RelationText(journey.Relation),
             " P=NONE J=- D1=", journey.D1Node.Label, " H4=", journey.H4Node.Label,
             " H1=", journey.H1Node.Label, " M15=", journey.M15Node.Label,
+            " PSEL=", journey.ParentSelectionReason,
             " R=", journey.Reason);
       return;
    }
@@ -5641,6 +5722,8 @@ void UpdateNestedJourneyObservation(int pairIndex)
          " SUB=", NMJE_ConflictSubtypeText(journey.ConflictSubtype),
          " MAT=", NMJE_MaturityText(journey.Maturity),
          " P=", NMJE_ParentText(journey.ParentKind), "/", NMJE_DirText(journey.ParentDirection),
+         " PRETAIN=", journey.ParentRetained ? "Y" : "N",
+         " PSEL=", journey.ParentSelectionReason,
          " PE=", (journey.ParentEventID == "" ? "-" : journey.ParentEventID),
          " J=", journey.JourneyID,
          " D1=", journey.D1Node.Label, "#", (journey.D1Node.CanonicalEventID == "" ? "-" : journey.D1Node.CanonicalEventID),
@@ -6346,6 +6429,8 @@ bool FreezeNMJEShadowSnapshot(PairState &pairState, BBMA_Decision &decision)
 {
    decision.NMJEJourneyID = "";
    decision.NMJEParentEventID = "";
+   decision.NMJEParentRetained = false;
+   decision.NMJEParentSelectionReason = "";
    decision.NMJERelation = NESTED_NOT_APPLICABLE;
    decision.NMJEConflictSubtype = NMJE_CONFLICT_NONE;
    decision.NMJEMaturity = NMJE_MATURITY_NONE;
@@ -6374,6 +6459,8 @@ bool FreezeNMJEShadowSnapshot(PairState &pairState, BBMA_Decision &decision)
 
    decision.NMJEJourneyID = journey.JourneyID;
    decision.NMJEParentEventID = journey.ParentEventID;
+   decision.NMJEParentRetained = journey.ParentRetained;
+   decision.NMJEParentSelectionReason = journey.ParentSelectionReason;
    decision.NMJERelation = journey.Relation;
    decision.NMJEConflictSubtype = journey.ConflictSubtype;
    decision.NMJEMaturity = journey.Maturity;
@@ -6426,6 +6513,12 @@ bool ValidateNMJEShadowSnapshot(int pairIndex, BBMA_Decision &decision,
    if(current.Relation != decision.NMJERelation)
    {
       reason = "RELATION_MISMATCH";
+      return false;
+   }
+   if(current.ParentRetained != decision.NMJEParentRetained ||
+      current.ParentSelectionReason != decision.NMJEParentSelectionReason)
+   {
+      reason = "PARENT_STABILITY_METADATA_MISMATCH";
       return false;
    }
    if(current.ConflictSubtype != decision.NMJEConflictSubtype)
@@ -6494,8 +6587,13 @@ bool BuildNMJEShadowAttribution(BBMA_Decision &decision,
 
    attribution.JourneyHash = SHORT_HASH(decision.NMJEJourneyID);
    attribution.ParentEventHash = SHORT_HASH(decision.NMJEParentEventID);
+   attribution.ParentRetained = decision.NMJEParentRetained;
+   attribution.ParentSelectionReasonHash =
+      SHORT_HASH(decision.NMJEParentSelectionReason);
    if(StringLen(attribution.JourneyHash) != 16 ||
       StringLen(attribution.ParentEventHash) != 16)
+      return false;
+   if(StringLen(attribution.ParentSelectionReasonHash) != 16)
       return false;
 
    attribution.Present = true;
@@ -6577,8 +6675,8 @@ bool LoadNMJEShadowAttribution(TradeInfo &info)
       return false;
 
    string base = NMJEAttributionGVBase(info.ticket);
-   string fixedKeys[15] = {"V","M","O","R","C","JM","M5","MC","M5C","M5M","M5S","SM","SC","RQ","SQ"};
-   for(int i = 0; i < 15; i++)
+   string fixedKeys[16] = {"V","M","O","R","C","JM","PR","M5","MC","M5C","M5M","M5S","SM","SC","RQ","SQ"};
+   for(int i = 0; i < 16; i++)
       if(!GlobalVariableCheck(base + fixedKeys[i])) return false;
    if((int)GlobalVariableGet(base + "V") != 1 ||
       (int)GlobalVariableGet(base + "M") != info.magic_number ||
@@ -6590,8 +6688,11 @@ bool LoadNMJEShadowAttribution(TradeInfo &info)
       storedExecutionHash != info.execution_hash)
       return false;
    if(!NMJELoadHex16(base, "J", info.nmje_attribution.JourneyHash) ||
-      !NMJELoadHex16(base, "P", info.nmje_attribution.ParentEventHash))
+      !NMJELoadHex16(base, "P", info.nmje_attribution.ParentEventHash) ||
+      !NMJELoadHex16(base, "A", info.nmje_attribution.ParentSelectionReasonHash))
       return false;
+   info.nmje_attribution.ParentRetained =
+      (GlobalVariableGet(base + "PR") > 0.5);
 
    info.nmje_attribution.Relation =
       (ENUM_NESTED_RELATION)((int)GlobalVariableGet(base + "R"));
@@ -6673,7 +6774,8 @@ bool SaveNMJEShadowAttribution(TradeInfo &info)
    NMJEShadowAttributionState a = info.nmje_attribution;
    if(!a.Present || info.ticket <= 0 || info.magic_number <= 0 ||
       info.open_time <= 0 || StringLen(info.execution_hash) != 16 ||
-      StringLen(a.JourneyHash) != 16 || StringLen(a.ParentEventHash) != 16)
+      StringLen(a.JourneyHash) != 16 || StringLen(a.ParentEventHash) != 16 ||
+      StringLen(a.ParentSelectionReasonHash) != 16)
       return false;
 
    string base = NMJEAttributionGVBase(info.ticket);
@@ -6683,6 +6785,7 @@ bool SaveNMJEShadowAttribution(TradeInfo &info)
    if(GlobalVariableSet(base + "R", (double)a.Relation) == 0) return false;
    if(GlobalVariableSet(base + "C", (double)a.ConflictSubtype) == 0) return false;
    if(GlobalVariableSet(base + "JM", (double)a.Maturity) == 0) return false;
+   if(GlobalVariableSet(base + "PR", a.ParentRetained ? 1.0 : 0.0) == 0) return false;
    if(GlobalVariableSet(base + "M5", a.M5Present ? 1.0 : 0.0) == 0) return false;
    if(GlobalVariableSet(base + "MC", (double)a.M5ContextCode) == 0) return false;
    if(GlobalVariableSet(base + "M5C", (double)a.M5ConflictSubtype) == 0) return false;
@@ -6694,7 +6797,8 @@ bool SaveNMJEShadowAttribution(TradeInfo &info)
    if(GlobalVariableSet(base + "SQ", (double)a.SequenceCompleteness) == 0) return false;
    if(!NMJEStoreHex16(base, "X", info.execution_hash) ||
       !NMJEStoreHex16(base, "J", a.JourneyHash) ||
-      !NMJEStoreHex16(base, "P", a.ParentEventHash))
+      !NMJEStoreHex16(base, "P", a.ParentEventHash) ||
+      !NMJEStoreHex16(base, "A", a.ParentSelectionReasonHash))
       return false;
    if(a.M5Present)
    {
@@ -6721,6 +6825,8 @@ bool SaveNMJEShadowAttribution(TradeInfo &info)
    info.nmje_attribution.Durable = true;
    return (verify.nmje_attribution.JourneyHash == a.JourneyHash &&
            verify.nmje_attribution.ParentEventHash == a.ParentEventHash &&
+           verify.nmje_attribution.ParentRetained == a.ParentRetained &&
+           verify.nmje_attribution.ParentSelectionReasonHash == a.ParentSelectionReasonHash &&
            verify.nmje_attribution.Relation == a.Relation &&
            verify.nmje_attribution.ConflictSubtype == a.ConflictSubtype &&
            verify.nmje_attribution.Maturity == a.Maturity &&
@@ -7174,6 +7280,8 @@ void InvalidationEngine_Atomic(int pairIndex, BBMA_Decision &decision,
             " Seq=", IntegerToString(decision.NMJESequenceCompleteness),
             " Journey=", decision.NMJEJourneyID == "" ? "-" : decision.NMJEJourneyID,
             " ParentEvent=", decision.NMJEParentEventID == "" ? "-" : decision.NMJEParentEventID,
+            " ParentRetained=", decision.NMJEParentRetained ? "Y" : "N",
+            " ParentSelection=", decision.NMJEParentSelectionReason,
             " Reason=", nmjeShadowMatch ? "MATCH" : nmjeShadowReason);
 
    decision.DecisionState = DEC_VALIDATED;
@@ -8513,6 +8621,8 @@ void NMJE_PrintClosedOutcomeShadow(TradeInfo &info)
          " DUR=", info.nmje_attribution.Durable ? "Y" : "N",
          " JH=", info.nmje_attribution.JourneyHash == "" ? "-" : info.nmje_attribution.JourneyHash,
          " PH=", info.nmje_attribution.ParentEventHash == "" ? "-" : info.nmje_attribution.ParentEventHash,
+         " PR=", info.nmje_attribution.ParentRetained ? "Y" : "N",
+         " PAH=", info.nmje_attribution.ParentSelectionReasonHash == "" ? "-" : info.nmje_attribution.ParentSelectionReasonHash,
          " REL=", NMJE_RelationText(info.nmje_attribution.Relation),
          " SUB=", NMJE_ConflictSubtypeText(info.nmje_attribution.ConflictSubtype),
          " MAT=", NMJE_MaturityText(info.nmje_attribution.Maturity),

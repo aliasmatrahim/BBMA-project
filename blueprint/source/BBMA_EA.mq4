@@ -1,4 +1,213 @@
-CTX_RANGING
+//+------------------------------------------------------------------+
+//|                                           BBMA_EA.mq4 |
+//| Version 4.6.3 - NMJE v2 M5 Shadow Classification             |
+//|                                           CODE-READY              |
+//+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
+//|                    CODING COMPLEXITY LIMITER                       |
+//|                    =========================                       |
+//|                                                                   |
+//|  PURPOSE:                                                         |
+//|  Prevent unnecessary over-engineering during MQL4 implementation. |
+//|                                                                   |
+//|  GENERAL RULE:                                                    |
+//|  Use the SIMPLEST implementation that fully satisfies this        |
+//|  Master Blueprint.                                                |
+//|                                                                   |
+//|  COMPLEXITY LEVELS:                                               |
+//|  BEGINNER        - Direct code. Basic conditions, loops, calc.   |
+//|  INTERMEDIATE    - Modular functions. Structs/state only where    |
+//|                    required. Normal production-grade EA coding.   |
+//|  INTERMEDIATE+   - Stateful, lifecycle or sequence-based logic    |
+//|                    allowed. Limited to actual Blueprint req.      |
+//|  EXPERT-RESTRICTED- Only where state/risk/execution integrity,    |
+//|                    persistence, recovery, lifecycle or orchest-   |
+//|                    ration correctness requires it.                |
+//|  EXPERT          - Critical execution and recovery infrastructure.|
+//|                    Every complex mechanism must have a clear      |
+//|                    technical reason.                              |
+//|                                                                   |
+//|  IMPORTANT: "EXPERT" DOES NOT MEAN "MAXIMUM COMPLEXITY".         |
+//+------------------------------------------------------------------+
+#property copyright "BBMA EA"
+#property link      ""
+#property version   "4.63"
+#property strict
+
+//+------------------------------------------------------------------+
+//| MODULE 01: HEADER & INPUTS                                       |
+//| LEVEL: BEGINNER                                                  |
+//+------------------------------------------------------------------+
+
+//--- USER INPUT ENUMS (numeric values preserved for compatibility)
+enum ENUM_ENTRY_MODE_INPUT
+{
+   MODE_1_RE_ENTRY_ONLY          = 1, // Re-Entry only | selective
+   MODE_2_ALL_VALIDATED_BBMA     = 2  // RE + REM/RRE/REE | more opportunities
+};
+
+enum ENUM_MM_MODE_INPUT
+{
+   MM_AUTO_LOT                   = 1, // Lot derived from risk %
+   MM_FIXED_LOT                  = 2  // Use FixedLot
+};
+
+enum ENUM_TRADE_LOCK
+{
+   LOCK_OFF                      = 0, // No optional live-position lock
+   LOCK_SAME_DIRECTION           = 1, // Existing pair trades constrain new direction
+   LOCK_ONE_POSITION             = 2  // Max 1 live EA trade / pair
+};
+
+enum ENUM_DEBUG_LEVEL
+{
+   DBG_OFF                       = 0,
+   DBG_ERROR                     = 1,
+   DBG_SIGNAL                    = 2,
+   DBG_TRADE                     = 3,
+   DBG_FULL                      = 4
+};
+
+//--- 01 TRADING SETUP
+input ENUM_ENTRY_MODE_INPUT EntryMode             = MODE_2_ALL_VALIDATED_BBMA; // 01 Trading | Mode 1=RE only, Mode 2=RE+REM/RRE/REE
+
+//--- 02 PAIR SELECTION
+input string   PairList                           = "EURUSD,GBPUSD,USDJPY,USDCHF,USDCAD,AUDUSD,NZDUSD,EURJPY,GBPJPY,EURGBP,AUDJPY,CADJPY,CHFJPY,NZDJPY,EURAUD,EURCAD,EURCHF,GBPAUD,GBPCAD,AUDCAD"; // 02 Pairs | default 20-pair FX universe
+
+//--- 03 TRADE LIMITS
+input int      MaxTradePerPair                    = 2;          // 03 Limits | max live trades per pair
+input int      MaxTotalTrade                      = 10;         // 03 Limits | max total live EA trades
+input int      MaxActivePair                      = 7;          // 03 Limits | requested max active pairs; runtime caps safely
+
+//--- 04 MONEY MANAGEMENT
+input ENUM_MM_MODE_INPUT MMMode                   = MM_AUTO_LOT; // 04 Money | AUTO=risk %, FIXED=FixedLot
+input double   AutoLotPercent                     = 1.0;        // 04 Money | risk % used by Auto Lot
+input double   FixedLot                           = 0.01;       // 04 Money | used only in Fixed Lot mode
+input double   MaxAutoLot                         = 1.0;        // 04 Money | hard cap for Auto Lot
+
+//--- 05 TRADE CONTROL
+input ENUM_TRADE_LOCK TradeLockMode               = LOCK_OFF;   // 05 Control | OFF / SAME_DIRECTION / ONE_POSITION
+
+//--- 06 RISK PROTECTION
+input double   MaxSpreadPips                      = 10.0;       // 06 Risk | reject entry above this spread
+input double   MaxDrawdownPercent                 = 20.0;       // 06 Risk | maximum EA drawdown %
+input double   BasketLossPercent                  = 10.0;       // 06 Risk | emergency basket-loss %
+input double   MaxTotalRiskPercent                = 5.0;        // 06 Risk | maximum total EA risk %
+
+//--- 07 DISPLAY
+input bool     ShowDashboard                      = true;       // 07 Display | show chart dashboard
+
+//--- 08 ADVANCED SAFETY / EXECUTION
+input double   MinRRRatio                         = 0.0;        // 08 Advanced | optional Min RR filter; 0=disabled
+input double   MaxSLPips                          = 100.0;      // 08 Advanced | maximum accepted SL distance
+input int      Slippage                           = 3;          // 08 Advanced | broker slippage in points
+input ENUM_DEBUG_LEVEL DebugLevel                 = DBG_OFF;    // 08 Advanced | OFF / ERROR / SIGNAL / TRADE / FULL
+input int      StrategyID                         = 1;          // 08 Advanced | strategy identity 1-99
+input int      InstanceID                         = 0;          // 08 Advanced | instance identity 0-99
+
+//--- INTERNAL / LOCKED (not shown in MT4 Inputs; defaults preserved)
+int            MaxWaitBars_Extreme                = 5;
+int            MaxWaitBars_MLV                    = 5;          // Legacy compatibility only; canonical MHV/MLV has no strategy TTL
+int            MaxWaitBars_CSD                    = 5;
+int            MaxWaitBars_ReEntry                = 5;
+int            MaxWaitBars_Combined               = 5;
+int            MaxWaitBars_Global                 = 10;
+int            SignalMode                         = 1;          // Deprecated compatibility/display only
+int            ScoreDisplayThresholdManual        = 60;         // Deprecated display compatibility only
+bool           EnableBBShapeEngine                = true;
+bool           EnableExtremeClassifier            = true;
+bool           EnableMLVStateEngine               = true;
+bool           EnableReEntryEngine                = true;
+bool           EnableSignalScoring                = true;       // M18 label metadata only; never gates trading
+bool           EnableRE_Type1                     = true;
+bool           EnableRE_Type2                     = true;
+bool           EnableRE_Type3                     = true;
+bool           EnableRE_Type4                     = true;
+// C044 staged implementation gate. Keep OFF until M23/M24 lifecycle
+// close + restart reconstruction are implemented and verified.
+bool           EnableC044Lifecycle                = false;
+// D1 EXTREME_TPW staged lifecycle. Keep OFF until native/static gates and
+// broker/demo restart + close-idempotency validation are complete.
+bool           EnableD1TPWLifecycle               = false;
+double         BasketProfitPercent                = 5.0;        // Display compatibility only; not execution TP
+int            MaxRetry                           = 3;
+int            BERetryInterval                    = 60;
+int            AllowedExecutionDeviation_MinPoints= 5;
+
+//--- CONSTANTS
+#define TIMEFRAME_TREND         1440
+#define TIMEFRAME_HIGHER        240
+#define TIMEFRAME_MAIN          60
+#define TIMEFRAME_LOWER         15
+#define BB_PERIOD               20
+#define BB_DEVIATION            2
+#define MA5_HIGH_PERIOD         5
+#define MA10_HIGH_PERIOD        10
+#define MA5_LOW_PERIOD          5
+#define MA10_LOW_PERIOD         10
+#define EMA50_PERIOD            50
+#define MAX_PAIRS               40
+#define MAX_TRADES_PER_PAIR     20
+#define MAX_MONITORED           400
+#define RETRY_SLEEP_MS          100
+#define TRADE_TIMEOUT           2000
+#define MAGIC_BASE              100000
+#define SIGNAL_HISTORY_MAX      2000
+#define SIGNAL_HISTORY_CLEANUP_SIZE 200
+#define PAIR_ID_MIN             1
+#define PAIR_ID_MAX             99
+#define INSTANCE_ID_MIN         0
+#define INSTANCE_ID_MAX         99
+#define STRATEGY_ID_MIN         1
+#define STRATEGY_ID_MAX         99
+
+//+------------------------------------------------------------------+
+//| MODULE 02: ENUMS & STRUCTS                                       |
+//| LEVEL: BEGINNER                                                  |
+//+------------------------------------------------------------------+
+
+//--- ENUMS
+enum ENUM_SIGNAL_TYPE
+{
+   SIGNAL_NONE,
+   SIGNAL_EXTREME,
+   SIGNAL_MHV,
+   SIGNAL_MLV,
+   SIGNAL_CSD,
+   SIGNAL_ECSD,
+   SIGNAL_CSM,
+   SIGNAL_RE_ENTRY,
+   SIGNAL_REM,
+   SIGNAL_RRE,
+   SIGNAL_REE,
+};
+
+enum ENUM_DIRECTION { DIR_NONE, DIR_BUY, DIR_SELL };
+
+enum ENUM_BB_STATE { BB_NONE, BB_SQUEEZE, BB_EXPANDING, BB_CONTRACTING, BB_FLAT };
+
+enum ENUM_MLV_STATE
+{
+   MLV_NONE,
+   MLV_PARENT_READY,
+   MLV_TP_COMPLETE,
+   MLV_LOSS_DEVELOPING,
+   MLV_FORMATION_ESTABLISHED,
+   MLV_RETEST_COMPLETE,
+   MLV_DIRECTION_TAKEN,
+   MLV_VOID,
+   MLV_SUPERSEDED
+};
+
+enum ENUM_RE_TYPE { RE_NONE, RE_TYPE_1, RE_TYPE_2, RE_TYPE_3_CSM, RE_TYPE_4_CSD };
+
+enum ENUM_RE_STATE { RE_STATE_NONE, RE_STATE_CANDIDATE, RE_STATE_CONFIRMED, RE_STATE_EXPIRED };
+
+enum ENUM_TYPE1_CONTEXT_STATE
+{
+   TYPE1_CTX_NONE,
+   TYPE1_CTX_DIRECTION_OWNER,
+   TYPE1_CTX_RANGING
 };
 
 enum ENUM_H4_OWNER_STATE

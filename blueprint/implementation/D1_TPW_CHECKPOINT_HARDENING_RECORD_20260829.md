@@ -43,6 +43,11 @@ Checkpoint v2 now:
 - native MT4 MetaEditor: `0 errors, 0 warnings`, 379 ms
 - compiled EX4: 598,284 bytes
 
+GitHub Actions run `33220253588` failed twice before any workflow step was
+created. Initial job `99012601190` and controlled rerun job `99012797682` both
+returned `steps=null` and `logs_url=null`. This is the existing runner-start
+infrastructure anomaly; it supplies no source/test failure evidence.
+
 ## Non-authorization
 
 `EnableD1TPWLifecycle=false` and `EnableC044Lifecycle=false` remain mandatory.

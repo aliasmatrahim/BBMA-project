@@ -30,7 +30,7 @@ def main() -> None:
         'NMJE_ReEntryEventID': ('RE|', ['pair', 'state.Timeframe', 'state.Direction', 'state.Type', 'state.StartCandleTime']),
         'NMJE_ExtremeEventID': ('EXT|', ['pair', 'state.Timeframe', 'state.Direction', 'state.RawCandleTime']),
         'NMJE_MLVEventID': ('MLV|', ['pair', 'PERIOD_M15', 'state.Direction', 'state.ParentRawCandleTime', 'state.ParentConfirmationCandleTime']),
-        'NMJE_D1OwnerEventID': ('D1OWN|', ['pair', 'owner.State', 'owner.Direction', 'owner.SourceCandleTime']),
+        'NMJE_D1OwnerEventID': ('D1OWN|', ['pair', 'owner.State', 'owner.Direction', 'owner.EpochStartCandleTime']),
         'NMJE_H4OwnerEventID': ('H4OWN|', ['pair', 'owner.Direction', 'owner.SourceSignal', 'owner.SourceCandleTime']),
     }
 
@@ -44,6 +44,9 @@ def main() -> None:
 
     if len(prefixes) != len(set(prefixes)):
         raise AssertionError('canonical identity domain prefixes are not unique')
+
+    if 'owner.SourceCandleTime' in body('NMJE_D1OwnerEventID'):
+        raise AssertionError('D1 owner identity must not rotate on snapshot refresh')
 
     hash_body = body('NMJE_IdentityHash')
     require(hash_body, 'SHORT_HASH(raw, 16)')

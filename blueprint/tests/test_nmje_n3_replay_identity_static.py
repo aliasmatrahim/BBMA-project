@@ -41,8 +41,12 @@ assert 'ConfirmationCandleTime' not in ext_id
 assert 'ParentRawCandleTime' in mlv_id
 assert 'ParentConfirmationCandleTime' in mlv_id
 
-# Strategic owner identities use source-owned candle provenance.
-assert 'SourceCandleTime' in d1_id
+# D1 owner identity uses the stable canonical epoch; ordinary closed-D1
+# snapshot refreshes must not silently rotate the owner EventID.
+assert 'EpochStartCandleTime' in d1_id
+assert 'SourceCandleTime' not in d1_id
+
+# H4 owner identity remains source-candle-owned.
 assert 'SourceCandleTime' in h4_id
 
 # No wall-clock/random identity source is permitted in any identity helper.

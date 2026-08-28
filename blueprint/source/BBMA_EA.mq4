@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.5.9 - P0 Execution Identity Persistence Fix        |
+//| Version 4.6.0 - N3 D1 Owner Epoch Provenance Fix             |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.59"
+#property version   "4.60"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -551,6 +551,9 @@ struct D1MajorTrendOwner
    ENUM_D1_OWNER_STATE  State;
    ENUM_DIRECTION       Direction;
    datetime             SourceCandleTime;
+   // N3 provenance-only epoch anchor. Changes only when canonical owner
+   // State/Direction changes; never changes the D1 strategy formula.
+   datetime             EpochStartCandleTime;
    datetime             LastProcessedD1CandleTime;
    double               Close1;
    double               MA50_1;
@@ -3244,9 +3247,18 @@ bool DetectECSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
 void SetD1OwnerUnresolved(PairState &state, string reason)
 {
    D1MajorTrendOwner owner = state.d1_major_trend_owner;
+   ENUM_D1_OWNER_STATE previousState = owner.State;
+   ENUM_DIRECTION previousDirection = owner.Direction;
+   datetime previousEpoch = owner.EpochStartCandleTime;
+
    owner.State = D1_OWNER_UNRESOLVED;
    owner.Direction = DIR_NONE;
    owner.SourceCandleTime = state.d1_data.candle_time;
+   if(previousEpoch <= 0 || previousState != D1_OWNER_UNRESOLVED ||
+      previousDirection != DIR_NONE)
+      owner.EpochStartCandleTime = owner.SourceCandleTime;
+   else
+      owner.EpochStartCandleTime = previousEpoch;
    owner.LastProcessedD1CandleTime = state.d1_data.candle_time;
    owner.Close1 = (state.d1_data.close > 0.0) ? state.d1_data.close : 0.0;
    owner.MA50_1 = (state.d1_data.ma[4] > 0.0) ? state.d1_data.ma[4] : 0.0;
@@ -3291,6 +3303,10 @@ void UpdateD1MajorTrendOwner(string pair, PairState &state)
                              state.d1_data.barIndex + 1);
 
    D1MajorTrendOwner owner = state.d1_major_trend_owner;
+   ENUM_D1_OWNER_STATE previousState = owner.State;
+   ENUM_DIRECTION previousDirection = owner.Direction;
+   datetime previousEpoch = owner.EpochStartCandleTime;
+
    owner.SourceCandleTime = state.d1_data.candle_time;
    owner.LastProcessedD1CandleTime = state.d1_data.candle_time;
    owner.Close1 = state.d1_data.close;
@@ -3329,6 +3345,14 @@ void UpdateD1MajorTrendOwner(string pair, PairState &state)
       owner.Reason =
          "Closed D1 price-side and MA50 slope do not confirm one direction";
    }
+
+   // N3 owner epoch is provenance only: same canonical State/Direction keeps
+   // the prior epoch while a transition starts a new deterministic epoch.
+   if(previousEpoch <= 0 || owner.State != previousState ||
+      owner.Direction != previousDirection)
+      owner.EpochStartCandleTime = owner.SourceCandleTime;
+   else
+      owner.EpochStartCandleTime = previousEpoch;
 
    state.d1_major_trend_owner = owner;
    TraceD1MajorTrendOwner(pair, state);
@@ -4438,10 +4462,10 @@ string NMJE_MLVEventID(string pair, MLVData &state)
 
 string NMJE_D1OwnerEventID(string pair, D1MajorTrendOwner &owner)
 {
-   if(pair == "" || owner.SourceCandleTime <= 0) return "";
+   if(pair == "" || owner.EpochStartCandleTime <= 0) return "";
    string raw = "D1OWN|" + pair + "|" + IntegerToString((int)owner.State) + "|" +
                 IntegerToString((int)owner.Direction) + "|" +
-                IntegerToString((int)owner.SourceCandleTime);
+                IntegerToString((int)owner.EpochStartCandleTime);
    return NMJE_IdentityHash(raw);
 }
 

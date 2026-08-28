@@ -80,11 +80,17 @@ P2, P6, and P7 may arbitrate only between two or more already-eligible candidate
 
 All refinements begin as correctness, metadata, shadow, deterministic tests, or equal-eligibility tie-break work. Any hard rejection gate, eligible-trade reduction, M15 decision delay, or authority change requires a separate explicit strategy-policy approval plus attributable deterministic/static/backtest evidence.
 
-## Initial workstream state
+## Current workstream state
 
 `execution_policy = NONE`  
 `automatic_policy_authorized = false`  
 `m5_execution_authority = false`  
 `m5_processing_clock_authority = false`  
-`source_modification_authorized = false`  
+`source_modification_authorized = schema_only`  
 `activation_authorized = false`
+
+Stage A contract and deterministic fixtures are complete. Stage B authorizes
+only provenance structure, deterministic identity, and fail-closed lineage
+validation helpers. It does not authorize M5 data collection, processing-loop
+wiring, candidate influence, rejection, ranking, execution, or activation.
+

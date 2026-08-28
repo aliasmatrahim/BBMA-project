@@ -21,8 +21,8 @@ def require(text: str, *markers: str) -> None:
 def main() -> None:
     require(
         SRC,
-        "Version 4.6.0 - N3 D1 Owner Epoch Provenance Fix",
-        '#property version   "4.60"',
+        "Version 4.6.1 - NMJE v2 M5 Lineage Schema",
+        '#property version   "4.61"',
         "datetime             EpochStartCandleTime;",
         "NMJE_BuildD1Node(",
         "NMJE_BuildH4Node(",
@@ -42,7 +42,7 @@ def main() -> None:
         "automatic_policy_authorized = false",
         "m5_execution_authority = false",
         "m5_processing_clock_authority = false",
-        "source_modification_authorized = false",
+        "source_modification_authorized = schema_only",
         "activation_authorized = false",
     )
     require(
@@ -52,8 +52,8 @@ def main() -> None:
         "native MT4 MetaEditor 0E0W",
     )
 
-    # Stage A is contract/test-only. The production EA must not contain M5 NMJE
-    # materialization or any new execution/rejection/clock authority marker.
+    # Stage B permits schema-only provenance helpers but no M5 observation
+    # materialization or execution/rejection/clock authority marker.
     for forbidden in (
         "NMJE_BuildM5Node(",
         "EnableNMJEM5Execution",

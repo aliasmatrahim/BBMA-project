@@ -10,6 +10,9 @@
 
 ## Stage A — contract and regression harness
 
+Status: COMPLETE (local deterministic/static evidence PASS; GitHub runner
+availability remains separately unclassified).
+
 1. Freeze the 4-TF baseline identity fixtures.
 2. Define M5 node/event schema without wiring it into the processing loop.
 3. Define immutable parent chain fixtures through the D1 epoch.
@@ -19,6 +22,8 @@
 Exit gate: deterministic fixtures and static firewall PASS; no EA source modification.
 
 ## Stage B — P1 lineage schema
+
+Status: IN PROGRESS — schema-only source materialization; no processing wiring.
 
 1. Add provenance-only M5 identity and ParentEventID/JourneyID rules.
 2. Model parent transition and continuation/re-arm semantics.
@@ -71,3 +76,4 @@ Stop before:
 - any W1, M30, or primary M1 addition;
 - any activation or merge decision;
 - any strategy-policy change lacking explicit approval and attributable evidence.
+

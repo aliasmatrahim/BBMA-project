@@ -56,7 +56,37 @@ def main() -> None:
     replay = deepcopy(valid)
     assert load(replay, expected)
     assert replay == valid
-    print("D1_TPW_CHECKPOINT_RESTART_MODEL=PASS")
+
+    # Every possible torn-write prefix must fail until V is committed last.
+    payload_order = ["D", "X", "LP", "L", "XL", "F", "OT", "MG", "P", "C", "E"]
+    torn_checks = 0
+    partial = {}
+    for key in payload_order:
+        partial[key] = valid[key]
+        assert not load(partial, expected), key
+        torn_checks += 1
+    committed = deepcopy(partial)
+    committed["V"] = VERSION
+    assert load(committed, expected)
+
+    # Ticket namespaces must not permit one trade to recover another trade's
+    # execution identity even on the same pair/open time/magic.
+    ticket_a = deepcopy(valid)
+    ticket_b = deepcopy(valid)
+    ticket_b["E"] = "1111bbbbccccdddd"
+    assert load(ticket_a, expected)
+    assert not load(ticket_b, expected)
+    expected_b = deepcopy(expected)
+    expected_b["E"] = ticket_b["E"]
+    assert load(ticket_b, expected_b)
+
+    # Repeated restarts are read-only and preserve the exact committed state.
+    restart_state = deepcopy(valid)
+    for _ in range(5):
+        assert load(restart_state, expected)
+        assert restart_state == valid
+
+    print(f"D1_TPW_CHECKPOINT_RESTART_MODEL=PASS torn_checks={torn_checks} restarts=5")
 
 
 if __name__ == "__main__":

@@ -35,6 +35,14 @@ Checkpoint v2 now:
 
 - D1TPW static authority/checkpoint firewall: PASS
 - deterministic restart/torn-write/identity-mismatch model: PASS
+- extended torn-write matrix: 11 incomplete prefixes rejected; 5 repeated
+  restart loads preserved exact committed state
+- M23 close-idempotency model: PASS across 9 success/retry/restart/already-
+  closed/fail-closed scenarios
+- synthetic historical replay firewall: PASS
+- broker-cache H4-to-D1 historical replay: PASS across EURUSD, GBPUSD, USDCHF,
+  and USDJPY; 17,720 trajectories, 17,717 completions, and 45,865 restart-
+  equivalence checks
 - N3 D1 epoch selftest: PASS
 - N3 policy readiness, authority, identity, recovery, and replay: PASS
 - NMJE v2 M5 lineage plus Stage A/B/C1/C2/D1/E1-E7: PASS

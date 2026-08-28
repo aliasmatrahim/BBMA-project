@@ -21,8 +21,8 @@ def require(text: str, *markers: str) -> None:
 def main() -> None:
     require(
         SRC,
-        "Version 4.6.1 - NMJE v2 M5 Lineage Schema",
-        '#property version   "4.61"',
+        "Version 4.6.2 - NMJE v2 M5 Closed-Data Acquisition",
+        '#property version   "4.62"',
         "datetime             EpochStartCandleTime;",
         "NMJE_BuildD1Node(",
         "NMJE_BuildH4Node(",
@@ -42,7 +42,7 @@ def main() -> None:
         "automatic_policy_authorized = false",
         "m5_execution_authority = false",
         "m5_processing_clock_authority = false",
-        "source_modification_authorized = schema_only",
+        "source_modification_authorized = stage_c1_data_only",
         "activation_authorized = false",
     )
     require(

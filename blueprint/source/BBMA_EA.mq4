@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.6.1 - NMJE v2 M5 Lineage Schema                    |
+//| Version 4.6.2 - NMJE v2 M5 Closed-Data Acquisition           |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.61"
+#property version   "4.62"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -680,6 +680,8 @@ struct TimeframeSnapshot
    bool     H1_IsClosed;
    datetime M15_CandleTime;
    bool     M15_IsClosed;
+   datetime M5_CandleTime;
+   bool     M5_IsClosed;
 };
 
 struct TimeframeData
@@ -852,6 +854,8 @@ struct PairState
    TimeframeData        h4_data;
    TimeframeData        h1_data;
    TimeframeData        m15_data;
+   // Issue #101 Stage-C1 read-only data acquisition on the M15 clock.
+   TimeframeData        m5_data;
    Candle               last_3_candles[3];
    Candle               last_5_candles[5];
    Candle               last_20_candles[20];
@@ -1403,6 +1407,7 @@ void InitPairState(PairState &state)
    InitTimeframeData(state.h4_data);
    InitTimeframeData(state.h1_data);
    InitTimeframeData(state.m15_data);
+   InitTimeframeData(state.m5_data);
 
    state.mlv_buy_state.State = MLV_NONE;
    state.mlv_buy_state.Direction = DIR_BUY;
@@ -2104,6 +2109,9 @@ void BuildTimeframeSnapshot(string pair, TimeframeSnapshot &snapshot)
    
    snapshot.M15_CandleTime = GetLatestClosedCandleTime(pair, PERIOD_M15);
    snapshot.M15_IsClosed = IsCandleClosed(snapshot.M15_CandleTime, 900);
+
+   snapshot.M5_CandleTime = GetLatestClosedCandleTime(pair, PERIOD_M5);
+   snapshot.M5_IsClosed = IsCandleClosed(snapshot.M5_CandleTime, 300);
 }
 
 void BuildRiskValidationSnapshot(string pair, BBMA_Decision &decision, RiskValidationSnapshot &snapshot)
@@ -10280,6 +10288,10 @@ void ProcessPair(int pairIndex)
                        g_pair_states[pairIndex].h1_data);
    GetDataForTimeframe(actual, PERIOD_M15, g_pair_states[pairIndex].tf_snapshot.M15_CandleTime,
                        g_pair_states[pairIndex].m15_data);
+   // NMJE v2 Stage-C1: latest closed M5 data is sampled only inside this
+   // existing M15-driven ProcessPair cycle. It has no processing authority.
+   GetDataForTimeframe(actual, PERIOD_M5, g_pair_states[pairIndex].tf_snapshot.M5_CandleTime,
+                       g_pair_states[pairIndex].m5_data);
 
    // D1-01: classify strategic D1/MA50 owner from fully closed D1 data.
    // Producer only in this step; M15/M16 consumption is intentionally later.

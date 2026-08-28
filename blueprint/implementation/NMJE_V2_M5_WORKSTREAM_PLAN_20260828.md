@@ -23,7 +23,7 @@ Exit gate: deterministic fixtures and static firewall PASS; no EA source modific
 
 ## Stage B — P1 lineage schema
 
-Status: IN PROGRESS — schema-only source materialization; no processing wiring.
+Status: COMPLETE — schema-only source materialization; no processing wiring.
 
 1. Add provenance-only M5 identity and ParentEventID/JourneyID rules.
 2. Model parent transition and continuation/re-arm semantics.
@@ -33,6 +33,9 @@ Status: IN PROGRESS — schema-only source materialization; no processing wiring
 Exit gate: P1 tests PASS and explicit review of the schema boundary.
 
 ## Stage C — P2/P3 shadow context
+
+Status: C1 IN PROGRESS — latest closed-M5 data acquisition on the existing M15
+clock only; no detector, classification, event, relation or shadow population.
 
 1. Materialize M5 closed-candle observation only.
 2. Derive canonical relation + reason without a second clock.

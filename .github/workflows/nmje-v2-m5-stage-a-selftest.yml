@@ -10,7 +10,9 @@ on:
       - 'blueprint/tests/test_nmje_v2_m5_lineage_fixture.py'
       - 'blueprint/tests/test_nmje_v2_m5_stage_a_static.py'
       - 'blueprint/tests/test_nmje_v2_m5_stage_b_schema_static.py'
+      - 'blueprint/tests/test_nmje_v2_m5_stage_c1_acquisition_static.py'
       - 'blueprint/implementation/NMJE_V2_M5_STAGE_B_SCHEMA_RECORD_20260828.md'
+      - 'blueprint/implementation/NMJE_V2_M5_STAGE_C1_ACQUISITION_RECORD_20260828.md'
       - 'blueprint/source/BBMA_EA.mq4'
       - '.github/workflows/nmje-v2-m5-stage-a-selftest.yml'
   workflow_dispatch:
@@ -44,6 +46,12 @@ jobs:
           set -euo pipefail
           python3 blueprint/tests/test_nmje_v2_m5_stage_a_static.py
 
+      - name: Verify Stage C1 closed-data-only acquisition boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 blueprint/tests/test_nmje_v2_m5_stage_c1_acquisition_static.py
+
       - name: Compile test harness
         shell: bash
         run: |
@@ -51,6 +59,7 @@ jobs:
           python3 -m py_compile \
             blueprint/tests/test_nmje_v2_m5_lineage_fixture.py \
             blueprint/tests/test_nmje_v2_m5_stage_a_static.py \
-            blueprint/tests/test_nmje_v2_m5_stage_b_schema_static.py
-          echo 'NMJE_V2_M5_STAGE_A_B_SELFTEST=PASS'
+            blueprint/tests/test_nmje_v2_m5_stage_b_schema_static.py \
+            blueprint/tests/test_nmje_v2_m5_stage_c1_acquisition_static.py
+          echo 'NMJE_V2_M5_STAGE_A_B_C1_SELFTEST=PASS'
 

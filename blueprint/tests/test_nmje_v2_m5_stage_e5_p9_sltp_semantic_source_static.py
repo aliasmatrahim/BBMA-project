@@ -155,8 +155,8 @@ def main() -> None:
 
     require(
         SRC,
-        '#property version   "4.68"',
-        "Version 4.6.8 - NMJE v2 Parent Provenance Stability",
+        '#property version   "4.69"',
+        "Version 4.6.9 - NMJE v2 Entry Displacement Telemetry",
     )
     for gate in ("EnableD1TPWLifecycle", "EnableC044Lifecycle"):
         if not re.search(rf"\bbool\s+{gate}\s*=\s*false\s*;", SRC):

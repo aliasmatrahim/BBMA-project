@@ -73,7 +73,7 @@ def main() -> None:
         'NMJEStoreHex16(base, "X", info.execution_hash)',
         'NMJEStoreHex16(base, "J", a.JourneyHash)',
         'NMJEStoreHex16(base, "P", a.ParentEventHash)',
-        'GlobalVariableSet(base + "V", 1.0)',
+        'GlobalVariableSet(base + "V", 2.0)',
         "LoadNMJEShadowAttribution(verify)",
     )
     require(
@@ -87,7 +87,7 @@ def main() -> None:
     process_entry = function_body("ProcessEntry")
     require(
         process_entry,
-        "BuildNMJEShadowAttribution(decision, info.nmje_attribution);",
+        "BuildNMJEShadowAttribution(decision, OrderOpenPrice(), snapshot.Point,",
         "SaveExecutionIdentityHash(",
         "SaveNMJEShadowAttribution(info)",
         "[NMJE-P4-OPEN]",

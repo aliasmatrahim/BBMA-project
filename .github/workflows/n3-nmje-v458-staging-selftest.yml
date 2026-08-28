@@ -37,8 +37,8 @@ jobs:
           p = Path('blueprint/source/BBMA_EA.mq4')
           s = p.read_text(encoding='utf-8')
           required = [
-              'Version 4.6.8 - NMJE v2 Parent Provenance Stability',
-              '#property version   "4.68"',
+              'Version 4.6.9 - NMJE v2 Entry Displacement Telemetry',
+              '#property version   "4.69"',
               'UpdateNestedJourneyObservation(pairIndex);',
               'NMJE_PrintValidatedDecisionShadow(pairIndex, decision);',
           ]

@@ -82,8 +82,13 @@ retained unchanged and protected by an audit-only static regression. Source
 selection is explicit by candidate family/timeframe and cannot fall back to
 component processing order. EA source, build, geometry, and authority are unchanged.
 
-P5-P9 are complete. Evaluate displacement and first/continuation lineage next
-in queue order. Each remains metadata/shadow unless its approved role is strictly
+Status: E6 / P10 COMPLETE — exact source-confirmation, validation-entry,
+broker-fill, and structural-anchor prices are joined under durable execution
+identity with directional pip deltas and descriptive classification. P10 runs
+after broker ticket selection and cannot filter, delay, reject, rank, or resize.
+
+P5-P10 are complete. Evaluate first/continuation lineage next in queue order.
+It remains metadata/shadow unless a separately approved role is strictly
 deterministic tie-break between already-eligible candidates.
 
 ## Mandatory evidence per source-bearing stage

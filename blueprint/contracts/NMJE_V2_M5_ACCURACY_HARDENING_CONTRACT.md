@@ -86,7 +86,7 @@ All refinements begin as correctness, metadata, shadow, deterministic tests, or 
 `automatic_policy_authorized = false`  
 `m5_execution_authority = false`  
 `m5_processing_clock_authority = false`  
-`source_modification_authorized = none_p9_audit_only`  
+`source_modification_authorized = stage_e6_p10_entry_displacement_telemetry`  
 `activation_authorized = false`
 
 Stage A contract and deterministic fixtures are complete. Stage B authorizes
@@ -136,4 +136,10 @@ audit-only regression lock. The existing H1/M15/H4/D1 mapping, source-owned
 Re-Entry lifecycle window, BB destination, SL/TP geometry, and EA build remain
 unchanged. No alternative source, source score, runtime switch, or policy is
 authorized.
+
+Stage E6 additionally authorizes P10 post-execution displacement telemetry.
+It records the exact P9 source confirmation price, M17 validation entry price,
+selected broker `OrderOpenPrice`, source-owned structural anchor, directional
+pip deltas, and a descriptive flat/favorable/adverse class. It cannot filter,
+delay, reject, rank, resize, or otherwise affect a trade.
 

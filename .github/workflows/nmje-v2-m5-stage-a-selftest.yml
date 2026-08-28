@@ -1,4 +1,4 @@
-name: NMJE v2 M5 Stage A-E1 selftest
+name: NMJE v2 M5 Stage A-E2 selftest
 
 on:
   pull_request:
@@ -14,11 +14,13 @@ on:
       - 'blueprint/tests/test_nmje_v2_m5_stage_c2_shadow_static.py'
       - 'blueprint/tests/test_nmje_v2_m5_stage_d1_attribution_static.py'
       - 'blueprint/tests/test_nmje_v2_m5_stage_e1_conflict_static.py'
+      - 'blueprint/tests/test_nmje_v2_m5_stage_e2_maturity_static.py'
       - 'blueprint/implementation/NMJE_V2_M5_STAGE_B_SCHEMA_RECORD_20260828.md'
       - 'blueprint/implementation/NMJE_V2_M5_STAGE_C1_ACQUISITION_RECORD_20260828.md'
       - 'blueprint/implementation/NMJE_V2_M5_STAGE_C2_SHADOW_CLASSIFICATION_RECORD_20260828.md'
       - 'blueprint/implementation/NMJE_V2_M5_STAGE_D1_ATTRIBUTION_RECORD_20260828.md'
       - 'blueprint/implementation/NMJE_V2_M5_STAGE_E1_P5_CONFLICT_RECORD_20260828.md'
+      - 'blueprint/implementation/NMJE_V2_M5_STAGE_E2_P6_MATURITY_RECORD_20260829.md'
       - 'blueprint/source/BBMA_EA.mq4'
       - '.github/workflows/nmje-v2-m5-stage-a-selftest.yml'
   workflow_dispatch:
@@ -27,7 +29,7 @@ permissions:
   contents: read
 
 jobs:
-  stage-a-e1-conflict-metadata:
+  stage-a-e2-maturity-metadata:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -76,6 +78,12 @@ jobs:
           set -euo pipefail
           python3 blueprint/tests/test_nmje_v2_m5_stage_e1_conflict_static.py
 
+      - name: Verify Stage E2 P6 maturity metadata firewall
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 blueprint/tests/test_nmje_v2_m5_stage_e2_maturity_static.py
+
       - name: Compile test harness
         shell: bash
         run: |
@@ -87,6 +95,7 @@ jobs:
             blueprint/tests/test_nmje_v2_m5_stage_c1_acquisition_static.py \
             blueprint/tests/test_nmje_v2_m5_stage_c2_shadow_static.py \
             blueprint/tests/test_nmje_v2_m5_stage_d1_attribution_static.py \
-            blueprint/tests/test_nmje_v2_m5_stage_e1_conflict_static.py
-          echo 'NMJE_V2_M5_STAGE_A_B_C1_C2_D1_E1_SELFTEST=PASS'
+            blueprint/tests/test_nmje_v2_m5_stage_e1_conflict_static.py \
+            blueprint/tests/test_nmje_v2_m5_stage_e2_maturity_static.py
+          echo 'NMJE_V2_M5_STAGE_A_B_C1_C2_D1_E1_E2_SELFTEST=PASS'
 

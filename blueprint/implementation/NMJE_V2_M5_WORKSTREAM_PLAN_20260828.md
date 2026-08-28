@@ -65,6 +65,10 @@ Status: E1 / P5 COMPLETE — deterministic conflict-family telemetry is attached
 to base and M5 shadow relations, persisted with P4 attribution, and emitted with
 closed outcomes. Canonical relations and live decisions remain unchanged.
 
+Status: E2 / P6 COMPLETE — categorical BBMA journey maturity is captured for
+base and M5 contexts, persisted with attribution, and emitted with outcomes.
+No generic score or minimum-maturity gate is introduced.
+
 Evaluate conflict subtype, maturity, structural density, hysteresis, SL semantic source, displacement, and first/continuation lineage in queue order. Each remains metadata/shadow unless its approved role is strictly deterministic tie-break between already-eligible candidates.
 
 ## Mandatory evidence per source-bearing stage

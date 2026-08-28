@@ -86,7 +86,7 @@ All refinements begin as correctness, metadata, shadow, deterministic tests, or 
 `automatic_policy_authorized = false`  
 `m5_execution_authority = false`  
 `m5_processing_clock_authority = false`  
-`source_modification_authorized = stage_e1_p5_conflict_metadata`  
+`source_modification_authorized = stage_e2_p6_maturity_metadata`  
 `activation_authorized = false`
 
 Stage A contract and deterministic fixtures are complete. Stage B authorizes
@@ -115,4 +115,9 @@ Stage E1 additionally authorizes P5 deterministic conflict-subtype telemetry:
 temporary retracement, local child opposition, parent-direction conflict, owner
 transition, structural conflict, and unresolved provenance. The canonical
 top-level relation remains unchanged, and no subtype may affect authority.
+
+Stage E2 additionally authorizes P6 categorical journey-maturity telemetry
+derived only from existing BBMA owner, Extreme, Re-Entry, and MHV/MLV states.
+No score, threshold, minimum-maturity gate, delay, or eligibility change is
+authorized.
 

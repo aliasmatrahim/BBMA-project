@@ -21,8 +21,8 @@ def require(text: str, *markers: str) -> None:
 def main() -> None:
     require(
         SRC,
-        "Version 4.6.5 - NMJE v2 Conflict Subtype Telemetry",
-        '#property version   "4.65"',
+        "Version 4.6.6 - NMJE v2 Journey Maturity Telemetry",
+        '#property version   "4.66"',
         "datetime             EpochStartCandleTime;",
         "NMJE_BuildD1Node(",
         "NMJE_BuildH4Node(",
@@ -42,7 +42,7 @@ def main() -> None:
         "automatic_policy_authorized = false",
         "m5_execution_authority = false",
         "m5_processing_clock_authority = false",
-        "source_modification_authorized = stage_e1_p5_conflict_metadata",
+        "source_modification_authorized = stage_e2_p6_maturity_metadata",
         "activation_authorized = false",
     )
     require(

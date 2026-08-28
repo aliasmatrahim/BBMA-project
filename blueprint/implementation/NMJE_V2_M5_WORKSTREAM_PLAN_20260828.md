@@ -77,7 +77,14 @@ Status: E4 / P8 COMPLETE — the prior canonical observation parent is retained
 only while its exact EventID and D1 epoch remain current. Parent changes are
 attributable transitions; no time-based decision delay or trade suppression exists.
 
-Evaluate conflict subtype, maturity, structural density, hysteresis, SL semantic source, displacement, and first/continuation lineage in queue order. Each remains metadata/shadow unless its approved role is strictly deterministic tie-break between already-eligible candidates.
+Status: E5 / P9 COMPLETE — the user-verified SL/TP semantic-source mapping is
+retained unchanged and protected by an audit-only static regression. Source
+selection is explicit by candidate family/timeframe and cannot fall back to
+component processing order. EA source, build, geometry, and authority are unchanged.
+
+P5-P9 are complete. Evaluate displacement and first/continuation lineage next
+in queue order. Each remains metadata/shadow unless its approved role is strictly
+deterministic tie-break between already-eligible candidates.
 
 ## Mandatory evidence per source-bearing stage
 

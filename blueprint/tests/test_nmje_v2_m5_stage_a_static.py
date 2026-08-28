@@ -42,7 +42,7 @@ def main() -> None:
         "automatic_policy_authorized = false",
         "m5_execution_authority = false",
         "m5_processing_clock_authority = false",
-        "source_modification_authorized = stage_e4_p8_provenance_stability",
+        "source_modification_authorized = none_p9_audit_only",
         "activation_authorized = false",
     )
     require(

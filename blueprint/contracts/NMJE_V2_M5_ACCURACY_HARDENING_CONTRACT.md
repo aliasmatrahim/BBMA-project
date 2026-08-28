@@ -86,7 +86,7 @@ All refinements begin as correctness, metadata, shadow, deterministic tests, or 
 `automatic_policy_authorized = false`  
 `m5_execution_authority = false`  
 `m5_processing_clock_authority = false`  
-`source_modification_authorized = stage_e4_p8_provenance_stability`  
+`source_modification_authorized = none_p9_audit_only`  
 `activation_authorized = false`
 
 Stage A contract and deterministic fixtures are complete. Stage B authorizes
@@ -130,4 +130,10 @@ Stage E4 additionally authorizes P8 provenance-only parent stability. An exact
 previous parent may be retained only while the same canonical parent EventID
 and D1 epoch identity remain current. There is no candle-count wait, time delay,
 decision suppression, or trade-path hysteresis.
+
+Stage E5 records the user-verified P9 semantic-source mapping and adds an
+audit-only regression lock. The existing H1/M15/H4/D1 mapping, source-owned
+Re-Entry lifecycle window, BB destination, SL/TP geometry, and EA build remain
+unchanged. No alternative source, source score, runtime switch, or policy is
+authorized.
 

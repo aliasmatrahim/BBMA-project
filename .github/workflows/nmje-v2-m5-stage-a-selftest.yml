@@ -12,9 +12,11 @@ on:
       - 'blueprint/tests/test_nmje_v2_m5_stage_b_schema_static.py'
       - 'blueprint/tests/test_nmje_v2_m5_stage_c1_acquisition_static.py'
       - 'blueprint/tests/test_nmje_v2_m5_stage_c2_shadow_static.py'
+      - 'blueprint/tests/test_nmje_v2_m5_stage_d1_attribution_static.py'
       - 'blueprint/implementation/NMJE_V2_M5_STAGE_B_SCHEMA_RECORD_20260828.md'
       - 'blueprint/implementation/NMJE_V2_M5_STAGE_C1_ACQUISITION_RECORD_20260828.md'
       - 'blueprint/implementation/NMJE_V2_M5_STAGE_C2_SHADOW_CLASSIFICATION_RECORD_20260828.md'
+      - 'blueprint/implementation/NMJE_V2_M5_STAGE_D1_ATTRIBUTION_RECORD_20260828.md'
       - 'blueprint/source/BBMA_EA.mq4'
       - '.github/workflows/nmje-v2-m5-stage-a-selftest.yml'
   workflow_dispatch:
@@ -60,6 +62,12 @@ jobs:
           set -euo pipefail
           python3 blueprint/tests/test_nmje_v2_m5_stage_c2_shadow_static.py
 
+      - name: Verify Stage D1 durable outcome attribution firewall
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 blueprint/tests/test_nmje_v2_m5_stage_d1_attribution_static.py
+
       - name: Compile test harness
         shell: bash
         run: |
@@ -69,6 +77,7 @@ jobs:
             blueprint/tests/test_nmje_v2_m5_stage_a_static.py \
             blueprint/tests/test_nmje_v2_m5_stage_b_schema_static.py \
             blueprint/tests/test_nmje_v2_m5_stage_c1_acquisition_static.py \
-            blueprint/tests/test_nmje_v2_m5_stage_c2_shadow_static.py
-          echo 'NMJE_V2_M5_STAGE_A_B_C1_C2_SELFTEST=PASS'
+            blueprint/tests/test_nmje_v2_m5_stage_c2_shadow_static.py \
+            blueprint/tests/test_nmje_v2_m5_stage_d1_attribution_static.py
+          echo 'NMJE_V2_M5_STAGE_A_B_C1_C2_D1_SELFTEST=PASS'
 

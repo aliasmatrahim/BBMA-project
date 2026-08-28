@@ -37,8 +37,8 @@ jobs:
           p = Path('blueprint/source/BBMA_EA.mq4')
           s = p.read_text(encoding='utf-8')
           required = [
-              'Version 4.6.3 - NMJE v2 M5 Shadow Classification',
-              '#property version   "4.63"',
+              'Version 4.6.4 - NMJE v2 Shadow Outcome Attribution',
+              '#property version   "4.64"',
               'UpdateNestedJourneyObservation(pairIndex);',
               'NMJE_PrintValidatedDecisionShadow(pairIndex, decision);',
           ]

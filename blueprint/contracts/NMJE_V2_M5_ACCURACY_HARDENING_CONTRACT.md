@@ -86,7 +86,7 @@ All refinements begin as correctness, metadata, shadow, deterministic tests, or 
 `automatic_policy_authorized = false`  
 `m5_execution_authority = false`  
 `m5_processing_clock_authority = false`  
-`source_modification_authorized = stage_c2_shadow_classification`  
+`source_modification_authorized = stage_d1_shadow_attribution`  
 `activation_authorized = false`
 
 Stage A contract and deterministic fixtures are complete. Stage B authorizes
@@ -103,4 +103,11 @@ on that frozen closed-M5 sample, deterministic `M5Refinement` lineage binding,
 and shadow-only relation classification. It does not authorize M5 CSD/eCSD/CSM,
 candidate creation, rejection, ranking, execution, persistence/recovery, D1TPW,
 C044, or any decision-path influence.
+
+Stage D1 additionally authorizes research-only per-decision attribution frozen
+from the already-selected base decision, durable storage keyed to the existing
+execution hash/ticket identity, restart recovery of that metadata, and exact
+closed-order outcome logging. Missing/corrupt attribution must remain invisible
+to trade recovery state, lifecycle, candidate eligibility, ranking, rejection,
+risk, execution, and position management.
 

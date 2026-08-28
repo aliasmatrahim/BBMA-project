@@ -48,8 +48,12 @@ Exit gate: authority matrix, replay/recovery, frequency-preservation, and native
 
 ## Stage D — P4 attribution
 
-1. Persist base-path and shadow-challenger metadata using exact decision/execution identity.
-2. Join attributes to exact closed-trade outcomes.
+Status: D1 COMPLETE — base journey and M5 shadow metadata are frozen after M15
+selection, persisted by stable execution identity, recovered independently, and
+joined to exact closed-order outcome telemetry. Attribution remains non-authoritative.
+
+1. Persist base-path and M5 shadow metadata using exact decision/execution identity. COMPLETE.
+2. Join attributes to exact closed-trade outcomes. COMPLETE.
 3. Track coherence, M5 state, maturity, density, conflict subtype, and entry displacement.
 4. Make no live decision change.
 

@@ -86,7 +86,7 @@ All refinements begin as correctness, metadata, shadow, deterministic tests, or 
 `automatic_policy_authorized = false`  
 `m5_execution_authority = false`  
 `m5_processing_clock_authority = false`  
-`source_modification_authorized = stage_e2_p6_maturity_metadata`  
+`source_modification_authorized = stage_e3_p7_density_metadata`  
 `activation_authorized = false`
 
 Stage A contract and deterministic fixtures are complete. Stage B authorizes
@@ -120,4 +120,9 @@ Stage E2 additionally authorizes P6 categorical journey-maturity telemetry
 derived only from existing BBMA owner, Extreme, Re-Entry, and MHV/MLV states.
 No score, threshold, minimum-maturity gate, delay, or eligibility change is
 authorized.
+
+Stage E3 additionally authorizes P7 structural-presence bitmask/count metadata
+and the existing selected candidate's requirement/sequence completeness values.
+They describe an already-selected candidate only and must not be used as a
+score, minimum threshold, rejection, or selection input.
 

@@ -69,6 +69,10 @@ Status: E2 / P6 COMPLETE — categorical BBMA journey maturity is captured for
 base and M5 contexts, persisted with attribution, and emitted with outcomes.
 No generic score or minimum-maturity gate is introduced.
 
+Status: E3 / P7 COMPLETE — a five-bit D1/H4/H1/M15/M5 support-presence mask,
+its bit count, and the already-selected candidate's existing requirement and
+sequence completeness are persisted for outcomes. They do not affect selection.
+
 Evaluate conflict subtype, maturity, structural density, hysteresis, SL semantic source, displacement, and first/continuation lineage in queue order. Each remains metadata/shadow unless its approved role is strictly deterministic tie-break between already-eligible candidates.
 
 ## Mandatory evidence per source-bearing stage

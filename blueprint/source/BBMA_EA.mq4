@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.6.6 - NMJE v2 Journey Maturity Telemetry           |
+//| Version 4.6.7 - NMJE v2 Structural Density Telemetry         |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.66"
+#property version   "4.67"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -693,6 +693,10 @@ struct NMJEShadowAttributionState
    datetime             M5EventStartCandleTime;
    datetime             M5ClosedCandleTime;
    string               M5ReasonHash;
+   int                  StructureMask;
+   int                  StructureCount;
+   int                  RequirementCompleteness;
+   int                  SequenceCompleteness;
 };
 
 // N1-03: one pair-level nested journey observation per closed-M15 cycle.
@@ -827,6 +831,11 @@ struct BBMA_Decision
    bool                         NMJESnapshotPresent;
    // Issue #101 P4 frozen research payload; never candidate/authority input.
    NMJEM5RefinementState        NMJEM5Refinement;
+   // Issue #101 P7 descriptive completeness of the already-selected decision.
+   int                          NMJEStructureMask;
+   int                          NMJEStructureCount;
+   int                          NMJERequirementCompleteness;
+   int                          NMJESequenceCompleteness;
    
    // MUTABLE LIFECYCLE
    bool                 C044LifecycleManaged;
@@ -4855,6 +4864,39 @@ string NMJE_MaturityText(ENUM_NMJE_JOURNEY_MATURITY maturity)
    return "NONE";
 }
 
+bool NMJE_NodeSupportsDirection(NestedTFNode &node, ENUM_DIRECTION direction)
+{
+   return (node.Valid && node.CanonicalEventID != "" &&
+           node.Direction == direction);
+}
+
+int NMJE_BuildStructureMask(NestedJourneyState &journey,
+                            ENUM_DIRECTION direction)
+{
+   if(direction != DIR_BUY && direction != DIR_SELL) return 0;
+   int mask = 0;
+   if(NMJE_NodeSupportsDirection(journey.D1Node, direction)) mask |= 1;
+   if(NMJE_NodeSupportsDirection(journey.H4Node, direction)) mask |= 2;
+   if(NMJE_NodeSupportsDirection(journey.H1Node, direction)) mask |= 4;
+   if(NMJE_NodeSupportsDirection(journey.M15Node, direction)) mask |= 8;
+   if(journey.M5Refinement.Present && journey.M5Refinement.Valid &&
+      journey.M5Refinement.Resolved &&
+      journey.M5Refinement.Direction == direction &&
+      (journey.M5Refinement.Relation == NESTED_SUPPORTING ||
+       journey.M5Refinement.Relation == NESTED_ALIGNED))
+      mask |= 16;
+   return mask;
+}
+
+int NMJE_CountStructureBits(int mask)
+{
+   int count = 0;
+   int bits[5] = {1,2,4,8,16};
+   for(int i = 0; i < 5; i++)
+      if((mask & bits[i]) != 0) count++;
+   return count;
+}
+
 void NMJE_CommitM5Refinement(NestedJourneyState &journey,
                              NMJEM5RefinementState &snapshot)
 {
@@ -6309,6 +6351,8 @@ bool FreezeNMJEShadowSnapshot(PairState &pairState, BBMA_Decision &decision)
    decision.NMJEMaturity = NMJE_MATURITY_NONE;
    decision.NMJEUpdateCandleTime = 0;
    decision.NMJESnapshotPresent = false;
+   decision.NMJEStructureMask = 0;
+   decision.NMJEStructureCount = 0;
    ZeroMemory(decision.NMJEM5Refinement);
    decision.NMJEM5Refinement.Direction = DIR_NONE;
    decision.NMJEM5Refinement.Relation = NESTED_UNRESOLVED;
@@ -6336,6 +6380,10 @@ bool FreezeNMJEShadowSnapshot(PairState &pairState, BBMA_Decision &decision)
    decision.NMJEUpdateCandleTime = journey.UpdateCandleTime;
    decision.NMJESnapshotPresent = true;
    decision.NMJEM5Refinement = journey.M5Refinement;
+   decision.NMJEStructureMask =
+      NMJE_BuildStructureMask(journey, decision.Direction);
+   decision.NMJEStructureCount =
+      NMJE_CountStructureBits(decision.NMJEStructureMask);
    return true;
 }
 
@@ -6388,6 +6436,14 @@ bool ValidateNMJEShadowSnapshot(int pairIndex, BBMA_Decision &decision,
    if(current.Maturity != decision.NMJEMaturity)
    {
       reason = "MATURITY_MISMATCH";
+      return false;
+   }
+   int currentStructureMask =
+      NMJE_BuildStructureMask(current, decision.Direction);
+   if(currentStructureMask != decision.NMJEStructureMask ||
+      NMJE_CountStructureBits(currentStructureMask) != decision.NMJEStructureCount)
+   {
+      reason = "STRUCTURE_DENSITY_MISMATCH";
       return false;
    }
    NMJEM5RefinementState frozenM5 = decision.NMJEM5Refinement;
@@ -6446,6 +6502,10 @@ bool BuildNMJEShadowAttribution(BBMA_Decision &decision,
    attribution.Relation = decision.NMJERelation;
    attribution.ConflictSubtype = decision.NMJEConflictSubtype;
    attribution.Maturity = decision.NMJEMaturity;
+   attribution.StructureMask = decision.NMJEStructureMask;
+   attribution.StructureCount = decision.NMJEStructureCount;
+   attribution.RequirementCompleteness = decision.NMJERequirementCompleteness;
+   attribution.SequenceCompleteness = decision.NMJESequenceCompleteness;
 
    NMJEM5RefinementState m5 = decision.NMJEM5Refinement;
    if(m5.Present && NMJE_M5LineageSnapshotValid(m5))
@@ -6517,8 +6577,8 @@ bool LoadNMJEShadowAttribution(TradeInfo &info)
       return false;
 
    string base = NMJEAttributionGVBase(info.ticket);
-   string fixedKeys[11] = {"V","M","O","R","C","JM","M5","MC","M5C","M5M","M5S"};
-   for(int i = 0; i < 11; i++)
+   string fixedKeys[15] = {"V","M","O","R","C","JM","M5","MC","M5C","M5M","M5S","SM","SC","RQ","SQ"};
+   for(int i = 0; i < 15; i++)
       if(!GlobalVariableCheck(base + fixedKeys[i])) return false;
    if((int)GlobalVariableGet(base + "V") != 1 ||
       (int)GlobalVariableGet(base + "M") != info.magic_number ||
@@ -6539,6 +6599,10 @@ bool LoadNMJEShadowAttribution(TradeInfo &info)
       (ENUM_NMJE_CONFLICT_SUBTYPE)((int)GlobalVariableGet(base + "C"));
    info.nmje_attribution.Maturity =
       (ENUM_NMJE_JOURNEY_MATURITY)((int)GlobalVariableGet(base + "JM"));
+   info.nmje_attribution.StructureMask = (int)GlobalVariableGet(base + "SM");
+   info.nmje_attribution.StructureCount = (int)GlobalVariableGet(base + "SC");
+   info.nmje_attribution.RequirementCompleteness = (int)GlobalVariableGet(base + "RQ");
+   info.nmje_attribution.SequenceCompleteness = (int)GlobalVariableGet(base + "SQ");
    if(info.nmje_attribution.Relation < NESTED_BUILDING ||
       info.nmje_attribution.Relation > NESTED_UNRESOLVED ||
       info.nmje_attribution.ConflictSubtype < NMJE_CONFLICT_NONE ||
@@ -6546,7 +6610,15 @@ bool LoadNMJEShadowAttribution(TradeInfo &info)
       (info.nmje_attribution.Relation == NESTED_CONFLICT &&
        info.nmje_attribution.ConflictSubtype == NMJE_CONFLICT_NONE) ||
       info.nmje_attribution.Maturity < NMJE_MATURITY_OWNER_ONLY ||
-      info.nmje_attribution.Maturity > NMJE_MATURITY_UNRESOLVED)
+      info.nmje_attribution.Maturity > NMJE_MATURITY_UNRESOLVED ||
+      info.nmje_attribution.StructureMask < 0 ||
+      info.nmje_attribution.StructureMask > 31 ||
+      info.nmje_attribution.StructureCount < 0 ||
+      info.nmje_attribution.StructureCount > 5 ||
+      NMJE_CountStructureBits(info.nmje_attribution.StructureMask) !=
+         info.nmje_attribution.StructureCount ||
+      info.nmje_attribution.RequirementCompleteness < 0 ||
+      info.nmje_attribution.SequenceCompleteness < 0)
       return false;
 
    info.nmje_attribution.M5Present = (GlobalVariableGet(base + "M5") > 0.5);
@@ -6616,6 +6688,10 @@ bool SaveNMJEShadowAttribution(TradeInfo &info)
    if(GlobalVariableSet(base + "M5C", (double)a.M5ConflictSubtype) == 0) return false;
    if(GlobalVariableSet(base + "M5M", (double)a.M5Maturity) == 0) return false;
    if(GlobalVariableSet(base + "M5S", (double)a.M5ContextStateCode) == 0) return false;
+   if(GlobalVariableSet(base + "SM", (double)a.StructureMask) == 0) return false;
+   if(GlobalVariableSet(base + "SC", (double)a.StructureCount) == 0) return false;
+   if(GlobalVariableSet(base + "RQ", (double)a.RequirementCompleteness) == 0) return false;
+   if(GlobalVariableSet(base + "SQ", (double)a.SequenceCompleteness) == 0) return false;
    if(!NMJEStoreHex16(base, "X", info.execution_hash) ||
       !NMJEStoreHex16(base, "J", a.JourneyHash) ||
       !NMJEStoreHex16(base, "P", a.ParentEventHash))
@@ -6648,6 +6724,10 @@ bool SaveNMJEShadowAttribution(TradeInfo &info)
            verify.nmje_attribution.Relation == a.Relation &&
            verify.nmje_attribution.ConflictSubtype == a.ConflictSubtype &&
            verify.nmje_attribution.Maturity == a.Maturity &&
+           verify.nmje_attribution.StructureMask == a.StructureMask &&
+           verify.nmje_attribution.StructureCount == a.StructureCount &&
+           verify.nmje_attribution.RequirementCompleteness == a.RequirementCompleteness &&
+           verify.nmje_attribution.SequenceCompleteness == a.SequenceCompleteness &&
            verify.nmje_attribution.M5Present == a.M5Present &&
            (!a.M5Present ||
             (verify.nmje_attribution.M5EventHash == a.M5EventHash &&
@@ -6741,6 +6821,8 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
    decision.SignalType = selected.SequenceType;
    decision.PriorityTier = TIER_NONE;
    decision.ComponentCount = selected.ComponentCount;
+   decision.NMJERequirementCompleteness = selected.RequirementCompleteness;
+   decision.NMJESequenceCompleteness = selected.SequenceCompleteness;
    for(int c = 0; c < 3; c++)
       decision.Components[c] = selected.Components[c];
    decision.HasSLTPSourceComponent =
@@ -7086,6 +7168,10 @@ void InvalidationEngine_Atomic(int pairIndex, BBMA_Decision &decision,
             " Relation=", NMJE_RelationText(decision.NMJERelation),
             " Subtype=", NMJE_ConflictSubtypeText(decision.NMJEConflictSubtype),
             " Maturity=", NMJE_MaturityText(decision.NMJEMaturity),
+            " StructureMask=", IntegerToString(decision.NMJEStructureMask),
+            " StructureCount=", IntegerToString(decision.NMJEStructureCount),
+            " Req=", IntegerToString(decision.NMJERequirementCompleteness),
+            " Seq=", IntegerToString(decision.NMJESequenceCompleteness),
             " Journey=", decision.NMJEJourneyID == "" ? "-" : decision.NMJEJourneyID,
             " ParentEvent=", decision.NMJEParentEventID == "" ? "-" : decision.NMJEParentEventID,
             " Reason=", nmjeShadowMatch ? "MATCH" : nmjeShadowReason);
@@ -8438,6 +8524,10 @@ void NMJE_PrintClosedOutcomeShadow(TradeInfo &info)
          " M5DIR=", NMJE_DirText(info.nmje_attribution.M5Direction),
          " M5CTX=", IntegerToString(info.nmje_attribution.M5ContextCode),
          " M5RH=", info.nmje_attribution.M5ReasonHash == "" ? "-" : info.nmje_attribution.M5ReasonHash,
+         " SM=", IntegerToString(info.nmje_attribution.StructureMask),
+         " SC=", IntegerToString(info.nmje_attribution.StructureCount),
+         " RQ=", IntegerToString(info.nmje_attribution.RequirementCompleteness),
+         " SQ=", IntegerToString(info.nmje_attribution.SequenceCompleteness),
          " NET=", DoubleToString(netProfit, 8),
          " CLOSE=", IntegerToString((int)OrderCloseTime()));
 }

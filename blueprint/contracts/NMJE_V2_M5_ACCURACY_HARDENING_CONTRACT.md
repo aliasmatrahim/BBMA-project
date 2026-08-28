@@ -86,7 +86,7 @@ All refinements begin as correctness, metadata, shadow, deterministic tests, or 
 `automatic_policy_authorized = false`  
 `m5_execution_authority = false`  
 `m5_processing_clock_authority = false`  
-`source_modification_authorized = stage_c1_data_only`  
+`source_modification_authorized = stage_c2_shadow_classification`  
 `activation_authorized = false`
 
 Stage A contract and deterministic fixtures are complete. Stage B authorizes
@@ -96,6 +96,11 @@ wiring, candidate influence, rejection, ranking, execution, or activation.
 
 Stage C1 additionally authorizes acquisition of the latest fully closed M5
 candle through the existing M15-driven `ProcessPair` cycle. It does not
-authorize detector execution, context classification, event creation,
-`M5Refinement` population, persistence, candidate influence, or activation.
+authorize a second processing clock, candidate influence, or activation.
+
+Stage C2 additionally authorizes canonical Re-Entry and Extreme detector state
+on that frozen closed-M5 sample, deterministic `M5Refinement` lineage binding,
+and shadow-only relation classification. It does not authorize M5 CSD/eCSD/CSM,
+candidate creation, rejection, ranking, execution, persistence/recovery, D1TPW,
+C044, or any decision-path influence.
 

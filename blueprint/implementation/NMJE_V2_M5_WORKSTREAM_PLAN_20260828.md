@@ -34,11 +34,12 @@ Exit gate: P1 tests PASS and explicit review of the schema boundary.
 
 ## Stage C — P2/P3 shadow context
 
-Status: C1 IN PROGRESS — latest closed-M5 data acquisition on the existing M15
-clock only; no detector, classification, event, relation or shadow population.
+Status: C2 COMPLETE — canonical M5 Re-Entry/Extreme context is classified and
+bound to immutable parent/journey identity on the existing M15 clock. The
+result is shadow-only and has no candidate or decision-path influence.
 
-1. Materialize M5 closed-candle observation only.
-2. Derive canonical relation + reason without a second clock.
+1. Materialize M5 closed-candle observation only. COMPLETE.
+2. Derive canonical relation + reason without a second clock. COMPLETE.
 3. Add journey-coherence metadata for equal-eligibility arbitration only.
 4. Prove a temporary M5 conflict cannot reject the sole valid M15 candidate.
 5. Keep all results diagnostic/shadow-only.

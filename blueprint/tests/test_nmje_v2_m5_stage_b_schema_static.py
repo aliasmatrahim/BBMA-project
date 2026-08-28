@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Static Stage-B P1 schema and no-wiring regression for Issue #101."""
+"""Static Stage-B P1 schema regression retained through later stages."""
 from pathlib import Path
 import re
 
@@ -70,19 +70,8 @@ def main() -> None:
         "NESTED_UNRESOLVED",
     )
 
-    # Stage B is deliberately schema-only: neither helper may be called by the
-    # M15-clocked observation loop, and M5 data must not yet be loaded.
-    update = function_body("UpdateNestedJourneyObservation", "void")
-    for forbidden in (
-        "NMJE_M5ContextEventID(",
-        "NMJE_M5LineageSnapshotValid(",
-        "M5Refinement",
-        "PERIOD_M5",
-        "GetDataForTimeframe",
-    ):
-        if forbidden in update:
-            raise AssertionError(f"premature Stage-B wiring: {forbidden}")
-
+    # Later stages may materialize the schema, but cannot weaken its identity
+    # determinism or introduce any M5 authority marker.
     for forbidden in (
         "EnableNMJEM5Execution",
         "M5_PROCESSING_CLOCK",

@@ -1,213 +1,4 @@
-//+------------------------------------------------------------------+
-//|                                           BBMA_EA.mq4 |
-//| Version 4.6.2 - NMJE v2 M5 Closed-Data Acquisition           |
-//|                                           CODE-READY              |
-//+------------------------------------------------------------------+
-//+------------------------------------------------------------------+
-//|                    CODING COMPLEXITY LIMITER                       |
-//|                    =========================                       |
-//|                                                                   |
-//|  PURPOSE:                                                         |
-//|  Prevent unnecessary over-engineering during MQL4 implementation. |
-//|                                                                   |
-//|  GENERAL RULE:                                                    |
-//|  Use the SIMPLEST implementation that fully satisfies this        |
-//|  Master Blueprint.                                                |
-//|                                                                   |
-//|  COMPLEXITY LEVELS:                                               |
-//|  BEGINNER        - Direct code. Basic conditions, loops, calc.   |
-//|  INTERMEDIATE    - Modular functions. Structs/state only where    |
-//|                    required. Normal production-grade EA coding.   |
-//|  INTERMEDIATE+   - Stateful, lifecycle or sequence-based logic    |
-//|                    allowed. Limited to actual Blueprint req.      |
-//|  EXPERT-RESTRICTED- Only where state/risk/execution integrity,    |
-//|                    persistence, recovery, lifecycle or orchest-   |
-//|                    ration correctness requires it.                |
-//|  EXPERT          - Critical execution and recovery infrastructure.|
-//|                    Every complex mechanism must have a clear      |
-//|                    technical reason.                              |
-//|                                                                   |
-//|  IMPORTANT: "EXPERT" DOES NOT MEAN "MAXIMUM COMPLEXITY".         |
-//+------------------------------------------------------------------+
-#property copyright "BBMA EA"
-#property link      ""
-#property version   "4.62"
-#property strict
-
-//+------------------------------------------------------------------+
-//| MODULE 01: HEADER & INPUTS                                       |
-//| LEVEL: BEGINNER                                                  |
-//+------------------------------------------------------------------+
-
-//--- USER INPUT ENUMS (numeric values preserved for compatibility)
-enum ENUM_ENTRY_MODE_INPUT
-{
-   MODE_1_RE_ENTRY_ONLY          = 1, // Re-Entry only | selective
-   MODE_2_ALL_VALIDATED_BBMA     = 2  // RE + REM/RRE/REE | more opportunities
-};
-
-enum ENUM_MM_MODE_INPUT
-{
-   MM_AUTO_LOT                   = 1, // Lot derived from risk %
-   MM_FIXED_LOT                  = 2  // Use FixedLot
-};
-
-enum ENUM_TRADE_LOCK
-{
-   LOCK_OFF                      = 0, // No optional live-position lock
-   LOCK_SAME_DIRECTION           = 1, // Existing pair trades constrain new direction
-   LOCK_ONE_POSITION             = 2  // Max 1 live EA trade / pair
-};
-
-enum ENUM_DEBUG_LEVEL
-{
-   DBG_OFF                       = 0,
-   DBG_ERROR                     = 1,
-   DBG_SIGNAL                    = 2,
-   DBG_TRADE                     = 3,
-   DBG_FULL                      = 4
-};
-
-//--- 01 TRADING SETUP
-input ENUM_ENTRY_MODE_INPUT EntryMode             = MODE_2_ALL_VALIDATED_BBMA; // 01 Trading | Mode 1=RE only, Mode 2=RE+REM/RRE/REE
-
-//--- 02 PAIR SELECTION
-input string   PairList                           = "EURUSD,GBPUSD,USDJPY,USDCHF,USDCAD,AUDUSD,NZDUSD,EURJPY,GBPJPY,EURGBP,AUDJPY,CADJPY,CHFJPY,NZDJPY,EURAUD,EURCAD,EURCHF,GBPAUD,GBPCAD,AUDCAD"; // 02 Pairs | default 20-pair FX universe
-
-//--- 03 TRADE LIMITS
-input int      MaxTradePerPair                    = 2;          // 03 Limits | max live trades per pair
-input int      MaxTotalTrade                      = 10;         // 03 Limits | max total live EA trades
-input int      MaxActivePair                      = 7;          // 03 Limits | requested max active pairs; runtime caps safely
-
-//--- 04 MONEY MANAGEMENT
-input ENUM_MM_MODE_INPUT MMMode                   = MM_AUTO_LOT; // 04 Money | AUTO=risk %, FIXED=FixedLot
-input double   AutoLotPercent                     = 1.0;        // 04 Money | risk % used by Auto Lot
-input double   FixedLot                           = 0.01;       // 04 Money | used only in Fixed Lot mode
-input double   MaxAutoLot                         = 1.0;        // 04 Money | hard cap for Auto Lot
-
-//--- 05 TRADE CONTROL
-input ENUM_TRADE_LOCK TradeLockMode               = LOCK_OFF;   // 05 Control | OFF / SAME_DIRECTION / ONE_POSITION
-
-//--- 06 RISK PROTECTION
-input double   MaxSpreadPips                      = 10.0;       // 06 Risk | reject entry above this spread
-input double   MaxDrawdownPercent                 = 20.0;       // 06 Risk | maximum EA drawdown %
-input double   BasketLossPercent                  = 10.0;       // 06 Risk | emergency basket-loss %
-input double   MaxTotalRiskPercent                = 5.0;        // 06 Risk | maximum total EA risk %
-
-//--- 07 DISPLAY
-input bool     ShowDashboard                      = true;       // 07 Display | show chart dashboard
-
-//--- 08 ADVANCED SAFETY / EXECUTION
-input double   MinRRRatio                         = 0.0;        // 08 Advanced | optional Min RR filter; 0=disabled
-input double   MaxSLPips                          = 100.0;      // 08 Advanced | maximum accepted SL distance
-input int      Slippage                           = 3;          // 08 Advanced | broker slippage in points
-input ENUM_DEBUG_LEVEL DebugLevel                 = DBG_OFF;    // 08 Advanced | OFF / ERROR / SIGNAL / TRADE / FULL
-input int      StrategyID                         = 1;          // 08 Advanced | strategy identity 1-99
-input int      InstanceID                         = 0;          // 08 Advanced | instance identity 0-99
-
-//--- INTERNAL / LOCKED (not shown in MT4 Inputs; defaults preserved)
-int            MaxWaitBars_Extreme                = 5;
-int            MaxWaitBars_MLV                    = 5;          // Legacy compatibility only; canonical MHV/MLV has no strategy TTL
-int            MaxWaitBars_CSD                    = 5;
-int            MaxWaitBars_ReEntry                = 5;
-int            MaxWaitBars_Combined               = 5;
-int            MaxWaitBars_Global                 = 10;
-int            SignalMode                         = 1;          // Deprecated compatibility/display only
-int            ScoreDisplayThresholdManual        = 60;         // Deprecated display compatibility only
-bool           EnableBBShapeEngine                = true;
-bool           EnableExtremeClassifier            = true;
-bool           EnableMLVStateEngine               = true;
-bool           EnableReEntryEngine                = true;
-bool           EnableSignalScoring                = true;       // M18 label metadata only; never gates trading
-bool           EnableRE_Type1                     = true;
-bool           EnableRE_Type2                     = true;
-bool           EnableRE_Type3                     = true;
-bool           EnableRE_Type4                     = true;
-// C044 staged implementation gate. Keep OFF until M23/M24 lifecycle
-// close + restart reconstruction are implemented and verified.
-bool           EnableC044Lifecycle                = false;
-// D1 EXTREME_TPW staged lifecycle. Keep OFF until native/static gates and
-// broker/demo restart + close-idempotency validation are complete.
-bool           EnableD1TPWLifecycle               = false;
-double         BasketProfitPercent                = 5.0;        // Display compatibility only; not execution TP
-int            MaxRetry                           = 3;
-int            BERetryInterval                    = 60;
-int            AllowedExecutionDeviation_MinPoints= 5;
-
-//--- CONSTANTS
-#define TIMEFRAME_TREND         1440
-#define TIMEFRAME_HIGHER        240
-#define TIMEFRAME_MAIN          60
-#define TIMEFRAME_LOWER         15
-#define BB_PERIOD               20
-#define BB_DEVIATION            2
-#define MA5_HIGH_PERIOD         5
-#define MA10_HIGH_PERIOD        10
-#define MA5_LOW_PERIOD          5
-#define MA10_LOW_PERIOD         10
-#define EMA50_PERIOD            50
-#define MAX_PAIRS               40
-#define MAX_TRADES_PER_PAIR     20
-#define MAX_MONITORED           400
-#define RETRY_SLEEP_MS          100
-#define TRADE_TIMEOUT           2000
-#define MAGIC_BASE              100000
-#define SIGNAL_HISTORY_MAX      2000
-#define SIGNAL_HISTORY_CLEANUP_SIZE 200
-#define PAIR_ID_MIN             1
-#define PAIR_ID_MAX             99
-#define INSTANCE_ID_MIN         0
-#define INSTANCE_ID_MAX         99
-#define STRATEGY_ID_MIN         1
-#define STRATEGY_ID_MAX         99
-
-//+------------------------------------------------------------------+
-//| MODULE 02: ENUMS & STRUCTS                                       |
-//| LEVEL: BEGINNER                                                  |
-//+------------------------------------------------------------------+
-
-//--- ENUMS
-enum ENUM_SIGNAL_TYPE
-{
-   SIGNAL_NONE,
-   SIGNAL_EXTREME,
-   SIGNAL_MHV,
-   SIGNAL_MLV,
-   SIGNAL_CSD,
-   SIGNAL_ECSD,
-   SIGNAL_CSM,
-   SIGNAL_RE_ENTRY,
-   SIGNAL_REM,
-   SIGNAL_RRE,
-   SIGNAL_REE,
-};
-
-enum ENUM_DIRECTION { DIR_NONE, DIR_BUY, DIR_SELL };
-
-enum ENUM_BB_STATE { BB_NONE, BB_SQUEEZE, BB_EXPANDING, BB_CONTRACTING, BB_FLAT };
-
-enum ENUM_MLV_STATE
-{
-   MLV_NONE,
-   MLV_PARENT_READY,
-   MLV_TP_COMPLETE,
-   MLV_LOSS_DEVELOPING,
-   MLV_FORMATION_ESTABLISHED,
-   MLV_RETEST_COMPLETE,
-   MLV_DIRECTION_TAKEN,
-   MLV_VOID,
-   MLV_SUPERSEDED
-};
-
-enum ENUM_RE_TYPE { RE_NONE, RE_TYPE_1, RE_TYPE_2, RE_TYPE_3_CSM, RE_TYPE_4_CSD };
-
-enum ENUM_RE_STATE { RE_STATE_NONE, RE_STATE_CANDIDATE, RE_STATE_CONFIRMED, RE_STATE_EXPIRED };
-
-enum ENUM_TYPE1_CONTEXT_STATE
-{
-   TYPE1_CTX_NONE,
-   TYPE1_CTX_DIRECTION_OWNER,
-   TYPE1_CTX_RANGING
+CTX_RANGING
 };
 
 enum ENUM_H4_OWNER_STATE
@@ -260,6 +51,14 @@ enum ENUM_NESTED_PARENT_KIND
    NESTED_PARENT_H4_OWNER,
    NESTED_PARENT_D1_RE,
    NESTED_PARENT_D1_OWNER
+};
+
+// Issue #101 Stage-C2 shadow-only canonical M5 context families.
+enum ENUM_NMJE_M5_CONTEXT_CODE
+{
+   NMJE_M5_CONTEXT_NONE = 0,
+   NMJE_M5_CONTEXT_RE_ENTRY = 1,
+   NMJE_M5_CONTEXT_EXTREME = 2
 };
 
 enum ENUM_EXTREME_TYPE { EXT_NONE, EXT_SIDEWAYS, EXT_WITH_MOMENTUM, EXT_WITHOUT_MOMENTUM };
@@ -613,7 +412,7 @@ struct NestedTFNode
    string               OverlayLabel;
 };
 
-// NMJE v2 Stage-B schema only. This is provenance/shadow storage and has no
+// NMJE v2 Stage-C2 provenance/shadow storage. It has no
 // processing-clock, candidate, rejection, ranking or execution authority.
 struct NMJEM5RefinementState
 {
@@ -653,7 +452,7 @@ struct NestedJourneyState
    NestedTFNode            H4Node;
    NestedTFNode            H1Node;
    NestedTFNode            M15Node;
-   // NMJE v2 Stage-B schema only; deliberately not populated or consumed yet.
+   // NMJE v2 Stage-C2 shadow-only M5 relation; never decision authority.
    NMJEM5RefinementState    M5Refinement;
 
    // N1.1 read-only D1 Opportunity overlay; not parent or execution authority.
@@ -874,6 +673,9 @@ struct PairState
    ReEntryData          re_d1_sell_state;
    ReEntryData          re_m15_buy_state;
    ReEntryData          re_m15_sell_state;
+   // Issue #101 Stage-C2 canonical detector state, observed on M15 clock only.
+   ReEntryData          re_m5_buy_state;
+   ReEntryData          re_m5_sell_state;
    H4DirectionalOwner   h4_direction_owner;
    D1MajorTrendOwner    d1_major_trend_owner;
    D1OpportunityJourney d1_opportunity;
@@ -891,6 +693,9 @@ struct PairState
    // F1 uses the F2 Extreme maturity engine as same-TF M15 parent provenance.
    ExtremeLifecycleData extreme_m15_buy_lifecycle;
    ExtremeLifecycleData extreme_m15_sell_lifecycle;
+   // Issue #101 Stage-C2 shadow context; never exported as a candidate.
+   ExtremeLifecycleData extreme_m5_buy_lifecycle;
+   ExtremeLifecycleData extreme_m5_sell_lifecycle;
    // M16 executable-component freshness/identity overlay for mature Extremes.
    // M08 owns RAW/reversal/retest maturity and strategy invalidation.
    Signal               extreme_h1_buy_state;
@@ -1425,6 +1230,13 @@ void InitPairState(PairState &state)
    state.extreme_m15_sell_lifecycle.Direction = DIR_SELL;
    state.extreme_m15_sell_lifecycle.Timeframe = PERIOD_M15;
 
+   state.extreme_m5_buy_lifecycle.Maturity = EXT_MAT_NONE;
+   state.extreme_m5_buy_lifecycle.Direction = DIR_BUY;
+   state.extreme_m5_buy_lifecycle.Timeframe = PERIOD_M5;
+   state.extreme_m5_sell_lifecycle.Maturity = EXT_MAT_NONE;
+   state.extreme_m5_sell_lifecycle.Direction = DIR_SELL;
+   state.extreme_m5_sell_lifecycle.Timeframe = PERIOD_M5;
+
    state.extreme_d1_buy_lifecycle.Maturity = EXT_MAT_NONE;
    state.extreme_d1_buy_lifecycle.Direction = DIR_BUY;
    state.extreme_d1_buy_lifecycle.Timeframe = PERIOD_D1;
@@ -1456,6 +1268,12 @@ void InitPairState(PairState &state)
    state.re_m15_sell_state.State = RE_STATE_NONE;
    state.re_m15_sell_state.Direction = DIR_SELL;
    state.re_m15_sell_state.Timeframe = PERIOD_M15;
+   state.re_m5_buy_state.State = RE_STATE_NONE;
+   state.re_m5_buy_state.Direction = DIR_BUY;
+   state.re_m5_buy_state.Timeframe = PERIOD_M5;
+   state.re_m5_sell_state.State = RE_STATE_NONE;
+   state.re_m5_sell_state.Direction = DIR_SELL;
+   state.re_m5_sell_state.Timeframe = PERIOD_M5;
 
    state.h4_direction_owner.State = H4_OWNER_RECOVERY_UNRESOLVED;
    state.h4_direction_owner.Direction = DIR_NONE;
@@ -4632,6 +4450,143 @@ bool NMJE_SelectCandidateRE(ReEntryData &buyState, ReEntryData &sellState,
    return true;
 }
 
+// Issue #101 Stage-C2: materialize canonical M5 Re-Entry/Extreme context as
+// immutable shadow lineage. This function only writes journey.M5Refinement;
+// it never mutates candidate, rejection, ranking, risk or execution state.
+void NMJE_BuildM5Refinement(PairState &state, NestedJourneyState &journey)
+{
+   NMJEM5RefinementState snapshot;
+   ZeroMemory(snapshot);
+   snapshot.Direction = DIR_NONE;
+   snapshot.ContextCode = NMJE_M5_CONTEXT_NONE;
+   snapshot.Relation = NESTED_UNRESOLVED;
+   snapshot.Reason = "M5_NO_CANONICAL_CONTEXT";
+
+   if(journey.ParentEventID == "" || journey.JourneyID == "" ||
+      (journey.ParentDirection != DIR_BUY && journey.ParentDirection != DIR_SELL))
+   {
+      snapshot.Reason = "M5_PARENT_LINEAGE_MISSING";
+      journey.M5Refinement = snapshot;
+      return;
+   }
+   if(!state.m5_data.is_valid || !state.m5_data.is_closed ||
+      state.m5_data.timeframe != PERIOD_M5 || state.m5_data.candle_time <= 0)
+   {
+      snapshot.Reason = "M5_CLOSED_DATA_UNAVAILABLE";
+      journey.M5Refinement = snapshot;
+      return;
+   }
+
+   ReEntryData selectedRE;
+   ZeroMemory(selectedRE);
+   bool ambiguous = false;
+   bool confirmedRE = NMJE_SelectConfirmedRE(state.re_m5_buy_state,
+                                               state.re_m5_sell_state,
+                                               selectedRE, ambiguous);
+   if(ambiguous)
+   {
+      snapshot.Reason = "M5_CONFIRMED_RE_AMBIGUOUS";
+      journey.M5Refinement = snapshot;
+      return;
+   }
+
+   bool candidateRE = false;
+   if(!confirmedRE)
+   {
+      candidateRE = NMJE_SelectCandidateRE(state.re_m5_buy_state,
+                                            state.re_m5_sell_state,
+                                            selectedRE, ambiguous);
+      if(ambiguous)
+      {
+         snapshot.Reason = "M5_CANDIDATE_RE_AMBIGUOUS";
+         journey.M5Refinement = snapshot;
+         return;
+      }
+   }
+
+   if(confirmedRE || candidateRE)
+   {
+      snapshot.Direction = selectedRE.Direction;
+      snapshot.ContextCode = NMJE_M5_CONTEXT_RE_ENTRY;
+      snapshot.EventStartCandleTime = selectedRE.StartCandleTime;
+      if(confirmedRE && selectedRE.Direction == journey.ParentDirection)
+      {
+         snapshot.Relation = NESTED_ALIGNED;
+         snapshot.Reason = "M5_CONFIRMED_RE_ALIGNED";
+      }
+      else if(confirmedRE)
+      {
+         snapshot.Relation = NESTED_CONFLICT;
+         snapshot.Reason = "M5_TEMPORARY_CONFIRMED_RE_OPPOSES_PARENT";
+      }
+      else if(selectedRE.Direction == journey.ParentDirection)
+      {
+         snapshot.Relation = NESTED_SUPPORTING;
+         snapshot.Reason = "M5_CANDIDATE_RE_SUPPORTING";
+      }
+      else
+      {
+         snapshot.Relation = NESTED_BUILDING;
+         snapshot.Reason = "M5_CANDIDATE_RETRACEMENT_BUILDING";
+      }
+   }
+   else
+   {
+      bool buyExtreme = NMJE_IsExtremeActive(state.extreme_m5_buy_lifecycle);
+      bool sellExtreme = NMJE_IsExtremeActive(state.extreme_m5_sell_lifecycle);
+      if(buyExtreme && sellExtreme)
+      {
+         snapshot.Reason = "M5_EXTREME_AMBIGUOUS";
+         journey.M5Refinement = snapshot;
+         return;
+      }
+      if(!buyExtreme && !sellExtreme)
+      {
+         journey.M5Refinement = snapshot;
+         return;
+      }
+
+      ExtremeLifecycleData selectedExtreme;
+      ZeroMemory(selectedExtreme);
+      if(buyExtreme) selectedExtreme = state.extreme_m5_buy_lifecycle;
+      else selectedExtreme = state.extreme_m5_sell_lifecycle;
+
+      snapshot.Direction = selectedExtreme.Direction;
+      snapshot.ContextCode = NMJE_M5_CONTEXT_EXTREME;
+      snapshot.EventStartCandleTime = selectedExtreme.RawCandleTime;
+      if(selectedExtreme.Direction == journey.ParentDirection)
+      {
+         snapshot.Relation = NESTED_SUPPORTING;
+         snapshot.Reason = "M5_EXTREME_SUPPORTING";
+      }
+      else
+      {
+         snapshot.Relation = NESTED_CONFLICT;
+         snapshot.Reason = "M5_TEMPORARY_EXTREME_OPPOSES_PARENT";
+      }
+   }
+
+   snapshot.Present = true;
+   snapshot.ParentEventID = journey.ParentEventID;
+   snapshot.JourneyID = journey.JourneyID;
+   snapshot.ClosedCandleTime = state.m5_data.candle_time;
+   snapshot.EventID = NMJE_M5ContextEventID(state.actual_symbol,
+                                             snapshot.Direction,
+                                             snapshot.ContextCode,
+                                             snapshot.EventStartCandleTime);
+   snapshot.Valid = true;
+   snapshot.Resolved = true;
+   if(!NMJE_M5LineageSnapshotValid(snapshot))
+   {
+      ZeroMemory(snapshot);
+      snapshot.Direction = DIR_NONE;
+      snapshot.ContextCode = NMJE_M5_CONTEXT_NONE;
+      snapshot.Relation = NESTED_UNRESOLVED;
+      snapshot.Reason = "M5_LINEAGE_INVALID";
+   }
+   journey.M5Refinement = snapshot;
+}
+
 void NMJE_SetRENode(string pair, NestedTFNode &node, ReEntryData &state, bool resolved)
 {
    node.StageType = SIGNAL_RE_ENTRY;
@@ -5197,6 +5152,9 @@ void UpdateNestedJourneyObservation(int pairIndex)
       }
    }
 
+   // Stage-C2 binds M5 only after immutable parent and journey identities are
+   // resolved. Its relation is diagnostic and cannot modify the 4-TF result.
+   NMJE_BuildM5Refinement(g_pair_states[pairIndex], journey);
    g_nested_journeys[pairIndex] = journey;
    NMJE_PrintCoverageOverlay(journey);
    Print("[N1-NMJE] ", journey.Pair,
@@ -5209,6 +5167,15 @@ void UpdateNestedJourneyObservation(int pairIndex)
          " H1=", journey.H1Node.Label, "#", (journey.H1Node.CanonicalEventID == "" ? "-" : journey.H1Node.CanonicalEventID),
          " M15=", journey.M15Node.Label, "#", (journey.M15Node.CanonicalEventID == "" ? "-" : journey.M15Node.CanonicalEventID),
          " R=", journey.Reason);
+   Print("[NMJE-M5-SHADOW] ", journey.Pair,
+         " PRESENT=", (journey.M5Refinement.Present ? "Y" : "N"),
+         " REL=", NMJE_RelationText(journey.M5Refinement.Relation),
+         " DIR=", NMJE_DirText(journey.M5Refinement.Direction),
+         " CTX=", IntegerToString(journey.M5Refinement.ContextCode),
+         " E=", (journey.M5Refinement.EventID == "" ? "-" : journey.M5Refinement.EventID),
+         " PE=", (journey.M5Refinement.ParentEventID == "" ? "-" : journey.M5Refinement.ParentEventID),
+         " J=", (journey.M5Refinement.JourneyID == "" ? "-" : journey.M5Refinement.JourneyID),
+         " R=", journey.M5Refinement.Reason);
 }
 
 // N2-01: post-M16 shadow tag for validated decisions only.
@@ -10301,9 +10268,9 @@ void ProcessPair(int pairIndex)
    // source-valid authoritative H4 direction/momentum events.
    UpdateRuntimeH4DirectionalOwner(pairIndex);
 
-   BollingerBand d1Band, h1Band, h1PrevBand, h4Band, h4PrevBand, m15Band;
+   BollingerBand d1Band, h1Band, h1PrevBand, h4Band, h4PrevBand, m15Band, m5Band;
    ZeroMemory(d1Band); ZeroMemory(h1Band); ZeroMemory(h1PrevBand);
-   ZeroMemory(h4Band); ZeroMemory(h4PrevBand); ZeroMemory(m15Band);
+   ZeroMemory(h4Band); ZeroMemory(h4PrevBand); ZeroMemory(m15Band); ZeroMemory(m5Band);
 
    d1Band.TOP_BB = g_pair_states[pairIndex].d1_data.bollinger[0];
    d1Band.MID_BB = g_pair_states[pairIndex].d1_data.bollinger[1];
@@ -10328,6 +10295,12 @@ void ProcessPair(int pairIndex)
    m15Band.LOW_BB = g_pair_states[pairIndex].m15_data.bollinger[2];
    m15Band.Width = m15Band.TOP_BB - m15Band.LOW_BB;
    m15Band.State = BB_NONE;
+
+   m5Band.TOP_BB = g_pair_states[pairIndex].m5_data.bollinger[0];
+   m5Band.MID_BB = g_pair_states[pairIndex].m5_data.bollinger[1];
+   m5Band.LOW_BB = g_pair_states[pairIndex].m5_data.bollinger[2];
+   m5Band.Width = m5Band.TOP_BB - m5Band.LOW_BB;
+   m5Band.State = BB_NONE;
 
    if(EnableBBShapeEngine)
    {
@@ -10372,6 +10345,22 @@ void ProcessPair(int pairIndex)
    ResolveOppositeExtremeSupersession(g_pair_states[pairIndex].extreme_m15_buy_lifecycle,
                                       g_pair_states[pairIndex].extreme_m15_sell_lifecycle,
                                       g_pair_states[pairIndex].m15_data);
+
+   // Issue #101 Stage-C2: canonical M5 Extreme lifecycle advances only when
+   // this M15-driven cycle runs. The state is shadow context, never a signal.
+   bool m5RawBuyExtreme = DetectExtreme(actual, DIR_BUY,
+                                         g_pair_states[pairIndex].m5_data, m5Band);
+   bool m5RawSellExtreme = DetectExtreme(actual, DIR_SELL,
+                                          g_pair_states[pairIndex].m5_data, m5Band);
+   UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_m5_buy_lifecycle,
+                          actual, DIR_BUY, g_pair_states[pairIndex].m5_data,
+                          m5Band, m5RawBuyExtreme);
+   UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_m5_sell_lifecycle,
+                          actual, DIR_SELL, g_pair_states[pairIndex].m5_data,
+                          m5Band, m5RawSellExtreme);
+   ResolveOppositeExtremeSupersession(g_pair_states[pairIndex].extreme_m5_buy_lifecycle,
+                                      g_pair_states[pairIndex].extreme_m5_sell_lifecycle,
+                                      g_pair_states[pairIndex].m5_data);
 
    bool h1RawBuyExtreme = DetectExtreme(actual, DIR_BUY, g_pair_states[pairIndex].h1_data, h1Band);
    bool h1RawSellExtreme = DetectExtreme(actual, DIR_SELL, g_pair_states[pairIndex].h1_data, h1Band);
@@ -10496,6 +10485,8 @@ void ProcessPair(int pairIndex)
                             g_pair_states[pairIndex].d1_data);
          UpdateReEntryState(g_pair_states[pairIndex].re_m15_buy_state, actual, direction,
                             g_pair_states[pairIndex].m15_data);
+         UpdateReEntryState(g_pair_states[pairIndex].re_m5_buy_state, actual, direction,
+                            g_pair_states[pairIndex].m5_data);
          h1ReEntrySnapshot = g_pair_states[pairIndex].re_h1_buy_state;
          h4ReEntryState = g_pair_states[pairIndex].re_h4_buy_state;
          d1ReEntryState = g_pair_states[pairIndex].re_d1_buy_state;
@@ -10520,6 +10511,8 @@ void ProcessPair(int pairIndex)
                             g_pair_states[pairIndex].d1_data);
          UpdateReEntryState(g_pair_states[pairIndex].re_m15_sell_state, actual, direction,
                             g_pair_states[pairIndex].m15_data);
+         UpdateReEntryState(g_pair_states[pairIndex].re_m5_sell_state, actual, direction,
+                            g_pair_states[pairIndex].m5_data);
          h1ReEntrySnapshot = g_pair_states[pairIndex].re_h1_sell_state;
          h4ReEntryState = g_pair_states[pairIndex].re_h4_sell_state;
          d1ReEntryState = g_pair_states[pairIndex].re_d1_sell_state;
@@ -10759,3 +10752,5 @@ void OnTimer()
 //+------------------------------------------------------------------+
 //| END OF EXPERT ADVISOR                                            |
 //+------------------------------------------------------------------+
+
+

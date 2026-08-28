@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Stage-C1 closed-M5 acquisition-only regression for Issue #101."""
+"""Stage-C1 closed-M5 acquisition and clock-boundary regression."""
 from pathlib import Path
 import re
 
@@ -42,12 +42,9 @@ def main() -> None:
     if "g_pair_states[pairIndex].m5_data" not in process:
         raise AssertionError("M5 data destination missing")
 
-    # No M5 BBMA detector/lifecycle or refinement population is authorized yet.
+    # Stage C2 may run canonical shadow detectors, but ProcessPair itself must
+    # not populate lineage or create any decision/authority coupling.
     for forbidden in (
-        "DetectExtreme(actual, DIR_BUY, g_pair_states[pairIndex].m5_data",
-        "DetectExtreme(actual, DIR_SELL, g_pair_states[pairIndex].m5_data",
-        "UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_m5",
-        "UpdateReEntryState(g_pair_states[pairIndex].re_m5",
         "DetectCSD(actual, PERIOD_M5",
         "DetectECSD(actual, PERIOD_M5",
         "DetectCSM(actual, PERIOD_M5",

@@ -87,9 +87,14 @@ broker-fill, and structural-anchor prices are joined under durable execution
 identity with directional pip deltas and descriptive classification. P10 runs
 after broker ticket selection and cannot filter, delay, reject, rank, or resize.
 
-P5-P10 are complete. Evaluate first/continuation lineage next in queue order.
-It remains metadata/shadow unless a separately approved role is strictly
-deterministic tie-break between already-eligible candidates.
+Status: E7 / P11 COMPLETE — forward closed-M15 transitions and exact
+Journey/Parent/D1 identity distinguish first, continuation/re-arm, new journey,
+and unresolved provenance. A durable pair checkpoint makes same-candle replay
+and restart classification fail closed instead of assuming newest/earliest.
+
+P5-P11 are implemented as correctness, provenance, or shadow telemetry. No
+activation, strategy-policy change, hard gate, or eligible-trade reduction is
+authorized.
 
 ## Mandatory evidence per source-bearing stage
 

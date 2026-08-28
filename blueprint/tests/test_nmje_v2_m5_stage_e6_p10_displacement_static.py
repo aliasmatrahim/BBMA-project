@@ -122,7 +122,7 @@ def main() -> None:
         'GlobalVariableSet(base + "CV"',
         'GlobalVariableSet(base + "VE"',
         'GlobalVariableSet(base + "EA"',
-        'GlobalVariableSet(base + "V", 2.0)',
+        'GlobalVariableSet(base + "V", 3.0)',
     )
     require(
         load,
@@ -177,8 +177,8 @@ def main() -> None:
 
     require(
         SRC,
-        "Version 4.6.9 - NMJE v2 Entry Displacement Telemetry",
-        '#property version   "4.69"',
+        "Version 4.7.0 - NMJE v2 Event Phase Lineage",
+        '#property version   "4.70"',
     )
     print("NMJE_V2_M5_STAGE_E6_P10_DISPLACEMENT_STATIC=PASS")
 

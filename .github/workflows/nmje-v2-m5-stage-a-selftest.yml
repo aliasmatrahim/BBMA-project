@@ -1,4 +1,4 @@
-name: NMJE v2 M5 Stage A-E6 selftest
+name: NMJE v2 M5 Stage A-E7 selftest
 
 on:
   pull_request:
@@ -19,6 +19,7 @@ on:
       - 'blueprint/tests/test_nmje_v2_m5_stage_e4_stability_static.py'
       - 'blueprint/tests/test_nmje_v2_m5_stage_e5_p9_sltp_semantic_source_static.py'
       - 'blueprint/tests/test_nmje_v2_m5_stage_e6_p10_displacement_static.py'
+      - 'blueprint/tests/test_nmje_v2_m5_stage_e7_p11_event_phase_static.py'
       - 'blueprint/implementation/NMJE_V2_M5_STAGE_B_SCHEMA_RECORD_20260828.md'
       - 'blueprint/implementation/NMJE_V2_M5_STAGE_C1_ACQUISITION_RECORD_20260828.md'
       - 'blueprint/implementation/NMJE_V2_M5_STAGE_C2_SHADOW_CLASSIFICATION_RECORD_20260828.md'
@@ -29,6 +30,7 @@ on:
       - 'blueprint/implementation/NMJE_V2_M5_STAGE_E4_P8_STABILITY_RECORD_20260829.md'
       - 'blueprint/implementation/NMJE_V2_M5_STAGE_E5_P9_SLTP_SEMANTIC_SOURCE_AUDIT_20260829.md'
       - 'blueprint/implementation/NMJE_V2_M5_STAGE_E6_P10_ENTRY_DISPLACEMENT_RECORD_20260829.md'
+      - 'blueprint/implementation/NMJE_V2_M5_STAGE_E7_P11_EVENT_PHASE_RECORD_20260829.md'
       - 'blueprint/source/BBMA_EA.mq4'
       - '.github/workflows/nmje-v2-m5-stage-a-selftest.yml'
   workflow_dispatch:
@@ -37,7 +39,7 @@ permissions:
   contents: read
 
 jobs:
-  stage-a-e6-entry-displacement-telemetry:
+  stage-a-e7-event-phase-lineage:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -116,6 +118,12 @@ jobs:
           set -euo pipefail
           python3 blueprint/tests/test_nmje_v2_m5_stage_e6_p10_displacement_static.py
 
+      - name: Verify Stage E7 P11 event-phase lineage firewall
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 blueprint/tests/test_nmje_v2_m5_stage_e7_p11_event_phase_static.py
+
       - name: Compile test harness
         shell: bash
         run: |
@@ -132,6 +140,7 @@ jobs:
             blueprint/tests/test_nmje_v2_m5_stage_e3_density_static.py \
             blueprint/tests/test_nmje_v2_m5_stage_e4_stability_static.py \
             blueprint/tests/test_nmje_v2_m5_stage_e5_p9_sltp_semantic_source_static.py \
-            blueprint/tests/test_nmje_v2_m5_stage_e6_p10_displacement_static.py
-          echo 'NMJE_V2_M5_STAGE_A_B_C1_C2_D1_E1_E2_E3_E4_E5_E6_SELFTEST=PASS'
+            blueprint/tests/test_nmje_v2_m5_stage_e6_p10_displacement_static.py \
+            blueprint/tests/test_nmje_v2_m5_stage_e7_p11_event_phase_static.py
+          echo 'NMJE_V2_M5_STAGE_A_B_C1_C2_D1_E1_E2_E3_E4_E5_E6_E7_SELFTEST=PASS'
 

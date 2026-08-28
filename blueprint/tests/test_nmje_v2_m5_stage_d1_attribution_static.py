@@ -73,7 +73,7 @@ def main() -> None:
         'NMJEStoreHex16(base, "X", info.execution_hash)',
         'NMJEStoreHex16(base, "J", a.JourneyHash)',
         'NMJEStoreHex16(base, "P", a.ParentEventHash)',
-        'GlobalVariableSet(base + "V", 2.0)',
+        'GlobalVariableSet(base + "V", 3.0)',
         "LoadNMJEShadowAttribution(verify)",
     )
     require(

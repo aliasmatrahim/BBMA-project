@@ -21,8 +21,8 @@ def require(text: str, *markers: str) -> None:
 def main() -> None:
     require(
         SRC,
-        "Version 4.6.9 - NMJE v2 Entry Displacement Telemetry",
-        '#property version   "4.69"',
+        "Version 4.7.0 - NMJE v2 Event Phase Lineage",
+        '#property version   "4.70"',
         "datetime             EpochStartCandleTime;",
         "NMJE_BuildD1Node(",
         "NMJE_BuildH4Node(",
@@ -42,7 +42,7 @@ def main() -> None:
         "automatic_policy_authorized = false",
         "m5_execution_authority = false",
         "m5_processing_clock_authority = false",
-        "source_modification_authorized = stage_e6_p10_entry_displacement_telemetry",
+        "source_modification_authorized = stage_e7_p11_event_phase_lineage",
         "activation_authorized = false",
     )
     require(

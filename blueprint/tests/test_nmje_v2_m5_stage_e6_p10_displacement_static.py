@@ -177,8 +177,8 @@ def main() -> None:
 
     require(
         SRC,
-        "Version 4.7.0 - NMJE v2 Event Phase Lineage",
-        '#property version   "4.70"',
+        "Version 4.7.1 - D1TPW Restart-Safe Checkpoint Hardening",
+        '#property version   "4.71"',
     )
     print("NMJE_V2_M5_STAGE_E6_P10_DISPLACEMENT_STATIC=PASS")
 

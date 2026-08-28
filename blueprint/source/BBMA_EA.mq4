@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.6.4 - NMJE v2 Shadow Outcome Attribution           |
+//| Version 4.6.5 - NMJE v2 Conflict Subtype Telemetry           |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.64"
+#property version   "4.65"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -268,6 +268,19 @@ enum ENUM_NMJE_M5_CONTEXT_CODE
    NMJE_M5_CONTEXT_NONE = 0,
    NMJE_M5_CONTEXT_RE_ENTRY = 1,
    NMJE_M5_CONTEXT_EXTREME = 2
+};
+
+// Issue #101 P5 diagnostic-only conflict family. This never changes the
+// canonical top-level relation or any candidate/decision authority.
+enum ENUM_NMJE_CONFLICT_SUBTYPE
+{
+   NMJE_CONFLICT_NONE,
+   NMJE_CONFLICT_TEMPORARY_RETRACEMENT,
+   NMJE_CONFLICT_LOCAL_CHILD_OPPOSITION,
+   NMJE_CONFLICT_PARENT_DIRECTION,
+   NMJE_CONFLICT_OWNER_TRANSITION,
+   NMJE_CONFLICT_STRUCTURAL,
+   NMJE_CONFLICT_UNRESOLVED_PROVENANCE
 };
 
 enum ENUM_EXTREME_TYPE { EXT_NONE, EXT_SIDEWAYS, EXT_WITH_MOMENTUM, EXT_WITHOUT_MOMENTUM };
@@ -634,6 +647,7 @@ struct NMJEM5RefinementState
    datetime             EventStartCandleTime;
    datetime             ClosedCandleTime;
    ENUM_NESTED_RELATION Relation;
+   ENUM_NMJE_CONFLICT_SUBTYPE ConflictSubtype;
    bool                 Valid;
    bool                 Resolved;
    string               Reason;
@@ -648,9 +662,11 @@ struct NMJEShadowAttributionState
    string               JourneyHash;
    string               ParentEventHash;
    ENUM_NESTED_RELATION Relation;
+   ENUM_NMJE_CONFLICT_SUBTYPE ConflictSubtype;
    bool                 M5Present;
    string               M5EventHash;
    ENUM_NESTED_RELATION M5Relation;
+   ENUM_NMJE_CONFLICT_SUBTYPE M5ConflictSubtype;
    ENUM_DIRECTION       M5Direction;
    int                  M5ContextCode;
    datetime             M5EventStartCandleTime;
@@ -672,6 +688,7 @@ struct NestedJourneyState
    string                  ParentEventID;
    ENUM_DIRECTION          StrategicDirection;
    ENUM_NESTED_RELATION    Relation;
+   ENUM_NMJE_CONFLICT_SUBTYPE ConflictSubtype;
    bool                    Resolved;
    bool                    Valid;
    datetime                UpdateCandleTime;
@@ -782,6 +799,7 @@ struct BBMA_Decision
    string                       NMJEJourneyID;
    string                       NMJEParentEventID;
    ENUM_NESTED_RELATION         NMJERelation;
+   ENUM_NMJE_CONFLICT_SUBTYPE   NMJEConflictSubtype;
    datetime                     NMJEUpdateCandleTime;
    bool                         NMJESnapshotPresent;
    // Issue #101 P4 frozen research payload; never candidate/authority input.
@@ -4593,6 +4611,12 @@ bool NMJE_M5LineageSnapshotValid(NMJEM5RefinementState &snapshot)
       snapshot.Relation != NESTED_CONFLICT &&
       snapshot.Relation != NESTED_UNRESOLVED)
       return false;
+   if(snapshot.ConflictSubtype < NMJE_CONFLICT_NONE ||
+      snapshot.ConflictSubtype > NMJE_CONFLICT_UNRESOLVED_PROVENANCE)
+      return false;
+   if(snapshot.Relation == NESTED_CONFLICT &&
+      snapshot.ConflictSubtype == NMJE_CONFLICT_NONE)
+      return false;
    return true;
 }
 
@@ -4682,6 +4706,50 @@ bool NMJE_SelectCandidateRE(ReEntryData &buyState, ReEntryData &sellState,
    return true;
 }
 
+ENUM_NMJE_CONFLICT_SUBTYPE NMJE_ClassifyConflictSubtype(
+   ENUM_NESTED_RELATION relation, string reason)
+{
+   if(StringFind(reason, "D1_TRANSITION") >= 0 ||
+      StringFind(reason, "OWNER_TRANSITION") >= 0)
+      return NMJE_CONFLICT_OWNER_TRANSITION;
+   if(relation == NESTED_UNRESOLVED ||
+      StringFind(reason, "AMBIGUOUS") >= 0 ||
+      StringFind(reason, "MISSING") >= 0 ||
+      StringFind(reason, "UNAVAILABLE") >= 0 ||
+      StringFind(reason, "INVALID") >= 0 ||
+      StringFind(reason, "UNRESOLVED") >= 0)
+      return NMJE_CONFLICT_UNRESOLVED_PROVENANCE;
+   if(StringFind(reason, "CANDIDATE_RETRACEMENT") >= 0)
+      return NMJE_CONFLICT_TEMPORARY_RETRACEMENT;
+   if(StringFind(reason, "H4_LOCAL_OPPOSES_D1") >= 0)
+      return NMJE_CONFLICT_PARENT_DIRECTION;
+   if(StringFind(reason, "OPPOSES_PARENT") >= 0 ||
+      StringFind(reason, "H1_RE_OPPOSES") >= 0)
+      return NMJE_CONFLICT_LOCAL_CHILD_OPPOSITION;
+   if(relation == NESTED_CONFLICT)
+      return NMJE_CONFLICT_STRUCTURAL;
+   return NMJE_CONFLICT_NONE;
+}
+
+string NMJE_ConflictSubtypeText(ENUM_NMJE_CONFLICT_SUBTYPE subtype)
+{
+   if(subtype == NMJE_CONFLICT_TEMPORARY_RETRACEMENT) return "TEMP_RETRACEMENT";
+   if(subtype == NMJE_CONFLICT_LOCAL_CHILD_OPPOSITION) return "LOCAL_CHILD";
+   if(subtype == NMJE_CONFLICT_PARENT_DIRECTION) return "PARENT_DIRECTION";
+   if(subtype == NMJE_CONFLICT_OWNER_TRANSITION) return "OWNER_TRANSITION";
+   if(subtype == NMJE_CONFLICT_STRUCTURAL) return "STRUCTURAL";
+   if(subtype == NMJE_CONFLICT_UNRESOLVED_PROVENANCE) return "UNRESOLVED_PROVENANCE";
+   return "NONE";
+}
+
+void NMJE_CommitM5Refinement(NestedJourneyState &journey,
+                             NMJEM5RefinementState &snapshot)
+{
+   snapshot.ConflictSubtype =
+      NMJE_ClassifyConflictSubtype(snapshot.Relation, snapshot.Reason);
+   journey.M5Refinement = snapshot;
+}
+
 // Issue #101 Stage-C2: materialize canonical M5 Re-Entry/Extreme context as
 // immutable shadow lineage. This function only writes journey.M5Refinement;
 // it never mutates candidate, rejection, ranking, risk or execution state.
@@ -4692,20 +4760,21 @@ void NMJE_BuildM5Refinement(PairState &state, NestedJourneyState &journey)
    snapshot.Direction = DIR_NONE;
    snapshot.ContextCode = NMJE_M5_CONTEXT_NONE;
    snapshot.Relation = NESTED_UNRESOLVED;
+   snapshot.ConflictSubtype = NMJE_CONFLICT_NONE;
    snapshot.Reason = "M5_NO_CANONICAL_CONTEXT";
 
    if(journey.ParentEventID == "" || journey.JourneyID == "" ||
       (journey.ParentDirection != DIR_BUY && journey.ParentDirection != DIR_SELL))
    {
       snapshot.Reason = "M5_PARENT_LINEAGE_MISSING";
-      journey.M5Refinement = snapshot;
+      NMJE_CommitM5Refinement(journey, snapshot);
       return;
    }
    if(!state.m5_data.is_valid || !state.m5_data.is_closed ||
       state.m5_data.timeframe != PERIOD_M5 || state.m5_data.candle_time <= 0)
    {
       snapshot.Reason = "M5_CLOSED_DATA_UNAVAILABLE";
-      journey.M5Refinement = snapshot;
+      NMJE_CommitM5Refinement(journey, snapshot);
       return;
    }
 
@@ -4718,7 +4787,7 @@ void NMJE_BuildM5Refinement(PairState &state, NestedJourneyState &journey)
    if(ambiguous)
    {
       snapshot.Reason = "M5_CONFIRMED_RE_AMBIGUOUS";
-      journey.M5Refinement = snapshot;
+      NMJE_CommitM5Refinement(journey, snapshot);
       return;
    }
 
@@ -4731,7 +4800,7 @@ void NMJE_BuildM5Refinement(PairState &state, NestedJourneyState &journey)
       if(ambiguous)
       {
          snapshot.Reason = "M5_CANDIDATE_RE_AMBIGUOUS";
-         journey.M5Refinement = snapshot;
+         NMJE_CommitM5Refinement(journey, snapshot);
          return;
       }
    }
@@ -4769,12 +4838,12 @@ void NMJE_BuildM5Refinement(PairState &state, NestedJourneyState &journey)
       if(buyExtreme && sellExtreme)
       {
          snapshot.Reason = "M5_EXTREME_AMBIGUOUS";
-         journey.M5Refinement = snapshot;
+         NMJE_CommitM5Refinement(journey, snapshot);
          return;
       }
       if(!buyExtreme && !sellExtreme)
       {
-         journey.M5Refinement = snapshot;
+         NMJE_CommitM5Refinement(journey, snapshot);
          return;
       }
 
@@ -4798,6 +4867,8 @@ void NMJE_BuildM5Refinement(PairState &state, NestedJourneyState &journey)
       }
    }
 
+   snapshot.ConflictSubtype =
+      NMJE_ClassifyConflictSubtype(snapshot.Relation, snapshot.Reason);
    snapshot.Present = true;
    snapshot.ParentEventID = journey.ParentEventID;
    snapshot.JourneyID = journey.JourneyID;
@@ -4814,9 +4885,10 @@ void NMJE_BuildM5Refinement(PairState &state, NestedJourneyState &journey)
       snapshot.Direction = DIR_NONE;
       snapshot.ContextCode = NMJE_M5_CONTEXT_NONE;
       snapshot.Relation = NESTED_UNRESOLVED;
+      snapshot.ConflictSubtype = NMJE_CONFLICT_UNRESOLVED_PROVENANCE;
       snapshot.Reason = "M5_LINEAGE_INVALID";
    }
-   journey.M5Refinement = snapshot;
+   NMJE_CommitM5Refinement(journey, snapshot);
 }
 
 void NMJE_SetRENode(string pair, NestedTFNode &node, ReEntryData &state, bool resolved)
@@ -5229,6 +5301,7 @@ void UpdateNestedJourneyObservation(int pairIndex)
    ZeroMemory(journey);
    journey.Pair = g_pair_states[pairIndex].actual_symbol;
    journey.Relation = NESTED_NOT_APPLICABLE;
+   journey.ConflictSubtype = NMJE_CONFLICT_NONE;
    journey.ParentKind = NESTED_PARENT_NONE;
    journey.ParentSignal = SIGNAL_NONE;
    journey.ParentDirection = DIR_NONE;
@@ -5250,6 +5323,8 @@ void UpdateNestedJourneyObservation(int pairIndex)
    {
       journey.Relation = NESTED_UNRESOLVED;
       journey.Reason = "D1_OWNER_UNRESOLVED";
+      journey.ConflictSubtype =
+         NMJE_ClassifyConflictSubtype(journey.Relation, journey.Reason);
       g_nested_journeys[pairIndex] = journey;
       NMJE_PrintCoverageOverlay(journey);
       Print("[N1-NMJE] ", journey.Pair, " REL=UNRESOLVED P=NONE J=- D1=", journey.D1Node.Label,
@@ -5283,6 +5358,8 @@ void UpdateNestedJourneyObservation(int pairIndex)
          journey.Reason = "NO_PARENT_NO_CHILD";
          journey.Resolved = true;
       }
+      journey.ConflictSubtype =
+         NMJE_ClassifyConflictSubtype(journey.Relation, journey.Reason);
       g_nested_journeys[pairIndex] = journey;
       NMJE_PrintCoverageOverlay(journey);
       Print("[N1-NMJE] ", journey.Pair, " REL=", NMJE_RelationText(journey.Relation),
@@ -5384,6 +5461,8 @@ void UpdateNestedJourneyObservation(int pairIndex)
       }
    }
 
+   journey.ConflictSubtype =
+      NMJE_ClassifyConflictSubtype(journey.Relation, journey.Reason);
    // Stage-C2 binds M5 only after immutable parent and journey identities are
    // resolved. Its relation is diagnostic and cannot modify the 4-TF result.
    NMJE_BuildM5Refinement(g_pair_states[pairIndex], journey);
@@ -5391,6 +5470,7 @@ void UpdateNestedJourneyObservation(int pairIndex)
    NMJE_PrintCoverageOverlay(journey);
    Print("[N1-NMJE] ", journey.Pair,
          " REL=", NMJE_RelationText(journey.Relation),
+         " SUB=", NMJE_ConflictSubtypeText(journey.ConflictSubtype),
          " P=", NMJE_ParentText(journey.ParentKind), "/", NMJE_DirText(journey.ParentDirection),
          " PE=", (journey.ParentEventID == "" ? "-" : journey.ParentEventID),
          " J=", journey.JourneyID,
@@ -5402,6 +5482,7 @@ void UpdateNestedJourneyObservation(int pairIndex)
    Print("[NMJE-M5-SHADOW] ", journey.Pair,
          " PRESENT=", (journey.M5Refinement.Present ? "Y" : "N"),
          " REL=", NMJE_RelationText(journey.M5Refinement.Relation),
+         " SUB=", NMJE_ConflictSubtypeText(journey.M5Refinement.ConflictSubtype),
          " DIR=", NMJE_DirText(journey.M5Refinement.Direction),
          " CTX=", IntegerToString(journey.M5Refinement.ContextCode),
          " E=", (journey.M5Refinement.EventID == "" ? "-" : journey.M5Refinement.EventID),
@@ -6096,6 +6177,7 @@ bool FreezeNMJEShadowSnapshot(PairState &pairState, BBMA_Decision &decision)
    decision.NMJEJourneyID = "";
    decision.NMJEParentEventID = "";
    decision.NMJERelation = NESTED_NOT_APPLICABLE;
+   decision.NMJEConflictSubtype = NMJE_CONFLICT_NONE;
    decision.NMJEUpdateCandleTime = 0;
    decision.NMJESnapshotPresent = false;
    ZeroMemory(decision.NMJEM5Refinement);
@@ -6120,6 +6202,7 @@ bool FreezeNMJEShadowSnapshot(PairState &pairState, BBMA_Decision &decision)
    decision.NMJEJourneyID = journey.JourneyID;
    decision.NMJEParentEventID = journey.ParentEventID;
    decision.NMJERelation = journey.Relation;
+   decision.NMJEConflictSubtype = journey.ConflictSubtype;
    decision.NMJEUpdateCandleTime = journey.UpdateCandleTime;
    decision.NMJESnapshotPresent = true;
    decision.NMJEM5Refinement = journey.M5Refinement;
@@ -6167,6 +6250,11 @@ bool ValidateNMJEShadowSnapshot(int pairIndex, BBMA_Decision &decision,
       reason = "RELATION_MISMATCH";
       return false;
    }
+   if(current.ConflictSubtype != decision.NMJEConflictSubtype)
+   {
+      reason = "CONFLICT_SUBTYPE_MISMATCH";
+      return false;
+   }
    NMJEM5RefinementState frozenM5 = decision.NMJEM5Refinement;
    NMJEM5RefinementState currentM5 = current.M5Refinement;
    if(frozenM5.Present != currentM5.Present)
@@ -6190,6 +6278,7 @@ bool ValidateNMJEShadowSnapshot(int pairIndex, BBMA_Decision &decision,
          frozenM5.EventStartCandleTime != currentM5.EventStartCandleTime ||
          frozenM5.ClosedCandleTime != currentM5.ClosedCandleTime ||
          frozenM5.Relation != currentM5.Relation ||
+         frozenM5.ConflictSubtype != currentM5.ConflictSubtype ||
          frozenM5.Reason != currentM5.Reason)
       {
          reason = "M5_SNAPSHOT_MISMATCH";
@@ -6218,6 +6307,7 @@ bool BuildNMJEShadowAttribution(BBMA_Decision &decision,
 
    attribution.Present = true;
    attribution.Relation = decision.NMJERelation;
+   attribution.ConflictSubtype = decision.NMJEConflictSubtype;
 
    NMJEM5RefinementState m5 = decision.NMJEM5Refinement;
    if(m5.Present && NMJE_M5LineageSnapshotValid(m5))
@@ -6225,6 +6315,7 @@ bool BuildNMJEShadowAttribution(BBMA_Decision &decision,
       attribution.M5Present = true;
       attribution.M5EventHash = SHORT_HASH(m5.EventID);
       attribution.M5Relation = m5.Relation;
+      attribution.M5ConflictSubtype = m5.ConflictSubtype;
       attribution.M5Direction = m5.Direction;
       attribution.M5ContextCode = m5.ContextCode;
       attribution.M5EventStartCandleTime = m5.EventStartCandleTime;
@@ -6286,8 +6377,8 @@ bool LoadNMJEShadowAttribution(TradeInfo &info)
       return false;
 
    string base = NMJEAttributionGVBase(info.ticket);
-   string fixedKeys[6] = {"V","M","O","R","M5","MC"};
-   for(int i = 0; i < 6; i++)
+   string fixedKeys[8] = {"V","M","O","R","C","M5","MC","M5C"};
+   for(int i = 0; i < 8; i++)
       if(!GlobalVariableCheck(base + fixedKeys[i])) return false;
    if((int)GlobalVariableGet(base + "V") != 1 ||
       (int)GlobalVariableGet(base + "M") != info.magic_number ||
@@ -6304,12 +6395,20 @@ bool LoadNMJEShadowAttribution(TradeInfo &info)
 
    info.nmje_attribution.Relation =
       (ENUM_NESTED_RELATION)((int)GlobalVariableGet(base + "R"));
+   info.nmje_attribution.ConflictSubtype =
+      (ENUM_NMJE_CONFLICT_SUBTYPE)((int)GlobalVariableGet(base + "C"));
    if(info.nmje_attribution.Relation < NESTED_BUILDING ||
-      info.nmje_attribution.Relation > NESTED_UNRESOLVED)
+      info.nmje_attribution.Relation > NESTED_UNRESOLVED ||
+      info.nmje_attribution.ConflictSubtype < NMJE_CONFLICT_NONE ||
+      info.nmje_attribution.ConflictSubtype > NMJE_CONFLICT_UNRESOLVED_PROVENANCE ||
+      (info.nmje_attribution.Relation == NESTED_CONFLICT &&
+       info.nmje_attribution.ConflictSubtype == NMJE_CONFLICT_NONE))
       return false;
 
    info.nmje_attribution.M5Present = (GlobalVariableGet(base + "M5") > 0.5);
    info.nmje_attribution.M5ContextCode = (int)GlobalVariableGet(base + "MC");
+   info.nmje_attribution.M5ConflictSubtype =
+      (ENUM_NMJE_CONFLICT_SUBTYPE)((int)GlobalVariableGet(base + "M5C"));
    if(info.nmje_attribution.M5Present)
    {
       string m5Keys[4] = {"MR","MD","MS","MT"};
@@ -6328,6 +6427,10 @@ bool LoadNMJEShadowAttribution(TradeInfo &info)
          (datetime)((int)GlobalVariableGet(base + "MT"));
       if(info.nmje_attribution.M5Relation < NESTED_BUILDING ||
          info.nmje_attribution.M5Relation > NESTED_UNRESOLVED ||
+         info.nmje_attribution.M5ConflictSubtype < NMJE_CONFLICT_NONE ||
+         info.nmje_attribution.M5ConflictSubtype > NMJE_CONFLICT_UNRESOLVED_PROVENANCE ||
+         (info.nmje_attribution.M5Relation == NESTED_CONFLICT &&
+          info.nmje_attribution.M5ConflictSubtype == NMJE_CONFLICT_NONE) ||
          (info.nmje_attribution.M5Direction != DIR_BUY &&
           info.nmje_attribution.M5Direction != DIR_SELL) ||
          info.nmje_attribution.M5ContextCode <= NMJE_M5_CONTEXT_NONE ||
@@ -6355,8 +6458,10 @@ bool SaveNMJEShadowAttribution(TradeInfo &info)
    if(GlobalVariableSet(base + "M", (double)info.magic_number) == 0) return false;
    if(GlobalVariableSet(base + "O", (double)info.open_time) == 0) return false;
    if(GlobalVariableSet(base + "R", (double)a.Relation) == 0) return false;
+   if(GlobalVariableSet(base + "C", (double)a.ConflictSubtype) == 0) return false;
    if(GlobalVariableSet(base + "M5", a.M5Present ? 1.0 : 0.0) == 0) return false;
    if(GlobalVariableSet(base + "MC", (double)a.M5ContextCode) == 0) return false;
+   if(GlobalVariableSet(base + "M5C", (double)a.M5ConflictSubtype) == 0) return false;
    if(!NMJEStoreHex16(base, "X", info.execution_hash) ||
       !NMJEStoreHex16(base, "J", a.JourneyHash) ||
       !NMJEStoreHex16(base, "P", a.ParentEventHash))
@@ -6387,11 +6492,13 @@ bool SaveNMJEShadowAttribution(TradeInfo &info)
    return (verify.nmje_attribution.JourneyHash == a.JourneyHash &&
            verify.nmje_attribution.ParentEventHash == a.ParentEventHash &&
            verify.nmje_attribution.Relation == a.Relation &&
+           verify.nmje_attribution.ConflictSubtype == a.ConflictSubtype &&
            verify.nmje_attribution.M5Present == a.M5Present &&
            (!a.M5Present ||
             (verify.nmje_attribution.M5EventHash == a.M5EventHash &&
              verify.nmje_attribution.M5ReasonHash == a.M5ReasonHash &&
              verify.nmje_attribution.M5Relation == a.M5Relation &&
+             verify.nmje_attribution.M5ConflictSubtype == a.M5ConflictSubtype &&
              verify.nmje_attribution.M5Direction == a.M5Direction &&
              verify.nmje_attribution.M5ContextCode == a.M5ContextCode &&
              verify.nmje_attribution.M5EventStartCandleTime == a.M5EventStartCandleTime &&
@@ -6820,6 +6927,7 @@ void InvalidationEngine_Atomic(int pairIndex, BBMA_Decision &decision,
             " DecisionID=", decision.DecisionID,
             " Match=", nmjeShadowMatch ? "Y" : "N",
             " Relation=", NMJE_RelationText(decision.NMJERelation),
+            " Subtype=", NMJE_ConflictSubtypeText(decision.NMJEConflictSubtype),
             " Journey=", decision.NMJEJourneyID == "" ? "-" : decision.NMJEJourneyID,
             " ParentEvent=", decision.NMJEParentEventID == "" ? "-" : decision.NMJEParentEventID,
             " Reason=", nmjeShadowMatch ? "MATCH" : nmjeShadowReason);
@@ -8162,9 +8270,11 @@ void NMJE_PrintClosedOutcomeShadow(TradeInfo &info)
          " JH=", info.nmje_attribution.JourneyHash == "" ? "-" : info.nmje_attribution.JourneyHash,
          " PH=", info.nmje_attribution.ParentEventHash == "" ? "-" : info.nmje_attribution.ParentEventHash,
          " REL=", NMJE_RelationText(info.nmje_attribution.Relation),
+         " SUB=", NMJE_ConflictSubtypeText(info.nmje_attribution.ConflictSubtype),
          " M5=", info.nmje_attribution.M5Present ? "Y" : "N",
          " M5E=", info.nmje_attribution.M5EventHash == "" ? "-" : info.nmje_attribution.M5EventHash,
          " M5REL=", NMJE_RelationText(info.nmje_attribution.M5Relation),
+         " M5SUB=", NMJE_ConflictSubtypeText(info.nmje_attribution.M5ConflictSubtype),
          " M5DIR=", NMJE_DirText(info.nmje_attribution.M5Direction),
          " M5CTX=", IntegerToString(info.nmje_attribution.M5ContextCode),
          " M5RH=", info.nmje_attribution.M5ReasonHash == "" ? "-" : info.nmje_attribution.M5ReasonHash,

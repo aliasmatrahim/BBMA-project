@@ -86,7 +86,7 @@ All refinements begin as correctness, metadata, shadow, deterministic tests, or 
 `automatic_policy_authorized = false`  
 `m5_execution_authority = false`  
 `m5_processing_clock_authority = false`  
-`source_modification_authorized = stage_d1_shadow_attribution`  
+`source_modification_authorized = stage_e1_p5_conflict_metadata`  
 `activation_authorized = false`
 
 Stage A contract and deterministic fixtures are complete. Stage B authorizes
@@ -110,4 +110,9 @@ execution hash/ticket identity, restart recovery of that metadata, and exact
 closed-order outcome logging. Missing/corrupt attribution must remain invisible
 to trade recovery state, lifecycle, candidate eligibility, ranking, rejection,
 risk, execution, and position management.
+
+Stage E1 additionally authorizes P5 deterministic conflict-subtype telemetry:
+temporary retracement, local child opposition, parent-direction conflict, owner
+transition, structural conflict, and unresolved provenance. The canonical
+top-level relation remains unchanged, and no subtype may affect authority.
 

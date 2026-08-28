@@ -61,6 +61,10 @@ Exit gate: deterministic attribution and replay completeness PASS.
 
 ## Stage E — P5-P11 accuracy research
 
+Status: E1 / P5 COMPLETE — deterministic conflict-family telemetry is attached
+to base and M5 shadow relations, persisted with P4 attribution, and emitted with
+closed outcomes. Canonical relations and live decisions remain unchanged.
+
 Evaluate conflict subtype, maturity, structural density, hysteresis, SL semantic source, displacement, and first/continuation lineage in queue order. Each remains metadata/shadow unless its approved role is strictly deterministic tie-break between already-eligible candidates.
 
 ## Mandatory evidence per source-bearing stage

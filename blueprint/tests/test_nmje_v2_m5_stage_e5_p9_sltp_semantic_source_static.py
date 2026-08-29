@@ -155,8 +155,8 @@ def main() -> None:
 
     require(
         SRC,
-        '#property version   "4.70"',
-        "Version 4.7.0 - NMJE v2 Event Phase Lineage",
+        '#property version   "4.71"',
+        "Version 4.7.1 - D1TPW Restart-Safe Checkpoint Hardening",
     )
     for gate in ("EnableD1TPWLifecycle", "EnableC044Lifecycle"):
         if not re.search(rf"\bbool\s+{gate}\s*=\s*false\s*;", SRC):

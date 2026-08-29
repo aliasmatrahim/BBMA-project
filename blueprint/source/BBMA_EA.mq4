@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.7.0 - NMJE v2 Event Phase Lineage                  |
+//| Version 4.7.1 - D1TPW Restart-Safe Checkpoint Hardening                  |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.70"
+#property version   "4.71"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -1093,6 +1093,7 @@ struct TradeInfo
 
    // D1 Extreme TP-Wajib lifecycle. Independent of C044.
    bool                 d1_tpw_lifecycle_managed;
+   string               d1_tpw_cycle_hash;
    datetime             d1_tpw_extreme_candle;
    datetime             d1_tpw_last_processed_d1_candle;
    bool                 d1_tpw_exit_latched;
@@ -9044,6 +9045,7 @@ void ManagePositions()
 void ResetD1TPWTradeState(TradeInfo &info)
 {
    info.d1_tpw_lifecycle_managed = false;
+   info.d1_tpw_cycle_hash = "";
    info.d1_tpw_extreme_candle = 0;
    info.d1_tpw_last_processed_d1_candle = 0;
    info.d1_tpw_exit_latched = false;
@@ -9061,9 +9063,17 @@ bool D1TPWCheckpointExists(TradeInfo &info)
 {
    if(info.ticket <= 0) return false;
    string base = D1TPWCheckpointBase(info);
+   if(!GlobalVariableCheck(base + "V") ||
+      (int)GlobalVariableGet(base + "V") != 2)
+      return false;
    string keys[8] = {"D","X","LP","L","XL","F","OT","MG"};
    for(int i = 0; i < 8; i++)
       if(!GlobalVariableCheck(base + keys[i])) return false;
+   string pairHash, cycleHash, executionHash;
+   if(!NMJELoadHex16(base, "P", pairHash) ||
+      !NMJELoadHex16(base, "C", cycleHash) ||
+      !NMJELoadHex16(base, "E", executionHash))
+      return false;
    return true;
 }
 
@@ -9071,9 +9081,17 @@ void ClearD1TPWCheckpoint(TradeInfo &info)
 {
    if(info.ticket <= 0) return;
    string base = D1TPWCheckpointBase(info);
+   if(GlobalVariableCheck(base + "V")) GlobalVariableDel(base + "V");
    string keys[8] = {"D","X","LP","L","XL","F","OT","MG"};
    for(int i = 0; i < 8; i++)
       if(GlobalVariableCheck(base + keys[i])) GlobalVariableDel(base + keys[i]);
+   for(int part = 0; part < 4; part++)
+   {
+      string suffix = IntegerToString(part);
+      if(GlobalVariableCheck(base + "P" + suffix)) GlobalVariableDel(base + "P" + suffix);
+      if(GlobalVariableCheck(base + "C" + suffix)) GlobalVariableDel(base + "C" + suffix);
+      if(GlobalVariableCheck(base + "E" + suffix)) GlobalVariableDel(base + "E" + suffix);
+   }
    GlobalVariablesFlush();
 }
 
@@ -9081,20 +9099,32 @@ bool SaveD1TPWCheckpoint(TradeInfo &info)
 {
    if(!info.d1_tpw_lifecycle_managed || info.ticket <= 0 ||
       info.magic_number <= 0 || info.open_time <= 0 ||
+      info.pair == "" || StringLen(info.d1_tpw_cycle_hash) != 16 ||
+      StringLen(info.execution_hash) != 16 ||
       (info.direction != DIR_BUY && info.direction != DIR_SELL) ||
       info.d1_tpw_extreme_candle <= 0 ||
-      info.d1_tpw_last_processed_d1_candle < info.d1_tpw_extreme_candle)
+      info.d1_tpw_last_processed_d1_candle < info.d1_tpw_extreme_candle ||
+      (info.d1_tpw_frozen && info.d1_tpw_exit_latched))
       return false;
 
    string base = D1TPWCheckpointBase(info);
-   GlobalVariableSet(base + "D", (double)info.direction);
-   GlobalVariableSet(base + "X", (double)info.d1_tpw_extreme_candle);
-   GlobalVariableSet(base + "LP", (double)info.d1_tpw_last_processed_d1_candle);
-   GlobalVariableSet(base + "L", info.d1_tpw_exit_latched ? 1.0 : 0.0);
-   GlobalVariableSet(base + "XL", (double)info.d1_tpw_exit_latched_candle);
-   GlobalVariableSet(base + "F", info.d1_tpw_frozen ? 1.0 : 0.0);
-   GlobalVariableSet(base + "OT", (double)info.open_time);
-   GlobalVariableSet(base + "MG", (double)info.magic_number);
+   if(GlobalVariableCheck(base + "V") && !GlobalVariableDel(base + "V"))
+      return false;
+   if(GlobalVariableSet(base + "D", (double)info.direction) == 0) return false;
+   if(GlobalVariableSet(base + "X", (double)info.d1_tpw_extreme_candle) == 0) return false;
+   if(GlobalVariableSet(base + "LP", (double)info.d1_tpw_last_processed_d1_candle) == 0) return false;
+   if(GlobalVariableSet(base + "L", info.d1_tpw_exit_latched ? 1.0 : 0.0) == 0) return false;
+   if(GlobalVariableSet(base + "XL", (double)info.d1_tpw_exit_latched_candle) == 0) return false;
+   if(GlobalVariableSet(base + "F", info.d1_tpw_frozen ? 1.0 : 0.0) == 0) return false;
+   if(GlobalVariableSet(base + "OT", (double)info.open_time) == 0) return false;
+   if(GlobalVariableSet(base + "MG", (double)info.magic_number) == 0) return false;
+   string pairHash = SHORT_HASH(info.pair, 16);
+   if(!NMJEStoreHex16(base, "P", pairHash) ||
+      !NMJEStoreHex16(base, "C", info.d1_tpw_cycle_hash) ||
+      !NMJEStoreHex16(base, "E", info.execution_hash))
+      return false;
+   // V is the commit marker. A torn write is never considered recoverable.
+   if(GlobalVariableSet(base + "V", 2.0) == 0) return false;
    GlobalVariablesFlush();
    return D1TPWCheckpointExists(info);
 }
@@ -9113,11 +9143,18 @@ bool LoadD1TPWCheckpoint(TradeInfo &info)
    bool frozen = (GlobalVariableGet(base + "F") > 0.5);
    datetime openTime = (datetime)((int)GlobalVariableGet(base + "OT"));
    int magic = (int)GlobalVariableGet(base + "MG");
+   string pairHash, cycleHash, executionHash;
+   if(!NMJELoadHex16(base, "P", pairHash) ||
+      !NMJELoadHex16(base, "C", cycleHash) ||
+      !NMJELoadHex16(base, "E", executionHash))
+      return false;
 
    if(direction != info.direction || magic != info.magic_number ||
       openTime != info.open_time || extremeCandle <= 0 ||
       lastProcessed < extremeCandle || (latched && exitCandle <= 0) ||
-      (!latched && exitCandle != 0))
+      (!latched && exitCandle != 0) || (frozen && latched) ||
+      pairHash != SHORT_HASH(info.pair, 16) || cycleHash == "" ||
+      executionHash == "" || executionHash != info.execution_hash)
       return false;
 
    int extremeShift = iBarShift(info.pair, PERIOD_D1, extremeCandle, true);
@@ -9129,6 +9166,7 @@ bool LoadD1TPWCheckpoint(TradeInfo &info)
 
    ResetD1TPWTradeState(info);
    info.d1_tpw_lifecycle_managed = true;
+   info.d1_tpw_cycle_hash = cycleHash;
    info.d1_tpw_extreme_candle = extremeCandle;
    info.d1_tpw_last_processed_d1_candle = lastProcessed;
    info.d1_tpw_exit_latched = latched;
@@ -9143,7 +9181,8 @@ bool InitializeD1TPWTradeStateFromDecision(TradeInfo &info, BBMA_Decision &decis
    if(!decision.D1TPWLifecycleManaged) return true;
    if(!EnableD1TPWLifecycle || !IsD1TPWLifecycleIdentity(decision) ||
       decision.D1OpportunitySourceCandleTime <= 0 ||
-      decision.D1OpportunityDirection != decision.Direction)
+      decision.D1OpportunityDirection != decision.Direction ||
+      StringLen(decision.D1OpportunityCycleID) != 16)
       return false;
 
    int pairIndex = FindPairStateIndex(decision.Pair);
@@ -9162,6 +9201,7 @@ bool InitializeD1TPWTradeStateFromDecision(TradeInfo &info, BBMA_Decision &decis
       return false;
 
    info.d1_tpw_lifecycle_managed = true;
+   info.d1_tpw_cycle_hash = decision.D1OpportunityCycleID;
    info.d1_tpw_extreme_candle = decision.D1OpportunitySourceCandleTime;
    // Position-management events start when the broker position exists; any
    // earlier D1 candles were already part of opportunity eligibility/provenance.

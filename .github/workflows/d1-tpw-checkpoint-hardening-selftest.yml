@@ -1,0 +1,62 @@
+name: D1TPW checkpoint hardening selftest
+
+on:
+  pull_request:
+    branches:
+      - nmje-v2-m5-dev
+    paths:
+      - 'blueprint/source/BBMA_EA.mq4'
+      - 'blueprint/contracts/D1_TPW_LIFECYCLE_HARDENING_CONTRACT.md'
+      - 'blueprint/implementation/D1_TPW_CHECKPOINT_HARDENING_RECORD_20260829.md'
+      - 'blueprint/tests/test_d1_tpw_checkpoint_hardening_static.py'
+      - 'blueprint/tests/test_d1_tpw_checkpoint_restart_model.py'
+      - 'blueprint/tests/test_d1_tpw_close_idempotency_model.py'
+      - 'blueprint/tests/test_d1_tpw_historical_replay_model.py'
+      - 'blueprint/tests/test_timeframe_scope_directive_static.py'
+      - 'blueprint/tests/test_bbma_core_perfection_queue_static.py'
+      - 'blueprint/tools/d1_tpw_weekend_historical_replay.py'
+      - 'blueprint/implementation/D1_TPW_WEEKEND_OFFLINE_VERIFICATION_20260829.md'
+      - 'blueprint/implementation/D1_TPW_MONDAY_DEMO_VERIFICATION_CHECKLIST.md'
+      - 'blueprint/implementation/BBMA_CORE_PERFECTION_QUEUE_20260829.md'
+      - '.github/workflows/d1-tpw-checkpoint-hardening-selftest.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  d1-tpw-checkpoint-hardening:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify dormant authority and checkpoint source firewall
+        run: python3 blueprint/tests/test_d1_tpw_checkpoint_hardening_static.py
+
+      - name: Run deterministic restart model
+        run: python3 blueprint/tests/test_d1_tpw_checkpoint_restart_model.py
+
+      - name: Run close-idempotency model
+        run: python3 blueprint/tests/test_d1_tpw_close_idempotency_model.py
+
+      - name: Run synthetic historical-replay firewall
+        run: python3 blueprint/tests/test_d1_tpw_historical_replay_model.py
+
+      - name: Verify intentional timeframe exclusions
+        run: python3 blueprint/tests/test_timeframe_scope_directive_static.py
+
+      - name: Verify BBMA core perfection queue boundary
+        run: python3 blueprint/tests/test_bbma_core_perfection_queue_static.py
+
+      - name: Compile test harness
+        run: |
+          python3 -m py_compile \
+            blueprint/tests/test_d1_tpw_checkpoint_hardening_static.py \
+            blueprint/tests/test_d1_tpw_checkpoint_restart_model.py \
+            blueprint/tests/test_d1_tpw_close_idempotency_model.py \
+            blueprint/tests/test_d1_tpw_historical_replay_model.py \
+            blueprint/tests/test_timeframe_scope_directive_static.py \
+            blueprint/tests/test_bbma_core_perfection_queue_static.py \
+            blueprint/tools/d1_tpw_weekend_historical_replay.py
+          echo 'D1_TPW_CHECKPOINT_HARDENING_SELFTEST=PASS'
+

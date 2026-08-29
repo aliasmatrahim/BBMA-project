@@ -36,6 +36,12 @@ not change geometry or opportunity frequency.
 
 ### C2 — End-to-end journey invariant audit
 
+Status: **C2-A COMPLETE** — the build-4.71 D1/H4/H1/M15 journey is locked
+through M15/M16/M17/M21/M19/M20/M22/M23/M24 with deterministic identity,
+legal-transition, single-writer, broker-action ownership, and fail-closed
+recovery regressions. No EA source, strategy, risk policy, or authority changed.
+Native broker/restart evidence remains C4 work.
+
 Prove that one immutable lineage connects D1 owner epoch, H4 journey, H1 setup,
 M15 decision, M16 revalidation, M17 geometry, M21 sizing, M22 execution, and
 M23/M24 lifecycle/recovery. Add static single-writer checks for every protected
@@ -95,4 +101,3 @@ the sole valid M15 candidate. Implementation still requires explicit approval.
 
 C5 and C9 remain manual strategy/activation boundaries. The two risk items
 listed as KIV remain outside this execution order.
-

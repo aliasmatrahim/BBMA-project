@@ -21,6 +21,13 @@ source implementation. KIV does not mean approved backlog.
 
 ### C1 — Canonical BBMA truth tables and golden fixtures
 
+Status: **C1-B COMPLETE** — C1-A locked the build-4.71 ownership map,
+34 deterministic lifecycle transitions, BUY/SELL symmetry, exact REM/RRE/REE
+topology, semantic-source mapping, and static authority boundary. C1-B adds 59
+source-bound closed-candle price cases for Extreme, CSM, CSD/eCSD, Re-Entry,
+retest, and MHV predicates. No EA source or strategy behavior changed. Native
+MT4 execution and historical performance evidence remain C3 work.
+
 Formally lock the candle-by-candle meaning, maturity, invalidation,
 supersession, and ownership rules for Extreme, Momentum, MHV/MLV, Re-Entry,
 CSD/eCSD/CSM, REM, RRE, and REE. Build deterministic golden fixtures for both
@@ -29,12 +36,26 @@ not change geometry or opportunity frequency.
 
 ### C2 — End-to-end journey invariant audit
 
+Status: **C2-A COMPLETE** — the build-4.71 D1/H4/H1/M15 journey is locked
+through M15/M16/M17/M21/M19/M20/M22/M23/M24 with deterministic identity,
+legal-transition, single-writer, broker-action ownership, and fail-closed
+recovery regressions. No EA source, strategy, risk policy, or authority changed.
+Native broker/restart evidence remains C4 work.
+
 Prove that one immutable lineage connects D1 owner epoch, H4 journey, H1 setup,
 M15 decision, M16 revalidation, M17 geometry, M21 sizing, M22 execution, and
 M23/M24 lifecycle/recovery. Add static single-writer checks for every protected
 state and broker action.
 
 ### C3 — Historical baseline-versus-shadow evidence
+
+Status: **C3-A PREFLIGHT COMPLETE / DECISION REQUIRED** — local MT4 build 1476,
+native 0E0W, and complete GBPUSD D1/H4/H1/M15/M5 history are verified. The
+isolated every-tick smoke generated 2,487 bars and 3,847,840 ticks at 90.00%
+quality with zero chart mismatches, then failed before scanning/trading because
+build 4.71 requires connected-broker `SymbolSelect` authority. Choose either an
+isolated `IsTesting()`-only build 4.72 compatibility patch or explicit use of
+the connected MetaQuotes demo profile. No performance evidence exists yet.
 
 Run the native MT4 Strategy Tester on the available broker history and compare
 the locked four-timeframe baseline with the NMJE/M5 shadow classifications.
@@ -88,4 +109,3 @@ the sole valid M15 candidate. Implementation still requires explicit approval.
 
 C5 and C9 remain manual strategy/activation boundaries. The two risk items
 listed as KIV remain outside this execution order.
-

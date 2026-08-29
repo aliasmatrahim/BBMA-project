@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "build": "4.71",
+  "directions": ["BUY", "SELL"],
+  "authority": {
+    "strategic_owner": "D1",
+    "immediate_owner": "H4",
+    "setup_context": "H1",
+    "processing_clock": "M15",
+    "shadow_context": "M5",
+    "order_send_owner": "M22",
+    "execution_policy": "NONE"
+  },
+  "timeframes": {
+    "primary": ["D1", "H4", "H1", "M15"],
+    "shadow_only": ["M5"],
+    "excluded": ["W1", "M30", "M1"]
+  },
+  "writers": {
+    "BB_SHAPE": "M07",
+    "EXTREME": "M08",
+    "MHV_MLV": "M09",
+    "CSM_CSD_ECSD": "M10",
+    "RE_ENTRY": "M12",
+    "COMBINATION_COLLECTION": "M13",
+    "SEQUENCE_VALIDATION": "M14",
+    "FINAL_SIGNAL_AUTHORITY": "M15"
+  },
+  "exportable_states": {
+    "EXTREME": ["REVERSAL_CONFIRMED", "RETEST_PHASE", "RETEST_READY"],
+    "MLV": ["FORMATION_ESTABLISHED", "RETEST_COMPLETE", "DIRECTION_TAKEN"],
+    "RE_ENTRY": ["CONFIRMED"]
+  },
+  "transitions": {
+    "EXTREME": [
+      {"from": "NONE", "event": "RAW_DETECTED", "to": "RAW"},
+      {"from": "RAW", "event": "SUBSEQUENT_REVERSAL", "to": "REVERSAL_CONFIRMED"},
+      {"from": "RAW", "event": "INVALIDATION", "to": "VOID"},
+      {"from": "REVERSAL_CONFIRMED", "event": "INVALIDATION", "to": "VOID"},
+      {"from": "REVERSAL_CONFIRMED", "event": "RETEST_START", "to": "RETEST_PHASE"},
+      {"from": "REVERSAL_CONFIRMED", "event": "RETEST_START_AND_TOUCH", "to": "RETEST_READY"},
+      {"from": "RETEST_PHASE", "event": "RETEST_TOUCH", "to": "RETEST_READY"},
+      {"from": "RETEST_PHASE", "event": "INVALIDATION", "to": "VOID"},
+      {"from": "RETEST_READY", "event": "NEWER_OPPOSITE_CONFIRMED_OWNER", "to": "SUPERSEDED"}
+    ],
+    "MLV": [
+      {"from": "NONE", "event": "MATURE_OPPOSITE_M15_EXTREME", "to": "PARENT_READY"},
+      {"from": "PARENT_READY", "event": "TP_WAJIB_COMPLETE", "to": "TP_COMPLETE"},
+      {"from": "PARENT_READY", "event": "PARENT_LOST", "to": "VOID"},
+      {"from": "TP_COMPLETE", "event": "INSIDE_BB_NON_CSM_PAUSE", "to": "LOSS_DEVELOPING"},
+      {"from": "LOSS_DEVELOPING", "event": "MOMENTUM_CONTINUATION", "to": "VOID"},
+      {"from": "LOSS_DEVELOPING", "event": "MOVE_AWAY", "to": "FORMATION_ESTABLISHED"},
+      {"from": "FORMATION_ESTABLISHED", "event": "RETEST_MARKED_BODY", "to": "RETEST_COMPLETE"},
+      {"from": "FORMATION_ESTABLISHED", "event": "LATER_ECSD_OR_CSD", "to": "DIRECTION_TAKEN"},
+      {"from": "RETEST_COMPLETE", "event": "LATER_ECSD_OR_CSD", "to": "DIRECTION_TAKEN"},
+      {"from": "DIRECTION_TAKEN", "event": "NEWER_CANONICAL_PARENT", "to": "SUPERSEDED"}
+    ],
+    "RE_ENTRY": [
+      {"from": "NONE", "event": "TYPE3_CSM_PRECURSOR", "to": "CANDIDATE_TYPE3"},
+      {"from": "NONE", "event": "TYPE4_CSD_PRECURSOR", "to": "CANDIDATE_TYPE4"},
+      {"from": "NONE", "event": "TYPE2_COLLISION", "to": "CANDIDATE_TYPE2"},
+      {"from": "TYPE1_OWNER", "event": "STRUCTURAL_RETRACE", "to": "CANDIDATE_TYPE1"},
+      {"from": "TYPE1_OWNER", "event": "STRUCTURAL_RETRACE_AND_CLUSTER_TOUCH", "to": "CONFIRMED"},
+      {"from": "CANDIDATE_TYPE1", "event": "CLUSTER_TOUCH", "to": "CONFIRMED"},
+      {"from": "CANDIDATE_TYPE2", "event": "THIRD_QUALIFYING_AND_CLUSTER_TOUCH", "to": "CONFIRMED"},
+      {"from": "CANDIDATE_TYPE3", "event": "MA5_OR_MA50_TOUCH", "to": "CONFIRMED"},
+      {"from": "CANDIDATE_TYPE4", "event": "MA5_MA10_TOUCH", "to": "CONFIRMED"},
+      {"from": "CANDIDATE_TYPE2", "event": "INTRINSIC_EXPIRY", "to": "EXPIRED"},
+      {"from": "CANDIDATE_TYPE3", "event": "INTRINSIC_EXPIRY", "to": "EXPIRED"},
+      {"from": "CANDIDATE_TYPE4", "event": "INTRINSIC_EXPIRY", "to": "EXPIRED"},
+      {"from": "TYPE1_OWNER", "event": "OPPOSITE_OWNER", "to": "NONE"},
+      {"from": "CANDIDATE_TYPE1", "event": "OPPOSITE_OWNER", "to": "NONE"},
+      {"from": "CONFIRMED_TYPE1", "event": "OPPOSITE_OWNER", "to": "NONE"}
+    ]
+  },
+  "specific_reentry_precedence": ["TYPE3", "TYPE4", "TYPE2", "TYPE1"],
+  "combinations": {
+    "REM": [["RE_ENTRY", "H4"], ["EXTREME", "H1"], ["MLV", "M15"]],
+    "RRE": [["RE_ENTRY", "D1"], ["RE_ENTRY", "H4"], ["EXTREME", "H1"]],
+    "REE": [["RE_ENTRY", "D1"], ["EXTREME", "H4"], ["EXTREME", "H1"]]
+  },
+  "semantic_sources": {
+    "D1_OPPORTUNITY_RE_ENTRY": ["H1_RE_ENTRY", "M15_RE_ENTRY_FALLBACK"],
+    "LEGACY_RE_ENTRY": ["H1_RE_ENTRY"],
+    "REM": ["H4_RE_ENTRY"],
+    "RRE": ["D1_RE_ENTRY"],
+    "REE": ["D1_RE_ENTRY"]
+  }
+}
+

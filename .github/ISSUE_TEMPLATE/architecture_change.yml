@@ -1,0 +1,61 @@
+name: BBMA architecture or strategy change
+description: Propose an intentional ownership, lifecycle, strategy, or cross-module contract change.
+title: "[ARCH] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this only when the desired outcome intentionally changes architecture, ownership, lifecycle, or approved strategy behavior. Ordinary defects belong in the Bug form.
+
+  - type: input
+    id: scope
+    attributes:
+      label: Affected module(s) / contracts
+      placeholder: M15-M16; blueprint/contracts/M15_FINAL_SIGNAL_AUTHORITY_CONTRACT.md
+    validations:
+      required: true
+
+  - type: textarea
+    id: current
+    attributes:
+      label: Current rule / ownership
+      description: State the active contract or decision being changed.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed change
+      description: Define the new rule precisely, including producer/owner/writer/consumer/timing where relevant.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reason
+    attributes:
+      label: Technical reason and evidence
+      description: Explain why the current rule is insufficient and provide evidence. Preference alone is not enough.
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Cross-module and runtime impact
+      description: Cover signal lifecycle, closed-candle/timing, risk, execution, restart/recovery, multi-pair state, and regression risk as applicable.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: approval_gate
+    attributes:
+      label: Change gate
+      options:
+        - label: This proposal does not silently introduce an alternative trading strategy.
+        - label: Any BBMA methodology change will be backed by an explicit project decision and source evidence.
+        - label: Relevant contracts/decisions/current-status documents will be updated before implementation is treated as canonical.
+        - label: Existing dependent modules will be re-audited after the change.
+    validations:
+      required: true

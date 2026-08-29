@@ -123,6 +123,23 @@ labels, valid transitions, symmetry, exact composite topology, and fail-closed
 illegal transitions. It is not market-performance evidence and cannot prove a
 trading edge.
 
+## C1-B closed-candle price equivalence
+
+`blueprint/tests/test_bbma_core_candle_price_equivalence.py` locks numeric
+BUY/SELL examples and exact boundary behavior for:
+
+- RAW Extreme and reversal direction;
+- candle-body crossing, CSM, CSD, and eCSD;
+- Re-Entry MA5/MA10 cluster and MA5/MA50 interaction;
+- Type-1 close-side failure and structural retrace;
+- Extreme retest start/body/MA5 interaction;
+- MHV TP-Wajib completion, loss phase, move-away, and marked-body retest.
+
+The accompanying source-static guard binds those fixtures to the exact MQL4
+predicate text and build-4.71 source SHA-256. Strict comparisons remain strict;
+inclusive touches remain inclusive. These fixtures are deterministic offline
+predicate evidence, not native MQL4 execution or market-performance evidence.
+
 ## Change boundary
 
 Any change to a detector predicate, transition, component topology, processing

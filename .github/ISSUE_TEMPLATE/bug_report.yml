@@ -1,0 +1,74 @@
+name: BBMA bug or runtime regression
+description: Report a confirmed or suspected EA defect without mixing in unrelated redesign work.
+title: "[BUG] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for compile, runtime, signal lifecycle, execution, risk, state, multi-pair, and regression defects. Keep strategy-change proposals in the Architecture Change form.
+
+  - type: input
+    id: modules
+    attributes:
+      label: Affected module(s)
+      description: Example M13, M15-M16, M22-M24, M27, or CI/tooling.
+      placeholder: M13
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - CRITICAL - trade corruption / uncontrolled execution / catastrophic risk
+        - HIGH - major signal, lifecycle, ownership, or duplicate-entry failure
+        - MEDIUM - edge-case runtime/state/logic defect
+        - LOW - non-critical maintainability or diagnostic defect
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is wrong? State observed behavior, not a proposed redesign.
+      placeholder: Describe the failure and where it occurs.
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Compile log, runtime trace, order/ticket evidence, reproduction steps, source lines, or workflow result.
+      placeholder: Paste concise evidence or references.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      placeholder: What should happen according to the active contract/decision?
+    validations:
+      required: true
+
+  - type: input
+    id: contract
+    attributes:
+      label: Relevant contract / decision
+      description: Path or identifier if known.
+      placeholder: blueprint/contracts/M13_COMBINATION_COLLECTOR_CONTRACT.md
+
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Initial boundary check
+      options:
+        - label: I checked whether this is a new defect rather than a previously confirmed OK point.
+        - label: I did not bundle unrelated feature requests into this issue.
+        - label: I identified whether closed-candle/timing, lifecycle, ownership, risk, execution, or multi-pair state may be affected.
+    validations:
+      required: true

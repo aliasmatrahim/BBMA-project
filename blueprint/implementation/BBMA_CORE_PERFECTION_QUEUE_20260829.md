@@ -21,6 +21,12 @@ source implementation. KIV does not mean approved backlog.
 
 ### C1 — Canonical BBMA truth tables and golden fixtures
 
+Status: **C1-A COMPLETE** — the build-4.71 source-observed ownership map,
+34 deterministic lifecycle transitions, BUY/SELL symmetry, exact REM/RRE/REE
+topology, semantic-source mapping, and static authority boundary are locked.
+No EA source or strategy behavior changed. Native candle-price equivalence and
+historical performance evidence remain later C1/C3 work.
+
 Formally lock the candle-by-candle meaning, maturity, invalidation,
 supersession, and ownership rules for Extreme, Momentum, MHV/MLV, Re-Entry,
 CSD/eCSD/CSM, REM, RRE, and REE. Build deterministic golden fixtures for both

@@ -1,0 +1,39 @@
+name: BBMA core truth-table selftest
+
+on:
+  pull_request:
+    branches:
+      - d1-tpw-checkpoint-hardening-dev
+    paths:
+      - 'blueprint/source/BBMA_EA.mq4'
+      - 'blueprint/contracts/BBMA_CORE_CANONICAL_TRUTH_TABLE_CONTRACT.md'
+      - 'blueprint/implementation/BBMA_CORE_PERFECTION_QUEUE_20260829.md'
+      - 'blueprint/implementation/BBMA_CORE_C1A_TRUTH_TABLE_RECORD_20260829.md'
+      - 'blueprint/tests/fixtures/bbma_core_golden_truth_table.json'
+      - 'blueprint/tests/test_bbma_core_canonical_truth_table.py'
+      - 'blueprint/tests/test_bbma_core_canonical_source_static.py'
+      - '.github/workflows/bbma-core-truth-table-selftest.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bbma-core-truth-table:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify deterministic golden truth table
+        run: python3 blueprint/tests/test_bbma_core_canonical_truth_table.py
+
+      - name: Verify canonical source and authority boundary
+        run: python3 blueprint/tests/test_bbma_core_canonical_source_static.py
+
+      - name: Compile C1-A harness
+        run: |
+          python3 -m py_compile \
+            blueprint/tests/test_bbma_core_canonical_truth_table.py \
+            blueprint/tests/test_bbma_core_canonical_source_static.py
+          echo 'BBMA_CORE_C1A_SELFTEST=PASS'
+

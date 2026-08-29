@@ -49,6 +49,14 @@ state and broker action.
 
 ### C3 — Historical baseline-versus-shadow evidence
 
+Status: **C3-A PREFLIGHT COMPLETE / DECISION REQUIRED** — local MT4 build 1476,
+native 0E0W, and complete GBPUSD D1/H4/H1/M15/M5 history are verified. The
+isolated every-tick smoke generated 2,487 bars and 3,847,840 ticks at 90.00%
+quality with zero chart mismatches, then failed before scanning/trading because
+build 4.71 requires connected-broker `SymbolSelect` authority. Choose either an
+isolated `IsTesting()`-only build 4.72 compatibility patch or explicit use of
+the connected MetaQuotes demo profile. No performance evidence exists yet.
+
 Run the native MT4 Strategy Tester on the available broker history and compare
 the locked four-timeframe baseline with the NMJE/M5 shadow classifications.
 Preserve pair, setup family, journey phase, spread, displacement, outcome,

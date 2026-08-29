@@ -12,6 +12,7 @@ on:
       - 'blueprint/tests/test_d1_tpw_checkpoint_restart_model.py'
       - 'blueprint/tests/test_d1_tpw_close_idempotency_model.py'
       - 'blueprint/tests/test_d1_tpw_historical_replay_model.py'
+      - 'blueprint/tests/test_timeframe_scope_directive_static.py'
       - 'blueprint/tools/d1_tpw_weekend_historical_replay.py'
       - 'blueprint/implementation/D1_TPW_WEEKEND_OFFLINE_VERIFICATION_20260829.md'
       - 'blueprint/implementation/D1_TPW_MONDAY_DEMO_VERIFICATION_CHECKLIST.md'
@@ -39,6 +40,9 @@ jobs:
       - name: Run synthetic historical-replay firewall
         run: python3 blueprint/tests/test_d1_tpw_historical_replay_model.py
 
+      - name: Verify intentional timeframe exclusions
+        run: python3 blueprint/tests/test_timeframe_scope_directive_static.py
+
       - name: Compile test harness
         run: |
           python3 -m py_compile \
@@ -46,6 +50,7 @@ jobs:
             blueprint/tests/test_d1_tpw_checkpoint_restart_model.py \
             blueprint/tests/test_d1_tpw_close_idempotency_model.py \
             blueprint/tests/test_d1_tpw_historical_replay_model.py \
+            blueprint/tests/test_timeframe_scope_directive_static.py \
             blueprint/tools/d1_tpw_weekend_historical_replay.py
           echo 'D1_TPW_CHECKPOINT_HARDENING_SELFTEST=PASS'
 

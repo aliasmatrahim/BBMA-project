@@ -10,6 +10,8 @@ Status: audit/hardening only; no runtime activation.
 - The D1 Extreme remains the TP semantic owner.
 - M23 may only latch and execute the full close after durable identity recovery.
 - M22 remains the sole `OrderSend` owner.
+- W1, M30, and primary M1 remain intentional exclusions, not backlog; this
+  workstream cannot add them without new explicit user strategy-scope approval.
 - No entry, SL/TP geometry, lot, risk, candidate, ranking, or execution rule may change.
 
 ## Checkpoint v2 contract

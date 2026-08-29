@@ -18,7 +18,11 @@ Improve trade accuracy through deterministic lineage, provenance stability, shad
 - M15: sole processing and final decision clock.
 - M5: closed-candle lower-TF confirmation/refinement context only.
 
-W1 is not implemented. M30 is excluded. M1 is excluded from primary NMJE authority.
+Canonical user directive (reaffirmed 2026-08-29): W1 and M30 are intentionally
+not implemented, and M1 is intentionally excluded from primary NMJE authority.
+These are deliberate scope exclusions, not backlog or missing work. Do not add
+W1, M30, or primary M1 processing/authority unless the user gives a new explicit
+strategy-scope approval.
 
 ## Authority firewall
 

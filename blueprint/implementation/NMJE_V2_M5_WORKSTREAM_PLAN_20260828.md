@@ -114,7 +114,8 @@ Stop before:
 - any M5 processing-clock or trade authority;
 - any rule that rejects the sole valid candidate;
 - any change to D1TPW or C044;
-- any W1, M30, or primary M1 addition;
+- any W1, M30, or primary M1 addition; these are intentional exclusions, not
+  backlog, and require new explicit user strategy-scope approval;
 - any activation or merge decision;
 - any strategy-policy change lacking explicit approval and attributable evidence.
 

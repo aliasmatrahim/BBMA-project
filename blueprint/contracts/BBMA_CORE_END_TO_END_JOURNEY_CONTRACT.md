@@ -2,8 +2,8 @@
 
 Status: **LOCKED STATIC/MODEL BASELINE — NO EA SOURCE CHANGE**
 
-Source baseline: `BBMA_EA.mq4` build/header 4.72, SHA-256
-`0f461312d7d26d724c9738eddf88f1a226148f01eae894ce52d942e963f31e99`.
+Source baseline: `BBMA_EA.mq4` build/header 4.72, normalized-text SHA-256
+`1c40c6d692a66652f5cdff25d7f81a6ca7fed2d340f8beee24ea797d30fd4e49`.
 
 ## Canonical runtime chain
 

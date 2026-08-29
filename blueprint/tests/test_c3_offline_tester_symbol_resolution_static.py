@@ -7,7 +7,7 @@ import re
 
 SOURCE_PATH = Path("blueprint/source/BBMA_EA.mq4")
 SRC = SOURCE_PATH.read_text(encoding="utf-8")
-EXPECTED_SOURCE_SHA256 = "0f461312d7d26d724c9738eddf88f1a226148f01eae894ce52d942e963f31e99"
+EXPECTED_SOURCE_SHA256 = "1c40c6d692a66652f5cdff25d7f81a6ca7fed2d340f8beee24ea797d30fd4e49"
 EXPECTED_LIVE_TAIL_SHA256 = "5b70b45e537efb8ba6ea65bf7acc83ca4e4b192f5da8489303f015e76d1a0a23"
 
 
@@ -28,7 +28,7 @@ def function_body(name: str) -> str:
 
 
 def main() -> None:
-    digest = sha256(SOURCE_PATH.read_bytes()).hexdigest()
+    digest = sha256(SRC.encode("utf-8")).hexdigest()
     if digest != EXPECTED_SOURCE_SHA256:
         raise AssertionError(f"EA source drift: {digest}")
 

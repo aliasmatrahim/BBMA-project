@@ -16,9 +16,14 @@ The shortcut does not bypass the downstream broker-specification reads or
 `ValidateBrokerSpecificationWithRetry`. It has no signal, candidate, risk,
 sizing, execution, lifecycle, recovery, or close authority.
 
-Exact build-4.72 source SHA-256:
+Cross-platform normalized-text SHA-256 for build 4.72:
 
+`1c40c6d692a66652f5cdff25d7f81a6ca7fed2d340f8beee24ea797d30fd4e49`.
+
+The exact Windows source bytes compiled natively had SHA-256
 `0f461312d7d26d724c9738eddf88f1a226148f01eae894ce52d942e963f31e99`.
+The normalized identity prevents the repository's historical mixed line endings
+from changing semantic source identity across Windows and Linux checkouts.
 
 ## Deterministic evidence
 

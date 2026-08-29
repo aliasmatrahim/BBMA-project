@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "build": "4.71",
+  "build": "4.72",
   "directions": ["BUY", "SELL"],
   "authority": {
     "strategic_owner": "D1",
@@ -87,4 +87,3 @@
     "REE": ["D1_RE_ENTRY"]
   }
 }
-

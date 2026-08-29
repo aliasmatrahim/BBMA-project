@@ -177,12 +177,11 @@ def main() -> None:
 
     require(
         SRC,
-        "Version 4.7.1 - D1TPW Restart-Safe Checkpoint Hardening",
-        '#property version   "4.71"',
+        "Version 4.7.2 - Offline Tester Symbol Compatibility",
+        '#property version   "4.72"',
     )
     print("NMJE_V2_M5_STAGE_E6_P10_DISPLACEMENT_STATIC=PASS")
 
 
 if __name__ == "__main__":
     main()
-

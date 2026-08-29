@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lock C1-A golden fixtures to the canonical build-4.71 source boundaries."""
+"""Lock C1-A golden fixtures to the canonical current-source boundaries."""
 from pathlib import Path
 import re
 
@@ -52,8 +52,8 @@ def require_in_order(text: str, *markers: str) -> None:
 def main() -> None:
     require(
         SRC,
-        "Version 4.7.1 - D1TPW Restart-Safe Checkpoint Hardening",
-        '#property version   "4.71"',
+        "Version 4.7.2 - Offline Tester Symbol Compatibility",
+        '#property version   "4.72"',
         "bool           EnableC044Lifecycle                = false;",
         "bool           EnableD1TPWLifecycle               = false;",
     )
@@ -145,4 +145,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

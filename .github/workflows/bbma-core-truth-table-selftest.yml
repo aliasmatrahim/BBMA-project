@@ -4,14 +4,17 @@ on:
   pull_request:
     branches:
       - d1-tpw-checkpoint-hardening-dev
+      - bbma-core-truth-table-dev
     paths:
       - 'blueprint/source/BBMA_EA.mq4'
       - 'blueprint/contracts/BBMA_CORE_CANONICAL_TRUTH_TABLE_CONTRACT.md'
       - 'blueprint/contracts/BBMA_CORE_END_TO_END_JOURNEY_CONTRACT.md'
+      - 'blueprint/contracts/BBMA_CORE_C3_TESTER_COMPATIBILITY_CONTRACT.md'
       - 'blueprint/implementation/BBMA_CORE_PERFECTION_QUEUE_20260829.md'
       - 'blueprint/implementation/BBMA_CORE_C1A_TRUTH_TABLE_RECORD_20260829.md'
       - 'blueprint/implementation/BBMA_CORE_C1B_CANDLE_PRICE_EQUIVALENCE_RECORD_20260829.md'
       - 'blueprint/implementation/BBMA_CORE_C2A_END_TO_END_JOURNEY_RECORD_20260829.md'
+      - 'blueprint/implementation/BBMA_CORE_C3B_TESTER_COMPATIBILITY_RECORD_20260829.md'
       - 'blueprint/tests/fixtures/bbma_core_golden_truth_table.json'
       - 'blueprint/tests/test_bbma_core_canonical_truth_table.py'
       - 'blueprint/tests/test_bbma_core_canonical_source_static.py'
@@ -19,6 +22,8 @@ on:
       - 'blueprint/tests/test_bbma_core_candle_price_source_static.py'
       - 'blueprint/tests/test_bbma_core_end_to_end_journey_model.py'
       - 'blueprint/tests/test_bbma_core_end_to_end_journey_static.py'
+      - 'blueprint/tests/test_c3_offline_tester_symbol_resolution_model.py'
+      - 'blueprint/tests/test_c3_offline_tester_symbol_resolution_static.py'
       - '.github/workflows/bbma-core-truth-table-selftest.yml'
   workflow_dispatch:
 
@@ -40,7 +45,7 @@ jobs:
       - name: Verify closed-candle price equivalence fixtures
         run: python3 blueprint/tests/test_bbma_core_candle_price_equivalence.py
 
-      - name: Bind price fixtures to build-4.71 source
+      - name: Bind price fixtures to current source
         run: python3 blueprint/tests/test_bbma_core_candle_price_source_static.py
 
       - name: Verify end-to-end journey model
@@ -48,6 +53,12 @@ jobs:
 
       - name: Verify end-to-end source and broker-action ownership
         run: python3 blueprint/tests/test_bbma_core_end_to_end_journey_static.py
+
+      - name: Verify offline tester symbol-resolution model
+        run: python3 blueprint/tests/test_c3_offline_tester_symbol_resolution_model.py
+
+      - name: Verify tester-only scope and live-path equivalence
+        run: python3 blueprint/tests/test_c3_offline_tester_symbol_resolution_static.py
 
       - name: Compile C1-A harness
         run: |
@@ -57,5 +68,7 @@ jobs:
             blueprint/tests/test_bbma_core_candle_price_equivalence.py \
             blueprint/tests/test_bbma_core_candle_price_source_static.py \
             blueprint/tests/test_bbma_core_end_to_end_journey_model.py \
-            blueprint/tests/test_bbma_core_end_to_end_journey_static.py
-          echo 'BBMA_CORE_C1_C2A_SELFTEST=PASS'
+            blueprint/tests/test_bbma_core_end_to_end_journey_static.py \
+            blueprint/tests/test_c3_offline_tester_symbol_resolution_model.py \
+            blueprint/tests/test_c3_offline_tester_symbol_resolution_static.py
+          echo 'BBMA_CORE_C1_C2A_C3B_SELFTEST=PASS'

@@ -155,8 +155,8 @@ def main() -> None:
 
     require(
         SRC,
-        '#property version   "4.71"',
-        "Version 4.7.1 - D1TPW Restart-Safe Checkpoint Hardening",
+        '#property version   "4.72"',
+        "Version 4.7.2 - Offline Tester Symbol Compatibility",
     )
     for gate in ("EnableD1TPWLifecycle", "EnableC044Lifecycle"):
         if not re.search(rf"\bbool\s+{gate}\s*=\s*false\s*;", SRC):
@@ -175,4 +175,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

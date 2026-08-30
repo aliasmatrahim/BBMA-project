@@ -16,6 +16,7 @@ on:
       - 'blueprint/implementation/BBMA_CORE_C2A_END_TO_END_JOURNEY_RECORD_20260829.md'
       - 'blueprint/implementation/BBMA_CORE_C3B_TESTER_COMPATIBILITY_RECORD_20260829.md'
       - 'blueprint/implementation/BBMA_CORE_C3C_MANUAL_EVIDENCE_CHECKLIST_20260830.md'
+      - 'blueprint/implementation/BBMA_CORE_LIVE_DEMO_TEST_LANES_20260831.md'
       - 'blueprint/tools/c3_tester_evidence.py'
       - 'blueprint/tests/fixtures/bbma_core_golden_truth_table.json'
       - 'blueprint/tests/test_bbma_core_canonical_truth_table.py'
@@ -27,6 +28,7 @@ on:
       - 'blueprint/tests/test_c3_offline_tester_symbol_resolution_model.py'
       - 'blueprint/tests/test_c3_offline_tester_symbol_resolution_static.py'
       - 'blueprint/tests/test_c3_tester_evidence_model.py'
+      - 'blueprint/tests/test_live_demo_test_lanes_static.py'
       - '.github/workflows/bbma-core-truth-table-selftest.yml'
   workflow_dispatch:
 
@@ -66,6 +68,9 @@ jobs:
       - name: Verify manual tester evidence classification
         run: python3 blueprint/tests/test_c3_tester_evidence_model.py
 
+      - name: Verify live/demo test-lane separation and dormant authority
+        run: python3 blueprint/tests/test_live_demo_test_lanes_static.py
+
       - name: Compile C1-A harness
         run: |
           python3 -m py_compile \
@@ -78,5 +83,6 @@ jobs:
             blueprint/tests/test_c3_offline_tester_symbol_resolution_model.py \
             blueprint/tests/test_c3_offline_tester_symbol_resolution_static.py \
             blueprint/tools/c3_tester_evidence.py \
-            blueprint/tests/test_c3_tester_evidence_model.py
-          echo 'BBMA_CORE_C1_C2A_C3B_C3C_SELFTEST=PASS'
+            blueprint/tests/test_c3_tester_evidence_model.py \
+            blueprint/tests/test_live_demo_test_lanes_static.py
+          echo 'BBMA_CORE_C1_C2A_C3B_C3C_LIVE_LANES_SELFTEST=PASS'

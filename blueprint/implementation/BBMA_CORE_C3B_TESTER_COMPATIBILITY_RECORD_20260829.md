@@ -61,7 +61,14 @@ configuration. Its terminal log reached:
 - `05:27:31.630 Started with configuration file 'c3-smoke.ini'`; and
 - `05:30:49.207 Started with configuration file 'c3-smoke.ini'`.
 
-It then remained running without a tester-log entry. No EA initialization,
+A third launch on 2026-08-30 created a provenance marker at
+`00:24:32.7257704Z` and reached
+`08:24:54.195 Started with configuration file 'c3-smoke.ini'`. The isolated
+process remained responsive but exposed no targetable tester window and wrote
+no tester log or report. It was stopped by its verified portable executable
+path and process ID; no other terminal process was stopped.
+
+Each attempt remained running without a tester-log entry. No EA initialization,
 scan, order, or performance result occurred. The user's primary MT4 process,
 profile, and account database were not stopped, edited, or copied.
 
@@ -75,3 +82,4 @@ may be made from this record.
 
 This work remains draft-only. It does not authorize merge, release, demo/live
 trading, NMJE execution authority, D1TPW, C044, W1, M30, or primary M1.
+

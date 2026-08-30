@@ -3,7 +3,7 @@
 //| TEST/OBSERVABILITY ONLY - NO BROKER WRITE AUTHORITY              |
 //+------------------------------------------------------------------+
 #property strict
-#property version   "1.00"
+#property version   "1.10"
 
 input int StrategyID = 1;
 input int InstanceID = 0;
@@ -58,6 +58,7 @@ bool IsRelevantGV(string name)
 void PrintEnvironment(datetime now)
 {
    Print("[V459-OBS][ENV] TS=", (int)now,
+         " Demo=", (IsDemo() ? "Y" : "N"),
          " Connected=", (IsConnected() ? "Y" : "N"),
          " TradeAllowed=", (IsTradeAllowed() ? "Y" : "N"));
 }

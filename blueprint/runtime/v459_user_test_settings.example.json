@@ -1,0 +1,23 @@
+{
+  "schema": "BBMA_V459_USER_TEST_SETTINGS_V1",
+  "terminal_path": "C:\\BBMA-MT4\\terminal.exe",
+  "metaeditor_path": "C:\\BBMA-MT4\\metaeditor.exe",
+  "data_path": "C:\\BBMA-MT4",
+  "work_root": "C:\\BBMA-V459-UserTest",
+  "portable_mode": true,
+  "require_demo_account": true,
+  "auto_restart_on_checkpoint": true,
+  "preflight_profile": "BBMA_V459_DEMO_PREFLIGHT",
+  "monitor_minutes": 480,
+  "startup_timeout_seconds": 180,
+  "clean_shutdown_timeout_seconds": 45,
+  "poll_seconds": 5,
+  "profiles": {
+    "R1": "BBMA_V459_R1",
+    "R2": "BBMA_V459_R2",
+    "R3": "BBMA_V459_R3",
+    "R4": "BBMA_V459_R4",
+    "R5": "BBMA_V459_R5",
+    "R6": "BBMA_V459_R6"
+  }
+}

@@ -1,0 +1,40 @@
+name: V459 user-test runner
+
+on:
+  pull_request:
+    paths:
+      - 'blueprint/runtime/V459_Runtime_Observer.mq4'
+      - 'blueprint/runtime/*USER_TEST*'
+      - 'blueprint/runtime/*user_test*'
+      - 'blueprint/tools/v459_user_test_control.py'
+      - 'blueprint/tests/test_v459_user_test_control.py'
+      - '.github/workflows/v459-user-test-runner.yml'
+  workflow_dispatch:
+
+jobs:
+  offline-control:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Python control self-test
+        run: python blueprint/tests/test_v459_user_test_control.py
+      - name: PowerShell syntax and safety gates
+        shell: powershell
+        run: |
+          $tokens = $null
+          $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path 'blueprint/runtime/v459_user_test_runner.ps1'),
+            [ref]$tokens,
+            [ref]$errors
+          )
+          if ($errors.Count -ne 0) { $errors | Format-List | Out-String | Write-Error }
+          $runner = Get-Content 'blueprint/runtime/v459_user_test_runner.ps1' -Raw
+          if ($runner -match '\.Kill\(') { throw 'Force-kill primitive is forbidden' }
+          if ($runner -notmatch 'Demo=N') { throw 'Live-account rejection gate missing' }
+      - name: Native v4.59 compile matrix
+        shell: powershell
+        run: ./blueprint/runtime/v459_native_compile_matrix.ps1

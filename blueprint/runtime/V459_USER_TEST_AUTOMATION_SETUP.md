@@ -25,7 +25,7 @@ Jangan masukkan nombor akaun, login, server atau kata laluan dalam fail settings
    - `BBMA_EA_V459_USERTEST`
    - `V459_Runtime_Observer`
 3. Buka MT4 secara manual dan login akaun demo.
-4. Cipta profil `BBMA_V459_DEMO_PREFLIGHT` yang mengandungi **observer sahaja**. Jangan lampirkan EA trading dalam profil ini.
+4. Cipta profil `BBMA_V459_DEMO_PREFLIGHT` yang mengandungi **observer sahaja**. Jangan lampirkan EA trading dalam profil ini. Tandakan `Allow live trading` pada observer supaya ia boleh melaporkan status permission; observer telah diperiksa dan tidak mempunyai arahan broker-write.
 5. Cipta enam profil dengan nama tepat yang terdapat dalam fail settings: R1 hingga R6.
 6. Dalam setiap profil R1–R6:
    - Lampirkan `BBMA_EA_V459_USERTEST` pada satu chart.
@@ -34,6 +34,7 @@ Jangan masukkan nombor akaun, login, server atau kata laluan dalam fail settings
    - Untuk R5, load `v459_user_test_r5.set` pada EA. Preset ini mengaktifkan `LOCK_ONE_POSITION` untuk bukti TradeLock.
    - Pastikan `StrategyID=1` dan `InstanceID=0` sama pada EA dan observer.
    - Benarkan live trading pada EA. “Live trading” MT4 mesti dibenarkan, tetapi runner tetap menolak akaun real melalui `Demo=Y`.
+   - Tandakan juga `Allow live trading` pada observer supaya `TradeAllowed=Y` boleh disahkan; observer tidak boleh membuka/ubah/tutup order.
 7. Simpan semua tujuh profil dan tutup MT4 secara normal.
 
 ## Jalankan automasi

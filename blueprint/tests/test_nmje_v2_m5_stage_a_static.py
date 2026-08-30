@@ -21,8 +21,8 @@ def require(text: str, *markers: str) -> None:
 def main() -> None:
     require(
         SRC,
-        "Version 4.7.1 - D1TPW Restart-Safe Checkpoint Hardening",
-        '#property version   "4.71"',
+        "Version 4.7.2 - Offline Tester Symbol Compatibility",
+        '#property version   "4.72"',
         "datetime             EpochStartCandleTime;",
         "NMJE_BuildD1Node(",
         "NMJE_BuildH4Node(",
@@ -79,4 +79,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

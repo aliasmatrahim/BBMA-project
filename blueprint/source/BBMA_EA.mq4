@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.7.1 - D1TPW Restart-Safe Checkpoint Hardening                  |
+//| Version 4.7.2 - Offline Tester Symbol Compatibility                  |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.71"
+#property version   "4.72"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -1232,6 +1232,14 @@ string FindActualSymbol(string symbol)
 {
    string requested = StringTrimLeft(StringTrimRight(symbol));
    if(requested == "") return "";
+
+   // C3-T01: a disconnected portable Strategy Tester can expose the exact
+   // chart symbol and history while withholding broker catalogue-selection
+   // authority. Admit only that exact tester symbol; live resolution below is
+   // unchanged, and LoadPairs still performs the full broker-spec fail-closed
+   // validation before enabling the pair.
+   if(IsTesting() && requested == Symbol())
+      return requested;
 
    // 1) Exact broker symbol wins when it exists and can be selected.
    int totalAll = SymbolsTotal(false);
@@ -10199,7 +10207,7 @@ void BuildDashboardSnapshot()
    int liveTradeCount = CountDashboardLiveEAOwnedTrades();
 
    g_dashboard_snapshot = "";
-   g_dashboard_snapshot += "=== BBMA EA V4.5.9 P0 EXEC_ID Persistence Fix ===\n";
+   g_dashboard_snapshot += "=== BBMA EA V4.72 Offline Tester Symbol Compatibility ===\n";
    g_dashboard_snapshot += "Time: " + TimeToString(TimeCurrent()) + "\n";
    g_dashboard_snapshot += "Balance: " + DoubleToString(AccountBalance(), 2) + "\n";
    g_dashboard_snapshot += "Equity: " + DoubleToString(AccountEquity(), 2) + "\n";
@@ -11090,7 +11098,7 @@ int OnInit()
       return INIT_FAILED;
    }
    
-   Log(DBG_FULL, "BBMA EA V4.5.9 P0 EXEC_ID Persistence Fix initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.72 Offline Tester Symbol Compatibility initialized successfully");
    return INIT_SUCCEEDED;
 }
 

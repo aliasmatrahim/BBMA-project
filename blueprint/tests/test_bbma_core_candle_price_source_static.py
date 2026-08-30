@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bind C1-B price fixtures to exact build-4.71 MQL4 predicate surfaces."""
+"""Bind C1-B price fixtures to exact build-4.72 MQL4 predicate surfaces."""
 from pathlib import Path
 from hashlib import sha256
 import re
@@ -7,7 +7,7 @@ import re
 
 SOURCE_PATH = Path("blueprint/source/BBMA_EA.mq4")
 SRC = SOURCE_PATH.read_text(encoding="utf-8")
-EXPECTED_SOURCE_SHA256 = "c6a87f613495547ee3cf52a8fe041ae6f9a63396075c0c755a7475b9f488a7bb"
+EXPECTED_SOURCE_SHA256 = "1c40c6d692a66652f5cdff25d7f81a6ca7fed2d340f8beee24ea797d30fd4e49"
 
 
 def function_body(name: str) -> str:
@@ -36,7 +36,7 @@ def require(name: str, *markers: str) -> None:
 
 
 def main() -> None:
-    digest = sha256(SOURCE_PATH.read_bytes()).hexdigest()
+    digest = sha256(SRC.encode("utf-8")).hexdigest()
     if digest != EXPECTED_SOURCE_SHA256:
         raise AssertionError(f"EA source drift: {digest}")
 
@@ -129,4 +129,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

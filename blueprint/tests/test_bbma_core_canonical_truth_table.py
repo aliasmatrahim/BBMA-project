@@ -35,7 +35,7 @@ def validate_combination(
 def main() -> None:
     data = json.loads(FIXTURE.read_text(encoding="utf-8"))
     assert data["schema_version"] == 1
-    assert data["build"] == "4.71"
+    assert data["build"] == "4.72"
     assert data["directions"] == ["BUY", "SELL"]
 
     authority = data["authority"]
@@ -131,4 +131,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

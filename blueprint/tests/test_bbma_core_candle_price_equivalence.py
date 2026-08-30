@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""C1-B closed-candle price-predicate fixtures derived from build 4.71."""
+"""C1-B closed-candle price-predicate fixtures retained by build 4.72."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -247,4 +247,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

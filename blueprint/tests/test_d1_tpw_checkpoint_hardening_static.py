@@ -34,8 +34,8 @@ def main() -> None:
         SRC,
         'bool           EnableD1TPWLifecycle               = false;',
         'bool           EnableC044Lifecycle                = false;',
-        'Version 4.7.1 - D1TPW Restart-Safe Checkpoint Hardening',
-        '#property version   "4.71"',
+        'Version 4.7.2 - Offline Tester Symbol Compatibility',
+        '#property version   "4.72"',
         'string               d1_tpw_cycle_hash;',
     )
 
@@ -101,4 +101,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

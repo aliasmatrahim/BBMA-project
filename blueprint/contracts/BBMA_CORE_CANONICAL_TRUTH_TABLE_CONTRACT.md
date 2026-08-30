@@ -7,7 +7,7 @@ Status: **C1-A AUDIT LOCK / NO SOURCE OR STRATEGY CHANGE**
 
 Lock the source-observed BBMA signal ownership, maturity, invalidation, and
 composition rules before historical performance work. This contract describes
-build 4.71; it does not redefine the strategy or authorize runtime activation.
+build 4.72; it does not redefine the strategy or authorize runtime activation.
 
 ## Frozen authority
 
@@ -136,7 +136,7 @@ BUY/SELL examples and exact boundary behavior for:
 - MHV TP-Wajib completion, loss phase, move-away, and marked-body retest.
 
 The accompanying source-static guard binds those fixtures to the exact MQL4
-predicate text and build-4.71 source SHA-256. Strict comparisons remain strict;
+predicate text and build-4.72 source SHA-256. Strict comparisons remain strict;
 inclusive touches remain inclusive. These fixtures are deterministic offline
 predicate evidence, not native MQL4 execution or market-performance evidence.
 
@@ -147,4 +147,3 @@ clock, candidate eligibility, semantic source, or execution authority is a
 strategy semantic change. It requires a separate explicit user decision,
 visible EA build/header increment, deterministic comparison, native 0E0W, and
 broker/demo evidence where applicable.
-

@@ -6,15 +6,16 @@ Ia tidak mencipta akaun broker, menyimpan login/kata laluan atau memaksa market 
 
 ## Apa yang user perlu sediakan sekali sahaja
 
-1. Pasang satu salinan MT4 khas untuk ujian BBMA. Jangan guna terminal akaun real.
-2. Buka akaun **demo**, login dalam terminal itu dan pastikan `AutoTrading` boleh dihidupkan.
-3. Salin `v459_user_test_settings.example.json` sebagai `v459_user_test_settings.json`.
-4. Isi empat path sahaja:
+1. Gunakan Windows dengan Git dan Python 3 tersedia melalui arahan `git` dan `python`.
+2. Pasang satu salinan MT4 khas untuk ujian BBMA. Jangan guna terminal akaun real.
+3. Buka akaun **demo**, login dalam terminal itu dan pastikan `AutoTrading` boleh dihidupkan.
+4. Salin `v459_user_test_settings.example.json` sebagai `v459_user_test_settings.json`.
+5. Isi empat path sahaja:
    - `terminal_path`: lokasi `terminal.exe`.
    - `metaeditor_path`: lokasi `metaeditor.exe`.
    - `data_path`: folder yang dipaparkan oleh MT4 melalui **File → Open Data Folder**.
    - `work_root`: folder output ujian, contohnya `C:\BBMA-V459-UserTest`.
-5. Jika MT4 dipasang dalam portable mode, kekalkan `portable_mode: true`. Jika tidak, tukar kepada `false`.
+6. Jika MT4 dipasang dalam portable mode, kekalkan `portable_mode: true`. Jika tidak, tukar kepada `false`.
 
 Jangan masukkan nombor akaun, login, server atau kata laluan dalam fail settings. Validator akan menolak medan credential.
 

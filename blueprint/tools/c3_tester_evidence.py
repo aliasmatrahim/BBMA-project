@@ -17,7 +17,7 @@ FAILURE_MARKERS = (
 )
 
 
-def evaluate(log_text: str, report_exists: bool) -> dict[str, object]:
+def evaluate(log_text: str, report_fresh: bool) -> dict[str, object]:
     resolved = re.findall(
         r"\[P3S1\] Symbol resolved GBPUSD -> ([^\s]+)", log_text
     )
@@ -45,7 +45,7 @@ def evaluate(log_text: str, report_exists: bool) -> dict[str, object]:
         ),
         "processed_beyond_init": max_ticks > 1 and max_bars > 0,
         "tester_stopped": "Tester stopped" in log_text,
-        "report_written": report_exists,
+        "report_fresh": report_fresh,
     }
     explicit_failure = wrong_symbol or any(
         marker in log_text for marker in FAILURE_MARKERS
@@ -67,23 +67,39 @@ def evaluate(log_text: str, report_exists: bool) -> dict[str, object]:
     }
 
 
+def classify_paths(log_path: Path, report_path: Path, not_before_path: Path) -> dict[str, object]:
+    if not not_before_path.is_file():
+        return {"status": "NOT_RUN", "reason": "NO_RUN_MARKER"}
+    if not log_path.is_file():
+        return {"status": "NOT_RUN", "reason": "NO_TESTER_LOG"}
+
+    marker_mtime = not_before_path.stat().st_mtime_ns
+    log_fresh = log_path.stat().st_mtime_ns >= marker_mtime
+    if not log_fresh:
+        return {"status": "NOT_RUN", "reason": "STALE_TESTER_LOG"}
+
+    report_fresh = (
+        report_path.is_file() and report_path.stat().st_mtime_ns >= marker_mtime
+    )
+    result = evaluate(
+        log_path.read_text(encoding="utf-8", errors="replace"), report_fresh
+    )
+    result["provenance"] = {
+        "log_fresh": log_fresh,
+        "report_fresh": report_fresh,
+    }
+    return result
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--log", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
+    parser.add_argument("--not-before", type=Path, required=True)
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
-    if not args.log.is_file():
-        result: dict[str, object] = {
-            "status": "NOT_RUN",
-            "reason": "NO_TESTER_LOG",
-        }
-    else:
-        result = evaluate(
-            args.log.read_text(encoding="utf-8", errors="replace"),
-            args.report.is_file(),
-        )
+    result = classify_paths(args.log, args.report, args.not_before)
 
     if args.json:
         print(json.dumps(result, sort_keys=True))

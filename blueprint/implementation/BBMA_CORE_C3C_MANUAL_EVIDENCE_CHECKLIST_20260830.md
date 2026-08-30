@@ -17,14 +17,16 @@ Status: **PREPARED / READ-ONLY EVIDENCE / NO ACTIVATION**
 
 The read-only evidence classifier requires all of the following:
 
-1. `BBMA_EA` loads on GBPUSD M15;
-2. exact tester resolution is `GBPUSD -> GBPUSD`;
-3. broker specification emits `[P3S1][PASS]` for GBPUSD;
-4. `LoadPairs completed count=1`;
-5. build 4.72 initialization succeeds;
-6. processing advances beyond one tick and zero bars;
-7. the tester stops normally; and
-8. a report exists.
+1. the launcher-created run marker exists;
+2. the tester log and report are both newer than that run marker;
+3. `BBMA_EA` loads on GBPUSD M15;
+4. exact tester resolution is `GBPUSD -> GBPUSD`;
+5. broker specification emits `[P3S1][PASS]` for GBPUSD;
+6. `LoadPairs completed count=1`;
+7. build 4.72 initialization succeeds;
+8. processing advances beyond one tick and zero bars;
+9. the tester stops normally; and
+10. a fresh report exists.
 
 Any non-exact symbol, broker-spec failure, zero valid pairs, or initialization
 failure is `FAIL`. Missing completion evidence without an explicit failure is
@@ -34,10 +36,10 @@ unless the evidence status is `PASS`.
 ## Invocation after the manual run
 
 ```text
-python blueprint/tools/c3_tester_evidence.py --log <tester-log> --report <html-report> --json
+python blueprint/tools/c3_tester_evidence.py --log <tester-log> --report <html-report> --not-before <run-marker> --json
 ```
 
-The classifier only reads the supplied files. It cannot launch MT4, change
+The classifier only reads the supplied files and their modification times. It cannot launch MT4, change
 inputs, place orders, enable authority, or modify a report.
 
 ## Stop boundary

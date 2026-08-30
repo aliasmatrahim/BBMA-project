@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import importlib.util
+import os
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 
 TOOL = Path("blueprint/tools/c3_tester_evidence.py")
@@ -72,6 +74,44 @@ Tester stopped
     startup_only = "Tester: start with configuration file"
     assert MODULE.evaluate(startup_only, False)["status"] == "INCOMPLETE"
     cases += 1
+
+    with TemporaryDirectory() as temporary_directory:
+        root = Path(temporary_directory)
+        marker = root / "run.marker"
+        log = root / "tester.log"
+        report = root / "report.html"
+
+        assert MODULE.classify_paths(log, report, marker) == {
+            "status": "NOT_RUN",
+            "reason": "NO_RUN_MARKER",
+        }
+        cases += 1
+
+        marker.write_text("run", encoding="utf-8")
+        log.write_text(PASS_LOG, encoding="utf-8")
+        report.write_text("report", encoding="utf-8")
+        os.utime(log, ns=(1_000_000_000, 1_000_000_000))
+        os.utime(report, ns=(3_000_000_000, 3_000_000_000))
+        os.utime(marker, ns=(2_000_000_000, 2_000_000_000))
+        stale_log = MODULE.classify_paths(log, report, marker)
+        assert stale_log == {"status": "NOT_RUN", "reason": "STALE_TESTER_LOG"}
+        cases += 1
+
+        os.utime(log, ns=(3_000_000_000, 3_000_000_000))
+        os.utime(report, ns=(1_000_000_000, 1_000_000_000))
+        stale_report = MODULE.classify_paths(log, report, marker)
+        assert stale_report["status"] == "INCOMPLETE"
+        assert not stale_report["provenance"]["report_fresh"]
+        cases += 1
+
+        os.utime(report, ns=(3_000_000_000, 3_000_000_000))
+        fresh_evidence = MODULE.classify_paths(log, report, marker)
+        assert fresh_evidence["status"] == "PASS"
+        assert fresh_evidence["provenance"] == {
+            "log_fresh": True,
+            "report_fresh": True,
+        }
+        cases += 1
 
     print(f"C3_TESTER_EVIDENCE_MODEL=PASS cases={cases}")
 

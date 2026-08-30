@@ -68,6 +68,12 @@ process remained responsive but exposed no targetable tester window and wrote
 no tester log or report. It was stopped by its verified portable executable
 path and process ID; no other terminal process was stopped.
 
+A fourth launch used only `terminal.exe /portable`, without the automatic test
+configuration, to request the isolated GUI directly. The process remained
+responsive and logged the same verified portable data folder, but still exposed
+no targetable window and wrote no tester log or report. It was likewise stopped
+by its verified portable executable path and process ID.
+
 Each attempt remained running without a tester-log entry. No EA initialization,
 scan, order, or performance result occurred. The user's primary MT4 process,
 profile, and account database were not stopped, edited, or copied.

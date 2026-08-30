@@ -14,7 +14,7 @@ Develop a production-grade **BBMA Professional EA** for MetaTrader 4 using the a
 
 The trading logic must remain faithful to **BBMA Core / Oma Ally methodology**. Supporting modules may manage data, validation, risk, execution, lifecycle, UI and integration, but must not silently alter the BBMA trading methodology.
 
-The immediate development priority is to complete, audit and lock the **Master Blueprint** before full EA implementation.
+The project is currently in active **EA implementation, compile/runtime validation and evidence-closure** work against the approved Blueprint/contracts. The Blueprint remains binding; if implementation exposes a genuine architecture defect, reconcile it deliberately rather than silently changing behaviour in code.
 
 ---
 
@@ -48,9 +48,9 @@ The immediate development priority is to complete, audit and lock the **Master B
 
 ## 4. Master Blueprint Governance
 
-The Master Blueprint is the authoritative specification for architecture and behaviour before production coding.
+The Master Blueprint is the authoritative architecture and behaviour specification. Its locked/approved contracts continue to govern implementation and runtime work.
 
-During Blueprint development:
+During Blueprint development or deliberate Blueprint revision:
 
 1. Audit architecture first.
 2. Audit module responsibility and ownership.
@@ -60,10 +60,10 @@ During Blueprint development:
 6. Audit dependencies and declaration requirements.
 7. Audit risk and trade lifecycle ownership.
 8. Find contradictions, missing logic and redundant responsibilities.
-9. Fix the specification before implementation.
+9. Fix the specification before implementation behaviour is changed.
 10. Repeat the audit until no material unresolved issue remains.
 
-Do not declare the Master Blueprint LOCKED merely because all 27 modules exist. It may be locked only after cross-module consistency has been reviewed.
+Do not declare the Master Blueprint LOCKED merely because all 27 modules exist. It may be locked only after cross-module consistency has been reviewed. After lock, material architecture changes still require deliberate review and traceability.
 
 ---
 
@@ -118,7 +118,7 @@ A detector should not execute trades. A collector should not reinterpret signal 
 
 ## 8. Development Phases
 
-The project follows this order:
+The project lifecycle follows this sequence:
 
 **Master Blueprint Draft**  
 ↓  
@@ -134,21 +134,23 @@ The project follows this order:
 ↓  
 **Compile & Static Debugging**  
 ↓  
-**Functional Testing**  
+**Functional / Runtime Testing**  
 ↓  
 **Backtesting / Validation**  
 ↓  
 **Production Candidate**
 
-Do not skip directly from an incomplete Blueprint to production implementation.
+The current project has progressed beyond the initial Blueprint-lock milestone into implementation and validation. This lifecycle remains the governance sequence; it is not an instruction to return implementation work to an obsolete pre-implementation branch or phase.
 
 ---
 
 ## 9. Source-Code Organisation
 
-During initial implementation, prefer one clearly structured master EA file:
+The active EA implementation is maintained as one clearly structured master source file unless an approved architecture decision changes that organisation:
 
-`BBMA_PROFESSIONAL_EA.mq4`
+`blueprint/source/BBMA_EA.mq4`
+
+Resolve the branch that owns this source from the current repository governance/branch map before auditing or changing code.
 
 The architecture may still contain M01–M27 sections inside that file.
 
@@ -158,21 +160,33 @@ Do not split the project into 27 `.mqh` files merely for appearance. Physical mo
 
 ## 10. GitHub Workflow
 
+Do **not** assume the repository default branch is the active EA implementation branch. Resolve branch ownership from the current repository `README.md`, `blueprint/CURRENT.md` and repository governance before implementation/status work.
+
+Current branch map at this governance revision:
+
 ### `main`
-Reserved for approved/stable project state.
+Default branch for repository governance, dispatcher/tooling and GitHub Actions integration.
 
-### `blueprint-dev`
-Working branch for Master Blueprint development, audit and correction.
+### `d1-owner-dev`
+Active implementation/source branch containing the EA source, detailed contracts, decisions and runtime evidence.
 
-### Future `ea-dev`
-May be created when implementation begins after the Master Blueprint is locked.
+Current EA source:
+
+`d1-owner-dev:blueprint/source/BBMA_EA.mq4`
+
+Branch names and ownership may evolve. When the live repository branch map changes, the live governance/current-state records take precedence over historical branch names in older notes or chat history.
 
 Rules:
 
-- Development changes should be traceable through commits.
-- Do not overwrite a LOCKED Master Blueprint casually.
-- Significant Blueprint changes after lock require deliberate review.
-- Keep experimental development away from stable project state.
+- Use a structured Issue for confirmed defects or intentional architecture changes when applicable.
+- Create a scoped branch from the branch that owns the target.
+- Make the smallest correct change and preserve unaffected architecture.
+- Use a Draft PR for reviewable development changes when applicable.
+- Run the existing specialized compile/static/runtime checks that own the affected invariants; do not create redundant generic checks when a canonical check already exists.
+- Review architecture and regression impact before integration.
+- Merge only when required evidence is green and material findings are resolved.
+- Keep Issue, PR, decisions/contracts and release evidence linked so changes remain traceable.
+- Do not overwrite a LOCKED Blueprint casually; significant post-lock changes require deliberate review.
 
 ---
 
@@ -227,9 +241,9 @@ The Master Blueprint is ready to lock only when, within the reviewed scope:
 
 ## 14. Definition of Implementation Ready
 
-Production coding begins from the LOCKED Master Blueprint.
+Production coding begins from an approved/locked Master Blueprint.
 
-Implementation must conform to the Blueprint. If coding exposes a genuine Blueprint flaw, fix and review the Blueprint deliberately rather than silently changing architecture only in code.
+The project is now in active implementation and validation. Implementation must continue to conform to the Blueprint and active contracts. If coding or runtime evidence exposes a genuine Blueprint flaw, fix and review the Blueprint deliberately rather than silently changing architecture only in code.
 
 The final goal is one coherent system where **Blueprint → implementation → tests** describe the same behaviour.
 
@@ -241,7 +255,7 @@ The final goal is one coherent system where **Blueprint → implementation → t
 
 The immediate goal is therefore:
 
-> Build a complete, internally consistent and implementation-ready Master Blueprint for BBMA Professional EA M01–M27, then lock it before full production coding begins.
+> Complete the current EA implementation and close compile, runtime, Strategy-Core purity, regression and release-evidence gaps against the approved M01–M27 + M12N architecture without introducing silent strategy or ownership drift.
 
 ---
 
@@ -275,17 +289,16 @@ This rule is mandatory for every future EA source-code change, patch, fix, diagn
 
 This protocol is **MANDATORY** before any Strategy-Core interpretation, detector/entry/exit change, Blueprint strategy repair, source-compliance claim, or conclusion that a BBMA rule/source is missing.
 
-### 17.1 Required retrieval order
-Always inspect the authoritative project sources in this order:
+### 17.1 Dynamic source-router rule
+Always begin with:
 
-1. `docs/references/SOURCE_INDEX.md` — source map, hierarchy and conflict policy.
-2. `docs/references/BBMA_STRATEGY_CORE_SOURCE_OF_TRUTH_V2.md` — active consolidated developer-facing Core specification.
-3. `docs/references/video/oma_ally_finale/BBMA_FINALE_MASTER_RULE_INDEX.md` — reconciled Finale V01–V07 evidence.
-4. Relevant `docs/references/video/oma_ally_finale/V01` … `V07` `extracted_rules.md` and/or `summary.md` when the rule requires timestamped or episode-level evidence.
-5. `docs/references/BBMA_OMA_ALLY_RULE_INDEX.md` and the recorded primary/secondary PDF evidence.
-6. Relevant BBMA/Oma Ally forum evidence when the issue requires clarification, corroboration, historical teaching context or resolution beyond the PDF/Finale layer.
-7. Relevant source-conflict, implementation-gap and source-contract files.
-8. Current Master Blueprint / active EA implementation only **after** the Strategy-Core evidence has been established.
+1. `docs/references/SOURCE_INDEX.md` — the **dynamic source router**, hierarchy and conflict policy.
+2. Follow the **current retrieval sequence recorded inside `SOURCE_INDEX.md`**. Do not maintain a competing hard-coded hierarchy in this file, chat memory, old audits or assistant instructions.
+3. Retrieve `docs/references/BBMA_STRATEGY_CORE_SOURCE_OF_TRUTH_V2.md` as the active developer-facing accepted Core consolidation, then all materially relevant evidence/provenance layers routed by `SOURCE_INDEX.md` for the rule under review.
+4. Check the relevant conflict/HOLD and implementation-gap records before encoding or changing deterministic Strategy-Core behaviour.
+5. Inspect relevant module/source contracts and the active Blueprint/EA implementation only **after** Strategy-Core semantics have been established.
+
+If `SOURCE_INDEX.md` registers or reconciles an additional source layer — for example the Tier-B BBMA Home Course Workbook evidence and its explicit reconciliation decisions — include it whenever the current router and task relevance require it. A historical list in another document must not suppress a newer registered evidence layer.
 
 ### 17.2 No search-empty inference
 A GitHub code-search result of zero matches is **NOT evidence that a project source does not exist**.
@@ -333,7 +346,7 @@ This trace may live in the existing source contract, audit, gap register or comm
 The user must not be required to repeatedly remind the project that the EA must follow BBMA/Oma Ally rules. Source compliance is a standing project governance requirement and must be checked automatically whenever Strategy-Core behaviour is touched.
 
 ### 17.7 Conflict precedence
-Apply the source precedence and conflict policy defined in `docs/references/SOURCE_INDEX.md`. Finale clarification must not silently overwrite an established PDF rule, and implementation behaviour must never outrank clearly supported source evidence.
+Apply the source precedence and conflict policy defined in `docs/references/SOURCE_INDEX.md`. Supplemental clarification must not silently overwrite a higher-precedence established rule, and implementation behaviour must never outrank clearly supported source evidence.
 
 ### 17.8 Mandatory uncertainty / gap / ambiguity hard gate
 For **any** uncertainty, gap, contradiction, ambiguity, incomplete behaviour, questionable assumption, proposed improvement, lifecycle question, or unclear trading behaviour that could affect BBMA semantics, the developer/assistant MUST cross-check the BBMA source group **before** reaching a strategy conclusion or modifying code.
@@ -351,12 +364,7 @@ This hard gate applies to all BBMA-derived behaviour, including but not limited 
 - simultaneous/opposite signals and multiple/add-on entries;
 - any behaviour claimed to originate from BBMA/Oma Ally methodology.
 
-The mandatory evidence group is:
-
-1. **BBMA PDF evidence** — primary operational PDF plus secondary corroborating PDF where relevant;
-2. **BBMA Finale V01–V07** — Master Rule Index plus timestamped episode-level extracted rules/summary where relevant;
-3. **BBMA/Oma Ally forum evidence** — relevant thread/post evidence used as corroboration/clarification, with provenance retained;
-4. **Canonical Core consolidation** — `BBMA_STRATEGY_CORE_SOURCE_OF_TRUTH_V2.md`, which contains only accepted/reconciled rules.
+The mandatory evidence group is determined by the **current `SOURCE_INDEX.md` retrieval map and task relevance**. It normally includes the canonical Core consolidation, primary/secondary PDF evidence, relevant Finale V01–V07 evidence, relevant forum evidence when it can materially clarify the issue, and any explicitly registered/reconciled supplemental evidence layer such as the Tier-B Home Course Workbook when applicable.
 
 Cross-check does not mean forcing all sources to agree. If they conflict or do not answer the issue deterministically, classify the item `HOLD/UNRESOLVED`, record the evidence gap, and **do not invent a BBMA trading rule**.
 
@@ -371,7 +379,7 @@ Cross-check does not mean forcing all sources to agree. If they conflict or do n
 
 **Required Strategy-Core development check:**
 
-> Retrieve canonical sources → cross-check PDF + Finale + relevant forum + Core consolidation → establish accepted rule/evidence → compare Blueprint/code → classify mismatch → fix only if authorized by evidence → cross-module/purity verification → preserve traceability.
+> Retrieve `SOURCE_INDEX.md` → follow its current routed evidence set → establish accepted rule/evidence → compare Contract/Blueprint → current Code → Runtime evidence → classify mismatch → fix only if authorized by evidence → cross-module/purity verification → preserve traceability.
 
 ---
 
@@ -390,22 +398,20 @@ Use the curated Project Sources / source-reference set for stable evidence and g
 - `PROJECT_INSTRUCTIONS.md`;
 - `docs/references/SOURCE_INDEX.md`;
 - `docs/references/BBMA_STRATEGY_CORE_SOURCE_OF_TRUTH_V2.md`;
-- `BBMA_FINALE_MASTER_RULE_INDEX.md` and relevant V01–V07 extracted evidence;
-- original/corroborating PDF evidence;
-- source-conflict and implementation-gap registers;
-- registered forum provenance/evidence.
+- evidence layers currently routed by `SOURCE_INDEX.md`, including relevant Finale V01–V07, original/corroborating PDFs, registered forum provenance/evidence and explicitly reconciled supplemental evidence such as the Tier-B Home Course Workbook when applicable;
+- source-conflict and implementation-gap registers.
 
 This layer answers: **What is the accepted BBMA rule, evidence, provenance, conflict status and project governance?**
 
 #### B. Live GitHub implementation / state layer
 Always retrieve the current repository state when the task depends on implementation or project status, including where relevant:
 
-- active branch and latest repository state;
+- current repository branch map / ownership and latest state;
 - `blueprint/CURRENT.md`;
 - `blueprint/MASTER_QUEUE.md`;
 - relevant module/source contracts;
 - relevant decisions/audits/verification records;
-- active `blueprint/source/BBMA_EA.mq4`;
+- active `blueprint/source/BBMA_EA.mq4` on the branch that currently owns implementation;
 - current commits, compile/runtime evidence and changed files.
 
 This layer answers: **What does the project currently implement, what is active now, what remains pending, and what changed most recently?**
@@ -414,15 +420,16 @@ This layer answers: **What does the project currently implement, what is active 
 Before reaching a material conclusion or making a project change:
 
 1. Retrieve the current `PROJECT_INSTRUCTIONS.md` from GitHub.
-2. Retrieve `docs/references/SOURCE_INDEX.md` and use it as the source router.
-3. Identify the task class, affected BBMA concept(s), owning module(s), and whether the task can affect Strategy-Core semantics.
-4. If Strategy-Core semantics may be affected, retrieve the relevant static evidence group required by Section 17 before inspecting code as authority.
-5. Retrieve the live GitHub state relevant to the task: `CURRENT.md`, `MASTER_QUEUE.md`, owning contract(s), current EA source, and relevant audit/decision records.
-6. Compare the layers in this order:
+2. Retrieve the current repository `README.md` / governance branch map and resolve which branch owns the target; do not assume `main` owns EA implementation.
+3. Retrieve `docs/references/SOURCE_INDEX.md` and use it as the source router.
+4. Identify the task class, affected BBMA concept(s), owning module(s), and whether the task can affect Strategy-Core semantics.
+5. If Strategy-Core semantics may be affected, retrieve the relevant static evidence group required by Section 17 before inspecting code as authority.
+6. Retrieve the live GitHub state relevant to the task: `CURRENT.md`, `MASTER_QUEUE.md`, owning contract(s), current EA source, and relevant audit/decision records.
+7. Compare the layers in this order:
 
    **Original Evidence → Canonical Strategy Core → Contract / Blueprint → Current Code → Runtime / Test Evidence**
 
-7. Classify any mismatch before fixing it. Valid classifications include:
+8. Classify any mismatch before fixing it. Valid classifications include:
    - source clarification;
    - unresolved source conflict / `HOLD`;
    - Blueprint/specification defect;
@@ -430,10 +437,10 @@ Before reaching a material conclusion or making a project change:
    - runtime/integration defect;
    - observability/documentation defect;
    - no defect / already compliant.
-8. Apply only the smallest evidence-authorized fix owned by the correct module/layer.
-9. Re-check affected upstream/downstream modules and perform Strategy-Core purity regression when strategy behaviour is touched.
-10. For EA source changes, apply Section 16 build identification and obtain the required compile/runtime evidence.
-11. Commit the verified change to GitHub and update `CURRENT.md`, `MASTER_QUEUE.md`, audit/gap/decision records, or other tracking artifacts **only when their state actually changed**.
+9. Apply only the smallest evidence-authorized fix owned by the correct module/layer.
+10. Re-check affected upstream/downstream modules and perform Strategy-Core purity regression when strategy behaviour is touched.
+11. For EA source changes, apply Section 16 build identification and obtain the required compile/runtime evidence.
+12. Commit the verified change to GitHub and update `CURRENT.md`, `MASTER_QUEUE.md`, audit/gap/decision records, or other tracking artifacts **only when their state actually changed**.
 
 ### 18.3 Freshness rule
 Uploaded/static copies of live project-state files, code, queue records or runtime records must **never** be assumed current merely because they exist in a knowledge library or previous chat.
@@ -450,6 +457,7 @@ The static Project Sources are a stable evidence/knowledge layer, not a substitu
 The required behaviour is:
 
 - always start from `SOURCE_INDEX.md`;
+- follow its current routing/precedence policy;
 - identify the relevant evidence groups and owning artifacts;
 - retrieve **all materially relevant sources** for the task;
 - do not omit a source group when it can materially change the conclusion;
@@ -484,4 +492,4 @@ In these cases, retrieve the missing evidence/state first or classify the item `
 
 **Required universal BBMA project check:**
 
-> GitHub governance + source index preflight → relevant static evidence retrieval → live GitHub state/contracts/code retrieval → Evidence → Core → Contract → Code → Runtime comparison → classify → smallest authorized fix → cross-module/purity verification → compile/runtime evidence where required → commit/update live project state.
+> GitHub governance + branch ownership + source index preflight → relevant static evidence retrieval → live GitHub state/contracts/code retrieval → Evidence → Core → Contract → Code → Runtime comparison → classify → smallest authorized fix → cross-module/purity verification → compile/runtime evidence where required → commit/update live project state.

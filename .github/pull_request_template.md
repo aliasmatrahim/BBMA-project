@@ -48,6 +48,7 @@ Check every item that applies.
 - [ ] `blueprint/contracts/` remains consistent.
 - [ ] `blueprint/decisions/` updated if an approved decision changed.
 - [ ] `blueprint/CURRENT.md` / `blueprint/MASTER_QUEUE.md` updated if project status changed.
+- [ ] If project/test/runtime sequencing changed, `docs/LIVE_STATUS_AUTHORITY_PROTOCOL.md` reconciliation was performed and superseded steps were identified.
 - [ ] `blueprint/source/EA_RELEASE_IDENTITY.json` / release history updated if release identity changed.
 
 ## Reviewer decision

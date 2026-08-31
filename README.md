@@ -34,6 +34,21 @@ On the active implementation branch, start with:
 
 Historical patches, experiments and archived evidence are not automatically authoritative over active contracts/decisions.
 
+## Mandatory live-status resolution
+
+For any question or decision involving `latest`, `current`, `next`, active test/workstream, runtime status, release state or branch ownership, reading `CURRENT.md` / `MASTER_QUEUE.md` alone is **not sufficient**.
+
+Before reporting a state as latest/current/next, follow `docs/LIVE_STATUS_AUTHORITY_PROTOCOL.md`. The mandatory check includes the live branch map, canonical current-state records, recent open PRs, recent commits, relevant issue/PR comments, explicit supersession/stop/replace/defer decisions, exact build/head identity and runtime/test evidence.
+
+Always distinguish:
+
+1. latest project/test-plan update;
+2. latest actual test attempt;
+3. latest valid PASS evidence; and
+4. next required test.
+
+If newer records conflict with older authoritative-looking records and cannot be reconciled deterministically, report `STATUS CONFLICT / VERIFICATION REQUIRED` instead of guessing. Chat memory is never status authority.
+
 ## Development workflow
 
 1. Create a structured GitHub Issue for the defect or intentional architecture change.

@@ -1,0 +1,23 @@
+name: Live status authority guard
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'README.md'
+      - 'docs/LIVE_STATUS_AUTHORITY_PROTOCOL.md'
+      - '.github/scripts/check_live_status_authority.py'
+      - '.github/workflows/live-status-authority-guard.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-status-authority:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify mandatory latest/current/next status governance
+        run: python3 .github/scripts/check_live_status_authority.py

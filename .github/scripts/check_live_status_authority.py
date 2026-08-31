@@ -11,6 +11,7 @@ def require(text: str, *markers: str) -> None:
 def main() -> None:
     readme = Path("README.md").read_text(encoding="utf-8")
     protocol = Path("docs/LIVE_STATUS_AUTHORITY_PROTOCOL.md").read_text(encoding="utf-8")
+    pr_template = Path(".github/pull_request_template.md").read_text(encoding="utf-8")
 
     require(
         readme,
@@ -40,6 +41,13 @@ def main() -> None:
         "STATUS CONFLICT / VERIFICATION REQUIRED",
         "Chat memory and prior assistant answers are navigation aids only",
         "Regression example — R1 vs C3",
+    )
+
+    require(
+        pr_template,
+        "If project/test/runtime sequencing changed",
+        "docs/LIVE_STATUS_AUTHORITY_PROTOCOL.md",
+        "superseded steps were identified",
     )
 
     print("LIVE_STATUS_AUTHORITY_GOVERNANCE=PASS")

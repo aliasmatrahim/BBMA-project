@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - 'README.md'
+      - 'blueprint/CURRENT.md'
+      - 'blueprint/MASTER_QUEUE.md'
       - 'docs/LIVE_STATUS_AUTHORITY_PROTOCOL.md'
       - '.github/pull_request_template.md'
       - '.github/scripts/check_live_status_authority.py'

@@ -19,10 +19,16 @@ def main() -> None:
         "datetime M5_CandleTime;",
         "bool     M5_IsClosed;",
         "TimeframeData        m5_data;",
-        "InitTimeframeData(state.m5_data);",
     ):
         if marker not in SRC:
             raise AssertionError(f"missing Stage-C1 marker: {marker}")
+
+    # Stage C1 owns the acquisition path, not a separate PairState initializer.
+    # GetDataForTimeframe must initialize every destination before loading it,
+    # including PairState.m5_data used below from the M15-driven ProcessPair.
+    loader = body("GetDataForTimeframe")
+    if "InitTimeframeData(data);" not in loader:
+        raise AssertionError("timeframe loader no longer initializes its destination")
 
     snapshot = body("BuildTimeframeSnapshot")
     for marker in (
@@ -67,4 +73,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

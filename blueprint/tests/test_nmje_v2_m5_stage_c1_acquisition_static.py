@@ -8,7 +8,14 @@ SRC = Path("blueprint/source/BBMA_EA.mq4").read_text(encoding="utf-8")
 
 
 def body(name: str) -> str:
-    match = re.search(rf"void\s+{re.escape(name)}\s*\([^)]*\)\s*\{{(.*?)\n\}}", SRC, re.S)
+    # Static regression checks function bodies, not their return type. Keep the
+    # parser tolerant of void/bool/etc. so a harmless signature form does not
+    # masquerade as an acquisition-contract failure.
+    match = re.search(
+        rf"\b[A-Za-z_][A-Za-z0-9_]*\s+{re.escape(name)}\s*\([^)]*\)\s*\{{(.*?)\n\}}",
+        SRC,
+        re.S,
+    )
     if not match:
         raise AssertionError(f"missing function: {name}")
     return match.group(1)

@@ -37,12 +37,14 @@ def main() -> None:
     if "InitTimeframeData(data);" not in loader:
         raise AssertionError("timeframe loader no longer initializes its destination")
 
-    snapshot = body("BuildTimeframeSnapshot")
+    # Bind the frozen closed-M5 snapshot to the exact source statements. These
+    # fields are unique to TimeframeSnapshot and do not need a fragile parser
+    # assumption about the helper's return type/declaration formatting.
     for marker in (
-        "GetLatestClosedCandleTime(pair, PERIOD_M5)",
-        "IsCandleClosed(snapshot.M5_CandleTime, 300)",
+        "snapshot.M5_CandleTime = GetLatestClosedCandleTime(pair, PERIOD_M5);",
+        "snapshot.M5_IsClosed = IsCandleClosed(snapshot.M5_CandleTime, 300);",
     ):
-        if marker not in snapshot:
+        if marker not in SRC:
             raise AssertionError(f"M5 closed-candle snapshot missing: {marker}")
 
     process = body("ProcessPair")

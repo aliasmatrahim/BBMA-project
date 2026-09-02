@@ -1,734 +1,7 @@
-//+------------------------------------------------------------------+
-//|                                           BBMA_EA.mq4 |
-//| Version 4.7.0 - NMJE v2 Event Phase Lineage                  |
-//|                                           CODE-READY              |
-//+------------------------------------------------------------------+
-//+------------------------------------------------------------------+
-//|                    CODING COMPLEXITY LIMITER                       |
-//|                    =========================                       |
-//|                                                                   |
-//|  PURPOSE:                                                         |
-//|  Prevent unnecessary over-engineering during MQL4 implementation. |
-//|                                                                   |
-//|  GENERAL RULE:                                                    |
-//|  Use the SIMPLEST implementation that fully satisfies this        |
-//|  Master Blueprint.                                                |
-//|                                                                   |
-//|  COMPLEXITY LEVELS:                                               |
-//|  BEGINNER        - Direct code. Basic conditions, loops, calc.   |
-//|  INTERMEDIATE    - Modular functions. Structs/state only where    |
-//|                    required. Normal production-grade EA coding.   |
-//|  INTERMEDIATE+   - Stateful, lifecycle or sequence-based logic    |
-//|                    allowed. Limited to actual Blueprint req.      |
-//|  EXPERT-RESTRICTED- Only where state/risk/execution integrity,    |
-//|                    persistence, recovery, lifecycle or orchest-   |
-//|                    ration correctness requires it.                |
-//|  EXPERT          - Critical execution and recovery infrastructure.|
-//|                    Every complex mechanism must have a clear      |
-//|                    technical reason.                              |
-//|                                                                   |
-//|  IMPORTANT: "EXPERT" DOES NOT MEAN "MAXIMUM COMPLEXITY".         |
-//+------------------------------------------------------------------+
-#property copyright "BBMA EA"
-#property link      ""
-#property version   "4.70"
-#property strict
-
-//+------------------------------------------------------------------+
-//| MODULE 01: HEADER & INPUTS                                       |
-//| LEVEL: BEGINNER                                                  |
-//+------------------------------------------------------------------+
-
-//--- USER INPUT ENUMS (numeric values preserved for compatibility)
-enum ENUM_ENTRY_MODE_INPUT
-{
-   MODE_1_RE_ENTRY_ONLY          = 1, // Re-Entry only | selective
-   MODE_2_ALL_VALIDATED_BBMA     = 2  // RE + REM/RRE/REE | more opportunities
-};
-
-enum ENUM_MM_MODE_INPUT
-{
-   MM_AUTO_LOT                   = 1, // Lot derived from risk %
-   MM_FIXED_LOT                  = 2  // Use FixedLot
-};
-
-enum ENUM_TRADE_LOCK
-{
-   LOCK_OFF                      = 0, // No optional live-position lock
-   LOCK_SAME_DIRECTION           = 1, // Existing pair trades constrain new direction
-   LOCK_ONE_POSITION             = 2  // Max 1 live EA trade / pair
-};
-
-enum ENUM_DEBUG_LEVEL
-{
-   DBG_OFF                       = 0,
-   DBG_ERROR                     = 1,
-   DBG_SIGNAL                    = 2,
-   DBG_TRADE                     = 3,
-   DBG_FULL                      = 4
-};
-
-//--- 01 TRADING SETUP
-input ENUM_ENTRY_MODE_INPUT EntryMode             = MODE_2_ALL_VALIDATED_BBMA; // 01 Trading | Mode 1=RE only, Mode 2=RE+REM/RRE/REE
-
-//--- 02 PAIR SELECTION
-input string   PairList                           = "EURUSD,GBPUSD,USDJPY,USDCHF,USDCAD,AUDUSD,NZDUSD,EURJPY,GBPJPY,EURGBP,AUDJPY,CADJPY,CHFJPY,NZDJPY,EURAUD,EURCAD,EURCHF,GBPAUD,GBPCAD,AUDCAD"; // 02 Pairs | default 20-pair FX universe
-
-//--- 03 TRADE LIMITS
-input int      MaxTradePerPair                    = 2;          // 03 Limits | max live trades per pair
-input int      MaxTotalTrade                      = 10;         // 03 Limits | max total live EA trades
-input int      MaxActivePair                      = 7;          // 03 Limits | requested max active pairs; runtime caps safely
-
-//--- 04 MONEY MANAGEMENT
-input ENUM_MM_MODE_INPUT MMMode                   = MM_AUTO_LOT; // 04 Money | AUTO=risk %, FIXED=FixedLot
-input double   AutoLotPercent                     = 1.0;        // 04 Money | risk % used by Auto Lot
-input double   FixedLot                           = 0.01;       // 04 Money | used only in Fixed Lot mode
-input double   MaxAutoLot                         = 1.0;        // 04 Money | hard cap for Auto Lot
-
-//--- 05 TRADE CONTROL
-input ENUM_TRADE_LOCK TradeLockMode               = LOCK_OFF;   // 05 Control | OFF / SAME_DIRECTION / ONE_POSITION
-
-//--- 06 RISK PROTECTION
-input double   MaxSpreadPips                      = 10.0;       // 06 Risk | reject entry above this spread
-input double   MaxDrawdownPercent                 = 20.0;       // 06 Risk | maximum EA drawdown %
-input double   BasketLossPercent                  = 10.0;       // 06 Risk | emergency basket-loss %
-input double   MaxTotalRiskPercent                = 5.0;        // 06 Risk | maximum total EA risk %
-
-//--- 07 DISPLAY
-input bool     ShowDashboard                      = true;       // 07 Display | show chart dashboard
-
-//--- 08 ADVANCED SAFETY / EXECUTION
-input double   MinRRRatio                         = 0.0;        // 08 Advanced | optional Min RR filter; 0=disabled
-input double   MaxSLPips                          = 100.0;      // 08 Advanced | maximum accepted SL distance
-input int      Slippage                           = 3;          // 08 Advanced | broker slippage in points
-input ENUM_DEBUG_LEVEL DebugLevel                 = DBG_OFF;    // 08 Advanced | OFF / ERROR / SIGNAL / TRADE / FULL
-input int      StrategyID                         = 1;          // 08 Advanced | strategy identity 1-99
-input int      InstanceID                         = 0;          // 08 Advanced | instance identity 0-99
-
-//--- INTERNAL / LOCKED (not shown in MT4 Inputs; defaults preserved)
-int            MaxWaitBars_Extreme                = 5;
-int            MaxWaitBars_MLV                    = 5;          // Legacy compatibility only; canonical MHV/MLV has no strategy TTL
-int            MaxWaitBars_CSD                    = 5;
-int            MaxWaitBars_ReEntry                = 5;
-int            MaxWaitBars_Combined               = 5;
-int            MaxWaitBars_Global                 = 10;
-int            SignalMode                         = 1;          // Deprecated compatibility/display only
-int            ScoreDisplayThresholdManual        = 60;         // Deprecated display compatibility only
-bool           EnableBBShapeEngine                = true;
-bool           EnableExtremeClassifier            = true;
-bool           EnableMLVStateEngine               = true;
-bool           EnableReEntryEngine                = true;
-bool           EnableSignalScoring                = true;       // M18 label metadata only; never gates trading
-bool           EnableRE_Type1                     = true;
-bool           EnableRE_Type2                     = true;
-bool           EnableRE_Type3                     = true;
-bool           EnableRE_Type4                     = true;
-// C044 staged implementation gate. Keep OFF until M23/M24 lifecycle
-// close + restart reconstruction are implemented and verified.
-bool           EnableC044Lifecycle                = false;
-// D1 EXTREME_TPW staged lifecycle. Keep OFF until native/static gates and
-// broker/demo restart + close-idempotency validation are complete.
-bool           EnableD1TPWLifecycle               = false;
-double         BasketProfitPercent                = 5.0;        // Display compatibility only; not execution TP
-int            MaxRetry                           = 3;
-int            BERetryInterval                    = 60;
-int            AllowedExecutionDeviation_MinPoints= 5;
-
-//--- CONSTANTS
-#define TIMEFRAME_TREND         1440
-#define TIMEFRAME_HIGHER        240
-#define TIMEFRAME_MAIN          60
-#define TIMEFRAME_LOWER         15
-#define BB_PERIOD               20
-#define BB_DEVIATION            2
-#define MA5_HIGH_PERIOD         5
-#define MA10_HIGH_PERIOD        10
-#define MA5_LOW_PERIOD          5
-#define MA10_LOW_PERIOD         10
-#define EMA50_PERIOD            50
-#define MAX_PAIRS               40
-#define MAX_TRADES_PER_PAIR     20
-#define MAX_MONITORED           400
-#define RETRY_SLEEP_MS          100
-#define TRADE_TIMEOUT           2000
-#define MAGIC_BASE              100000
-#define SIGNAL_HISTORY_MAX      2000
-#define SIGNAL_HISTORY_CLEANUP_SIZE 200
-#define PAIR_ID_MIN             1
-#define PAIR_ID_MAX             99
-#define INSTANCE_ID_MIN         0
-#define INSTANCE_ID_MAX         99
-#define STRATEGY_ID_MIN         1
-#define STRATEGY_ID_MAX         99
-
-//+------------------------------------------------------------------+
-//| MODULE 02: ENUMS & STRUCTS                                       |
-//| LEVEL: BEGINNER                                                  |
-//+------------------------------------------------------------------+
-
-//--- ENUMS
-enum ENUM_SIGNAL_TYPE
-{
-   SIGNAL_NONE,
-   SIGNAL_EXTREME,
-   SIGNAL_MHV,
-   SIGNAL_MLV,
-   SIGNAL_CSD,
-   SIGNAL_ECSD,
-   SIGNAL_CSM,
-   SIGNAL_RE_ENTRY,
-   SIGNAL_REM,
-   SIGNAL_RRE,
-   SIGNAL_REE,
-};
-
-enum ENUM_DIRECTION { DIR_NONE, DIR_BUY, DIR_SELL };
-
-enum ENUM_BB_STATE { BB_NONE, BB_SQUEEZE, BB_EXPANDING, BB_CONTRACTING, BB_FLAT };
-
-enum ENUM_MLV_STATE
-{
-   MLV_NONE,
-   MLV_PARENT_READY,
-   MLV_TP_COMPLETE,
-   MLV_LOSS_DEVELOPING,
-   MLV_FORMATION_ESTABLISHED,
-   MLV_RETEST_COMPLETE,
-   MLV_DIRECTION_TAKEN,
-   MLV_VOID,
-   MLV_SUPERSEDED
-};
-
-enum ENUM_RE_TYPE { RE_NONE, RE_TYPE_1, RE_TYPE_2, RE_TYPE_3_CSM, RE_TYPE_4_CSD };
-
-enum ENUM_RE_STATE { RE_STATE_NONE, RE_STATE_CANDIDATE, RE_STATE_CONFIRMED, RE_STATE_EXPIRED };
-
-enum ENUM_TYPE1_CONTEXT_STATE
-{
-   TYPE1_CTX_NONE,
-   TYPE1_CTX_DIRECTION_OWNER,
-   TYPE1_CTX_RANGING
-};
-
-enum ENUM_H4_OWNER_STATE
-{
-   H4_OWNER_RECOVERY_UNRESOLVED,
-   H4_OWNER_NONE,
-   H4_OWNER_ACTIVE
-};
-
-enum ENUM_D1_OWNER_STATE
-{
-   D1_OWNER_UNRESOLVED,
-   D1_OWNER_BUY_CONFIRMED,
-   D1_OWNER_SELL_CONFIRMED,
-   D1_TRANSITION
-};
-
-// D1O-02: user-approved D1 BBMA opportunity execution extension.
-enum ENUM_D1_OPPORTUNITY_FAMILY
-{
-   D1_OPP_NONE,
-   D1_OPP_EXTREME_TPW,
-   D1_OPP_CSD,
-   D1_OPP_RE_ENTRY,
-   D1_OPP_MOMENTUM_RETRACE
-};
-
-enum ENUM_D1_AUTHORITY_MODE
-{
-   D1_AUTH_NONE,
-   D1_AUTH_STRATEGIC_OWNER,
-   D1_AUTH_OPPORTUNITY
-};
-
-// N1-03: observation-only nested MTF relationship states.
-enum ENUM_NESTED_RELATION
-{
-   NESTED_NOT_APPLICABLE,
-   NESTED_BUILDING,
-   NESTED_SUPPORTING,
-   NESTED_ALIGNED,
-   NESTED_CONFLICT,
-   NESTED_UNRESOLVED
-};
-
-enum ENUM_NESTED_PARENT_KIND
-{
-   NESTED_PARENT_NONE,
-   NESTED_PARENT_H4_RE,
-   NESTED_PARENT_H4_OWNER,
-   NESTED_PARENT_D1_RE,
-   NESTED_PARENT_D1_OWNER
-};
-
-// Issue #101 Stage-C2 shadow-only canonical M5 context families.
-enum ENUM_NMJE_M5_CONTEXT_CODE
-{
-   NMJE_M5_CONTEXT_NONE = 0,
-   NMJE_M5_CONTEXT_RE_ENTRY = 1,
-   NMJE_M5_CONTEXT_EXTREME = 2
-};
-
-// Issue #101 P5 diagnostic-only conflict family. This never changes the
-// canonical top-level relation or any candidate/decision authority.
-enum ENUM_NMJE_CONFLICT_SUBTYPE
-{
-   NMJE_CONFLICT_NONE,
-   NMJE_CONFLICT_TEMPORARY_RETRACEMENT,
-   NMJE_CONFLICT_LOCAL_CHILD_OPPOSITION,
-   NMJE_CONFLICT_PARENT_DIRECTION,
-   NMJE_CONFLICT_OWNER_TRANSITION,
-   NMJE_CONFLICT_STRUCTURAL,
-   NMJE_CONFLICT_UNRESOLVED_PROVENANCE
-};
-
-// Issue #101 P6 categorical BBMA journey maturity. No score or threshold.
-enum ENUM_NMJE_JOURNEY_MATURITY
-{
-   NMJE_MATURITY_NONE,
-   NMJE_MATURITY_OWNER_ONLY,
-   NMJE_MATURITY_EXTREME_DEVELOPING,
-   NMJE_MATURITY_EXTREME_MATURE,
-   NMJE_MATURITY_REENTRY_CANDIDATE,
-   NMJE_MATURITY_REENTRY_CONFIRMED,
-   NMJE_MATURITY_MHV_DEVELOPING,
-   NMJE_MATURITY_MHV_MATURE,
-   NMJE_MATURITY_CONFLICTED,
-   NMJE_MATURITY_OWNER_TRANSITION,
-   NMJE_MATURITY_UNRESOLVED
-};
-
-// Issue #101 P10 research-only directional displacement class. It is emitted
-// after execution and never participates in validation or execution authority.
-enum ENUM_NMJE_ENTRY_DISPLACEMENT
-{
-   NMJE_DISPLACEMENT_UNRESOLVED,
-   NMJE_DISPLACEMENT_FLAT,
-   NMJE_DISPLACEMENT_FAVORABLE,
-   NMJE_DISPLACEMENT_ADVERSE
-};
-
-// Issue #101 P11 shadow-only canonical event-phase lineage.
-enum ENUM_NMJE_EVENT_PHASE
-{
-   NMJE_EVENT_PHASE_UNRESOLVED,
-   NMJE_EVENT_PHASE_FIRST,
-   NMJE_EVENT_PHASE_CONTINUATION,
-   NMJE_EVENT_PHASE_NEW_JOURNEY
-};
-
-enum ENUM_EXTREME_TYPE { EXT_NONE, EXT_SIDEWAYS, EXT_WITH_MOMENTUM, EXT_WITHOUT_MOMENTUM };
-
-enum ENUM_EXTREME_MATURITY
-{
-   EXT_MAT_NONE,
-   EXT_MAT_RAW,
-   EXT_MAT_REVERSAL_CONFIRMED,
-   EXT_MAT_RETEST_PHASE,
-   EXT_MAT_RETEST_READY,
-   EXT_MAT_VOID,
-   EXT_MAT_SUPERSEDED
-};
-
-enum ENUM_SIGNAL_LEVEL { LEVEL_NONE, LEVEL_D, LEVEL_C, LEVEL_B, LEVEL_A, LEVEL_A_PLUS };
-
-enum ENUM_PRIORITY_TIER { TIER_NONE, TIER_C, TIER_B, TIER_A, TIER_A_PLUS };
-
-
-enum ENUM_SIGNAL_REQUIREMENT { REQ_STANDALONE, REQ_COMBINATION, REQ_SEQUENCE };
-
-enum ENUM_DECISION_STATE { DEC_CREATED, DEC_VALIDATED, DEC_INVALIDATED, 
-                           DEC_REJECTED, DEC_EXECUTED, DEC_EXPIRED };
-
-enum ENUM_REJECTION_REASON
-{
-   REJ_NONE,
-   REJ_NO_DATA,
-   REJ_INSUFFICIENT_HISTORY,
-   REJ_BROKER_SPEC_INVALID,
-   REJ_EXPIRED,
-   REJ_OPPOSITE_SIGNAL,
-   REJ_SEQUENCE_BREAK,
-   REJ_SPREAD_HIGH,
-   REJ_DD_LIMIT,
-   REJ_BASKET_LOSS,
-   REJ_TOTAL_RISK,
-   REJ_PORTFOLIO_LIMIT,
-   REJ_INVALID_SL,
-   REJ_INVALID_TP,
-   REJ_INVALID_RR,
-   REJ_SLTP_UNRESOLVED,
-   REJ_INVALID_LOT,
-   REJ_DUPLICATE,
-   REJ_TRADE_LOCK,
-   REJ_BROKER_ERROR,
-   REJ_MARKET_PRICE_INVALID,
-   REJ_INVALID_DECISION_STATE,
-   REJ_MAGIC_COLLISION,
-   REJ_CORRUPTED_RECOVERY_STATE,
-   REJ_PORTFOLIO_LIMIT_ATOMIC,
-   REJ_TEMPORARY_BROKER_DATA_FAILURE,
-   REJ_AMBIGUOUS_RESULT,
-   REJ_RECOVERY_INVALID,
-   REJ_EXECUTION_DEVIATION_EXCEEDED,
-   REJ_MANUAL_TIERS_EMPTY
-};
-
-enum ENUM_OPPOSITE_CONFLICT_TYPE
-{
-   CONFLICT_NONE,
-   CONFLICT_TEMPORAL_VIOLATION,
-   CONFLICT_DIRECTION_VIOLATION,
-   CONFLICT_HIGHER_PRIORITY_BREAK
-};
-
-
-enum ENUM_RECOVERY_STATE { REC_NORMAL, REC_CORRUPTED, REC_RECOVERY_INVALID, REC_PARTIAL_INFERRED,
-                           REC_IDENTITY_HASH_ONLY, REC_IDENTITY_MISSING_FROZEN };
-
-// C044 staged targetless lifecycle state. Execution remains gated OFF until
-// owner-event evaluation and recovery activation pass their final gate.
-enum ENUM_C044_LIFECYCLE_STATE
-{
-   C044_LIFE_NONE,
-   C044_LIFE_WAIT_OUTER_TEST,
-   C044_LIFE_WAIT_NEXT_REENTRY,
-   C044_LIFE_EXIT_LATCHED,
-   C044_LIFE_FROZEN
-};
-
-enum ENUM_C044_EXIT_REASON
-{
-   C044_EXIT_NONE,
-   C044_EXIT_FAILED_MOMENTUM,
-   C044_EXIT_CYCLE_SUPERSEDED
-};
-
-//--- STRUCTS
-struct ComponentIdentity
-{
-   ENUM_SIGNAL_TYPE   ComponentType;
-   ENUM_DIRECTION     Direction;
-   int                Timeframe;
-   datetime           CandleTime;
-   string             DecisionID;
-};
-
-struct ComponentSet
-{
-   ENUM_SIGNAL_TYPE   CombinationType;
-   int                ComponentCount;
-   ComponentIdentity  Comp1;
-   ComponentIdentity  Comp2;
-   ComponentIdentity  Comp3;
-   datetime           SequenceStartTime;
-   string             SequenceHash;
-   ENUM_SIGNAL_TYPE   SLTPSource;
-};
-
-struct Candle
-{
-   double   Open;
-   double   High;
-   double   Low;
-   double   Close;
-   datetime Time;
-   int      Index;
-   int      Type;
-};
-
-struct BollingerBand
-{
-   double   TOP_BB;
-   double   MID_BB;
-   double   LOW_BB;
-   double   Width;
-   ENUM_BB_STATE State;
-};
-
-struct MovingAverage
-{
-   double   MA5_High;
-   double   MA10_High;
-   double   MA5_Low;
-   double   MA10_Low;
-   double   EMA50;
-};
-
-struct Signal
-{
-   ENUM_SIGNAL_TYPE     Type;
-   ENUM_DIRECTION       Direction;
-   bool                 Valid;
-   int                  Timeframe;
-   ENUM_SIGNAL_TYPE     SubType;
-   double               Strength;
-   string               Reason;
-   int                  BarIndex;
-   int                  ExpiryBar;
-   int                  Score;
-   ENUM_SIGNAL_LEVEL    Level;
-   ENUM_PRIORITY_TIER   PriorityTier;
-   double               EntryPrice;
-   double               StopLoss;
-   double               TakeProfit;
-   double               StopLossPoints;
-   double               MA5_Level;
-   double               MA10_Level;
-   double               MA50_Level;
-   double               MID_BB;
-   datetime             Timestamp;
-   datetime             CandleTime;
-   double               Close;
-};
-
-struct ExtremeLifecycleData
-{
-   ENUM_EXTREME_MATURITY Maturity;
-   ENUM_DIRECTION        Direction;
-   int                   Timeframe;
-   int                   RawBar;
-   datetime              RawCandleTime;
-   int                   ConfirmationBar;
-   datetime              ConfirmationCandleTime;
-   double                ConfirmationClose;
-   int                   LastUpdateBar;
-   datetime              LastUpdateCandleTime;
-   double                PreviousClose;
-   double                ProvisionalBodyAnchor;
-   double                FrozenBodyAnchor;
-   double                RelevantMA5;
-   int                   RetestStartBar;
-   datetime              RetestStartCandleTime;
-   int                   RetestCompletionBar;
-   datetime              RetestCompletionCandleTime;
-   bool                  IsValid;
-   string                Reason;
-};
-
-struct MLVData
-{
-   ENUM_MLV_STATE       State;
-   ENUM_DIRECTION       Direction;
-   ENUM_DIRECTION       ParentExtremeDirection;
-   int                  Timeframe;
-   string               Reason;
-
-   datetime             ParentRawCandleTime;
-   datetime             ParentConfirmationCandleTime;
-   datetime             TPWajibCandleTime;
-
-   double               ProvisionalBodyAnchor;
-   double               FrozenMarkedBody;
-   double               PreviousClose;
-
-   int                  StartBar;
-   datetime             StartCandleTime;
-   int                  LastUpdateBar;
-   datetime             LastUpdateCandleTime;
-
-   int                  ConfirmationBar;
-   datetime             ConfirmationCandleTime;
-   double               ConfirmationClose;
-
-   int                  RetestBar;
-   datetime             RetestCandleTime;
-   int                  DirectionTakeoverBar;
-   datetime             DirectionTakeoverCandleTime;
-
-   int                  VoidBar;
-   datetime             VoidCandleTime;
-   int                  SupersededBar;
-   datetime             SupersededCandleTime;
-
-   bool                 InvalidationWindowOpen;
-   bool                 IsValid;
-
-   bool                 SupersessionCandidateActive;
-   int                  SupersessionRawBar;
-   datetime             SupersessionRawCandleTime;
-};
-
-struct ReEntryData
-{
-   ENUM_RE_TYPE         Type;
-   ENUM_RE_STATE        State;
-   ENUM_DIRECTION       Direction;
-   int                  Timeframe;
-   double               EntryPrice;
-   double               StopLoss;
-   double               TakeProfit;
-   double               StopLossPoints;
-   double               MA5_Level;
-   double               MA10_Level;
-   double               MA50_Level;
-   double               MID_BB;
-   datetime             EntryCandle;
-   datetime             ConfirmationCandle;
-   int                  StartBar;
-   datetime             StartCandleTime;
-   int                  LastUpdateBar;
-   datetime             LastUpdateCandleTime;
-   int                  ConfirmationBar;
-   int                  ExpiryBar;
-   datetime             ExpiryCandleTime;
-   int                  MinCandlesRequired;
-   int                  QualifyingCandles;
-
-   ENUM_TYPE1_CONTEXT_STATE Type1ContextState;
-   ENUM_SIGNAL_TYPE     Type1OwnerSignal;
-   datetime             Type1OwnerCandleTime;
-   datetime             Type1RangingStartCandleTime;
-   double               Type1PreviousClose;
-
-   bool                 IsValid;
-   double               StrengthScore;
-   string               Reason;
-};
-
-struct H4DirectionalOwner
-{
-   ENUM_H4_OWNER_STATE  State;
-   ENUM_DIRECTION       Direction;
-   ENUM_SIGNAL_TYPE     SourceSignal;
-   datetime             SourceCandleTime;
-   ENUM_SIGNAL_TYPE     LastAdvanceSignal;
-   datetime             LastAdvanceCandleTime;
-   datetime             LastProcessedH4CandleTime;
-   bool                 IsValid;
-   bool                 RecoveryComplete;
-   bool                 RecoveredFromCheckpoint;
-   string               Reason;
-};
-
-struct D1MajorTrendOwner
-{
-   ENUM_D1_OWNER_STATE  State;
-   ENUM_DIRECTION       Direction;
-   datetime             SourceCandleTime;
-   // N3 provenance-only epoch anchor. Changes only when canonical owner
-   // State/Direction changes; never changes the D1 strategy formula.
-   datetime             EpochStartCandleTime;
-   datetime             LastProcessedD1CandleTime;
-   double               Close1;
-   double               MA50_1;
-   double               MA50_2;
-   bool                 IsValid;
-   string               Reason;
-};
-
-struct D1OpportunityJourney
-{
-   ENUM_D1_OPPORTUNITY_FAMILY Family;
-   ENUM_DIRECTION             Direction;
-   ENUM_SIGNAL_TYPE           SourceSignal;
-   datetime                   SourceCandleTime;
-   datetime                   ActivationTime;
-   datetime                   LastProcessedD1CandleTime;
-   string                     CycleID;
-   bool                       Active;
-   bool                       Tactical;
-   bool                       TPWCompleted;
-   string                     Reason;
-};
-
-// N1-03: read-only observation node. It never owns BBMA strategy state.
-struct NestedTFNode
-{
-   int                  Timeframe;
-   ENUM_SIGNAL_TYPE     StageType;
-   ENUM_DIRECTION       Direction;
-   int                  StateCode;
-   datetime             CandleTime;
-   bool                 Valid;
-   bool                 Resolved;
-   string               Label;
-   // N3 provenance-only deterministic identity. Never strategy authority.
-   string               CanonicalEventID;
-
-   // N1.1 coverage-only secondary overlays. These never own strategy state.
-   ENUM_RE_STATE        ReEntryBuyState;
-   ENUM_RE_STATE        ReEntrySellState;
-   bool                 ReEntryBuyValid;
-   bool                 ReEntrySellValid;
-   datetime             ReEntryBuyCandleTime;
-   datetime             ReEntrySellCandleTime;
-   ENUM_EXTREME_MATURITY ExtremeBuyMaturity;
-   ENUM_EXTREME_MATURITY ExtremeSellMaturity;
-   bool                 ExtremeBuyValid;
-   bool                 ExtremeSellValid;
-   datetime             ExtremeBuyCandleTime;
-   datetime             ExtremeSellCandleTime;
-   ENUM_MLV_STATE       MLVBuyState;
-   ENUM_MLV_STATE       MLVSellState;
-   bool                 MLVBuyValid;
-   bool                 MLVSellValid;
-   datetime             MLVBuyCandleTime;
-   datetime             MLVSellCandleTime;
-   string               OverlayLabel;
-};
-
-// NMJE v2 Stage-C2 provenance/shadow storage. It has no
-// processing-clock, candidate, rejection, ranking or execution authority.
-struct NMJEM5RefinementState
-{
-   bool                 Present;
-   string               EventID;
-   string               ParentEventID;
-   string               JourneyID;
-   ENUM_DIRECTION       Direction;
-   int                  ContextCode;
-   int                  ContextStateCode;
-   datetime             EventStartCandleTime;
-   datetime             ClosedCandleTime;
-   ENUM_NESTED_RELATION Relation;
-   ENUM_NMJE_CONFLICT_SUBTYPE ConflictSubtype;
-   ENUM_NMJE_JOURNEY_MATURITY Maturity;
-   bool                 Valid;
-   bool                 Resolved;
-   string               Reason;
-};
-
-// Issue #101 P4 research-only attribution payload. String identities are
-// reduced to deterministic hashes for durable MT4 GlobalVariable storage.
-struct NMJEShadowAttributionState
-{
-   bool                 Present;
-   bool                 Durable;
-   string               JourneyHash;
-   string               ParentEventHash;
-   bool                 ParentRetained;
-   string               ParentSelectionReasonHash;
-   ENUM_NESTED_RELATION Relation;
-   ENUM_NMJE_CONFLICT_SUBTYPE ConflictSubtype;
-   ENUM_NMJE_JOURNEY_MATURITY Maturity;
-   bool                 M5Present;
-   string               M5EventHash;
-   ENUM_NESTED_RELATION M5Relation;
-   ENUM_NMJE_CONFLICT_SUBTYPE M5ConflictSubtype;
-   ENUM_NMJE_JOURNEY_MATURITY M5Maturity;
-   ENUM_DIRECTION       M5Direction;
-   int                  M5ContextCode;
-   int                  M5ContextStateCode;
-   datetime             M5EventStartCandleTime;
-   datetime             M5ClosedCandleTime;
-   string               M5ReasonHash;
-   int                  StructureMask;
-   int                  StructureCount;
-   int                  RequirementCompleteness;
-   int                  SequenceCompleteness;
-   bool                 EntryDisplacementPresent;
-   ENUM_NMJE_ENTRY_DISPLACEMENT EntryDisplacementClass;
-   double               SourceConfirmationPrice;
-   double               ValidationEntryPrice;
-   double               BrokerExecutionPrice;
-   double               StructuralAnchorPrice;
+StructuralAnchorPrice;
    double               ConfirmationToValidationPips;
    double               ValidationToExecutionPips;
    double               ExecutionFromAnchorPips;
-   ENUM_NMJE_EVENT_PHASE EventPhase;
-   bool                 EventPhaseCheckpointDurable;
 };
 
 // N1-03: one pair-level nested journey observation per closed-M15 cycle.
@@ -745,8 +18,6 @@ struct NestedJourneyState
    string                  ParentEventID;
    bool                    ParentRetained;
    string                  ParentSelectionReason;
-   ENUM_NMJE_EVENT_PHASE   EventPhase;
-   bool                    EventPhaseCheckpointDurable;
    ENUM_DIRECTION          StrategicDirection;
    ENUM_NESTED_RELATION    Relation;
    ENUM_NMJE_CONFLICT_SUBTYPE ConflictSubtype;
@@ -878,9 +149,6 @@ struct BBMA_Decision
    bool                         NMJEEntryDisplacementSourcePresent;
    double                       NMJESourceConfirmationPrice;
    double                       NMJEStructuralAnchorPrice;
-   // Issue #101 P11 canonical identity-transition metadata only.
-   ENUM_NMJE_EVENT_PHASE        NMJEEventPhase;
-   bool                         NMJEEventPhaseCheckpointDurable;
    
    // MUTABLE LIFECYCLE
    bool                 C044LifecycleManaged;
@@ -1335,7 +603,969 @@ double RoundDownToLotStep(double lot, string pair)
    if(step <= 0) return lot;
    return MathFloor(lot / step) * step;
 }
-ift + i);
+
+bool IsTerminalConnected()
+{
+   return IsConnected();
+}
+
+bool ValidateBrokerSpecification(string pair)
+{
+   if(GetTickSize_Price(pair) <= 0) return false;
+   if(GetTickValue(pair) <= 0) return false;
+   if(GetLotStep(pair) <= 0) return false;
+   if(GetMinLot(pair) <= 0) return false;
+   if(GetMaxLot(pair) < GetMinLot(pair)) return false;
+   if(GetDigits(pair) <= 0) return false;
+   if(GetPointSize(pair) <= 0) return false;
+   if(GetStopLevel(pair) < 0) return false;
+   if(GetFreezeLevel(pair) < 0) return false;
+   return true;
+}
+
+bool ValidateBrokerSpecificationWithRetry(string pair, PairState &state)
+{
+   int attempts = 0;
+   while(attempts < 3)
+   {
+      if(ValidateBrokerSpecification(pair))
+      {
+         state.broker_spec_valid = true;
+         return true;
+      }
+      attempts++;
+      if(attempts < 3)
+      {
+         state.broker_retry_count = attempts;
+         Sleep(5000);
+      }
+   }
+   state.broker_spec_valid = false;
+   state.broker_retry_count = 3;
+   return false;
+}
+
+datetime GetProcessingTime()
+{
+   return TimeCurrent();
+}
+
+bool IsCandleClosed(datetime candleOpenTime, int timeframeSeconds)
+{
+   return (candleOpenTime + timeframeSeconds) <= g_processing_time;
+}
+
+datetime GetLatestClosedCandleTime(string pair, int timeframe)
+{
+   for(int shift = 1; shift < 50; shift++)
+   {
+      datetime candleTime = iTime(pair, timeframe, shift);
+      if(candleTime == 0) continue;
+      int seconds = GetTimeframeSeconds(timeframe);
+      if(IsCandleClosed(candleTime, seconds))
+         return candleTime;
+   }
+   return 0;
+}
+
+bool IsNear(double price1, double price2, string pair)
+{
+   double point = GetPointSize(pair);
+   if(point <= 0) return false;
+   return MathAbs(price1 - price2) < point * 2;
+}
+
+//+------------------------------------------------------------------+
+//| MODULE 05: UTILITY FUNCTIONS                                     |
+//| LEVEL: INTERMEDIATE                                              |
+//+------------------------------------------------------------------+
+
+int SplitString(string textValue, string separator, string &result[])
+{
+   ArrayResize(result, 0);
+   if(separator == "")
+   {
+      ArrayResize(result, 1);
+      result[0] = textValue;
+      return 1;
+   }
+
+   int count = 0;
+   int pos = 0;
+   while(true)
+   {
+      int next = StringFind(textValue, separator, pos);
+      ArrayResize(result, count + 1);
+      if(next < 0)
+      {
+         result[count] = StringSubstr(textValue, pos);
+         count++;
+         break;
+      }
+      result[count] = StringSubstr(textValue, pos, next - pos);
+      count++;
+      pos = next + StringLen(separator);
+   }
+   return count;
+}
+
+int GeneratePairID(string symbol)
+{
+   string clean = RemoveSuffix(symbol);
+
+   // P3 PairID registry hotfix:
+   // PairID occupies the low two decimal digits of the magic number, so
+   // 1..99 is the valid namespace. Common FX symbols use a fixed registry
+   // to keep identity stable regardless of PairList order and to eliminate
+   // hash collisions. Existing non-colliding legacy IDs are preserved.
+   if(clean == "USDCAD") return 1;
+   if(clean == "USDCHF") return 2;
+   if(clean == "CHFJPY") return 3;
+   if(clean == "EURGBP") return 4;
+   if(clean == "AUDCHF") return 5;
+   if(clean == "AUDNZD") return 6;
+   if(clean == "CADCHF") return 7;
+   if(clean == "USDJPY") return 8;
+   if(clean == "EURNZD") return 9;
+   if(clean == "EURJPY") return 10;
+   if(clean == "GBPJPY") return 11;
+   if(clean == "AUDJPY") return 12;
+   if(clean == "EURUSD") return 13;
+   if(clean == "GBPUSD") return 14;
+   if(clean == "AUDUSD") return 15;
+   if(clean == "NZDUSD") return 16;
+   if(clean == "EURCAD") return 17;
+   if(clean == "NZDJPY") return 18;
+   if(clean == "AUDCAD") return 19;
+   if(clean == "CADJPY") return 20;
+   if(clean == "EURAUD") return 21;
+   if(clean == "EURCHF") return 22;
+   if(clean == "GBPAUD") return 23;
+   if(clean == "GBPCAD") return 24;
+   if(clean == "GBPCHF") return 25;
+   if(clean == "GBPNZD") return 26;
+   if(clean == "NZDCAD") return 27;
+   if(clean == "NZDCHF") return 28;
+
+   // Unsupported/non-standard symbols use a deterministic extension
+   // namespace only. Collision validation remains fail-closed, but these
+   // IDs can never collide with the fixed common-FX registry above.
+   ulong hash = 0;
+   for(int i = 0; i < StringLen(clean); i++)
+      hash = hash * 1099511628211 + (ulong)StringGetChar(clean, i);
+
+   int extensionMin = 29;
+   int extensionSpan = PAIR_ID_MAX - extensionMin + 1;
+   if(extensionSpan <= 0) return 0;
+   return extensionMin + (int)(hash % (ulong)extensionSpan);
+}
+
+int GenerateMagicNumber(int strategyIdValue, int instanceIdValue, int pairIdValue)
+{
+   if(strategyIdValue < STRATEGY_ID_MIN || strategyIdValue > STRATEGY_ID_MAX) return 0;
+   if(instanceIdValue < INSTANCE_ID_MIN || instanceIdValue > INSTANCE_ID_MAX) return 0;
+   if(pairIdValue < PAIR_ID_MIN || pairIdValue > PAIR_ID_MAX) return 0;
+
+   // Calculate in 64-bit space so the overflow guard is meaningful before narrowing to int.
+   long magicValue = (long)MAGIC_BASE
+                   + ((long)strategyIdValue * 10000)
+                   + ((long)instanceIdValue * 100)
+                   + (long)pairIdValue;
+
+   if(magicValue < 0 || magicValue > 2147483647) return 0;
+   return (int)magicValue;
+}
+
+datetime GetTodayStart()
+{
+   MqlDateTime dt;
+   TimeCurrent(dt);
+   dt.hour = 0;
+   dt.min = 0;
+   dt.sec = 0;
+   return StructToTime(dt);
+}
+
+int FindPairStateIndex(string pair)
+{
+   for(int i = 0; i < g_pair_count; i++)
+   {
+      if(g_pair_names[i] == pair)
+         return i;
+   }
+   return -1;
+}
+
+void InitPairState(PairState &state)
+{
+   ZeroMemory(state);
+   state.lot_digits = 2;
+   state.cent_factor = 1;
+   state.digits = 5;
+
+   InitTimeframeData(state.d1_data);
+   InitTimeframeData(state.h4_data);
+   InitTimeframeData(state.h1_data);
+   InitTimeframeData(state.m15_data);
+   InitTimeframeData(state.m5_data);
+
+   state.mlv_buy_state.State = MLV_NONE;
+   state.mlv_buy_state.Direction = DIR_BUY;
+   state.mlv_buy_state.ParentExtremeDirection = DIR_SELL;
+   state.mlv_buy_state.Timeframe = PERIOD_M15;
+   state.mlv_sell_state.State = MLV_NONE;
+   state.mlv_sell_state.Direction = DIR_SELL;
+   state.mlv_sell_state.ParentExtremeDirection = DIR_BUY;
+   state.mlv_sell_state.Timeframe = PERIOD_M15;
+
+   state.extreme_m15_buy_lifecycle.Maturity = EXT_MAT_NONE;
+   state.extreme_m15_buy_lifecycle.Direction = DIR_BUY;
+   state.extreme_m15_buy_lifecycle.Timeframe = PERIOD_M15;
+   state.extreme_m15_sell_lifecycle.Maturity = EXT_MAT_NONE;
+   state.extreme_m15_sell_lifecycle.Direction = DIR_SELL;
+   state.extreme_m15_sell_lifecycle.Timeframe = PERIOD_M15;
+
+   state.extreme_m5_buy_lifecycle.Maturity = EXT_MAT_NONE;
+   state.extreme_m5_buy_lifecycle.Direction = DIR_BUY;
+   state.extreme_m5_buy_lifecycle.Timeframe = PERIOD_M5;
+   state.extreme_m5_sell_lifecycle.Maturity = EXT_MAT_NONE;
+   state.extreme_m5_sell_lifecycle.Direction = DIR_SELL;
+   state.extreme_m5_sell_lifecycle.Timeframe = PERIOD_M5;
+
+   state.extreme_d1_buy_lifecycle.Maturity = EXT_MAT_NONE;
+   state.extreme_d1_buy_lifecycle.Direction = DIR_BUY;
+   state.extreme_d1_buy_lifecycle.Timeframe = PERIOD_D1;
+   state.extreme_d1_sell_lifecycle.Maturity = EXT_MAT_NONE;
+   state.extreme_d1_sell_lifecycle.Direction = DIR_SELL;
+   state.extreme_d1_sell_lifecycle.Timeframe = PERIOD_D1;
+
+   state.re_h1_buy_state.State = RE_STATE_NONE;
+   state.re_h1_buy_state.Direction = DIR_BUY;
+   state.re_h1_buy_state.Timeframe = PERIOD_H1;
+   state.re_h1_sell_state.State = RE_STATE_NONE;
+   state.re_h1_sell_state.Direction = DIR_SELL;
+   state.re_h1_sell_state.Timeframe = PERIOD_H1;
+   state.re_h4_buy_state.State = RE_STATE_NONE;
+   state.re_h4_buy_state.Direction = DIR_BUY;
+   state.re_h4_buy_state.Timeframe = PERIOD_H4;
+   state.re_h4_sell_state.State = RE_STATE_NONE;
+   state.re_h4_sell_state.Direction = DIR_SELL;
+   state.re_h4_sell_state.Timeframe = PERIOD_H4;
+   state.re_d1_buy_state.State = RE_STATE_NONE;
+   state.re_d1_buy_state.Direction = DIR_BUY;
+   state.re_d1_buy_state.Timeframe = PERIOD_D1;
+   state.re_d1_sell_state.State = RE_STATE_NONE;
+   state.re_d1_sell_state.Direction = DIR_SELL;
+   state.re_d1_sell_state.Timeframe = PERIOD_D1;
+   state.re_m15_buy_state.State = RE_STATE_NONE;
+   state.re_m15_buy_state.Direction = DIR_BUY;
+   state.re_m15_buy_state.Timeframe = PERIOD_M15;
+   state.re_m15_sell_state.State = RE_STATE_NONE;
+   state.re_m15_sell_state.Direction = DIR_SELL;
+   state.re_m15_sell_state.Timeframe = PERIOD_M15;
+   state.re_m5_buy_state.State = RE_STATE_NONE;
+   state.re_m5_buy_state.Direction = DIR_BUY;
+   state.re_m5_buy_state.Timeframe = PERIOD_M5;
+   state.re_m5_sell_state.State = RE_STATE_NONE;
+   state.re_m5_sell_state.Direction = DIR_SELL;
+   state.re_m5_sell_state.Timeframe = PERIOD_M5;
+
+   state.h4_direction_owner.State = H4_OWNER_RECOVERY_UNRESOLVED;
+   state.h4_direction_owner.Direction = DIR_NONE;
+   state.h4_direction_owner.SourceSignal = SIGNAL_NONE;
+   state.h4_direction_owner.LastAdvanceSignal = SIGNAL_NONE;
+   state.h4_direction_owner.IsValid = false;
+   state.h4_direction_owner.RecoveryComplete = false;
+   state.h4_direction_owner.RecoveredFromCheckpoint = false;
+
+   state.d1_major_trend_owner.State = D1_OWNER_UNRESOLVED;
+   state.d1_major_trend_owner.Direction = DIR_NONE;
+   state.d1_major_trend_owner.SourceCandleTime = 0;
+   state.d1_major_trend_owner.LastProcessedD1CandleTime = 0;
+   state.d1_major_trend_owner.Close1 = 0.0;
+   state.d1_major_trend_owner.MA50_1 = 0.0;
+   state.d1_major_trend_owner.MA50_2 = 0.0;
+   state.d1_major_trend_owner.IsValid = false;
+   state.d1_major_trend_owner.Reason = "D1 owner not evaluated";
+
+   state.d1_opportunity.Family = D1_OPP_NONE;
+   state.d1_opportunity.Direction = DIR_NONE;
+   state.d1_opportunity.SourceSignal = SIGNAL_NONE;
+   state.d1_opportunity.Active = false;
+   state.d1_opportunity.Tactical = false;
+   state.d1_opportunity.TPWCompleted = false;
+   state.d1_opportunity.Reason = "D1 opportunity not evaluated";
+}
+
+void InitTimeframeData(TimeframeData &data)
+{
+   ArrayInitialize(data.ma, 0);
+   ArrayInitialize(data.bollinger, 0);
+   data.trend = 0;
+   data.open = 0;
+   data.close = 0;
+   data.high = 0;
+   data.low = 0;
+   data.point = 0;
+   data.digits = 5;
+   data.barIndex = 0;
+   data.data_count = 0;
+   data.candle_time = 0;
+   data.is_valid = false;
+   data.is_closed = false;
+   data.timeframe = 0;
+}
+
+void InitBrokerInfo()
+{
+   g_broker_info.is_cent_account = DetectCentAccount();
+   g_broker_info.cent_factor = GetCentFactor();
+   g_broker_info.account_currency = AccountCurrency();
+   g_broker_info.account_leverage = AccountLeverage();
+   g_broker_info.contract_size = 100000;
+   g_broker_info.min_lot = MarketInfo(Symbol(), MODE_MINLOT);
+   g_broker_info.max_lot = MarketInfo(Symbol(), MODE_MAXLOT);
+   g_broker_info.lot_step = MarketInfo(Symbol(), MODE_LOTSTEP);
+   g_broker_info.lot_digits = GetLotDigits(Symbol());
+   g_broker_info.digits = GetDigits(Symbol());
+   g_broker_info.point = GetPointSize(Symbol());
+   g_broker_info.tick_value = GetTickValue(Symbol());
+   g_broker_info.tick_size_price = GetTickSize_Price(Symbol());
+   g_broker_info.stop_level = GetStopLevel(Symbol());
+   g_broker_info.freeze_level = GetFreezeLevel(Symbol());
+   g_broker_initialized = true;
+}
+
+bool DetectCentAccount()
+{
+   double minLot = MarketInfo(Symbol(), MODE_MINLOT);
+   if(minLot > 0 && minLot < 0.01) return true;
+   return false;
+}
+
+int GetCentFactor()
+{
+   if(DetectCentAccount())
+      return 100;
+   return 1;
+}
+
+void CleanupGlobalSignalHistory()
+{
+   int count = ArraySize(g_global_signal_history);
+   if(count <= SIGNAL_HISTORY_MAX)
+   {
+      g_global_signal_count = count;
+      return;
+   }
+
+   int targetRemove = SIGNAL_HISTORY_CLEANUP_SIZE;
+   int overflow = count - SIGNAL_HISTORY_MAX;
+   if(targetRemove < overflow) targetRemove = overflow;
+
+   int removed = 0;
+   int write = 0;
+   for(int i = 0; i < count; i++)
+   {
+      bool protectedTombstone = (g_global_signal_history[i].Executed &&
+                                 g_global_signal_history[i].TicketNumber > 0);
+
+      if(!protectedTombstone && removed < targetRemove)
+      {
+         removed++;
+         continue;
+      }
+
+      if(write != i)
+         g_global_signal_history[write] = g_global_signal_history[i];
+      write++;
+   }
+
+   if(write < count)
+      ArrayResize(g_global_signal_history, write);
+
+   g_global_signal_count = write;
+}
+
+void CleanupSignalHistoryEntries()
+{
+   int count = ArraySize(g_global_signal_history);
+   int write = 0;
+   for(int i = 0; i < count; i++)
+   {
+      if(g_global_signal_history[i].Executed && g_global_signal_history[i].TicketNumber > 0)
+      {
+         g_global_signal_history[write++] = g_global_signal_history[i];
+      }
+      else if(g_global_signal_history[i].Expiry >= g_processing_time)
+      {
+         g_global_signal_history[write++] = g_global_signal_history[i];
+      }
+   }
+   if(write < count)
+      ArrayResize(g_global_signal_history, write);
+   g_global_signal_count = write;
+}
+
+int GetTimeframeSeconds(int timeframe)
+{
+   switch(timeframe)
+   {
+      case 1: return 60;
+      case 5: return 300;
+      case 15: return 900;
+      case 30: return 1800;
+      case 60: return 3600;
+      case 240: return 14400;
+      case 1440: return 86400;
+      case 10080: return 604800;
+      case 43200: return 2592000;
+      default: return 0;
+   }
+}
+
+bool IsValidLotStep(double lot, string pair)
+{
+   double step = GetLotStep(pair);
+   if(step <= 0) return false;
+   double ratio = lot / step;
+   double rounded = MathRound(ratio);
+   return MathAbs(ratio - rounded) < 0.00001;
+}
+
+string GenerateSequenceHash(ComponentSet &componentSet)
+{
+   string hashText = IntegerToString(componentSet.CombinationType);
+   hashText += IntegerToString(componentSet.ComponentCount);
+   hashText += IntegerToString(componentSet.Comp1.ComponentType);
+   hashText += IntegerToString(componentSet.Comp1.Direction);
+   hashText += IntegerToString(componentSet.Comp1.Timeframe);
+   hashText += TimeToString(componentSet.Comp1.CandleTime);
+   hashText += IntegerToString(componentSet.Comp2.ComponentType);
+   hashText += IntegerToString(componentSet.Comp2.Direction);
+   hashText += IntegerToString(componentSet.Comp2.Timeframe);
+   hashText += TimeToString(componentSet.Comp2.CandleTime);
+   hashText += IntegerToString(componentSet.Comp3.ComponentType);
+   hashText += IntegerToString(componentSet.Comp3.Direction);
+   hashText += IntegerToString(componentSet.Comp3.Timeframe);
+   hashText += TimeToString(componentSet.Comp3.CandleTime);
+   return SHORT_HASH(hashText, 16);
+}
+
+string GenerateDecisionID(string pair, datetime candleTime, 
+                          ENUM_DIRECTION direction, ENUM_SIGNAL_TYPE signalType,
+                          string sequenceHash)
+{
+   return pair + "|" + TimeToString(candleTime) + "|" + 
+          IntegerToString(direction) + "|" + IntegerToString(signalType) + "|" + sequenceHash;
+}
+
+string SHORT_HASH(string textValue, int chars=16)
+{
+   ulong hash = 0;
+   for(int i = 0; i < StringLen(textValue); i++)
+   {
+      hash = hash * 1099511628211 + StringGetChar(textValue, i);
+   }
+   string result = "";
+   string hexDigits = "0123456789ABCDEF";
+   for(int i = 0; i < chars && i < 16; i++)
+   {
+      int digit = (int)(hash & 0xF);
+      result += StringSubstr(hexDigits, digit, 1);
+      hash >>= 4;
+   }
+   return result;
+}
+
+void Log(int level, string message)
+{
+   if(level <= DebugLevel)
+   {
+      Print(TimeToString(TimeCurrent()), " [", level, "] ", message);
+   }
+}
+
+void MarkDecisionExecuted(string decisionID, int ticketNumber)
+{
+   if(decisionID == "" || ticketNumber <= 0) return;
+
+   string executionHash = SHORT_HASH(decisionID);
+   int count = ArraySize(g_global_signal_history);
+
+   for(int i = 0; i < count; i++)
+   {
+      if(g_global_signal_history[i].DecisionID == decisionID ||
+         (g_global_signal_history[i].ExecutionHash != "" &&
+          g_global_signal_history[i].ExecutionHash == executionHash))
+      {
+         g_global_signal_history[i].DecisionID = decisionID;
+         g_global_signal_history[i].ExecutionHash = executionHash;
+         g_global_signal_history[i].Executed = true;
+         g_global_signal_history[i].TicketNumber = ticketNumber;
+         if(g_global_signal_history[i].CreatedTime <= 0)
+            g_global_signal_history[i].CreatedTime = TimeCurrent();
+         g_global_signal_count = ArraySize(g_global_signal_history);
+         return;
+      }
+   }
+
+   ArrayResize(g_global_signal_history, count + 1);
+   ZeroMemory(g_global_signal_history[count]);
+   g_global_signal_history[count].DecisionID = decisionID;
+   g_global_signal_history[count].ExecutionHash = executionHash;
+   g_global_signal_history[count].Executed = true;
+   g_global_signal_history[count].TicketNumber = ticketNumber;
+   g_global_signal_history[count].CreatedTime = TimeCurrent();
+   g_global_signal_count = count + 1;
+}
+
+bool IsDecisionExecuted(string decisionID)
+{
+   if(decisionID == "") return false;
+   string executionHash = SHORT_HASH(decisionID);
+   int count = ArraySize(g_global_signal_history);
+   for(int i = 0; i < count; i++)
+   {
+      if(g_global_signal_history[i].DecisionID == decisionID)
+         return g_global_signal_history[i].Executed;
+      if(g_global_signal_history[i].Executed &&
+         g_global_signal_history[i].ExecutionHash != "" &&
+         g_global_signal_history[i].ExecutionHash == executionHash)
+         return true;
+   }
+   return false;
+}
+
+bool ExtractExecutionHash(string comment, string &executionHash)
+{
+   executionHash = "";
+   string prefix = "BBMA|H:";
+   if(StringFind(comment, prefix) != 0) return false;
+
+   int start = StringLen(prefix);
+   int end = StringFind(comment, "|", start);
+   if(end < 0) end = StringLen(comment);
+   if(end <= start) return false;
+
+   executionHash = StringSubstr(comment, start, end - start);
+   return (executionHash != "");
+}
+
+
+// P0 durable execution identity persistence.
+// MT4 terminal GlobalVariables are authoritative; OrderComment is fallback only.
+string ExecutionHashGVBase(string executionHash)
+{
+   return "BBXH|S" + IntegerToString(StrategyID) + "|I" +
+          IntegerToString(InstanceID) + "|H" + executionHash + "|";
+}
+
+string ExecutionTicketGVBase(int ticket)
+{
+   return "BBXT|S" + IntegerToString(StrategyID) + "|I" +
+          IntegerToString(InstanceID) + "|T" + IntegerToString(ticket) + "|";
+}
+
+int HexDigitValue(string digit)
+{
+   string hex = "0123456789ABCDEF";
+   return StringFind(hex, digit);
+}
+
+double Hex4ToNumber(string chunk)
+{
+   if(StringLen(chunk) != 4) return -1.0;
+   int value = 0;
+   for(int i = 0; i < 4; i++)
+   {
+      int nibble = HexDigitValue(StringSubstr(chunk, i, 1));
+      if(nibble < 0) return -1.0;
+      value = value * 16 + nibble;
+   }
+   return (double)value;
+}
+
+string NumberToHex4(double encoded)
+{
+   int value = (int)MathRound(encoded);
+   if(value < 0 || value > 65535) return "";
+   string hex = "0123456789ABCDEF";
+   string result = "";
+   int divisor = 4096;
+   for(int pos = 0; pos < 4; pos++)
+   {
+      int nibble = value / divisor;
+      result += StringSubstr(hex, nibble, 1);
+      value = value % divisor;
+      if(divisor > 1) divisor /= 16;
+   }
+   return result;
+}
+
+bool LoadPersistedExecutionHashForTicket(int ticket, string pair,
+                                         ENUM_DIRECTION direction, int magic,
+                                         datetime openTime, string &executionHash)
+{
+   executionHash = "";
+   if(ticket <= 0 || pair == "" || magic <= 0 || openTime <= 0 ||
+      (direction != DIR_BUY && direction != DIR_SELL))
+      return false;
+
+   string base = ExecutionTicketGVBase(ticket);
+   string keys[7] = {"H0","H1","H2","H3","M","O","D"};
+   for(int i = 0; i < 7; i++)
+      if(!GlobalVariableCheck(base + keys[i])) return false;
+
+   int storedMagic = (int)GlobalVariableGet(base + "M");
+   datetime storedOpen = (datetime)((int)GlobalVariableGet(base + "O"));
+   ENUM_DIRECTION storedDirection =
+      (ENUM_DIRECTION)((int)GlobalVariableGet(base + "D"));
+   if(storedMagic != magic || storedOpen != openTime || storedDirection != direction)
+      return false;
+
+   string h0 = NumberToHex4(GlobalVariableGet(base + "H0"));
+   string h1 = NumberToHex4(GlobalVariableGet(base + "H1"));
+   string h2 = NumberToHex4(GlobalVariableGet(base + "H2"));
+   string h3 = NumberToHex4(GlobalVariableGet(base + "H3"));
+   if(h0 == "" || h1 == "" || h2 == "" || h3 == "") return false;
+   executionHash = h0 + h1 + h2 + h3;
+
+   string hashBase = ExecutionHashGVBase(executionHash);
+   string hashKeys[4] = {"T","M","O","D"};
+   for(int k = 0; k < 4; k++)
+      if(!GlobalVariableCheck(hashBase + hashKeys[k]))
+      {
+         executionHash = "";
+         return false;
+      }
+
+   if((int)GlobalVariableGet(hashBase + "T") != ticket ||
+      (int)GlobalVariableGet(hashBase + "M") != magic ||
+      (datetime)((int)GlobalVariableGet(hashBase + "O")) != openTime ||
+      (ENUM_DIRECTION)((int)GlobalVariableGet(hashBase + "D")) != direction)
+   {
+      executionHash = "";
+      return false;
+   }
+   return true;
+}
+
+bool SaveExecutionIdentityHash(string executionHash, int ticket, string pair,
+                               ENUM_DIRECTION direction, int magic,
+                               datetime openTime)
+{
+   if(StringLen(executionHash) != 16 || ticket <= 0 || pair == "" ||
+      magic <= 0 || openTime <= 0 ||
+      (direction != DIR_BUY && direction != DIR_SELL))
+      return false;
+
+   double h0 = Hex4ToNumber(StringSubstr(executionHash, 0, 4));
+   double h1 = Hex4ToNumber(StringSubstr(executionHash, 4, 4));
+   double h2 = Hex4ToNumber(StringSubstr(executionHash, 8, 4));
+   double h3 = Hex4ToNumber(StringSubstr(executionHash, 12, 4));
+   if(h0 < 0 || h1 < 0 || h2 < 0 || h3 < 0) return false;
+
+   string hashBase = ExecutionHashGVBase(executionHash);
+   string ticketBase = ExecutionTicketGVBase(ticket);
+
+   if(GlobalVariableSet(hashBase + "T", (double)ticket) == 0) return false;
+   if(GlobalVariableSet(hashBase + "M", (double)magic) == 0) return false;
+   if(GlobalVariableSet(hashBase + "O", (double)openTime) == 0) return false;
+   if(GlobalVariableSet(hashBase + "D", (double)direction) == 0) return false;
+
+   if(GlobalVariableSet(ticketBase + "H0", h0) == 0) return false;
+   if(GlobalVariableSet(ticketBase + "H1", h1) == 0) return false;
+   if(GlobalVariableSet(ticketBase + "H2", h2) == 0) return false;
+   if(GlobalVariableSet(ticketBase + "H3", h3) == 0) return false;
+   if(GlobalVariableSet(ticketBase + "M", (double)magic) == 0) return false;
+   if(GlobalVariableSet(ticketBase + "O", (double)openTime) == 0) return false;
+   if(GlobalVariableSet(ticketBase + "D", (double)direction) == 0) return false;
+   GlobalVariablesFlush();
+
+   string verifyHash = "";
+   return LoadPersistedExecutionHashForTicket(ticket, pair, direction, magic,
+                                              openTime, verifyHash) &&
+          verifyHash == executionHash;
+}
+
+int FindPersistedExecutionTicket(string decisionID, string pair, int orderType,
+                                 int magicNumber)
+{
+   if(decisionID == "" || pair == "" || magicNumber <= 0 ||
+      (orderType != OP_BUY && orderType != OP_SELL))
+      return -1;
+
+   string executionHash = SHORT_HASH(decisionID);
+   string base = ExecutionHashGVBase(executionHash);
+   string keys[4] = {"T","M","O","D"};
+   for(int i = 0; i < 4; i++)
+      if(!GlobalVariableCheck(base + keys[i])) return -1;
+
+   int ticket = (int)GlobalVariableGet(base + "T");
+   int storedMagic = (int)GlobalVariableGet(base + "M");
+   datetime storedOpen = (datetime)((int)GlobalVariableGet(base + "O"));
+   ENUM_DIRECTION storedDirection =
+      (ENUM_DIRECTION)((int)GlobalVariableGet(base + "D"));
+   ENUM_DIRECTION expectedDirection =
+      (orderType == OP_BUY) ? DIR_BUY : DIR_SELL;
+
+   if(ticket <= 0 || storedMagic != magicNumber || storedOpen <= 0 ||
+      storedDirection != expectedDirection)
+      return -1;
+   if(!OrderSelect(ticket, SELECT_BY_TICKET)) return -1;
+   if(OrderCloseTime() != 0 || OrderSymbol() != pair ||
+      OrderMagicNumber() != magicNumber || OrderType() != orderType ||
+      OrderOpenTime() != storedOpen)
+      return -1;
+
+   string ticketHash = "";
+   if(!LoadPersistedExecutionHashForTicket(ticket, pair, expectedDirection,
+                                           magicNumber, storedOpen, ticketHash))
+      return -1;
+   if(ticketHash != executionHash) return -1;
+   return ticket;
+}
+
+bool IsExactEAOwnedSelectedOrder(int &pairIdx)
+{
+   pairIdx = -1;
+   if(OrderCloseTime() != 0) return false;
+   if(OrderType() != OP_BUY && OrderType() != OP_SELL) return false;
+
+   int magic = OrderMagicNumber();
+   string symbol = OrderSymbol();
+   for(int p = 0; p < g_pair_count; p++)
+   {
+      if(g_pair_states[p].magic_number != magic) continue;
+      if(g_pair_states[p].actual_symbol != symbol) continue;
+      pairIdx = p;
+      return true;
+   }
+   return false;
+}
+
+void UpsertExecutionHashTombstone(string executionHash, int ticket, string pair,
+                                  ENUM_DIRECTION direction, datetime createdTime)
+{
+   if(executionHash == "" || ticket <= 0 || pair == "") return;
+
+   int count = ArraySize(g_global_signal_history);
+   for(int i = 0; i < count; i++)
+   {
+      if(g_global_signal_history[i].ExecutionHash == executionHash)
+      {
+         g_global_signal_history[i].Executed = true;
+         g_global_signal_history[i].TicketNumber = ticket;
+         return;
+      }
+   }
+
+   ArrayResize(g_global_signal_history, count + 1);
+   g_global_signal_history[count].DecisionID = "";
+   g_global_signal_history[count].ExecutionHash = executionHash;
+   g_global_signal_history[count].Pair = pair;
+   g_global_signal_history[count].Direction = direction;
+   g_global_signal_history[count].SignalType = SIGNAL_NONE;
+   g_global_signal_history[count].CandleTime = 0;
+   g_global_signal_history[count].SequenceHash = "";
+   g_global_signal_history[count].Expiry = 0;
+   g_global_signal_history[count].Executed = true;
+   g_global_signal_history[count].CreatedTime = createdTime;
+   g_global_signal_history[count].TicketNumber = ticket;
+}
+
+void RebuildExecutionHistory()
+{
+   for(int pass = 0; pass < 2; pass++)
+   {
+      int total = (pass == 0) ? OrdersTotal() : OrdersHistoryTotal();
+      int pool = (pass == 0) ? MODE_TRADES : MODE_HISTORY;
+      for(int i = 0; i < total; i++)
+      {
+         if(!OrderSelect(i, SELECT_BY_POS, pool)) continue;
+         if(OrderType() != OP_BUY && OrderType() != OP_SELL) continue;
+
+         int pairIdx = -1;
+         int magic = OrderMagicNumber();
+         string symbol = OrderSymbol();
+         for(int p = 0; p < g_pair_count; p++)
+         {
+            if(g_pair_states[p].magic_number == magic &&
+               g_pair_states[p].actual_symbol == symbol)
+            {
+               pairIdx = p;
+               break;
+            }
+         }
+         if(pairIdx < 0) continue;
+
+         ENUM_DIRECTION liveDirection = (OrderType() == OP_BUY) ? DIR_BUY : DIR_SELL;
+         string executionHash = "";
+         bool localIdentity = LoadPersistedExecutionHashForTicket(
+            OrderTicket(), symbol, liveDirection, magic, OrderOpenTime(), executionHash);
+         if(!localIdentity)
+         {
+            if(!ExtractExecutionHash(OrderComment(), executionHash)) continue;
+            // Migrate legacy/comment-backed identity into the durable terminal store.
+            SaveExecutionIdentityHash(executionHash, OrderTicket(), symbol,
+                                      liveDirection, magic, OrderOpenTime());
+         }
+
+         UpsertExecutionHashTombstone(executionHash, OrderTicket(), symbol,
+                                      liveDirection, OrderOpenTime());
+      }
+   }
+   g_global_signal_count = ArraySize(g_global_signal_history);
+}
+
+void SetDecisionLifecycleState(BBMA_Decision &decision, ENUM_DECISION_STATE state)
+{
+   decision.DecisionState = state;
+}
+
+void SetDecisionRejectionReason(BBMA_Decision &decision, ENUM_REJECTION_REASON reason)
+{
+   decision.RejectionReason = reason;
+}
+
+string CreateOrderComment(string decisionID, string pair, 
+                          ENUM_DIRECTION direction, ENUM_SIGNAL_TYPE signalType,
+                          double intendedEntry, double intendedSL, 
+                          double intendedLot, double intendedRisk,
+                          string sequenceHash, datetime candleTime)
+{
+   // P0: broker comments are not an authoritative persistence store.
+   // Keep only the compact execution hash for secondary/fallback evidence.
+   return "BBMA|H:" + SHORT_HASH(decisionID);
+}
+
+bool ParseOrderCommentFull(string comment, string &decisionHash, string &pair,
+                           ENUM_DIRECTION &direction, ENUM_SIGNAL_TYPE &signalType,
+                           double &intendedEntry, double &intendedSL,
+                           double &intendedLot, double &intendedRisk,
+                           string &sequenceHash, datetime &candleTime)
+{
+   if(StringFind(comment, "BBMA") != 0) return false;
+   
+   string fields[];
+   int count = 0;
+   int pos = 0;
+   while(true)
+   {
+      int next = StringFind(comment, "|", pos);
+      if(next < 0)
+      {
+         if(pos < StringLen(comment))
+         {
+            ArrayResize(fields, count + 1);
+            fields[count] = StringSubstr(comment, pos);
+            count++;
+         }
+         break;
+      }
+      if(next > pos)
+      {
+         ArrayResize(fields, count + 1);
+         fields[count] = StringSubstr(comment, pos, next - pos);
+         count++;
+      }
+      pos = next + 1;
+   }
+   
+   candleTime = 0;
+   for(int i = 0; i < count; i++)
+   {
+      string field = fields[i];
+      int colon = StringFind(field, ":");
+      if(colon < 0) continue;
+      string key = StringSubstr(field, 0, colon);
+      string value = StringSubstr(field, colon + 1);
+      
+      if(key == "H") decisionHash = value;
+      else if(key == "C") candleTime = StringToTime(value);
+      else if(key == "P") pair = value;
+      else if(key == "D") direction = (ENUM_DIRECTION)StringToInteger(value);
+      else if(key == "T") signalType = (ENUM_SIGNAL_TYPE)StringToInteger(value);
+      else if(key == "E") intendedEntry = StringToDouble(value);
+      else if(key == "S") intendedSL = StringToDouble(value);
+      else if(key == "L") intendedLot = StringToDouble(value);
+      else if(key == "R") intendedRisk = StringToDouble(value);
+      else if(key == "Q") sequenceHash = value;
+   }
+   return (decisionHash != "" && pair != "" && candleTime > 0 &&
+           direction != DIR_NONE && signalType != SIGNAL_NONE);
+}
+
+double CalculateTradeRiskMoney(string pair, double lot, double entryPrice, double stopLoss)
+{
+   double tickValue = GetTickValue(pair);
+   double tickSizePrice = GetTickSize_Price(pair);
+   if(tickValue <= 0 || tickSizePrice <= 0) return 0;
+   double slDistance = MathAbs(entryPrice - stopLoss);
+   if(slDistance <= 0) return 0;
+   return lot * (slDistance * tickValue / tickSizePrice);
+}
+
+void BuildTimeframeSnapshot(string pair, TimeframeSnapshot &snapshot)
+{
+   snapshot.ProcessingServerTime = g_processing_time;
+   
+   snapshot.D1_CandleTime = GetLatestClosedCandleTime(pair, PERIOD_D1);
+   snapshot.D1_IsClosed = IsCandleClosed(snapshot.D1_CandleTime, 86400);
+   
+   snapshot.H4_CandleTime = GetLatestClosedCandleTime(pair, PERIOD_H4);
+   snapshot.H4_IsClosed = IsCandleClosed(snapshot.H4_CandleTime, 14400);
+   
+   snapshot.H1_CandleTime = GetLatestClosedCandleTime(pair, PERIOD_H1);
+   snapshot.H1_IsClosed = IsCandleClosed(snapshot.H1_CandleTime, 3600);
+   
+   snapshot.M15_CandleTime = GetLatestClosedCandleTime(pair, PERIOD_M15);
+   snapshot.M15_IsClosed = IsCandleClosed(snapshot.M15_CandleTime, 900);
+
+   snapshot.M5_CandleTime = GetLatestClosedCandleTime(pair, PERIOD_M5);
+   snapshot.M5_IsClosed = IsCandleClosed(snapshot.M5_CandleTime, 300);
+}
+
+void BuildRiskValidationSnapshot(string pair, BBMA_Decision &decision, RiskValidationSnapshot &snapshot)
+{
+   snapshot.Bid = MarketInfo(pair, MODE_BID);
+   snapshot.Ask = MarketInfo(pair, MODE_ASK);
+   snapshot.Equity = AccountEquity();
+   snapshot.Balance = AccountBalance();
+   snapshot.EntryPrice = decision.EntryPrice;
+   snapshot.StopLoss = decision.StopLoss;
+   snapshot.TickValue = GetTickValue(pair);
+   snapshot.TickSize_Price = GetTickSize_Price(pair);
+   snapshot.LotStep = GetLotStep(pair);
+   snapshot.MinLot = GetMinLot(pair);
+   snapshot.MaxLot = GetMaxLot(pair);
+   snapshot.Point = GetPointSize(pair);
+   snapshot.StopLevel = MarketInfo(pair, MODE_STOPLEVEL);
+   snapshot.Digits = GetDigits(pair);
+   snapshot.LotDigits = GetLotDigits(pair);
+   snapshot.CurrentSpreadPrice = MathAbs(snapshot.Ask - snapshot.Bid);
+}
+
+double GetAllowedExecutionDeviation(string pair, RiskValidationSnapshot &snapshot)
+{
+   double minDeviation = AllowedExecutionDeviation_MinPoints * snapshot.Point;
+   double spreadDeviation = 2 * snapshot.CurrentSpreadPrice;
+   return MathMax(spreadDeviation, minDeviation);
+}
+
+//+------------------------------------------------------------------+
+//| MODULE 06: BBMA DATA ENGINE                                      |
+//| LEVEL: INTERMEDIATE                                              |
+//+------------------------------------------------------------------+
+
+double SMA(string pair, int timeframe, int period, int shift)
+{
+   double sum = 0;
+   int count = 0;
+   for(int i = 0; i < period; i++)
+   {
+      double price = iClose(pair, timeframe, shift + i);
       if(price > 0)
       {
          sum += price;
@@ -4593,91 +4823,6 @@ string NMJE_BuildJourneyID(string pair, ENUM_NESTED_PARENT_KIND kind,
           NMJE_DirText(direction) + "|" + IntegerToString((int)anchor);
 }
 
-string NMJE_EventPhaseText(ENUM_NMJE_EVENT_PHASE phase)
-{
-   if(phase == NMJE_EVENT_PHASE_FIRST) return "FIRST";
-   if(phase == NMJE_EVENT_PHASE_CONTINUATION) return "CONTINUATION";
-   if(phase == NMJE_EVENT_PHASE_NEW_JOURNEY) return "NEW_JOURNEY";
-   return "UNRESOLVED";
-}
-
-string NMJEEventPhaseGVBase(string pair)
-{
-   return "BBXP|S" + IntegerToString(StrategyID) + "|I" +
-          IntegerToString(InstanceID) + "|P" + SHORT_HASH(pair) + "|";
-}
-
-bool LoadNMJEEventPhaseCheckpoint(string pair, bool &hadParent,
-                                  string &journeyHash,
-                                  string &parentEventHash,
-                                  string &d1EventHash,
-                                  ENUM_NMJE_EVENT_PHASE &phase,
-                                  datetime &updateCandle)
-{
-   hadParent = false;
-   journeyHash = "";
-   parentEventHash = "";
-   d1EventHash = "";
-   phase = NMJE_EVENT_PHASE_UNRESOLVED;
-   updateCandle = 0;
-   if(pair == "") return false;
-
-   string base = NMJEEventPhaseGVBase(pair);
-   if(!GlobalVariableCheck(base + "V") ||
-      !GlobalVariableCheck(base + "H") ||
-      !GlobalVariableCheck(base + "F") ||
-      !GlobalVariableCheck(base + "T"))
-      return false;
-   if((int)GlobalVariableGet(base + "V") != 1) return false;
-   hadParent = (GlobalVariableGet(base + "H") > 0.5);
-   phase = (ENUM_NMJE_EVENT_PHASE)((int)GlobalVariableGet(base + "F"));
-   updateCandle = (datetime)((int)GlobalVariableGet(base + "T"));
-   if(updateCandle <= 0 || phase < NMJE_EVENT_PHASE_UNRESOLVED ||
-      phase > NMJE_EVENT_PHASE_NEW_JOURNEY)
-      return false;
-   if(!hadParent) return true;
-
-   if(!NMJELoadHex16(base, "J", journeyHash) ||
-      !NMJELoadHex16(base, "P", parentEventHash) ||
-      !NMJELoadHex16(base, "D", d1EventHash))
-      return false;
-   return (StringLen(journeyHash) == 16 &&
-           StringLen(parentEventHash) == 16 &&
-           StringLen(d1EventHash) == 16);
-}
-
-bool SaveNMJEEventPhaseCheckpoint(string pair, bool hasParent,
-                                  string journeyHash,
-                                  string parentEventHash,
-                                  string d1EventHash,
-                                  ENUM_NMJE_EVENT_PHASE phase,
-                                  datetime updateCandle)
-{
-   if(pair == "" || updateCandle <= 0 ||
-      phase < NMJE_EVENT_PHASE_UNRESOLVED ||
-      phase > NMJE_EVENT_PHASE_NEW_JOURNEY)
-      return false;
-   if(hasParent &&
-      (StringLen(journeyHash) != 16 ||
-       StringLen(parentEventHash) != 16 ||
-       StringLen(d1EventHash) != 16))
-      return false;
-
-   string base = NMJEEventPhaseGVBase(pair);
-   GlobalVariableDel(base + "V");
-   if(GlobalVariableSet(base + "H", hasParent ? 1.0 : 0.0) == 0) return false;
-   if(GlobalVariableSet(base + "F", (double)phase) == 0) return false;
-   if(GlobalVariableSet(base + "T", (double)updateCandle) == 0) return false;
-   if(hasParent &&
-      (!NMJEStoreHex16(base, "J", journeyHash) ||
-       !NMJEStoreHex16(base, "P", parentEventHash) ||
-       !NMJEStoreHex16(base, "D", d1EventHash)))
-      return false;
-   if(GlobalVariableSet(base + "V", 1.0) == 0) return false;
-   GlobalVariablesFlush();
-   return true;
-}
-
 void UpdateNestedJourneyObservation(int pairIndex)
 {
    if(pairIndex < 0 || pairIndex >= g_pair_count) return;
@@ -4690,7 +4835,6 @@ void UpdateNestedJourneyObservation(int pairIndex)
    journey.Relation = NESTED_NOT_APPLICABLE;
    journey.ConflictSubtype = NMJE_CONFLICT_NONE;
    journey.Maturity = NMJE_MATURITY_NONE;
-   journey.EventPhase = NMJE_EVENT_PHASE_UNRESOLVED;
    journey.ParentKind = NESTED_PARENT_NONE;
    journey.ParentSignal = SIGNAL_NONE;
    journey.ParentDirection = DIR_NONE;
@@ -4705,17 +4849,6 @@ void UpdateNestedJourneyObservation(int pairIndex)
    NMJE_BuildH1Node(g_pair_states[pairIndex], journey.H1Node);
    NMJE_BuildM15Node(g_pair_states[pairIndex], journey.M15Node);
 
-   bool priorPhaseHadParent = false;
-   string priorJourneyHash = "";
-   string priorParentEventHash = "";
-   string priorD1EventHash = "";
-   ENUM_NMJE_EVENT_PHASE priorEventPhase = NMJE_EVENT_PHASE_UNRESOLVED;
-   datetime priorPhaseUpdateCandle = 0;
-   bool priorPhaseKnown = LoadNMJEEventPhaseCheckpoint(
-      journey.Pair, priorPhaseHadParent, priorJourneyHash,
-      priorParentEventHash, priorD1EventHash, priorEventPhase,
-      priorPhaseUpdateCandle);
-
    ENUM_D1_OWNER_STATE d1State = g_pair_states[pairIndex].d1_major_trend_owner.State;
    if(d1State == D1_OWNER_BUY_CONFIRMED || d1State == D1_OWNER_SELL_CONFIRMED)
       journey.StrategicDirection = g_pair_states[pairIndex].d1_major_trend_owner.Direction;
@@ -4728,9 +4861,6 @@ void UpdateNestedJourneyObservation(int pairIndex)
          NMJE_ClassifyConflictSubtype(journey.Relation, journey.Reason);
       journey.Maturity =
          NMJE_ClassifyJourneyMaturity(g_pair_states[pairIndex], journey);
-      journey.EventPhaseCheckpointDurable = SaveNMJEEventPhaseCheckpoint(
-         journey.Pair, false, "", "", "", journey.EventPhase,
-         journey.UpdateCandleTime);
       g_nested_journeys[pairIndex] = journey;
       NMJE_PrintCoverageOverlay(journey);
       Print("[N1-NMJE] ", journey.Pair, " REL=UNRESOLVED P=NONE J=- D1=", journey.D1Node.Label,
@@ -4783,9 +4913,6 @@ void UpdateNestedJourneyObservation(int pairIndex)
          NMJE_ClassifyConflictSubtype(journey.Relation, journey.Reason);
       journey.Maturity =
          NMJE_ClassifyJourneyMaturity(g_pair_states[pairIndex], journey);
-      journey.EventPhaseCheckpointDurable = SaveNMJEEventPhaseCheckpoint(
-         journey.Pair, false, "", "", "", journey.EventPhase,
-         journey.UpdateCandleTime);
       g_nested_journeys[pairIndex] = journey;
       NMJE_PrintCoverageOverlay(journey);
       Print("[N1-NMJE] ", journey.Pair, " REL=", NMJE_RelationText(journey.Relation),
@@ -4806,37 +4933,6 @@ void UpdateNestedJourneyObservation(int pairIndex)
                                             parentSignal, parentDirection, parentAnchor);
    journey.Valid = true;
    journey.Resolved = true;
-
-   string currentJourneyHash = SHORT_HASH(journey.JourneyID);
-   string currentParentEventHash = journey.ParentEventID;
-   string currentD1EventHash = journey.D1Node.CanonicalEventID;
-   bool currentPhaseIdentityValid =
-      (StringLen(currentJourneyHash) == 16 &&
-       StringLen(currentParentEventHash) == 16 &&
-       StringLen(currentD1EventHash) == 16);
-   bool samePriorIdentity =
-      (currentPhaseIdentityValid && priorPhaseHadParent &&
-       priorJourneyHash == currentJourneyHash &&
-       priorParentEventHash == currentParentEventHash &&
-       priorD1EventHash == currentD1EventHash);
-   if(priorPhaseKnown && currentPhaseIdentityValid)
-   {
-      if(priorPhaseUpdateCandle == journey.UpdateCandleTime)
-         journey.EventPhase = samePriorIdentity
-            ? priorEventPhase : NMJE_EVENT_PHASE_UNRESOLVED;
-      else if(priorPhaseUpdateCandle < journey.UpdateCandleTime)
-      {
-         if(!priorPhaseHadParent)
-            journey.EventPhase = NMJE_EVENT_PHASE_FIRST;
-         else if(samePriorIdentity)
-            journey.EventPhase = NMJE_EVENT_PHASE_CONTINUATION;
-         else
-            journey.EventPhase = NMJE_EVENT_PHASE_NEW_JOURNEY;
-      }
-   }
-   journey.EventPhaseCheckpointDurable = SaveNMJEEventPhaseCheckpoint(
-      journey.Pair, true, currentJourneyHash, currentParentEventHash,
-      currentD1EventHash, journey.EventPhase, journey.UpdateCandleTime);
 
    if(d1State == D1_TRANSITION)
    {
@@ -4935,8 +5031,6 @@ void UpdateNestedJourneyObservation(int pairIndex)
          " P=", NMJE_ParentText(journey.ParentKind), "/", NMJE_DirText(journey.ParentDirection),
          " PRETAIN=", journey.ParentRetained ? "Y" : "N",
          " PSEL=", journey.ParentSelectionReason,
-         " PHASE=", NMJE_EventPhaseText(journey.EventPhase),
-         " PDUR=", journey.EventPhaseCheckpointDurable ? "Y" : "N",
          " PE=", (journey.ParentEventID == "" ? "-" : journey.ParentEventID),
          " J=", journey.JourneyID,
          " D1=", journey.D1Node.Label, "#", (journey.D1Node.CanonicalEventID == "" ? "-" : journey.D1Node.CanonicalEventID),
@@ -5644,8 +5738,6 @@ bool FreezeNMJEShadowSnapshot(PairState &pairState, BBMA_Decision &decision)
    decision.NMJEParentEventID = "";
    decision.NMJEParentRetained = false;
    decision.NMJEParentSelectionReason = "";
-   decision.NMJEEventPhase = NMJE_EVENT_PHASE_UNRESOLVED;
-   decision.NMJEEventPhaseCheckpointDurable = false;
    decision.NMJERelation = NESTED_NOT_APPLICABLE;
    decision.NMJEConflictSubtype = NMJE_CONFLICT_NONE;
    decision.NMJEMaturity = NMJE_MATURITY_NONE;
@@ -5676,9 +5768,6 @@ bool FreezeNMJEShadowSnapshot(PairState &pairState, BBMA_Decision &decision)
    decision.NMJEParentEventID = journey.ParentEventID;
    decision.NMJEParentRetained = journey.ParentRetained;
    decision.NMJEParentSelectionReason = journey.ParentSelectionReason;
-   decision.NMJEEventPhase = journey.EventPhase;
-   decision.NMJEEventPhaseCheckpointDurable =
-      journey.EventPhaseCheckpointDurable;
    decision.NMJERelation = journey.Relation;
    decision.NMJEConflictSubtype = journey.ConflictSubtype;
    decision.NMJEMaturity = journey.Maturity;
@@ -5737,13 +5826,6 @@ bool ValidateNMJEShadowSnapshot(int pairIndex, BBMA_Decision &decision,
       current.ParentSelectionReason != decision.NMJEParentSelectionReason)
    {
       reason = "PARENT_STABILITY_METADATA_MISMATCH";
-      return false;
-   }
-   if(current.EventPhase != decision.NMJEEventPhase ||
-      current.EventPhaseCheckpointDurable !=
-         decision.NMJEEventPhaseCheckpointDurable)
-   {
-      reason = "EVENT_PHASE_METADATA_MISMATCH";
       return false;
    }
    if(current.ConflictSubtype != decision.NMJEConflictSubtype)
@@ -5826,16 +5908,10 @@ bool BuildNMJEShadowAttribution(BBMA_Decision &decision,
    attribution.ParentRetained = decision.NMJEParentRetained;
    attribution.ParentSelectionReasonHash =
       SHORT_HASH(decision.NMJEParentSelectionReason);
-   attribution.EventPhase = decision.NMJEEventPhase;
-   attribution.EventPhaseCheckpointDurable =
-      decision.NMJEEventPhaseCheckpointDurable;
    if(StringLen(attribution.JourneyHash) != 16 ||
       StringLen(attribution.ParentEventHash) != 16)
       return false;
    if(StringLen(attribution.ParentSelectionReasonHash) != 16)
-      return false;
-   if(attribution.EventPhase < NMJE_EVENT_PHASE_UNRESOLVED ||
-      attribution.EventPhase > NMJE_EVENT_PHASE_NEW_JOURNEY)
       return false;
 
    attribution.Present = true;
@@ -5946,7 +6022,6 @@ bool LoadNMJEShadowAttribution(TradeInfo &info)
    info.nmje_attribution.M5Relation = NESTED_UNRESOLVED;
    info.nmje_attribution.M5Direction = DIR_NONE;
    info.nmje_attribution.EntryDisplacementClass = NMJE_DISPLACEMENT_UNRESOLVED;
-   info.nmje_attribution.EventPhase = NMJE_EVENT_PHASE_UNRESOLVED;
    if(info.ticket <= 0 || info.magic_number <= 0 || info.open_time <= 0 ||
       StringLen(info.execution_hash) != 16)
       return false;
@@ -5956,8 +6031,7 @@ bool LoadNMJEShadowAttribution(TradeInfo &info)
    for(int i = 0; i < 16; i++)
       if(!GlobalVariableCheck(base + fixedKeys[i])) return false;
    int attributionVersion = (int)GlobalVariableGet(base + "V");
-   if((attributionVersion != 1 && attributionVersion != 2 &&
-       attributionVersion != 3) ||
+   if((attributionVersion != 1 && attributionVersion != 2) ||
       (int)GlobalVariableGet(base + "M") != info.magic_number ||
       (datetime)((int)GlobalVariableGet(base + "O")) != info.open_time)
       return false;
@@ -6071,20 +6145,6 @@ bool LoadNMJEShadowAttribution(TradeInfo &info)
          return false;
    }
 
-   if(attributionVersion >= 3)
-   {
-      if(!GlobalVariableCheck(base + "F") ||
-         !GlobalVariableCheck(base + "FD"))
-         return false;
-      info.nmje_attribution.EventPhase =
-         (ENUM_NMJE_EVENT_PHASE)((int)GlobalVariableGet(base + "F"));
-      info.nmje_attribution.EventPhaseCheckpointDurable =
-         (GlobalVariableGet(base + "FD") > 0.5);
-      if(info.nmje_attribution.EventPhase < NMJE_EVENT_PHASE_UNRESOLVED ||
-         info.nmje_attribution.EventPhase > NMJE_EVENT_PHASE_NEW_JOURNEY)
-         return false;
-   }
-
    info.nmje_attribution.Present = true;
    info.nmje_attribution.Durable = true;
    return true;
@@ -6097,9 +6157,6 @@ bool SaveNMJEShadowAttribution(TradeInfo &info)
       info.open_time <= 0 || StringLen(info.execution_hash) != 16 ||
       StringLen(a.JourneyHash) != 16 || StringLen(a.ParentEventHash) != 16 ||
       StringLen(a.ParentSelectionReasonHash) != 16)
-      return false;
-   if(a.EventPhase < NMJE_EVENT_PHASE_UNRESOLVED ||
-      a.EventPhase > NMJE_EVENT_PHASE_NEW_JOURNEY)
       return false;
    if(a.EntryDisplacementPresent &&
       (a.EntryDisplacementClass < NMJE_DISPLACEMENT_FLAT ||
@@ -6134,8 +6191,6 @@ bool SaveNMJEShadowAttribution(TradeInfo &info)
    if(GlobalVariableSet(base + "CV", a.ConfirmationToValidationPips) == 0) return false;
    if(GlobalVariableSet(base + "VE", a.ValidationToExecutionPips) == 0) return false;
    if(GlobalVariableSet(base + "EA", a.ExecutionFromAnchorPips) == 0) return false;
-   if(GlobalVariableSet(base + "F", (double)a.EventPhase) == 0) return false;
-   if(GlobalVariableSet(base + "FD", a.EventPhaseCheckpointDurable ? 1.0 : 0.0) == 0) return false;
    if(!NMJEStoreHex16(base, "X", info.execution_hash) ||
       !NMJEStoreHex16(base, "J", a.JourneyHash) ||
       !NMJEStoreHex16(base, "P", a.ParentEventHash) ||
@@ -6153,7 +6208,7 @@ bool SaveNMJEShadowAttribution(TradeInfo &info)
          !NMJEStoreHex16(base, "Q", a.M5ReasonHash))
          return false;
    }
-   if(GlobalVariableSet(base + "V", 3.0) == 0) return false;
+   if(GlobalVariableSet(base + "V", 2.0) == 0) return false;
    GlobalVariablesFlush();
 
    TradeInfo verify;
@@ -6175,9 +6230,6 @@ bool SaveNMJEShadowAttribution(TradeInfo &info)
            verify.nmje_attribution.StructureCount == a.StructureCount &&
            verify.nmje_attribution.RequirementCompleteness == a.RequirementCompleteness &&
            verify.nmje_attribution.SequenceCompleteness == a.SequenceCompleteness &&
-           verify.nmje_attribution.EventPhase == a.EventPhase &&
-           verify.nmje_attribution.EventPhaseCheckpointDurable ==
-              a.EventPhaseCheckpointDurable &&
            verify.nmje_attribution.EntryDisplacementPresent == a.EntryDisplacementPresent &&
            (!a.EntryDisplacementPresent ||
             (verify.nmje_attribution.EntryDisplacementClass == a.EntryDisplacementClass &&
@@ -6633,2182 +6685,7 @@ void InvalidationEngine_Atomic(int pairIndex, BBMA_Decision &decision,
             " Req=", IntegerToString(decision.NMJERequirementCompleteness),
             " Seq=", IntegerToString(decision.NMJESequenceCompleteness),
             " Journey=", decision.NMJEJourneyID == "" ? "-" : decision.NMJEJourneyID,
-            " ParentEvent=", decision.NMJEParentEventID == "" ? "-" : decision.NMJEParentEventID,
-            " ParentRetained=", decision.NMJEParentRetained ? "Y" : "N",
-            " ParentSelection=", decision.NMJEParentSelectionReason,
-            " Reason=", nmjeShadowMatch ? "MATCH" : nmjeShadowReason);
-
-   decision.DecisionState = DEC_VALIDATED;
-   decision.RejectionReason = REJ_NONE;
-   if(EntryMode == 1)
-      Print("[P3M1][M16_PASS] DecisionID=", decision.DecisionID,
-            " Signal=", EnumToString(decision.SignalType),
-            " Candle=", TimeToString(decision.CandleTime));
-   if(EntryMode == 2)
-      Print("[P3M2][M16_PASS] DecisionID=", decision.DecisionID,
-            " Signal=", EnumToString(decision.SignalType),
-            " Candle=", TimeToString(decision.CandleTime));
-}
-
-//+------------------------------------------------------------------+
-//| MODULE 17: SL/TP VALIDATION                                      |
-//| LEVEL: INTERMEDIATE                                              |
-//+------------------------------------------------------------------+
-
-bool IsApprovedSLTPSourceComponent(BBMA_Decision &decision,
-                                   ComponentIdentity &source)
-{
-   if(!decision.HasSLTPSourceComponent) return false;
-   if(source.ComponentType != SIGNAL_RE_ENTRY) return false;
-   if(source.Direction != decision.Direction) return false;
-   if(source.CandleTime <= 0) return false;
-
-   if(decision.SignalType == SIGNAL_RE_ENTRY)
-   {
-      if(decision.D1AuthorityMode == D1_AUTH_OPPORTUNITY &&
-         decision.D1OpportunitySnapshotValid)
-         return (source.Timeframe == PERIOD_H1 || source.Timeframe == PERIOD_M15);
-      return (source.Timeframe == PERIOD_H1);
-   }
-
-   if(decision.SignalType == SIGNAL_REM)
-      return (source.Timeframe == PERIOD_H4);
-
-   if(decision.SignalType == SIGNAL_RRE ||
-      decision.SignalType == SIGNAL_REE)
-      return (source.Timeframe == PERIOD_D1);
-
-   return false;
-}
-
-int ResolveClosedSourceShift(string pair, ComponentIdentity &source)
-{
-   if(source.Timeframe <= 0 || source.CandleTime <= 0) return -1;
-
-   int shift = iBarShift(pair, source.Timeframe, source.CandleTime, true);
-   if(shift < 1) return -1;
-
-   datetime resolvedTime = iTime(pair, source.Timeframe, shift);
-   if(resolvedTime != source.CandleTime) return -1;
-   return shift;
-}
-
-// M17-SLRANGE-01: resolve the exact M12 Re-Entry lifecycle that owns
-// the approved SLTP source component. This does not redetect Re-Entry.
-bool ResolveMatchingReEntryLifecycle(string pair, ComponentIdentity &source,
-                                     ReEntryData &reEntry)
-{
-   ZeroMemory(reEntry);
-
-   int pairIndex = FindPairStateIndex(pair);
-   if(pairIndex < 0)
-   {
-      for(int i = 0; i < g_pair_count; i++)
-      {
-         if(g_pair_states[i].actual_symbol == pair)
-         {
-            pairIndex = i;
-            break;
-         }
-      }
-   }
-   if(pairIndex < 0 || pairIndex >= g_pair_count) return false;
-
-   if(source.Timeframe == PERIOD_H1 && source.Direction == DIR_BUY)
-      reEntry = g_pair_states[pairIndex].re_h1_buy_state;
-   else if(source.Timeframe == PERIOD_H1 && source.Direction == DIR_SELL)
-      reEntry = g_pair_states[pairIndex].re_h1_sell_state;
-   else if(source.Timeframe == PERIOD_H4 && source.Direction == DIR_BUY)
-      reEntry = g_pair_states[pairIndex].re_h4_buy_state;
-   else if(source.Timeframe == PERIOD_H4 && source.Direction == DIR_SELL)
-      reEntry = g_pair_states[pairIndex].re_h4_sell_state;
-   else if(source.Timeframe == PERIOD_D1 && source.Direction == DIR_BUY)
-      reEntry = g_pair_states[pairIndex].re_d1_buy_state;
-   else if(source.Timeframe == PERIOD_D1 && source.Direction == DIR_SELL)
-      reEntry = g_pair_states[pairIndex].re_d1_sell_state;
-   else if(source.Timeframe == PERIOD_M15 && source.Direction == DIR_BUY)
-      reEntry = g_pair_states[pairIndex].re_m15_buy_state;
-   else if(source.Timeframe == PERIOD_M15 && source.Direction == DIR_SELL)
-      reEntry = g_pair_states[pairIndex].re_m15_sell_state;
-   else
-      return false;
-
-   if(reEntry.State != RE_STATE_CONFIRMED || !reEntry.IsValid) return false;
-   if(reEntry.Direction != source.Direction || reEntry.Timeframe != source.Timeframe)
-      return false;
-   if(reEntry.ConfirmationCandle != source.CandleTime) return false;
-   if(reEntry.StartCandleTime <= 0 || reEntry.ConfirmationCandle <= 0) return false;
-   if(reEntry.StartCandleTime > reEntry.ConfirmationCandle) return false;
-   return true;
-}
-
-// M17-SLRANGE-01: reconstruct only the source-owned lifecycle window
-// StartCandleTime..ConfirmationCandle inclusive. No arbitrary swing lookback.
-bool ResolveSourceOwnedStructuralAnchor(string pair, ComponentIdentity &source,
-                                        ENUM_DIRECTION direction, double &anchor,
-                                        datetime &startTime,
-                                        datetime &confirmationTime,
-                                        double &confirmationWick,
-                                        double &sourceConfirmationPrice)
-{
-   anchor = 0.0;
-   startTime = 0;
-   confirmationTime = 0;
-   confirmationWick = 0.0;
-   sourceConfirmationPrice = 0.0;
-
-   ReEntryData reEntry;
-   if(!ResolveMatchingReEntryLifecycle(pair, source, reEntry)) return false;
-
-   startTime = reEntry.StartCandleTime;
-   confirmationTime = reEntry.ConfirmationCandle;
-   sourceConfirmationPrice = reEntry.EntryPrice;
-   if(sourceConfirmationPrice <= 0.0) return false;
-
-   int startShift = iBarShift(pair, source.Timeframe, startTime, true);
-   int confirmationShift = iBarShift(pair, source.Timeframe,
-                                     confirmationTime, true);
-   if(startShift < 1 || confirmationShift < 1) return false;
-   if(startShift < confirmationShift) return false;
-   if(iTime(pair, source.Timeframe, startShift) != startTime) return false;
-   if(iTime(pair, source.Timeframe, confirmationShift) != confirmationTime)
-      return false;
-
-   int tfSeconds = GetTimeframeSeconds(source.Timeframe);
-   if(tfSeconds <= 0) return false;
-
-   for(int shift = confirmationShift; shift <= startShift; shift++)
-   {
-      datetime barTime = iTime(pair, source.Timeframe, shift);
-      if(barTime <= 0 || barTime < startTime || barTime > confirmationTime)
-         return false;
-      if(!IsCandleClosed(barTime, tfSeconds)) return false;
-
-      double low = iLow(pair, source.Timeframe, shift);
-      double high = iHigh(pair, source.Timeframe, shift);
-      if(low <= 0.0 || high <= 0.0 || high < low) return false;
-
-      if(direction == DIR_BUY)
-      {
-         if(anchor <= 0.0 || low < anchor) anchor = low;
-      }
-      else if(direction == DIR_SELL)
-      {
-         if(anchor <= 0.0 || high > anchor) anchor = high;
-      }
-      else
-         return false;
-   }
-
-   if(direction == DIR_BUY)
-      confirmationWick = iLow(pair, source.Timeframe, confirmationShift);
-   else if(direction == DIR_SELL)
-      confirmationWick = iHigh(pair, source.Timeframe, confirmationShift);
-   else
-      return false;
-
-   return (anchor > 0.0 && confirmationWick > 0.0);
-}
-
-bool ResolveApprovedBBDestination(string pair, ComponentIdentity &source,
-                                  ENUM_DIRECTION direction, double &destination)
-{
-   destination = 0.0;
-   int shift = ResolveClosedSourceShift(pair, source);
-   if(shift < 1) return false;
-
-   int mode = (direction == DIR_BUY) ? MODE_UPPER :
-              (direction == DIR_SELL ? MODE_LOWER : -1);
-   if(mode < 0) return false;
-
-   destination = iBands(pair, source.Timeframe,
-                        BB_PERIOD, BB_DEVIATION, 0, PRICE_CLOSE,
-                        mode, shift);
-   return (destination > 0.0);
-}
-
-bool IsD1TPWLifecycleIdentity(BBMA_Decision &decision)
-{
-   return (decision.D1AuthorityMode == D1_AUTH_OPPORTUNITY &&
-           decision.D1OpportunitySnapshotValid &&
-           decision.D1OpportunityFamily == D1_OPP_EXTREME_TPW &&
-           decision.D1OpportunitySourceSignal == SIGNAL_EXTREME &&
-           decision.D1OpportunityDirection == decision.Direction &&
-           decision.D1OpportunitySourceCandleTime > 0 &&
-           decision.D1OpportunityCycleID != "");
-}
-
-bool IsTargetlessLifecycleDecision(BBMA_Decision &decision)
-{
-   return (decision.C044LifecycleManaged || decision.D1TPWLifecycleManaged);
-}
-
-bool ResolveApprovedInitialSLTP(BBMA_Decision &decision,
-                                RiskValidationSnapshot &snapshot)
-{
-   decision.NMJEEntryDisplacementSourcePresent = false;
-   decision.NMJESourceConfirmationPrice = 0.0;
-   decision.NMJEStructuralAnchorPrice = 0.0;
-   if(!IsApprovedSLTPSourceComponent(decision,
-                                     decision.SLTPSourceComponent))
-      return false;
-
-   bool d1TPWLifecycle = IsD1TPWLifecycleIdentity(decision);
-   if(d1TPWLifecycle && !EnableD1TPWLifecycle)
-      return false; // never execute EXTREME_TPW with the legacy RE outer-BB TP
-   d1TPWLifecycle = d1TPWLifecycle && EnableD1TPWLifecycle;
-   bool c044Lifecycle = EnableC044Lifecycle && !d1TPWLifecycle;
-   bool targetlessLifecycle = (d1TPWLifecycle || c044Lifecycle);
-
-   double structuralAnchor = 0.0;
-   datetime structuralStart = 0;
-   datetime structuralConfirmation = 0;
-   double confirmationWick = 0.0;
-   double sourceConfirmationPrice = 0.0;
-   double destination = 0.0;
-   if(!ResolveSourceOwnedStructuralAnchor(decision.Pair,
-                                          decision.SLTPSourceComponent,
-                                          decision.Direction,
-                                          structuralAnchor,
-                                          structuralStart,
-                                          structuralConfirmation,
-                                          confirmationWick,
-                                          sourceConfirmationPrice))
-      return false;
-
-   // C044 is intentionally fail-safe gated OFF until M23/M24 lifecycle support
-   // is complete. While OFF, preserve the v4.52 static destination exactly.
-   if(!targetlessLifecycle)
-   {
-      if(!ResolveApprovedBBDestination(decision.Pair,
-                                       decision.SLTPSourceComponent,
-                                       decision.Direction,
-                                       destination))
-         return false;
-
-      if(decision.Direction == DIR_BUY && destination <= decision.EntryPrice)
-         return false;
-      if(decision.Direction == DIR_SELL && destination >= decision.EntryPrice)
-         return false;
-   }
-
-   if(snapshot.Point <= 0.0 || decision.EntryPrice <= 0.0) return false;
-
-   double safetyBuffer = snapshot.Point;
-   double structuralSL = (decision.Direction == DIR_BUY)
-      ? structuralAnchor - safetyBuffer
-      : structuralAnchor + safetyBuffer;
-
-   // M17-SLRANGE-01: direction-aware broker hard-SL normalization.
-   // BUY closes on Bid, aligned with Bid-chart structure: no spread buffer.
-   // SELL closes on Ask: add the approved frozen rounded spread buffer.
-   double brokerSL = structuralSL;
-   double rawSpreadPips = 0.0;
-   double roundedSpreadBufferPips = 0.0;
-   if(decision.Direction == DIR_SELL)
-   {
-      double pipValue = GetPipValue(decision.Pair);
-      if(pipValue <= 0.0 || snapshot.CurrentSpreadPrice < 0.0) return false;
-
-      rawSpreadPips = snapshot.CurrentSpreadPrice / pipValue;
-      roundedSpreadBufferPips = MathCeil(rawSpreadPips - 0.000000001);
-      if(roundedSpreadBufferPips < 2.0)
-         roundedSpreadBufferPips = 2.0;
-
-      brokerSL += roundedSpreadBufferPips * pipValue;
-   }
-
-   if(snapshot.TickSize_Price <= 0.0 || snapshot.Digits < 0) return false;
-
-   double slTicks = brokerSL / snapshot.TickSize_Price;
-   double normalizedSL = 0.0;
-   if(decision.Direction == DIR_BUY)
-      normalizedSL = MathFloor(slTicks + 0.000000001) * snapshot.TickSize_Price;
-   else if(decision.Direction == DIR_SELL)
-      normalizedSL = MathCeil(slTicks - 0.000000001) * snapshot.TickSize_Price;
-   else
-      return false;
-
-   normalizedSL = NormalizeDouble(normalizedSL, snapshot.Digits);
-   if(normalizedSL <= 0.0) return false;
-
-   double normalizedTP = 0.0;
-   if(!targetlessLifecycle)
-   {
-      double tpTicks = destination / snapshot.TickSize_Price;
-      if(decision.Direction == DIR_BUY)
-         normalizedTP = MathFloor(tpTicks + 0.000000001) * snapshot.TickSize_Price;
-      else if(decision.Direction == DIR_SELL)
-         normalizedTP = MathCeil(tpTicks - 0.000000001) * snapshot.TickSize_Price;
-      else
-         return false;
-
-      normalizedTP = NormalizeDouble(normalizedTP, snapshot.Digits);
-      if(normalizedTP <= 0.0) return false;
-   }
-
-   decision.StopLoss = normalizedSL;
-   decision.TakeProfit = targetlessLifecycle ? 0.0 : normalizedTP;
-   decision.SLTPSource = decision.SLTPSourceComponent.ComponentType;
-   decision.D1TPWLifecycleManaged = d1TPWLifecycle;
-   decision.C044LifecycleManaged = c044Lifecycle;
-   decision.NMJEEntryDisplacementSourcePresent = true;
-   decision.NMJESourceConfirmationPrice = sourceConfirmationPrice;
-   decision.NMJEStructuralAnchorPrice = structuralAnchor;
-
-   if(DebugLevel >= DBG_TRADE)
-   {
-      Print("[M17-SL][STRUCT] Pair=", decision.Pair,
-            " Dir=", EnumToString(decision.Direction),
-            " TF=", IntegerToString(decision.SLTPSourceComponent.Timeframe),
-            " Start=", TimeToString(structuralStart),
-            " Confirm=", TimeToString(structuralConfirmation),
-            " StructuralAnchor=", DoubleToString(structuralAnchor, snapshot.Digits),
-            " ConfirmationWick=", DoubleToString(confirmationWick, snapshot.Digits),
-            " RawSpreadPips=", DoubleToString(rawSpreadPips, 4),
-            " SpreadBufferPips=", DoubleToString(roundedSpreadBufferPips, 1),
-            " StructuralSL=", DoubleToString(structuralSL, snapshot.Digits),
-            " FinalBrokerSL=", DoubleToString(decision.StopLoss, snapshot.Digits),
-            " TP=", DoubleToString(decision.TakeProfit, snapshot.Digits),
-            " C044=", decision.C044LifecycleManaged ? "Y" : "N",
-            " D1TPW=", decision.D1TPWLifecycleManaged ? "Y" : "N");
-   }
-   return true;
-}
-
-double GetDirectionalClosePrice(RiskValidationSnapshot &snapshot, ENUM_DIRECTION direction)
-{
-   if(direction == DIR_BUY) return snapshot.Bid;
-   if(direction == DIR_SELL) return snapshot.Ask;
-   return 0.0;
-}
-
-bool ResolveExecutionReferencePrice(BBMA_Decision &decision, RiskValidationSnapshot &snapshot)
-{
-   double price = 0.0;
-   if(decision.Direction == DIR_BUY) price = snapshot.Ask;
-   else if(decision.Direction == DIR_SELL) price = snapshot.Bid;
-
-   if(price <= 0.0) return false;
-
-   decision.EntryPrice = price;
-   snapshot.EntryPrice = price;
-   return true;
-}
-
-bool HasSourceResolvedSLTP(BBMA_Decision &decision)
-{
-   if(decision.SLTPSource == SIGNAL_NONE) return false;
-   if(IsTargetlessLifecycleDecision(decision))
-      return (decision.StopLoss > 0.0 && decision.TakeProfit == 0.0);
-   return (decision.StopLoss > 0.0 && decision.TakeProfit > 0.0);
-}
-
-bool ValidateDirectionalSLTPGeometry(BBMA_Decision &decision)
-{
-   if(IsTargetlessLifecycleDecision(decision))
-   {
-      if(decision.TakeProfit != 0.0) return false;
-      if(decision.Direction == DIR_BUY)
-         return (decision.StopLoss < decision.EntryPrice);
-      if(decision.Direction == DIR_SELL)
-         return (decision.StopLoss > decision.EntryPrice);
-      return false;
-   }
-
-   if(decision.Direction == DIR_BUY)
-      return (decision.StopLoss < decision.EntryPrice &&
-              decision.TakeProfit > decision.EntryPrice);
-
-   if(decision.Direction == DIR_SELL)
-      return (decision.StopLoss > decision.EntryPrice &&
-              decision.TakeProfit < decision.EntryPrice);
-
-   return false;
-}
-
-bool ValidateSLTP(BBMA_Decision &decision, RiskValidationSnapshot &snapshot,
-                  ENUM_REJECTION_REASON &rejection)
-{
-   rejection = REJ_NONE;
-
-   if(decision.EntryPrice <= 0.0 || snapshot.EntryPrice <= 0.0)
-   {
-      rejection = REJ_MARKET_PRICE_INVALID;
-      return false;
-   }
-
-   if(!HasSourceResolvedSLTP(decision))
-   {
-      rejection = REJ_SLTP_UNRESOLVED;
-      return false;
-   }
-
-   if(decision.StopLoss <= 0.0)
-   {
-      rejection = REJ_INVALID_SL;
-      return false;
-   }
-
-   if(IsTargetlessLifecycleDecision(decision))
-   {
-      if(decision.TakeProfit != 0.0)
-      {
-         rejection = REJ_INVALID_TP;
-         return false;
-      }
-
-      if(!ValidateDirectionalSLTPGeometry(decision))
-      {
-         rejection = REJ_INVALID_SL;
-         return false;
-      }
-
-      double slDistance = MathAbs(decision.EntryPrice - decision.StopLoss);
-      if(slDistance <= 0.0)
-      {
-         rejection = REJ_INVALID_SL;
-         return false;
-      }
-
-      double pipPrice = GetPipValue(decision.Pair);
-      if(MaxSLPips > 0.0 && pipPrice > 0.0 && slDistance > MaxSLPips * pipPrice)
-      {
-         rejection = REJ_INVALID_SL;
-         return false;
-      }
-
-      // Targetless lifecycle has no deterministic reward coordinate.
-      // Never manufacture one merely to satisfy an explicitly enabled MinRR.
-      if(MinRRRatio > 0.0)
-      {
-         rejection = REJ_INVALID_RR;
-         return false;
-      }
-
-      double closePrice = GetDirectionalClosePrice(snapshot, decision.Direction);
-      double minDistance = snapshot.StopLevel * snapshot.Point;
-      if(closePrice <= 0.0)
-      {
-         rejection = REJ_MARKET_PRICE_INVALID;
-         return false;
-      }
-      if(minDistance > 0.0 && MathAbs(decision.StopLoss - closePrice) < minDistance)
-      {
-         rejection = REJ_INVALID_SL;
-         return false;
-      }
-
-      decision.StopLossPoints = slDistance / snapshot.Point;
-      return true;
-   }
-
-   if(decision.TakeProfit <= 0.0)
-   {
-      rejection = REJ_INVALID_TP;
-      return false;
-   }
-
-   if(!ValidateDirectionalSLTPGeometry(decision))
-   {
-      rejection = (decision.StopLoss == decision.EntryPrice)
-         ? REJ_INVALID_SL : REJ_INVALID_TP;
-      return false;
-   }
-
-   double slDistance = MathAbs(decision.EntryPrice - decision.StopLoss);
-   double tpDistance = MathAbs(decision.TakeProfit - decision.EntryPrice);
-   if(slDistance <= 0.0 || tpDistance <= 0.0)
-   {
-      rejection = (slDistance <= 0.0) ? REJ_INVALID_SL : REJ_INVALID_TP;
-      return false;
-   }
-
-   double pipPrice = GetPipValue(decision.Pair);
-   if(MaxSLPips > 0.0 && pipPrice > 0.0)
-   {
-      double maxSLPrice = MaxSLPips * pipPrice;
-      if(slDistance > maxSLPrice)
-      {
-         rejection = REJ_INVALID_SL;
-         return false;
-      }
-   }
-
-   if(MinRRRatio > 0.0 && (tpDistance / slDistance) < MinRRRatio)
-   {
-      rejection = REJ_INVALID_RR;
-      return false;
-   }
-
-   double closePrice = GetDirectionalClosePrice(snapshot, decision.Direction);
-   double minDistance = snapshot.StopLevel * snapshot.Point;
-   if(closePrice <= 0.0)
-   {
-      rejection = REJ_MARKET_PRICE_INVALID;
-      return false;
-   }
-
-   if(minDistance > 0.0)
-   {
-      if(MathAbs(decision.StopLoss - closePrice) < minDistance)
-      {
-         rejection = REJ_INVALID_SL;
-         return false;
-      }
-      if(MathAbs(decision.TakeProfit - closePrice) < minDistance)
-      {
-         rejection = REJ_INVALID_TP;
-         return false;
-      }
-   }
-
-   decision.StopLossPoints = slDistance / snapshot.Point;
-   return true;
-}
-
-bool ValidateStopLevel(double price, string pair, ENUM_DIRECTION direction)
-{
-   int stopLevel = GetStopLevel(pair);
-   double point = GetPointSize(pair);
-   if(stopLevel <= 0) return true;
-   if(point <= 0.0) return false;
-
-   double minDist = stopLevel * point;
-   double currentPrice = (direction == DIR_BUY)
-      ? MarketInfo(pair, MODE_BID)
-      : (direction == DIR_SELL ? MarketInfo(pair, MODE_ASK) : 0.0);
-   if(currentPrice <= 0.0) return false;
-   return (MathAbs(price - currentPrice) >= minDist);
-}
-
-bool ValidateFreezeLevel(double price, string pair, ENUM_DIRECTION direction)
-{
-   int freezeLevel = GetFreezeLevel(pair);
-   double point = GetPointSize(pair);
-   if(freezeLevel <= 0) return true;
-   if(point <= 0.0) return false;
-
-   double minDist = freezeLevel * point;
-   double currentPrice = (direction == DIR_BUY)
-      ? MarketInfo(pair, MODE_BID)
-      : (direction == DIR_SELL ? MarketInfo(pair, MODE_ASK) : 0.0);
-   if(currentPrice <= 0.0) return false;
-   return (MathAbs(price - currentPrice) >= minDist);
-}
-
-//+------------------------------------------------------------------+
-//| MODULE 18: SIGNAL SCORING ENGINE (LABEL ONLY)                    |
-//| LEVEL: INTERMEDIATE                                              |
-//+------------------------------------------------------------------+
-
-SignalScoreResult CalculateSignalScore(BBMA_Decision &decision)
-{
-   SignalScoreResult result;
-   result.Score = 0;
-   result.Level = LEVEL_NONE;
-   result.ScoreBreakdown = "";
-
-   if(!decision.Valid) return result;
-
-   result.ScoreBreakdown = "LABEL_ONLY|Type:" + EnumToString(decision.SignalType) +
-                           "|Direction:" + EnumToString(decision.Direction) + "|";
-
-   if(decision.HasSLTPSourceComponent)
-      result.ScoreBreakdown += "SourceTF:" +
-                               IntegerToString(decision.SLTPSourceComponent.Timeframe) + "|";
-
-   return result;
-}
-
-string GetSignalLevelString(ENUM_SIGNAL_LEVEL level)
-{
-   switch(level)
-   {
-      case LEVEL_A_PLUS: return "A+";
-      case LEVEL_A: return "A";
-      case LEVEL_B: return "B";
-      case LEVEL_C: return "C";
-      case LEVEL_D: return "D";
-      default: return "NONE";
-   }
-}
-
-//+------------------------------------------------------------------+
-//| MODULE 19: RISK ENGINE (FILTER ONLY)                             |
-//| LEVEL: EXPERT-RESTRICTED                                         |
-//+------------------------------------------------------------------+
-
-double CalculateDrawdownPercent_EA()
-{
-   if(g_protection_reference_equity <= 0) return 0;
-
-   double equity = AccountEquity();
-   if(equity <= 0) return 100.0;
-
-   double drawdownMoney = g_protection_reference_equity - equity;
-   if(drawdownMoney <= 0) return 0;
-
-   return drawdownMoney / g_protection_reference_equity * 100.0;
-}
-
-double CalculateBasketLossPercent_EA()
-{
-   double floatingLoss = 0;
-   
-   for(int i = 0; i < g_monitored_count; i++)
-   {
-      if(OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))
-      {
-         if(OrderCloseTime() != 0) continue;
-         double profit = OrderProfit() + OrderSwap() + OrderCommission();
-         if(profit < 0)
-            floatingLoss += MathAbs(profit);
-      }
-   }
-   
-   if(g_protection_reference_equity <= 0) return 0;
-   return floatingLoss / g_protection_reference_equity * 100;
-}
-
-double CalculateTotalRisk(string pair, double newLot, double newEntry, double newSL,
-                          RiskValidationSnapshot &snapshot, bool &valid)
-{
-   valid = true;
-   double totalRisk = 0;
-
-   for(int i = 0; i < g_monitored_count; i++)
-   {
-      ResetLastError();
-      if(!OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))
-      {
-         valid = false;
-         return 0;
-      }
-      if(OrderCloseTime() != 0)
-         continue;
-
-      if(g_monitored_trades[i].remaining_lot <= 0)
-         continue;
-
-      double riskDistance = MathAbs(g_monitored_trades[i].entry_price -
-                                    g_monitored_trades[i].current_sl);
-
-      if(riskDistance <= 0)
-         continue;
-
-      if(g_monitored_trades[i].current_sl <= 0)
-      {
-         valid = false;
-         return 0;
-      }
-
-      double existingRisk = CalculateTradeRiskMoney(g_monitored_trades[i].pair,
-                                                     g_monitored_trades[i].remaining_lot,
-                                                     g_monitored_trades[i].entry_price,
-                                                     g_monitored_trades[i].current_sl);
-      if(existingRisk <= 0)
-      {
-         valid = false;
-         return 0;
-      }
-      totalRisk += existingRisk;
-   }
-
-   double newRisk = CalculateTradeRiskMoney(pair, newLot, newEntry, newSL);
-   if(newRisk <= 0)
-   {
-      valid = false;
-      return 0;
-   }
-   totalRisk += newRisk;
-
-   return totalRisk;
-}
-
-RiskStatus CheckRiskBeforeTrade(BBMA_Decision &decision, RiskValidationSnapshot &snapshot, double calculatedLot)
-{
-   RiskStatus status;
-   status.allowed = true;
-   status.reason = "";
-   status.rejection_reason = REJ_NONE;
-
-   double pipValue = GetPipValue(decision.Pair);
-   if(pipValue <= 0)
-   {
-      status.allowed = false;
-      status.reason = "Invalid pip specification";
-      status.rejection_reason = REJ_BROKER_SPEC_INVALID;
-      return status;
-   }
-
-   double spreadPips = snapshot.CurrentSpreadPrice / pipValue;
-   if(spreadPips > MaxSpreadPips)
-   {
-      status.allowed = false;
-      status.reason = "Spread too high";
-      status.rejection_reason = REJ_SPREAD_HIGH;
-      return status;
-   }
-
-   double dd = CalculateDrawdownPercent_EA();
-   if(dd >= MaxDrawdownPercent)
-   {
-      status.allowed = false;
-      status.reason = "Drawdown limit exceeded";
-      status.rejection_reason = REJ_DD_LIMIT;
-      return status;
-   }
-
-   double basketLoss = CalculateBasketLossPercent_EA();
-   if(basketLoss >= BasketLossPercent)
-   {
-      status.allowed = false;
-      status.reason = "Basket loss limit exceeded";
-      status.rejection_reason = REJ_BASKET_LOSS;
-      return status;
-   }
-
-   bool riskValid = true;
-   double totalRisk = CalculateTotalRisk(decision.Pair, calculatedLot,
-                                         decision.EntryPrice, decision.StopLoss,
-                                         snapshot, riskValid);
-   if(!riskValid)
-   {
-      status.allowed = false;
-      status.reason = "Unable to calculate total EA risk safely";
-      status.rejection_reason = REJ_TOTAL_RISK;
-      return status;
-   }
-
-   double equity = snapshot.Equity;
-   if(equity <= 0)
-   {
-      status.allowed = false;
-      status.reason = "Invalid equity for total-risk validation";
-      status.rejection_reason = REJ_TOTAL_RISK;
-      return status;
-   }
-
-   if(totalRisk / equity * 100.0 > MaxTotalRiskPercent)
-   {
-      status.allowed = false;
-      status.reason = "Total risk limit exceeded";
-      status.rejection_reason = REJ_TOTAL_RISK;
-      return status;
-   }
-
-   return status;
-}
-
-//+------------------------------------------------------------------+
-//| MODULE 20: PORTFOLIO RISK & PROTECTION ENGINE                    |
-//| LEVEL: EXPERT-RESTRICTED                                         |
-//+------------------------------------------------------------------+
-
-bool IsLiveEAOwnedPortfolioTrade(int monitoredIndex)
-{
-   if(monitoredIndex < 0 || monitoredIndex >= g_monitored_count) return false;
-   if(!OrderSelect(g_monitored_trades[monitoredIndex].ticket, SELECT_BY_TICKET)) return false;
-   if(OrderCloseTime() != 0) return false;
-
-   int pairIdx = FindPairStateIndex(g_monitored_trades[monitoredIndex].pair);
-   if(pairIdx < 0) return false;
-
-   int expectedMagic = g_pair_states[pairIdx].magic_number;
-   if(expectedMagic <= 0) return false;
-   if(g_monitored_trades[monitoredIndex].magic_number != expectedMagic) return false;
-   if(OrderMagicNumber() != expectedMagic) return false;
-   return true;
-}
-
-PortfolioStatus CheckPortfolioLimits()
-{
-   PortfolioStatus status;
-   status.allowed = true;
-   status.reason = "";
-   status.active_pairs = 0;
-   status.total_trades = 0;
-   ArrayInitialize(status.trades_per_pair, 0);
-   
-   for(int i = 0; i < g_monitored_count; i++)
-   {
-      if(!IsLiveEAOwnedPortfolioTrade(i)) continue;
-
-      int idx = FindPairStateIndex(g_monitored_trades[i].pair);
-      if(idx < 0) continue;
-
-      status.total_trades++;
-      status.trades_per_pair[idx]++;
-   }
-
-   for(int p = 0; p < g_pair_count; p++)
-      if(status.trades_per_pair[p] > 0)
-         status.active_pairs++;
-   
-   if(status.active_pairs > g_effective_max_active_pair)
-   {
-      status.allowed = false;
-      status.reason = "Max active pairs exceeded";
-      return status;
-   }
-   
-   if(status.total_trades > MaxTotalTrade)
-   {
-      status.allowed = false;
-      status.reason = "Max total trades exceeded";
-      return status;
-   }
-   
-   for(int i = 0; i < g_pair_count; i++)
-   {
-      if(status.trades_per_pair[i] > MaxTradePerPair)
-      {
-         status.allowed = false;
-         status.reason = "Max trade per pair exceeded for " + g_pair_names[i];
-         return status;
-      }
-   }
-   
-   return status;
-}
-
-void FinalPortfolioGuard(BBMA_Decision &decision)
-{
-   if(decision.DecisionState != DEC_VALIDATED) return;
-   
-   PortfolioStatus status = CheckPortfolioLimits();
-
-   if(!status.allowed)
-   {
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_PORTFOLIO_LIMIT_ATOMIC;
-      return;
-   }
-
-   int pairIdx = FindPairStateIndex(decision.Pair);
-   if(pairIdx < 0)
-   {
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_PORTFOLIO_LIMIT_ATOMIC;
-      return;
-   }
-   
-   int wouldBeTotal = status.total_trades + 1;
-   int wouldBePairTrades = status.trades_per_pair[pairIdx] + 1;
-   int wouldBePairs = status.active_pairs + ((status.trades_per_pair[pairIdx] == 0) ? 1 : 0);
-   
-   if(wouldBePairs > g_effective_max_active_pair)
-   {
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_PORTFOLIO_LIMIT_ATOMIC;
-      return;
-   }
-   
-   if(wouldBeTotal > MaxTotalTrade)
-   {
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_PORTFOLIO_LIMIT_ATOMIC;
-      return;
-   }
-
-   if(wouldBePairTrades > MaxTradePerPair)
-   {
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_PORTFOLIO_LIMIT_ATOMIC;
-      return;
-   }
-}
-
-int CountLiveEAOwnedPortfolioTrades()
-{
-   int count = 0;
-   for(int i = 0; i < g_monitored_count; i++)
-      if(IsLiveEAOwnedPortfolioTrade(i)) count++;
-   return count;
-}
-
-bool BrokerConfirmsNoLiveEAOwnedOrders()
-{
-   if(!IsTerminalConnected()) return false;
-
-   int total = OrdersTotal();
-   for(int i = 0; i < total; i++)
-   {
-      ResetLastError();
-      if(!OrderSelect(i, SELECT_BY_POS, MODE_TRADES))
-         return false;
-
-      if(OrderCloseTime() != 0) continue;
-
-      int pairIdx = -1;
-      if(IsExactEAOwnedSelectedOrder(pairIdx))
-         return false;
-   }
-
-   return true;
-}
-
-void ManagePortfolio()
-{
-   if(g_portfolio_emergency_close_requested)
-   {
-      if(BrokerConfirmsNoLiveEAOwnedOrders())
-         g_portfolio_emergency_close_requested = false;
-      return;
-   }
-
-   if(BasketLossPercent > 0 && CalculateBasketLossPercent_EA() >= BasketLossPercent)
-      g_portfolio_emergency_close_requested = true;
-}
-
-//+------------------------------------------------------------------+
-//| MODULE 21: MONEY MANAGEMENT                                      |
-//| LEVEL: INTERMEDIATE+                                             |
-//+------------------------------------------------------------------+
-
-double NormalizeLotDownFromSnapshot(double lot, RiskValidationSnapshot &snapshot)
-{
-   if(lot <= 0 || snapshot.LotStep <= 0 || snapshot.LotDigits < 0)
-      return 0;
-
-   double stepped = MathFloor((lot / snapshot.LotStep) + 0.000000001) * snapshot.LotStep;
-   return NormalizeDouble(stepped, snapshot.LotDigits);
-}
-
-bool IsValidSnapshotLotStep(double lot, RiskValidationSnapshot &snapshot)
-{
-   if(lot <= 0 || snapshot.LotStep <= 0) return false;
-   double ratio = lot / snapshot.LotStep;
-   return MathAbs(ratio - MathRound(ratio)) < 0.00001;
-}
-
-// P2-LOTDIAG-01: observability-only explanation for an already-failed M21 lot result.
-// IMPORTANT: CalculateLotSize() remains the sole sizing authority and is unchanged.
-// This helper never queries live broker/account state, changes lot, clamps values,
-// or changes rejection semantics. It only reads the same frozen decision/snapshot.
-string DiagnoseInvalidLotReason(BBMA_Decision &decision,
-                                RiskValidationSnapshot &snapshot,
-                                double &rawLot,
-                                double &normalizedLot,
-                                double &effectiveMaxLot)
-{
-   rawLot = 0.0;
-   normalizedLot = 0.0;
-   effectiveMaxLot = 0.0;
-
-   if(decision.DecisionState != DEC_VALIDATED || decision.Pair == "" ||
-      decision.EntryPrice <= 0 || decision.StopLoss <= 0)
-      return "INVALID_DECISION";
-
-   if(snapshot.Point <= 0 || snapshot.TickSize_Price <= 0 || snapshot.TickValue <= 0 ||
-      snapshot.LotStep <= 0 || snapshot.MinLot <= 0 ||
-      snapshot.MaxLot < snapshot.MinLot || snapshot.LotDigits < 0 || snapshot.Equity <= 0)
-      return "BROKER_SNAPSHOT_INVALID";
-
-   double payloadTolerance = snapshot.Point * 0.5;
-   if(MathAbs(snapshot.EntryPrice - decision.EntryPrice) > payloadTolerance ||
-      MathAbs(snapshot.StopLoss - decision.StopLoss) > payloadTolerance)
-      return "PAYLOAD_MISMATCH";
-
-   if(MMMode == 1)
-   {
-      if(AutoLotPercent <= 0 || MaxAutoLot <= 0)
-         return "MM_CONFIG_INVALID";
-
-      double slDistance = MathAbs(decision.EntryPrice - decision.StopLoss);
-      if(slDistance <= 0)
-         return "SL_DISTANCE_INVALID";
-
-      double riskPerLot = slDistance * snapshot.TickValue / snapshot.TickSize_Price;
-      if(riskPerLot <= 0)
-         return "RISK_PER_LOT_INVALID";
-
-      double riskAmount = snapshot.Equity * (AutoLotPercent / 100.0);
-      if(riskAmount <= 0)
-         return "RISK_AMOUNT_INVALID";
-
-      rawLot = riskAmount / riskPerLot;
-      normalizedLot = NormalizeLotDownFromSnapshot(rawLot, snapshot);
-      effectiveMaxLot = MathMin(snapshot.MaxLot, MaxAutoLot);
-
-      if(normalizedLot < snapshot.MinLot)
-         return "BELOW_MIN";
-      if(effectiveMaxLot < snapshot.MinLot)
-         return "MAXAUTOLOT_BELOW_MIN";
-      if(normalizedLot > effectiveMaxLot)
-         return "ABOVE_MAX";
-      if(!IsValidSnapshotLotStep(normalizedLot, snapshot))
-         return "STEP_MISMATCH";
-
-      return "AUTOLOT_FAILURE_UNCLASSIFIED";
-   }
-
-   if(MMMode == 2)
-   {
-      rawLot = FixedLot;
-      normalizedLot = FixedLot;
-      effectiveMaxLot = snapshot.MaxLot;
-
-      if(FixedLot <= 0 || FixedLot < snapshot.MinLot || FixedLot > snapshot.MaxLot)
-         return "FIXEDLOT_INVALID";
-      if(!IsValidSnapshotLotStep(FixedLot, snapshot))
-         return "STEP_MISMATCH";
-
-      return "FIXEDLOT_FAILURE_UNCLASSIFIED";
-   }
-
-   return "MMMODE_INVALID";
-}
-
-void PrintInvalidLotDiagnostic(BBMA_Decision &decision,
-                               RiskValidationSnapshot &snapshot,
-                               string reasonTag,
-                               double rawLot,
-                               double normalizedLot,
-                               double effectiveMaxLot)
-{
-   double slDistance = MathAbs(decision.EntryPrice - decision.StopLoss);
-
-   Print("[LOT_DIAG][REJ_INVALID_LOT] Pair=", decision.Pair,
-         " Reason=", reasonTag,
-         " MMMode=", IntegerToString(MMMode),
-         " RawLot=", DoubleToString(rawLot, 8),
-         " NormalizedLot=", DoubleToString(normalizedLot, 8),
-         " MinLot=", DoubleToString(snapshot.MinLot, 8),
-         " MaxLot=", DoubleToString(snapshot.MaxLot, 8),
-         " EffectiveMaxLot=", DoubleToString(effectiveMaxLot, 8),
-         " LotStep=", DoubleToString(snapshot.LotStep, 8),
-         " LotDigits=", IntegerToString(snapshot.LotDigits),
-         " TickValue=", DoubleToString(snapshot.TickValue, 8),
-         " TickSize=", DoubleToString(snapshot.TickSize_Price, 8),
-         " Point=", DoubleToString(snapshot.Point, 10),
-         " SLDistance=", DoubleToString(slDistance, 10),
-         " Entry=", DoubleToString(decision.EntryPrice, snapshot.Digits),
-         " SL=", DoubleToString(decision.StopLoss, snapshot.Digits),
-         " Equity=", DoubleToString(snapshot.Equity, 2),
-         " AutoPct=", DoubleToString(AutoLotPercent, 4),
-         " MaxAutoLot=", DoubleToString(MaxAutoLot, 8),
-         " FixedLot=", DoubleToString(FixedLot, 8));
-}
-
-double CalculateLotSize(BBMA_Decision &decision, RiskValidationSnapshot &snapshot, bool &valid)
-{
-   valid = true;
-
-   if(decision.DecisionState != DEC_VALIDATED || decision.Pair == "" ||
-      decision.EntryPrice <= 0 || decision.StopLoss <= 0)
-   {
-      valid = false;
-      return 0;
-   }
-
-   if(snapshot.Point <= 0 || snapshot.TickSize_Price <= 0 || snapshot.TickValue <= 0 ||
-      snapshot.LotStep <= 0 || snapshot.MinLot <= 0 ||
-      snapshot.MaxLot < snapshot.MinLot || snapshot.LotDigits < 0 || snapshot.Equity <= 0)
-   {
-      valid = false;
-      return 0;
-   }
-
-   double payloadTolerance = snapshot.Point * 0.5;
-   if(MathAbs(snapshot.EntryPrice - decision.EntryPrice) > payloadTolerance ||
-      MathAbs(snapshot.StopLoss - decision.StopLoss) > payloadTolerance)
-   {
-      valid = false;
-      return 0;
-   }
-
-   if(MMMode == 1)
-   {
-      if(AutoLotPercent <= 0 || MaxAutoLot <= 0)
-      {
-         valid = false;
-         return 0;
-      }
-
-      double slDistance = MathAbs(decision.EntryPrice - decision.StopLoss);
-      if(slDistance <= 0)
-      {
-         valid = false;
-         return 0;
-      }
-
-      double riskPerLot = slDistance * snapshot.TickValue / snapshot.TickSize_Price;
-      if(riskPerLot <= 0)
-      {
-         valid = false;
-         return 0;
-      }
-
-      double riskAmount = snapshot.Equity * (AutoLotPercent / 100.0);
-      if(riskAmount <= 0)
-      {
-         valid = false;
-         return 0;
-      }
-
-      double rawLot = riskAmount / riskPerLot;
-      double calcLot = NormalizeLotDownFromSnapshot(rawLot, snapshot);
-
-      if(calcLot < snapshot.MinLot)
-      {
-         valid = false;
-         return 0;
-      }
-
-      double maxLot = MathMin(snapshot.MaxLot, MaxAutoLot);
-      if(maxLot < snapshot.MinLot)
-      {
-         valid = false;
-         return 0;
-      }
-
-      if(calcLot > maxLot)
-      {
-         valid = false;
-         return 0;
-      }
-
-      if(!IsValidSnapshotLotStep(calcLot, snapshot))
-      {
-         valid = false;
-         return 0;
-      }
-
-      return calcLot;
-   }
-   else if(MMMode == 2)
-   {
-      double lot = FixedLot;
-      if(lot <= 0 || lot < snapshot.MinLot || lot > snapshot.MaxLot)
-      {
-         valid = false;
-         return 0;
-      }
-
-      if(!IsValidSnapshotLotStep(lot, snapshot))
-      {
-         valid = false;
-         return 0;
-      }
-
-      return lot;
-   }
-
-   valid = false;
-   return 0;
-}
-
-//+------------------------------------------------------------------+
-//| MODULE 22: ORDER EXECUTION ENGINE (DUMB EXECUTOR)                |
-//| LEVEL: EXPERT                                                    |
-//+------------------------------------------------------------------+
-
-bool IsRetryableError(int error)
-{
-   return (error == 135 || error == 138 || error == 146);
-}
-
-bool IsFatalError(int error)
-{
-   return (error == 130 || error == 131 || error == 134 || error == 148);
-}
-
-bool IsAmbiguousError(int error)
-{
-   return (error == 4 || error == 6 || error == 128 || error == 141);
-}
-
-int FindExistingExecutionTicket(string pair, int direction, int magicNumber,
-                                string decisionID)
-{
-   if(pair == "" || magicNumber <= 0 || decisionID == "") return -1;
-
-   // P0: durable terminal identity is authoritative.
-   int persistedTicket = FindPersistedExecutionTicket(decisionID, pair,
-                                                       direction, magicNumber);
-   if(persistedTicket > 0) return persistedTicket;
-
-   // Secondary fallback for legacy/current brokers that preserve the compact tag.
-   string executionTag = "BBMA|H:" + SHORT_HASH(decisionID);
-   int total = OrdersTotal();
-   for(int i = 0; i < total; i++)
-   {
-      if(!OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) continue;
-      if(OrderCloseTime() != 0) continue;
-      if(OrderSymbol() != pair) continue;
-      if(OrderMagicNumber() != magicNumber) continue;
-      if(OrderType() != direction) continue;
-
-      if(StringFind(OrderComment(), executionTag) == 0)
-         return OrderTicket();
-   }
-
-   return -1;
-}
-
-bool IsSignalAllowed(BBMA_Decision &decision, string pair, int magicNumber)
-{
-   if(IsDecisionExecuted(decision.DecisionID))
-      return false;
-   
-   if(decision.DecisionState != DEC_VALIDATED)
-      return false;
-
-   if(decision.Pair != pair || pair == "" || magicNumber <= 0 || decision.DecisionID == "")
-      return false;
-   
-   if(TradeLockMode == LOCK_ONE_POSITION)
-   {
-      for(int i = 0; i < g_monitored_count; i++)
-      {
-         if(!IsLiveEAOwnedPortfolioTrade(i)) continue;
-         if(g_monitored_trades[i].pair == pair)
-            return false;
-      }
-   }
-   else if(TradeLockMode == LOCK_SAME_DIRECTION)
-   {
-      // Pair-direction lock: once this EA already has a live position on the
-      // pair, additional positions may only follow that same direction.
-      // The previous comparison was reversed: it blocked same-direction adds
-      // and allowed BUY+SELL coexistence, contradicting SAME_DIRECTION mode.
-      for(int i = 0; i < g_monitored_count; i++)
-      {
-         if(!IsLiveEAOwnedPortfolioTrade(i)) continue;
-         if(g_monitored_trades[i].pair == pair &&
-            g_monitored_trades[i].direction != decision.Direction)
-            return false;
-      }
-   }
-   
-   return true;
-}
-
-int SendOrderWithRetry(string pair, int direction, double lot,
-                       double stopLoss, double takeProfit, string comment, 
-                       int magicNumber, double frozenAllowedDeviation, 
-                       double decisionEntryPrice, string decisionID)
-{
-   if(MaxRetry <= 0 || pair == "" || lot <= 0 || stopLoss <= 0 || takeProfit < 0.0 ||
-      magicNumber <= 0 || decisionID == "")
-      return -1;
-
-   int retry = 0;
-   while(retry < MaxRetry)
-   {
-      int existingTicket = FindExistingExecutionTicket(pair, direction, magicNumber, decisionID);
-      if(existingTicket > 0)
-         return existingTicket;
-
-      RefreshRates();
-      
-      double bid = MarketInfo(pair, MODE_BID);
-      double ask = MarketInfo(pair, MODE_ASK);
-      if(bid <= 0 || ask <= 0)
-         return -1;
-      
-      double executionPrice = (direction == OP_BUY) ? ask : bid;
-      double deviation = MathAbs(executionPrice - decisionEntryPrice);
-      
-      if(deviation > frozenAllowedDeviation)
-      {
-         return -3;
-      }
-      
-      int ticket = OrderSend(pair, direction, lot, executionPrice, Slippage, 
-                             stopLoss, takeProfit, comment, magicNumber, 0, clrNONE);
-      
-      if(ticket > 0)
-         return ticket;
-      
-      int error = GetLastError();
-      
-      if(IsFatalError(error))
-         return -1;
-      
-      if(IsAmbiguousError(error))
-      {
-         int reconciled = FindExistingExecutionTicket(pair, direction, magicNumber, decisionID);
-         if(reconciled > 0)
-            return reconciled;
-         return -2;
-      }
-      
-      if(IsRetryableError(error))
-      {
-         retry++;
-         if(retry < MaxRetry)
-            Sleep(RETRY_SLEEP_MS);
-      }
-      else
-      {
-         return -1;
-      }
-   }
-   return -1;
-}
-
-// N2-13: read-only closed-order outcome telemetry.
-// Called only after OrderSelect() proves that the monitored ticket is closed.
-// It never changes order state, trade lifecycle, risk, exit logic or registry identity.
-void NMJE_PrintClosedOutcomeShadow(TradeInfo &info)
-{
-   if(info.ticket <= 0 || info.pair == "") return;
-   if(OrderTicket() != info.ticket) return;
-   if(OrderCloseTime() == 0) return;
-
-   // Fail closed on registry/order identity mismatch rather than attributing
-   // realized P/L to the wrong research identity.
-   if(OrderSymbol() != info.pair) return;
-   if(info.magic_number <= 0 || OrderMagicNumber() != info.magic_number) return;
-
-   string decisionToken = "-";
-   if(info.decision_id != "")
-      decisionToken = NMJE_LogIdentityToken(info.decision_id);
-
-   string decisionHash = info.execution_hash;
-   if(decisionHash == "") decisionHash = "-";
-
-   double netProfit = OrderProfit() + OrderSwap() + OrderCommission();
-
-   Print("[N2-NMJE-OUT] PAIR=", info.pair,
-         " TICKET=", IntegerToString(info.ticket),
-         " DID=", decisionToken,
-         " DIDH=", decisionHash,
-         " NET=", DoubleToString(netProfit, 8),
-         " CLOSE=", IntegerToString((int)OrderCloseTime()),
-         " REC=", EnumToString(info.recovery_state));
-   Print("[NMJE-P4-OUT] PAIR=", info.pair,
-         " TICKET=", IntegerToString(info.ticket),
-         " DIDH=", decisionHash,
-         " ATTR=", info.nmje_attribution.Present ? "Y" : "N",
-         " DUR=", info.nmje_attribution.Durable ? "Y" : "N",
-         " JH=", info.nmje_attribution.JourneyHash == "" ? "-" : info.nmje_attribution.JourneyHash,
-         " PH=", info.nmje_attribution.ParentEventHash == "" ? "-" : info.nmje_attribution.ParentEventHash,
-         " PR=", info.nmje_attribution.ParentRetained ? "Y" : "N",
-         " PAH=", info.nmje_attribution.ParentSelectionReasonHash == "" ? "-" : info.nmje_attribution.ParentSelectionReasonHash,
-         " REL=", NMJE_RelationText(info.nmje_attribution.Relation),
-         " SUB=", NMJE_ConflictSubtypeText(info.nmje_attribution.ConflictSubtype),
-         " MAT=", NMJE_MaturityText(info.nmje_attribution.Maturity),
-         " M5=", info.nmje_attribution.M5Present ? "Y" : "N",
-         " M5E=", info.nmje_attribution.M5EventHash == "" ? "-" : info.nmje_attribution.M5EventHash,
-         " M5REL=", NMJE_RelationText(info.nmje_attribution.M5Relation),
-         " M5SUB=", NMJE_ConflictSubtypeText(info.nmje_attribution.M5ConflictSubtype),
-         " M5MAT=", NMJE_MaturityText(info.nmje_attribution.M5Maturity),
-         " M5DIR=", NMJE_DirText(info.nmje_attribution.M5Direction),
-         " M5CTX=", IntegerToString(info.nmje_attribution.M5ContextCode),
-         " M5RH=", info.nmje_attribution.M5ReasonHash == "" ? "-" : info.nmje_attribution.M5ReasonHash,
-         " SM=", IntegerToString(info.nmje_attribution.StructureMask),
-         " SC=", IntegerToString(info.nmje_attribution.StructureCount),
-         " RQ=", IntegerToString(info.nmje_attribution.RequirementCompleteness),
-         " SQ=", IntegerToString(info.nmje_attribution.SequenceCompleteness),
-         " NET=", DoubleToString(netProfit, 8),
-         " CLOSE=", IntegerToString((int)OrderCloseTime()));
-   Print("[NMJE-P10-OUT] PAIR=", info.pair,
-         " TICKET=", IntegerToString(info.ticket),
-         " DIDH=", decisionHash,
-         " ATTR=", info.nmje_attribution.EntryDisplacementPresent ? "Y" : "N",
-         " PHASE=", NMJE_EventPhaseText(info.nmje_attribution.EventPhase),
-         " FDUR=", info.nmje_attribution.EventPhaseCheckpointDurable ? "Y" : "N",
-         " DISP=", NMJE_EntryDisplacementText(info.nmje_attribution.EntryDisplacementClass),
-         " SRC=", DoubleToString(info.nmje_attribution.SourceConfirmationPrice, info.digits),
-         " VAL=", DoubleToString(info.nmje_attribution.ValidationEntryPrice, info.digits),
-         " EXEC=", DoubleToString(info.nmje_attribution.BrokerExecutionPrice, info.digits),
-         " ANCH=", DoubleToString(info.nmje_attribution.StructuralAnchorPrice, info.digits),
-         " CVP=", DoubleToString(info.nmje_attribution.ConfirmationToValidationPips, 4),
-         " VEP=", DoubleToString(info.nmje_attribution.ValidationToExecutionPips, 4),
-         " EAP=", DoubleToString(info.nmje_attribution.ExecutionFromAnchorPips, 4),
-         " NET=", DoubleToString(netProfit, 8),
-         " CLOSE=", IntegerToString((int)OrderCloseTime()));
-}
-
-void CompactMonitoredTrades()
-{
-   int write = 0;
-   for(int i = 0; i < g_monitored_count; i++)
-   {
-      bool removeClosed = false;
-      if(OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))
-         removeClosed = (OrderCloseTime() != 0);
-      if(removeClosed)
-      {
-         // Emit at most once: the row is discarded immediately afterwards.
-         NMJE_PrintClosedOutcomeShadow(g_monitored_trades[i]);
-         if(g_monitored_trades[i].c044_lifecycle_managed)
-            ClearC044Checkpoint(g_monitored_trades[i]);
-         if(g_monitored_trades[i].d1_tpw_lifecycle_managed)
-            ClearD1TPWCheckpoint(g_monitored_trades[i]);
-         continue;
-      }
-      if(write != i) g_monitored_trades[write] = g_monitored_trades[i];
-      write++;
-   }
-   g_monitored_count = write;
-}
-
-bool EnsureMonitoredRegistryCapacity()
-{
-   CompactMonitoredTrades();
-   return (g_monitored_count < MAX_MONITORED);
-}
-
-void AddToMonitoredTrades(TradeInfo &info)
-{
-   for(int i = 0; i < g_monitored_count; i++)
-   {
-      if(g_monitored_trades[i].ticket == info.ticket)
-      {
-         g_monitored_trades[i] = info;
-         return;
-      }
-   }
-   CompactMonitoredTrades();
-   if(g_monitored_count < MAX_MONITORED)
-   {
-      g_monitored_trades[g_monitored_count] = info;
-      g_monitored_count++;
-      return;
-   }
-   Log(DBG_ERROR, "Monitored registry full; unable to register ticket=" + IntegerToString(info.ticket));
-}
-
-void ProcessEntry(BBMA_Decision &decision, string pair,
-                  RiskValidationSnapshot &snapshot, double frozenLot)
-{
-   if(decision.DecisionState != DEC_VALIDATED) return;
-
-   bool targetlessLifecycle = IsTargetlessLifecycleDecision(decision);
-   bool tpPayloadValid = targetlessLifecycle
-      ? (decision.TakeProfit == 0.0)
-      : (decision.TakeProfit > 0.0);
-
-   if(targetlessLifecycle &&
-      (!decision.HasSLTPSourceComponent ||
-       decision.SLTPSourceComponent.ComponentType != SIGNAL_RE_ENTRY ||
-       decision.SLTPSourceComponent.Direction != decision.Direction ||
-       decision.SLTPSourceComponent.Timeframe <= 0 ||
-       decision.SLTPSourceComponent.CandleTime <= 0))
-   {
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_INVALID_DECISION_STATE;
-      return;
-   }
-
-   if(pair == "" || decision.Pair != pair || decision.DecisionID == "" ||
-      decision.Direction == DIR_NONE || decision.EntryPrice <= 0 ||
-      decision.StopLoss <= 0 || !tpPayloadValid)
-   {
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_INVALID_DECISION_STATE;
-      return;
-   }
-   
-   double lot = frozenLot;
-   if(lot <= 0)
-   {
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_INVALID_LOT;
-      return;
-   }
-   
-   if(IsDecisionExecuted(decision.DecisionID))
-   {
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_DUPLICATE;
-      return;
-   }
-
-   int pairIdx = FindPairStateIndex(pair);
-   if(pairIdx < 0)
-   {
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_BROKER_SPEC_INVALID;
-      return;
-   }
-   int magic = g_pair_states[pairIdx].magic_number;
-   if(magic <= 0)
-   {
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_BROKER_SPEC_INVALID;
-      return;
-   }
-   
-   if(!IsSignalAllowed(decision, pair, magic))
-   {
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_TRADE_LOCK;
-      return;
-   }
-   
-   int existingTicket = FindExistingExecutionTicket(pair,
-                           (decision.Direction == DIR_BUY) ? OP_BUY : OP_SELL,
-                           magic, decision.DecisionID);
-   if(existingTicket > 0)
-   {
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_DUPLICATE;
-      return;
-   }
-
-   if(!EnsureMonitoredRegistryCapacity())
-   {
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_PORTFOLIO_LIMIT_ATOMIC;
-      Log(DBG_ERROR, "Pre-send monitored registry capacity exhausted for " + pair);
-      return;
-   }
-   
-   RefreshRates();
-   double bid = MarketInfo(pair, MODE_BID);
-   double ask = MarketInfo(pair, MODE_ASK);
-   int orderType = (decision.Direction == DIR_BUY) ? OP_BUY : OP_SELL;
-   double executionPrice = (orderType == OP_BUY) ? ask : bid;
-   
-   double frozenAllowedDeviation = GetAllowedExecutionDeviation(pair, snapshot);
-   double deviation = MathAbs(executionPrice - decision.EntryPrice);
-   if(deviation > frozenAllowedDeviation)
-   {
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_EXECUTION_DEVIATION_EXCEEDED;
-      return;
-   }
-   
-   string comment = CreateOrderComment(decision.DecisionID, pair, decision.Direction,
-                                       decision.SignalType, executionPrice, 
-                                       decision.StopLoss, lot, 0, decision.SequenceHash,
-                                       decision.CandleTime);
-   
-   int ticket = SendOrderWithRetry(pair, orderType, lot,
-                                    decision.StopLoss, decision.TakeProfit,
-                                    comment, magic, frozenAllowedDeviation,
-                                    decision.EntryPrice, decision.DecisionID);
-   
-   if(ticket > 0)
-   {
-      if(OrderSelect(ticket, SELECT_BY_TICKET))
-      {
-         TradeInfo info;
-         ZeroMemory(info);
-         info.ticket = ticket;
-         info.magic_number = magic;
-         info.pair = pair;
-         info.direction = decision.Direction;
-         info.signal_type = decision.SignalType;
-         info.initial_entry_price = OrderOpenPrice();
-         info.initial_stop_loss = OrderStopLoss();
-         info.initial_take_profit = OrderTakeProfit();
-         info.initial_lot = OrderLots();
-         info.initial_risk_price_distance = MathAbs(info.initial_entry_price - info.initial_stop_loss);
-         info.entry_price = info.initial_entry_price;
-         info.current_sl = info.initial_stop_loss;
-         info.current_tp = info.initial_take_profit;
-         info.lot = OrderLots();
-         info.remaining_lot = OrderLots();
-         info.partial_closed = false;
-         info.partial_available = false;
-         info.partial_attempted = false;
-         info.breakeven_set = false;
-         info.be_attempted = false;
-         info.be_last_attempt_time = 0;
-         info.partial_last_attempt_time = 0;
-         info.open_time = OrderOpenTime();
-         info.point = snapshot.Point;
-         info.digits = snapshot.Digits;
-         info.stop_level = GetStopLevel(pair);
-         info.freeze_level = GetFreezeLevel(pair);
-         info.decision_id = decision.DecisionID;
-         info.sequence_hash_short = SHORT_HASH(decision.SequenceHash);
-         BuildNMJEShadowAttribution(decision, OrderOpenPrice(), snapshot.Point,
-                                    info.nmje_attribution);
-
-         ResetC044TradeState(info);
-         ResetD1TPWTradeState(info);
-         bool lifecycleStateReady = true;
-         if(decision.D1TPWLifecycleManaged)
-            lifecycleStateReady = InitializeD1TPWTradeStateFromDecision(info, decision);
-         else if(decision.C044LifecycleManaged)
-            lifecycleStateReady = InitializeC044TradeStateFromDecision(info, decision);
-
-         string expectedExecutionHash = SHORT_HASH(decision.DecisionID);
-         bool localIdentityPersisted = SaveExecutionIdentityHash(
-            expectedExecutionHash, ticket, pair, decision.Direction, magic, OrderOpenTime());
-
-         string persistedComment = OrderComment();
-         string brokerExecutionHash = "";
-         bool brokerHashFound = ExtractExecutionHash(persistedComment, brokerExecutionHash);
-         bool brokerHashMatch = (brokerHashFound &&
-                                 brokerExecutionHash == expectedExecutionHash);
-
-         info.execution_hash = localIdentityPersisted
-            ? expectedExecutionHash
-            : (brokerHashMatch ? brokerExecutionHash : "");
-         info.recovery_state = (localIdentityPersisted && lifecycleStateReady)
-            ? REC_NORMAL : REC_IDENTITY_MISSING_FROZEN;
-
-         if(!localIdentityPersisted)
-            Log(DBG_ERROR, "Execution identity persistence failed ticket=" + IntegerToString(ticket));
-
-         bool nmjeAttributionPersisted = false;
-         if(info.nmje_attribution.Present && info.execution_hash != "")
-         {
-            nmjeAttributionPersisted = SaveNMJEShadowAttribution(info);
-            if(!nmjeAttributionPersisted)
-               Log(DBG_ERROR, "NMJE shadow attribution persistence failed ticket=" +
-                   IntegerToString(ticket));
-         }
-
-         if(info.d1_tpw_lifecycle_managed && lifecycleStateReady &&
-            !SaveD1TPWCheckpoint(info))
-         {
-            info.recovery_state = REC_IDENTITY_MISSING_FROZEN;
-            Log(DBG_ERROR, "D1TPW checkpoint persist failed ticket=" + IntegerToString(ticket));
-         }
-         else if(info.c044_lifecycle_managed && lifecycleStateReady &&
-                 !SaveC044Checkpoint(info))
-         {
-            info.recovery_state = REC_IDENTITY_MISSING_FROZEN;
-            Log(DBG_ERROR, "C044 checkpoint persist failed ticket=" + IntegerToString(ticket));
-         }
-
-         Print("[P3S5][EXEC_ID] Ticket=", IntegerToString(ticket),
-               " Pair=", pair,
-               " Persist=", localIdentityPersisted ? "PASS" : "FAIL",
-               " Local=", localIdentityPersisted ? "Y" : "N",
-               " BrokerHashFound=", brokerHashFound ? "Y" : "N",
-               " BrokerHashMatch=", brokerHashMatch ? "Y" : "N",
-               " ExpectedHash=", expectedExecutionHash,
-               " BrokerHash=", brokerExecutionHash,
-               " RawLen=", IntegerToString(StringLen(persistedComment)),
-               " RawComment=<", persistedComment, ">");
-         Print("[NMJE-P4-OPEN] Ticket=", IntegerToString(ticket),
-               " DIDH=", info.execution_hash == "" ? "-" : info.execution_hash,
-               " ATTR=", info.nmje_attribution.Present ? "Y" : "N",
-               " DUR=", nmjeAttributionPersisted ? "Y" : "N",
-               " JH=", info.nmje_attribution.JourneyHash == "" ? "-" : info.nmje_attribution.JourneyHash,
-               " DISP=", NMJE_EntryDisplacementText(info.nmje_attribution.EntryDisplacementClass),
-               " PHASE=", NMJE_EventPhaseText(info.nmje_attribution.EventPhase),
-               " M5=", info.nmje_attribution.M5Present ? "Y" : "N");
-         
-         AddToMonitoredTrades(info);
-         
-         decision.DecisionState = DEC_EXECUTED;
-         MarkDecisionExecuted(decision.DecisionID, ticket);
-         decision.DecisionState = DEC_EXECUTED;
-         decision.RejectionReason = REJ_NONE;
-         if(EntryMode == 1)
-            Print("[P3M1][EXEC] Ticket=", ticket,
-                  " Pair=", pair,
-                  " DecisionID=", decision.DecisionID,
-                  " Signal=", EnumToString(decision.SignalType),
-                  " Dir=", EnumToString(decision.Direction),
-                  " ValidateCandle=", TimeToString(decision.CandleTime),
-                  " OrderOpen=", TimeToString(OrderOpenTime()));
-         if(EntryMode == 2)
-            Print("[P3M2][EXEC] Ticket=", ticket,
-                  " Pair=", pair,
-                  " DecisionID=", decision.DecisionID,
-                  " Signal=", EnumToString(decision.SignalType),
-                  " Dir=", EnumToString(decision.Direction),
-                  " ValidateCandle=", TimeToString(decision.CandleTime),
-                  " OrderOpen=", TimeToString(OrderOpenTime()));
-         return;
-      }
-
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_AMBIGUOUS_RESULT;
-      return;
-   }
-
-   decision.DecisionState = DEC_REJECTED;
-   if(ticket == -2)
-      decision.RejectionReason = REJ_AMBIGUOUS_RESULT;
-   else if(ticket == -3)
-      decision.RejectionReason = REJ_EXECUTION_DEVIATION_EXCEEDED;
-   else
-   {
-      decision.RejectionReason = REJ_BROKER_ERROR;
-   }
-}
-
-bool RunEntryPreflightAndExecute(BBMA_Decision &decision, string pair)
-{
-   if(decision.DecisionState != DEC_VALIDATED) return false;
-   if(pair == "" || decision.Pair != pair) return false;
-   if(EntryMode == 1)
-      Print("[P3M1][PREFLIGHT_START] Pair=", pair,
-            " DecisionID=", decision.DecisionID,
-            " Signal=", EnumToString(decision.SignalType),
-            " Dir=", EnumToString(decision.Direction),
-            " ValidateCandle=", TimeToString(decision.CandleTime),
-            " ProcessTime=", TimeToString(g_processing_time));
-   if(EntryMode == 2)
-      Print("[P3M2][PREFLIGHT_START] Pair=", pair,
-            " DecisionID=", decision.DecisionID,
-            " Signal=", EnumToString(decision.SignalType),
-            " Dir=", EnumToString(decision.Direction),
-            " ValidateCandle=", TimeToString(decision.CandleTime),
-            " ProcessTime=", TimeToString(g_processing_time));
-
-   // One frozen execution/risk snapshot for this decision. Strategy semantics
-   // are already frozen by the closed-M15 M15/M16/M17 path; only broker/account
-   // conditions are live here.
-   RiskValidationSnapshot snapshot;
-   BuildRiskValidationSnapshot(pair, decision, snapshot);
-
-   // M17 runtime wiring: strategy eligibility is already frozen by M15/M16,
-   // while market execution geometry must use the live broker side.
-   // BUY references ASK; SELL references BID.
-   if(!ResolveExecutionReferencePrice(decision, snapshot))
-   {
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_MARKET_PRICE_INVALID;
-      return false;
-   }
-
-   // Resolve only the already-approved source-owned BBMA SL/TP. No fixed-pip,
-   // RR-derived or alternate destination is manufactured here.
-   if(!ResolveApprovedInitialSLTP(decision, snapshot))
-   {
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_SLTP_UNRESOLVED;
-      return false;
-   }
-
-   // M17 finalized SL; freeze the same value into the atomic risk snapshot.
-   snapshot.StopLoss = decision.StopLoss;
-
-   ENUM_REJECTION_REASON sltpRejection = REJ_NONE;
-   if(!ValidateSLTP(decision, snapshot, sltpRejection))
-   {
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = (sltpRejection != REJ_NONE) ?
-                                 sltpRejection : REJ_SLTP_UNRESOLVED;
-      return false;
-   }
-
-   bool lotValid = true;
-   double lot = CalculateLotSize(decision, snapshot, lotValid);
-   if(!lotValid || lot <= 0)
-   {
-      double rawLotDiagnostic = 0.0;
-      double normalizedLotDiagnostic = 0.0;
-      double effectiveMaxLotDiagnostic = 0.0;
-      string lotReasonTag = DiagnoseInvalidLotReason(
-         decision, snapshot, rawLotDiagnostic, normalizedLotDiagnostic,
-         effectiveMaxLotDiagnostic);
-      PrintInvalidLotDiagnostic(decision, snapshot, lotReasonTag,
-                                rawLotDiagnostic, normalizedLotDiagnostic,
-                                effectiveMaxLotDiagnostic);
-
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_INVALID_LOT;
-      return false;
-   }
-
-   RiskStatus riskStatus = CheckRiskBeforeTrade(decision, snapshot, lot);
-   if(!riskStatus.allowed)
-   {
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = (riskStatus.rejection_reason != REJ_NONE) ?
-                                 riskStatus.rejection_reason : REJ_TOTAL_RISK;
-      return false;
-   }
-
-   if(g_portfolio_emergency_close_requested)
-   {
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_BASKET_LOSS;
-      return false;
-   }
-
-   FinalPortfolioGuard(decision);
-   if(decision.DecisionState != DEC_VALIDATED)
-   {
-      if(EntryMode == 1)
-         Print("[P3M1][PORTFOLIO_REJECT] DecisionID=", decision.DecisionID,
-               " Reason=", EnumToString(decision.RejectionReason));
-      return false;
-   }
-
-   if(EntryMode == 1)
-      Print("[P3M1][PREFLIGHT_PASS] DecisionID=", decision.DecisionID,
-            " Entry=", DoubleToString(decision.EntryPrice, snapshot.Digits),
-            " SL=", DoubleToString(decision.StopLoss, snapshot.Digits),
-            " TP=", DoubleToString(decision.TakeProfit, snapshot.Digits),
-            " Lot=", DoubleToString(lot, snapshot.LotDigits));
-   if(EntryMode == 2)
-      Print("[P3M2][PREFLIGHT_PASS] DecisionID=", decision.DecisionID,
-            " Entry=", DoubleToString(decision.EntryPrice, snapshot.Digits),
-            " SL=", DoubleToString(decision.StopLoss, snapshot.Digits),
-            " TP=", DoubleToString(decision.TakeProfit, snapshot.Digits),
-            " Lot=", DoubleToString(lot, snapshot.LotDigits));
-
-   ProcessEntry(decision, pair, snapshot, lot);
-   return (decision.DecisionState == DEC_EXECUTED);
-}
-
-//+------------------------------------------------------------------+
-//| MODULE 23: POSITION MANAGEMENT (TICK-DRIVEN)                     |
-//| LEVEL: EXPERT-RESTRICTED                                         |
-//+------------------------------------------------------------------+
-
-// C044 Step3: strategy evidence is consumed only after M08/M12 owners have
-// been updated by the closed-M15 ProcessPair cycle. M23 still owns the latch
-// and close action; these helpers never redetect or mutate upstream owners.
-bool GetC044OwnerReEntrySnapshot(int pairIndex, int timeframe,
-                                  ENUM_DIRECTION direction,
-                                  ReEntryData &reEntry)
-{
-   ZeroMemory(reEntry);
-   if(pairIndex < 0 || pairIndex >= g_pair_count) return false;
-   if(direction != DIR_BUY && direction != DIR_SELL) return false;
-
-   if(timeframe == PERIOD_M15 && direction == DIR_BUY)
-      reEntry = g_pair_states[pairIndex].re_m15_buy_state;
-   else if(timeframe == PERIOD_M15 && direction == DIR_SELL)
-      reEntry = g_pair_states[pairIndex].re_m15_sell_state;
-   else if(timeframe == PERIOD_H1 && direction == DIR_BUY)
-      reEntry = g_pair_states[pairIndex].re_h1_buy_state;
-   else if(timeframe == PERIOD_H1 && direction == DIR_SELL)
-      reEntry = g_pair_states[pairIndex].re_h1_sell_state;
-   else if(timeframe == PERIOD_H4 && direction == DIR_BUY)
-      reEntry = g_pair_states[pairIndex].re_h4_buy_state;
-   else if(timeframe == PERIOD_H4 && direction == DIR_SELL)
-      reEntry = g_pair_states[pairIndex].re_h4_sell_state;
-   else if(timeframe == PERIOD_D1 && direction == DIR_BUY)
-      reEntry = g_pair_states[pairIndex].re_d1_buy_state;
-   else if(timeframe == PERIOD_D1 && direction == DIR_SELL)
-      reEntry = g_pair_states[pairIndex].re_d1_sell_state;
-   else
-      return false;
-
-   return true;
-}
-
-bool GetC044OwnerExtremeSnapshot(int pairIndex, int timeframe,
-                                 ENUM_DIRECTION direction,
-                                 ExtremeLifecycleData &extreme)
-{
-   ZeroMemory(extreme);
-   if(pairIndex < 0 || pairIndex >= g_pair_count) return false;
-   if(direction != DIR_BUY && direction != DIR_SELL) return false;
-
-   if(timeframe == PERIOD_M15 && direction == DIR_BUY)
-      extreme = g_pair_states[pairIndex].extreme_m15_buy_lifecycle;
-   else if(timeframe == PERIOD_M15 && direction == DIR_SELL)
-      extreme = g_pair_states[pairIndex].extreme_m15_sell_lifecycle;
-   else if(timeframe == PERIOD_H1 && direction == DIR_BUY)
-      extreme = g_pair_states[pairIndex].extreme_h1_buy_lifecycle;
-   else if(timeframe == PERIOD_H1 && direction == DIR_SELL)
-      extreme = g_pair_states[pairIndex].extreme_h1_sell_lifecycle;
-   else if(timeframe == PERIOD_H4 && direction == DIR_BUY)
-      extreme = g_pair_states[pairIndex].extreme_h4_buy_lifecycle;
-   else if(timeframe == PERIOD_H4 && direction == DIR_SELL)
-      extreme = g_pair_states[pairIndex].extreme_h4_sell_lifecycle;
-   else if(timeframe == PERIOD_D1 && direction == DIR_BUY)
-      extreme = g_pair_states[pairIndex].extreme_d1_buy_lifecycle;
-   else if(timeframe == PERIOD_D1 && direction == DIR_SELL)
-      extreme = g_pair_states[pairIndex].extreme_d1_sell_lifecycle;
-   else
-      return false;
-
-   return true;
-}
-
-bool IsC044DirectionSideOuterBBTest(TimeframeData &data,
-                                    ENUM_DIRECTION direction)
-{
-   if(!data.is_valid || !data.is_closed || data.candle_time <= 0 ||
-      data.high <= 0.0 || data.low <= 0.0 ||
-      data.bollinger[0] <= 0.0 || data.bollinger[2] <= 0.0)
-      return false;
-
-   if(direction == DIR_BUY)
-      return (data.high >= data.bollinger[0]);
-   if(direction == DIR_SELL)
-      return (data.low <= data.bollinger[2]);
-   return false;
-}
-
-bool FreezeC044Lifecycle(TradeInfo &info, string reason)
-{
-   if(!info.c044_lifecycle_managed) return false;
-
-   info.c044_state = C044_LIFE_FROZEN;
-   info.recovery_state = REC_IDENTITY_MISSING_FROZEN;
-   info.c044_exit_reason = C044_EXIT_NONE;
-   info.c044_exit_latched_candle = 0;
-   if(!SaveC044Checkpoint(info))
-      Log(DBG_ERROR, "C044 freeze checkpoint failed ticket=" + IntegerToString(info.ticket));
-
-   Log(DBG_ERROR, "C044 lifecycle frozen ticket=" + IntegerToString(info.ticket) +
-       " pair=" + info.pair + " reason=" + reason);
-   return false;
-}
-
-bool ProcessC044OwnerClosedCandle(TradeInfo &info, int pairIndex,
-                                  datetime candleTime)
-{
-   if(!EnableC044Lifecycle || !info.c044_lifecycle_managed) return true;
-   if(pairIndex < 0 || pairIndex >= g_pair_count || candleTime <= 0)
-      return FreezeC044Lifecycle(info, "INVALID_OWNER_EVENT_IDENTITY");
-   if(info.c044_state == C044_LIFE_EXIT_LATCHED ||
-      info.c044_state == C044_LIFE_FROZEN)
-      return true;
-   if(!info.c044_replay_seed_valid)
-      return FreezeC044Lifecycle(info, "REPLAY_SEED_MISSING");
-
-   string pair = g_pair_states[pairIndex].actual_symbol;
-   if(pair == "" || info.pair != pair ||
-      !IsValidC044OwnerTimeframe(info.c044_owner_timeframe))
-      return FreezeC044Lifecycle(info, "OWNER_EVENT_PAIR_OR_TF_MISMATCH");
-
-   int shift = iBarShift(pair, info.c044_owner_timeframe, candleTime, true);
-   if(shift < 1)
-      return FreezeC044Lifecycle(info, "OWNER_EVENT_CANDLE_NOT_EXACT_CLOSED_BAR");
-
-   TimeframeData data;
-   InitTimeframeData(data);
-   GetDataForTimeframe(pair, info.c044_owner_timeframe, candleTime, data);
-   if(!data.is_valid || !data.is_closed || data.candle_time != candleTime ||
-      data.barIndex != shift)
-      return FreezeC044Lifecycle(info, "OWNER_EVENT_CLOSED_DATA_UNAVAILABLE");
-
-   MovingAverage ma;
-   BollingerBand band;
-   BuildReEntryDirectionInputs(data, ma, band);
-
-   // Deterministic replay uses the same canonical M08 and M12 state machines on
-   // private C044 snapshots. No Extreme/Re-Entry formula is reimplemented here.
-   bool rawBuy = DetectExtreme(pair, DIR_BUY, data, band);
-   bool rawSell = DetectExtreme(pair, DIR_SELL, data, band);
-   UpdateExtremeLifecycle(info.c044_replay_extreme_buy, pair, DIR_BUY,
-                          data, band, rawBuy);
-   UpdateExtremeLifecycle(info.c044_replay_extreme_sell, pair, DIR_SELL,
-                          data, band, rawSell);
-   ResolveOppositeExtremeSupersession(info.c044_replay_extreme_buy,
-                                      info.c044_replay_extreme_sell, data);
-   UpdateReEntryState(info.c044_replay_reentry, pair, info.direction, data);
-
-   bool sameReEntryEvent =
-      (info.c044_replay_reentry.State == RE_STATE_CONFIRMED &&
-       info.c044_replay_reentry.IsValid &&
-       info.c044_replay_reentry.Direction == info.direction &&
-       info.c044_replay_reentry.Timeframe == info.c044_owner_timeframe &&
-       info.c044_replay_reentry.ConfirmationCandle == candleTime &&
-       candleTime > info.c044_epoch_anchor_candle);
-
-   bool oppositeExtremeEvent = false;
-   if(info.direction == DIR_BUY)
-   {
-      bool mature =
-         (info.c044_replay_extreme_sell.Maturity == EXT_MAT_REVERSAL_CONFIRMED ||
-          info.c044_replay_extreme_sell.Maturity == EXT_MAT_RETEST_PHASE ||
-          info.c044_replay_extreme_sell.Maturity == EXT_MAT_RETEST_READY);
-      oppositeExtremeEvent =
-         (info.c044_replay_extreme_sell.IsValid && mature &&
-          info.c044_replay_extreme_sell.ConfirmationCandleTime == candleTime &&
-          candleTime > info.c044_epoch_anchor_candle);
-   }
-   else if(info.direction == DIR_SELL)
-   {
-      bool mature =
-         (info.c044_replay_extreme_buy.Maturity == EXT_MAT_REVERSAL_CONFIRMED ||
-          info.c044_replay_extreme_buy.Maturity == EXT_MAT_RETEST_PHASE ||
-          info.c044_replay_extreme_buy.Maturity == EXT_MAT_RETEST_READY);
-      oppositeExtremeEvent =
-         (info.c044_replay_extreme_buy.IsValid && mature &&
-          info.c044_replay_extreme_buy.ConfirmationCandleTime == candleTime &&
-          candleTime > info.c044_epoch_anchor_candle);
-   }
-
-   info.c044_last_processed_owner_candle = candleTime;
-
-   if(oppositeExtremeEvent)
-   {
-      if(!LatchC044Exit(info, C044_EXIT_CYCLE_SUPERSEDED, candleTime))
-         return FreezeC044Lifecycle(info, "CYCLE_SUPERSESSION_LATCH_FAILED");
-      return true;
-   }
-
-   if(info.c044_state == C044_LIFE_WAIT_NEXT_REENTRY)
-   {
-      if(sameReEntryEvent)
-      {
-         info.c044_owner_reentry_candle = candleTime;
-         info.c044_epoch_anchor_candle = candleTime;
-         info.c044_state = C044_LIFE_WAIT_OUTER_TEST;
-         info.c044_exit_reason = C044_EXIT_NONE;
-         info.c044_exit_latched_candle = 0;
-      }
-      if(!SaveC044Checkpoint(info))
-         return FreezeC044Lifecycle(info, "WAIT_NEXT_REENTRY_CHECKPOINT_FAILED");
-      return true;
-   }
-
-   if(info.c044_state != C044_LIFE_WAIT_OUTER_TEST)
-      return FreezeC044Lifecycle(info, "UNEXPECTED_OWNER_EVENT_STATE");
-
-   if(candleTime <= info.c044_epoch_anchor_candle)
-   {
-      if(!SaveC044Checkpoint(info))
-         return FreezeC044Lifecycle(info, "EPOCH_BOUNDARY_CHECKPOINT_FAILED");
-      return true;
-   }
-
-   if(!IsC044DirectionSideOuterBBTest(data, info.direction))
-   {
-      if(!SaveC044Checkpoint(info))
-         return FreezeC044Lifecycle(info, "WAIT_OUTER_TEST_CHECKPOINT_FAILED");
-      return true;
-   }
-
-   bool momentum = DetectCSM(pair, info.c044_owner_timeframe,
-                             info.direction, shift);
-   if(momentum)
-   {
-      info.c044_state = C044_LIFE_WAIT_NEXT_REENTRY;
-      info.c044_exit_reason = C044_EXIT_NONE;
-      info.c044_exit_latched_candle = 0;
-      if(!SaveC044Checkpoint(info))
-         return FreezeC044Lifecycle(info, "MOMENTUM_HOLD_CHECKPOINT_FAILED");
-      return true;
-   }
-
-   if(!LatchC044Exit(info, C044_EXIT_FAILED_MOMENTUM, candleTime))
-      return FreezeC044Lifecycle(info, "FAILED_MOMENTUM_LATCH_FAILED");
-   return true;
-}
-
-bool AdvanceC044OwnerEventOneCandle(TradeInfo &info, int pairIndex)
-{
-   if(!EnableC044Lifecycle || !info.c044_lifecycle_managed) return true;
-   if(info.c044_state == C044_LIFE_EXIT_LATCHED ||
-      info.c044_state == C044_LIFE_FROZEN)
-      return true;
-   if(info.c044_last_processed_owner_candle <= 0 ||
-      !IsValidC044OwnerTimeframe(info.c044_owner_timeframe))
-      return FreezeC044Lifecycle(info, "OWNER_EVENT_CURSOR_INVALID");
-   if(!info.c044_replay_seed_valid)
-      return FreezeC044Lifecycle(info, "REPLAY_SEED_MISSING");
-
-   datetime latestClosed = GetLatestClosedCandleTime(
-      info.pair, info.c044_owner_timeframe);
-   if(latestClosed <= 0)
-      return FreezeC044Lifecycle(info, "LATEST_OWNER_CANDLE_UNAVAILABLE");
-   if(latestClosed <= info.c044_last_processed_owner_candle)
-      return true;
-
-   int latestShift = iBarShift(info.pair, info.c044_owner_timeframe,
-                               latestClosed, true);
-   int previousShift = iBarShift(info.pair, info.c044_owner_timeframe,
-                                 info.c044_last_processed_owner_candle, true);
-   if(latestShift < 1 || previousShift < 1 || previousShift <= latestShift)
-      return FreezeC044Lifecycle(info, "OWNER_EVENT_CURSOR_NOT_IN_HISTORY");
-
-   // Replay every missed closed owner candle from oldest to newest. Historical
-   // data must be exact; any missing candle freezes the lifecycle rather than
-   // guessing whether a Re-Entry, Extreme or failed Momentum occurred.
-   for(int shift = previousShift - 1; shift >= latestShift; shift--)
-   {
-      datetime candleTime = iTime(info.pair, info.c044_owner_timeframe, shift);
-      if(candleTime <= info.c044_last_processed_owner_candle)
-         return FreezeC044Lifecycle(info, "REPLAY_CANDLE_ORDER_INVALID");
-      if(!ProcessC044OwnerClosedCandle(info, pairIndex, candleTime))
-         return false;
-      if(info.c044_state == C044_LIFE_EXIT_LATCHED ||
-         info.c044_state == C044_LIFE_FROZEN)
-         return true;
-   }
-
-   if(info.c044_last_processed_owner_candle != latestClosed)
-      return FreezeC044Lifecycle(info, "REPLAY_CURSOR_DID_NOT_REACH_LATEST");
-   return true;
-}
-
-void AdvanceC044OwnerEventsForPair(int pairIndex)
-{
-   if(!EnableC044Lifecycle) return;
-   if(pairIndex < 0 || pairIndex >= g_pair_count) return;
-
-   string pair = g_pair_states[pairIndex].actual_symbol;
-   for(int i = 0; i < g_monitored_count; i++)
-   {
-      // Avoid a local reference alias: pass the registry element directly for
-      // conservative MQL4 compiler compatibility.
-      if(!g_monitored_trades[i].c044_lifecycle_managed ||
-         g_monitored_trades[i].pair != pair)
-         continue;
-      if(g_monitored_trades[i].recovery_state != REC_NORMAL &&
-         g_monitored_trades[i].recovery_state != REC_PARTIAL_INFERRED)
-         continue;
-      if(g_monitored_trades[i].c044_state == C044_LIFE_EXIT_LATCHED ||
-         g_monitored_trades[i].c044_state == C044_LIFE_FROZEN)
-         continue;
-
-      AdvanceC044OwnerEventOneCandle(g_monitored_trades[i], pairIndex);
-   }
-}
-
-bool LatchC044Exit(TradeInfo &info, ENUM_C044_EXIT_REASON reason, datetime candleTime)
-{
-   if(!EnableC044Lifecycle || !info.c044_lifecycle_managed) return false;
-   if(reason == C044_EXIT_NONE || candleTime <= 0) return false;
-
-   if(info.c044_state == C044_LIFE_EXIT_LATCHED)
-      return (info.c044_exit_reason == reason);
-
-   if(info.c044_state != C044_LIFE_WAIT_OUTER_TEST &&
-      info.c044_state != C044_LIFE_WAIT_NEXT_REENTRY)
-      return false;
-
-   info.c044_state = C044_LIFE_EXIT_LATCHED;
-   info.c044_exit_reason = reason;
-   info.c044_exit_latched_candle = candleTime;
-   if(!SaveC044Checkpoint(info))
-      Log(DBG_ERROR, "C044 latch checkpoint failed ticket=" + IntegerToString(info.ticket));
-   return true;
-}
-
-bool ExecuteLatchedC044Close(TradeInfo &info)
-{
-   if(!EnableC044Lifecycle || !info.c044_lifecycle_managed) return false;
-   if(info.c044_state != C044_LIFE_EXIT_LATCHED ||
-      info.c044_exit_reason == C044_EXIT_NONE) return false;
-   if(info.ticket <= 0 || info.pair == "" || info.magic_number <= 0) return false;
-
-   ResetLastError();
-   if(!OrderSelect(info.ticket, SELECT_BY_TICKET)) return false;
-   if(OrderCloseTime() != 0)
-   {
-      ClearC044Checkpoint(info);
-      return true;
-   }
-   if(OrderSymbol() != info.pair || OrderMagicNumber() != info.magic_number)
-      return false;
-
-   double closePrice = (info.direction == DIR_BUY)
-      ? MarketInfo(info.pair, MODE_BID)
-      : (info.direction == DIR_SELL ? MarketInfo(info.pair, MODE_ASK) : 0.0);
-   if(closePrice <= 0.0) return false;
-
-   ResetLastError();
-   if(OrderClose(info.ticket, OrderLots(), closePrice, Slippage))
-   {
-      ClearC044Checkpoint(info);
-      return true;
-   }
-
-   int error = GetLastError();
-   Log(DBG_ERROR, "C044 close failed ticket=" + IntegerToString(info.ticket) +
-       " error=" + IntegerToString(error));
-   return false;
-}
-
-
-// D1TPW-01: lifecycle evidence is consumed on the M15 processing clock only.
+            " ParentEvent=", decision.NMJEParentEventID ==TPW-01: lifecycle evidence is consumed on the M15 processing clock only.
 // The D1 Extreme remains TP semantic owner; M23 only latches/executes full close.
 bool FreezeD1TPWLifecycle(TradeInfo &info, string reason)
 {

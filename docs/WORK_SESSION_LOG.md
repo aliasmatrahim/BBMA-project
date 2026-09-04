@@ -12,6 +12,28 @@ Purpose: technical audit trail for BBMA Professional EA development. This log di
 - For NMJE v4.5.9, only evidence explicitly traceable to `BBMA_EA_V459_NMJE_FORWARD` is valid. Ignore C10, Strategy Tester, old builds, and unrelated historical evidence.
 - A genuine NMJE outcome is usable only when `[N1-NMJE]` -> `[N2-NMJE-DEC]` -> `[N2-NMJE-OUT]` can be correlated by `DID/DIDH`, pair/symbol, and identity consistently.
 
+## Permanent Session-Logging Workflow
+
+This workflow applies to all future BBMA technical work.
+
+1. At the start of a meaningful task, classify the execution source as `CHAT` or `WORK`.
+2. Before changing source/config/architecture, capture the best available baseline: branch + commit/HEAD and local dirty state when accessible.
+3. Record an entry whenever work produces a meaningful code/config/architecture change, compile result, runtime result, validation result, regression finding, or audit checkpoint.
+4. Small explanations, status questions, or discussions that do not change project state do not require an entry.
+5. Every entry must identify the affected scope/modules and distinguish implementation from validation.
+6. A code change performed in `CHAT` remains `PENDING` until it is verified by evidence. When `WORK` later audits it, add a new `WORK` verification entry rather than rewriting its origin.
+7. Never relabel work originally performed in `CHAT` as `WORK`, or vice versa. Verification mode and implementation mode are separate facts.
+8. Where available, use Git commit/hash as the primary technical anchor. If changes are still local/uncommitted, record branch/HEAD + dirty/local-diff state instead.
+9. Runtime/MT4 evidence must record the verified active Data Folder/log path and exact build/marker; stale or unrelated logs are invalid evidence.
+10. Before a build is treated as locked/production-ready, all meaningful `CHAT` deltas since the last known-good `WORK` baseline must be audited and classified `VERIFIED`, `FAILED`, `PENDING`, or `SUPERSEDED`.
+
+### Identification Rule
+
+- `ORIGIN MODE` = where the implementation/change was actually performed.
+- `VERIFY MODE` = where that change was later audited/validated.
+- A change may therefore be `ORIGIN MODE: CHAT` and later `VERIFY MODE: WORK`.
+- Git history + Desktop Commander local state + this log together form the audit trail. Memory alone is not sufficient evidence.
+
 ## Status Values
 
 - `PENDING` — work/evidence exists but verification is incomplete.
@@ -23,7 +45,8 @@ Purpose: technical audit trail for BBMA Professional EA development. This log di
 
 ```text
 DATE/TIME:
-MODE: CHAT | WORK
+ORIGIN MODE: CHAT | WORK
+VERIFY MODE: CHAT | WORK | NONE
 SCOPE/MODULES:
 BASELINE/COMMIT:
 LOCAL STATE:
@@ -42,7 +65,8 @@ NEXT GATE:
 ## 2026-09-04 — Chat-mode continuation checkpoint
 
 DATE/TIME: 2026-09-04 (Malaysia time)
-MODE: CHAT
+ORIGIN MODE: CHAT
+VERIFY MODE: NONE
 SCOPE/MODULES: BBMA Professional EA v4.5.9; NMJE forward-runtime validation and project continuation
 BASELINE/COMMIT: To be resolved from Git/local history during next Work-mode audit
 LOCAL STATE: Must be compared against the last known-good pre-Chat baseline using Desktop Commander + Git history
@@ -54,6 +78,25 @@ VALIDATION STATUS: PENDING
 EVIDENCE: Active MT4 instance/log path must be re-confirmed at each runtime check. Required chain: `[N1-NMJE]` -> `[N2-NMJE-DEC]` -> `[N2-NMJE-OUT]`, consistent `DID/DIDH` + pair/symbol + `BBMA_EA_V459_NMJE_FORWARD`
 ISSUE/RISK: Do not mix old C10/Strategy Tester/build evidence with current v4.5.9 forward evidence. Do not infer "no new outcome" without reading the current active MQL4 log
 NEXT GATE: When Work mode is available, resolve the exact last known-good baseline, audit all Chat-mode deltas using Desktop Commander + GitHub, then classify each delta as VERIFIED/FAILED/PENDING before locking the build
+
+---
+
+## 2026-09-04 — Permanent Chat/Work identification workflow enabled
+
+DATE/TIME: 2026-09-04 (Malaysia time)
+ORIGIN MODE: CHAT
+VERIFY MODE: NONE
+SCOPE/MODULES: Project-wide development process
+BASELINE/COMMIT: Workflow documentation commit created from current `main`
+LOCAL STATE: Repository-side process update only; no EA source logic changed
+CHANGE/ACTION: Made Chat-vs-Work origin tracking a permanent BBMA workflow. Added separate `ORIGIN MODE` and `VERIFY MODE` so later Work audits do not erase the fact that a change originated in Chat.
+REASON: Ensure all meaningful project work can later be attributed and audited accurately across Chat and Work modes.
+COMPILE STATUS: Not applicable; documentation-only change
+RUNTIME STATUS: Not applicable
+VALIDATION STATUS: VERIFIED
+EVIDENCE: `docs/WORK_SESSION_LOG.md` workflow rules and Git commit history
+ISSUE/RISK: None introduced to EA runtime/source code
+NEXT GATE: Apply this classification to every future meaningful BBMA technical change or validation checkpoint
 
 ---
 

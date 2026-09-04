@@ -167,15 +167,22 @@ Implementation/audit record: `blueprint/CORE_V2_F6_TIMING_VERIFICATION_AUDIT.md`
 Resolved mapping: closed source-TF Re-Entry candle validates; execution may occur in the immediately following live source-TF candle; no extra full-candle delay.
 
 #### CORE-V2-F7 — Re-Entry SL/TP / lifecycle provenance
-Priority: **MEDIUM / SOURCE GOVERNANCE + FUTURE ARCHITECTURE**
-Status: **SOURCE/LIFECYCLE SEMANTICS RESOLVED THROUGH PATH-A AUDIT CHAIN / EA IMPLEMENTATION DEFERRED WHILE P3 CANDIDATE IS FROZEN**
+Priority: **HIGH / RUNTIME VALIDATION GATE**
+Status: **REOPENED BY EXPLICIT STRATEGY DECISION 2026-09-04 / v4.61 IMPLEMENTED / STATIC PASS / NATIVE METAEDITOR 0E0W — RUNTIME VALIDATION PENDING**
 Canonical reconciliation record:
 `blueprint/CORE_V2_F7_CANONICAL_RECONCILIATION_AUDIT_20260824.md`
-Current source/spec conclusion:
-- lifecycle-managed Re-Entry model is stronger than the old universal static outer-BB TP mapping;
-- old H1/H4/D1 outer-BB TP mapping is not established as universal Core;
-- hard SL remains EA_SAFETY rather than universal Core;
-- implementation changes remain a future post-freeze series.
+Implementation record:
+`blueprint/audits/V461_F7_REENTRY_LIFECYCLE_IMPLEMENTATION_20260904.md`
+Current implementation:
+- source-backed lifecycle owners only: standalone H1 Re-Entry=H1, REM=H4, RRE/REE=D1;
+- protective structural hard SL retained as EA_SAFETY;
+- F7-managed Re-Entry orders are targetless at broker TP level;
+- fixed 5-pip Re-Entry SL floor and fixed 1:1 Re-Entry RR gate removed;
+- same-direction CSM -> hold/wait next Re-Entry; later owner Re-Entry -> re-arm;
+- reverse confirmation before same-direction CSM or opposite CSM -> latched close;
+- opposite reversal-confirmed owner-TF Extreme -> cycle-superseded close;
+- checkpoint/replay/fail-frozen recovery and close idempotency active;
+- next action: focused runtime traces + restart/recovery validation before production claim.
 
 ### P1 — Opposite-direction / same-pair cycle integrity
 Priority: HIGH

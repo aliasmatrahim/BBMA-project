@@ -37,8 +37,8 @@ jobs:
           p = Path('blueprint/source/BBMA_EA.mq4')
           s = p.read_text(encoding='utf-8')
           required = [
-              'Version 4.6.0 - N3 D1 Owner Epoch Provenance Fix',
-              '#property version   "4.60"',
+              'Version 4.6.2 - N3 D1 Epoch + F7 Reconcile',
+              '#property version   "4.62"',
               'UpdateNestedJourneyObservation(pairIndex);',
               'NMJE_PrintValidatedDecisionShadow(pairIndex, decision);',
           ]

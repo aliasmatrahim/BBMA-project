@@ -185,3 +185,20 @@ NEXT GATE: NMJE v4.59 forward validation is CLOSED/PASS. Continue with the next 
 5. Re-check pending forward-validation evidence from the active MT4 Data Folder and MQL4 logs.
 6. Report only new meaningful findings as `ISSUE -> IMPACT -> FIX`.
 7. Do not modify code until the user confirms fixes after the audit.
+
+---
+
+## 2026-09-04 — F7 Re-Entry lifecycle implementation v4.61
+
+DATE/TIME: 2026-09-04 (Malaysia time)
+ORIGIN MODE: CHAT
+VERIFY MODE: CHAT
+SCOPE/MODULES: CORE-V2-F7; M17 SL/TP; M23 lifecycle close; M24 recovery/checkpoint; Re-Entry-owned H1/REM/RRE/REE trades
+BASELINE/COMMIT: `d1-owner-dev` baseline `97e07de784e49b20c8fa31b7a364430849d4637b`; implementation commit `6cc6cdb69fe62978b31e69ad54978b1c04a0e981`
+LOCAL STATE: Source changes committed/pushed to `d1-owner-dev`. Pre-existing dirty `blueprint/source/BBMA_EA.ex4` and old v4.59 compile logs were excluded from the commit.
+CHANGE/ACTION: User explicitly reopened the historical F7 lifecycle material that had been retained on HOLD by the 2026-08-25 reconciliation. Implemented v4.61 lifecycle ownership for standalone H1 Re-Entry=H1, REM=H4, RRE/REE=D1; removed v4.60 fixed `MinReEntrySLPips=5` and `MinReEntryRRRatio=1.0`; F7-managed trades retain structural protective hard SL and use broker TP=0; targetless F7 bypasses MinRR because no source-proven reward coordinate exists at entry.COMPILE STATUS: Native MetaEditor isolated compile PASS — `0 errors, 0 warnings`.
+RUNTIME STATUS: PENDING. v4.61 has not been deployed/validated as the active MT4 runtime build in this checkpoint.
+VALIDATION STATUS: PENDING
+EVIDENCE: `blueprint/audits/V461_F7_REENTRY_LIFECYCLE_IMPLEMENTATION_20260904.md`; `blueprint/decisions/F7_REENTRY_LIFECYCLE_REOPEN_DECISION_20260904.md`; native MetaEditor compile log from isolated v4.61 copy; static regression checks for lifecycle gate, owner mapping, removal of fixed Re-Entry SL/RR, CSM/reverse/re-arm/cycle events and checkpoint/recovery plumbing.
+ISSUE/RISK: Compile/static correctness does not establish lifecycle runtime correctness or profitability. Required runtime evidence remains: same-direction CSM hold, reverse-confirmation close, opposite-CSM close, later Re-Entry re-arm, opposite reversal-confirmed Extreme cycle close, restart replay, and close idempotency.
+NEXT GATE: Run focused v4.61 F7 runtime validation with freshly verified active MT4 Data Folder/build identity before production lock or profitability conclusions.

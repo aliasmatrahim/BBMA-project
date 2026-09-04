@@ -138,6 +138,25 @@ NEXT GATE: Reconcile stale tracking metadata later; continue with another non-te
 
 ---
 
+## 2026-09-04 — Non-test queue reconciliation boundary
+
+DATE/TIME: 2026-09-04 (Malaysia time)
+ORIGIN MODE: CHAT
+VERIFY MODE: CHAT
+SCOPE/MODULES: Project queue/status reconciliation; P2 observability; P0 v4.59 IP-10/IP-12 freeze boundary
+BASELINE/COMMIT: `d1-owner-dev`; reconciliation audit commit `62d524e469cf1d9ec3ce2a1d5b6ee527bb201c98`
+LOCAL STATE: GitHub records inspected only; no EA source/config/runtime change performed
+CHANGE/ACTION: Reconciled stale historical queue/current wording against dated closure records. Confirmed invalid-lot diagnostics and dashboard live-count are already CLOSED/PASS with native MetaEditor 0E0W; confirmed IP-10 canonical promotion PASS and IP-12 canonical freeze PASS. Determined no further meaningful non-test EA source task is authorized before the runtime/evidence gate.
+REASON: User instructed continuous progress through all next steps that do not require test/verification, stopping only when user verification is required.
+COMPILE STATUS: No new compile; accepted prior closure evidence only
+RUNTIME STATUS: No runtime test performed in this checkpoint
+VALIDATION STATUS: VERIFIED
+EVIDENCE: `blueprint/P2_REJ_INVALID_LOT_DIAGNOSTICS_AUDIT_20260825.md`; `blueprint/P2_DASHBOARD_LIVE_TRADE_COUNT_AUDIT_20260825.md`; `blueprint/audits/P0_V459_IP10_CANONICAL_PROMOTION_VERIFICATION_20260827.md`; `blueprint/audits/P0_V459_IP12_CANONICAL_FREEZE_R1_HANDOFF_20260827.md`; `blueprint/audits/CHAT_NONTEST_QUEUE_RECONCILIATION_20260904.md`
+ISSUE/RISK: Older `MASTER_QUEUE.md` and `CURRENT.md` sections contain superseded historical wording. They must not be treated as current authority when later dated closure/overlay records conflict. Opportunistic source edits would violate the frozen v4.59 attribution boundary.
+NEXT GATE: User/runtime verification. Continue only with the currently authorized runtime/evidence-validation activity; keep EA source unchanged unless attributable runtime evidence proves a defect or the user separately approves a strategy/architecture change.
+
+---
+
 ## Work-mode return audit checklist
 
 1. Identify the last known-good commit/state before normal Chat continuation.

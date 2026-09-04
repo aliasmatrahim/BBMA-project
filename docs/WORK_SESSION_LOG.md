@@ -119,6 +119,25 @@ NEXT GATE: Reconcile the queue/status record for this item, then continue with t
 
 ---
 
+## 2026-09-04 — P2 dashboard active-trade count static audit checkpoint
+
+DATE/TIME: 2026-09-04 (Malaysia time)
+ORIGIN MODE: CHAT
+VERIFY MODE: CHAT
+SCOPE/MODULES: P2 UI/observability; M25 dashboard active-trade count refresh
+BASELINE/COMMIT: `d1-owner-dev`, source blob SHA `dc83e62748c93171d89a312e9f7a53c06d97e261`; audit record commit `b399b3bb88d8ba14f43f98505b934f293ee75569`
+LOCAL STATE: GitHub authoritative branch inspected; no EA `.mq4` source change performed
+CHANGE/ACTION: Confirmed `P2-DASHCOUNT-01` is already present. M25 derives the displayed trade count from the live broker order pool using `OrdersTotal()` + `OrderSelect(..., MODE_TRADES)` + `IsExactEAOwnedSelectedOrder()`, rather than `g_monitored_count`. `RefreshDashboardLiveTradeCount()` rebuilds the snapshot when the broker-derived count changes, and `OnTimer()` invokes the refresh path.
+REASON: Continue the non-test queue while preserving the currently frozen runtime candidate.
+COMPILE STATUS: Not rerun; EA source unchanged
+RUNTIME STATUS: Not run by this checkpoint
+VALIDATION STATUS: PENDING
+EVIDENCE: `blueprint/source/BBMA_EA.mq4` M25 and `blueprint/audits/P2_DASHCOUNT_STATIC_AUDIT_20260904.md`
+ISSUE/RISK: `blueprint/MASTER_QUEUE.md` still lists dashboard active-trade count refresh as `QUEUED`; that tracking status is stale relative to current source. Runtime display behavior is not claimed as verified.
+NEXT GATE: Reconcile stale tracking metadata later; continue with another non-test/read-only item that does not alter the frozen EA runtime candidate.
+
+---
+
 ## Work-mode return audit checklist
 
 1. Identify the last known-good commit/state before normal Chat continuation.

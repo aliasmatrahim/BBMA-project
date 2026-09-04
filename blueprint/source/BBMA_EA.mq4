@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.6.0 - Re-Entry Profitability Hardening        |
+//| Version 4.6.1 - F7 Re-Entry Lifecycle Integration        |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.60"
+#property version   "4.61"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -99,8 +99,6 @@ input bool     ShowDashboard                      = true;       // 07 Display | 
 
 //--- 08 ADVANCED SAFETY / EXECUTION
 input double   MinRRRatio                         = 0.0;        // 08 Advanced | optional global Min RR filter; 0=disabled
-input double   MinReEntryRRRatio                  = 1.0;        // 08 Advanced | RE_ENTRY minimum RR; 0=disabled
-input double   MinReEntrySLPips                   = 5.0;        // 08 Advanced | minimum RE_ENTRY SL distance
 input bool     BlockNMJEConflict                  = true;       // 08 Advanced | block RE_ENTRY when NMJE=CONFLICT
 input bool     BlockNMJEBuilding                  = true;       // 08 Advanced | block RE_ENTRY when NMJE=BUILDING
 input double   MaxSLPips                          = 100.0;      // 08 Advanced | maximum accepted SL distance
@@ -127,9 +125,9 @@ bool           EnableRE_Type1                     = true;
 bool           EnableRE_Type2                     = true;
 bool           EnableRE_Type3                     = true;
 bool           EnableRE_Type4                     = true;
-// C044 staged implementation gate. Keep OFF until M23/M24 lifecycle
-// close + restart reconstruction are implemented and verified.
-bool           EnableC044Lifecycle                = false;
+// F7/C044 Re-Entry lifecycle reopened by explicit strategy decision 2026-09-04.
+// M23/M24 close, checkpoint and restart reconstruction are active for source-backed owners.
+bool           EnableC044Lifecycle                = true;
 // D1 EXTREME_TPW staged lifecycle. Keep OFF until native/static gates and
 // broker/demo restart + close-idempotency validation are complete.
 bool           EnableD1TPWLifecycle               = false;
@@ -341,7 +339,7 @@ enum ENUM_RECOVERY_STATE { REC_NORMAL, REC_CORRUPTED, REC_RECOVERY_INVALID, REC_
 enum ENUM_C044_LIFECYCLE_STATE
 {
    C044_LIFE_NONE,
-   C044_LIFE_WAIT_OUTER_TEST,
+   C044_LIFE_MOMENTUM_PENDING,
    C044_LIFE_WAIT_NEXT_REENTRY,
    C044_LIFE_EXIT_LATCHED,
    C044_LIFE_FROZEN
@@ -351,7 +349,8 @@ enum ENUM_C044_EXIT_REASON
 {
    C044_EXIT_NONE,
    C044_EXIT_FAILED_MOMENTUM,
-   C044_EXIT_CYCLE_SUPERSEDED
+   C044_EXIT_CYCLE_SUPERSEDED,
+   C044_EXIT_OPPOSITE_CSM
 };
 
 //--- STRUCTS
@@ -6365,6 +6364,19 @@ bool ResolveApprovedBBDestination(string pair, ComponentIdentity &source,
    return (destination > 0.0);
 }
 
+bool IsF7LifecycleIdentity(BBMA_Decision &decision)
+{
+   if(!EnableC044Lifecycle || !decision.HasSLTPSourceComponent) return false;
+   ComponentIdentity source = decision.SLTPSourceComponent;
+   if(source.ComponentType != SIGNAL_RE_ENTRY || source.Direction != decision.Direction ||
+      source.CandleTime <= 0) return false;
+   if(decision.SignalType == SIGNAL_RE_ENTRY) return (source.Timeframe == PERIOD_H1);
+   if(decision.SignalType == SIGNAL_REM) return (source.Timeframe == PERIOD_H4);
+   if(decision.SignalType == SIGNAL_RRE || decision.SignalType == SIGNAL_REE)
+      return (source.Timeframe == PERIOD_D1);
+   return false;
+}
+
 bool IsD1TPWLifecycleIdentity(BBMA_Decision &decision)
 {
    return (decision.D1AuthorityMode == D1_AUTH_OPPORTUNITY &&
@@ -6392,7 +6404,7 @@ bool ResolveApprovedInitialSLTP(BBMA_Decision &decision,
    if(d1TPWLifecycle && !EnableD1TPWLifecycle)
       return false; // never execute EXTREME_TPW with the legacy RE outer-BB TP
    d1TPWLifecycle = d1TPWLifecycle && EnableD1TPWLifecycle;
-   bool c044Lifecycle = EnableC044Lifecycle && !d1TPWLifecycle;
+   bool c044Lifecycle = IsF7LifecycleIdentity(decision) && !d1TPWLifecycle;
    bool targetlessLifecycle = (d1TPWLifecycle || c044Lifecycle);
 
    double structuralAnchor = 0.0;
@@ -6449,24 +6461,6 @@ bool ResolveApprovedInitialSLTP(BBMA_Decision &decision,
          roundedSpreadBufferPips = 2.0;
 
       brokerSL += roundedSpreadBufferPips * pipValue;
-   }
-
-   // Profitability hardening: preserve structural SL, but enforce a minimum RE_ENTRY distance.
-   if(decision.SignalType == SIGNAL_RE_ENTRY && MinReEntrySLPips > 0.0)
-   {
-      double rePipValue = GetPipValue(decision.Pair);
-      if(rePipValue <= 0.0) return false;
-      double minReSLDistance = MinReEntrySLPips * rePipValue;
-      if(decision.Direction == DIR_BUY)
-      {
-         double maxBuySL = decision.EntryPrice - minReSLDistance;
-         if(brokerSL > maxBuySL) brokerSL = maxBuySL;
-      }
-      else if(decision.Direction == DIR_SELL)
-      {
-         double minSellSL = decision.EntryPrice + minReSLDistance;
-         if(brokerSL < minSellSL) brokerSL = minSellSL;
-      }
    }
 
    if(snapshot.TickSize_Price <= 0.0 || snapshot.Digits < 0) return false;
@@ -6626,14 +6620,8 @@ bool ValidateSLTP(BBMA_Decision &decision, RiskValidationSnapshot &snapshot,
          return false;
       }
 
-      // Targetless lifecycle has no deterministic reward coordinate.
-      // Never manufacture one merely to satisfy an explicitly enabled MinRR.
-      if(MinRRRatio > 0.0)
-      {
-         rejection = REJ_INVALID_RR;
-         return false;
-      }
-
+      // F7 targetless Re-Entry lifecycle has no source-proven reward coordinate.
+      // MinRR is intentionally bypassed; do not manufacture a reward target.
       double closePrice = GetDirectionalClosePrice(snapshot, decision.Direction);
       double minDistance = snapshot.StopLevel * snapshot.Point;
       if(closePrice <= 0.0)
@@ -6683,10 +6671,7 @@ bool ValidateSLTP(BBMA_Decision &decision, RiskValidationSnapshot &snapshot,
       }
    }
 
-   double effectiveMinRR = MinRRRatio;
-   if(decision.SignalType == SIGNAL_RE_ENTRY && MinReEntryRRRatio > effectiveMinRR)
-      effectiveMinRR = MinReEntryRRRatio;
-   if(effectiveMinRR > 0.0 && (tpDistance / slDistance) < effectiveMinRR)
+   if(MinRRRatio > 0.0 && (tpDistance / slDistance) < MinRRRatio)
    {
       rejection = REJ_INVALID_RR;
       return false;
@@ -8027,21 +8012,6 @@ bool GetC044OwnerExtremeSnapshot(int pairIndex, int timeframe,
    return true;
 }
 
-bool IsC044DirectionSideOuterBBTest(TimeframeData &data,
-                                    ENUM_DIRECTION direction)
-{
-   if(!data.is_valid || !data.is_closed || data.candle_time <= 0 ||
-      data.high <= 0.0 || data.low <= 0.0 ||
-      data.bollinger[0] <= 0.0 || data.bollinger[2] <= 0.0)
-      return false;
-
-   if(direction == DIR_BUY)
-      return (data.high >= data.bollinger[0]);
-   if(direction == DIR_SELL)
-      return (data.low <= data.bollinger[2]);
-   return false;
-}
-
 bool FreezeC044Lifecycle(TradeInfo &info, string reason)
 {
    if(!info.c044_lifecycle_managed) return false;
@@ -8149,7 +8119,7 @@ bool ProcessC044OwnerClosedCandle(TradeInfo &info, int pairIndex,
       {
          info.c044_owner_reentry_candle = candleTime;
          info.c044_epoch_anchor_candle = candleTime;
-         info.c044_state = C044_LIFE_WAIT_OUTER_TEST;
+         info.c044_state = C044_LIFE_MOMENTUM_PENDING;
          info.c044_exit_reason = C044_EXIT_NONE;
          info.c044_exit_latched_candle = 0;
       }
@@ -8158,7 +8128,7 @@ bool ProcessC044OwnerClosedCandle(TradeInfo &info, int pairIndex,
       return true;
    }
 
-   if(info.c044_state != C044_LIFE_WAIT_OUTER_TEST)
+   if(info.c044_state != C044_LIFE_MOMENTUM_PENDING)
       return FreezeC044Lifecycle(info, "UNEXPECTED_OWNER_EVENT_STATE");
 
    if(candleTime <= info.c044_epoch_anchor_candle)
@@ -8168,16 +8138,17 @@ bool ProcessC044OwnerClosedCandle(TradeInfo &info, int pairIndex,
       return true;
    }
 
-   if(!IsC044DirectionSideOuterBBTest(data, info.direction))
-   {
-      if(!SaveC044Checkpoint(info))
-         return FreezeC044Lifecycle(info, "WAIT_OUTER_TEST_CHECKPOINT_FAILED");
-      return true;
-   }
+   ENUM_DIRECTION oppositeDirection = (info.direction == DIR_BUY) ? DIR_SELL : DIR_BUY;
+   bool sameMomentum = DetectCSM(pair, info.c044_owner_timeframe,
+                                 info.direction, shift);
+   bool oppositeMomentum = DetectCSM(pair, info.c044_owner_timeframe,
+                                     oppositeDirection, shift);
+   bool reverseConfirmation = (info.direction == DIR_BUY)
+      ? (data.close < data.open)
+      : (data.close > data.open);
 
-   bool momentum = DetectCSM(pair, info.c044_owner_timeframe,
-                             info.direction, shift);
-   if(momentum)
+   // F7 precedence: canonical CSM classification before the weaker reverse-colour test.
+   if(sameMomentum)
    {
       info.c044_state = C044_LIFE_WAIT_NEXT_REENTRY;
       info.c044_exit_reason = C044_EXIT_NONE;
@@ -8187,8 +8158,22 @@ bool ProcessC044OwnerClosedCandle(TradeInfo &info, int pairIndex,
       return true;
    }
 
-   if(!LatchC044Exit(info, C044_EXIT_FAILED_MOMENTUM, candleTime))
-      return FreezeC044Lifecycle(info, "FAILED_MOMENTUM_LATCH_FAILED");
+   if(oppositeMomentum)
+   {
+      if(!LatchC044Exit(info, C044_EXIT_OPPOSITE_CSM, candleTime))
+         return FreezeC044Lifecycle(info, "OPPOSITE_CSM_LATCH_FAILED");
+      return true;
+   }
+
+   if(reverseConfirmation)
+   {
+      if(!LatchC044Exit(info, C044_EXIT_FAILED_MOMENTUM, candleTime))
+         return FreezeC044Lifecycle(info, "FAILED_MOMENTUM_LATCH_FAILED");
+      return true;
+   }
+
+   if(!SaveC044Checkpoint(info))
+      return FreezeC044Lifecycle(info, "MOMENTUM_PENDING_CHECKPOINT_FAILED");
    return true;
 }
 
@@ -8270,7 +8255,7 @@ bool LatchC044Exit(TradeInfo &info, ENUM_C044_EXIT_REASON reason, datetime candl
    if(info.c044_state == C044_LIFE_EXIT_LATCHED)
       return (info.c044_exit_reason == reason);
 
-   if(info.c044_state != C044_LIFE_WAIT_OUTER_TEST &&
+   if(info.c044_state != C044_LIFE_MOMENTUM_PENDING &&
       info.c044_state != C044_LIFE_WAIT_NEXT_REENTRY)
       return false;
 
@@ -8700,8 +8685,8 @@ void ResetC044TradeState(TradeInfo &info)
 
 bool IsValidC044OwnerTimeframe(int timeframe)
 {
-   return (timeframe == PERIOD_M15 || timeframe == PERIOD_H1 ||
-           timeframe == PERIOD_H4 || timeframe == PERIOD_D1);
+   return (timeframe == PERIOD_H1 || timeframe == PERIOD_H4 ||
+           timeframe == PERIOD_D1);
 }
 
 bool CaptureC044ReplaySeed(TradeInfo &info, int pairIndex)
@@ -8773,7 +8758,7 @@ bool InitializeC044TradeStateFromDecision(TradeInfo &info, BBMA_Decision &decisi
    // candles between the source Re-Entry and actual order creation are provenance,
    // not lifecycle events for a position that did not yet exist.
    info.c044_last_processed_owner_candle = latestClosed;
-   info.c044_state = C044_LIFE_WAIT_OUTER_TEST;
+   info.c044_state = C044_LIFE_MOMENTUM_PENDING;
    info.c044_exit_reason = C044_EXIT_NONE;
    info.c044_exit_latched_candle = 0;
 
@@ -9070,7 +9055,7 @@ bool LoadC044Checkpoint(TradeInfo &info)
    if(!IsValidC044OwnerTimeframe(timeframe) || ownerRe <= 0 || epoch <= 0 ||
       lastProcessed <= 0)
       return false;
-   if(state != C044_LIFE_WAIT_OUTER_TEST &&
+   if(state != C044_LIFE_MOMENTUM_PENDING &&
       state != C044_LIFE_WAIT_NEXT_REENTRY &&
       state != C044_LIFE_EXIT_LATCHED && state != C044_LIFE_FROZEN)
       return false;

@@ -100,6 +100,25 @@ NEXT GATE: Apply this classification to every future meaningful BBMA technical c
 
 ---
 
+## 2026-09-04 — P2 invalid-lot diagnostics static audit checkpoint
+
+DATE/TIME: 2026-09-04 (Malaysia time)
+ORIGIN MODE: CHAT
+VERIFY MODE: CHAT
+SCOPE/MODULES: P2 observability; M21 Money Management; `REJ_INVALID_LOT` diagnostics
+BASELINE/COMMIT: `d1-owner-dev`, source blob SHA `dc83e62748c93171d89a312e9f7a53c06d97e261`
+LOCAL STATE: GitHub authoritative branch inspected; no EA source change performed in this checkpoint
+CHANGE/ACTION: Audited the queued `REJ_INVALID_LOT` diagnostics item without running tests or modifying EA logic. Confirmed `DiagnoseInvalidLotReason()` and `PrintInvalidLotDiagnostic()` already exist and are called on the failed `CalculateLotSize()` path before the decision is marked `REJ_INVALID_LOT`.
+REASON: User requested continuation using detailed non-test steps while preserving the frozen runtime candidate.
+COMPILE STATUS: Not rerun; source not modified
+RUNTIME STATUS: Not run by this checkpoint
+VALIDATION STATUS: PENDING
+EVIDENCE: `blueprint/source/BBMA_EA.mq4` on `d1-owner-dev`; M21 contains observability-only reason classification and `RunEntryPreflightAndExecute()` invokes it on lot failure
+ISSUE/RISK: `blueprint/MASTER_QUEUE.md` still lists P2 `REJ_INVALID_LOT diagnostics` as `QUEUED`, so project tracking is stale relative to the current source. Runtime/compile closure is intentionally not claimed.
+NEXT GATE: Reconcile the queue/status record for this item, then continue with the next non-test audit item while leaving the frozen EA runtime candidate unchanged.
+
+---
+
 ## Work-mode return audit checklist
 
 1. Identify the last known-good commit/state before normal Chat continuation.

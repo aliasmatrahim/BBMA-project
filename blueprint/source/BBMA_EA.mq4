@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.5.9 - P0 Execution Identity Persistence Fix        |
+//| Version 4.6.0 - Re-Entry Profitability Hardening        |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.59"
+#property version   "4.60"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -98,7 +98,11 @@ input double   MaxTotalRiskPercent                = 5.0;        // 06 Risk | max
 input bool     ShowDashboard                      = true;       // 07 Display | show chart dashboard
 
 //--- 08 ADVANCED SAFETY / EXECUTION
-input double   MinRRRatio                         = 0.0;        // 08 Advanced | optional Min RR filter; 0=disabled
+input double   MinRRRatio                         = 0.0;        // 08 Advanced | optional global Min RR filter; 0=disabled
+input double   MinReEntryRRRatio                  = 1.0;        // 08 Advanced | RE_ENTRY minimum RR; 0=disabled
+input double   MinReEntrySLPips                   = 5.0;        // 08 Advanced | minimum RE_ENTRY SL distance
+input bool     BlockNMJEConflict                  = true;       // 08 Advanced | block RE_ENTRY when NMJE=CONFLICT
+input bool     BlockNMJEBuilding                  = true;       // 08 Advanced | block RE_ENTRY when NMJE=BUILDING
 input double   MaxSLPips                          = 100.0;      // 08 Advanced | maximum accepted SL distance
 input int      Slippage                           = 3;          // 08 Advanced | broker slippage in points
 input ENUM_DEBUG_LEVEL DebugLevel                 = DBG_OFF;    // 08 Advanced | OFF / ERROR / SIGNAL / TRADE / FULL
@@ -294,6 +298,7 @@ enum ENUM_REJECTION_REASON
    REJ_EXPIRED,
    REJ_OPPOSITE_SIGNAL,
    REJ_SEQUENCE_BREAK,
+   REJ_NMJE_RELATION,
    REJ_SPREAD_HIGH,
    REJ_DD_LIMIT,
    REJ_BASKET_LOSS,
@@ -6446,6 +6451,24 @@ bool ResolveApprovedInitialSLTP(BBMA_Decision &decision,
       brokerSL += roundedSpreadBufferPips * pipValue;
    }
 
+   // Profitability hardening: preserve structural SL, but enforce a minimum RE_ENTRY distance.
+   if(decision.SignalType == SIGNAL_RE_ENTRY && MinReEntrySLPips > 0.0)
+   {
+      double rePipValue = GetPipValue(decision.Pair);
+      if(rePipValue <= 0.0) return false;
+      double minReSLDistance = MinReEntrySLPips * rePipValue;
+      if(decision.Direction == DIR_BUY)
+      {
+         double maxBuySL = decision.EntryPrice - minReSLDistance;
+         if(brokerSL > maxBuySL) brokerSL = maxBuySL;
+      }
+      else if(decision.Direction == DIR_SELL)
+      {
+         double minSellSL = decision.EntryPrice + minReSLDistance;
+         if(brokerSL < minSellSL) brokerSL = minSellSL;
+      }
+   }
+
    if(snapshot.TickSize_Price <= 0.0 || snapshot.Digits < 0) return false;
 
    double slTicks = brokerSL / snapshot.TickSize_Price;
@@ -6660,7 +6683,10 @@ bool ValidateSLTP(BBMA_Decision &decision, RiskValidationSnapshot &snapshot,
       }
    }
 
-   if(MinRRRatio > 0.0 && (tpDistance / slDistance) < MinRRRatio)
+   double effectiveMinRR = MinRRRatio;
+   if(decision.SignalType == SIGNAL_RE_ENTRY && MinReEntryRRRatio > effectiveMinRR)
+      effectiveMinRR = MinReEntryRRRatio;
+   if(effectiveMinRR > 0.0 && (tpDistance / slDistance) < effectiveMinRR)
    {
       rejection = REJ_INVALID_RR;
       return false;
@@ -7795,10 +7821,31 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
    }
 }
 
+bool NMJE_PassExecutionGate(string pair, BBMA_Decision &decision)
+{
+   if(decision.SignalType != SIGNAL_RE_ENTRY) return true;
+   int pairIndex = FindPairStateIndex(pair);
+   if(pairIndex < 0 || pairIndex >= g_pair_count) return true;
+   ENUM_NESTED_RELATION relation = g_nested_journeys[pairIndex].Relation;
+   if(BlockNMJEConflict && relation == NESTED_CONFLICT) return false;
+   if(BlockNMJEBuilding && relation == NESTED_BUILDING) return false;
+   return true;
+}
+
 bool RunEntryPreflightAndExecute(BBMA_Decision &decision, string pair)
 {
    if(decision.DecisionState != DEC_VALIDATED) return false;
    if(pair == "" || decision.Pair != pair) return false;
+   if(!NMJE_PassExecutionGate(pair, decision))
+   {
+      int nmjePairIndex = FindPairStateIndex(pair);
+      decision.DecisionState = DEC_REJECTED;
+      decision.RejectionReason = REJ_NMJE_RELATION;
+      Print("[NMJE-GATE] Pair=", pair, " DecisionID=", decision.DecisionID,
+            " Relation=", NMJE_RelationText(g_nested_journeys[nmjePairIndex].Relation),
+            " Action=REJECT");
+      return false;
+   }
    if(EntryMode == 1)
       Print("[P3M1][PREFLIGHT_START] Pair=", pair,
             " DecisionID=", decision.DecisionID,

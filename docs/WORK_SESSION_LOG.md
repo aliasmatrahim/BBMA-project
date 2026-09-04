@@ -157,6 +157,25 @@ NEXT GATE: User/runtime verification. Continue only with the currently authorize
 
 ---
 
+## 2026-09-04 — NMJE v4.59 forward validation closure
+
+DATE/TIME: 2026-09-04 (Malaysia time)
+ORIGIN MODE: CHAT
+VERIFY MODE: CHAT
+SCOPE/MODULES: N2 NMJE forward telemetry/identity; runtime log integrity; `BBMA_EA_V459_NMJE_FORWARD`
+BASELINE/COMMIT: Frozen v4.59 source blob `dc83e62748c93171d89a312e9f7a53c06d97e261`; closure audit commit `ddfb51345d0a3bfb7a2c8bc3b9fb0b4a0b8a88a1`
+LOCAL STATE: Authorized device `g40`; active Data Folder `C:\Users\Afiq Mat Rahim\AppData\Roaming\MetaQuotes\Terminal\50CA3DFB510CC5A8F28B48D1BF2A5702`; active Expert log `MQL4\Logs\20260904.log`
+CHANGE/ACTION: Diagnosed an apparent stale Expert-log condition while terminal trading continued. Verified the MQL4 log ended mid-line with no alternate rotation, then restarted the same MT4 installation to force a clean flush. Same Data Folder and `BBMA_EA_V459_NMJE_FORWARD` attachment were re-established. The flush exposed seven genuine closed outcomes. Correlated every `[N2-NMJE-OUT]` to matching `[N2-NMJE-DEC]`, relevant `[N1-NMJE]`, ticket execution record and `[P3S5][EXEC_ID]` hash.
+REASON: User explicitly requested diagnosis of NMJE logging, collection of sufficient genuine outcomes, and closure of the NMJE forward validation.
+COMPILE STATUS: No source change; no compile required
+RUNTIME STATUS: PASS for forward telemetry/identity observation. Seven genuine broker-connected closed outcomes recovered across EURAUD, EURGBP, CADJPY (2), AUDJPY, GBPUSD and GBPJPY.
+VALIDATION STATUS: VERIFIED
+EVIDENCE: Every accepted chain is explicitly tagged `BBMA_EA_V459_NMJE_FORWARD`; DEC/OUT pair + DID + DIDH match; execution records report `Persist=PASS`, `BrokerHashMatch=Y`, and `ExpectedHash == BrokerHash == DIDH`; all OUT records report `REC_NORMAL`. Full record: `blueprint/audits/N2_V459_FORWARD_VALIDATION_CLOSURE_20260904.md`.
+ISSUE/RISK: The earlier logging gap was MT4 Expert-log buffering, resolved by restart/flush. This closure proves the forward telemetry/identity chain, not strategy profitability or NMJE predictive edge. N2 remains descriptive research; no N3 execution policy is authorized.
+NEXT GATE: NMJE v4.59 forward validation is CLOSED/PASS. Continue with the next formal runtime-validation stage according to the current authoritative project sequence; preserve the frozen EA source unless attributable runtime evidence proves a defect or a separately approved strategy/architecture change is made.
+
+---
+
 ## Work-mode return audit checklist
 
 1. Identify the last known-good commit/state before normal Chat continuation.

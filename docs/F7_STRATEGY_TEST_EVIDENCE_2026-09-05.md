@@ -60,3 +60,26 @@ Simple pre-entry features were compared without future data: adverse/favorable c
 
 ## Future improvement boundary
 Use this document as negative/positive evidence to avoid repeating failed searches. New timing or entry changes must be causal, closed-candle, BBMA-native, and validated out-of-sample before production promotion.
+## BBMA-native maturity investigation
+Tester-only candidate: require same-direction M15 Extreme lifecycle at least `EXT_MAT_REVERSAL_CONFIRMED` before F7 Re-Entry execution.
+- 2024 holdout: 22 F7 trades, +8.55, PF 1.64.
+- 2025 H1: 10 trades, +40.86, PF 6.86.
+- 2025 H2 Every-Tick: 13 trades, +0.28, PF 1.05.
+- 2026 YTD: 15 trades, -8.92, PF 0.14.
+This is the strongest timing improvement found so far, but it fails 2026 and is not production-safe.
+
+Stricter `EXT_MAT_RETEST_READY` was too restrictive: 2024 had 16 F7 trades, -1.38, PF 0.84.
+A D1 closed-body alignment gate looked strong retrospectively but failed causally: 2024 +15.82/PF2.27; 2025H1 +42.25/PF7.66; 2025H2 -0.32/PF0.96; 2026 -12.18/PF0.18.
+
+## Clean 2026 subtype diagnosis
+A dedicated clean 2026 rerun/log segment removed DecisionID contamination from previous tester reruns.
+- RE Type1: 8 targetless trades, net -4.70; 2 winners / 6 losers.
+- RE Type4 CSD: 3 trades, net -1.75; 0 winners / 3 losers.
+- RE Type3 CSM: 1 trade, net +0.06; 1 winner.
+- Other targetless lifecycle identities: 5 trades, net -4.96.
+Parent context alone did not cleanly separate winners from losers; failures occurred under both H4 owner and H4 Re-Entry contexts.
+
+Causal subtype filters failed 2024 holdout:
+- EXTREV + block Type4: 24 F7 trades, -2.22, PF 0.85.
+- EXTREV + Type3 only: 9 F7 trades, -2.73, PF 0.58.
+Therefore subtype filtering is stopped; further search here would be overfit-prone.

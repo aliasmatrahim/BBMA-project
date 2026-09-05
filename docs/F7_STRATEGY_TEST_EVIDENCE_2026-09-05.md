@@ -97,3 +97,10 @@ Causal boundary:
 - M15 Extreme reversal-confirmed remains the strongest timing lead found, but 2026 regime failure is not explained by RAW->confirmation speed, H4 owner/Re-Entry parent, D1 body alignment, or Re-Entry subtype alone.
 - Further historical gate search is stopped here to avoid combinatorial overfitting. New production changes require new independent/runtime evidence or a BBMA-native causal mechanism not selected from these same four periods.
 - Tester-only provenance instrumentation was removed after diagnosis; neutral tester adapter recompiles 0 errors / 0 warnings. Production EA remains unchanged.
+## Prospective runtime validation protocol
+Historical filter search is frozen at this point to avoid further overfitting on the same data.
+The active hourly `BBMA F7 Runtime Watch` now treats new genuine v4.61 live/forward F7 trades as independent evidence.
+For each new F7 entry it must freeze the pre-entry closed-candle BBMA context before outcome is known, especially M15 Extreme maturity/raw/confirmation timing, H1 Re-Entry type/state, NMJE relation, and H4 parent/cycle identity.
+The later trade outcome is then correlated back to that frozen context. No future information may be used to relabel the entry retrospectively.
+Current live check on 2026-09-05 found continuous F7 telemetry heartbeats but `F7Managed=0`; therefore no new independent F7 timing sample is available yet.
+Production EA remains unchanged while this prospective evidence is collected.

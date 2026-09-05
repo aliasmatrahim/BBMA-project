@@ -8269,6 +8269,46 @@ void F7Telemetry(string eventName, TradeInfo &info, string detail="")
    Print(line); F7TelemetryWrite(line);
 }
 
+void F7ProspectiveContextTelemetry(int pairIndex, BBMA_Decision &decision)
+{
+   if(pairIndex < 0 || pairIndex >= g_pair_count) return;
+   if(!decision.Valid || decision.DecisionState != DEC_EXECUTED) return;
+   if(decision.SignalType != SIGNAL_RE_ENTRY) return;
+   if(!decision.C044LifecycleManaged) return;
+
+   ExtremeLifecycleData ext;
+   ReEntryData h1re;
+   if(decision.Direction == DIR_BUY)
+   {
+      ext = g_pair_states[pairIndex].extreme_m15_buy_lifecycle;
+      h1re = g_pair_states[pairIndex].re_h1_buy_state;
+   }
+   else if(decision.Direction == DIR_SELL)
+   {
+      ext = g_pair_states[pairIndex].extreme_m15_sell_lifecycle;
+      h1re = g_pair_states[pairIndex].re_h1_sell_state;
+   }
+   else return;
+
+   NestedJourneyState journey = g_nested_journeys[pairIndex];
+   string journeyId = (journey.JourneyID == "" ? "-" : journey.JourneyID);
+   string line = "[F7-PROSPECTIVE] Pair="+decision.Pair+
+      " DecisionID="+NMJE_LogIdentityToken(decision.DecisionID)+
+      " DIDH="+SHORT_HASH(decision.DecisionID)+
+      " Dir="+NMJE_DirText(decision.Direction)+
+      " ExtremeState="+EnumToString(ext.Maturity)+
+      " RawTime="+TimeToString(ext.RawCandleTime,TIME_DATE|TIME_MINUTES)+
+      " ConfirmTime="+TimeToString(ext.ConfirmationCandleTime,TIME_DATE|TIME_MINUTES)+
+      " H1ReType="+EnumToString(h1re.Type)+
+      " H1ReState="+EnumToString(h1re.State)+
+      " H1ConfirmTime="+TimeToString(h1re.ConfirmationCandle,TIME_DATE|TIME_MINUTES)+
+      " NMJE="+NMJE_RelationText(journey.Relation)+
+      " H4Parent="+NMJE_ParentText(journey.ParentKind)+"/"+NMJE_DirText(journey.ParentDirection)+
+      " JourneyID="+journeyId;
+   Print(line);
+   F7TelemetryWrite(line);
+}
+
 void F7TelemetryHeartbeat()
 {
    static datetime lastBeat=0; datetime now=TimeLocal();
@@ -10475,6 +10515,7 @@ void ProcessPair(int pairIndex)
       // N2-01 shadow metadata only; execution path remains unchanged.
       NMJE_PrintValidatedDecisionShadow(pairIndex, decision);
       RunEntryPreflightAndExecute(decision, actual);
+      F7ProspectiveContextTelemetry(pairIndex, decision);
    }
 
    if(EntryMode == 2 && decision.Valid)

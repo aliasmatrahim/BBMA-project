@@ -83,3 +83,17 @@ Causal subtype filters failed 2024 holdout:
 - EXTREV + block Type4: 24 F7 trades, -2.22, PF 0.85.
 - EXTREV + Type3 only: 9 F7 trades, -2.73, PF 0.58.
 Therefore subtype filtering is stopped; further search here would be overfit-prone.
+
+## Pre-Extreme cycle-progression diagnosis
+A telemetry-only rerun recorded the M15 Extreme RAW candle and reversal-confirmation candle before F7 execution across 2024, 2025 H1, 2025 H2 Every-Tick, and 2026 YTD.
+
+Key findings:
+- Immediate RAW -> reversal confirmation (15 minutes) was not a universal solution: 2024 +4.84/PF1.48; 2025H1 +2.58/PF1.46; 2025H2 +1.55/PF1.36; 2026 -3.03/PF0.20 for mapped standard H1 Re-Entry trades.
+- Longer RAW -> confirmation lags also did not provide a stable separator; 30-minute pooled PF was 0.24, while 45/60-minute groups were sparse and regime-dependent.
+- Pre-RAW NMJE parent, D1/H4 ownership, H1 Re-Entry, M15 MHV, and existing Extreme-state combinations repeatedly changed sign between periods. No repeated pre-RAW context separated winners from losers across all regimes.
+- Therefore neither an immediate-reversal rule nor a pre-RAW parent/state filter is justified for production.
+
+Causal boundary:
+- M15 Extreme reversal-confirmed remains the strongest timing lead found, but 2026 regime failure is not explained by RAW->confirmation speed, H4 owner/Re-Entry parent, D1 body alignment, or Re-Entry subtype alone.
+- Further historical gate search is stopped here to avoid combinatorial overfitting. New production changes require new independent/runtime evidence or a BBMA-native causal mechanism not selected from these same four periods.
+- Tester-only provenance instrumentation was removed after diagnosis; neutral tester adapter recompiles 0 errors / 0 warnings. Production EA remains unchanged.

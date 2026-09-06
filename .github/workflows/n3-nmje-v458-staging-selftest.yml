@@ -1,4 +1,4 @@
-name: N3 NMJE v4.58 staging selftest
+name: N3 NMJE staging selftest
 
 on:
   pull_request:
@@ -9,6 +9,10 @@ on:
       - 'blueprint/N3_NMJE_STAGING_RUNBOOK.md'
       - 'blueprint/tools/n3_nmje_policy_readiness.py'
       - 'blueprint/tests/test_n3_nmje_policy_readiness.py'
+      - 'blueprint/tests/test_nmje_n3_replay_identity_static.py'
+      - 'blueprint/tests/test_nmje_n3_recovery_failclosed_static.py'
+      - 'blueprint/tests/test_nmje_n3_authority_matrix_static.py'
+      - 'blueprint/tests/test_nmje_n3_identity_domain_static.py'
       - 'blueprint/source/BBMA_EA.mq4'
       - 'blueprint/.n3-v458-selftest-trigger'
       - '.github/workflows/n3-nmje-v458-staging-selftest.yml'
@@ -22,7 +26,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: d1-owner-dev
           fetch-depth: 0
 
       - name: Verify EA remains free of N3 execution authority
@@ -34,8 +37,8 @@ jobs:
           p = Path('blueprint/source/BBMA_EA.mq4')
           s = p.read_text(encoding='utf-8')
           required = [
-              'Version 4.5.8 - D1 TP-Wajib Lifecycle Stage',
-              '#property version   "4.58"',
+              'Version 4.6.3 - N3 F7 Telemetry Reconcile',
+              '#property version   "4.63"',
               'UpdateNestedJourneyObservation(pairIndex);',
               'NMJE_PrintValidatedDecisionShadow(pairIndex, decision);',
           ]
@@ -61,6 +64,34 @@ jobs:
           python3 blueprint/tests/test_n3_nmje_policy_readiness.py
           python3 -m py_compile blueprint/tools/n3_nmje_policy_readiness.py blueprint/tests/test_n3_nmje_policy_readiness.py
           echo 'N3_STAGING_SELFTEST=PASS'
+
+      - name: Run N3 replay identity static selftest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 blueprint/tests/test_nmje_n3_replay_identity_static.py
+          python3 -m py_compile blueprint/tests/test_nmje_n3_replay_identity_static.py
+
+      - name: Run N3 recovery fail-closed static selftest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 blueprint/tests/test_nmje_n3_recovery_failclosed_static.py
+          python3 -m py_compile blueprint/tests/test_nmje_n3_recovery_failclosed_static.py
+
+      - name: Run N3 authority matrix static selftest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 blueprint/tests/test_nmje_n3_authority_matrix_static.py
+          python3 -m py_compile blueprint/tests/test_nmje_n3_authority_matrix_static.py
+
+      - name: Run N3 identity domain separation selftest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 blueprint/tests/test_nmje_n3_identity_domain_static.py
+          python3 -m py_compile blueprint/tests/test_nmje_n3_identity_domain_static.py
 
       - name: Verify contract firewall text
         shell: bash

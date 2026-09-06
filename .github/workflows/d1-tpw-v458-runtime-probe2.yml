@@ -19,15 +19,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: d1-owner-dev
           fetch-depth: 0
 
+      - name: Detect legacy v4.58 applicability
+        id: legacy
+        shell: pwsh
+        run: |
+          $src = Get-Content .\blueprint\source\BBMA_EA.mq4 -Raw
+          if ($src.Contains('Version 4.5.8 - D1 TP-Wajib Lifecycle Stage') -and
+              $src.Contains('#property version   "4.58"')) {
+            'applicable=true' | Out-File $env:GITHUB_OUTPUT -Append
+            Write-Host 'Legacy v4.58 runtime probe is applicable.'
+          } else {
+            'applicable=false' | Out-File $env:GITHUB_OUTPUT -Append
+            Write-Host 'Legacy v4.58 runtime probe skipped: PR head is a later source generation.'
+          }
+
       - name: Run source-bound MT4 probe
+        if: steps.legacy.outputs.applicable == 'true'
         shell: pwsh
         run: .\blueprint\ci\d1_tpw_v458_runtime_probe.ps1
 
       - name: Upload probe evidence
-        if: always()
+        if: always() && steps.legacy.outputs.applicable == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: d1-tpw-v458-runtime-probe2-evidence

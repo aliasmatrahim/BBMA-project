@@ -1,0 +1,85 @@
+name: NMJE N3 source materializer
+
+on:
+  push:
+    branches: [ nmje-n3-hardening-dev ]
+    paths:
+      - 'blueprint/tools/nmje_n3_step1_m09_single_writer_apply.py'
+      - 'blueprint/tools/nmje_n3_step2_event_identity_apply.py'
+      - 'blueprint/tools/nmje_n3_step3_parent_provenance_apply.py'
+      - 'blueprint/tools/nmje_n3_step4_m15_m16_shadow_freeze_apply.py'
+      - 'blueprint/tools/nmje_n3_step5_d1_owner_epoch_apply.py'
+      - 'blueprint/ci/nmje_n3_static_guard.ps1'
+      - '.github/workflows/nmje-n3-apply-m09-single-writer.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-guard:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: nmje-n3-hardening-dev
+          fetch-depth: 0
+
+      - name: Apply Step 1 M09 single-writer if pending
+        shell: pwsh
+        run: |
+          $src = Get-Content .\blueprint\source\BBMA_EA.mq4 -Raw
+          if ($src.Contains('InstallMHVSupersessionParent(')) {
+            python .\blueprint\tools\nmje_n3_step1_m09_single_writer_apply.py
+          } else { Write-Host 'Step 1 already materialized.' }
+
+      - name: Apply Step 2 canonical event identity if pending
+        shell: pwsh
+        run: |
+          $src = Get-Content .\blueprint\source\BBMA_EA.mq4 -Raw
+          if (-not $src.Contains('string               CanonicalEventID;')) {
+            python .\blueprint\tools\nmje_n3_step2_event_identity_apply.py
+          } else { Write-Host 'Step 2 already materialized.' }
+
+      - name: Apply Step 3 parent provenance if pending
+        shell: pwsh
+        run: |
+          $src = Get-Content .\blueprint\source\BBMA_EA.mq4 -Raw
+          if (-not $src.Contains('string                  ParentEventID;')) {
+            python .\blueprint\tools\nmje_n3_step3_parent_provenance_apply.py
+          } else { Write-Host 'Step 3 already materialized.' }
+
+      - name: Apply Step 4 M15 M16 shadow provenance if pending
+        shell: pwsh
+        run: |
+          $src = Get-Content .\blueprint\source\BBMA_EA.mq4 -Raw
+          if (-not $src.Contains('NMJESnapshotPresent')) {
+            python .\blueprint\tools\nmje_n3_step4_m15_m16_shadow_freeze_apply.py
+          } else { Write-Host 'Step 4 already materialized.' }
+
+      - name: Apply Step 5 stable D1 owner epoch if pending
+        shell: pwsh
+        run: |
+          $src = Get-Content .\blueprint\source\BBMA_EA.mq4 -Raw
+          if (-not $src.Contains('datetime             EpochStartCandleTime;')) {
+            python .\blueprint\tools\nmje_n3_step5_d1_owner_epoch_apply.py
+          } else { Write-Host 'Step 5 already materialized.' }
+
+      - name: Run static guard
+        shell: pwsh
+        run: |
+          .\blueprint\ci\nmje_n3_static_guard.ps1
+          git diff --check
+
+      - name: Commit materialized source only
+        shell: pwsh
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- blueprint/source/BBMA_EA.mq4
+          if (git diff --cached --quiet) {
+            Write-Host 'No source change to commit.'
+            exit 0
+          }
+          git commit -m 'N3: materialize stable owner provenance'
+          git push origin HEAD:nmje-n3-hardening-dev

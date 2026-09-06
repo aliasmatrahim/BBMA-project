@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.6.3 - N3 F7 Telemetry Reconcile                 |
+//| Version 4.6.4 - NMJE v2 M5 Lineage Schema                 |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.63"
+#property version   "4.64"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -614,6 +614,24 @@ struct NestedTFNode
    string               OverlayLabel;
 };
 
+// NMJE v2 Stage-B schema only. This is provenance/shadow storage and has no
+// processing-clock, candidate, rejection, ranking or execution authority.
+struct NMJEM5RefinementState
+{
+   bool                 Present;
+   string               EventID;
+   string               ParentEventID;
+   string               JourneyID;
+   ENUM_DIRECTION       Direction;
+   int                  ContextCode;
+   datetime             EventStartCandleTime;
+   datetime             ClosedCandleTime;
+   ENUM_NESTED_RELATION Relation;
+   bool                 Valid;
+   bool                 Resolved;
+   string               Reason;
+};
+
 // N1-03: one pair-level nested journey observation per closed-M15 cycle.
 struct NestedJourneyState
 {
@@ -636,6 +654,8 @@ struct NestedJourneyState
    NestedTFNode            H4Node;
    NestedTFNode            H1Node;
    NestedTFNode            M15Node;
+   // NMJE v2 Stage-B schema only; deliberately not populated or consumed yet.
+   NMJEM5RefinementState    M5Refinement;
 
    // N1.1 read-only D1 Opportunity overlay; not parent or execution authority.
    bool                       D1OpportunityActive;
@@ -4481,6 +4501,42 @@ string NMJE_H4OwnerEventID(string pair, H4DirectionalOwner &owner)
                 IntegerToString((int)owner.SourceSignal) + "|" +
                 IntegerToString((int)owner.SourceCandleTime);
    return NMJE_IdentityHash(raw);
+}
+
+// Issue #101 P1 schema-only deterministic M5 context identity. The helper
+// consumes explicit provenance values only and is not wired into processing.
+string NMJE_M5ContextEventID(string pair, ENUM_DIRECTION direction,
+                             int contextCode, datetime eventStartCandleTime)
+{
+   if(pair == "" || eventStartCandleTime <= 0 || contextCode <= 0 ||
+      (direction != DIR_BUY && direction != DIR_SELL))
+      return "";
+   string raw = "M5CTX|" + pair + "|" + IntegerToString(PERIOD_M5) + "|" +
+                IntegerToString((int)direction) + "|" +
+                IntegerToString(contextCode) + "|" +
+                IntegerToString((int)eventStartCandleTime);
+   return NMJE_IdentityHash(raw);
+}
+
+// Fail-closed schema validator for future recovery/materialization work.
+// Present=false is the valid pre-materialization state; any present snapshot
+// must carry the full immutable lineage and a canonical relation.
+bool NMJE_M5LineageSnapshotValid(NMJEM5RefinementState &snapshot)
+{
+   if(!snapshot.Present) return true;
+   if(!snapshot.Valid || !snapshot.Resolved) return false;
+   if(snapshot.EventID == "" || snapshot.ParentEventID == "" ||
+      snapshot.JourneyID == "" || snapshot.EventStartCandleTime <= 0 ||
+      snapshot.ClosedCandleTime <= 0 ||
+      snapshot.ClosedCandleTime < snapshot.EventStartCandleTime)
+      return false;
+   if(snapshot.Relation != NESTED_BUILDING &&
+      snapshot.Relation != NESTED_SUPPORTING &&
+      snapshot.Relation != NESTED_ALIGNED &&
+      snapshot.Relation != NESTED_CONFLICT &&
+      snapshot.Relation != NESTED_UNRESOLVED)
+      return false;
+   return true;
 }
 
 void NMJE_ResetNode(NestedTFNode &node, int timeframe)

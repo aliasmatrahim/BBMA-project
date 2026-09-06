@@ -17,6 +17,7 @@ jobs:
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       VIDEO_ID: pU9E_ckLtkI
       CHUNK_SECONDS: '600'
+      SOURCE_URL: https://gary-denver-tender-complex.trycloudflare.com/source.m4a
     steps:
       - uses: actions/checkout@v4
 
@@ -30,21 +31,20 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg
-          python -m pip install --disable-pip-version-check -q -U yt-dlp
 
       - name: Download Video 01 audio
         shell: bash
         run: |
           mkdir -p work/chunks work/raw results
-          yt-dlp --no-playlist --extract-audio --audio-format m4a --audio-quality 0 \
-            -o 'work/source.%(ext)s' "https://www.youtube.com/watch?v=${VIDEO_ID}"
-          test -n "$(find work -maxdepth 1 -type f -name 'source.*' -print -quit)"
+          curl -L --fail --retry 5 --retry-all-errors --retry-delay 3 \
+            --output work/source.m4a "$SOURCE_URL"
+          test -s work/source.m4a
+          echo "Downloaded $(stat -c%s work/source.m4a) bytes"
 
       - name: Normalize and chunk audio
         shell: bash
         run: |
-          SRC="$(find work -maxdepth 1 -type f -name 'source.*' -print -quit)"
-          ffmpeg -hide_banner -loglevel error -i "$SRC" -map 0:a:0 -ar 16000 -ac 1 -c:a flac \
+          ffmpeg -hide_banner -loglevel error -i work/source.m4a -map 0:a:0 -ar 16000 -ac 1 -c:a flac \
             -f segment -segment_time "$CHUNK_SECONDS" -reset_timestamps 1 work/chunks/chunk_%03d.flac
           count=$(find work/chunks -type f -name 'chunk_*.flac' | wc -l)
           test "$count" -gt 0
@@ -77,16 +77,13 @@ jobs:
       - name: Merge transcript and timestamps
         shell: python
         run: |
-          import json, glob, os
+          import json, glob, os, subprocess
           raw = sorted(glob.glob('work/raw/chunk_*.json'))
           aud = sorted(glob.glob('work/chunks/chunk_*.flac'))
           if len(raw) != len(aud) or not raw:
               raise SystemExit('chunk/json count mismatch')
           def duration(path):
-              import subprocess
-              out = subprocess.check_output([
-                  'ffprobe','-v','error','-show_entries','format=duration',
-                  '-of','default=noprint_wrappers=1:nokey=1',path], text=True)
+              out = subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration','-of','default=noprint_wrappers=1:nokey=1',path], text=True)
               return float(out.strip())
           def ts(sec):
               ms = int(round(sec * 1000)); h, r = divmod(ms, 3600000); m, r = divmod(r, 60000); s, ms = divmod(r, 1000)

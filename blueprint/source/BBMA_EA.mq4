@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.6.2 - N3 D1 Epoch + F7 Reconcile             |
+//| Version 4.6.3 - N3 F7 Telemetry Reconcile                 |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.62"
+#property version   "4.63"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -8150,9 +8150,12 @@ bool FreezeC044Lifecycle(TradeInfo &info, string reason)
    info.recovery_state = REC_IDENTITY_MISSING_FROZEN;
    info.c044_exit_reason = C044_EXIT_NONE;
    info.c044_exit_latched_candle = 0;
-   if(!SaveC044Checkpoint(info))
+   bool persisted = SaveC044Checkpoint(info);
+   if(!persisted)
       Log(DBG_ERROR, "C044 freeze checkpoint failed ticket=" + IntegerToString(info.ticket));
 
+   F7Telemetry("LIFECYCLE_FROZEN", info,
+               (persisted ? "Persist=PASS " : "Persist=FAIL ") + "Cause=" + reason);
    Log(DBG_ERROR, "C044 lifecycle frozen ticket=" + IntegerToString(info.ticket) +
        " pair=" + info.pair + " reason=" + reason);
    return false;
@@ -8255,6 +8258,8 @@ bool ProcessC044OwnerClosedCandle(TradeInfo &info, int pairIndex,
       }
       if(!SaveC044Checkpoint(info))
          return FreezeC044Lifecycle(info, "WAIT_NEXT_REENTRY_CHECKPOINT_FAILED");
+      if(sameReEntryEvent)
+         F7Telemetry("REENTRY_REARM", info, "Persist=PASS ReEntryCandle="+TimeToString(candleTime,TIME_DATE|TIME_MINUTES));
       return true;
    }
 
@@ -8285,6 +8290,7 @@ bool ProcessC044OwnerClosedCandle(TradeInfo &info, int pairIndex,
       info.c044_exit_latched_candle = 0;
       if(!SaveC044Checkpoint(info))
          return FreezeC044Lifecycle(info, "MOMENTUM_HOLD_CHECKPOINT_FAILED");
+      F7Telemetry("MOMENTUM_HOLD", info, "Persist=PASS HoldCandle="+TimeToString(candleTime,TIME_DATE|TIME_MINUTES));
       return true;
    }
 
@@ -8377,6 +8383,72 @@ void AdvanceC044OwnerEventsForPair(int pairIndex)
    }
 }
 
+void F7TelemetryWrite(string line)
+{
+   int h=FileOpen("BBMA_F7_TELEMETRY.log", FILE_TXT|FILE_READ|FILE_WRITE|FILE_SHARE_READ);
+   if(h==INVALID_HANDLE) return;
+   FileSeek(h,0,SEEK_END); FileWriteString(h,line+"\r\n"); FileFlush(h); FileClose(h);
+}
+
+void F7Telemetry(string eventName, TradeInfo &info, string detail="")
+{
+   string line="[F7-TELEM] Event="+eventName+" Ticket="+IntegerToString(info.ticket)+" Pair="+info.pair+
+      " State="+EnumToString(info.c044_state)+" Reason="+EnumToString(info.c044_exit_reason)+
+      " DecisionID="+info.decision_id+" Hash="+info.execution_hash+" OwnerTF="+IntegerToString(info.c044_owner_timeframe)+
+      " Candle="+TimeToString(info.c044_last_processed_owner_candle,TIME_DATE|TIME_MINUTES)+(detail==""?"":" "+detail);
+   Print(line); F7TelemetryWrite(line);
+}
+
+void F7ProspectiveContextTelemetry(int pairIndex, BBMA_Decision &decision)
+{
+   if(pairIndex < 0 || pairIndex >= g_pair_count) return;
+   if(!decision.Valid || decision.DecisionState != DEC_EXECUTED) return;
+   if(decision.SignalType != SIGNAL_RE_ENTRY) return;
+   if(!decision.C044LifecycleManaged) return;
+
+   ExtremeLifecycleData ext;
+   ReEntryData h1re;
+   if(decision.Direction == DIR_BUY)
+   {
+      ext = g_pair_states[pairIndex].extreme_m15_buy_lifecycle;
+      h1re = g_pair_states[pairIndex].re_h1_buy_state;
+   }
+   else if(decision.Direction == DIR_SELL)
+   {
+      ext = g_pair_states[pairIndex].extreme_m15_sell_lifecycle;
+      h1re = g_pair_states[pairIndex].re_h1_sell_state;
+   }
+   else return;
+
+   NestedJourneyState journey = g_nested_journeys[pairIndex];
+   string journeyId = (journey.JourneyID == "" ? "-" : journey.JourneyID);
+   string line = "[F7-PROSPECTIVE] Pair="+decision.Pair+
+      " DecisionID="+NMJE_LogIdentityToken(decision.DecisionID)+
+      " DIDH="+SHORT_HASH(decision.DecisionID)+
+      " Dir="+NMJE_DirText(decision.Direction)+
+      " ExtremeState="+EnumToString(ext.Maturity)+
+      " RawTime="+TimeToString(ext.RawCandleTime,TIME_DATE|TIME_MINUTES)+
+      " ConfirmTime="+TimeToString(ext.ConfirmationCandleTime,TIME_DATE|TIME_MINUTES)+
+      " H1ReType="+EnumToString(h1re.Type)+
+      " H1ReState="+EnumToString(h1re.State)+
+      " H1ConfirmTime="+TimeToString(h1re.ConfirmationCandle,TIME_DATE|TIME_MINUTES)+
+      " NMJE="+NMJE_RelationText(journey.Relation)+
+      " H4Parent="+NMJE_ParentText(journey.ParentKind)+"/"+NMJE_DirText(journey.ParentDirection)+
+      " JourneyID="+journeyId;
+   Print(line);
+   F7TelemetryWrite(line);
+}
+
+void F7TelemetryHeartbeat()
+{
+   static datetime lastBeat=0; datetime now=TimeLocal();
+   if(lastBeat>0 && now-lastBeat<300) return; lastBeat=now;
+   int managed=0; for(int i=0;i<g_monitored_count;i++) if(g_monitored_trades[i].c044_lifecycle_managed) managed++;
+   string line="[F7-TELEM] Event=HEARTBEAT Init="+IntegerToString(g_is_initialized)+" Connected="+IntegerToString(IsTerminalConnected())+
+      " Monitored="+IntegerToString(g_monitored_count)+" F7Managed="+IntegerToString(managed)+" Time="+TimeToString(now,TIME_DATE|TIME_SECONDS);
+   Print(line); F7TelemetryWrite(line);
+}
+
 bool LatchC044Exit(TradeInfo &info, ENUM_C044_EXIT_REASON reason, datetime candleTime)
 {
    if(!EnableC044Lifecycle || !info.c044_lifecycle_managed) return false;
@@ -8392,8 +8464,11 @@ bool LatchC044Exit(TradeInfo &info, ENUM_C044_EXIT_REASON reason, datetime candl
    info.c044_state = C044_LIFE_EXIT_LATCHED;
    info.c044_exit_reason = reason;
    info.c044_exit_latched_candle = candleTime;
-   if(!SaveC044Checkpoint(info))
+   bool persisted = SaveC044Checkpoint(info);
+   if(!persisted)
       Log(DBG_ERROR, "C044 latch checkpoint failed ticket=" + IntegerToString(info.ticket));
+   F7Telemetry("EXIT_LATCHED", info, (persisted ? "Persist=PASS " : "Persist=FAIL ")+
+               "LatchCandle="+TimeToString(candleTime,TIME_DATE|TIME_MINUTES));
    return true;
 }
 
@@ -8422,6 +8497,7 @@ bool ExecuteLatchedC044Close(TradeInfo &info)
    ResetLastError();
    if(OrderClose(info.ticket, OrderLots(), closePrice, Slippage))
    {
+      F7Telemetry("CLOSE_SUCCESS", info, "ClosePrice="+DoubleToString(closePrice, info.digits));
       ClearC044Checkpoint(info);
       return true;
    }
@@ -9701,6 +9777,11 @@ void RecoverExistingOrders()
          info.recovery_state = REC_RECOVERY_INVALID;
          recoveryCause = "INVALID_LIVE_LOT_STEP";
       }
+      else if(targetless && targetlessRecovered && hasExecutionHash && !fullMetadata)
+      {
+         info.recovery_state = REC_NORMAL;
+         recoveryCause = "TARGETLESS_CHECKPOINT_IDENTITY_MATCH";
+      }
       else if(fullMetadata && intendedLot > 0 && currentLot > intendedLot + 0.0000001)
       {
          info.recovery_state = REC_CORRUPTED;
@@ -9735,6 +9816,17 @@ void RecoverExistingOrders()
       info.be_attempted = false;
 
       AddToMonitoredTrades(info);
+
+      if(targetlessRecovered && info.c044_lifecycle_managed)
+      {
+         string recoveryEvent = (info.recovery_state == REC_NORMAL ||
+                                 info.recovery_state == REC_PARTIAL_INFERRED)
+            ? "RECOVERY_RESTORED" : "RECOVERY_BLOCKED";
+         F7Telemetry(recoveryEvent, info,
+                     "RecoveryState="+EnumToString(info.recovery_state)+
+                     " Cause="+recoveryCause+
+                     " PersistedCheckpoint=Y");
+      }
 
       Print("[P3S5][RECOVERY] Ticket=", IntegerToString(info.ticket),
             " Pair=", pair,
@@ -10553,6 +10645,7 @@ void ProcessPair(int pairIndex)
       // N2-01 shadow metadata only; execution path remains unchanged.
       NMJE_PrintValidatedDecisionShadow(pairIndex, decision);
       RunEntryPreflightAndExecute(decision, actual);
+      F7ProspectiveContextTelemetry(pairIndex, decision);
    }
 
    if(EntryMode == 2 && decision.Valid)
@@ -10676,6 +10769,7 @@ void OnTimer()
 
    CleanupSignalHistoryEntries();
    CleanupGlobalSignalHistory();
+   F7TelemetryHeartbeat();
 
    datetime todayStart = GetTodayStart();
    if(todayStart > g_last_reset_date)

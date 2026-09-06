@@ -22,7 +22,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify v4.59 source and N2 read-only hooks
+      - name: Verify v4.63 source and N2 read-only hooks
         shell: bash
         run: |
           set -euo pipefail
@@ -31,8 +31,8 @@ jobs:
           p = Path('blueprint/source/BBMA_EA.mq4')
           s = p.read_text(encoding='utf-8')
           required = [
-              'Version 4.5.9 - P0 Execution Identity Persistence Fix',
-              '#property version   "4.59"',
+              'Version 4.6.3 - N3 F7 Telemetry Reconcile',
+              '#property version   "4.63"',
               'void NMJE_PrintValidatedDecisionShadow',
               '[N2-NMJE-DEC]',
               'void NMJE_PrintClosedOutcomeShadow',

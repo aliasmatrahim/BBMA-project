@@ -78,3 +78,20 @@ Python is available on the authorized laptop through `py -3.14` (Python 3.14.7).
 
 ## Handoff invariant
 This branch is the only intended continuation lineage for Issue #101 after the 2026-09-04 baseline relock. PR #102 remains quarantined evidence. No change in this handoff authorizes NMJE execution authority, D1TPW, C044, merge to `d1-owner-dev`, or any change to `main`.
+
+## 2026-09-07 v4.63 baseline-sync overlay
+This overlay supersedes the v4.62 continuation references above; the 2026-09-04 text remains historical provenance.
+
+- Current stacked base: `nmje-n3-hardening-dev@ddf0742c81645a440fb2fdb86f594e158ff15ab3`.
+- v4.63 source-bearing baseline commit: `cdb2f64246634944e310a88dc2cc361da4e057dc`.
+- N3 evidence/CI head inherited from base: `ddf0742c81645a440fb2fdb86f594e158ff15ab3`.
+- Replacement sync merge commit: `7aa2d880a5a9fb51f56b095335710ba78ead8d19`.
+- EA Git blob: `56921997843e9f5e8680b0fd15c7b81f27d10de3`.
+- EA SHA-256: `e2407559332c1b213e318dc2e4c06d64103b83cec49bae38bf3991302e6a2f4f`.
+- Visible build: `Version 4.6.3 - N3 F7 Telemetry Reconcile` / `#property version "4.63"`.
+- C044 remains OFF; D1TPW remains OFF; NMJE execution authority remains NONE/inactive.
+- M15 remains sole processing/final-decision clock; M22 remains sole OrderSend owner.
+
+The sync does not introduce a replacement-branch EA delta relative to its current stacked base, so no additional build bump is required for the sync itself. All future source-bearing P1+ rematerialization must advance the visible build identifier again.
+
+Continuation order remains unchanged except every reference to the old v4.62 baseline now means this locked v4.63 baseline. PR #102 remains quarantined evidence only.

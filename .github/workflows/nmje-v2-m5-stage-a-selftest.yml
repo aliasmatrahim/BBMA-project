@@ -1,0 +1,57 @@
+name: NMJE v2 M5 Stage A selftest
+
+on:
+  pull_request:
+    branches:
+      - nmje-n3-hardening-dev
+    paths:
+      - 'blueprint/contracts/NMJE_V2_M5_ACCURACY_HARDENING_CONTRACT.md'
+      - 'blueprint/implementation/NMJE_V2_M5_WORKSTREAM_PLAN_20260828.md'
+      - 'blueprint/tests/test_nmje_v2_m5_lineage_fixture.py'
+      - 'blueprint/tests/test_nmje_v2_m5_stage_a_static.py'
+      - 'blueprint/source/BBMA_EA.mq4'
+      - '.github/workflows/nmje-v2-m5-stage-a-selftest.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  stage-a-contract-fixtures:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fail closed on EA source changes during Stage A
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin nmje-n3-hardening-dev --depth=1
+          if ! git diff --quiet origin/nmje-n3-hardening-dev...HEAD -- blueprint/source/BBMA_EA.mq4; then
+            echo 'Stage A is contract/test-only; EA source modification is not authorized.' >&2
+            git diff --stat origin/nmje-n3-hardening-dev...HEAD -- blueprint/source/BBMA_EA.mq4 >&2
+            exit 1
+          fi
+
+      - name: Run deterministic M5 lineage fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 blueprint/tests/test_nmje_v2_m5_lineage_fixture.py
+
+      - name: Run Stage A authority and baseline firewall
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 blueprint/tests/test_nmje_v2_m5_stage_a_static.py
+
+      - name: Compile test harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile \
+            blueprint/tests/test_nmje_v2_m5_lineage_fixture.py \
+            blueprint/tests/test_nmje_v2_m5_stage_a_static.py
+          echo 'NMJE_V2_M5_STAGE_A_SELFTEST=PASS'

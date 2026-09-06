@@ -18,8 +18,8 @@ def require(text: str, *markers: str) -> None:
 def main() -> None:
     require(
         SRC,
-        "Version 4.6.3 - N3 F7 Telemetry Reconcile",
-        '#property version   "4.63"',
+        "Version 4.6.4 - NMJE v2 M5 Lineage Schema",
+        '#property version   "4.64"',
         "datetime             EpochStartCandleTime;",
         "NMJE_BuildD1Node(",
         "NMJE_BuildH4Node(",
@@ -39,7 +39,7 @@ def main() -> None:
         "automatic_policy_authorized = false",
         "m5_execution_authority = false",
         "m5_processing_clock_authority = false",
-        "source_modification_authorized = false",
+        "source_modification_authorized = schema_only",
         "activation_authorized = false",
     )
     require(

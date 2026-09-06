@@ -1,4 +1,4 @@
-name: NMJE v2 M5 Stage A selftest
+name: NMJE v2 M5 Stage A-B selftest
 
 on:
   pull_request:
@@ -9,6 +9,8 @@ on:
       - 'blueprint/implementation/NMJE_V2_M5_WORKSTREAM_PLAN_20260828.md'
       - 'blueprint/tests/test_nmje_v2_m5_lineage_fixture.py'
       - 'blueprint/tests/test_nmje_v2_m5_stage_a_static.py'
+      - 'blueprint/tests/test_nmje_v2_m5_stage_b_schema_static.py'
+      - 'blueprint/implementation/NMJE_V2_M5_STAGE_B_SCHEMA_RECORD_20260828.md'
       - 'blueprint/source/BBMA_EA.mq4'
       - '.github/workflows/nmje-v2-m5-stage-a-selftest.yml'
   workflow_dispatch:
@@ -17,23 +19,18 @@ permissions:
   contents: read
 
 jobs:
-  stage-a-contract-fixtures:
+  stage-a-b-contract-schema:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Fail closed on EA source changes during Stage A
+      - name: Verify Stage B schema-only source boundary
         shell: bash
         run: |
           set -euo pipefail
-          git fetch origin nmje-n3-hardening-dev --depth=1
-          if ! git diff --quiet origin/nmje-n3-hardening-dev...HEAD -- blueprint/source/BBMA_EA.mq4; then
-            echo 'Stage A is contract/test-only; EA source modification is not authorized.' >&2
-            git diff --stat origin/nmje-n3-hardening-dev...HEAD -- blueprint/source/BBMA_EA.mq4 >&2
-            exit 1
-          fi
+          python3 blueprint/tests/test_nmje_v2_m5_stage_b_schema_static.py
 
       - name: Run deterministic M5 lineage fixtures
         shell: bash
@@ -47,11 +44,22 @@ jobs:
           set -euo pipefail
           python3 blueprint/tests/test_nmje_v2_m5_stage_a_static.py
 
+      - name: Run N3 protected-surface regressions
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          ./blueprint/ci/nmje_n3_static_guard.ps1
+          python3 blueprint/tests/test_nmje_n3_replay_identity_static.py
+          python3 blueprint/tests/test_nmje_n3_recovery_failclosed_static.py
+          python3 blueprint/tests/test_nmje_n3_authority_matrix_static.py
+          python3 blueprint/tests/test_nmje_n3_identity_domain_static.py
+
       - name: Compile test harness
         shell: bash
         run: |
           set -euo pipefail
           python3 -m py_compile \
             blueprint/tests/test_nmje_v2_m5_lineage_fixture.py \
-            blueprint/tests/test_nmje_v2_m5_stage_a_static.py
-          echo 'NMJE_V2_M5_STAGE_A_SELFTEST=PASS'
+            blueprint/tests/test_nmje_v2_m5_stage_a_static.py \
+            blueprint/tests/test_nmje_v2_m5_stage_b_schema_static.py
+          echo 'NMJE_V2_M5_STAGE_A_B_SELFTEST=PASS'

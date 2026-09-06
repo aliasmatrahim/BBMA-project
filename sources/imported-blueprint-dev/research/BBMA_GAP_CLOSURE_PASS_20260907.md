@@ -14,23 +14,24 @@ Repeated BBMA teaching material defines RRM as Re-Entry -> Re-Entry -> MHV. Sign
 Evidence: https://www.scribd.com/document/769713635/SIGNAL-IDENTIFICATION-BBMA-OMA-ALLY
 
 ## Gap 2 — RME
-Status: PARTIAL / NEED-PRIMARY-VIDEO.
-Forum/community evidence uses RME as Re-Entry -> MHV -> Extreme, but no primary project PDF/Finale contract has been found. Do not treat as canonical until direct Oma Ally evidence appears in the Intensive set or another stronger source.
+Status: CLOSED-FOR-RESEARCH / STRONG-CANDIDATE, NOT CORE.
+Multiple community/teaching sources now agree on RME = Re-Entry -> MHV -> Extreme across three successive MTF layers. ForexFactory gives a concrete example: M15 Re-Entry, M5 MHV, M1 Extreme. A separate BBMA 101 note gives Weekly Re-Entry, Daily MHV, H4 Extreme and describes confirmation chronology. Therefore the semantic signature is research-closed, but provenance is still below accepted primary project evidence.
+Evidence: https://www.forexfactory.com/thread/post/14090568 ; https://www.studocu.com/row/document/university-of-the-punjab/business-finance/bbma-notes-bbma-101-forex-trading-strategies-by-ashi-q/160767949
 
 ## Gap 3 — ZZL / Zone Zero Loss
 Status: CLOSED-FOR-RESEARCH / STRONG-CANDIDATE DEFINITION, NOT CORE.
-Across community notes, indicators, and later analyzer implementations, the consistent semantic core is: an established trend/Re-Entry context in which MA5/10, Mid BB, and EMA50 are ordered in the trend direction and price remains on the valid trend side. Modern scanner logic expresses the same directional ordering. Exact entry/exit/invalidation details vary by implementation, so only the structural definition is considered research-closed.
-Evidence: https://www.mql5.com/en/code/55233 ; https://www.scribd.com/document/980644232/BBMA-OA-3-3 ; https://www.scribd.com/document/1003442568/Rule-BBMA-Oma-Ally-Original
+Across community notes, indicators, later analyzer implementations, and a detailed BBMA teaching copy, the stable semantic core is: Re-Entry-only context after strong direction, with Mid BB, MA5/MA10, candle/price and EMA50 ordered consistently on the trend side. The same teaching copy states TP/exit when a strong opposite direction candle appears. Exact automation Boolean remains non-canonical.
+Evidence: https://www.mql5.com/en/code/55233 ; https://www.scribd.com/document/980644232/BBMA-OA-3-3 ; https://www.scribd.com/document/670542296/BBMA-OA-MyEnglishVersion1-1
 
 ## Gap 4 — RZZL / Re-Entry in ZZL
-Status: PARTIAL / TOOLING TAXONOMY.
-Modern SharpShooter scanner versions explicitly scan Reentry in ZZL as a higher-timeframe component of Diamond, but the term RZZL is not proven as original Oma Ally taxonomy. Keep as tooling/community shorthand until stronger provenance is found.
-Evidence: https://www.mql5.com/en/market/product/102503/updates
+Status: CLOSED-FOR-RESEARCH AS TOOLING/ADVANCED TAXONOMY; NOT CORE.
+SharpShooter documentation explicitly defines RZZL as Re-Entry in ZZL condition: a Re-Entry exists while the current timeframe is in Zone Zero Loss condition. Later scanner versions reuse Re-Entry-in-ZZL as the major-TF component of Diamond. This closes the semantic meaning, but does not establish RZZL as original Oma Ally taxonomy.
+Evidence: https://pt.scribd.com/document/715250853/BBMA-OMA-ALLY-ANALYZER-DASHBOARD-EA-V3-60-Bahasa-Indonesia ; https://www.mql5.com/en/market/product/102503/updates
 
 ## Gap 5 — Rejected EMA50
 Status: CLOSED-FOR-RESEARCH / STRONG-CANDIDATE STRUCTURE, NOT CORE.
-Repeated teaching material gives a consistent directional form: in a higher-TF Re-Entry context, EMA50 sits on the structurally correct side of Mid BB and a candle rejects EMA50. This is sufficiently stable as a candidate definition. Exact wick/body/close Boolean remains implementation-unsafe without primary video confirmation.
-Evidence: https://www.scribd.com/document/769713635/SIGNAL-IDENTIFICATION-BBMA-OMA-ALLY
+Repeated teaching material gives a consistent directional form: in a higher-TF Re-Entry context, EMA50 sits on the structurally correct side of Mid BB and a candle rejects EMA50. Additional advanced notes indicate a candle closing beyond EMA50 can invalidate certain EMA50-rejection/advanced setups, but this is not stable enough to encode universally. Exact wick/body/close Boolean remains implementation-unsafe without primary video confirmation.
+Evidence: https://www.scribd.com/document/769713635/SIGNAL-IDENTIFICATION-BBMA-OMA-ALLY ; https://www.scribd.com/document/866338054/bbma-somesetup
 
 ## Gap 6 — Gap BB to EMA50
 Status: CLOSED-FOR-RESEARCH / STRONG-CANDIDATE STRUCTURE, NOT CORE.
@@ -44,8 +45,8 @@ Evidence: https://www.scribd.com/document/815678196/BBMA-OMA-ALLY-ANALYZER-DASHB
 
 ## Gap 8 — Advanced / multiple / triple Extreme
 Status: PARTIAL / STRONG ADVANCED TEACHING, NEED-PRIMARY-VIDEO FOR EXECUTION.
-Multiple independent BBMA notes describe continuous two/three Extreme structures without an opposite Extreme. They also state that second/third Extreme may not follow normal TP-Wajib/MHV when a larger timeframe MHV or Re-Entry owns the move. This is plausible and repeatedly documented, but conflicts with the conservative executable Core rule; therefore it remains excluded until primary video evidence yields deterministic ownership conditions.
-Evidence: https://id.scribd.com/document/352183859/Bbma-Oma-Ally ; https://id.scribd.com/document/734529476/BBMA-Basic-OA
+Multiple independent BBMA notes describe continuous two/three Extreme structures without an opposite Extreme. They state that repeated small-TF Extremes can be the manifestation of a larger-TF MHV/Re-Entry owner, and that later Extremes may not require the normal TP-Wajib/MHV sequence. This is repeatedly documented but conflicts with the conservative executable Core rule; deterministic owner-transfer conditions still require primary video evidence.
+Evidence: https://id.scribd.com/document/352183859/Bbma-Oma-Ally ; https://id.scribd.com/document/734529476/BBMA-Basic-OA ; https://www.slideshare.net/slideshow/bbma-new-ver-ms-enjvhjsdbvhjsdbvhjsdbvjhsdbvhjsdb-pdf/272193415
 
 ## Gap 9 — Re-Entry maturity / first-validating then following candle
 Status: SOURCE-SEMANTICS CLOSED; RUNTIME TRACE STILL REQUIRED.
@@ -53,33 +54,34 @@ ForexFactory BBMA notes, TradingView open-source documentation, and independent 
 Evidence: https://www.forexfactory.com/thread/1123713-bbma-trading?page=38 ; https://my.tradingview.com/script/azoFriT7-Bollinger-Bands-Moving-Average-BBMA-Oma-Ally/ ; https://www.scribd.com/document/670542296/BBMA-OA-MyEnglishVersion1-1
 
 ## Gap 10 — Re-Entry minimum-candle rule
-Status: PARTIAL.
-Community/teaching material repeatedly gives minimum 3 candles for H4/H1/M15 and usually 2 for D1/W1/MN when MA5/10 and Mid BB meet. Project Core currently accepts the three-candle requirement for Powerful Re-Entry/Type 2 only. The broader TF-dependent generalization must not be promoted without higher-precedence evidence.
-Evidence: https://www.forexfactory.com/thread/1123713-bbma-trading?page=38 ; https://www.scribd.com/document/670542296/BBMA-OA-MyEnglishVersion1-1
+Status: CLOSED-FOR-RESEARCH AS TEACHING RULE; CORE SCOPE STILL LIMITED.
+Independent teaching copies and ForexFactory repeatedly agree: when MA5/MA10 and Mid BB meet in a strong Re-Entry, small TFs H4/H1/M15 commonly use minimum 3 candles; D1/W1/MN commonly use minimum 2 candles. This closes the research taxonomy. Project Core should still keep its current narrower Type-2 application until higher-precedence reconciliation explicitly broadens it.
+Evidence: https://www.forexfactory.com/thread/post/14075760 ; https://www.scribd.com/document/670542296/BBMA-OA-MyEnglishVersion1-1
 
 ## Gap 11 — SL / cut-loss lifecycle
-Status: NEED-PRIMARY-VIDEO; UNIVERSAL FORMULA NOT CLOSED.
-No single stable Oma Ally universal SL formula emerges. Community evidence conflicts among opposite momentum, opposite CSAK, MA10/allowance, swing high/low, BB boundary, and fixed/ADR/product rules. The only robust semantic candidate is state invalidation: exit/cut when the setup is structurally invalidated by a strong opposite signal or invalidating close. This is not yet sufficient to replace project SL with one universal source-owned formula.
-Evidence examples: https://www.youtube.com/watch?v=6iPBeLEQQns ; https://soehoe.id/threads/belajar-bareng-bbma-oma-ally.7063/page-3 ; https://id.scribd.com/document/492149103/bbma-oa
+Status: PARTIAL / NEED-PRIMARY-VIDEO FOR UNIVERSAL CONTRACT.
+No single stable fixed-price Oma Ally SL formula emerges. However, research now converges on a lifecycle principle: exit/cut when the setup is structurally invalidated by a strong opposite direction/momentum signal or a close through the defining invalidation structure. Examples include opposite CSAK/momentum, a marked lower-TF line being closed through, and certain EMA50-rejection setups being invalidated by a close beyond EMA50. Fixed-pip, ADR, swing, MA10+allowance and dashboard SL rules remain implementation/personal variants. This supports lifecycle-based invalidation research, but is not enough for one universal deterministic Core SL formula.
+Evidence: https://www.youtube.com/watch?v=6iPBeLEQQns ; https://soehoe.id/threads/belajar-bareng-bbma-oma-ally.7063/page-3 ; https://www.scribd.com/document/866338054/bbma-somesetup ; https://id.scribd.com/document/492149103/bbma-oa
 
 ## Intensive Video 02 preliminary evidence
-Uncorrected ASR chunks now exist for Video 02. Keyword sweep already finds: repeated higher-timeframe Re-Entry ownership language, lower-TF recurrence, explicit cut-loss discussion, and several ASR hits for 'gap'. Because this transcript is still uncorrected and incomplete as an assembled artifact, these hits are discovery leads only, not accepted evidence.
+Uncorrected ASR chunks now exist for Video 02. Keyword sweep already finds repeated higher-timeframe Re-Entry ownership language, lower-TF recurrence, explicit cut-loss discussion, and several ASR hits for 'gap'. Because this transcript is still uncorrected and incomplete as an assembled artifact, these hits are discovery leads only, not accepted evidence.
 
 ## What is now research-closed
-- RRM semantic expansion: Re-Entry -> Re-Entry -> MHV (candidate only).
-- ZZL structural meaning (candidate only).
-- Rejected EMA50 structural meaning (candidate only).
-- Gap BB-to-EMA50 structural meaning (candidate only).
+- RRM = Re-Entry -> Re-Entry -> MHV (candidate taxonomy).
+- RME = Re-Entry -> MHV -> Extreme (candidate taxonomy across successive TFs).
+- ZZL structural meaning.
+- RZZL semantic meaning as Re-Entry in ZZL.
+- Rejected EMA50 structural meaning.
+- Gap BB-to-EMA50 structural meaning.
 - Diamond classified as evolving advanced/tooling family rather than stable Core.
 - Re-Entry first-validating/following-candle semantics.
+- 3-candle small-TF / 2-candle major-TF teaching taxonomy for strong confluence Re-Entry.
 
 ## What remains genuinely open
-1. RME provenance and exact timeframe signature.
-2. RZZL provenance as original vs tooling shorthand.
-3. Deterministic advanced/multiple-Extreme owner transfer and no-TPW exceptions.
-4. Exact candle Boolean/invalidation for Rejected EMA50 and Gap.
-5. Universal source-owned SL/cut-loss lifecycle, if one exists.
-6. Whether the 2-vs-3 candle rule is universal or only a subset/Powerful Re-Entry teaching.
+1. Deterministic advanced/multiple-Extreme owner transfer and no-TPW exceptions.
+2. Exact universal candle Boolean/invalidation for Rejected EMA50 and Gap.
+3. Universal source-owned SL/cut-loss contract, if one exists beyond lifecycle invalidation.
+4. Whether any of RRM/RME/RZZL should ever be promoted from advanced/community taxonomy into accepted project Core.
 
 ## Next closure source
 The remaining gaps should now be closed primarily from corrected Intensive Video transcripts, not additional broad web research. Search terms: RME, RRM, ZZL/zero loss, RZZL, EMA50, reject, gap, diamond, extreme kedua/ketiga, triple extreme, tiada TP wajib, tiada MHV, candle kedua, stop loss, cut loss, invalid/batal, timeframe besar, overshoot.

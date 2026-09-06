@@ -16,7 +16,7 @@ jobs:
     env:
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       VIDEO_ID: pU9E_ckLtkI
-      CHUNK_SECONDS: '600'
+      CHUNK_SECONDS: '480'
       SOURCE_URL: https://gary-denver-tender-complex.trycloudflare.com/source.m4a
     steps:
       - uses: actions/checkout@v4
@@ -106,7 +106,7 @@ jobs:
           with open('results/video01_pU9E_ckLtkI_ASR_DRAFT.txt','w',encoding='utf-8') as f: f.write('\n'.join(merged)+'\n')
           with open('results/video01_pU9E_ckLtkI_ASR_DRAFT.srt','w',encoding='utf-8') as f: f.write('\n'.join(srt))
           with open('results/manifest.json','w',encoding='utf-8') as f:
-              json.dump({'video_id':'pU9E_ckLtkI','title':'1. Oma Ally BBMA Intensive Day 1 Video 1','status':'ASR-DRAFT','model':'whisper-large-v3','chunk_seconds':600,'chunks':len(raw),'duration_seconds':offset},f,indent=2)
+              json.dump({'video_id':'pU9E_ckLtkI','title':'1. Oma Ally BBMA Intensive Day 1 Video 1','status':'ASR-DRAFT','model':'whisper-large-v3','chunk_seconds':480,'chunks':len(raw),'duration_seconds':offset},f,indent=2)
 
       - name: Package raw responses
         shell: bash

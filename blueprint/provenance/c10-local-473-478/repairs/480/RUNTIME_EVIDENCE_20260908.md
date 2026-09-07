@@ -47,3 +47,14 @@ Across 9,143 Build-4.80 log lines reviewed: 0 C10 ledger/file/checkpoint failure
 
 ## Remaining acceptance gate
 A separate isolated live Build 4.80 terminal is now attached with `ExpertsTrades=false`, `MaxTradePerPair=0`, `MaxTotalTrade=0`, InstanceID=80. It is waiting for a fresh live `ACTIVE` shadow so the same terminal can be physically stopped and restarted at the live clock. Issue #122/#123 remain open until that final restart evidence is captured and checked.
+
+## 2026-09-08 pre-closure hardening update
+The final live physical-restart gate is now guarded by `verify_runtime_closure.py`.
+The verifier cross-checks exact ACTIVE identity across restart, M5 enrollment chronology, safe launch parameters, CSV schema width, cross-file same-provenance duplicate IDs, target-outcome chronology, post-restart recovery/Authority=NONE markers, ledger-disable absence and zero broker-action markers.
+
+Verifier controls were exercised separately from runtime evidence:
+- clean synthetic fixture built from authentic Build 4.80 checkpoint/ledger data -> PASS;
+- injected duplicate EventID -> FAIL as expected;
+- injected `OrderSend` -> FAIL as expected.
+
+This tooling validation does not satisfy the remaining live acceptance gate by itself. The isolated broker-connected InstanceID 80 watcher remains responsible for capturing a fresh live ACTIVE state and performing the same-terminal physical restart before the verifier can issue a runtime PASS.

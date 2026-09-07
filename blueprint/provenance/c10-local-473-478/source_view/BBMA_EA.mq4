@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.7.6 - C10 Audit Ledger Stage C                    |
+//| Version 4.7.7 - C10 Shadow Outcome Stage D-A                 |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.76"
+#property version   "4.77"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -105,6 +105,7 @@ input ENUM_DEBUG_LEVEL DebugLevel                 = DBG_OFF;    // 08 Advanced |
 input int      StrategyID                         = 1;          // 08 Advanced | strategy identity 1-99
 input int      InstanceID                         = 0;          // 08 Advanced | instance identity 0-99
 input bool     EnableC10StatisticsLedger          = false;      // 08 Advanced | audit-only C10 CSV ledger; no trade authority
+input bool     EnableC10ShadowOutcomes            = false;      // 08 Advanced | GEOMETRY_VALIDATED shadow outcomes; no trade authority
 
 //--- INTERNAL / LOCKED (not shown in MT4 Inputs; defaults preserved)
 int            MaxWaitBars_Extreme                = 5;
@@ -163,10 +164,13 @@ int            AllowedExecutionDeviation_MinPoints= 5;
 #define STRATEGY_ID_MAX         99
 #define C10_SIGNAL_SCHEMA       "C10S1"
 #define C10_OUTCOME_SCHEMA      "C10O1"
+#define C10_SHADOW_SCHEMA       "C10D1"
 #define C10_LEDGER_FOLDER       "BBMA_C10"
 #define C10_LEDGER_MAX_BYTES    33554432
 #define C10_LEDGER_MAX_PARTS    99
-#define C10_SOURCE_HASH         "44A291090906BB5AE3C6DC8976F00D1834C47FB6AA8EA7EF3887D700359A150D"
+#define C10_SHADOW_MAX          400
+#define C10_SHADOW_SEEN_MAX     4000
+#define C10_SOURCE_HASH         "626E388F64182BB51F87E7AF8D8A2F87E171234764E05E6240D188B432D4C341"
 
 //+------------------------------------------------------------------+
 //| MODULE 02: ENUMS & STRUCTS                                       |
@@ -1110,6 +1114,22 @@ struct TradeInfo
    ENUM_RECOVERY_STATE  recovery_state;
 };
 
+struct C10ShadowInfo
+{
+   bool                 active;
+   string               decision_id;
+   string               pair;
+   ENUM_DIRECTION       direction;
+   ENUM_SIGNAL_TYPE     signal_type;
+   datetime             entry_time;
+   datetime             expiry_time;
+   datetime             last_m5_closed;
+   double               entry_price;
+   double               stop_loss;
+   double               take_profit;
+   int                  digits;
+};
+
 struct RiskStatus
 {
    bool                 allowed;
@@ -1218,12 +1238,16 @@ ENUM_PRIORITY_TIER   g_manual_priority_tiers[];
 string               g_dashboard_snapshot;
 bool                 g_dashboard_needs_update;
 
-//--- C10 Stage-C audit ledger. It is evidence-only and default OFF.
+//--- C10 Stage-D audit ledger. It is evidence-only and default OFF.
 bool                 g_c10_ledger_ready;
 bool                 g_c10_integrity_failed;
 string               g_c10_run_id;
 string               g_c10_config_fingerprint;
 string               g_c10_source_hash;
+C10ShadowInfo        g_c10_shadows[C10_SHADOW_MAX];
+int                  g_c10_shadow_count;
+string               g_c10_shadow_seen_decision_ids[C10_SHADOW_SEEN_MAX];
+int                  g_c10_shadow_seen_count;
 
 //--- Protection
 double               g_protection_reference_equity;
@@ -1933,7 +1957,8 @@ string C10_BuildConfigFingerprint()
                 IntegerToString(Slippage) + "|" +
                 IntegerToString(StrategyID) + "|" +
                 IntegerToString(InstanceID) + "|" +
-                (EnableC10StatisticsLedger ? "1" : "0");
+                (EnableC10StatisticsLedger ? "1" : "0") + "|" +
+                (EnableC10ShadowOutcomes ? "1" : "0");
    return SHORT_HASH(raw, 16);
 }
 
@@ -2303,6 +2328,8 @@ bool C10_CommitAttemptSequence(string decisionID, int attemptSeq)
 
 bool C10_InitializeLedgers()
 {
+   g_c10_shadow_count = 0;
+   g_c10_shadow_seen_count = 0;
    g_c10_ledger_ready = false;
    g_c10_integrity_failed = false;
    g_c10_run_id = "";
@@ -2343,7 +2370,7 @@ bool C10_InitializeLedgers()
    }
 
    g_c10_ledger_ready = true;
-   Print("[C10][READY] Stage=C SignalSchema=", C10_SIGNAL_SCHEMA,
+   Print("[C10][READY] Stage=D-A SignalSchema=", C10_SIGNAL_SCHEMA,
          " OutcomeSchema=", C10_OUTCOME_SCHEMA,
          " RunID=", g_c10_run_id,
          " Config=", g_c10_config_fingerprint,
@@ -2397,7 +2424,7 @@ void C10_WriteSignalEvent(int pairIndex, BBMA_Decision &decision)
 
    string fields[27];
    fields[0]  = C10_SIGNAL_SCHEMA;
-   fields[1]  = "4.76";
+   fields[1]  = "4.77";
    fields[2]  = g_c10_source_hash;
    fields[3]  = g_c10_config_fingerprint;
    fields[4]  = g_c10_run_id;
@@ -2442,6 +2469,235 @@ void C10_WriteSignalEvent(int pairIndex, BBMA_Decision &decision)
          " AttemptSeq=", IntegerToString(attemptSeq),
          " Result=", appendResult == 1 ? "APPENDED" : "DUPLICATE_IGNORED",
          " Authority=NONE");
+}
+
+void C10_CompactShadowRegistry()
+{
+   int write = 0;
+   for(int i = 0; i < g_c10_shadow_count; i++)
+   {
+      if(!g_c10_shadows[i].active) continue;
+      if(write != i) g_c10_shadows[write] = g_c10_shadows[i];
+      write++;
+   }
+   g_c10_shadow_count = write;
+}
+
+bool C10_ShadowDecisionSeen(string decisionID)
+{
+   if(decisionID == "") return false;
+   for(int i = 0; i < g_c10_shadow_seen_count; i++)
+      if(g_c10_shadow_seen_decision_ids[i] == decisionID) return true;
+   return false;
+}
+
+bool C10_MarkShadowDecisionSeen(string decisionID)
+{
+   if(decisionID == "") return false;
+   if(C10_ShadowDecisionSeen(decisionID)) return true;
+   if(g_c10_shadow_seen_count >= C10_SHADOW_SEEN_MAX)
+   {
+      C10_DisableLedger("SHADOW_SEEN_REGISTRY_CAPACITY");
+      return false;
+   }
+   g_c10_shadow_seen_decision_ids[g_c10_shadow_seen_count++] = decisionID;
+   return true;
+}
+
+bool C10_ShadowBoundaryTouch(C10ShadowInfo &info, double highPrice,
+                             double lowPrice, bool &tpTouch, bool &slTouch)
+{
+   tpTouch = false;
+   slTouch = false;
+   if(highPrice <= 0.0 || lowPrice <= 0.0 || highPrice < lowPrice) return false;
+   if(info.direction == DIR_BUY)
+   {
+      tpTouch = (info.take_profit > 0.0 && highPrice >= info.take_profit);
+      slTouch = (info.stop_loss > 0.0 && lowPrice <= info.stop_loss);
+   }
+   else if(info.direction == DIR_SELL)
+   {
+      tpTouch = (info.take_profit > 0.0 && lowPrice <= info.take_profit);
+      slTouch = (info.stop_loss > 0.0 && highPrice >= info.stop_loss);
+   }
+   return (tpTouch || slTouch);
+}
+
+void C10_WriteShadowOutcome(C10ShadowInfo &info, datetime exitTime,
+                            double exitPrice, string exitReason,
+                            string evidenceResolution)
+{
+   if(!info.active || !EnableC10StatisticsLedger ||
+      !EnableC10ShadowOutcomes || !g_c10_ledger_ready ||
+      g_c10_integrity_failed) return;
+   datetime entryUTC = C10_ServerTimeToUTC(info.entry_time);
+   datetime exitUTC = C10_ServerTimeToUTC(exitTime);
+   if(info.decision_id == "" || entryUTC <= 0 || exitUTC <= 0 ||
+      exitTime < info.entry_time)
+   {
+      C10_DisableLedger("SHADOW_IDENTITY_OR_TIME_UNPROVABLE");
+      return;
+   }
+
+   string identity = C10_OUTCOME_SCHEMA + "|SHADOW|" +
+                     info.decision_id + "|" + exitReason + "|" +
+                     IntegerToString((int)exitTime);
+   string outcomeEventID = SHORT_HASH(identity, 16);
+   string fields[35];
+   fields[0]  = C10_OUTCOME_SCHEMA;
+   fields[1]  = "4.77";
+   fields[2]  = g_c10_source_hash;
+   fields[3]  = g_c10_config_fingerprint;
+   fields[4]  = g_c10_run_id;
+   fields[5]  = outcomeEventID;
+   fields[6]  = C10_UTCText(exitUTC);
+   fields[7]  = "SHADOW";
+   fields[8]  = info.decision_id;
+   fields[9]  = "NA";
+   fields[10] = "NA";
+   fields[11] = info.pair;
+   fields[12] = EnumToString(info.direction);
+   fields[13] = EnumToString(info.signal_type);
+   fields[14] = "M15";
+   fields[15] = C10_UTCText(entryUTC);
+   fields[16] = C10_UTCText(exitUTC);
+   fields[17] = C10_PriceOrNA(info.entry_price, info.digits);
+   fields[18] = C10_PriceOrNA(exitPrice, info.digits);
+   fields[19] = C10_PriceOrNA(info.stop_loss, info.digits);
+   fields[20] = C10_PriceOrNA(info.take_profit, info.digits);
+   for(int f = 21; f <= 31; f++) fields[f] = "NA";
+   fields[32] = IntegerToString((int)(exitTime - info.entry_time));
+   fields[33] = exitReason;
+   fields[34] = evidenceResolution;
+
+   string csvLine = C10_BuildCSVLine(fields, 35);
+   int appendResult = C10_AppendEvent(
+      "bbma_outcome", C10_OUTCOME_SCHEMA, C10_OutcomeHeader(), 35,
+      outcomeEventID, exitUTC, csvLine);
+   if(appendResult < 0) return;
+   info.active = false;
+   Print("[C10][SHADOW_OUTCOME] OutcomeEventID=", outcomeEventID,
+         " DecisionID=", info.decision_id,
+         " Reason=", exitReason,
+         " Result=", appendResult == 1 ? "APPENDED" : "DUPLICATE_IGNORED",
+         " Authority=NONE");
+}
+
+void C10_RegisterGeometryValidatedShadow(BBMA_Decision &decision)
+{
+   if(!EnableC10StatisticsLedger || !EnableC10ShadowOutcomes ||
+      !g_c10_ledger_ready || g_c10_integrity_failed) return;
+   if(!decision.Valid || decision.DecisionState != DEC_VALIDATED ||
+      decision.DecisionID == "" || decision.Pair == "" ||
+      (decision.Direction != DIR_BUY && decision.Direction != DIR_SELL) ||
+      decision.EntryPrice <= 0.0 || decision.StopLoss <= 0.0 ||
+      decision.TakeProfit <= 0.0)
+   {
+      return;
+   }
+   if(C10_ShadowDecisionSeen(decision.DecisionID)) return;
+
+   C10_CompactShadowRegistry();
+   if(g_c10_shadow_count >= C10_SHADOW_MAX)
+   {
+      C10_DisableLedger("SHADOW_REGISTRY_CAPACITY");
+      return;
+   }
+   datetime entryTime = g_processing_time > 0 ? g_processing_time : TimeCurrent();
+   if(entryTime <= 0) return;
+   C10ShadowInfo info;
+   ZeroMemory(info);
+   info.active = true;
+   info.decision_id = decision.DecisionID;
+   info.pair = decision.Pair;
+   info.direction = decision.Direction;
+   info.signal_type = decision.SignalType;
+   info.entry_time = entryTime;
+   info.expiry_time = decision.CandidateExpiry;
+   info.last_m5_closed = GetLatestClosedCandleTime(decision.Pair, PERIOD_M5);
+   info.entry_price = decision.EntryPrice;
+   info.stop_loss = decision.StopLoss;
+   info.take_profit = decision.TakeProfit;
+   info.digits = GetDigits(decision.Pair);
+   if(!C10_MarkShadowDecisionSeen(decision.DecisionID)) return;
+   if(decision.CandidateExpiry <= entryTime)
+   {
+      Print("[C10][SHADOW_UNPROVABLE] DecisionID=", decision.DecisionID,
+            " Reason=EXPIRY_UNPROVABLE Authority=NONE");
+      C10_WriteShadowOutcome(info, entryTime, 0.0,
+                             "UNKNOWN", "EXPIRY_UNPROVABLE");
+      return;
+   }
+   g_c10_shadows[g_c10_shadow_count++] = info;
+   Print("[C10][SHADOW_REGISTER] DecisionID=", decision.DecisionID,
+         " Population=GEOMETRY_VALIDATED Entry=", DoubleToString(info.entry_price, info.digits),
+         " SL=", DoubleToString(info.stop_loss, info.digits),
+         " TP=", DoubleToString(info.take_profit, info.digits),
+         " Expiry=", TimeToString(info.expiry_time),
+         " Authority=NONE");
+}
+
+void C10_CancelShadowForDecision(string decisionID)
+{
+   if(decisionID == "") return;
+   for(int i = 0; i < g_c10_shadow_count; i++)
+   {
+      if(!g_c10_shadows[i].active ||
+         g_c10_shadows[i].decision_id != decisionID) continue;
+      g_c10_shadows[i].active = false;
+      Print("[C10][SHADOW_CANCEL] DecisionID=", decisionID,
+            " Reason=REALIZED_TAKEOVER Authority=NONE");
+   }
+   C10_CompactShadowRegistry();
+}
+
+void C10_UpdateShadowOutcomes()
+{
+   if(!EnableC10StatisticsLedger || !EnableC10ShadowOutcomes ||
+      !g_c10_ledger_ready || g_c10_integrity_failed) return;
+   datetime nowTime = g_processing_time > 0 ? g_processing_time : TimeCurrent();
+   for(int i = 0; i < g_c10_shadow_count; i++)
+   {
+      if(!g_c10_shadows[i].active) continue;
+      C10ShadowInfo info = g_c10_shadows[i];
+      double observed = info.direction == DIR_BUY ?
+                        MarketInfo(info.pair, MODE_BID) :
+                        MarketInfo(info.pair, MODE_ASK);
+      bool tpTouch = false, slTouch = false;
+      if(observed > 0.0 &&
+         C10_ShadowBoundaryTouch(info, observed, observed, tpTouch, slTouch))
+      {
+         C10_WriteShadowOutcome(g_c10_shadows[i], nowTime,
+                                tpTouch ? info.take_profit : info.stop_loss,
+                                tpTouch ? "TP" : "SL", "RUNTIME_PRICE_SNAPSHOT");
+         continue;
+      }
+
+      datetime m5Open = GetLatestClosedCandleTime(info.pair, PERIOD_M5);
+      datetime m5Close = m5Open > 0 ? m5Open + GetTimeframeSeconds(PERIOD_M5) : 0;
+      if(m5Open > info.last_m5_closed && m5Close <= info.expiry_time)
+      {
+         double highPrice = iHigh(info.pair, PERIOD_M5, 1);
+         double lowPrice = iLow(info.pair, PERIOD_M5, 1);
+         if(C10_ShadowBoundaryTouch(info, highPrice, lowPrice, tpTouch, slTouch))
+         {
+            if(tpTouch && slTouch)
+               C10_WriteShadowOutcome(g_c10_shadows[i], m5Close, 0.0,
+                                      "AMBIGUOUS", "M5_SAME_INTERVAL_BOTH");
+            else
+               C10_WriteShadowOutcome(g_c10_shadows[i], m5Close,
+                                      tpTouch ? info.take_profit : info.stop_loss,
+                                      tpTouch ? "TP" : "SL", "M5_CLOSED_CANDLE");
+            continue;
+         }
+         g_c10_shadows[i].last_m5_closed = m5Open;
+      }
+
+      if(nowTime >= info.expiry_time)
+         C10_WriteShadowOutcome(g_c10_shadows[i], info.expiry_time, 0.0,
+                                "EXPIRED", "CANONICAL_EXPIRY");
+   }
+   C10_CompactShadowRegistry();
 }
 
 string C10_RealizedExitReason(TradeInfo &info, double closePrice)
@@ -2534,7 +2790,7 @@ void C10_WriteRealizedOutcome(TradeInfo &info)
    int digits = info.digits >= 0 ? info.digits : GetDigits(info.pair);
    string fields[35];
    fields[0]  = C10_OUTCOME_SCHEMA;
-   fields[1]  = "4.76";
+   fields[1]  = "4.77";
    fields[2]  = g_c10_source_hash;
    fields[3]  = g_c10_config_fingerprint;
    fields[4]  = g_c10_run_id;
@@ -10176,6 +10432,10 @@ bool RunEntryPreflightAndExecute(BBMA_Decision &decision, string pair)
       return false;
    }
 
+   // Stage D-A freezes the core-setup denominator after broker-normalized
+   // geometry is valid, before lot, account-risk or execution authority.
+   C10_RegisterGeometryValidatedShadow(decision);
+
    bool lotValid = true;
    double lot = CalculateLotSize(decision, snapshot, lotValid);
    if(!lotValid || lot <= 0)
@@ -10234,6 +10494,8 @@ bool RunEntryPreflightAndExecute(BBMA_Decision &decision, string pair)
             " Lot=", DoubleToString(lot, snapshot.LotDigits));
 
    ProcessEntry(decision, pair, snapshot, lot);
+   if(decision.DecisionState == DEC_EXECUTED)
+      C10_CancelShadowForDecision(decision.DecisionID);
    return (decision.DecisionState == DEC_EXECUTED);
 }
 
@@ -11986,7 +12248,7 @@ void BuildDashboardSnapshot()
    int liveTradeCount = CountDashboardLiveEAOwnedTrades();
 
    g_dashboard_snapshot = "";
-   g_dashboard_snapshot += "=== BBMA EA V4.76 C10 Audit Ledger Stage C ===\n";
+   g_dashboard_snapshot += "=== BBMA EA V4.77 C10 Shadow Outcome Stage D-A ===\n";
    g_dashboard_snapshot += "Time: " + TimeToString(TimeCurrent()) + "\n";
    g_dashboard_snapshot += "Balance: " + DoubleToString(AccountBalance(), 2) + "\n";
    g_dashboard_snapshot += "Equity: " + DoubleToString(AccountEquity(), 2) + "\n";
@@ -12078,6 +12340,7 @@ void NormalizeRuntimeLimits()
 
 bool ValidateInputParameters()
 {
+   if(EnableC10ShadowOutcomes && !EnableC10StatisticsLedger) return false;
    if(MaxRetry <= 0) return false;
    if(Slippage < 0 || AllowedExecutionDeviation_MinPoints < 0) return false;
    if(TradeLockMode < LOCK_OFF || TradeLockMode > LOCK_ONE_POSITION) return false;
@@ -12797,7 +13060,7 @@ void ProcessPair(int pairIndex)
 
    if(EntryMode == 2 && decision.Valid)
    {
-      // C10 Stage C is evidence-only. It consumes the already-final decision
+      // C10 Stage D-A is evidence-only. It consumes the already-final decision
       // after preflight and cannot mutate candidate or execution authority.
       C10_WriteSignalEvent(pairIndex, decision);
       Print("[P3M2][DECISION_FINAL] Pair=", actual,
@@ -12828,7 +13091,7 @@ void OnTickMain()
 
    ManagePortfolio();
    ManagePositions();
-   // C10 Stage C: promptly materialize broker-closed outcomes even when no
+   // C10 Stage D-A: promptly materialize broker-closed outcomes even when no
    // later entry is registered. This is read-only for broker state.
    CompactMonitoredTrades();
 
@@ -12838,6 +13101,7 @@ void OnTickMain()
    g_is_scanning = true;
    
    g_processing_time = GetProcessingTime();
+   C10_UpdateShadowOutcomes();
    
    for(int i = 0; i < g_pair_count; i++)
    {
@@ -12901,7 +13165,7 @@ int OnInit()
    else
       g_timer_registered = true;
    
-   Log(DBG_FULL, "BBMA EA V4.76 C10 Audit Ledger Stage C initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.77 C10 Shadow Outcome Stage D-A initialized successfully");
    return INIT_SUCCEEDED;
 }
 

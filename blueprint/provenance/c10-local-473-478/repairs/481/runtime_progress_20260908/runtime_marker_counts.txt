@@ -1,0 +1,7 @@
+BUILD481_LOG_LINES=1253
+OrderSend=0
+OrderClose=0
+OrderModify=0
+OrderDelete=0
+DEC_EXECUTED=0
+LEDGER_DISABLED=0

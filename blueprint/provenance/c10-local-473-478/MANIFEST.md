@@ -59,3 +59,22 @@ Therefore the historical local Build 4.73–4.78 lineage is now reproducible fro
 ## Next boundary
 
 Do not merge or activate this provenance branch. The next isolated engineering step is to port the already-staged Build 4.79 / Issue #122 fix onto the verified 4.78 lineage, validate it, then stack Build 4.80 / Issue #123. Runtime acceptance remains mandatory before either repair can be promoted.
+
+## Exact source-view commit chain — 2026-09-07
+
+The deterministic base/patch representation is additionally materialized as one exact native MQ4 source view at:
+`blueprint/provenance/c10-local-473-478/source_view/BBMA_EA.mq4`.
+
+`source_view/.gitattributes` sets `BBMA_EA.mq4 -text` so Git stores the recovered Windows/native bytes without line-ending normalization.
+
+| Build | Source-view commit | Git-stored byte SHA-256 |
+|---|---|---|
+| 4.72 | `4c13db5fa6f0b5a6973197a60a2d889bc48719d3` | `0F461312D7D26D724C9738EDDF88F1A226148F01EAE894CE52D942E963F31E99` |
+| 4.73 | `6e992d37b1dd018e21ad25705b4fcf690ec2b278` | `5D7D1CF9880773B067F445136CE4FC75EB37AE4A88BBA9EE7A756A29A146A2C6` |
+| 4.74 | `35b89c9314540a10e79e5609486c82d7a16ca496` | `5FD416BE64389005C287A7904B3C094530DB6A9C6F89E2335943C4AB85E14EB6` |
+| 4.75 | `c53a19b04bff60e6665681a5d035396c2e6965a3` | `6607C061EF7BEAD88A640E733435D72E57D2AC47A26DEC551B81E313E47EF4CD` |
+| 4.76 | `da7dab9618f2c2cfbd0d50666ee8e86cd3888b51` | `E8525A0172E568F9A12469A302D6784A1B1EE4F92B6C45B5B69D92D53AFB1F6A` |
+| 4.77 | `0c006d38fb14a3dc7532c803a68f3df0e112ca37` | `D4B405ED9C30F584C1C7BDEB774A3063FF26CE6826D6867B8F699A0BF0DDFAE5` |
+| 4.78 | `03eafc4279915b8436d05600a48b131bba344a87` | `E4751E1DF464F61900CE3718702C4CBB8F1591193CA97B77F8936E983B5EC2EB` |
+
+This source-view chain is provenance-only and does not replace `blueprint/source/BBMA_EA.mq4` on any canonical/owner branch. The PR #108 Git/native mismatch is recorded in `PR108_GIT_NATIVE_ANCHOR_MISMATCH_20260907.md`.

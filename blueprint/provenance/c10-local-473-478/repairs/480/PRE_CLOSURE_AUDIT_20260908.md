@@ -21,6 +21,9 @@ Status: **READY FOR FINAL LIVE PHYSICAL-RESTART EVIDENCE / ISSUES #122 AND #123 
 - `C10_122_STATIC_AUTHORITY=PASS`.
 - `C10_122_LAGGED_M5_MODEL=PASS`.
 - `C10_122_PREENTRY_REPLAY_MODEL=PASS`.
+- `C10_122_MISSING_HISTORY_FAILCLOSED_MODEL=PASS`.
+- `C10_122_CORRUPT_HISTORY_FAILCLOSED_MODEL=PASS`.
+- `C10_122_CHECKPOINT_INTEGRITY_STATIC=PASS`.
 - `C10_122_SOURCE_IDENTITY_480=PASS`.
 - `C10_123_STATIC_AUTHORITY=PASS`.
 - `C10_123_WRITER_NAMESPACE=PASS`.
@@ -66,6 +69,7 @@ Verifier self-tests:
 - deterministic lagged-M5 reproduction/regression: PASS;
 - no pre-enrollment candle accepted by model/static guard: PASS;
 - unprovable M5 enrollment becomes per-shadow UNKNOWN rather than invalid ACTIVE/global disable: PASS in live/isolated observations;
+- missing or timestamp-corrupt M5 enrollment/replay history fails closed in the extended deterministic #122 regression; checkpoint checksum/schema corruption is rejected by the existing integrity guard: PASS;
 - native MetaEditor 0E0W: PASS;
 - Authority=NONE / zero broker actions in existing runtime evidence: PASS;
 - **fresh live ACTIVE -> physical restart -> exact recovery/replay:** PENDING.

@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.7.3 - Offline Tester Timer Compatibility           |
+//| Version 4.7.4 - C10 Audit Ledger Stage A                    |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.73"
+#property version   "4.74"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -104,6 +104,7 @@ input int      Slippage                           = 3;          // 08 Advanced |
 input ENUM_DEBUG_LEVEL DebugLevel                 = DBG_OFF;    // 08 Advanced | OFF / ERROR / SIGNAL / TRADE / FULL
 input int      StrategyID                         = 1;          // 08 Advanced | strategy identity 1-99
 input int      InstanceID                         = 0;          // 08 Advanced | instance identity 0-99
+input bool     EnableC10StatisticsLedger          = false;      // 08 Advanced | audit-only C10 CSV ledger; no trade authority
 
 //--- INTERNAL / LOCKED (not shown in MT4 Inputs; defaults preserved)
 int            MaxWaitBars_Extreme                = 5;
@@ -160,6 +161,12 @@ int            AllowedExecutionDeviation_MinPoints= 5;
 #define INSTANCE_ID_MAX         99
 #define STRATEGY_ID_MIN         1
 #define STRATEGY_ID_MAX         99
+#define C10_SIGNAL_SCHEMA       "C10S1"
+#define C10_OUTCOME_SCHEMA      "C10O1"
+#define C10_LEDGER_FOLDER       "BBMA_C10"
+#define C10_LEDGER_MAX_BYTES    33554432
+#define C10_LEDGER_MAX_PARTS    99
+#define C10_SOURCE_HASH         "F44B7B7165EFED0D6C5FC7C690618AF962163C10D313ABD6C16293BB0D6FE4DE"
 
 //+------------------------------------------------------------------+
 //| MODULE 02: ENUMS & STRUCTS                                       |
@@ -1211,6 +1218,13 @@ ENUM_PRIORITY_TIER   g_manual_priority_tiers[];
 string               g_dashboard_snapshot;
 bool                 g_dashboard_needs_update;
 
+//--- C10 Stage-A audit ledger. It is evidence-only and default OFF.
+bool                 g_c10_ledger_ready;
+bool                 g_c10_integrity_failed;
+string               g_c10_run_id;
+string               g_c10_config_fingerprint;
+string               g_c10_source_hash;
+
 //--- Protection
 double               g_protection_reference_equity;
 bool                 g_portfolio_emergency_close_requested;
@@ -1828,6 +1842,387 @@ void Log(int level, string message)
    {
       Print(TimeToString(TimeCurrent()), " [", level, "] ", message);
    }
+}
+
+//+------------------------------------------------------------------+
+//| C10 STAGE-A AUDIT LEDGER                                         |
+//| Evidence only: no signal, filter, risk, sizing or broker authority|
+//+------------------------------------------------------------------+
+string C10_SignalHeader()
+{
+   return "Schema,BuildID,SourceHash,ConfigFingerprint,RunID,EventID,EventTimeUTC,DecisionID,AttemptSeq,Pair,Direction,SetupFamily,EntryTimeframe,D1OwnerEpochID,H4JourneyID,H1SetupID,M15CandidateID,M5EventID,NMJERelation,SignalState,ReasonCode,IntendedEntry,IntendedSL,IntendedTP,SLSource,TPSource,SpreadPips";
+}
+
+string C10_OutcomeHeader()
+{
+   return "Schema,BuildID,SourceHash,ConfigFingerprint,RunID,OutcomeEventID,OutcomeTimeUTC,Mode,DecisionID,ExecutionID,OrderTicket,Pair,Direction,SetupFamily,EntryTimeframe,EntryTimeUTC,ExitTimeUTC,EntryPrice,ExitPrice,IntendedSL,IntendedTP,Lot,SpreadPips,SlippagePips,GrossPL,Commission,Swap,NetPL,RiskAmount,RMultiple,MFEPips,MAEPips,HoldingSeconds,ExitReason,EvidenceResolution";
+}
+
+string C10_CSVField(string value)
+{
+   StringReplace(value, "\r", "\\r");
+   StringReplace(value, "\n", "\\n");
+   StringReplace(value, "\"", "\"\"");
+   return "\"" + value + "\"";
+}
+
+string C10_BuildCSVLine(string &fields[], int count)
+{
+   string line = "";
+   for(int i = 0; i < count; i++)
+   {
+      if(i > 0) line += ",";
+      line += C10_CSVField(fields[i]);
+   }
+   return line;
+}
+
+string C10_UTCText(datetime value)
+{
+   if(value <= 0) return "NA";
+   string text = TimeToString(value, TIME_DATE | TIME_SECONDS);
+   StringReplace(text, ".", "-");
+   StringReplace(text, " ", "T");
+   return text + "Z";
+}
+
+string C10_DayKey(datetime value)
+{
+   if(value <= 0) return "";
+   string text = TimeToString(value, TIME_DATE);
+   StringReplace(text, ".", "");
+   return text;
+}
+
+string C10_ValueOrNA(string value)
+{
+   return (value == "") ? "NA" : value;
+}
+
+string C10_PriceOrNA(double value, int digits)
+{
+   if(value <= 0.0 || digits < 0) return "NA";
+   return DoubleToString(value, digits);
+}
+
+string C10_BuildConfigFingerprint()
+{
+   string raw = PairList + "|" + IntegerToString((int)EntryMode) + "|" +
+                IntegerToString(MaxTradePerPair) + "|" +
+                IntegerToString(MaxTotalTrade) + "|" +
+                IntegerToString(MaxActivePair) + "|" +
+                IntegerToString((int)MMMode) + "|" +
+                DoubleToString(AutoLotPercent, 8) + "|" +
+                DoubleToString(FixedLot, 8) + "|" +
+                DoubleToString(MaxAutoLot, 8) + "|" +
+                IntegerToString((int)TradeLockMode) + "|" +
+                DoubleToString(MaxSpreadPips, 8) + "|" +
+                DoubleToString(MaxDrawdownPercent, 8) + "|" +
+                DoubleToString(BasketLossPercent, 8) + "|" +
+                DoubleToString(MaxTotalRiskPercent, 8) + "|" +
+                DoubleToString(MinRRRatio, 8) + "|" +
+                DoubleToString(MaxSLPips, 8) + "|" +
+                IntegerToString(Slippage) + "|" +
+                IntegerToString(StrategyID) + "|" +
+                IntegerToString(InstanceID) + "|" +
+                (EnableC10StatisticsLedger ? "1" : "0");
+   return SHORT_HASH(raw, 16);
+}
+
+string C10_LedgerFileName(string prefix, string schema, string dayKey, int part)
+{
+   return C10_LEDGER_FOLDER + "\\" + prefix + "_" + schema + "_" +
+          dayKey + "_part" + StringFormat("%02d", part) + ".csv";
+}
+
+long C10_ExistingFileSize(string fileName)
+{
+   if(!FileIsExist(fileName)) return 0;
+   int handle = FileOpen(fileName, FILE_READ | FILE_BIN | FILE_SHARE_READ);
+   if(handle == INVALID_HANDLE) return -1;
+   long size = (long)FileSize(handle);
+   FileClose(handle);
+   return size;
+}
+
+string C10_SelectLedgerFile(string prefix, string schema, datetime eventTime,
+                            int rowBytes)
+{
+   string dayKey = C10_DayKey(eventTime);
+   if(dayKey == "") return "";
+
+   for(int part = 1; part <= C10_LEDGER_MAX_PARTS; part++)
+   {
+      string fileName = C10_LedgerFileName(prefix, schema, dayKey, part);
+      long size = C10_ExistingFileSize(fileName);
+      if(size < 0) return "";
+      if(size == 0 || size + rowBytes + 2 <= C10_LEDGER_MAX_BYTES)
+         return fileName;
+   }
+   return "";
+}
+
+bool C10_ValidateOrCreateFile(string fileName, string expectedHeader)
+{
+   int handle = FileOpen(fileName,
+                         FILE_READ | FILE_WRITE | FILE_TXT | FILE_ANSI |
+                         FILE_SHARE_READ, 0, CP_UTF8);
+   if(handle == INVALID_HANDLE) return false;
+
+   long size = (long)FileSize(handle);
+   if(size == 0)
+   {
+      if(FileWriteString(handle, expectedHeader + "\r\n") <= 0)
+      {
+         FileClose(handle);
+         return false;
+      }
+      FileFlush(handle);
+      FileClose(handle);
+      return true;
+   }
+
+   FileSeek(handle, 0, SEEK_SET);
+   string existingHeader = FileReadString(handle);
+   FileClose(handle);
+   return (existingHeader == expectedHeader);
+}
+
+bool C10_FileContainsEvent(string fileName, string eventID)
+{
+   int handle = FileOpen(fileName, FILE_READ | FILE_TXT | FILE_ANSI |
+                         FILE_SHARE_READ, 0, CP_UTF8);
+   if(handle == INVALID_HANDLE) return false;
+   string needle = "," + C10_CSVField(eventID) + ",";
+   while(!FileIsEnding(handle))
+   {
+      string line = FileReadString(handle);
+      if(StringFind(line, needle) >= 0)
+      {
+         FileClose(handle);
+         return true;
+      }
+   }
+   FileClose(handle);
+   return false;
+}
+
+void C10_DisableLedger(string reason)
+{
+   if(!g_c10_integrity_failed)
+      Print("[C10][LEDGER_DISABLED] Reason=", reason,
+            " TradingAuthority=UNCHANGED");
+   g_c10_integrity_failed = true;
+   g_c10_ledger_ready = false;
+}
+
+// Return 1=appended, 0=idempotent duplicate, -1=integrity/write failure.
+int C10_AppendEvent(string prefix, string schema, string expectedHeader,
+                    string eventID, datetime eventTime, string csvLine)
+{
+   if(!g_c10_ledger_ready || g_c10_integrity_failed) return -1;
+   if(eventID == "" || eventTime <= 0 || csvLine == "") return -1;
+
+   string fileName = C10_SelectLedgerFile(prefix, schema, eventTime,
+                                           StringLen(csvLine));
+   if(fileName == "")
+   {
+      C10_DisableLedger("ROTATION_TARGET_UNAVAILABLE");
+      return -1;
+   }
+   if(!C10_ValidateOrCreateFile(fileName, expectedHeader))
+   {
+      C10_DisableLedger("SCHEMA_OR_FILE_OPEN_FAILURE:" + fileName);
+      return -1;
+   }
+   if(C10_FileContainsEvent(fileName, eventID)) return 0;
+
+   int handle = FileOpen(fileName,
+                         FILE_READ | FILE_WRITE | FILE_TXT | FILE_ANSI |
+                         FILE_SHARE_READ, 0, CP_UTF8);
+   if(handle == INVALID_HANDLE)
+   {
+      C10_DisableLedger("APPEND_OPEN_FAILURE:" + fileName);
+      return -1;
+   }
+   FileSeek(handle, 0, SEEK_END);
+   uint written = FileWriteString(handle, csvLine + "\r\n");
+   if(written <= 0)
+   {
+      FileClose(handle);
+      C10_DisableLedger("APPEND_WRITE_FAILURE:" + fileName);
+      return -1;
+   }
+   FileFlush(handle);
+   FileClose(handle);
+   return 1;
+}
+
+string C10_AttemptKey(string decisionID)
+{
+   return "C10A" + IntegerToString(StrategyID) + "I" +
+          IntegerToString(InstanceID) + SHORT_HASH(decisionID, 16);
+}
+
+int C10_NextAttemptSequence(string decisionID)
+{
+   string key = C10_AttemptKey(decisionID);
+   if(GlobalVariableCheck(key))
+   {
+      double prior = GlobalVariableGet(key);
+      if(prior < 0 || prior > 2147483000.0) return -1;
+      return (int)prior + 1;
+   }
+   return 1;
+}
+
+bool C10_CommitAttemptSequence(string decisionID, int attemptSeq)
+{
+   if(decisionID == "" || attemptSeq <= 0) return false;
+   return (GlobalVariableSet(C10_AttemptKey(decisionID), attemptSeq) != 0);
+}
+
+bool C10_InitializeLedgers()
+{
+   g_c10_ledger_ready = false;
+   g_c10_integrity_failed = false;
+   g_c10_run_id = "";
+   g_c10_config_fingerprint = "";
+   g_c10_source_hash = "";
+
+   if(!EnableC10StatisticsLedger)
+   {
+      Print("[C10][OFF] Statistics ledger disabled by input; authority unchanged");
+      return true;
+   }
+
+   datetime utcNow = TimeGMT();
+   if(utcNow <= 0)
+   {
+      C10_DisableLedger("UTC_TIME_UNAVAILABLE");
+      return false;
+   }
+   FolderCreate(C10_LEDGER_FOLDER);
+
+   g_c10_source_hash = C10_SOURCE_HASH;
+   g_c10_config_fingerprint = C10_BuildConfigFingerprint();
+   g_c10_run_id = SHORT_HASH(
+      IntegerToString(AccountNumber()) + "|" + AccountServer() + "|" +
+      C10_UTCText(utcNow) + "|" + IntegerToString(StrategyID) + "|" +
+      IntegerToString(InstanceID), 16);
+
+   string signalFile = C10_SelectLedgerFile("bbma_signal", C10_SIGNAL_SCHEMA,
+                                             utcNow, 0);
+   string outcomeFile = C10_SelectLedgerFile("bbma_outcome", C10_OUTCOME_SCHEMA,
+                                              utcNow, 0);
+   if(signalFile == "" || outcomeFile == "" ||
+      !C10_ValidateOrCreateFile(signalFile, C10_SignalHeader()) ||
+      !C10_ValidateOrCreateFile(outcomeFile, C10_OutcomeHeader()))
+   {
+      C10_DisableLedger("INITIAL_SCHEMA_OR_FILE_FAILURE");
+      return false;
+   }
+
+   g_c10_ledger_ready = true;
+   Print("[C10][READY] Stage=A SignalSchema=", C10_SIGNAL_SCHEMA,
+         " OutcomeSchema=", C10_OUTCOME_SCHEMA,
+         " RunID=", g_c10_run_id,
+         " Config=", g_c10_config_fingerprint,
+         " Authority=NONE");
+   return true;
+}
+
+void C10_ShutdownLedgers()
+{
+   g_c10_ledger_ready = false;
+}
+
+void C10_WriteSignalEvent(int pairIndex, BBMA_Decision &decision)
+{
+   if(!EnableC10StatisticsLedger || !g_c10_ledger_ready ||
+      g_c10_integrity_failed || !decision.Valid) return;
+   if(pairIndex < 0 || pairIndex >= g_pair_count || decision.DecisionID == "")
+   {
+      C10_DisableLedger("SIGNAL_IDENTITY_UNPROVABLE");
+      return;
+   }
+
+   datetime eventTime = TimeGMT();
+   int attemptSeq = C10_NextAttemptSequence(decision.DecisionID);
+   if(eventTime <= 0 || attemptSeq <= 0)
+   {
+      C10_DisableLedger("ATTEMPT_OR_TIME_UNPROVABLE");
+      return;
+   }
+
+   PairState state = g_pair_states[pairIndex];
+   NestedJourneyState journey = g_nested_journeys[pairIndex];
+   string d1OwnerEpochID = NMJE_D1OwnerEventID(
+      state.actual_symbol, state.d1_major_trend_owner);
+   string m5EventID = decision.NMJEM5Refinement.Present ?
+                      decision.NMJEM5Refinement.EventID : "";
+   int digits = GetDigits(state.actual_symbol);
+   double pipValue = GetPipValue(state.actual_symbol);
+   double bid = MarketInfo(state.actual_symbol, MODE_BID);
+   double ask = MarketInfo(state.actual_symbol, MODE_ASK);
+   string spreadPips = "NA";
+   if(pipValue > 0.0 && bid > 0.0 && ask > 0.0)
+      spreadPips = DoubleToString(MathAbs(ask - bid) / pipValue, 4);
+
+   string eventIdentity = C10_SIGNAL_SCHEMA + "|FINAL|" +
+                          decision.DecisionID + "|" +
+                          IntegerToString(attemptSeq) + "|" +
+                          EnumToString(decision.DecisionState) + "|" +
+                          EnumToString(decision.RejectionReason);
+   string eventID = SHORT_HASH(eventIdentity, 16);
+
+   string fields[27];
+   fields[0]  = C10_SIGNAL_SCHEMA;
+   fields[1]  = "4.74";
+   fields[2]  = g_c10_source_hash;
+   fields[3]  = g_c10_config_fingerprint;
+   fields[4]  = g_c10_run_id;
+   fields[5]  = eventID;
+   fields[6]  = C10_UTCText(eventTime);
+   fields[7]  = decision.DecisionID;
+   fields[8]  = IntegerToString(attemptSeq);
+   fields[9]  = state.actual_symbol;
+   fields[10] = EnumToString(decision.Direction);
+   fields[11] = EnumToString(decision.SignalType);
+   fields[12] = "M15";
+   fields[13] = C10_ValueOrNA(d1OwnerEpochID);
+   fields[14] = C10_ValueOrNA(journey.JourneyID);
+   fields[15] = C10_ValueOrNA(journey.H1Node.CanonicalEventID);
+   fields[16] = C10_ValueOrNA(journey.M15Node.CanonicalEventID);
+   fields[17] = C10_ValueOrNA(m5EventID);
+   fields[18] = decision.NMJESnapshotPresent ?
+                EnumToString(decision.NMJERelation) : "NA";
+   fields[19] = EnumToString(decision.DecisionState);
+   fields[20] = EnumToString(decision.RejectionReason);
+   fields[21] = C10_PriceOrNA(decision.EntryPrice, digits);
+   fields[22] = C10_PriceOrNA(decision.StopLoss, digits);
+   fields[23] = C10_PriceOrNA(decision.TakeProfit, digits);
+   fields[24] = decision.HasSLTPSourceComponent ?
+                EnumToString(decision.SLTPSource) : "NA";
+   fields[25] = fields[24];
+   fields[26] = spreadPips;
+
+   string csvLine = C10_BuildCSVLine(fields, 27);
+   int appendResult = C10_AppendEvent(
+      "bbma_signal", C10_SIGNAL_SCHEMA, C10_SignalHeader(), eventID,
+      eventTime, csvLine);
+   if(appendResult < 0) return;
+   if(!C10_CommitAttemptSequence(decision.DecisionID, attemptSeq))
+   {
+      C10_DisableLedger("ATTEMPT_SEQUENCE_COMMIT_FAILURE");
+      return;
+   }
+
+   Print("[C10][SIGNAL] EventID=", eventID,
+         " DecisionID=", decision.DecisionID,
+         " AttemptSeq=", IntegerToString(attemptSeq),
+         " Result=", appendResult == 1 ? "APPENDED" : "DUPLICATE_IGNORED",
+         " Authority=NONE");
 }
 
 void MarkDecisionExecuted(string decisionID, int ticketNumber)
@@ -11172,7 +11567,7 @@ void BuildDashboardSnapshot()
    int liveTradeCount = CountDashboardLiveEAOwnedTrades();
 
    g_dashboard_snapshot = "";
-   g_dashboard_snapshot += "=== BBMA EA V4.73 Offline Tester Timer Compatibility ===\n";
+   g_dashboard_snapshot += "=== BBMA EA V4.74 C10 Audit Ledger Stage A ===\n";
    g_dashboard_snapshot += "Time: " + TimeToString(TimeCurrent()) + "\n";
    g_dashboard_snapshot += "Balance: " + DoubleToString(AccountBalance(), 2) + "\n";
    g_dashboard_snapshot += "Equity: " + DoubleToString(AccountEquity(), 2) + "\n";
@@ -11982,12 +12377,17 @@ void ProcessPair(int pairIndex)
    }
 
    if(EntryMode == 2 && decision.Valid)
+   {
+      // C10 Stage A is evidence-only. It consumes the already-final decision
+      // after preflight and cannot mutate candidate or execution authority.
+      C10_WriteSignalEvent(pairIndex, decision);
       Print("[P3M2][DECISION_FINAL] Pair=", actual,
             " Signal=", EnumToString(decision.SignalType),
             " Dir=", EnumToString(decision.Direction),
             " State=", EnumToString(decision.DecisionState),
             " Reason=", EnumToString(decision.RejectionReason),
             " DecisionID=", decision.DecisionID);
+   }
 
    PrintSignalBottleneckDiagnostic(pairIndex, decision);
 
@@ -12055,6 +12455,10 @@ int OnInit()
       return INIT_FAILED;
    }
 
+   // Audit-only C10 failure disables evidence writing but never changes EA
+   // strategy/execution state. The input remains OFF by default.
+   C10_InitializeLedgers();
+
    ResetLastError();
    if(!EventSetTimer(1))
    {
@@ -12074,7 +12478,7 @@ int OnInit()
    else
       g_timer_registered = true;
    
-   Log(DBG_FULL, "BBMA EA V4.73 Offline Tester Timer Compatibility initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.74 C10 Audit Ledger Stage A initialized successfully");
    return INIT_SUCCEEDED;
 }
 
@@ -12086,6 +12490,8 @@ void OnDeinit(const int reason)
    if(g_timer_registered)
       EventKillTimer();
    g_timer_registered = false;
+
+   C10_ShutdownLedgers();
 
    g_is_initialized = false;
    g_is_scanning = false;

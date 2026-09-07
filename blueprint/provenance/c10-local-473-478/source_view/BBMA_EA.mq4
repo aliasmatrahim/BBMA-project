@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.7.5 - C10 Audit Ledger Stage B                    |
+//| Version 4.7.6 - C10 Audit Ledger Stage C                    |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.75"
+#property version   "4.76"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -166,7 +166,7 @@ int            AllowedExecutionDeviation_MinPoints= 5;
 #define C10_LEDGER_FOLDER       "BBMA_C10"
 #define C10_LEDGER_MAX_BYTES    33554432
 #define C10_LEDGER_MAX_PARTS    99
-#define C10_SOURCE_HASH         "C502B6892383D612D194A26F3A3C7A92684E6A53E683603A2A58DC13CEC5CA64"
+#define C10_SOURCE_HASH         "44A291090906BB5AE3C6DC8976F00D1834C47FB6AA8EA7EF3887D700359A150D"
 
 //+------------------------------------------------------------------+
 //| MODULE 02: ENUMS & STRUCTS                                       |
@@ -1218,7 +1218,7 @@ ENUM_PRIORITY_TIER   g_manual_priority_tiers[];
 string               g_dashboard_snapshot;
 bool                 g_dashboard_needs_update;
 
-//--- C10 Stage-A audit ledger. It is evidence-only and default OFF.
+//--- C10 Stage-C audit ledger. It is evidence-only and default OFF.
 bool                 g_c10_ledger_ready;
 bool                 g_c10_integrity_failed;
 string               g_c10_run_id;
@@ -1886,6 +1886,14 @@ string C10_UTCText(datetime value)
    return text + "Z";
 }
 
+datetime C10_ServerTimeToUTC(datetime serverTime)
+{
+   datetime serverNow = TimeCurrent();
+   datetime utcNow = TimeGMT();
+   if(serverTime <= 0 || serverNow <= 0 || utcNow <= 0) return 0;
+   return serverTime - (serverNow - utcNow);
+}
+
 string C10_DayKey(datetime value)
 {
    if(value <= 0) return "";
@@ -2335,7 +2343,7 @@ bool C10_InitializeLedgers()
    }
 
    g_c10_ledger_ready = true;
-   Print("[C10][READY] Stage=B SignalSchema=", C10_SIGNAL_SCHEMA,
+   Print("[C10][READY] Stage=C SignalSchema=", C10_SIGNAL_SCHEMA,
          " OutcomeSchema=", C10_OUTCOME_SCHEMA,
          " RunID=", g_c10_run_id,
          " Config=", g_c10_config_fingerprint,
@@ -2389,7 +2397,7 @@ void C10_WriteSignalEvent(int pairIndex, BBMA_Decision &decision)
 
    string fields[27];
    fields[0]  = C10_SIGNAL_SCHEMA;
-   fields[1]  = "4.75";
+   fields[1]  = "4.76";
    fields[2]  = g_c10_source_hash;
    fields[3]  = g_c10_config_fingerprint;
    fields[4]  = g_c10_run_id;
@@ -2434,6 +2442,204 @@ void C10_WriteSignalEvent(int pairIndex, BBMA_Decision &decision)
          " AttemptSeq=", IntegerToString(attemptSeq),
          " Result=", appendResult == 1 ? "APPENDED" : "DUPLICATE_IGNORED",
          " Authority=NONE");
+}
+
+string C10_RealizedExitReason(TradeInfo &info, double closePrice)
+{
+   double pipValue = GetPipValue(info.pair);
+   double tolerance = MathMax(pipValue * 0.5, info.point * 2.0);
+   if(closePrice <= 0.0 || tolerance <= 0.0) return "UNKNOWN";
+
+   if(info.initial_take_profit > 0.0)
+   {
+      if(info.direction == DIR_BUY &&
+         closePrice >= info.initial_take_profit - tolerance) return "TP";
+      if(info.direction == DIR_SELL &&
+         closePrice <= info.initial_take_profit + tolerance) return "TP";
+   }
+
+   double finalStop = OrderStopLoss();
+   if(finalStop > 0.0 && info.initial_entry_price > 0.0 &&
+      MathAbs(finalStop - info.initial_entry_price) <= tolerance &&
+      MathAbs(closePrice - finalStop) <= pipValue * 3.0) return "BE";
+
+   if(info.initial_stop_loss > 0.0)
+   {
+      if(info.direction == DIR_BUY &&
+         closePrice <= info.initial_stop_loss + tolerance) return "SL";
+      if(info.direction == DIR_SELL &&
+         closePrice >= info.initial_stop_loss - tolerance) return "SL";
+   }
+
+   if(info.d1_tpw_exit_latched ||
+      info.c044_exit_reason != C044_EXIT_NONE) return "LIFECYCLE";
+   return "MANUAL";
+}
+
+void C10_WriteRealizedOutcome(TradeInfo &info)
+{
+   if(!EnableC10StatisticsLedger || !g_c10_ledger_ready ||
+      g_c10_integrity_failed) return;
+   if(info.ticket <= 0 || info.pair == "" ||
+      StringLen(info.execution_hash) != 16 ||
+      !OrderSelect(info.ticket, SELECT_BY_TICKET) ||
+      OrderTicket() != info.ticket || OrderCloseTime() <= 0 ||
+      (OrderType() != OP_BUY && OrderType() != OP_SELL) ||
+      (info.direction != DIR_BUY && info.direction != DIR_SELL) ||
+      OrderSymbol() != info.pair || OrderMagicNumber() != info.magic_number ||
+      OrderOpenTime() != info.open_time ||
+      ((OrderType() == OP_BUY) != (info.direction == DIR_BUY)))
+   {
+      C10_DisableLedger("OUTCOME_IDENTITY_UNPROVABLE");
+      return;
+   }
+
+   datetime exitUTC = C10_ServerTimeToUTC(OrderCloseTime());
+   datetime entryUTC = C10_ServerTimeToUTC(OrderOpenTime());
+   if(exitUTC <= 0 || entryUTC <= 0)
+   {
+      C10_DisableLedger("OUTCOME_TIME_UNPROVABLE");
+      return;
+   }
+
+   string identity = C10_OUTCOME_SCHEMA + "|REALIZED|" +
+                     info.execution_hash + "|" +
+                     IntegerToString(info.ticket) + "|" +
+                     IntegerToString((int)OrderCloseTime());
+   string outcomeEventID = SHORT_HASH(identity, 16);
+   double gross = OrderProfit();
+   double commission = OrderCommission();
+   double swap = OrderSwap();
+   double net = gross + commission + swap;
+
+   string riskAmount = "NA";
+   string rMultiple = "NA";
+   if(info.decision_id != "" && info.initial_risk_price_distance > 0.0 &&
+      info.initial_lot > 0.0)
+   {
+      double tickSize = GetTickSize_Price(info.pair);
+      double tickValue = GetTickValue(info.pair);
+      if(tickSize > 0.0 && tickValue > 0.0)
+      {
+         double risk = info.initial_risk_price_distance / tickSize *
+                       tickValue * info.initial_lot;
+         if(risk > 0.0)
+         {
+            riskAmount = DoubleToString(risk, 8);
+            rMultiple = DoubleToString(net / risk, 8);
+         }
+      }
+   }
+
+   int digits = info.digits >= 0 ? info.digits : GetDigits(info.pair);
+   string fields[35];
+   fields[0]  = C10_OUTCOME_SCHEMA;
+   fields[1]  = "4.76";
+   fields[2]  = g_c10_source_hash;
+   fields[3]  = g_c10_config_fingerprint;
+   fields[4]  = g_c10_run_id;
+   fields[5]  = outcomeEventID;
+   fields[6]  = C10_UTCText(exitUTC);
+   fields[7]  = "REALIZED";
+   fields[8]  = C10_ValueOrNA(info.decision_id);
+   fields[9]  = info.execution_hash;
+   fields[10] = IntegerToString(info.ticket);
+   fields[11] = info.pair;
+   fields[12] = EnumToString(info.direction);
+   fields[13] = info.signal_type == SIGNAL_NONE ?
+                "NA" : EnumToString(info.signal_type);
+   fields[14] = "M15";
+   fields[15] = C10_UTCText(entryUTC);
+   fields[16] = C10_UTCText(exitUTC);
+   fields[17] = C10_PriceOrNA(info.initial_entry_price, digits);
+   fields[18] = C10_PriceOrNA(OrderClosePrice(), digits);
+   fields[19] = C10_PriceOrNA(info.initial_stop_loss, digits);
+   fields[20] = C10_PriceOrNA(info.initial_take_profit, digits);
+   fields[21] = DoubleToString(info.initial_lot, 8);
+   fields[22] = "NA";
+   fields[23] = "NA";
+   fields[24] = DoubleToString(gross, 8);
+   fields[25] = DoubleToString(commission, 8);
+   fields[26] = DoubleToString(swap, 8);
+   fields[27] = DoubleToString(net, 8);
+   fields[28] = riskAmount;
+   fields[29] = rMultiple;
+   fields[30] = "NA";
+   fields[31] = "NA";
+   fields[32] = IntegerToString((int)(OrderCloseTime() - OrderOpenTime()));
+   fields[33] = C10_RealizedExitReason(info, OrderClosePrice());
+   fields[34] = info.decision_id != "" ?
+                "BROKER_HISTORY_EXACT_EXECUTION" :
+                "BROKER_HISTORY_EXECUTION_HASH_ONLY";
+
+   string csvLine = C10_BuildCSVLine(fields, 35);
+   int appendResult = C10_AppendEvent(
+      "bbma_outcome", C10_OUTCOME_SCHEMA, C10_OutcomeHeader(), 35,
+      outcomeEventID, exitUTC, csvLine);
+   if(appendResult < 0) return;
+   Print("[C10][OUTCOME] OutcomeEventID=", outcomeEventID,
+         " ExecutionID=", info.execution_hash,
+         " Ticket=", IntegerToString(info.ticket),
+         " Result=", appendResult == 1 ? "APPENDED" : "DUPLICATE_IGNORED",
+         " Authority=NONE");
+}
+
+bool C10_BuildRecoveredOutcomeInfo(TradeInfo &info)
+{
+   if(OrderCloseTime() <= 0 ||
+      (OrderType() != OP_BUY && OrderType() != OP_SELL)) return false;
+
+   int pairIndex = -1;
+   for(int p = 0; p < g_pair_count; p++)
+   {
+      if(g_pair_states[p].magic_number == OrderMagicNumber() &&
+         g_pair_states[p].actual_symbol == OrderSymbol())
+      {
+         pairIndex = p;
+         break;
+      }
+   }
+   if(pairIndex < 0) return false;
+
+   ENUM_DIRECTION direction = OrderType() == OP_BUY ? DIR_BUY : DIR_SELL;
+   string executionHash = "";
+   if(!LoadPersistedExecutionHashForTicket(
+         OrderTicket(), OrderSymbol(), direction, OrderMagicNumber(),
+         OrderOpenTime(), executionHash)) return false;
+
+   ZeroMemory(info);
+   info.ticket = OrderTicket();
+   info.magic_number = OrderMagicNumber();
+   info.pair = OrderSymbol();
+   info.direction = direction;
+   info.signal_type = SIGNAL_NONE;
+   info.initial_entry_price = OrderOpenPrice();
+   info.initial_stop_loss = OrderStopLoss();
+   info.initial_take_profit = OrderTakeProfit();
+   info.initial_lot = OrderLots();
+   info.initial_risk_price_distance = 0.0;
+   info.open_time = OrderOpenTime();
+   info.point = GetPointSize(info.pair);
+   info.digits = GetDigits(info.pair);
+   info.decision_id = "";
+   info.execution_hash = executionHash;
+   info.recovery_state = REC_NORMAL;
+   return true;
+}
+
+void C10_ReconcileClosedOutcomes()
+{
+   if(!EnableC10StatisticsLedger || !g_c10_ledger_ready ||
+      g_c10_integrity_failed) return;
+   int total = OrdersHistoryTotal();
+   for(int i = 0; i < total; i++)
+   {
+      if(!OrderSelect(i, SELECT_BY_POS, MODE_HISTORY)) continue;
+      TradeInfo recovered;
+      if(!C10_BuildRecoveredOutcomeInfo(recovered)) continue;
+      C10_WriteRealizedOutcome(recovered);
+      if(g_c10_integrity_failed) return;
+   }
 }
 
 void MarkDecisionExecuted(string decisionID, int ticketNumber)
@@ -9553,6 +9759,8 @@ void NMJE_PrintClosedOutcomeShadow(TradeInfo &info)
 
    double netProfit = OrderProfit() + OrderSwap() + OrderCommission();
 
+   C10_WriteRealizedOutcome(info);
+
    Print("[N2-NMJE-OUT] PAIR=", info.pair,
          " TICKET=", IntegerToString(info.ticket),
          " DID=", decisionToken,
@@ -11778,7 +11986,7 @@ void BuildDashboardSnapshot()
    int liveTradeCount = CountDashboardLiveEAOwnedTrades();
 
    g_dashboard_snapshot = "";
-   g_dashboard_snapshot += "=== BBMA EA V4.75 C10 Audit Ledger Stage B ===\n";
+   g_dashboard_snapshot += "=== BBMA EA V4.76 C10 Audit Ledger Stage C ===\n";
    g_dashboard_snapshot += "Time: " + TimeToString(TimeCurrent()) + "\n";
    g_dashboard_snapshot += "Balance: " + DoubleToString(AccountBalance(), 2) + "\n";
    g_dashboard_snapshot += "Equity: " + DoubleToString(AccountEquity(), 2) + "\n";
@@ -12589,7 +12797,7 @@ void ProcessPair(int pairIndex)
 
    if(EntryMode == 2 && decision.Valid)
    {
-      // C10 Stage B is evidence-only. It consumes the already-final decision
+      // C10 Stage C is evidence-only. It consumes the already-final decision
       // after preflight and cannot mutate candidate or execution authority.
       C10_WriteSignalEvent(pairIndex, decision);
       Print("[P3M2][DECISION_FINAL] Pair=", actual,
@@ -12620,6 +12828,9 @@ void OnTickMain()
 
    ManagePortfolio();
    ManagePositions();
+   // C10 Stage C: promptly materialize broker-closed outcomes even when no
+   // later entry is registered. This is read-only for broker state.
+   CompactMonitoredTrades();
 
    if(g_portfolio_emergency_close_requested) return;
    
@@ -12669,6 +12880,7 @@ int OnInit()
    // Audit-only C10 failure disables evidence writing but never changes EA
    // strategy/execution state. The input remains OFF by default.
    C10_InitializeLedgers();
+   C10_ReconcileClosedOutcomes();
 
    ResetLastError();
    if(!EventSetTimer(1))
@@ -12689,7 +12901,7 @@ int OnInit()
    else
       g_timer_registered = true;
    
-   Log(DBG_FULL, "BBMA EA V4.75 C10 Audit Ledger Stage B initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.76 C10 Audit Ledger Stage C initialized successfully");
    return INIT_SUCCEEDED;
 }
 
@@ -12702,6 +12914,9 @@ void OnDeinit(const int reason)
       EventKillTimer();
    g_timer_registered = false;
 
+   // Flush any closure observed on the final tester/live tick before ledger
+   // handles are closed. Restart reconciliation remains owned by OnInit.
+   CompactMonitoredTrades();
    C10_ShutdownLedgers();
 
    g_is_initialized = false;

@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.7.4 - C10 Audit Ledger Stage A                    |
+//| Version 4.7.5 - C10 Audit Ledger Stage B                    |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.74"
+#property version   "4.75"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -166,7 +166,7 @@ int            AllowedExecutionDeviation_MinPoints= 5;
 #define C10_LEDGER_FOLDER       "BBMA_C10"
 #define C10_LEDGER_MAX_BYTES    33554432
 #define C10_LEDGER_MAX_PARTS    99
-#define C10_SOURCE_HASH         "F44B7B7165EFED0D6C5FC7C690618AF962163C10D313ABD6C16293BB0D6FE4DE"
+#define C10_SOURCE_HASH         "C502B6892383D612D194A26F3A3C7A92684E6A53E683603A2A58DC13CEC5CA64"
 
 //+------------------------------------------------------------------+
 //| MODULE 02: ENUMS & STRUCTS                                       |
@@ -1845,7 +1845,7 @@ void Log(int level, string message)
 }
 
 //+------------------------------------------------------------------+
-//| C10 STAGE-A AUDIT LEDGER                                         |
+//| C10 STAGE-B AUDIT LEDGER                                         |
 //| Evidence only: no signal, filter, risk, sizing or broker authority|
 //+------------------------------------------------------------------+
 string C10_SignalHeader()
@@ -1945,24 +1945,201 @@ long C10_ExistingFileSize(string fileName)
    return size;
 }
 
+bool C10_IsCompleteCSVRow(string line, int expectedColumns)
+{
+   if(expectedColumns <= 0 || StringLen(line) < 2) return false;
+   if(StringSubstr(line, 0, 1) != "\"" ||
+      StringSubstr(line, StringLen(line) - 1, 1) != "\"") return false;
+
+   int separators = 0;
+   int cursor = 0;
+   while(true)
+   {
+      int found = StringFind(line, "\",\"", cursor);
+      if(found < 0) break;
+      separators++;
+      cursor = found + 3;
+   }
+   return (separators == expectedColumns - 1);
+}
+
+bool C10_FileEndsWithCRLF(string fileName)
+{
+   int handle = FileOpen(fileName, FILE_READ | FILE_BIN | FILE_SHARE_READ);
+   if(handle == INVALID_HANDLE) return false;
+   long size = (long)FileSize(handle);
+   if(size < 2)
+   {
+      FileClose(handle);
+      return false;
+   }
+   if(!FileSeek(handle, size - 2, SEEK_SET))
+   {
+      FileClose(handle);
+      return false;
+   }
+   int cr = FileReadInteger(handle, CHAR_VALUE);
+   int lf = FileReadInteger(handle, CHAR_VALUE);
+   FileClose(handle);
+   return (cr == 13 && lf == 10);
+}
+
+bool C10_InspectLedgerFile(string fileName, string expectedHeader,
+                           int expectedColumns, bool &tornTail)
+{
+   tornTail = false;
+   int handle = FileOpen(fileName, FILE_READ | FILE_TXT | FILE_ANSI |
+                         FILE_SHARE_READ, 0, CP_UTF8);
+   if(handle == INVALID_HANDLE) return false;
+   if((long)FileSize(handle) <= 0)
+   {
+      FileClose(handle);
+      return false;
+   }
+
+   bool committedTail = C10_FileEndsWithCRLF(fileName);
+   int rowIndex = 0;
+   while(!FileIsEnding(handle))
+   {
+      string line = FileReadString(handle);
+      bool atEnd = FileIsEnding(handle);
+      if(rowIndex == 0)
+      {
+         if(line != expectedHeader)
+         {
+            FileClose(handle);
+            return false;
+         }
+         if(atEnd && !committedTail)
+         {
+            FileClose(handle);
+            return false;
+         }
+      }
+      else if(atEnd && !committedTail)
+      {
+         tornTail = true;
+         break;
+      }
+      else if(!C10_IsCompleteCSVRow(line, expectedColumns))
+      {
+         FileClose(handle);
+         return false;
+      }
+      rowIndex++;
+   }
+   FileClose(handle);
+   return (rowIndex > 0);
+}
+
+bool C10_RepairTornTail(string fileName, string expectedHeader,
+                        int expectedColumns)
+{
+   string token = SHORT_HASH(fileName + "|" + IntegerToString((int)GetTickCount()), 12);
+   string tempName = fileName + ".repair_" + token + ".tmp";
+   string quarantineName = fileName + ".torn_" + token + ".bak";
+   if(FileIsExist(tempName) && !FileDelete(tempName)) return false;
+
+   int source = FileOpen(fileName, FILE_READ | FILE_TXT | FILE_ANSI |
+                         FILE_SHARE_READ, 0, CP_UTF8);
+   int target = FileOpen(tempName, FILE_WRITE | FILE_TXT | FILE_ANSI,
+                         0, CP_UTF8);
+   if(source == INVALID_HANDLE || target == INVALID_HANDLE)
+   {
+      if(source != INVALID_HANDLE) FileClose(source);
+      if(target != INVALID_HANDLE) FileClose(target);
+      if(FileIsExist(tempName)) FileDelete(tempName);
+      return false;
+   }
+
+   bool committedTail = C10_FileEndsWithCRLF(fileName);
+   int rowIndex = 0;
+   bool valid = true;
+   while(!FileIsEnding(source))
+   {
+      string line = FileReadString(source);
+      bool atEnd = FileIsEnding(source);
+      if(rowIndex == 0 && line != expectedHeader)
+      {
+         valid = false;
+         break;
+      }
+      if(rowIndex > 0 && atEnd && !committedTail) break;
+      if(rowIndex > 0 && !C10_IsCompleteCSVRow(line, expectedColumns))
+      {
+         valid = false;
+         break;
+      }
+      if(FileWriteString(target, line + "\r\n") <= 0)
+      {
+         valid = false;
+         break;
+      }
+      rowIndex++;
+   }
+   FileFlush(target);
+   FileClose(source);
+   FileClose(target);
+
+   if(!valid || rowIndex <= 0)
+   {
+      FileDelete(tempName);
+      return false;
+   }
+   if(!FileMove(fileName, 0, quarantineName, 0))
+   {
+      FileDelete(tempName);
+      return false;
+   }
+   if(!FileMove(tempName, 0, fileName, 0))
+   {
+      bool rollback = FileMove(quarantineName, 0, fileName, 0);
+      if(FileIsExist(tempName)) FileDelete(tempName);
+      if(!rollback)
+         Print("[C10][TAIL_REPAIR_ROLLBACK_FAILED] File=", fileName,
+               " Preserved=", quarantineName,
+               " TradingAuthority=UNCHANGED");
+      return false;
+   }
+
+   bool tornAfter = false;
+   if(!C10_InspectLedgerFile(fileName, expectedHeader, expectedColumns,
+                             tornAfter) || tornAfter) return false;
+   Print("[C10][TAIL_REPAIRED] File=", fileName,
+         " Preserved=", quarantineName,
+         " TradingAuthority=UNCHANGED");
+   return true;
+}
+
 string C10_SelectLedgerFile(string prefix, string schema, datetime eventTime,
                             int rowBytes)
 {
    string dayKey = C10_DayKey(eventTime);
    if(dayKey == "") return "";
 
+   int highestPart = 0;
+   long highestSize = 0;
    for(int part = 1; part <= C10_LEDGER_MAX_PARTS; part++)
    {
       string fileName = C10_LedgerFileName(prefix, schema, dayKey, part);
       long size = C10_ExistingFileSize(fileName);
       if(size < 0) return "";
-      if(size == 0 || size + rowBytes + 2 <= C10_LEDGER_MAX_BYTES)
-         return fileName;
+      if(size > 0)
+      {
+         highestPart = part;
+         highestSize = size;
+      }
    }
-   return "";
+   if(highestPart == 0)
+      return C10_LedgerFileName(prefix, schema, dayKey, 1);
+   if(highestSize + rowBytes + 2 <= C10_LEDGER_MAX_BYTES)
+      return C10_LedgerFileName(prefix, schema, dayKey, highestPart);
+   if(highestPart >= C10_LEDGER_MAX_PARTS) return "";
+   return C10_LedgerFileName(prefix, schema, dayKey, highestPart + 1);
 }
 
-bool C10_ValidateOrCreateFile(string fileName, string expectedHeader)
+bool C10_ValidateOrCreateFile(string fileName, string expectedHeader,
+                              int expectedColumns)
 {
    int handle = FileOpen(fileName,
                          FILE_READ | FILE_WRITE | FILE_TXT | FILE_ANSI |
@@ -1982,17 +2159,20 @@ bool C10_ValidateOrCreateFile(string fileName, string expectedHeader)
       return true;
    }
 
-   FileSeek(handle, 0, SEEK_SET);
-   string existingHeader = FileReadString(handle);
    FileClose(handle);
-   return (existingHeader == expectedHeader);
+   bool tornTail = false;
+   if(!C10_InspectLedgerFile(fileName, expectedHeader, expectedColumns,
+                             tornTail)) return false;
+   if(!tornTail) return true;
+   return C10_RepairTornTail(fileName, expectedHeader, expectedColumns);
 }
 
-bool C10_FileContainsEvent(string fileName, string eventID)
+// Return 1=found, 0=absent, -1=read failure.
+int C10_FileContainsEvent(string fileName, string eventID)
 {
    int handle = FileOpen(fileName, FILE_READ | FILE_TXT | FILE_ANSI |
                          FILE_SHARE_READ, 0, CP_UTF8);
-   if(handle == INVALID_HANDLE) return false;
+   if(handle == INVALID_HANDLE) return -1;
    string needle = "," + C10_CSVField(eventID) + ",";
    while(!FileIsEnding(handle))
    {
@@ -2000,11 +2180,29 @@ bool C10_FileContainsEvent(string fileName, string eventID)
       if(StringFind(line, needle) >= 0)
       {
          FileClose(handle);
-         return true;
+         return 1;
       }
    }
    FileClose(handle);
-   return false;
+   return 0;
+}
+
+int C10_EventExistsInDay(string prefix, string schema, datetime eventTime,
+                         string expectedHeader, int expectedColumns,
+                         string eventID)
+{
+   string dayKey = C10_DayKey(eventTime);
+   if(dayKey == "") return -1;
+   for(int part = 1; part <= C10_LEDGER_MAX_PARTS; part++)
+   {
+      string fileName = C10_LedgerFileName(prefix, schema, dayKey, part);
+      if(!FileIsExist(fileName)) continue;
+      if(!C10_ValidateOrCreateFile(fileName, expectedHeader, expectedColumns))
+         return -1;
+      int found = C10_FileContainsEvent(fileName, eventID);
+      if(found != 0) return found;
+   }
+   return 0;
 }
 
 void C10_DisableLedger(string reason)
@@ -2018,10 +2216,25 @@ void C10_DisableLedger(string reason)
 
 // Return 1=appended, 0=idempotent duplicate, -1=integrity/write failure.
 int C10_AppendEvent(string prefix, string schema, string expectedHeader,
-                    string eventID, datetime eventTime, string csvLine)
+                    int expectedColumns, string eventID, datetime eventTime,
+                    string csvLine)
 {
    if(!g_c10_ledger_ready || g_c10_integrity_failed) return -1;
    if(eventID == "" || eventTime <= 0 || csvLine == "") return -1;
+   if(!C10_IsCompleteCSVRow(csvLine, expectedColumns))
+   {
+      C10_DisableLedger("ROW_SHAPE_INVALID");
+      return -1;
+   }
+
+   int duplicate = C10_EventExistsInDay(
+      prefix, schema, eventTime, expectedHeader, expectedColumns, eventID);
+   if(duplicate < 0)
+   {
+      C10_DisableLedger("CROSS_PART_SCAN_FAILURE");
+      return -1;
+   }
+   if(duplicate > 0) return 0;
 
    string fileName = C10_SelectLedgerFile(prefix, schema, eventTime,
                                            StringLen(csvLine));
@@ -2030,13 +2243,11 @@ int C10_AppendEvent(string prefix, string schema, string expectedHeader,
       C10_DisableLedger("ROTATION_TARGET_UNAVAILABLE");
       return -1;
    }
-   if(!C10_ValidateOrCreateFile(fileName, expectedHeader))
+   if(!C10_ValidateOrCreateFile(fileName, expectedHeader, expectedColumns))
    {
       C10_DisableLedger("SCHEMA_OR_FILE_OPEN_FAILURE:" + fileName);
       return -1;
    }
-   if(C10_FileContainsEvent(fileName, eventID)) return 0;
-
    int handle = FileOpen(fileName,
                          FILE_READ | FILE_WRITE | FILE_TXT | FILE_ANSI |
                          FILE_SHARE_READ, 0, CP_UTF8);
@@ -2116,15 +2327,15 @@ bool C10_InitializeLedgers()
    string outcomeFile = C10_SelectLedgerFile("bbma_outcome", C10_OUTCOME_SCHEMA,
                                               utcNow, 0);
    if(signalFile == "" || outcomeFile == "" ||
-      !C10_ValidateOrCreateFile(signalFile, C10_SignalHeader()) ||
-      !C10_ValidateOrCreateFile(outcomeFile, C10_OutcomeHeader()))
+      !C10_ValidateOrCreateFile(signalFile, C10_SignalHeader(), 27) ||
+      !C10_ValidateOrCreateFile(outcomeFile, C10_OutcomeHeader(), 35))
    {
       C10_DisableLedger("INITIAL_SCHEMA_OR_FILE_FAILURE");
       return false;
    }
 
    g_c10_ledger_ready = true;
-   Print("[C10][READY] Stage=A SignalSchema=", C10_SIGNAL_SCHEMA,
+   Print("[C10][READY] Stage=B SignalSchema=", C10_SIGNAL_SCHEMA,
          " OutcomeSchema=", C10_OUTCOME_SCHEMA,
          " RunID=", g_c10_run_id,
          " Config=", g_c10_config_fingerprint,
@@ -2178,7 +2389,7 @@ void C10_WriteSignalEvent(int pairIndex, BBMA_Decision &decision)
 
    string fields[27];
    fields[0]  = C10_SIGNAL_SCHEMA;
-   fields[1]  = "4.74";
+   fields[1]  = "4.75";
    fields[2]  = g_c10_source_hash;
    fields[3]  = g_c10_config_fingerprint;
    fields[4]  = g_c10_run_id;
@@ -2209,8 +2420,8 @@ void C10_WriteSignalEvent(int pairIndex, BBMA_Decision &decision)
 
    string csvLine = C10_BuildCSVLine(fields, 27);
    int appendResult = C10_AppendEvent(
-      "bbma_signal", C10_SIGNAL_SCHEMA, C10_SignalHeader(), eventID,
-      eventTime, csvLine);
+      "bbma_signal", C10_SIGNAL_SCHEMA, C10_SignalHeader(), 27,
+      eventID, eventTime, csvLine);
    if(appendResult < 0) return;
    if(!C10_CommitAttemptSequence(decision.DecisionID, attemptSeq))
    {
@@ -11567,7 +11778,7 @@ void BuildDashboardSnapshot()
    int liveTradeCount = CountDashboardLiveEAOwnedTrades();
 
    g_dashboard_snapshot = "";
-   g_dashboard_snapshot += "=== BBMA EA V4.74 C10 Audit Ledger Stage A ===\n";
+   g_dashboard_snapshot += "=== BBMA EA V4.75 C10 Audit Ledger Stage B ===\n";
    g_dashboard_snapshot += "Time: " + TimeToString(TimeCurrent()) + "\n";
    g_dashboard_snapshot += "Balance: " + DoubleToString(AccountBalance(), 2) + "\n";
    g_dashboard_snapshot += "Equity: " + DoubleToString(AccountEquity(), 2) + "\n";
@@ -12378,7 +12589,7 @@ void ProcessPair(int pairIndex)
 
    if(EntryMode == 2 && decision.Valid)
    {
-      // C10 Stage A is evidence-only. It consumes the already-final decision
+      // C10 Stage B is evidence-only. It consumes the already-final decision
       // after preflight and cannot mutate candidate or execution authority.
       C10_WriteSignalEvent(pairIndex, decision);
       Print("[P3M2][DECISION_FINAL] Pair=", actual,
@@ -12478,7 +12689,7 @@ int OnInit()
    else
       g_timer_registered = true;
    
-   Log(DBG_FULL, "BBMA EA V4.74 C10 Audit Ledger Stage A initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.75 C10 Audit Ledger Stage B initialized successfully");
    return INIT_SUCCEEDED;
 }
 

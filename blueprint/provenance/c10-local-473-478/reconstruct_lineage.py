@@ -30,6 +30,6 @@ def main():
     for n in range(72,78):
         raw=decode_b64_gzip(here/f'PATCH_{n}_TO_{n+1}.json.gz.b64')
         cur,p=apply_patch(cur,raw)
-        (outdir/f'BBMA_EA_BUILD{n+1}.mq4').write_bytes(cur)
+        (outdir/f'BBMA_EA_BUILD4{n+1}.mq4').write_bytes(cur)
         print(f"{p['to_build']} {sha256(cur)}")
 if __name__=='__main__': main()

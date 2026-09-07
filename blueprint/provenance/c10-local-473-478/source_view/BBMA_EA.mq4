@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.7.8 - C10 Evidence Completion Stage D-B            |
+//| Version 4.7.9 - C10 Shadow Timeline Provenance Fix            |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.78"
+#property version   "4.79"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -171,7 +171,7 @@ int            AllowedExecutionDeviation_MinPoints= 5;
 #define C10_LEDGER_MAX_PARTS    99
 #define C10_SHADOW_MAX          400
 #define C10_SHADOW_SEEN_MAX     4000
-#define C10_SOURCE_HASH         "D56D0820858ADCB847CE7A70354C7825374903890E93CB11761D6F003856F991"
+#define C10_SOURCE_HASH         "5DC9CCF005C1237BAB8D23FB669D853ADB52FB0C292F270E96C9E2D35226CAB1"
 
 //+------------------------------------------------------------------+
 //| MODULE 02: ENUMS & STRUCTS                                       |
@@ -2456,7 +2456,7 @@ void C10_WriteSignalEvent(int pairIndex, BBMA_Decision &decision)
 
    string fields[27];
    fields[0]  = C10_SIGNAL_SCHEMA;
-   fields[1]  = "4.78";
+   fields[1]  = "4.79";
    fields[2]  = g_c10_source_hash;
    fields[3]  = g_c10_config_fingerprint;
    fields[4]  = g_c10_run_id;
@@ -2594,7 +2594,7 @@ bool C10_BuildShadowCheckpointRow(string decisionID, int activeIndex,
    if(decisionID == "") return false;
    string fields[22];
    fields[0] = C10_CHECKPOINT_SCHEMA;
-   fields[1] = "4.78";
+   fields[1] = "4.79";
    fields[2] = g_c10_source_hash;
    fields[3] = g_c10_config_fingerprint;
    fields[4] = activeIndex >= 0 ? "ACTIVE" : "SEEN";
@@ -2641,7 +2641,7 @@ bool C10_ValidateShadowCheckpointFile(string fileName)
       if(line == "" && FileIsEnding(handle)) break;
       string fields[];
       if(!C10_ParseQuotedCSVLine(line, 22, fields) ||
-         fields[0] != C10_CHECKPOINT_SCHEMA || fields[1] != "4.78" ||
+         fields[0] != C10_CHECKPOINT_SCHEMA || fields[1] != "4.79" ||
          fields[2] != g_c10_source_hash ||
          fields[3] != g_c10_config_fingerprint ||
          (fields[4] != "ACTIVE" && fields[4] != "SEEN") ||
@@ -2745,7 +2745,7 @@ bool C10_RebuildShadowSeenFromOutcomes()
             valid = false;
             break;
          }
-         if(fields[1] == "4.78" && fields[2] == g_c10_source_hash &&
+         if(fields[1] == "4.79" && fields[2] == g_c10_source_hash &&
             fields[3] == g_c10_config_fingerprint &&
             fields[8] != "" && fields[8] != "NA" &&
             !C10_ShadowDecisionSeen(fields[8]) &&
@@ -2919,9 +2919,23 @@ void C10_WriteShadowOutcome(C10ShadowInfo &info, datetime exitTime,
       !EnableC10ShadowOutcomes || !g_c10_ledger_ready ||
       g_c10_integrity_failed) return;
    datetime entryUTC = C10_ServerTimeToUTC(info.entry_time);
+   if(info.decision_id == "" || entryUTC <= 0)
+   {
+      C10_DisableLedger("SHADOW_IDENTITY_OR_TIME_UNPROVABLE");
+      return;
+   }
+   if(exitTime < info.entry_time)
+   {
+      info.excursion_proven = false;
+      Print("[C10][SHADOW_UNPROVABLE] DecisionID=", info.decision_id,
+            " Reason=SHADOW_TIME_PROVENANCE_UNPROVABLE Authority=NONE");
+      exitTime = info.entry_time;
+      exitPrice = 0.0;
+      exitReason = "UNKNOWN";
+      evidenceResolution = "SHADOW_TIME_PROVENANCE_UNPROVABLE";
+   }
    datetime exitUTC = C10_ServerTimeToUTC(exitTime);
-   if(info.decision_id == "" || entryUTC <= 0 || exitUTC <= 0 ||
-      exitTime < info.entry_time)
+   if(exitUTC <= 0)
    {
       C10_DisableLedger("SHADOW_IDENTITY_OR_TIME_UNPROVABLE");
       return;
@@ -2933,7 +2947,7 @@ void C10_WriteShadowOutcome(C10ShadowInfo &info, datetime exitTime,
    string outcomeEventID = SHORT_HASH(identity, 16);
    string fields[35];
    fields[0]  = C10_OUTCOME_SCHEMA;
-   fields[1]  = "4.78";
+   fields[1]  = "4.79";
    fields[2]  = g_c10_source_hash;
    fields[3]  = g_c10_config_fingerprint;
    fields[4]  = g_c10_run_id;
@@ -3014,9 +3028,23 @@ void C10_RegisterGeometryValidatedShadow(BBMA_Decision &decision)
    info.direction = decision.Direction;
    info.signal_type = decision.SignalType;
    info.entry_time = entryTime;
-   info.entry_m5_open = iTime(decision.Pair, PERIOD_M5, 0);
+   int m5Seconds = GetTimeframeSeconds(PERIOD_M5);
+   datetime expectedEntryM5Open = 0;
+   datetime expectedPriorM5Open = 0;
+   if(m5Seconds > 0)
+   {
+      expectedEntryM5Open = entryTime - (entryTime % m5Seconds);
+      expectedPriorM5Open = expectedEntryM5Open - m5Seconds;
+   }
+   int entryM5Shift = expectedEntryM5Open > 0 ?
+                      iBarShift(decision.Pair, PERIOD_M5, expectedEntryM5Open, true) : -1;
+   int priorM5Shift = expectedPriorM5Open > 0 ?
+                      iBarShift(decision.Pair, PERIOD_M5, expectedPriorM5Open, true) : -1;
+   info.entry_m5_open = entryM5Shift >= 0 ?
+                        iTime(decision.Pair, PERIOD_M5, entryM5Shift) : 0;
    info.expiry_time = decision.CandidateExpiry;
-   info.last_m5_closed = GetLatestClosedCandleTime(decision.Pair, PERIOD_M5);
+   info.last_m5_closed = priorM5Shift >= 0 ?
+                         iTime(decision.Pair, PERIOD_M5, priorM5Shift) : 0;
    info.entry_price = decision.EntryPrice;
    info.stop_loss = decision.StopLoss;
    info.take_profit = decision.TakeProfit;
@@ -3040,11 +3068,14 @@ void C10_RegisterGeometryValidatedShadow(BBMA_Decision &decision)
                              "UNKNOWN", "EXPIRY_UNPROVABLE");
       return;
    }
-   if(info.entry_m5_open <= 0 || info.last_m5_closed <= 0)
+   if(m5Seconds <= 0 || info.entry_m5_open != expectedEntryM5Open ||
+      info.last_m5_closed != expectedPriorM5Open)
    {
       info.excursion_proven = false;
+      Print("[C10][SHADOW_UNPROVABLE] DecisionID=", decision.DecisionID,
+            " Reason=M5_ENROLLMENT_HISTORY_UNPROVABLE Authority=NONE");
       C10_WriteShadowOutcome(info, entryTime, 0.0,
-                             "UNKNOWN", "M5_HISTORY_UNPROVABLE");
+                             "UNKNOWN", "M5_ENROLLMENT_HISTORY_UNPROVABLE");
       return;
    }
    g_c10_shadows[g_c10_shadow_count++] = info;
@@ -3106,6 +3137,12 @@ void C10_UpdateShadowOutcomes()
          datetime m5Close = m5Open > 0 ? m5Open + m5Seconds : 0;
          if(m5Open <= g_c10_shadows[i].last_m5_closed) continue;
          if(m5Close <= 0 || m5Close > g_c10_shadows[i].expiry_time) break;
+         if(m5Open < g_c10_shadows[i].entry_time)
+         {
+            g_c10_shadows[i].last_m5_closed = m5Open;
+            checkpointDirty = true;
+            continue;
+         }
          if(m5Open == g_c10_shadows[i].entry_m5_open)
          {
             g_c10_shadows[i].last_m5_closed = m5Open;
@@ -3374,7 +3411,7 @@ void C10_WriteRealizedOutcome(TradeInfo &info)
    int digits = info.digits >= 0 ? info.digits : GetDigits(info.pair);
    string fields[35];
    fields[0]  = C10_OUTCOME_SCHEMA;
-   fields[1]  = "4.78";
+   fields[1]  = "4.79";
    fields[2]  = g_c10_source_hash;
    fields[3]  = g_c10_config_fingerprint;
    fields[4]  = g_c10_run_id;
@@ -12889,7 +12926,7 @@ void BuildDashboardSnapshot()
    int liveTradeCount = CountDashboardLiveEAOwnedTrades();
 
    g_dashboard_snapshot = "";
-   g_dashboard_snapshot += "=== BBMA EA V4.78 C10 Evidence Completion Stage D-B ===\n";
+   g_dashboard_snapshot += "=== BBMA EA V4.79 C10 Shadow Timeline Provenance Fix ===\n";
    g_dashboard_snapshot += "Time: " + TimeToString(TimeCurrent()) + "\n";
    g_dashboard_snapshot += "Balance: " + DoubleToString(AccountBalance(), 2) + "\n";
    g_dashboard_snapshot += "Equity: " + DoubleToString(AccountEquity(), 2) + "\n";
@@ -13806,7 +13843,7 @@ int OnInit()
    else
       g_timer_registered = true;
    
-   Log(DBG_FULL, "BBMA EA V4.78 C10 Evidence Completion Stage D-B initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.79 C10 Shadow Timeline Provenance Fix initialized successfully");
    return INIT_SUCCEEDED;
 }
 

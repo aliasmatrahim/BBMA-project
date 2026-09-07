@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.7.7 - C10 Shadow Outcome Stage D-A                 |
+//| Version 4.7.8 - C10 Evidence Completion Stage D-B            |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.77"
+#property version   "4.78"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -164,13 +164,14 @@ int            AllowedExecutionDeviation_MinPoints= 5;
 #define STRATEGY_ID_MAX         99
 #define C10_SIGNAL_SCHEMA       "C10S1"
 #define C10_OUTCOME_SCHEMA      "C10O1"
-#define C10_SHADOW_SCHEMA       "C10D1"
+#define C10_SHADOW_SCHEMA       "C10D2"
+#define C10_CHECKPOINT_SCHEMA   "C10CP1"
 #define C10_LEDGER_FOLDER       "BBMA_C10"
 #define C10_LEDGER_MAX_BYTES    33554432
 #define C10_LEDGER_MAX_PARTS    99
 #define C10_SHADOW_MAX          400
 #define C10_SHADOW_SEEN_MAX     4000
-#define C10_SOURCE_HASH         "626E388F64182BB51F87E7AF8D8A2F87E171234764E05E6240D188B432D4C341"
+#define C10_SOURCE_HASH         "D56D0820858ADCB847CE7A70354C7825374903890E93CB11761D6F003856F991"
 
 //+------------------------------------------------------------------+
 //| MODULE 02: ENUMS & STRUCTS                                       |
@@ -1061,6 +1062,14 @@ struct TradeInfo
    double               initial_take_profit;
    double               initial_lot;
    double               initial_risk_price_distance;
+   double               c10_requested_entry_price;
+   double               c10_entry_spread_pips;
+   double               c10_entry_slippage_pips;
+   double               c10_mfe_pips;
+   double               c10_mae_pips;
+   datetime             c10_last_observation_time;
+   bool                 c10_entry_metrics_proven;
+   bool                 c10_excursion_proven;
    double               entry_price;
    double               current_sl;
    double               current_tp;
@@ -1122,11 +1131,17 @@ struct C10ShadowInfo
    ENUM_DIRECTION       direction;
    ENUM_SIGNAL_TYPE     signal_type;
    datetime             entry_time;
+   datetime             entry_m5_open;
    datetime             expiry_time;
    datetime             last_m5_closed;
    double               entry_price;
    double               stop_loss;
    double               take_profit;
+   double               spread_pips;
+   double               mfe_pips;
+   double               mae_pips;
+   bool                 excursion_proven;
+   bool                 recovered_from_checkpoint;
    int                  digits;
 };
 
@@ -1248,6 +1263,7 @@ C10ShadowInfo        g_c10_shadows[C10_SHADOW_MAX];
 int                  g_c10_shadow_count;
 string               g_c10_shadow_seen_decision_ids[C10_SHADOW_SEEN_MAX];
 int                  g_c10_shadow_seen_count;
+bool                 g_c10_checkpoint_ready;
 
 //--- Protection
 double               g_protection_reference_equity;
@@ -2244,6 +2260,7 @@ void C10_DisableLedger(string reason)
       Print("[C10][LEDGER_DISABLED] Reason=", reason,
             " TradingAuthority=UNCHANGED");
    g_c10_integrity_failed = true;
+   g_c10_checkpoint_ready = false;
    g_c10_ledger_ready = false;
 }
 
@@ -2330,6 +2347,7 @@ bool C10_InitializeLedgers()
 {
    g_c10_shadow_count = 0;
    g_c10_shadow_seen_count = 0;
+   g_c10_checkpoint_ready = false;
    g_c10_ledger_ready = false;
    g_c10_integrity_failed = false;
    g_c10_run_id = "";
@@ -2370,8 +2388,17 @@ bool C10_InitializeLedgers()
    }
 
    g_c10_ledger_ready = true;
-   Print("[C10][READY] Stage=D-A SignalSchema=", C10_SIGNAL_SCHEMA,
+   g_c10_checkpoint_ready = true;
+   if(EnableC10ShadowOutcomes &&
+      (!C10_RebuildShadowSeenFromOutcomes() ||
+       !C10_LoadShadowCheckpoint()))
+   {
+      C10_DisableLedger("SHADOW_CHECKPOINT_RECOVERY_FAILURE");
+      return false;
+   }
+   Print("[C10][READY] Stage=D-B SignalSchema=", C10_SIGNAL_SCHEMA,
          " OutcomeSchema=", C10_OUTCOME_SCHEMA,
+         " ShadowSchema=", C10_SHADOW_SCHEMA,
          " RunID=", g_c10_run_id,
          " Config=", g_c10_config_fingerprint,
          " Authority=NONE");
@@ -2380,6 +2407,11 @@ bool C10_InitializeLedgers()
 
 void C10_ShutdownLedgers()
 {
+   if(EnableC10ShadowOutcomes && g_c10_ledger_ready &&
+      g_c10_checkpoint_ready && !g_c10_integrity_failed &&
+      !C10_SaveShadowCheckpoint())
+      Print("[C10][SHADOW_CHECKPOINT_SHUTDOWN_FAILURE] Authority=NONE");
+   g_c10_checkpoint_ready = false;
    g_c10_ledger_ready = false;
 }
 
@@ -2424,7 +2456,7 @@ void C10_WriteSignalEvent(int pairIndex, BBMA_Decision &decision)
 
    string fields[27];
    fields[0]  = C10_SIGNAL_SCHEMA;
-   fields[1]  = "4.77";
+   fields[1]  = "4.78";
    fields[2]  = g_c10_source_hash;
    fields[3]  = g_c10_config_fingerprint;
    fields[4]  = g_c10_run_id;
@@ -2504,6 +2536,320 @@ bool C10_MarkShadowDecisionSeen(string decisionID)
    return true;
 }
 
+string C10_ShadowCheckpointHeader()
+{
+   return "Schema,BuildID,SourceHash,ConfigFingerprint,RecordType,DecisionID,Pair,Direction,SignalType,EntryTime,EntryM5Open,ExpiryTime,LastM5Closed,EntryPrice,StopLoss,TakeProfit,Digits,SpreadPips,MFEPips,MAEPips,ExcursionProven,Checksum";
+}
+
+string C10_ShadowCheckpointFileName()
+{
+   return C10_LEDGER_FOLDER + "\\bbma_shadow_checkpoint_" +
+          C10_SHADOW_SCHEMA + "_S" + IntegerToString(StrategyID) +
+          "_I" + IntegerToString(InstanceID) + ".csv";
+}
+
+bool C10_ParseQuotedCSVLine(string line, int expectedColumns, string &fields[])
+{
+   ArrayResize(fields, 0);
+   if(!C10_IsCompleteCSVRow(line, expectedColumns)) return false;
+   string body = StringSubstr(line, 1, StringLen(line) - 2);
+   int cursor = 0;
+   while(true)
+   {
+      int found = StringFind(body, "\",\"", cursor);
+      string value = found < 0 ? StringSubstr(body, cursor) :
+                                StringSubstr(body, cursor, found - cursor);
+      StringReplace(value, "\"\"", "\"");
+      int count = ArraySize(fields);
+      ArrayResize(fields, count + 1);
+      fields[count] = value;
+      if(found < 0) break;
+      cursor = found + 3;
+   }
+   return (ArraySize(fields) == expectedColumns);
+}
+
+string C10_ShadowCheckpointChecksum(string &fields[])
+{
+   string payload = "";
+   for(int i = 0; i < 21; i++)
+   {
+      if(i > 0) payload += "|";
+      payload += fields[i];
+   }
+   return SHORT_HASH(payload, 16);
+}
+
+int C10_FindActiveShadow(string decisionID)
+{
+   for(int i = 0; i < g_c10_shadow_count; i++)
+      if(g_c10_shadows[i].active &&
+         g_c10_shadows[i].decision_id == decisionID) return i;
+   return -1;
+}
+
+bool C10_BuildShadowCheckpointRow(string decisionID, int activeIndex,
+                                  string &csvLine)
+{
+   if(decisionID == "") return false;
+   string fields[22];
+   fields[0] = C10_CHECKPOINT_SCHEMA;
+   fields[1] = "4.78";
+   fields[2] = g_c10_source_hash;
+   fields[3] = g_c10_config_fingerprint;
+   fields[4] = activeIndex >= 0 ? "ACTIVE" : "SEEN";
+   fields[5] = decisionID;
+   for(int f = 6; f <= 20; f++) fields[f] = "NA";
+   if(activeIndex >= 0)
+   {
+      C10ShadowInfo info = g_c10_shadows[activeIndex];
+      fields[6]  = info.pair;
+      fields[7]  = IntegerToString((int)info.direction);
+      fields[8]  = IntegerToString((int)info.signal_type);
+      fields[9]  = IntegerToString((int)info.entry_time);
+      fields[10] = IntegerToString((int)info.entry_m5_open);
+      fields[11] = IntegerToString((int)info.expiry_time);
+      fields[12] = IntegerToString((int)info.last_m5_closed);
+      fields[13] = DoubleToString(info.entry_price, 12);
+      fields[14] = DoubleToString(info.stop_loss, 12);
+      fields[15] = DoubleToString(info.take_profit, 12);
+      fields[16] = IntegerToString(info.digits);
+      fields[17] = DoubleToString(info.spread_pips, 8);
+      fields[18] = DoubleToString(info.mfe_pips, 8);
+      fields[19] = DoubleToString(info.mae_pips, 8);
+      fields[20] = info.excursion_proven ? "1" : "0";
+   }
+   fields[21] = C10_ShadowCheckpointChecksum(fields);
+   csvLine = C10_BuildCSVLine(fields, 22);
+   return C10_IsCompleteCSVRow(csvLine, 22);
+}
+
+bool C10_ValidateShadowCheckpointFile(string fileName)
+{
+   int handle = FileOpen(fileName, FILE_READ | FILE_TXT | FILE_ANSI |
+                         FILE_SHARE_READ, 0, CP_UTF8);
+   if(handle == INVALID_HANDLE) return false;
+   if(FileIsEnding(handle) || FileReadString(handle) != C10_ShadowCheckpointHeader())
+   {
+      FileClose(handle);
+      return false;
+   }
+   string checkpointIDs[];
+   while(!FileIsEnding(handle))
+   {
+      string line = FileReadString(handle);
+      if(line == "" && FileIsEnding(handle)) break;
+      string fields[];
+      if(!C10_ParseQuotedCSVLine(line, 22, fields) ||
+         fields[0] != C10_CHECKPOINT_SCHEMA || fields[1] != "4.78" ||
+         fields[2] != g_c10_source_hash ||
+         fields[3] != g_c10_config_fingerprint ||
+         (fields[4] != "ACTIVE" && fields[4] != "SEEN") ||
+         fields[5] == "" || fields[5] == "NA" ||
+         fields[21] != C10_ShadowCheckpointChecksum(fields))
+      {
+         FileClose(handle);
+         return false;
+      }
+      for(int i = 0; i < ArraySize(checkpointIDs); i++)
+      {
+         if(checkpointIDs[i] == fields[5])
+         {
+            FileClose(handle);
+            return false;
+         }
+      }
+      int count = ArraySize(checkpointIDs);
+      ArrayResize(checkpointIDs, count + 1);
+      checkpointIDs[count] = fields[5];
+   }
+   FileClose(handle);
+   return true;
+}
+
+bool C10_SaveShadowCheckpoint()
+{
+   if(!EnableC10ShadowOutcomes || !g_c10_ledger_ready ||
+      g_c10_integrity_failed || !g_c10_checkpoint_ready) return false;
+   string fileName = C10_ShadowCheckpointFileName();
+   string tempName = fileName + ".tmp";
+   string backupName = fileName + ".bak";
+   if(FileIsExist(tempName) && !FileDelete(tempName)) return false;
+   int handle = FileOpen(tempName, FILE_WRITE | FILE_TXT | FILE_ANSI,
+                         0, CP_UTF8);
+   if(handle == INVALID_HANDLE) return false;
+   bool valid = (FileWriteString(handle, C10_ShadowCheckpointHeader() + "\r\n") > 0);
+   for(int i = 0; valid && i < g_c10_shadow_seen_count; i++)
+   {
+      string row = "";
+      int activeIndex = C10_FindActiveShadow(g_c10_shadow_seen_decision_ids[i]);
+      valid = C10_BuildShadowCheckpointRow(
+         g_c10_shadow_seen_decision_ids[i], activeIndex, row) &&
+         FileWriteString(handle, row + "\r\n") > 0;
+   }
+   FileFlush(handle);
+   FileClose(handle);
+   if(!valid || !C10_ValidateShadowCheckpointFile(tempName))
+   {
+      if(FileIsExist(tempName)) FileDelete(tempName);
+      return false;
+   }
+
+   bool hadOriginal = FileIsExist(fileName);
+   if(FileIsExist(backupName) && !FileDelete(backupName)) return false;
+   if(hadOriginal && !FileMove(fileName, 0, backupName, 0)) return false;
+   if(!FileMove(tempName, 0, fileName, 0))
+   {
+      if(hadOriginal && FileIsExist(backupName))
+         FileMove(backupName, 0, fileName, 0);
+      return false;
+   }
+   if(!C10_ValidateShadowCheckpointFile(fileName))
+   {
+      string invalidName = fileName + ".invalid_" +
+                           IntegerToString((int)GetTickCount());
+      FileMove(fileName, 0, invalidName, 0);
+      if(hadOriginal && FileIsExist(backupName))
+         FileMove(backupName, 0, fileName, 0);
+      return false;
+   }
+   if(FileIsExist(backupName)) FileDelete(backupName);
+   return true;
+}
+
+bool C10_RebuildShadowSeenFromOutcomes()
+{
+   string foundName = "";
+   long search = FileFindFirst(C10_LEDGER_FOLDER + "\\bbma_outcome_" +
+                               C10_OUTCOME_SCHEMA + "_*.csv", foundName);
+   if(search == INVALID_HANDLE) return true;
+   bool valid = true;
+   do
+   {
+      string fileName = C10_LEDGER_FOLDER + "\\" + foundName;
+      int handle = FileOpen(fileName, FILE_READ | FILE_TXT | FILE_ANSI |
+                            FILE_SHARE_READ, 0, CP_UTF8);
+      if(handle == INVALID_HANDLE)
+      {
+         valid = false;
+         break;
+      }
+      if(!FileIsEnding(handle)) FileReadString(handle);
+      while(!FileIsEnding(handle))
+      {
+         string line = FileReadString(handle);
+         if(line == "" && FileIsEnding(handle)) break;
+         string fields[];
+         if(!C10_ParseQuotedCSVLine(line, 35, fields))
+         {
+            valid = false;
+            break;
+         }
+         if(fields[1] == "4.78" && fields[2] == g_c10_source_hash &&
+            fields[3] == g_c10_config_fingerprint &&
+            fields[8] != "" && fields[8] != "NA" &&
+            !C10_ShadowDecisionSeen(fields[8]) &&
+            !C10_MarkShadowDecisionSeen(fields[8]))
+         {
+            valid = false;
+            break;
+         }
+      }
+      FileClose(handle);
+      if(!valid) break;
+   }
+   while(FileFindNext(search, foundName));
+   FileFindClose(search);
+   return valid;
+}
+
+bool C10_LoadShadowCheckpoint()
+{
+   string fileName = C10_ShadowCheckpointFileName();
+   if(!FileIsExist(fileName)) return C10_SaveShadowCheckpoint();
+   if(!C10_ValidateShadowCheckpointFile(fileName)) return false;
+   int handle = FileOpen(fileName, FILE_READ | FILE_TXT | FILE_ANSI |
+                         FILE_SHARE_READ, 0, CP_UTF8);
+   if(handle == INVALID_HANDLE) return false;
+   FileReadString(handle);
+   int restored = 0;
+   while(!FileIsEnding(handle))
+   {
+      string line = FileReadString(handle);
+      if(line == "" && FileIsEnding(handle)) break;
+      string fields[];
+      if(!C10_ParseQuotedCSVLine(line, 22, fields))
+      {
+         FileClose(handle);
+         return false;
+      }
+      string decisionID = fields[5];
+      if(C10_ShadowDecisionSeen(decisionID)) continue;
+      if(fields[4] == "SEEN")
+      {
+         if(!C10_MarkShadowDecisionSeen(decisionID))
+         {
+            FileClose(handle);
+            return false;
+         }
+         continue;
+      }
+      if(g_c10_shadow_count >= C10_SHADOW_MAX)
+      {
+         FileClose(handle);
+         return false;
+      }
+      C10ShadowInfo info;
+      ZeroMemory(info);
+      info.active = true;
+      info.decision_id = decisionID;
+      info.pair = fields[6];
+      info.direction = (ENUM_DIRECTION)StringToInteger(fields[7]);
+      info.signal_type = (ENUM_SIGNAL_TYPE)StringToInteger(fields[8]);
+      info.entry_time = (datetime)StringToInteger(fields[9]);
+      info.entry_m5_open = (datetime)StringToInteger(fields[10]);
+      info.expiry_time = (datetime)StringToInteger(fields[11]);
+      info.last_m5_closed = (datetime)StringToInteger(fields[12]);
+      info.entry_price = StringToDouble(fields[13]);
+      info.stop_loss = StringToDouble(fields[14]);
+      info.take_profit = StringToDouble(fields[15]);
+      info.digits = (int)StringToInteger(fields[16]);
+      info.spread_pips = StringToDouble(fields[17]);
+      info.mfe_pips = StringToDouble(fields[18]);
+      info.mae_pips = StringToDouble(fields[19]);
+      info.excursion_proven = (fields[20] == "1");
+      info.recovered_from_checkpoint = true;
+      bool geometryValid = info.pair != "" && info.entry_time > 0 &&
+                           info.entry_m5_open > 0 &&
+                           info.expiry_time > info.entry_time &&
+                           info.last_m5_closed > 0 &&
+                           info.entry_price > 0.0 && info.stop_loss > 0.0 &&
+                           info.take_profit > 0.0 && info.digits >= 0;
+      if(geometryValid && info.direction == DIR_BUY)
+         geometryValid = info.stop_loss < info.entry_price &&
+                         info.entry_price < info.take_profit;
+      else if(geometryValid && info.direction == DIR_SELL)
+         geometryValid = info.take_profit < info.entry_price &&
+                         info.entry_price < info.stop_loss;
+      else geometryValid = false;
+      if(!geometryValid || !C10_MarkShadowDecisionSeen(decisionID))
+      {
+         FileClose(handle);
+         return false;
+      }
+      // Recovery proves identity and boundary replay, but an offline partial
+      // interval can hide an excursion. Never publish recovered MFE/MAE as exact.
+      info.excursion_proven = false;
+      g_c10_shadows[g_c10_shadow_count++] = info;
+      restored++;
+   }
+   FileClose(handle);
+   Print("[C10][SHADOW_RECOVERY] Active=", IntegerToString(restored),
+         " Seen=", IntegerToString(g_c10_shadow_seen_count),
+         " Authority=NONE");
+   return true;
+}
+
 bool C10_ShadowBoundaryTouch(C10ShadowInfo &info, double highPrice,
                              double lowPrice, bool &tpTouch, bool &slTouch)
 {
@@ -2521,6 +2867,48 @@ bool C10_ShadowBoundaryTouch(C10ShadowInfo &info, double highPrice,
       slTouch = (info.stop_loss > 0.0 && highPrice >= info.stop_loss);
    }
    return (tpTouch || slTouch);
+}
+
+bool C10_UpdateShadowExcursion(C10ShadowInfo &info, double highPrice,
+                               double lowPrice)
+{
+   if(!info.excursion_proven) return false;
+   double pipValue = GetPipValue(info.pair);
+   if(pipValue <= 0.0 || highPrice <= 0.0 || lowPrice <= 0.0 ||
+      highPrice < lowPrice || info.entry_price <= 0.0)
+   {
+      info.excursion_proven = false;
+      return true;
+   }
+   double favorable = 0.0;
+   double adverse = 0.0;
+   if(info.direction == DIR_BUY)
+   {
+      favorable = MathMax(0.0, (highPrice - info.entry_price) / pipValue);
+      adverse = MathMax(0.0, (info.entry_price - lowPrice) / pipValue);
+   }
+   else if(info.direction == DIR_SELL)
+   {
+      favorable = MathMax(0.0, (info.entry_price - lowPrice) / pipValue);
+      adverse = MathMax(0.0, (highPrice - info.entry_price) / pipValue);
+   }
+   else
+   {
+      info.excursion_proven = false;
+      return true;
+   }
+   bool changed = false;
+   if(favorable > info.mfe_pips)
+   {
+      info.mfe_pips = favorable;
+      changed = true;
+   }
+   if(adverse > info.mae_pips)
+   {
+      info.mae_pips = adverse;
+      changed = true;
+   }
+   return changed;
 }
 
 void C10_WriteShadowOutcome(C10ShadowInfo &info, datetime exitTime,
@@ -2545,7 +2933,7 @@ void C10_WriteShadowOutcome(C10ShadowInfo &info, datetime exitTime,
    string outcomeEventID = SHORT_HASH(identity, 16);
    string fields[35];
    fields[0]  = C10_OUTCOME_SCHEMA;
-   fields[1]  = "4.77";
+   fields[1]  = "4.78";
    fields[2]  = g_c10_source_hash;
    fields[3]  = g_c10_config_fingerprint;
    fields[4]  = g_c10_run_id;
@@ -2565,7 +2953,15 @@ void C10_WriteShadowOutcome(C10ShadowInfo &info, datetime exitTime,
    fields[18] = C10_PriceOrNA(exitPrice, info.digits);
    fields[19] = C10_PriceOrNA(info.stop_loss, info.digits);
    fields[20] = C10_PriceOrNA(info.take_profit, info.digits);
-   for(int f = 21; f <= 31; f++) fields[f] = "NA";
+   fields[21] = "NA";
+   fields[22] = info.spread_pips >= 0.0 ?
+                DoubleToString(info.spread_pips, 8) : "NA";
+   fields[23] = "NA";
+   for(int f = 24; f <= 29; f++) fields[f] = "NA";
+   fields[30] = info.excursion_proven ?
+                DoubleToString(info.mfe_pips, 8) : "NA";
+   fields[31] = info.excursion_proven ?
+                DoubleToString(info.mae_pips, 8) : "NA";
    fields[32] = IntegerToString((int)(exitTime - info.entry_time));
    fields[33] = exitReason;
    fields[34] = evidenceResolution;
@@ -2576,6 +2972,11 @@ void C10_WriteShadowOutcome(C10ShadowInfo &info, datetime exitTime,
       outcomeEventID, exitUTC, csvLine);
    if(appendResult < 0) return;
    info.active = false;
+   if(g_c10_checkpoint_ready && !C10_SaveShadowCheckpoint())
+   {
+      C10_DisableLedger("SHADOW_CHECKPOINT_OUTCOME_COMMIT_FAILURE");
+      return;
+   }
    Print("[C10][SHADOW_OUTCOME] OutcomeEventID=", outcomeEventID,
          " DecisionID=", info.decision_id,
          " Reason=", exitReason,
@@ -2613,22 +3014,45 @@ void C10_RegisterGeometryValidatedShadow(BBMA_Decision &decision)
    info.direction = decision.Direction;
    info.signal_type = decision.SignalType;
    info.entry_time = entryTime;
+   info.entry_m5_open = iTime(decision.Pair, PERIOD_M5, 0);
    info.expiry_time = decision.CandidateExpiry;
    info.last_m5_closed = GetLatestClosedCandleTime(decision.Pair, PERIOD_M5);
    info.entry_price = decision.EntryPrice;
    info.stop_loss = decision.StopLoss;
    info.take_profit = decision.TakeProfit;
+   double pipValue = GetPipValue(decision.Pair);
+   double bid = MarketInfo(decision.Pair, MODE_BID);
+   double ask = MarketInfo(decision.Pair, MODE_ASK);
+   info.spread_pips = (pipValue > 0.0 && bid > 0.0 && ask >= bid) ?
+                      (ask - bid) / pipValue : -1.0;
+   info.mfe_pips = 0.0;
+   info.mae_pips = 0.0;
+   info.excursion_proven = true;
+   info.recovered_from_checkpoint = false;
    info.digits = GetDigits(decision.Pair);
    if(!C10_MarkShadowDecisionSeen(decision.DecisionID)) return;
    if(decision.CandidateExpiry <= entryTime)
    {
+      info.excursion_proven = false;
       Print("[C10][SHADOW_UNPROVABLE] DecisionID=", decision.DecisionID,
             " Reason=EXPIRY_UNPROVABLE Authority=NONE");
       C10_WriteShadowOutcome(info, entryTime, 0.0,
                              "UNKNOWN", "EXPIRY_UNPROVABLE");
       return;
    }
+   if(info.entry_m5_open <= 0 || info.last_m5_closed <= 0)
+   {
+      info.excursion_proven = false;
+      C10_WriteShadowOutcome(info, entryTime, 0.0,
+                             "UNKNOWN", "M5_HISTORY_UNPROVABLE");
+      return;
+   }
    g_c10_shadows[g_c10_shadow_count++] = info;
+   if(g_c10_checkpoint_ready && !C10_SaveShadowCheckpoint())
+   {
+      C10_DisableLedger("SHADOW_CHECKPOINT_REGISTER_FAILURE");
+      return;
+   }
    Print("[C10][SHADOW_REGISTER] DecisionID=", decision.DecisionID,
          " Population=GEOMETRY_VALIDATED Entry=", DoubleToString(info.entry_price, info.digits),
          " SL=", DoubleToString(info.stop_loss, info.digits),
@@ -2649,6 +3073,9 @@ void C10_CancelShadowForDecision(string decisionID)
             " Reason=REALIZED_TAKEOVER Authority=NONE");
    }
    C10_CompactShadowRegistry();
+   if(g_c10_checkpoint_ready && g_c10_ledger_ready &&
+      !C10_SaveShadowCheckpoint())
+      C10_DisableLedger("SHADOW_CHECKPOINT_TAKEOVER_FAILURE");
 }
 
 void C10_UpdateShadowOutcomes()
@@ -2656,48 +3083,202 @@ void C10_UpdateShadowOutcomes()
    if(!EnableC10StatisticsLedger || !EnableC10ShadowOutcomes ||
       !g_c10_ledger_ready || g_c10_integrity_failed) return;
    datetime nowTime = g_processing_time > 0 ? g_processing_time : TimeCurrent();
+   int m5Seconds = GetTimeframeSeconds(PERIOD_M5);
    for(int i = 0; i < g_c10_shadow_count; i++)
    {
       if(!g_c10_shadows[i].active) continue;
-      C10ShadowInfo info = g_c10_shadows[i];
-      double observed = info.direction == DIR_BUY ?
-                        MarketInfo(info.pair, MODE_BID) :
-                        MarketInfo(info.pair, MODE_ASK);
-      bool tpTouch = false, slTouch = false;
-      if(observed > 0.0 &&
-         C10_ShadowBoundaryTouch(info, observed, observed, tpTouch, slTouch))
+      bool checkpointDirty = false;
+      datetime latestClosed = GetLatestClosedCandleTime(
+         g_c10_shadows[i].pair, PERIOD_M5);
+      int priorShift = iBarShift(g_c10_shadows[i].pair, PERIOD_M5,
+                                 g_c10_shadows[i].last_m5_closed, true);
+      if(latestClosed > g_c10_shadows[i].last_m5_closed && priorShift < 1)
       {
-         C10_WriteShadowOutcome(g_c10_shadows[i], nowTime,
-                                tpTouch ? info.take_profit : info.stop_loss,
-                                tpTouch ? "TP" : "SL", "RUNTIME_PRICE_SNAPSHOT");
+         g_c10_shadows[i].excursion_proven = false;
+         C10_WriteShadowOutcome(g_c10_shadows[i], nowTime, 0.0,
+                                "UNKNOWN", "REPLAY_HISTORY_UNAVAILABLE");
+         continue;
+      }
+      for(int shift = priorShift - 1;
+          g_c10_shadows[i].active && shift >= 1; shift--)
+      {
+         datetime m5Open = iTime(g_c10_shadows[i].pair, PERIOD_M5, shift);
+         datetime m5Close = m5Open > 0 ? m5Open + m5Seconds : 0;
+         if(m5Open <= g_c10_shadows[i].last_m5_closed) continue;
+         if(m5Close <= 0 || m5Close > g_c10_shadows[i].expiry_time) break;
+         if(m5Open == g_c10_shadows[i].entry_m5_open)
+         {
+            g_c10_shadows[i].last_m5_closed = m5Open;
+            checkpointDirty = true;
+            continue;
+         }
+         double highPrice = iHigh(g_c10_shadows[i].pair, PERIOD_M5, shift);
+         double lowPrice = iLow(g_c10_shadows[i].pair, PERIOD_M5, shift);
+         bool tpTouch = false, slTouch = false;
+         if(C10_ShadowBoundaryTouch(g_c10_shadows[i], highPrice, lowPrice,
+                                    tpTouch, slTouch))
+         {
+            g_c10_shadows[i].excursion_proven = false;
+            if(tpTouch && slTouch)
+               C10_WriteShadowOutcome(g_c10_shadows[i], m5Close, 0.0,
+                                      "AMBIGUOUS",
+                                      "M5_SAME_INTERVAL_BOTH_EXCURSION_UNPROVABLE");
+            else
+               C10_WriteShadowOutcome(g_c10_shadows[i], m5Close,
+                                      tpTouch ? g_c10_shadows[i].take_profit :
+                                                g_c10_shadows[i].stop_loss,
+                                      tpTouch ? "TP" : "SL",
+                                      "M5_CLOSED_CANDLE_EXCURSION_UNPROVABLE");
+            break;
+         }
+         if(C10_UpdateShadowExcursion(g_c10_shadows[i], highPrice, lowPrice))
+            checkpointDirty = true;
+         g_c10_shadows[i].last_m5_closed = m5Open;
+         checkpointDirty = true;
+      }
+      if(!g_c10_shadows[i].active) continue;
+      if(nowTime >= g_c10_shadows[i].expiry_time)
+      {
+         string expiryEvidence = g_c10_shadows[i].excursion_proven ?
+            "CANONICAL_EXPIRY_EXCURSION_EXACT" :
+            "CANONICAL_EXPIRY_EXCURSION_NA";
+         C10_WriteShadowOutcome(g_c10_shadows[i],
+                                g_c10_shadows[i].expiry_time, 0.0,
+                                "EXPIRED", expiryEvidence);
          continue;
       }
 
-      datetime m5Open = GetLatestClosedCandleTime(info.pair, PERIOD_M5);
-      datetime m5Close = m5Open > 0 ? m5Open + GetTimeframeSeconds(PERIOD_M5) : 0;
-      if(m5Open > info.last_m5_closed && m5Close <= info.expiry_time)
+      double observed = g_c10_shadows[i].direction == DIR_BUY ?
+                        MarketInfo(g_c10_shadows[i].pair, MODE_BID) :
+                        MarketInfo(g_c10_shadows[i].pair, MODE_ASK);
+      bool tpTouch = false, slTouch = false;
+      if(observed > 0.0)
       {
-         double highPrice = iHigh(info.pair, PERIOD_M5, 1);
-         double lowPrice = iLow(info.pair, PERIOD_M5, 1);
-         if(C10_ShadowBoundaryTouch(info, highPrice, lowPrice, tpTouch, slTouch))
+         C10_UpdateShadowExcursion(g_c10_shadows[i], observed, observed);
+         if(C10_ShadowBoundaryTouch(g_c10_shadows[i], observed, observed,
+                                    tpTouch, slTouch))
          {
-            if(tpTouch && slTouch)
-               C10_WriteShadowOutcome(g_c10_shadows[i], m5Close, 0.0,
-                                      "AMBIGUOUS", "M5_SAME_INTERVAL_BOTH");
-            else
-               C10_WriteShadowOutcome(g_c10_shadows[i], m5Close,
-                                      tpTouch ? info.take_profit : info.stop_loss,
-                                      tpTouch ? "TP" : "SL", "M5_CLOSED_CANDLE");
+            string runtimeEvidence = g_c10_shadows[i].excursion_proven ?
+               "RUNTIME_PRICE_SNAPSHOT_EXCURSION_EXACT" :
+               "RUNTIME_PRICE_SNAPSHOT_EXCURSION_NA";
+            C10_WriteShadowOutcome(g_c10_shadows[i], nowTime,
+                                   tpTouch ? g_c10_shadows[i].take_profit :
+                                             g_c10_shadows[i].stop_loss,
+                                   tpTouch ? "TP" : "SL", runtimeEvidence);
             continue;
          }
-         g_c10_shadows[i].last_m5_closed = m5Open;
       }
-
-      if(nowTime >= info.expiry_time)
-         C10_WriteShadowOutcome(g_c10_shadows[i], info.expiry_time, 0.0,
-                                "EXPIRED", "CANONICAL_EXPIRY");
+      if(checkpointDirty && g_c10_checkpoint_ready &&
+         !C10_SaveShadowCheckpoint())
+      {
+         C10_DisableLedger("SHADOW_CHECKPOINT_PROGRESS_FAILURE");
+         return;
+      }
    }
    C10_CompactShadowRegistry();
+}
+
+string C10_TradeMetricKey(TradeInfo &info, string suffix)
+{
+   if(info.execution_hash == "" || info.ticket <= 0 || info.open_time <= 0)
+      return "";
+   return "C10M" + IntegerToString(StrategyID) + "I" +
+          IntegerToString(InstanceID) +
+          SHORT_HASH(info.execution_hash + "|" + IntegerToString(info.ticket) +
+                     "|" + IntegerToString((int)info.open_time), 16) + suffix;
+}
+
+bool C10_SaveTradeMetrics(TradeInfo &info)
+{
+   if(!EnableC10StatisticsLedger || info.execution_hash == "") return true;
+   string key = C10_TradeMetricKey(info, "");
+   if(key == "") return false;
+   if(GlobalVariableSet(key + "T", info.ticket) == 0 ||
+      GlobalVariableSet(key + "O", (double)info.open_time) == 0 ||
+      GlobalVariableSet(key + "Q", info.c10_requested_entry_price) == 0 ||
+      GlobalVariableSet(key + "S", info.c10_entry_spread_pips) == 0 ||
+      GlobalVariableSet(key + "L", info.c10_entry_slippage_pips) == 0 ||
+      GlobalVariableSet(key + "F", info.c10_mfe_pips) == 0 ||
+      GlobalVariableSet(key + "A", info.c10_mae_pips) == 0 ||
+      GlobalVariableSet(key + "U", (double)info.c10_last_observation_time) == 0 ||
+      GlobalVariableSet(key + "E", info.c10_entry_metrics_proven ? 1.0 : 0.0) == 0 ||
+      GlobalVariableSet(key + "X", info.c10_excursion_proven ? 1.0 : 0.0) == 0)
+      return false;
+   if(GlobalVariableSet(key + "C", 478.0) == 0) return false;
+   GlobalVariablesFlush();
+   return true;
+}
+
+bool C10_LoadTradeMetrics(TradeInfo &info)
+{
+   string key = C10_TradeMetricKey(info, "");
+   if(key == "") return false;
+   string suffixes[11] = {"T","O","Q","S","L","F","A","U","E","X","C"};
+   for(int i = 0; i < 11; i++)
+      if(!GlobalVariableCheck(key + suffixes[i])) return false;
+   if((int)GlobalVariableGet(key + "T") != info.ticket ||
+      (datetime)GlobalVariableGet(key + "O") != info.open_time ||
+      GlobalVariableGet(key + "C") != 478.0) return false;
+   info.c10_requested_entry_price = GlobalVariableGet(key + "Q");
+   info.c10_entry_spread_pips = GlobalVariableGet(key + "S");
+   info.c10_entry_slippage_pips = GlobalVariableGet(key + "L");
+   info.c10_mfe_pips = GlobalVariableGet(key + "F");
+   info.c10_mae_pips = GlobalVariableGet(key + "A");
+   info.c10_last_observation_time =
+      (datetime)GlobalVariableGet(key + "U");
+   info.c10_entry_metrics_proven =
+      (GlobalVariableGet(key + "E") == 1.0);
+   // Entry spread/slippage remain durable. A restart introduces an offline
+   // price-observation gap, so excursion figures fail closed to NA.
+   info.c10_excursion_proven = false;
+   return true;
+}
+
+void C10_ClearTradeMetrics(TradeInfo &info)
+{
+   string key = C10_TradeMetricKey(info, "");
+   if(key == "") return;
+   string suffixes[11] = {"T","O","Q","S","L","F","A","U","E","X","C"};
+   for(int i = 0; i < 11; i++)
+      if(GlobalVariableCheck(key + suffixes[i]))
+         GlobalVariableDel(key + suffixes[i]);
+   GlobalVariablesFlush();
+}
+
+bool C10_UpdateTradeExcursion(TradeInfo &info, double observedPrice,
+                              datetime observedTime)
+{
+   if(!info.c10_excursion_proven) return false;
+   double pipValue = GetPipValue(info.pair);
+   if(pipValue <= 0.0 || info.initial_entry_price <= 0.0 ||
+      observedPrice <= 0.0 || observedTime < info.open_time)
+   {
+      info.c10_excursion_proven = false;
+      return true;
+   }
+   double signedPips = info.direction == DIR_BUY ?
+      (observedPrice - info.initial_entry_price) / pipValue :
+      (info.initial_entry_price - observedPrice) / pipValue;
+   bool changed = false;
+   if(signedPips > info.c10_mfe_pips)
+   {
+      info.c10_mfe_pips = signedPips;
+      changed = true;
+   }
+   if(-signedPips > info.c10_mae_pips)
+   {
+      info.c10_mae_pips = -signedPips;
+      changed = true;
+   }
+   if(info.c10_mfe_pips < 0.0) info.c10_mfe_pips = 0.0;
+   if(info.c10_mae_pips < 0.0) info.c10_mae_pips = 0.0;
+   info.c10_last_observation_time = observedTime;
+   if(changed && !C10_SaveTradeMetrics(info))
+   {
+      info.c10_excursion_proven = false;
+      return true;
+   }
+   return changed;
 }
 
 string C10_RealizedExitReason(TradeInfo &info, double closePrice)
@@ -2758,6 +3339,9 @@ void C10_WriteRealizedOutcome(TradeInfo &info)
       return;
    }
 
+   if(info.c10_excursion_proven)
+      C10_UpdateTradeExcursion(info, OrderClosePrice(), OrderCloseTime());
+
    string identity = C10_OUTCOME_SCHEMA + "|REALIZED|" +
                      info.execution_hash + "|" +
                      IntegerToString(info.ticket) + "|" +
@@ -2790,7 +3374,7 @@ void C10_WriteRealizedOutcome(TradeInfo &info)
    int digits = info.digits >= 0 ? info.digits : GetDigits(info.pair);
    string fields[35];
    fields[0]  = C10_OUTCOME_SCHEMA;
-   fields[1]  = "4.77";
+   fields[1]  = "4.78";
    fields[2]  = g_c10_source_hash;
    fields[3]  = g_c10_config_fingerprint;
    fields[4]  = g_c10_run_id;
@@ -2812,27 +3396,37 @@ void C10_WriteRealizedOutcome(TradeInfo &info)
    fields[19] = C10_PriceOrNA(info.initial_stop_loss, digits);
    fields[20] = C10_PriceOrNA(info.initial_take_profit, digits);
    fields[21] = DoubleToString(info.initial_lot, 8);
-   fields[22] = "NA";
-   fields[23] = "NA";
+   fields[22] = info.c10_entry_metrics_proven ?
+                DoubleToString(info.c10_entry_spread_pips, 8) : "NA";
+   fields[23] = info.c10_entry_metrics_proven ?
+                DoubleToString(info.c10_entry_slippage_pips, 8) : "NA";
    fields[24] = DoubleToString(gross, 8);
    fields[25] = DoubleToString(commission, 8);
    fields[26] = DoubleToString(swap, 8);
    fields[27] = DoubleToString(net, 8);
    fields[28] = riskAmount;
    fields[29] = rMultiple;
-   fields[30] = "NA";
-   fields[31] = "NA";
+   fields[30] = info.c10_excursion_proven ?
+                DoubleToString(info.c10_mfe_pips, 8) : "NA";
+   fields[31] = info.c10_excursion_proven ?
+                DoubleToString(info.c10_mae_pips, 8) : "NA";
    fields[32] = IntegerToString((int)(OrderCloseTime() - OrderOpenTime()));
    fields[33] = C10_RealizedExitReason(info, OrderClosePrice());
-   fields[34] = info.decision_id != "" ?
-                "BROKER_HISTORY_EXACT_EXECUTION" :
-                "BROKER_HISTORY_EXECUTION_HASH_ONLY";
+   string baseEvidence = info.decision_id != "" ?
+                         "BROKER_HISTORY_EXACT_EXECUTION" :
+                         "BROKER_HISTORY_EXECUTION_HASH_ONLY";
+   fields[34] = baseEvidence +
+                (info.c10_entry_metrics_proven ?
+                 "_ENTRY_METRICS_EXACT" : "_ENTRY_METRICS_NA") +
+                (info.c10_excursion_proven ?
+                 "_EXCURSION_EXACT" : "_EXCURSION_NA");
 
    string csvLine = C10_BuildCSVLine(fields, 35);
    int appendResult = C10_AppendEvent(
       "bbma_outcome", C10_OUTCOME_SCHEMA, C10_OutcomeHeader(), 35,
       outcomeEventID, exitUTC, csvLine);
    if(appendResult < 0) return;
+   C10_ClearTradeMetrics(info);
    Print("[C10][OUTCOME] OutcomeEventID=", outcomeEventID,
          " ExecutionID=", info.execution_hash,
          " Ticket=", IntegerToString(info.ticket),
@@ -2879,6 +3473,9 @@ bool C10_BuildRecoveredOutcomeInfo(TradeInfo &info)
    info.digits = GetDigits(info.pair);
    info.decision_id = "";
    info.execution_hash = executionHash;
+   info.c10_entry_metrics_proven = false;
+   info.c10_excursion_proven = false;
+   C10_LoadTradeMetrics(info);
    info.recovery_state = REC_NORMAL;
    return true;
 }
@@ -9931,8 +10528,11 @@ bool IsSignalAllowed(BBMA_Decision &decision, string pair, int magicNumber)
 int SendOrderWithRetry(string pair, int direction, double lot,
                        double stopLoss, double takeProfit, string comment, 
                        int magicNumber, double frozenAllowedDeviation, 
-                       double decisionEntryPrice, string decisionID)
+                       double decisionEntryPrice, string decisionID,
+                       double &submittedPrice, double &submittedSpreadPips)
 {
+   submittedPrice = 0.0;
+   submittedSpreadPips = -1.0;
    if(MaxRetry <= 0 || pair == "" || lot <= 0 || stopLoss <= 0 || takeProfit < 0.0 ||
       magicNumber <= 0 || decisionID == "")
       return -1;
@@ -9959,6 +10559,9 @@ int SendOrderWithRetry(string pair, int direction, double lot,
          return -3;
       }
       
+      double pipValue = GetPipValue(pair);
+      submittedPrice = executionPrice;
+      submittedSpreadPips = pipValue > 0.0 ? (ask - bid) / pipValue : -1.0;
       int ticket = OrderSend(pair, direction, lot, executionPrice, Slippage, 
                              stopLoss, takeProfit, comment, magicNumber, 0, clrNONE);
       
@@ -10224,10 +10827,13 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
                                        decision.StopLoss, lot, 0, decision.SequenceHash,
                                        decision.CandleTime);
    
+   double submittedPrice = 0.0;
+   double submittedSpreadPips = -1.0;
    int ticket = SendOrderWithRetry(pair, orderType, lot,
                                     decision.StopLoss, decision.TakeProfit,
                                     comment, magic, frozenAllowedDeviation,
-                                    decision.EntryPrice, decision.DecisionID);
+                                    decision.EntryPrice, decision.DecisionID,
+                                    submittedPrice, submittedSpreadPips);
    
    if(ticket > 0)
    {
@@ -10245,6 +10851,19 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
          info.initial_take_profit = OrderTakeProfit();
          info.initial_lot = OrderLots();
          info.initial_risk_price_distance = MathAbs(info.initial_entry_price - info.initial_stop_loss);
+         double pipValue = GetPipValue(pair);
+         info.c10_requested_entry_price = submittedPrice;
+         info.c10_entry_spread_pips = submittedSpreadPips;
+         info.c10_entry_slippage_pips = pipValue > 0.0 && submittedPrice > 0.0 ?
+            (decision.Direction == DIR_BUY ?
+             (info.initial_entry_price - submittedPrice) / pipValue :
+             (submittedPrice - info.initial_entry_price) / pipValue) : 0.0;
+         info.c10_mfe_pips = 0.0;
+         info.c10_mae_pips = 0.0;
+         info.c10_last_observation_time = OrderOpenTime();
+         info.c10_entry_metrics_proven =
+            (submittedPrice > 0.0 && submittedSpreadPips >= 0.0 && pipValue > 0.0);
+         info.c10_excursion_proven = info.c10_entry_metrics_proven;
          info.entry_price = info.initial_entry_price;
          info.current_sl = info.initial_stop_loss;
          info.current_tp = info.initial_take_profit;
@@ -10293,6 +10912,14 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
 
          if(!localIdentityPersisted)
             Log(DBG_ERROR, "Execution identity persistence failed ticket=" + IntegerToString(ticket));
+
+         if(info.execution_hash != "" && !C10_SaveTradeMetrics(info))
+         {
+            info.c10_entry_metrics_proven = false;
+            info.c10_excursion_proven = false;
+            Log(DBG_ERROR, "C10 entry metric persistence failed ticket=" +
+                IntegerToString(ticket));
+         }
 
          bool nmjeAttributionPersisted = false;
          if(info.nmje_attribution.Present && info.execution_hash != "")
@@ -10432,7 +11059,7 @@ bool RunEntryPreflightAndExecute(BBMA_Decision &decision, string pair)
       return false;
    }
 
-   // Stage D-A freezes the core-setup denominator after broker-normalized
+   // Stage D-B freezes the core-setup denominator after broker-normalized
    // geometry is valid, before lot, account-risk or execution authority.
    C10_RegisterGeometryValidatedShadow(decision);
 
@@ -11041,6 +11668,11 @@ void ManagePositions()
       g_monitored_trades[i].current_tp = OrderTakeProfit();
       g_monitored_trades[i].lot = OrderLots();
       g_monitored_trades[i].remaining_lot = OrderLots();
+      double observedPrice = g_monitored_trades[i].direction == DIR_BUY ?
+                             bid : ask;
+      if(observedPrice > 0.0)
+         C10_UpdateTradeExcursion(g_monitored_trades[i], observedPrice,
+                                  TimeCurrent());
       
       if(g_portfolio_emergency_close_requested)
       {
@@ -12095,6 +12727,15 @@ void RecoverExistingOrders()
       info.decision_id = "";
       info.execution_hash = executionHash;
       info.sequence_hash_short = sequenceHash;
+      info.c10_entry_metrics_proven = false;
+      info.c10_excursion_proven = false;
+      bool c10MetricsRecovered = C10_LoadTradeMetrics(info);
+      if(DebugLevel >= DBG_SIGNAL)
+         Print("[C10][METRIC_RECOVERY] Ticket=", IntegerToString(info.ticket),
+               " Entry=", info.c10_entry_metrics_proven ? "EXACT" : "NA",
+               " Excursion=", info.c10_excursion_proven ? "EXACT" : "NA",
+               " Durable=", c10MetricsRecovered ? "Y" : "N",
+               " Authority=NONE");
       // P4 recovery is research-only. Missing/corrupt attribution never
       // freezes, rejects, closes or otherwise changes the live trade.
       bool nmjeAttributionRecovered = LoadNMJEShadowAttribution(info);
@@ -12248,7 +12889,7 @@ void BuildDashboardSnapshot()
    int liveTradeCount = CountDashboardLiveEAOwnedTrades();
 
    g_dashboard_snapshot = "";
-   g_dashboard_snapshot += "=== BBMA EA V4.77 C10 Shadow Outcome Stage D-A ===\n";
+   g_dashboard_snapshot += "=== BBMA EA V4.78 C10 Evidence Completion Stage D-B ===\n";
    g_dashboard_snapshot += "Time: " + TimeToString(TimeCurrent()) + "\n";
    g_dashboard_snapshot += "Balance: " + DoubleToString(AccountBalance(), 2) + "\n";
    g_dashboard_snapshot += "Equity: " + DoubleToString(AccountEquity(), 2) + "\n";
@@ -13060,7 +13701,7 @@ void ProcessPair(int pairIndex)
 
    if(EntryMode == 2 && decision.Valid)
    {
-      // C10 Stage D-A is evidence-only. It consumes the already-final decision
+      // C10 Stage D-B is evidence-only. It consumes the already-final decision
       // after preflight and cannot mutate candidate or execution authority.
       C10_WriteSignalEvent(pairIndex, decision);
       Print("[P3M2][DECISION_FINAL] Pair=", actual,
@@ -13091,7 +13732,7 @@ void OnTickMain()
 
    ManagePortfolio();
    ManagePositions();
-   // C10 Stage D-A: promptly materialize broker-closed outcomes even when no
+   // C10 Stage D-B: promptly materialize broker-closed outcomes even when no
    // later entry is registered. This is read-only for broker state.
    CompactMonitoredTrades();
 
@@ -13165,7 +13806,7 @@ int OnInit()
    else
       g_timer_registered = true;
    
-   Log(DBG_FULL, "BBMA EA V4.77 C10 Shadow Outcome Stage D-A initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.78 C10 Evidence Completion Stage D-B initialized successfully");
    return INIT_SUCCEEDED;
 }
 

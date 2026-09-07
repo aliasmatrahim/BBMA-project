@@ -4,7 +4,8 @@ Status: **MATERIALIZED / BYTE-EXACT RECONSTRUCTION PASS / NO MERGE / NO ACTIVATI
 
 Issue: #124
 Branch: `provenance/c10-local-473-478-recovery`
-Remote ancestry anchor: PR #108 head `5b73090639f1985f208f5daecae35a2008dd0688`
+Remote document/history anchor: PR #108 head `5b73090639f1985f208f5daecae35a2008dd0688`  
+Exact native source anchor: Build 4.72 SHA-256 `0F461312D7D26D724C9738EDDF88F1A226148F01EAE894CE52D942E963F31E99`
 
 ## Representation
 

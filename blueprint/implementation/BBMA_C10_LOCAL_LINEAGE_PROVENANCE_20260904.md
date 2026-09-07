@@ -25,7 +25,7 @@ The recovered local Build 4.72 source has the same exact file SHA-256 and header
 - `Version 4.7.2 - Offline Tester Symbol Compatibility`
 - `#property version "4.72"`
 
-Therefore PR #108 is the verified remote ancestry anchor for the local continuation.
+PR #108 remains the verified remote document/history anchor because it records the exact native Build 4.72 identity and compile evidence. However, a 2026-09-07 audit confirmed that its committed `blueprint/source/BBMA_EA.mq4` blob is not the recorded native compile source. For source ancestry, the recovered native Build 4.72 SHA-256 `0F461312D7D26D724C9738EDDF88F1A226148F01EAE894CE52D942E963F31E99` is the exact anchor. See `blueprint/provenance/c10-local-473-478/PR108_GIT_NATIVE_ANCHOR_MISMATCH_20260907.md`.
 
 ## Sequential local source lineage
 

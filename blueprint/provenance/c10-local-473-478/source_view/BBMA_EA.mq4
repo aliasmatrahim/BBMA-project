@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.7.9 - C10 Shadow Timeline Provenance Fix            |
+//| Version 4.8.0 - C10 Ledger Writer Namespace Fix            |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.79"
+#property version   "4.80"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -171,7 +171,7 @@ int            AllowedExecutionDeviation_MinPoints= 5;
 #define C10_LEDGER_MAX_PARTS    99
 #define C10_SHADOW_MAX          400
 #define C10_SHADOW_SEEN_MAX     4000
-#define C10_SOURCE_HASH         "5DC9CCF005C1237BAB8D23FB669D853ADB52FB0C292F270E96C9E2D35226CAB1"
+#define C10_SOURCE_HASH         "5C672778E35AA2602702824778F8F7F6EE4BCDCDFB99B7E32679A17CC0DA2DC6"
 
 //+------------------------------------------------------------------+
 //| MODULE 02: ENUMS & STRUCTS                                       |
@@ -1978,10 +1978,18 @@ string C10_BuildConfigFingerprint()
    return SHORT_HASH(raw, 16);
 }
 
+string C10_LedgerOwnerToken()
+{
+   string raw = "4.80|" + C10_SOURCE_HASH + "|" +
+                C10_BuildConfigFingerprint();
+   return "O" + SHORT_HASH(raw, 12);
+}
+
 string C10_LedgerFileName(string prefix, string schema, string dayKey, int part)
 {
    return C10_LEDGER_FOLDER + "\\" + prefix + "_" + schema + "_" +
-          dayKey + "_part" + StringFormat("%02d", part) + ".csv";
+          C10_LedgerOwnerToken() + "_" + dayKey + "_part" +
+          StringFormat("%02d", part) + ".csv";
 }
 
 long C10_ExistingFileSize(string fileName)
@@ -2399,6 +2407,7 @@ bool C10_InitializeLedgers()
    Print("[C10][READY] Stage=D-B SignalSchema=", C10_SIGNAL_SCHEMA,
          " OutcomeSchema=", C10_OUTCOME_SCHEMA,
          " ShadowSchema=", C10_SHADOW_SCHEMA,
+         " Owner=", C10_LedgerOwnerToken(),
          " RunID=", g_c10_run_id,
          " Config=", g_c10_config_fingerprint,
          " Authority=NONE");
@@ -2456,7 +2465,7 @@ void C10_WriteSignalEvent(int pairIndex, BBMA_Decision &decision)
 
    string fields[27];
    fields[0]  = C10_SIGNAL_SCHEMA;
-   fields[1]  = "4.79";
+   fields[1]  = "4.80";
    fields[2]  = g_c10_source_hash;
    fields[3]  = g_c10_config_fingerprint;
    fields[4]  = g_c10_run_id;
@@ -2594,7 +2603,7 @@ bool C10_BuildShadowCheckpointRow(string decisionID, int activeIndex,
    if(decisionID == "") return false;
    string fields[22];
    fields[0] = C10_CHECKPOINT_SCHEMA;
-   fields[1] = "4.79";
+   fields[1] = "4.80";
    fields[2] = g_c10_source_hash;
    fields[3] = g_c10_config_fingerprint;
    fields[4] = activeIndex >= 0 ? "ACTIVE" : "SEEN";
@@ -2641,7 +2650,7 @@ bool C10_ValidateShadowCheckpointFile(string fileName)
       if(line == "" && FileIsEnding(handle)) break;
       string fields[];
       if(!C10_ParseQuotedCSVLine(line, 22, fields) ||
-         fields[0] != C10_CHECKPOINT_SCHEMA || fields[1] != "4.79" ||
+         fields[0] != C10_CHECKPOINT_SCHEMA || fields[1] != "4.80" ||
          fields[2] != g_c10_source_hash ||
          fields[3] != g_c10_config_fingerprint ||
          (fields[4] != "ACTIVE" && fields[4] != "SEEN") ||
@@ -2721,7 +2730,8 @@ bool C10_RebuildShadowSeenFromOutcomes()
 {
    string foundName = "";
    long search = FileFindFirst(C10_LEDGER_FOLDER + "\\bbma_outcome_" +
-                               C10_OUTCOME_SCHEMA + "_*.csv", foundName);
+                               C10_OUTCOME_SCHEMA + "_" +
+                               C10_LedgerOwnerToken() + "_*.csv", foundName);
    if(search == INVALID_HANDLE) return true;
    bool valid = true;
    do
@@ -2745,7 +2755,7 @@ bool C10_RebuildShadowSeenFromOutcomes()
             valid = false;
             break;
          }
-         if(fields[1] == "4.79" && fields[2] == g_c10_source_hash &&
+         if(fields[1] == "4.80" && fields[2] == g_c10_source_hash &&
             fields[3] == g_c10_config_fingerprint &&
             fields[8] != "" && fields[8] != "NA" &&
             !C10_ShadowDecisionSeen(fields[8]) &&
@@ -2947,7 +2957,7 @@ void C10_WriteShadowOutcome(C10ShadowInfo &info, datetime exitTime,
    string outcomeEventID = SHORT_HASH(identity, 16);
    string fields[35];
    fields[0]  = C10_OUTCOME_SCHEMA;
-   fields[1]  = "4.79";
+   fields[1]  = "4.80";
    fields[2]  = g_c10_source_hash;
    fields[3]  = g_c10_config_fingerprint;
    fields[4]  = g_c10_run_id;
@@ -3411,7 +3421,7 @@ void C10_WriteRealizedOutcome(TradeInfo &info)
    int digits = info.digits >= 0 ? info.digits : GetDigits(info.pair);
    string fields[35];
    fields[0]  = C10_OUTCOME_SCHEMA;
-   fields[1]  = "4.79";
+   fields[1]  = "4.80";
    fields[2]  = g_c10_source_hash;
    fields[3]  = g_c10_config_fingerprint;
    fields[4]  = g_c10_run_id;
@@ -12926,7 +12936,7 @@ void BuildDashboardSnapshot()
    int liveTradeCount = CountDashboardLiveEAOwnedTrades();
 
    g_dashboard_snapshot = "";
-   g_dashboard_snapshot += "=== BBMA EA V4.79 C10 Shadow Timeline Provenance Fix ===\n";
+   g_dashboard_snapshot += "=== BBMA EA V4.80 C10 Ledger Writer Namespace Fix ===\n";
    g_dashboard_snapshot += "Time: " + TimeToString(TimeCurrent()) + "\n";
    g_dashboard_snapshot += "Balance: " + DoubleToString(AccountBalance(), 2) + "\n";
    g_dashboard_snapshot += "Equity: " + DoubleToString(AccountEquity(), 2) + "\n";
@@ -13843,7 +13853,7 @@ int OnInit()
    else
       g_timer_registered = true;
    
-   Log(DBG_FULL, "BBMA EA V4.79 C10 Shadow Timeline Provenance Fix initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.80 C10 Ledger Writer Namespace Fix initialized successfully");
    return INIT_SUCCEEDED;
 }
 

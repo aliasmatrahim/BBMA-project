@@ -1,6 +1,6 @@
 # BBMA C10 Local Lineage Provenance — 2026-09-04
 
-Status: **PROVENANCE RECONSTRUCTION IN PROGRESS / NO MERGE / NO ACTIVATION**
+Status: **PROVENANCE MATERIALIZED / RECONSTRUCTION PASS / NO MERGE / NO ACTIVATION**
 
 Issue: #124
 
@@ -81,9 +81,9 @@ Stacked locally on Build 4.79:
 
 ## Current materialization boundary
 
-This branch currently records the provenance proof only. The Build 4.73–4.78 source sequence has not yet been materialized into Git commits on this branch.
+The Build 4.72 anchor plus exact 4.73–4.78 deltas are now materialized on this isolated provenance branch as a deterministic gzip+base64 base/patch stack with one stage commit per historical build. `blueprint/provenance/c10-local-473-478/MANIFEST.md` records the stage commits and reconstruction evidence.
 
-Do not treat this branch as equivalent to live Build 4.78 until the exact local lineage has been materialized and its final source identity is rechecked against the hashes above.
+Fresh reconstruction on 2026-09-07 reproduced every recorded exact source SHA-256 and the Build 4.78 embedded C10 SourceHash `D56D0820858ADCB847CE7A70354C7825374903890E93CB11761D6F003856F991`. The provenance requirement preceding Issue #122/#123 source stacking is therefore satisfied at the local materialization level, subject to remote push/PR verification.
 
 ## Local Git access boundary
 
@@ -91,6 +91,6 @@ The laptop's repository remote is HTTPS and GitHub Desktop's credential manager 
 
 ## Next safe action
 
-Materialize the missing local 4.73→4.78 source lineage on this isolated branch, preserving stage boundaries or equivalent reproducible provenance. Verify exact Build 4.78 identity before stacking the 4.79 and 4.80 fixes.
+Push and re-fetch the materialized provenance stack on Draft PR #125, then port the already-staged Issue #122 repair as unique Build 4.79 onto the verified Build 4.78 lineage. After 4.79 static/native verification, stack Issue #123 as unique Build 4.80 and run its inherited + writer-namespace regression gates. Runtime acceptance remains separate and mandatory.
 
 No merge, release, canonical owner-branch overwrite, or runtime deployment is authorized by this record.

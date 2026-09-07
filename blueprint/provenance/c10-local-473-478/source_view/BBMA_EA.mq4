@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.7.2 - Offline Tester Symbol Compatibility          |
+//| Version 4.7.3 - Offline Tester Timer Compatibility           |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.72"
+#property version   "4.73"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -1201,6 +1201,8 @@ bool                 g_is_scanning;
 bool                 g_is_managing_trade;
 bool                 g_is_initialized;
 bool                 g_terminal_connected;
+bool                 g_timer_registered;
+const int            TESTER_FUNCTION_NOT_ALLOWED = 4059;
 
 //--- Manual mode
 ENUM_PRIORITY_TIER   g_manual_priority_tiers[];
@@ -1347,6 +1349,7 @@ double RoundDownToLotStep(double lot, string pair)
 
 bool IsTerminalConnected()
 {
+   if(IsTesting()) return true;
    return IsConnected();
 }
 
@@ -11169,7 +11172,7 @@ void BuildDashboardSnapshot()
    int liveTradeCount = CountDashboardLiveEAOwnedTrades();
 
    g_dashboard_snapshot = "";
-   g_dashboard_snapshot += "=== BBMA EA V4.72 Offline Tester Symbol Compatibility ===\n";
+   g_dashboard_snapshot += "=== BBMA EA V4.73 Offline Tester Timer Compatibility ===\n";
    g_dashboard_snapshot += "Time: " + TimeToString(TimeCurrent()) + "\n";
    g_dashboard_snapshot += "Balance: " + DoubleToString(AccountBalance(), 2) + "\n";
    g_dashboard_snapshot += "Equity: " + DoubleToString(AccountEquity(), 2) + "\n";
@@ -12038,6 +12041,7 @@ void OnTickMain()
 //+------------------------------------------------------------------+
 int OnInit()
 {
+   g_timer_registered = false;
    NormalizeRuntimeLimits();
    if(!ValidateInputParameters())
    {
@@ -12055,12 +12059,22 @@ int OnInit()
    if(!EventSetTimer(1))
    {
       int timerError = GetLastError();
-      g_is_initialized = false;
-      Log(DBG_ERROR, "Failed to register EA timer, error=" + IntegerToString(timerError));
-      return INIT_FAILED;
+      if(IsTesting() && timerError == TESTER_FUNCTION_NOT_ALLOWED)
+      {
+         Print("[C3TIMER][TESTER_FALLBACK] EventSetTimer unavailable, error=",
+               IntegerToString(timerError), "; OnTick remains the processing driver");
+      }
+      else
+      {
+         g_is_initialized = false;
+         Log(DBG_ERROR, "Failed to register EA timer, error=" + IntegerToString(timerError));
+         return INIT_FAILED;
+      }
    }
+   else
+      g_timer_registered = true;
    
-   Log(DBG_FULL, "BBMA EA V4.72 Offline Tester Symbol Compatibility initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.73 Offline Tester Timer Compatibility initialized successfully");
    return INIT_SUCCEEDED;
 }
 
@@ -12069,7 +12083,9 @@ int OnInit()
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
 {
-   EventKillTimer();
+   if(g_timer_registered)
+      EventKillTimer();
+   g_timer_registered = false;
 
    g_is_initialized = false;
    g_is_scanning = false;

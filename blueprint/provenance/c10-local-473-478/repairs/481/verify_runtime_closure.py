@@ -10,6 +10,8 @@ from pathlib import Path
 
 EXPECTED_BUILD = "4.81"
 EXPECTED_SOURCE_HASH = "D6B0ADB94BB4EFB2829B33519550D349FABCB8C77251B6477E17489651F2089D"
+EXPECTED_RUNTIME_MQ4_SHA = "5DE9FD783BB930CC0591612479FE9D9440C938C142D91CB3BA978A233A658D57"
+EXPECTED_RUNTIME_EX4_SHA = "05733566540A2E5F0BA109BADA7EB17920DF5853201DAA5D9E8023E65C1912C0"
 FORBIDDEN_RUNTIME_MARKERS = (
     "LEDGER_DISABLED", "OrderSend", "OrderClose", "OrderModify",
     "OrderDelete", "DEC_EXECUTED",
@@ -118,6 +120,11 @@ def main():
             result["problems"].append("identity BuildID mismatch")
         if identity.get("SourceHash") != EXPECTED_SOURCE_HASH:
             result["problems"].append("identity SourceHash mismatch")
+        runtime_artifact_ok = (identity.get("RuntimeMQ4SHA") == EXPECTED_RUNTIME_MQ4_SHA and
+                               identity.get("RuntimeEX4SHA") == EXPECTED_RUNTIME_EX4_SHA)
+        if not runtime_artifact_ok:
+            result["problems"].append("runtime MQ4/EX4 artifact identity mismatch")
+        result["checks"]["runtime_artifact_identity"] = runtime_artifact_ok
 
         pre = active_row(ev / "checkpoint_pre_restart_ACTIVE.csv", decision_id)
         post = active_row(ev / "checkpoint_post_restart.csv", decision_id)

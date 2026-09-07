@@ -64,3 +64,10 @@ The 4.80 -> 4.81 EA semantic delta is restricted to build/source identity and th
 - Verifier positive fixture: PASS; duplicate EventID negative fixture: FAIL as expected; synthetic `OrderSend` negative fixture: FAIL as expected.
 - Restart watcher now parses ACTIVE rows with `Import-Csv` instead of treating a data row as a CSV header, and waits for exact ACTIVE checkpoint recovery before stopping the restarted terminal so buffered MQL4 logs can be verified after flush.
 - Isolated runtime launched with Build 4.81, `InstanceID=81`, `ExpertsTrades=false`, `MaxTradePerPair=0`, `MaxTotalTrade=0`; current checkpoint remains `SEEN`, so physical-restart acceptance is still pending a fresh ACTIVE row.
+
+## Runtime artifact identity hardening
+The detached Build 4.81 physical-restart watcher now verifies the deployed runtime artifacts before accepting an ACTIVE checkpoint:
+- runtime MQ4 SHA-256 must equal `5DE9FD783BB930CC0591612479FE9D9440C938C142D91CB3BA978A233A658D57`;
+- runtime EX4 SHA-256 must equal `05733566540A2E5F0BA109BADA7EB17920DF5853201DAA5D9E8023E65C1912C0`.
+
+Both hashes are frozen into `identity.txt` for final evidence and independently required by `verify_runtime_closure.py`. Positive verifier fixture remains PASS; duplicate-EventID and synthetic-OrderSend negative fixtures remain FAIL as expected. The watcher script parses successfully and the detached watcher was restarted against the exact verified artifacts without restarting the isolated MT4 terminal.

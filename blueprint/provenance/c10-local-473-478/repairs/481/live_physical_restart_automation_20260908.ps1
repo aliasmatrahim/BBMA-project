@@ -13,6 +13,10 @@ $runlog='D:\BBMA\c10_live_i81_full_restart_acceptance.log'
 $verifier='D:\BBMA\Workspace\c10-build481-worktree\blueprint\provenance\c10-local-473-478\repairs\481\verify_runtime_closure.py'
 $expectedBuild='4.81'
 $expectedHash='D6B0ADB94BB4EFB2829B33519550D349FABCB8C77251B6477E17489651F2089D'
+$expertMq4=Join-Path $root 'MQL4\Experts\BBMA_EA_BUILD481_C10_ISSUE122_0E0W.mq4'
+$expertEx4=Join-Path $root 'MQL4\Experts\BBMA_EA_BUILD481_C10_ISSUE122_0E0W.ex4'
+$expectedMq4Sha='5DE9FD783BB930CC0591612479FE9D9440C938C142D91CB3BA978A233A658D57'
+$expectedEx4Sha='05733566540A2E5F0BA109BADA7EB17920DF5853201DAA5D9E8023E65C1912C0'
 $deadline=(Get-Date).AddHours(72)
 function Log($s){
   $line=([DateTime]::Now.ToString('s')+' '+$s)
@@ -41,6 +45,9 @@ function MqlLogPath(){
   $day=(Get-Date -Format 'yyyyMMdd')
   return (Join-Path $root ('MQL4\Logs\'+$day+'.log'))
 }
+$mq4Sha=(Get-FileHash -LiteralPath $expertMq4 -Algorithm SHA256).Hash
+$ex4Sha=(Get-FileHash -LiteralPath $expertEx4 -Algorithm SHA256).Hash
+if($mq4Sha -ne $expectedMq4Sha -or $ex4Sha -ne $expectedEx4Sha){ Log ('FAIL RUNTIME_ARTIFACT_IDENTITY MQ4='+$mq4Sha+' EX4='+$ex4Sha); exit 7 }
 Log 'AUTOMATION_481_START Build=4.81 InstanceID=81 Authority=NONE ExpertsTrades=false'
 $iso=GetIsoProc
 if(!$iso){StartIso | Out-Null}
@@ -81,6 +88,8 @@ $identity=@(
   ('BuildID='+$pre.BuildID),
   ('SourceHash='+$pre.SourceHash),
   ('ConfigFingerprint='+$pre.ConfigFingerprint),
+  ('RuntimeMQ4SHA='+$mq4Sha),
+  ('RuntimeEX4SHA='+$ex4Sha),
   'InstanceID=81',
   'Authority=NONE',
   'ExpertsTrades=false'

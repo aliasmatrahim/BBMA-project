@@ -13,7 +13,7 @@ $runlog='D:\BBMA\c10_live_i80_full_restart_acceptance_v2.log'
 $verifier='D:\BBMA\Workspace\c10-build480-worktree\blueprint\provenance\c10-local-473-478\repairs\480\verify_runtime_closure.py'
 $expectedBuild='4.80'
 $expectedHash='5C672778E35AA2602702824778F8F7F6EE4BCDCDFB99B7E32679A17CC0DA2DC6'
-$deadline=(Get-Date).AddHours(24)
+$deadline=(Get-Date).AddHours(72)
 function Log($s){
   $line=([DateTime]::Now.ToString('s')+' '+$s)
   Add-Content $runlog $line
@@ -27,7 +27,8 @@ function StartIso(){
   Log ('START_ISOLATED PID='+$p.Id)
   Start-Sleep -Seconds 8
   return $p
-}function StartIsoFast(){
+}
+function StartIsoFast(){
   $p=Start-Process -FilePath $exe -WorkingDirectory $root -ArgumentList '/portable',$cfg -PassThru
   Log ('START_ISOLATED_FAST PID='+$p.Id)
   return $p
@@ -63,7 +64,8 @@ $pre=ConvertFrom-Csv $active
 if($pre.BuildID -ne $expectedBuild -or $pre.SourceHash -ne $expectedHash){
   Log ('FAIL ACTIVE_IDENTITY_MISMATCH Build='+$pre.BuildID+' Hash='+$pre.SourceHash)
   exit 5
-}$iso=GetIsoProc
+}
+$iso=GetIsoProc
 $p=Get-Process -Id $iso.ProcessId
 [void][NtC10AutoV2]::NtSuspendProcess($p.Handle)
 $stamp=Get-Date -Format 'yyyyMMdd_HHmmss'
@@ -96,22 +98,34 @@ if(Test-Path $mqlLog){
 }
 Set-Content (Join-Path $ev 'pre_restart_log_line_count.txt') $preRestartLines
 $restart=StartIsoFast
-Log ('PHYSICAL_RESTART PID='+$restart.Id)$postMatch=$false
-$postDeadline=(Get-Date).AddSeconds(45)
+Log ('PHYSICAL_RESTART PID='+$restart.Id)
+$postMatch=$false
+$recoverySeen=$false
+$readySeen=$false
+$postDeadline=(Get-Date).AddSeconds(60)
 while((Get-Date)-lt $postDeadline){
   if(Test-Path $cp){
     $rows=Import-Csv $cp -ErrorAction SilentlyContinue
     $r=$rows | Where-Object {$_.DecisionID -eq $did -and $_.RecordType -eq 'ACTIVE'} | Select-Object -First 1
-    if($r){
+    if($r -and !$postMatch){
       $postMatch=$true
       Copy-Item $cp (Join-Path $ev 'checkpoint_post_restart.csv') -Force
-      break
     }
   }
+  $mqlLog=MqlLogPath
+  if(Test-Path $mqlLog){
+    $all=Get-Content $mqlLog -ErrorAction SilentlyContinue
+    $post=@($all | Select-Object -Skip $preRestartLines)
+    $postText=$post -join "`n"
+    if($postText -match '\[C10\]\[SHADOW_RECOVERY\] Active=1'){$recoverySeen=$true}
+    $readyRegex='\[C10\]\[READY\].*Config='+[regex]::Escape($pre.ConfigFingerprint)+'.*Authority=NONE'
+    if($postText -match $readyRegex){$readySeen=$true}
+  }
+  if($postMatch -and $recoverySeen -and $readySeen){break}
   Start-Sleep -Milliseconds 100
 }
-if(!$postMatch){
-  Log 'FAIL POST_RESTART_EXACT_ACTIVE_NOT_FOUND'
+if(!$postMatch -or !$recoverySeen -or !$readySeen){
+  Log ('FAIL POST_RESTART_ACCEPTANCE_NOT_OBSERVED Active='+$postMatch+' Recovery='+$recoverySeen+' Ready='+$readySeen)
   $rp=GetIsoProc
   if($rp){Stop-Process -Id $rp.ProcessId -Force}
   exit 6
@@ -127,7 +141,8 @@ if(Test-Path $mqlLog){
   $post=@($all | Select-Object -Skip $preRestartLines)
   Set-Content (Join-Path $ev 'mql4_post_restart.log') $post
 }
-Get-ChildItem $files -File -ErrorAction SilentlyContinue | Copy-Item -Destination $ev -Forceif(!(Test-Path (Join-Path $ev 'mql4_post_restart.log'))){
+Get-ChildItem $files -File -ErrorAction SilentlyContinue | Copy-Item -Destination $ev -Force
+if(!(Test-Path (Join-Path $ev 'mql4_post_restart.log'))){
   Set-Content (Join-Path $ev 'mql4_post_restart.log') ''
 }
 $verifyOut=Join-Path $ev 'verifier_stdout.txt'

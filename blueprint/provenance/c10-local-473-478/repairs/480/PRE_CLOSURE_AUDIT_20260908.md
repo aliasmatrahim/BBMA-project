@@ -93,3 +93,5 @@ Until that occurs, status remains **VERIFICATION REQUIRED / NOT FULLY RUNTIME VE
 
 ## Exact live harness retained
 The currently used same-terminal restart harness is retained as `live_physical_restart_automation_20260908.ps1` on the Draft PR branch. It snapshots the launch INI/SET, freezes and captures the fresh ACTIVE checkpoint, stops only the isolated terminal executable, measures the pre-restart log boundary, restarts without an 8-second blind window, captures the post-restart segment, then delegates the acceptance decision to `verify_runtime_closure.py`.
+
+Harness hardening after review: post-restart acceptance no longer treats the pre-existing checkpoint file alone as proof of recovery. It now waits for all three conditions: exact ACTIVE identity still present, a new post-boundary `[C10][SHADOW_RECOVERY] Active=1` marker, and the exact-config `[C10][READY] ... Authority=NONE` marker before proceeding to the final verifier. PowerShell parser and synthetic recovery/READY regex checks PASS.

@@ -60,7 +60,7 @@ while((Get-Date)-lt $deadline){
   }
   $active=ActiveRow
   if($active){break}
-  Start-Sleep -Milliseconds 100
+  Start-Sleep -Milliseconds 1000
 }
 if(!$active){
   Log 'FAIL TIMEOUT_NO_ACTIVE'

@@ -1,13 +1,9 @@
 name: D1 TPW v4.58 runtime probe 2
 
+# Historical reproduction only. The active implementation branch has advanced
+# beyond v4.58, so this probe must not gate unrelated d1-owner-dev PRs.
 on:
-  pull_request:
-    branches:
-      - d1-owner-dev
-    types:
-      - opened
-      - synchronize
-      - reopened
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -19,7 +15,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: d1-owner-dev
+          # Exact historical commit whose canonical EA blob is the v4.58
+          # identity required by d1_tpw_v458_runtime_probe.ps1.
+          ref: 02e5434e4f59ea538976df7254bbaf2fc9f1da9d
           fetch-depth: 0
 
       - name: Run source-bound MT4 probe

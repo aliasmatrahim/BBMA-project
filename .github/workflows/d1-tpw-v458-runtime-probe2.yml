@@ -15,14 +15,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Exact historical commit whose canonical EA blob is the v4.58
-          # identity required by d1_tpw_v458_runtime_probe.ps1.
-          ref: 02e5434e4f59ea538976df7254bbaf2fc9f1da9d
           fetch-depth: 0
 
-      - name: Run source-bound MT4 probe
+      - name: Run source-bound MT4 probe against exact historical source
         shell: pwsh
-        run: .\blueprint\ci\d1_tpw_v458_runtime_probe.ps1
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $historical = Join-Path $env:RUNNER_TEMP 'bbma-v458-source'
+          if (Test-Path $historical) { Remove-Item $historical -Recurse -Force }
+          git worktree add --detach $historical 02e5434e4f59ea538976df7254bbaf2fc9f1da9d
+          if ($LASTEXITCODE -ne 0) { throw 'Unable to materialize historical v4.58 worktree' }
+          $probe = Join-Path $env:GITHUB_WORKSPACE 'blueprint\ci\d1_tpw_v458_runtime_probe.ps1'
+          if (-not (Test-Path $probe)) { throw 'Current historical-probe script missing' }
+          Push-Location $historical
+          try { & $probe }
+          finally { Pop-Location }
 
       - name: Upload probe evidence
         if: always()

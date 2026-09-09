@@ -3,7 +3,7 @@
 **Status:** ACTIVE PROJECT GOVERNANCE  
 **Platform:** MetaTrader 4 / MQL4  
 **Architecture:** M01–M27  
-**Logical architecture overlay:** M12N — Nested MTF Journey Engine, positioned between M12 and M13 without consuming a numeric module slot or renumbering M13–M27
+**Logical architecture overlay:** M12N — Nested MTF Journey Engine, positioned between M12 and M13 without consuming a numeric module slot or renumbering M13–M27  
 **Primary Source of Truth:** GitHub
 
 ---
@@ -14,7 +14,9 @@ Develop a production-grade **BBMA Professional EA** for MetaTrader 4 using the a
 
 The trading logic must remain faithful to **BBMA Core / Oma Ally methodology**. Supporting modules may manage data, validation, risk, execution, lifecycle, UI and integration, but must not silently alter the BBMA trading methodology.
 
-The immediate development priority is to complete, audit and lock the **Master Blueprint** before full EA implementation.
+The Master Blueprint has already advanced into implementation. The current development priority is therefore to keep **Blueprint → implementation → compile/static tests → runtime/backtest evidence** aligned while closing only confirmed implementation, integration, provenance, lifecycle and validation gaps.
+
+The active implementation owner is `d1-owner-dev`. Strategy/source references must be resolved through `docs/references/SOURCE_INDEX.md`; current code/status/queue/runtime claims must be resolved from live GitHub state rather than historical chat or stale branch assumptions.
 
 ---
 
@@ -48,9 +50,9 @@ The immediate development priority is to complete, audit and lock the **Master B
 
 ## 4. Master Blueprint Governance
 
-The Master Blueprint is the authoritative specification for architecture and behaviour before production coding.
+The Master Blueprint remains the authoritative architecture/behaviour specification and must stay aligned with implementation.
 
-During Blueprint development:
+When Blueprint or architecture work is required:
 
 1. Audit architecture first.
 2. Audit module responsibility and ownership.
@@ -60,16 +62,16 @@ During Blueprint development:
 6. Audit dependencies and declaration requirements.
 7. Audit risk and trade lifecycle ownership.
 8. Find contradictions, missing logic and redundant responsibilities.
-9. Fix the specification before implementation.
-10. Repeat the audit until no material unresolved issue remains.
+9. Fix the specification deliberately before or together with the implementation correction when the specification is actually wrong.
+10. Repeat the audit until no material unresolved issue remains in scope.
 
-Do not declare the Master Blueprint LOCKED merely because all 27 modules exist. It may be locked only after cross-module consistency has been reviewed.
+Do not reopen or redesign already-locked architecture merely because implementation/testing has moved into a later phase. Reopen a Blueprint decision only when stronger evidence or a confirmed implementation/architecture contradiction requires it.
 
 ---
 
 ## 5. Review Rules
 
-When reviewing an existing module or Blueprint revision:
+When reviewing an existing module, Blueprint revision or implementation:
 
 - Do **not** repeatedly explain items already verified as correct.
 - Focus on new bugs, inconsistencies, missing logic, architectural flaws, dependency problems, ambiguous ownership and fixes that are actually required.
@@ -85,7 +87,7 @@ When reviewing an existing module or Blueprint revision:
 
 Each M01–M27 module must have a clear responsibility.
 
-For every important piece of data or state, the Blueprint should make clear:
+For every important piece of data or state, the Blueprint/contract should make clear:
 
 - who creates it;
 - who owns it;
@@ -118,41 +120,30 @@ A detector should not execute trades. A collector should not reinterpret signal 
 
 ## 8. Development Phases
 
-The project follows this order:
+Historical project progression remains:
 
-**Master Blueprint Draft**  
-↓  
-**Architecture Audit**  
-↓  
-**Logic & State Audit**  
-↓  
-**Dependency / Cross-Module Audit**  
-↓  
-**MASTER BLUEPRINT LOCKED**  
-↓  
-**EA Implementation**  
-↓  
-**Compile & Static Debugging**  
-↓  
-**Functional Testing**  
-↓  
-**Backtesting / Validation**  
-↓  
-**Production Candidate**
+**Master Blueprint Draft → Architecture Audit → Logic & State Audit → Dependency/Cross-Module Audit → Master Blueprint Locked → EA Implementation → Compile & Static Debugging → Functional Testing → Backtesting/Validation → Production Candidate**
 
-Do not skip directly from an incomplete Blueprint to production implementation.
+The project is now in the **implementation / integration / validation** portion of that progression. Therefore:
+
+- do not treat Blueprint drafting as the current default workstream;
+- current fixes must start from the active implementation owner and current contracts/evidence;
+- isolated branches/PRs are used for confirmed fixes, audits and validation packages;
+- native MetaEditor compile/static tests are required where source changes occur;
+- runtime/backtest/demo evidence remains a separate acceptance layer and must not be inferred from static correctness;
+- production readiness is not claimed while required runtime/provenance/acceptance gates remain open.
 
 ---
 
 ## 9. Source-Code Organisation
 
-During initial implementation, prefer one clearly structured master EA file:
+The canonical active EA implementation path is:
 
-`BBMA_PROFESSIONAL_EA.mq4`
+`blueprint/source/BBMA_EA.mq4`
 
-The architecture may still contain M01–M27 sections inside that file.
+The M01–M27 architecture remains clearly sectioned inside the implementation. Do not split the project into 27 `.mqh` files merely for appearance. Physical modularisation should happen only when it improves maintainability and does not create unnecessary dependency complexity.
 
-Do not split the project into 27 `.mqh` files merely for appearance. Physical modularisation should happen only when it improves maintainability and does not create unnecessary dependency complexity.
+Historical filenames or copies are evidence/provenance only unless the active branch/router explicitly designates them as current implementation authority.
 
 ---
 
@@ -161,25 +152,30 @@ Do not split the project into 27 `.mqh` files merely for appearance. Physical mo
 ### `main`
 Reserved for approved/stable project state.
 
-### `blueprint-dev`
-Working branch for Master Blueprint development, audit and correction.
+### `d1-owner-dev`
+Active implementation owner branch. Current canonical implementation, governance routing and accepted integration state are resolved from this branch unless a newer explicit owner decision changes ownership.
 
-### Future `ea-dev`
-May be created when implementation begins after the Master Blueprint is locked.
+### Scoped branches / Draft PRs
+Confirmed fixes, audits, runtime tooling and evidence packages should use a scoped branch/PR when isolation is required. A scoped branch does not become canonical merely because it contains newer commits.
+
+### `blueprint-dev` and historical branches
+Historical Blueprint/development branches remain provenance/reference unless an explicit current decision reactivates them. Do not infer current ownership from an old branch name.
 
 Rules:
 
-- Development changes should be traceable through commits.
-- Do not overwrite a LOCKED Master Blueprint casually.
-- Significant Blueprint changes after lock require deliberate review.
+- Development changes must be traceable through commits/PRs.
+- Resolve the current owner branch before editing.
+- Check for newer open PRs, scoped branches and explicit supersession decisions when freshness matters.
+- Do not overwrite locked Blueprint or unrelated work casually.
 - Keep experimental development away from stable project state.
+- Do not merge source/runtime changes until their required validation gates actually pass.
 
 ---
 
 ## 11. Tool Responsibilities
 
 ### GitHub — Source of Truth
-Use for authoritative Blueprint/code versions, branches, commits, change history and implementation work.
+Use for authoritative Blueprint/code versions, branches, commits, change history, contracts, current state, Issues/PRs and implementation work.
 
 ### Notion — Supporting Knowledge Base
 May be used for architecture explanations, design decisions, meeting/research notes and human-readable project documentation. Notion must not silently become a conflicting source of truth.
@@ -187,21 +183,21 @@ May be used for architecture explanations, design decisions, meeting/research no
 ### Linear — Issue / Task Tracking
 May be used for concrete bugs, architectural findings, required fixes and development tasks. Close issues only after the relevant fix has been verified.
 
-GitHub remains authoritative if information across tools conflicts.
+GitHub remains authoritative if information across tools conflicts. `BBMA_MASTER_INSTRUCTIONS.md` governs tool orchestration but does not replace this architecture/strategy governance.
 
 ---
 
 ## 12. Change-Control Principles
 
-Before making a significant architectural change, determine:
+Before making a significant architectural or behavioural change, determine:
 
 1. What problem is being fixed?
-2. Which module owns the problem?
+2. Which module/layer owns the problem?
 3. Which downstream/upstream modules are affected?
 4. Does the change alter BBMA Core behaviour?
 5. Does it introduce duplicate responsibility?
 6. Does it violate the processing-clock or closed-candle model?
-7. Does the Blueprint need updating before code changes?
+7. Does the Blueprint/contract need updating before code changes?
 
 Avoid uncontrolled feature creep.
 
@@ -209,7 +205,7 @@ Avoid uncontrolled feature creep.
 
 ## 13. Definition of Blueprint Ready
 
-The Master Blueprint is ready to lock only when, within the reviewed scope:
+The Master Blueprint is ready/locked only when, within the reviewed scope:
 
 - M01–M27 responsibilities are defined;
 - module interfaces and dependencies are coherent;
@@ -227,21 +223,23 @@ The Master Blueprint is ready to lock only when, within the reviewed scope:
 
 ## 14. Definition of Implementation Ready
 
-Production coding begins from the LOCKED Master Blueprint.
+Production coding proceeds from the locked/accepted Blueprint and active contracts.
 
-Implementation must conform to the Blueprint. If coding exposes a genuine Blueprint flaw, fix and review the Blueprint deliberately rather than silently changing architecture only in code.
+Implementation must conform to them. If coding/testing exposes a genuine Blueprint flaw, fix and review the Blueprint deliberately rather than silently changing architecture only in code.
 
-The final goal is one coherent system where **Blueprint → implementation → tests** describe the same behaviour.
+The final goal is one coherent system where **evidence → Core → Blueprint/contracts → implementation → tests/runtime** describe compatible behaviour.
 
 ---
 
 ## 15. Project Priority
 
-**Correctness and architectural consistency take priority over speed, feature count and code size.**
+**Correctness, source fidelity, architectural consistency and attributable evidence take priority over speed, feature count and code size.**
 
-The immediate goal is therefore:
+The immediate goal is now:
 
-> Build a complete, internally consistent and implementation-ready Master Blueprint for BBMA Professional EA M01–M27, then lock it before full production coding begins.
+> Close confirmed implementation/runtime/provenance gaps on the active owner lineage, keep M01–M27 and M12N authority boundaries intact, obtain required 0E0W/static/runtime/backtest evidence, reconcile source research without inventing new BBMA rules, and progress toward a fully attributable production candidate.
+
+Do not add a new rule merely to improve historical profitability or fill an evidence gap. Unresolved Strategy-Core evidence remains `HOLD/UNRESOLVED` until properly reconciled.
 
 ---
 
@@ -406,7 +404,7 @@ Always retrieve the current repository state when the task depends on implementa
 - relevant module/source contracts;
 - relevant decisions/audits/verification records;
 - active `blueprint/source/BBMA_EA.mq4`;
-- current commits, compile/runtime evidence and changed files.
+- current commits, open/scoped PRs, compile/runtime evidence and changed files.
 
 This layer answers: **What does the project currently implement, what is active now, what remains pending, and what changed most recently?**
 
@@ -417,7 +415,7 @@ Before reaching a material conclusion or making a project change:
 2. Retrieve `docs/references/SOURCE_INDEX.md` and use it as the source router.
 3. Identify the task class, affected BBMA concept(s), owning module(s), and whether the task can affect Strategy-Core semantics.
 4. If Strategy-Core semantics may be affected, retrieve the relevant static evidence group required by Section 17 before inspecting code as authority.
-5. Retrieve the live GitHub state relevant to the task: `CURRENT.md`, `MASTER_QUEUE.md`, owning contract(s), current EA source, and relevant audit/decision records.
+5. Retrieve the live GitHub state relevant to the task: `CURRENT.md`, `MASTER_QUEUE.md`, owning contract(s), current EA source, relevant recent PRs/commits/comments, and relevant audit/decision records.
 6. Compare the layers in this order:
 
    **Original Evidence → Canonical Strategy Core → Contract / Blueprint → Current Code → Runtime / Test Evidence**
@@ -485,3 +483,71 @@ In these cases, retrieve the missing evidence/state first or classify the item `
 **Required universal BBMA project check:**
 
 > GitHub governance + source index preflight → relevant static evidence retrieval → live GitHub state/contracts/code retrieval → Evidence → Core → Contract → Code → Runtime comparison → classify → smallest authorized fix → cross-module/purity verification → compile/runtime evidence where required → commit/update live project state.
+
+---
+
+## 19. Mandatory Live-Status Authority Protocol
+
+This protocol is mandatory whenever the user/task asks for `latest`, `current`, `next`, `status`, active test/workstream, runtime step, release state, branch ownership, or asks to continue/resume prior work.
+
+### 19.1 Resolution sequence
+Resolve status in this order before answering or scheduling the next step:
+
+1. Read the current repository/governance branch map and resolve the active owner branch.
+2. Read `blueprint/CURRENT.md` and `blueprint/MASTER_QUEUE.md` from that resolved owner when those files exist and are current.
+3. Inspect recent open/scoped PRs and recent repository commits, sorted by update/commit time.
+4. Inspect relevant Issue/PR comments for explicit `supersede`, `stop`, `replace`, `defer`, `resume`, `activate`, `no merge`, or equivalent owner sequencing decisions.
+5. Check exact runtime/test evidence when the status claim depends on execution rather than planning.
+
+Do not stop at the first authoritative-looking historical record.
+
+### 19.2 Four facts must stay separate
+For test/runtime status, distinguish explicitly when relevant:
+
+- **latest project/test-plan update**;
+- **latest actual test attempt**;
+- **latest valid PASS/accepted evidence**;
+- **next required test/action**.
+
+These may point to different timestamps/builds/branches. Never collapse them into one vague `latest` claim.
+
+### 19.3 Attribution requirement
+Before calling a code/test/runtime item `latest/current`, identify enough of the following to make the claim reproducible where available:
+
+- owner/scoped branch;
+- head SHA;
+- EA build/version/source identity;
+- relevant PR/Issue;
+- evidence timestamp/run timestamp.
+
+A newer explicit owner sequencing decision supersedes older scheduling text without rewriting or invalidating historical PASS/FAIL evidence.
+
+### 19.4 Conflict handling
+If current records materially conflict and cannot be reconciled from repository evidence:
+
+`STATUS CONFLICT / VERIFICATION REQUIRED`
+
+Do not guess from chat memory, an older CURRENT/queue snapshot, or the first search result.
+
+Chat/project memory is navigation only, never live-status authority.
+
+### 19.5 Concise status answer template
+When the user asks for confirmation/status, expose the minimum useful authority chain:
+
+`CURRENT: <active workstream/build/branch> | LAST ATTEMPT: <result/time> | LAST VALID PASS: <evidence or none> | NEXT: <required action> | AUTHORITY: <branch/PR/SHA>`
+
+Use plain language when the user does not need developer detail, but do not omit a material uncertainty or pending verification.
+
+---
+
+## 20. Current Implementation / Runtime Sequencing Boundary
+
+The governance update itself does not promote any pending strategy/runtime work. Current substantive work remains governed by its own Issue/PR/evidence gates.
+
+In particular:
+
+- NMJE remains read-only unless a separately approved execution policy exists;
+- F7/C044 infrastructure fixes require unique build identity, static/model proof and native 0E0W before source promotion;
+- C10 runtime closure requires exact attributable Build 4.81 evidence and cannot be substituted by a different build/test mode;
+- source research/transcription may clarify evidence but cannot directly create a production rule without Section 17 reconciliation;
+- no primary MT4 restart, trading-authority change or production activation is implied by documentation/governance maintenance.

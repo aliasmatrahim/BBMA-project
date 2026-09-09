@@ -1,0 +1,101 @@
+name: Dashboard compact chain materializer
+
+on:
+  push:
+    branches:
+      - dashboard-chain-dev
+    paths:
+      - 'blueprint/.run-dashboard-chain'
+      - 'blueprint/tools/dashboard_chain_compact_apply.py'
+      - 'blueprint/tools/dashboard_chain_safety_fix.py'
+      - 'blueprint/tests/test_dashboard_chain_safety_fix.py'
+      - '.github/workflows/dashboard-chain-materialize.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dashboard-chain-dev
+          fetch-depth: 0
+
+      - name: Run dashboard safety patch selftest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 blueprint/tests/test_dashboard_chain_safety_fix.py
+          python3 -m py_compile \
+            blueprint/tools/dashboard_chain_safety_fix.py \
+            blueprint/tests/test_dashboard_chain_safety_fix.py
+
+      - name: Apply M25 compact chain dashboard
+        run: python3 blueprint/tools/dashboard_chain_compact_apply.py
+
+      - name: Apply dashboard safety hardening
+        run: python3 blueprint/tools/dashboard_chain_safety_fix.py
+
+      - name: Static dashboard-only guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('blueprint/source/BBMA_EA.mq4').read_text(encoding='utf-8')
+          for marker in [
+              'PAIR', 'SETUP', 'CHAIN', 'POS',
+              'DashBuildPairRow', 'DashLivePosition',
+              'REM exact signature prefix',
+              'RRE exact signature prefix',
+              'REE exact signature prefix',
+              'M15 remains authoritative for setup completion/invalidation display.',
+              'int buyCount = 0;',
+              'int sellCount = 0;',
+              'status = "MIX";',
+              'chain = "B:" + buyChain + " | S:" + sellChain;',
+              'string DashLivePositionSignature()',
+              'IntegerToString(OrderTicket())',
+              'static string lastLiveSignature = "__INIT__";',
+              'if(currentLiveSignature == lastLiveSignature) return;',
+              'bool DashDecisionValidated(PairState &state)',
+              'bool DashDecisionExecuted(PairState &state)',
+              'status = "VAL";',
+              'status = "EXE";',
+              'setup += "~";',
+              'setup += "✓";'
+          ]:
+              if marker not in s:
+                  raise SystemExit(f'missing dashboard marker: {marker}')
+          m25=s.index('//| MODULE 25: DASHBOARD ENGINE')
+          m26=s.index('//| MODULE 26: INITIALIZATION & CLEANUP')
+          block=s[m25:m26]
+          forbidden=[
+              'OrderSend(', 'OrderClose(', 'OrderModify(', 'OrderDelete(',
+              'PriorityEngine_Atomic(', 'InvalidationEngine_Atomic(',
+              'if(buyRank >= sellRank)',
+              '// Timer refresh keeps both chain lifecycle and live broker position in sync.\n   UpdateDashboard();',
+              'bool DashDecisionComplete(PairState &state)',
+              'state.last_decision.DecisionState == DEC_VALIDATED ||\n           state.last_decision.DecisionState == DEC_EXECUTED'
+          ]
+          for marker in forbidden:
+              if marker in block:
+                  raise SystemExit(f'forbidden M25 authority/bias/perf/semantic marker: {marker}')
+          print('DASHBOARD_M25_DISPLAY_ONLY_GUARD=PASS')
+          PY
+
+      - name: Commit materialized source
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- blueprint/source/BBMA_EA.mq4; then
+            echo 'No source change required.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add blueprint/source/BBMA_EA.mq4
+          git commit -m 'dashboard: materialize compact cycle-aware chain UI'
+          git push origin HEAD:dashboard-chain-dev

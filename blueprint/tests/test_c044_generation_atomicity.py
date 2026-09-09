@@ -36,15 +36,21 @@ def operation_plan(generation, label, frozen=False):
         ops += [("set", RP + "G", generation)]
     ops += [("set", CP + key, f"{label}:{key}") for key in LIFECYCLE_KEYS]
     ops += [("set", CP + "G", generation), ("set", CP + "CM", generation)]
+    assert ops[-1][1] == CP + "CM"
     return ops
 
 
+def apply_op(store, op):
+    action, key, value = op
+    if action == "del":
+        store.pop(key, None)
+    else:
+        store[key] = value
+
+
 def apply_ops(store, ops):
-    for op, key, value in ops:
-        if op == "del":
-            store.pop(key, None)
-        else:
-            store[key] = value
+    for op in ops:
+        apply_op(store, op)
 
 
 def committed(generation, label, frozen=False):
@@ -61,7 +67,7 @@ def assert_all_torn_prefixes_fail_frozen(frozen=False):
     for prefix in range(1, len(ops)):
         store = deepcopy(prior)
         apply_ops(store, ops[:prefix])
-        assert read_state(store, frozen) is None, (frozen, prefix)
+        assert read_state(store, frozen) is None, ("prefix", frozen, prefix)
     store = deepcopy(prior)
     apply_ops(store, ops)
     recovered = read_state(store, frozen)
@@ -70,10 +76,36 @@ def assert_all_torn_prefixes_fail_frozen(frozen=False):
     return len(ops)
 
 
+def assert_all_writer_failures_safe(frozen=False):
+    prior = committed(1, "old", frozen)
+    ops = operation_plan(2, "new", frozen)
+    for fail_index in range(len(ops)):
+        store = deepcopy(prior)
+        for index, op in enumerate(ops):
+            if index == fail_index:
+                break  # production writer must abort on the first failed GV operation
+            apply_op(store, op)
+
+        recovered = read_state(store, frozen)
+        if fail_index == 0:
+            # Commit-marker invalidation failed before any mutation: retain old generation.
+            assert recovered is not None and recovered[0] == 1, (
+                "invalidation_failure", frozen, fail_index)
+        else:
+            # Once the old commit marker was removed, no partial generation may load.
+            assert recovered is None, ("write_failure", frozen, fail_index)
+    return len(ops)
+
+
 def main():
     normal_ops = assert_all_torn_prefixes_fail_frozen(False)
     frozen_ops = assert_all_torn_prefixes_fail_frozen(True)
-    print(f"C044_GENERATION_MODEL=PASS normal_ops={normal_ops} frozen_ops={frozen_ops}")
+    normal_failures = assert_all_writer_failures_safe(False)
+    frozen_failures = assert_all_writer_failures_safe(True)
+    print("C044_GENERATION_MODEL=PASS "
+          f"normal_ops={normal_ops} frozen_ops={frozen_ops} "
+          f"normal_failure_points={normal_failures} "
+          f"frozen_failure_points={frozen_failures}")
 
 
 if __name__ == "__main__":

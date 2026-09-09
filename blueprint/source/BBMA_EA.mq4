@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.6.1 - F7 Re-Entry Lifecycle Integration        |
+//| Version 4.8.3 - NMJE Read-Only Authority Restore         |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.61"
+#property version   "4.83"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -99,8 +99,8 @@ input bool     ShowDashboard                      = true;       // 07 Display | 
 
 //--- 08 ADVANCED SAFETY / EXECUTION
 input double   MinRRRatio                         = 0.0;        // 08 Advanced | optional global Min RR filter; 0=disabled
-input bool     BlockNMJEConflict                  = true;       // 08 Advanced | block RE_ENTRY when NMJE=CONFLICT
-input bool     BlockNMJEBuilding                  = true;       // 08 Advanced | block RE_ENTRY when NMJE=BUILDING
+input bool     BlockNMJEConflict                  = true;       // 08 Legacy compatibility | INACTIVE: NMJE is observation-only
+input bool     BlockNMJEBuilding                  = true;       // 08 Legacy compatibility | INACTIVE: NMJE is observation-only
 input double   MaxSLPips                          = 100.0;      // 08 Advanced | maximum accepted SL distance
 input int      Slippage                           = 3;          // 08 Advanced | broker slippage in points
 input ENUM_DEBUG_LEVEL DebugLevel                 = DBG_OFF;    // 08 Advanced | OFF / ERROR / SIGNAL / TRADE / FULL
@@ -7806,31 +7806,10 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
    }
 }
 
-bool NMJE_PassExecutionGate(string pair, BBMA_Decision &decision)
-{
-   if(decision.SignalType != SIGNAL_RE_ENTRY) return true;
-   int pairIndex = FindPairStateIndex(pair);
-   if(pairIndex < 0 || pairIndex >= g_pair_count) return true;
-   ENUM_NESTED_RELATION relation = g_nested_journeys[pairIndex].Relation;
-   if(BlockNMJEConflict && relation == NESTED_CONFLICT) return false;
-   if(BlockNMJEBuilding && relation == NESTED_BUILDING) return false;
-   return true;
-}
-
 bool RunEntryPreflightAndExecute(BBMA_Decision &decision, string pair)
 {
    if(decision.DecisionState != DEC_VALIDATED) return false;
    if(pair == "" || decision.Pair != pair) return false;
-   if(!NMJE_PassExecutionGate(pair, decision))
-   {
-      int nmjePairIndex = FindPairStateIndex(pair);
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_NMJE_RELATION;
-      Print("[NMJE-GATE] Pair=", pair, " DecisionID=", decision.DecisionID,
-            " Relation=", NMJE_RelationText(g_nested_journeys[nmjePairIndex].Relation),
-            " Action=REJECT");
-      return false;
-   }
    if(EntryMode == 1)
       Print("[P3M1][PREFLIGHT_START] Pair=", pair,
             " DecisionID=", decision.DecisionID,

@@ -1,0 +1,42 @@
+name: OBS-FIX-01 event-driven observer static guard
+
+on:
+  push:
+    branches:
+      - obs-fix-01-event-driven-dev
+    paths:
+      - 'blueprint/runtime/V459_Runtime_Observer.mq4'
+      - 'blueprint/tests/test_v459_runtime_observer_event_driven.py'
+      - 'blueprint/audits/OBS_FIX_01_EVENT_DRIVEN_OBSERVER_PREIMPLEMENTATION_20260827.md'
+      - '.github/workflows/obs-fix-01-event-driven-static.yml'
+  pull_request:
+    paths:
+      - 'blueprint/runtime/V459_Runtime_Observer.mq4'
+      - 'blueprint/tests/test_v459_runtime_observer_event_driven.py'
+      - 'blueprint/audits/OBS_FIX_01_EVENT_DRIVEN_OBSERVER_PREIMPLEMENTATION_20260827.md'
+      - '.github/workflows/obs-fix-01-event-driven-static.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  static-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run OBS-FIX-01 read-only static checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile blueprint/tests/test_v459_runtime_observer_event_driven.py
+          python3 blueprint/tests/test_v459_runtime_observer_event_driven.py
+
+          python3 - <<'PY'
+          from pathlib import Path
+          observer = Path('blueprint/runtime/V459_Runtime_Observer.mq4').read_text(encoding='utf-8')
+          forbidden = ['OrderSend(', 'OrderClose(', 'OrderModify(', 'OrderDelete(']
+          for token in forbidden:
+              if token in observer:
+                  raise SystemExit(f'OBS_FIX_01_SCOPE_GUARD=FAIL broker-write token={token}')
+          print('OBS_FIX_01_SCOPE_GUARD=PASS observer_write_authority=NONE')
+          PY

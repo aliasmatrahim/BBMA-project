@@ -8,15 +8,28 @@ Status: **MODEL PRECHECK PASS / EA SOURCE NOT YET MUTATED / NATIVE COMPILE PENDI
 - Package A branch is `upgrade/f7-infra-postfreeze-20260909` / Draft PR #140;
 - Package B re-audit is Draft PR #139 and concluded NO FIX because M11 -> M15 -> M16 already exists in current source.
 
-## Deterministic torn-write model
+## Current-source mapping
+Canonical v4.61 still has the confirmed Issue #138 protocol weakness:
+- `SaveC044ReplaySeed()` publishes `R|V=1` before rewriting replay payload;
+- `SaveC044Checkpoint()` writes replay first, then ten lifecycle fields in place;
+- the checkpoint/replay loaders have no shared committed-generation identity;
+- individual `GlobalVariableSet` results are not checked before later writes/flush.
+
+No Strategy-Core semantic change is required. The repair remains persistence infrastructure only.
+
+## Deterministic torn-write + writer-failure model
 `blueprint/tests/test_c044_generation_atomicity.py` models one commit marker published last after lifecycle + replay payload generation writes.
 
 Executed model result:
 - normal replay-bearing generation: **PASS**, 145 ordered operations;
 - frozen/no-replay generation: **PASS**, 85 ordered operations;
 - every incomplete prefix over an already committed prior generation was rejected/fail-frozen;
-- only the complete replacement generation was accepted;
-- repeated reads of the complete generation were equivalent.
+- injected writer failure was tested at all 145 normal and all 85 frozen operation positions;
+- failure to invalidate the old commit marker before any mutation safely preserves the old committed generation;
+- after successful invalidation, every later injected write/delete failure leaves no loadable committed generation;
+- only the complete replacement generation is accepted;
+- repeated reads of the complete generation are equivalent;
+- the commit marker is asserted as the final operation.
 
 This is a deterministic protocol/model result only. It is not native MQL4 compile evidence and not runtime proof.
 
@@ -29,9 +42,9 @@ The authorized `g40` development laptop is offline. Local v4.82 source mutation,
 ## Next executable step after reconnect
 1. reopen the existing isolated v4.82 worktree;
 2. map the committed generation model to the actual C044 GlobalVariable writer/loader with commit marker written last;
-3. ensure each failed GlobalVariable write aborts before commit publication;
+3. make every required GlobalVariable delete/set result fail-stop before commit publication;
 4. emit `[F7-BUILD]` before initialization can fail;
-5. run static/cross-module gates and the torn-write matrix;
+5. run static/cross-module gates and the strengthened torn-write/write-failure matrix;
 6. native MetaEditor compile to 0E0W;
 7. push exact source + compile evidence to PR #140.
 

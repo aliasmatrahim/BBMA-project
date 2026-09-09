@@ -1,0 +1,534 @@
+# BBMA Master Blueprint Development Status
+
+## Current branch
+`d1-owner-dev`
+
+## Source of truth
+GitHub `aliasmatrahim/BBMA-project` is authoritative for the active Master Blueprint. BBMA strategy semantics are governed by the user-supplied references indexed under `docs/references/`.
+
+## Immutable baseline
+Source: `Master Blueprint 2.0.txt`
+
+Verified baseline SHA-256:
+`e217816e95126857c1e7fa3fde1ac10ecc28f196a82eb51cb2f3625a6901aa00`
+
+The exact baseline is stored as deterministic gzip+base64 chunks under `blueprint/archive/`.
+
+## Current revision — ordered patch chain
+1. `blueprint/patches/0001-fix-m25-complexity-limiter.patch`
+2. `blueprint/patches/0002-p0-step1-bbshape-extreme-contract.patch`
+3. `blueprint/patches/0003-p0-step2-mlv-persistence-lifecycle.patch`
+4. `blueprint/patches/0004-p0-step2b-mlv-void-transition-contract.patch`
+5. `blueprint/patches/0005-p0-step3-reentry-persistence-lifecycle.patch`
+6. `blueprint/patches/0006-p0-step3b-reentry-source-alignment.patch`
+7. `blueprint/patches/0007-p0-step3c-m06-ma-source-alignment.patch`
+8. `blueprint/patches/0008-p0-step3d-m08-extreme-source-alignment.patch`
+9. `blueprint/patches/0009-p0-step3e-m10-csd-ecsd-csm-source-alignment.patch`
+10. `blueprint/patches/0010-p0-step4a-m13-combination-collector-source-alignment.patch`
+11. `blueprint/patches/0011-p0-step4b-m27-signal-owner-routing.patch`
+12. `blueprint/patches/0012-p0-step5-m14-combination-validation.patch`
+13. `blueprint/patches/0013-p0-step6-m15-final-authority-atomic-entry-mode.patch`
+14. `blueprint/patches/0014-p0-step7-m16-owner-aware-invalidation.patch`
+15. `blueprint/patches/0015-p0-step8-m17-sltp-source-guard-direction-validation.patch`
+16. `blueprint/patches/0016-p0-step8c-m17-approved-sltp-resolver.patch`
+17. `blueprint/patches/0017-p0-step9-m18-label-only-scoring-authority.patch`
+18. `blueprint/patches/0018-p0-step10-m19-risk-filter-accounting.patch`
+19. `blueprint/patches/0019-p0-step11-m20-portfolio-gate-protection-ownership.patch`
+20. `blueprint/patches/0020-p0-step12-m21-deterministic-money-management.patch`
+21. `blueprint/patches/0021-p0-step13-m22-dumb-executor-idempotent-order-send.patch`
+22. `blueprint/patches/0022-p0-step14-m23-position-lifecycle-exit-ownership.patch`
+23. `blueprint/patches/0023-p0-step15-m24-recovery-hash-tombstone.patch`
+24. `blueprint/patches/0024-p0-step16-m25-m26-dashboard-init-cleanup.patch`
+25. `blueprint/patches/0025-p0-step17-m27-end-to-end-orchestration-ownership.patch`
+
+## Canonical compile-clean source
+Path:
+`blueprint/source/BBMA_EA.mq4`
+
+SHA-256:
+`6a34cc999e18e96bcda8cec9ba90bcc6455a201da6ff1f2d957f5476fee83c1c`
+
+Native MetaEditor result reported and verified from the user compile session:
+**0 errors, 0 warnings**.
+
+The pre-compile-repair Step 3 materialized SHA `e81b91a96d95b4446531b445a54c7d60ee5eb71d91646e98eac15ad8e1001da6` remains retained only as the deterministic input to the compile-repair layer. It is not the canonical current source SHA.
+
+## Locked supporting contracts
+- `blueprint/ENTRY_MODE_CONTRACT.md`
+- `blueprint/contracts/M06_MA_SOURCE_CONTRACT.md`
+- `blueprint/contracts/M08_EXTREME_SOURCE_CONTRACT.md`
+- `blueprint/contracts/M10_DIRECTION_MOMENTUM_SOURCE_CONTRACT.md`
+- `blueprint/contracts/M11_D1_MAJOR_TREND_OWNER_CONTRACT.md`
+- `blueprint/contracts/M12_REENTRY_SOURCE_CONTRACT.md`
+- `blueprint/contracts/M12N_NESTED_MTF_JOURNEY_ENGINE_CONTRACT.md`
+- `blueprint/contracts/M13_COMBINATION_COLLECTOR_CONTRACT.md`
+- `blueprint/contracts/M14_COMBINATION_VALIDATION_CONTRACT.md`
+- `blueprint/contracts/M15_FINAL_SIGNAL_AUTHORITY_CONTRACT.md`
+- `blueprint/contracts/M16_CONFLICT_INVALIDATION_CONTRACT.md`
+- `blueprint/contracts/M17_ENTRY_SLTP_CONTRACT.md`
+- `blueprint/contracts/M17_SLTP_EXIT_RESOLUTION_CONTRACT.md`
+- `blueprint/contracts/M18_SIGNAL_SCORING_LABEL_CONTRACT.md`
+- `blueprint/contracts/M19_RISK_FILTER_CONTRACT.md`
+- `blueprint/contracts/M20_PORTFOLIO_PROTECTION_CONTRACT.md`
+- `blueprint/contracts/M21_MONEY_MANAGEMENT_CONTRACT.md`
+- `blueprint/contracts/M22_ORDER_EXECUTION_CONTRACT.md`
+- `blueprint/contracts/M23_POSITION_LIFECYCLE_CONTRACT.md`
+- `blueprint/contracts/M24_RECOVERY_CONTRACT.md`
+- `blueprint/contracts/M25_M26_DASHBOARD_INITIALIZATION_CONTRACT.md`
+- `blueprint/contracts/M27_ORCHESTRATOR_END_TO_END_CONTRACT.md`
+- `docs/references/SOURCE_INDEX.md`
+- `docs/references/BBMA_OMA_ALLY_RULE_INDEX.md`
+
+## Complexity limiter
+Limiter taxonomy remains LOCKED for the current blueprint-development cycle.
+
+M01 BEGINNER; M02 BEGINNER; M03 INTERMEDIATE; M04 INTERMEDIATE; M05 INTERMEDIATE; M06 INTERMEDIATE; M07 INTERMEDIATE; M08 INTERMEDIATE; M09 INTERMEDIATE+; M10 INTERMEDIATE; M11 BEGINNER; M12 INTERMEDIATE+; M13 INTERMEDIATE+; M14 EXPERT-RESTRICTED; M15 EXPERT-RESTRICTED; M16 EXPERT-RESTRICTED; M17 INTERMEDIATE; M18 INTERMEDIATE; M19 EXPERT-RESTRICTED; M20 EXPERT-RESTRICTED; M21 INTERMEDIATE+; M22 EXPERT; M23 EXPERT-RESTRICTED; M24 EXPERT; M25 BEGINNER; M26 INTERMEDIATE; M27 EXPERT-RESTRICTED.
+
+# P0 Architecture Repair
+
+## Steps 1–17
+Status: **COMPLETED AT THEIR LOCKED PATCH/CONTRACT LEVELS**
+
+Core locked outcomes:
+- BBMA detectors and persistence are source-aligned;
+- M13 collector-only, M14 validate-only, M15 sole final entry authority;
+- EntryMode 1 = H1 Re-Entry only; EntryMode 2 = H1 Re-Entry + validated REM/RRE/REE;
+- M16 invalidation-only;
+- M17 uses source-owned BBMA destinations and structural protective SL with provenance separation (`PDF_CORE`, `FORUM_SUPPORTED`, `EA_SAFETY`);
+- M18 is observability-only with no trading score authority;
+- M19 is filter-only with unit-correct EA-wide risk accounting;
+- M20 performs prospective portfolio gating and owns protection state, not broker closes;
+- M21 performs deterministic frozen-snapshot lot sizing;
+- M22 is a dumb/idempotent executor using stable `BBMA|H:<SHORT_HASH(DecisionID)>` identity;
+- M23 preserves broker-side M17 SL/TP and removes unsupported 1R partial close/breakeven/synthetic TP handling;
+- M24 recovery is restart-idempotent and hash-based without fabricating strategy identity;
+- M25 is display-only and no longer presents PriorityTier as trading-quality authority;
+- M26 initialization is fail-closed, recovery runs only after pair/magic ownership validation, and protection reference is equity-based;
+- M27 is orchestration-only with one owner/one pass for pre-execution validation and exclusive emergency-liquidation state.
+
+Locked end-to-end entry order:
+`M06-M12 -> M12N NMJE (read-only) -> M13 -> M14 -> M15 -> M16 -> M17 -> M21 -> M19 -> M20 -> M22`
+
+Locked tick/lifecycle order:
+`M20 ManagePortfolio() -> M23 ManagePositions() -> emergency-latch gate -> strategy scan`
+
+# P1 Integration Verification
+
+## Step 1 — immutable baseline reconstruction and SHA verification
+Status: **PASS**
+
+Verified reconstructed SHA-256:
+`e217816e95126857c1e7fa3fde1ac10ecc28f196a82eb51cb2f3625a6901aa00`
+
+Verification run: GitHub Actions `31950155981`, conclusion `success`.
+
+## Step 2 — ordered patch-chain conflict discovery
+Status: **PASS**
+
+## Step 3 — integration repair and full patch-chain materialization
+Status: **PASS**
+
+Verification run: GitHub Actions `31950925592`, conclusion `success`.
+
+Pre-compile-repair source SHA-256:
+`e81b91a96d95b4446531b445a54c7d60ee5eb71d91646e98eac15ad8e1001da6`
+
+## Step 4 — architecture ownership / structural invariants
+Status: **PASS**
+
+Verification run: GitHub Actions `31951148538`, conclusion `success`.
+
+## Compile repair passes 1–5
+Status: **PASS — NATIVE METAEDITOR 0 ERRORS, 0 WARNINGS**
+
+Evidence record:
+`blueprint/P1_COMPILE_REPAIR_RECORD.md`
+
+Compile repairs are restricted to MQL4 compatibility, cross-module signature alignment, deterministic snapshot field completion, and warning cleanup; no intentional BBMA strategy-semantic modification.
+
+# P1 Finalization
+
+## Step 1 — canonicalize compile-clean source
+Status: **PASS**
+
+Successful workflow:
+`.github/workflows/p1-finalization-step1.yml`
+
+Successful GitHub Actions run:
+`31953336281`, conclusion `success`.
+
+Canonical source:
+`blueprint/source/BBMA_EA.mq4`
+
+Canonical source SHA-256:
+`30363d08437b85f253e6baf3e9c82af0d59d70727639ac0e6420a7677f975bc9`
+
+Exact compile-repair transformation is reproducibly stored as:
+- `blueprint/finalization/compile_repair.patch.gz.b64.part00`
+- `blueprint/finalization/compile_repair.patch.gz.b64.part01`
+
+## Step 2 — canonical post-compile architecture/invariant audit
+Status: **PASS**
+
+Successful workflow:
+`.github/workflows/p1-finalization-step2-canonical-invariants.yml`
+
+Successful GitHub Actions run:
+`31953540304`, conclusion `success`.
+
+Verified directly against canonical compile-clean source:
+- SHA-256 exactly matches `30363d08437b85f253e6baf3e9c82af0d59d70727639ac0e6420a7677f975bc9`;
+- M22 remains executor-only and consumes frozen lot;
+- M27 retains single preflight ownership/order and one delegate from `ProcessPair`;
+- tick lifecycle remains `M20 -> M23 -> emergency gate -> scan`;
+- M25 remains display-only with no PriorityTier authority;
+- M26 remains equity-reference based;
+- M17 StopLevel snapshot and rejection propagation added during compile repair are present without breaking ownership;
+- unsupported MQL4 array returns/reserved `input` parameter/struct aggregate initialization do not remain;
+- all Module 01–27 markers remain present;
+- structural brace/string/comment sanity passed.
+
+## Current P1 status
+**P1 RELEASE CANDIDATE ELIGIBLE**
+
+The canonical source has now passed deterministic reconstruction, ordered patch integration, architecture-invariant verification, native MetaEditor compilation at **0 errors / 0 warnings**, canonicalization, and a second architecture/invariant audit directly against that compile-clean canonical source.
+
+## Historical next action — P1 Finalization Step 3
+This section is retained as historical context only. P1 subsequently progressed into recorded P2/P3 work; it is no longer the current next action.
+
+Do not merge into `main` until the release-candidate/phase gate appropriate to the active development phase is explicitly recorded and approved.
+
+# 2026-08-22 Project State Reconciliation
+
+This section is the authoritative current-status overlay and supersedes stale phase/next-action wording above where there is a conflict.
+
+## Reconciled status
+- **P0:** complete at locked patch/contract level.
+- **P1:** integration verification, compile repair, canonicalization and release-candidate records exist; no longer the active phase.
+- **P2:** functional/cross-module audit and re-audit records exist through Step 18, with recorded fixes/workflows in repository. Individual P2 record files remain authoritative for their exact pass/fix status.
+- **P3:** ACTIVE runtime-validation phase. Step 1–4 closure records exist. Step 5 source/compile/deployment records exist, but final live MT4 runtime closure remains pending under `blueprint/P3_STEP5_RUNTIME_CLOSURE_CHECKLIST.md` until Tests A–D are directly evidenced and E–F remain satisfied.
+- **P3 PairID/Magic:** static validation PASS; local MetaEditor compile reported 0 errors / 0 warnings in `P3_PAIRID_VERIFICATION_RECORD.md`.
+- **Strategy Core V2:** F1 MHV/MLV, F2 Extreme maturity, F3 Re-Entry Type 1, and F4 standalone H1/H4 parent-owner are implemented with static regression PASS. Native MetaEditor compile/runtime traces remain pending for the integrated F1-F4 code.
+- **F1 resolved lifecycle:** prior reversal-confirmed Extreme + TP-Wajib provenance -> structural loss of momentum -> most-extreme body + first move-away -> frozen body -> optional range-touch retest -> same-cycle direction progression; opposite reversal-confirmed Extreme atomically supersedes old-cycle MHV provenance.
+- **Latest runtime source state observed during reconciliation:** branch head before the source-review tracking updates was commit `cdcaf8f849f357512be23f91bbb9184098fce574` — `P3 runtime fix: wire M17 market price before SLTP validation`.
+
+## Canonical active queue
+The authoritative work queue is:
+`blueprint/MASTER_QUEUE.md`
+
+Highest-priority next engineering gate:
+**Proceed to CORE-V2-F5 BB-flat classification repair and CORE-V2-F6 timing verification, then re-run the Strategy Core audit; preserve the implemented F1-F4 lifecycle/owner contracts.**
+
+After Core implementation/audit and re-run static Core verification:
+**P3-M1 — Mode 1 Official BBMA Compliance Audit** remains the next end-to-end strategy gate.
+
+Queued alongside/later according to `MASTER_QUEUE.md`:
+- CORE-V2-F5 BB-flat classification repair and CORE-V2-F6 timing verification;
+- opposite-direction / same-pair cycle integrity audit;
+- sequential cumulative risk-budget admission verification;
+- `REJ_INVALID_LOT` diagnostics (observability only);
+- dashboard active-trade count refresh.
+
+## Change control
+This reconciliation changes project tracking/specification records only. It does not change EA strategy code, execution logic, risk logic, lot sizing, dashboard code, or broker behavior.
+
+
+# 2026-08-22 CORE-V2-F5 Implementation Overlay
+- **CORE-V2-F5 M07 BB-flat classification: CODE IMPLEMENTED / STATIC REGRESSION PASS.**
+- `BB_FLAT` is no longer an unreachable leftover branch; it is a geometric Top/Mid/Low horizontal state with one broker point used only as numerical equality tolerance.
+- M10 CSM logic is unchanged; F5 is a Core-support state repair, not a new execution filter.
+- F1-F5 integrated native MetaEditor compile/runtime verification remains pending.
+- **Highest-priority next Core gate: CORE-V2-F6 Re-Entry validation/entry timing verification, then rerun Strategy Core V2 audit.**
+
+
+# 2026-08-22 CORE-V2-F6 Timing Verification Overlay
+- **CORE-V2-F6 static timing verification: PASS; metadata repair applied.**
+- Closed Re-Entry source candle is the validation candle; execution remains eligible in the immediately following live source-TF candle.
+- No additional full-candle delay was introduced.
+- `ReEntryData.EntryCandle` no longer duplicates `ConfirmationCandle`; it points to the immediately following source-TF candle for observability.
+- Native MetaEditor compile and runtime `OrderOpenTime()` evidence remain required for final runtime closure.
+- **Next Core action: rerun Strategy Core V2 static audit against integrated F1-F6 source.**
+
+
+# 2026-08-22 Strategy Core V2 Integrated Re-Audit Overlay
+- **Integrated F1–F6 static Strategy-Core re-audit: PASS.**
+- Original CV2-01..CV2-15 findings are now MATCH/DORMANT or statically resolved; native MetaEditor compile and runtime traces remain pending.
+- CV2-16/F7 remains a source-governance decision only and is not treated as a proven Core code defect.
+- **Next strategy gate: P3-M1 Mode 1 Official BBMA Compliance Audit.**
+- Audit record: `blueprint/P3_CORE_V2_STRATEGY_REAUDIT_20260822.md`.
+
+
+# 2026-08-22 P3-M1 Mode 1 Compliance Overlay
+- **Mode 1 static end-to-end BBMA compliance audit: PASS.**
+- EntryMode 1 admits only confirmed H1 Re-Entry, under recovered same-direction H4 authoritative ownership; F3 Type1 and existing Type2–4 semantics remain intact.
+- M15/M16 authority and F6 next-candle timing mapping pass static review.
+- Native MetaEditor and runtime Mode1 traces remain pending.
+- **Next engineering gate: opposite-direction / same-pair cycle integrity audit.**
+- Record: `blueprint/P3_M1_MODE1_OFFICIAL_BBMA_COMPLIANCE_AUDIT.md`.
+
+
+# 2026-08-22 Opposite-Direction Pair Integrity Overlay
+- **TradeLockMode=1 opposite-direction bug confirmed and fixed; static regression PASS.**
+- M15 already blocks simultaneous contradictory eligible directions in one scan.
+- M22 `LOCK_SAME_DIRECTION` was reversed; it now allows same-direction adds and blocks opposite-direction coexistence for the same EA/pair.
+- Audit: `blueprint/P3_OPPOSITE_DIRECTION_PAIR_INTEGRITY_AUDIT.md`.
+- Native MetaEditor/runtime verification remains pending.
+- **Next engineering gate: sequential cumulative risk-budget admission audit.**
+
+
+# 2026-08-22 Sequential Risk-Budget Admission Overlay
+- **Sequential cumulative risk-budget static audit: PASS; no code fix required.**
+- The scan is serialized; total risk includes existing live EA risk plus the proposed trade; a confirmed order is registered before the next pair is processed.
+- Runtime multi-decision risk-budget trace remains pending.
+- Record: `blueprint/P3_SEQUENTIAL_RISK_BUDGET_ADMISSION_AUDIT.md`.
+- **Next release gate is integrated native MetaEditor compile/runtime evidence for the current patched source.**
+
+
+# 2026-08-22 Native MetaEditor Compile Closure Overlay
+- The current integrated `blueprint/source/BBMA_EA.mq4` was recompiled by the user in native MT4 MetaEditor after the F4 duplicated-signature repair.
+- Reported result: **0 errors / 0 warnings (0E0W)**.
+- Native compile is therefore closed for the integrated F1-F6 / Mode1 / TradeLock / sequential-risk source state at this revision.
+- Remaining gates are runtime evidence only unless a runtime trace exposes a new defect.
+- P3 Step 5 remains open until its runtime Tests A-D are directly evidenced.
+
+
+# 2026-08-24 D1 Canonical Contract Reconciliation Overlay
+- **D1 major-trend strategic-owner semantics: RESOLVED AT STRATEGY/SPECIFICATION LEVEL.**
+- Canonical hierarchy is now `D1 strategic owner -> H4 structural/setup parent -> H1/M15 execution structure`.
+- Core V2 now requires confirmed closed-D1 price-side + MA50-slope agreement for new-entry strategic authority.
+- `D1_TRANSITION` and `D1_OWNER_UNRESOLVED` block all new strategy entries; the last confirmed D1 direction may remain diagnostic only and is not executable authority.
+- H4 remains the immediate structural parent for standalone H1 Re-Entry but can no longer authorize execution against an opposite/transition/unresolved D1 strategic state.
+- Exact REM/RRE/REE component signatures are unchanged. D1 strategic gating is separate from component identity; D1 Re-Entry inside RRE/REE does not replace D1 MA50 owner confirmation.
+- New canonical contract: `blueprint/contracts/M11_D1_MAJOR_TREND_OWNER_CONTRACT.md`.
+- F4 decision reconciled: `blueprint/decisions/CORE_V2_F4_H1_RE_HTF_CONTEXT_DECISION.md`.
+- M15/M16 contracts now specify D1 strategic gating and frozen-owner revalidation.
+- Audit record: `blueprint/CORE_V2_D1_CANONICAL_CONTRACT_RECONCILIATION_AUDIT_20260824.md`.
+- **No EA source change was made.** Current P3 runtime candidate remains frozen.
+
+## Reopened implementation/compliance status
+The stronger D1 evidence means two older statuses are now historical rather than current-final:
+- F4's previous **CODE IMPLEMENTED / STATIC PASS** applied to the older H4-only parent contract; it does not implement the new D1 strategic gate.
+- P3-M1's previous static compliance PASS applied to the pre-Home-Course D1 interpretation and must be re-audited after D1 implementation.
+
+Confirmed current code gaps:
+- M11 has no dedicated D1 strategic-owner state;
+- current `TimeframeData.trend` uses price-vs-EMA50 only and lacks MA50-slope confirmation;
+- standalone H1 final eligibility is H4-only in code;
+- REM lacks separate D1 strategic gating;
+- RRE/REE do not separately verify D1 MA50 owner compatibility through M11/M15/M16.
+
+## Next engineering action after P3 runtime freeze
+1. implement M11 closed-D1 strategic-owner classification;
+2. pass/freeze M11 owner identity into M15 decisions;
+3. apply D1 gate in M15 without changing REM/RRE/REE signatures;
+4. revalidate frozen D1 owner in M16;
+5. assign a new unique left-aligned EA build identifier;
+6. native MetaEditor compile 0E0W + static cross-module regression;
+7. rerun P3-M1 Mode 1 compliance under the reconciled Core;
+8. run focused runtime traces for D1 BUY/SELL/TRANSITION/UNRESOLVED and D1/H4 disagreement cases.
+
+Until that implementation series is deliberately started, **documentation/specification is ahead of code by design** and the existing runtime candidate must not be relabelled as compliant with the new D1 strategic-owner contract.
+
+## 2026-08-25 — D1/D1O Authoritative Current-State Overlay
+
+> This dated overlay supersedes older statements in this file that describe D1 strategic ownership or D1 opportunity execution as deferred/unimplemented. Historical sections are retained for provenance.
+
+### Current implementation owner
+- Active implementation branch: `d1-owner-dev`.
+- Current EA build: `Version 4.5.1 - D1O-07 Canonical LTF Dedup`.
+- D1 Step 1–9 strategic-owner implementation/audit lineage is present on this branch.
+- D1 opportunity execution is materialized; D1 CycleID/family are attribution metadata, while fresh LTF Re-Entry owns executable dedup identity.
+
+### Current validation status
+- D1O-07 current-baseline static materialization: PASS.
+- Canonical dedup analyzer synthetic self-test: PASS.
+- Execution-identity drift guard: PASS.
+- Current owner native MetaEditor compile: PASS — 0 errors / 0 warnings.
+- MT4 attach/runtime smoke with `ExpertsTrades=false`: PASS, classified `ATTACH_OK_NO_BROKER_DATA`.
+- No fatal runtime signatures found in offline smoke.
+
+### Remaining evidence gate
+Broker-connected D1 opportunity/decision telemetry is still required to prove runtime behavior under real market data. Specifically:
+- same fresh LTF identity must retain the same execution hash across D1 CycleID/family attribution changes;
+- a single execution hash must never change direction;
+- Mode-1/D1/H4/M15 runtime matrix still needs broker/demo traces.
+
+### Strategy/source guard
+Workbook forensic HOLD families remain excluded from executable behavior. Safe V2.x Workbook clarifications are documentation/context only unless already covered by accepted canonical implementation contracts.
+
+# 2026-08-25 NMJE D1 Watch-Only Boundary Overlay
+- `M12N` is the logical read-only Nested MTF Journey Engine between M12 owner state and M13/M14/M15 processing.
+- **D1 MHV/MLV and D1 eCSD are WATCH ONLY / non-execution-authority states for NMJE.** They cannot act as executable D1 parents, create M15 candidates, or directly authorize LTF entries.
+- D1 CSD remains direction context, not raw direct entry; approved D1 Opportunity use still requires fresh LTF Re-Entry readiness.
+- Exact REM/RRE/REE signatures remain unchanged.
+- Record: `blueprint/NMJE_D1_WATCH_ONLY_BOUNDARY_RECONCILIATION_20260825.md`.
+- Documentation-only reconciliation; EA source/trading behavior unchanged.
+
+---
+
+## 2026-08-25 Core 49-family revalidation overlay — PASS / DOCS-ONLY
+
+- Mechanical canonical count corrected to **28 fully covered + 10 partial/mixed + 11 MISSING/HOLD = 49**.
+- Strict full coverage = **57.14%**; represented at least partially = **77.55%**; unresolved hard HOLD = **22.45%**.
+- All 21 non-fully-covered families are explicitly accounted for in `docs/references/HOME_COURSE_49_FAMILY_CORE_REVALIDATION_20260825.md`.
+- Safe Mid-BB zone/slope context is visible in authoritative Core with non-execution guards.
+- Historical F7 lifecycle-exit promotion is precedence-guarded by the 2026-08-25 reconciliation; no no-Momentum execution rule is silently enabled.
+- D1 MHV/MLV and D1 eCSD remain watch/context-only in NMJE/D1 Opportunity execution paths.
+- **EA source unchanged by this revalidation.**
+
+---
+
+## 2026-08-25 D1O-07 Mode1 + Cross-Module Static Closure
+
+- Current active implementation branch: `d1-owner-dev`.
+- Current EA build: `Version 4.5.1 - D1O-07 Canonical LTF Dedup`.
+- Current source SHA-256: `c911790b45fb7a75270fdee1204a7c97313605dca194f57380441b92a66896c2`.
+- P3-M1 Mode-1 static compliance re-audit: **PASS**.
+- Focused M15 -> M16 -> M17 -> M22 -> M24 cross-module regression: **PASS**.
+- Automated evidence: GitHub Actions run `32817790689`, job `97709483350`.
+- Audit records: `blueprint/P3_M1_D1O07_MODE1_COMPLIANCE_REAUDIT_20260825.md` and `blueprint/D1O07_CROSS_MODULE_REGRESSION_AUDIT_20260825.md`.
+- No EA code fix required from these two gates. Broker/demo runtime evidence remains separate.
+- Next safe engineering work: queued non-strategy observability/UI defects (`REJ_INVALID_LOT` diagnostics, then dashboard active-trade count refresh).
+
+---
+
+## 2026-08-25 P2 Observability/UI Closure — LOTDIAG + DASHCOUNT
+
+Status: **CLOSED / PASS / NATIVE METAEDITOR 0E0W**
+
+- Canonical Git blob: `532f15b224f7e2594ed83f85e077e76aa13f7ed3`.
+- Repository/LF SHA-256: `6a34cc999e18e96bcda8cec9ba90bcc6455a201da6ff1f2d957f5476fee83c1c`.
+- Native Windows checkout SHA-256: `2fd43ecda4edee45e641463215be70d1c043b36941906a7507946b606cc3826b`; line-ending transformation only, same Git blob.
+- `REJ_INVALID_LOT` diagnostics: **PASS**. M21 sizing logic is unchanged; diagnostics explain an already-failed result from the same frozen snapshot.
+- Dashboard active-trade count: **PASS**. `Trades:` now counts current broker-pool orders accepted by exact symbol+magic ownership, not raw `g_monitored_count`.
+- Final combined official MT4 MetaEditor compile: **0 errors / 0 warnings**.
+- Compile evidence: run `32823122900`, job `97725322914`, artifact `9554031975`.
+- Audit records: `blueprint/P2_REJ_INVALID_LOT_DIAGNOSTICS_AUDIT_20260825.md` and `blueprint/P2_DASHBOARD_LIVE_TRADE_COUNT_AUDIT_20260825.md`.
+- No BBMA strategy, D1/NMJE authority, SL/TP, risk percentage, money-management admission or broker execution semantics were changed by these two items.
+- Next evidence layer: broker/demo runtime D1 owner matrix + D1O canonical dedup + validation-candle/order-open timing when market-connected evidence is available.
+
+
+# 2026-08-25 M17 Structural-Range SL Implementation Overlay
+- **Source version:** 4.52 — M17 Structural SL Normalization.
+- **Current source Git blob:** `4ccd444a96a34b494653143a7560516a4147b5bc`.
+- **Windows checkout SHA-256:** `0b6fd57c56b193918c828db5270fa5239d02b4c2f7b5f103f712c260d9539d52`.
+- **Native MetaEditor final:** run `32849850304`, job `97807956720`, **0 errors / 0 warnings / 151 ms**.
+- **Compile artifact:** `9564102891`, digest `sha256:5309c228855aa728edfceb97b8146d643327d8e8f2e91cccf96a153df8d9c1ac`.
+- **Protected/MM regression:** run `32849979993` PASS; `ResolveSelectedSLTPSourceComponent`, `RunEntryPreflightAndExecute`, and `CalculateLotSize` unchanged from pre-M17 baseline.
+- **M17 state:** source/static/native compile closed; broker/demo runtime trace pending.
+- **TP boundary:** TP implementation unchanged; 2026-08-25 authoritative reconciliation retains material Re-Entry TP/no-Momentum lifecycle behavior as strategy HOLD.
+
+
+# 2026-08-25 NMJE / M12N Architecture Documentation Sync
+- **Status:** CLOSED / PASS / DOCUMENTATION-ONLY.
+- **Logical placement:** `M12 -> M12N NMJE -> M13`; wider flow remains owner updates -> NMJE read-only lineage -> M13 collector -> M14 validator -> M15 final authority -> M16 revalidation.
+- **Numbering invariant:** M12N does not consume a numeric module slot; M01–M27 numbering is preserved, M13 remains M13, and M27 remains the orchestrator.
+- **Authority invariant:** M12N remains read-only/non-execution-authority; exact REM/RRE/REE, candidate eligibility, SL/TP, risk and execution semantics are unchanged.
+- **D1 watch-only invariant:** D1 MHV/MLV and D1 eCSD remain context/watch-only and cannot create an LTF entry shortcut.
+- **EA source:** unchanged; Git blob remains `4ccd444a96a34b494653143a7560516a4147b5bc`.
+- **Audit:** `blueprint/NMJE_M12N_ARCHITECTURE_DOC_SYNC_20260825.md`.
+
+
+# 2026-08-26 v4.58 D1 TP-Wajib Lifecycle Materialization Overlay
+
+This dated overlay supersedes older current-build / next-action wording where it conflicts. Historical sections remain provenance only.
+
+## Canonical active source
+- Build: `Version 4.5.8 - D1 TP-Wajib Lifecycle Stage`
+- `#property version "4.58"`
+- Source Git blob: `a166ffb23aba5e6b4011a28d9de8896cd00e33a1`
+- Source SHA-256: `ba2e5815d1b221d7bba46ed0be4793aa5bc6154e29e9b19562dfffbd28c8f0bc`
+- Source materialization commit: `02e5434e4f59ea538976df7254bbaf2fc9f1da9d`
+- Native MetaEditor: **0 errors / 0 warnings**
+- Protected-surface regression: **PASS**
+- Compile workflow run: `32902824738`, successful rerun job `97983428115`
+- Evidence artifact: `9584323165`, digest `sha256:5adec6eab3cae7f9303998a21609245252267be4660ade08c23b48be540c01cd`
+- `EnableD1TPWLifecycle=false`
+- `EnableC044Lifecycle=false`
+
+## Gap state
+- BBMA Core semantic classification: **49/49 explicit, 0 unresolved Core semantic HOLDs**.
+- D1 `EXTREME_TPW` ownership mismatch: **CLOSED at decision/contract/source/static/native level**.
+- v4.58 prevents `D1_OPP_EXTREME_TPW` from falling back to the legacy LTF Re-Entry outer-BB TP while its lifecycle gate is OFF.
+- Dynamic D1 TP-Wajib lifecycle machinery is implemented but remains deliberately dormant until authenticated broker/demo validation.
+- Canonical repo/source/contract synchronization is complete by this overlay.
+
+## Remaining open work
+Remaining known gaps are **runtime evidence / activation gates**, not undefined BBMA Core or repo-source semantics:
+1. D1 TP-Wajib targetless checkpoint/restart/replay + BUY/SELL MA5/MA10 close + duplicate-close + M20 precedence + C044 ambiguity tests.
+2. C044 broker/demo lifecycle tests.
+3. D1 owner and D1O execution-hash/direction/timing broker telemetry.
+4. M17/F1-F6/opposite-lock/sequential-risk/P3 live traces.
+
+No lifecycle gate may be enabled merely because static/native validation passed. N1/N2/N3 remain parked unless explicitly resumed.
+
+# 2026-08-26 N1-N3 Technical Completion Overlay
+
+This is the latest NMJE phase-status overlay and supersedes older wording that says N1/N2/N3 are parked or unfinished. Historical sections remain provenance only.
+
+## N1-N3 status
+- **N1/N1.1: CLOSED / PASS — observation-only.** Coverage and call-order reconciliation are recorded in `blueprint/N1_NMJE_V458_FINAL_CLOSURE_AUDIT_20260826.md`.
+- **N2: CLOSED / PASS — research & telemetry complete.** Source ownership guard + synthetic identity/research suite passed run `32912134419`, job `98008262714`. Real forward outcomes remain an evidence dependency, not an N2 implementation gap.
+- **N3: TECHNICALLY COMPLETE / CLOSED — execution policy NONE / inactive.** Evidence-to-policy review-readiness tooling and activation firewall passed run `32912473753`, job `98009255525`. Any future execution policy still requires real N2 forward evidence plus separate explicit strategy approval.
+
+## Frozen EA candidate
+- build: `Version 4.5.8 - D1 TP-Wajib Lifecycle Stage`;
+- `#property version "4.58"`;
+- source blob: `a166ffb23aba5e6b4011a28d9de8896cd00e33a1`;
+- canonical SHA-256: `ba2e5815d1b221d7bba46ed0be4793aa5bc6154e29e9b19562dfffbd28c8f0bc`;
+- native MetaEditor: **0 errors / 0 warnings**;
+- `EnableD1TPWLifecycle=false`;
+- `EnableC044Lifecycle=false`.
+
+N1-N3 completion changed only documentation/contracts/research tools/tests/CI. `blueprint/source/BBMA_EA.mq4` remained unchanged throughout the phase.
+
+## Hosted smoke
+v4.58 hosted MT4 probe run `32909061219`, job `97999302151` compiled 0E0W and launched MT4 build 1478 with no fatal runtime signature. Classification remained `HOSTED_ENVIRONMENT_UNCLASSIFIED_NO_FATAL_SIGNATURE`; this is smoke evidence only, not broker-runtime closure.
+
+## Current next gate
+**Broker/runtime closure against the frozen v4.58 candidate.** Do not reopen N1-N3 source work without new runtime evidence or a separately approved N3 strategy policy.
+
+Canonical phase freeze record:
+`blueprint/N1_N3_V458_PHASE_COMPLETION_RC_FREEZE_20260826.md`
+
+# 2026-08-26 v4.58 Autonomous Runtime Preparation Closure Overlay
+- **AUTONOMOUS BROKER-RUNTIME PREPARATION: CLOSED / PASS.**
+- Validation package commit: `d3e209c86ad702a4d2edefb2951e07dbd876cfc4`.
+- Native validation workflow run `32917428334`, job `98023961888`: SUCCESS.
+- Official MetaEditor gates: BASELINE 0E0W, R1 D1TPW 0E0W, R2 C044 0E0W, Runtime Observer 0E0W.
+- Variant-builder selftest, unified-analyzer selftest, observer read-only static guard, and frozen-source identity guard all PASS.
+- Canonical EA remains v4.58 blob `a166ffb23aba5e6b4011a28d9de8896cd00e33a1`; canonical D1TPW/C044 gates remain OFF and N3 execution remains NONE/inactive.
+- Full evidence: `blueprint/V458_AUTONOMOUS_RUNTIME_PREP_CLOSURE_20260826.md`.
+- **Next authoritative action: authenticated broker/demo MT4 runtime validation R1–R6 using `blueprint/V458_BROKER_RUNTIME_VALIDATION_RUNBOOK_20260826.md`.**
+- No further strategy/NMJE feature work should precede this runtime gate unless runtime evidence reveals a scoped defect.
+
+# 2026-08-26 v4.58 User-Facing Identity Synchronization Overlay
+- Engineering/display-only correction: dashboard and init log now match `Version 4.5.8 - D1 TP-Wajib Lifecycle Stage`.
+- Removed stale user-facing label `V4.5.1 D1O-07`; internal `D1O-07` provenance comments remain unchanged.
+- New source Git blob: `5c1b93d7783a00877cb7fd233673ca1ac1340151`.
+- New source SHA-256: `6fd9eb52b63dee8861ebf205b1c031d80646b58e0b4941ef21ece9431fe6be5a`.
+- `#property version "4.58"`, strategy semantics, lifecycle gates, N1-N3 authority, SL/TP, risk, MM and execution logic are unchanged.
+- Native runtime-package revalidation required after this identity-only source change.
+
+
+---
+
+# 2026-08-27 P0 v4.59 Post-PASS Integration Candidate Overlay
+
+> This dated overlay is authoritative for the post-P0 canonical candidate and supersedes older v4.58/current-next-action wording where it conflicts. Historical sections remain provenance.
+
+- Status: **IP-09 PASS / CANONICAL CANDIDATE READY / IP-10 PENDING**.
+- Integration branch: `p0-v459-postpass-integration-20260827`; pre-IP09 head `d7f6fae6d1af286696f9349dc04ca14e3770574b`; canonical base `5a1e7785f88c2ea1bf8f38917df413cb9cfcfce7`.
+- Source-bearing integration commit: `aa74898ead8725f78141924f8bcb1725f0c113ca`.
+- EA build: `Version 4.5.9 - P0 Execution Identity Persistence Fix` / `#property version "4.59"`.
+- Source Git blob: `dc83e62748c93171d89a312e9f7a53c06d97e261`.
+- Repository/LF MQ4 SHA-256: `07a69ccfca19e19d71c95ca891c66d953343261276d7722107624ce974830843`.
+- Windows compile-checkout MQ4 SHA-256: `0a42ee2e6c32810f655b592d8738f500e8b63b4e08c4c874e82452f75ce94b2e` (same Git blob; line-ending transformation only).
+- Exact official-compile EX4 SHA-256: `89821c5b1ae2d7c28a6cad7569cb2ced0e45090d0897451e0f61e0b46eb8944c`; run `33025004203`, job `98364184047`, artifact `9628390588`, **0E0W**.
+- P0 authenticated HFM runtime: **PASS**; ticket `484701907`, hash `7AADB1796BF36399`, same-installation restart recovered exact ticket with no duplicate observed.
+- Protected-surface regression: **PS-01..PS-30 PASS**.
+- v4.59 runtime tooling: **PASS**; run `33027817870`, artifact `9629222430`; builder/analyzer selftests and BASELINE/R1/R2/observer native matrix passed.
+- Baseline lifecycle defaults remain **D1TPW OFF / C044 OFF**. N3 remains non-execution-authority.
+- Issue #94 remains OPEN intentionally until IP-10 canonical verification and IP-11 closure.
+- R1 is released from the P0 blocker as **INCOMPLETE / READY FOR COLLECTION**, but formal broker evidence collection waits the IP-10..IP-12 canonicalization/freeze sequence. R2-R6 remain blocked by predecessor order.
+- **Next safe action: IP-10 — promote this reviewed integration candidate to `d1-owner-dev`, re-fetch and verify exact source/build/gates. Do not advance `main`.**

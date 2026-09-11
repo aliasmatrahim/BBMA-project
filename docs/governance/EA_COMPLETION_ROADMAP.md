@@ -6,59 +6,67 @@ This is the delivery roadmap for BBMA Professional EA from source-evidence final
 
 The live repository, current source routing in `docs/references/SOURCE_INDEX.md`, accepted Core, active contracts, canonical EA source, and runtime/test evidence remain authoritative. A roadmap item may be marked `COMPLETE`, `IN PROGRESS`, `BLOCKED / HOLD`, or `NO FIX REQUIRED`; it must not create a Core rule merely to complete a checklist.
 
+## Model convention
+
+The recommended model and reasoning effort are embedded in each phase title. They are a work-allocation guide, not an authority override:
+
+- `Terra Medium`: default daily work.
+- `Astra High/XHigh`: Core, architecture, implementation, unresolved defect diagnosis, and release gates.
+- `Luna`: mechanical/clerical work only; never Core audit or EA changes.
+
 ## Update convention
 
-Every work update must identify the phase letter and title, followed by the precise item when applicable.
+Every work update must identify the phase letter, phase title, recommended model, followed by the precise item when applicable.
 
-Example: `A3 — BBMA Video Evidence Extraction`  
-Example: `D4 — Closed-Candle Chronology & State/Log/Order Validation`
+Example: `A3 — Source & Evidence Finalisation [Terra Medium] — BBMA Video Evidence Extraction`  
+Example: `D4 — Technical Validation [Terra Medium / Astra High for unresolved diagnosis] — Closed-Candle Chronology & State/Log/Order Validation`
 
 ## Completion Tree
 
 ```text
 BBMA Professional EA — Roadmap hingga siap
 │
-├─ A. Source & Evidence Finalisation
+├─ A. Source & Evidence Finalisation [Terra Medium]
 │  ├─ A1. Finalize corrected subtitle
 │  ├─ A2. QA timestamp, file integrity & UNCLEAR register
 │  ├─ A3. BBMA video evidence extraction
 │  ├─ A4. Core reconciliation: MATCH / PARTIAL / UNCLEAR
 │  └─ A5. Update provenance, conflict/HOLD & gap register
 │
-├─ B. Architecture & Gap Confirmation
+├─ B. Architecture & Gap Confirmation [Astra High/XHigh]
 │  ├─ B1. Full preflight live repository
 │  ├─ B2. Strategy-Core gap audit M01–M27 + M12N
 │  ├─ B3. Confirm genuine Core/code mismatch
 │  ├─ B4. Reconcile blueprint, contracts & lifecycle ownership
 │  └─ B5. Prioritise confirmed gaps only
 │
-├─ C. Controlled Core Implementation
+├─ C. Controlled Core Implementation [Astra High]
 │  ├─ C1. Scoped fix per module
 │  ├─ C2. Preserve signal lifecycle
 │  ├─ C3. Prevent duplicate logic / cross-pair state leakage
 │  └─ C4. Build identity, traceability & queue evidence
 │
-├─ D. Technical Validation
+├─ D. Technical Validation [Terra Medium / Astra High for unresolved diagnosis]
 │  ├─ D1. Strict MQL4 compile
 │  ├─ D2. Static + cross-module regression audit
 │  ├─ D3. Strategy Tester scenario validation
 │  ├─ D4. Closed-candle chronology & state/log/order validation
 │  └─ D5. F7 execution-lifecycle runtime closure
 │
-├─ E. Operational Readiness
+├─ E. Operational Readiness [Terra Medium]
 │  ├─ E1. Risk/MM, execution & dashboard separation audit
 │  ├─ E2. Demo forward validation
 │  ├─ E3. Genuine entry/exit/telemetry outcomes
 │  └─ E4. Resolve confirmed runtime defects only
 │
-├─ F. Release Candidate Gate
+├─ F. Release Candidate Gate [Astra XHigh]
 │  ├─ F1. Compile clean
 │  ├─ F2. Regression clean
 │  ├─ F3. Tester + runtime evidence sufficient
 │  ├─ F4. HOLD/UNCLEAR excluded from execution
 │  └─ F5. Version, changelog & release evidence complete
 │
-└─ G. Controlled Deployment
+└─ G. Controlled Deployment [Terra Medium / Astra High for critical defect]
    ├─ G1. User review / approval
    ├─ G2. Deploy to chosen demo/live environment
    └─ G3. Post-deployment runtime watch

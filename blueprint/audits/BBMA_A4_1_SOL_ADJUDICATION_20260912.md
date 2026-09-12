@@ -213,7 +213,14 @@ A4.2, W004 and all B-phase work remain pending and outside this report.
 
 ## M. GitHub savepoint
 
-Git branch, commit hash, remote branch and push result will be recorded after the G40 report is verified.
+- Branch: a4-1-sol-adjudication-savepoint-20260912
+- Content commit: 169aaf2b3085f14119304532675aba63a412b93e
+- Exact committed file: blueprint/audits/BBMA_A4_1_SOL_ADJUDICATION_20260912.md
+- Remote branch: origin/a4-1-sol-adjudication-savepoint-20260912
+- Initial push result: PASS
+- Force-push: NOT RUN
+- Merge/PR/deployment: NOT RUN
+- Untracked runtime logs: preserved and not staged.
 
 ## N. Next safe step
 

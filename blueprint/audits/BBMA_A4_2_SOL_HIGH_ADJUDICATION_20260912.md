@@ -266,9 +266,13 @@ W004 duplicate remains outside this task.
 
 ## R. GitHub savepoint
 
-Git branch, commit hash, remote branch and push result will be recorded after report QA.
-Only blueprint/audits/BBMA_A4_2_SOL_HIGH_ADJUDICATION_20260912.md may be staged.
-Existing runtime logs must remain untracked.
+- Branch: a4-2-sol-high-adjudication-savepoint-20260912
+- Content commit: b353cfccbad949e67bd2e2b0b52cd4ee88d764d2
+- Remote branch: origin/a4-2-sol-high-adjudication-savepoint-20260912
+- Initial push: PASS; normal push, no force-push, merge or PR.
+- Exact staged file: blueprint/audits/BBMA_A4_2_SOL_HIGH_ADJUDICATION_20260912.md
+- Existing runtime logs remained untracked and were not staged, edited, deleted or committed.
+- Final verification commit and remote head are recorded in the A4.2 checkpoint after push.
 
 ## S. Next safe step
 

@@ -149,7 +149,13 @@ Decision note: existing artifacts support a limited common BBMA context, but the
 
 ## M. GitHub savepoint
 
-Git branch, commits, remote branch and push result will be recorded after report QA.
+- Branch: a4-4-sol-high-w004-savepoint-20260912
+- Content commit: 1a37828bd27092294b8fc79ca4362fd59aaf9220
+- Remote branch: origin/a4-4-sol-high-w004-savepoint-20260912
+- Initial push: PASS; normal push, no force-push, merge or PR.
+- Exact committed file: blueprint/audits/BBMA_A4_4_SOL_HIGH_W004_ADJUDICATION_20260912.md
+- Three pre-existing runtime logs remained untracked and untouched.
+- Final verification commit is recorded in the checkpoint after push.
 
 A4.4 W004 DUPLICATE REVIEWED
 A4.4 REPORT SAVED

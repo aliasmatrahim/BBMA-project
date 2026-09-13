@@ -61,9 +61,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          grep -R "NOT NATIVE VERIFIED" tools/bbma_orchestrator >/dev/null
-          if grep -R -E "merge_pull_request|enable trading|autotrading on|git reset --hard" \
-            tools/bbma_orchestrator --exclude=native.py >/dev/null; then
+          grep -R --binary-files=without-match \
+            --exclude='*.pyc' --exclude-dir='__pycache__' \
+            "NOT NATIVE VERIFIED" tools/bbma_orchestrator >/dev/null
+          if grep -R --binary-files=without-match \
+            --exclude=native.py --exclude='*.pyc' --exclude-dir='__pycache__' \
+            -E "merge_pull_request|enable trading|autotrading on|git reset --hard" \
+            tools/bbma_orchestrator >/dev/null; then
             echo "Unexpected destructive/native authority string outside safety adapter"
             exit 1
           fi

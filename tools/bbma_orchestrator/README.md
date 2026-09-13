@@ -70,6 +70,12 @@ python -m tools.bbma_orchestrator shadow-compare \
 
 Shadow comparison is explicitly read-only and reports `trade_authority: NONE`.
 
+## Verified module graph
+
+`config/bbma_module_graph.json` records the immutable `d1-owner-dev` evidence used for M01-M27 and M12N identities, ownership, and directly supported consumer edges. Load it through `load_verified_module_graph()`; the loader rejects missing modules, unresolved evidence references, authority/evidence commit mismatches, invalid coverage claims, unknown/self consumers, duplicate edges, and malformed Git object IDs.
+
+Module identity is VERIFIED. Consumer-edge coverage is PARTIAL: an absent edge means NOT VERIFIED, never evidence that no dependency exists. Regression assignments remain NOT VERIFIED until their separate authority mapping is populated.
+
 ## Targeted regression selection
 
 The selector consumes a verified external map:

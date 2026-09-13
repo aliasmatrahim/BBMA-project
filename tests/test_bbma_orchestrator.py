@@ -108,6 +108,113 @@ class TaskStateTests(unittest.TestCase):
         self.assertEqual(pack["authority_refs"], ["CURRENT", "SOURCE_INDEX"])
         self.assertNotIn("history", pack)
 
+class VerifiedModuleGraphTests(unittest.TestCase):
+    def test_graph_covers_all_modules_and_cites_every_verified_edge(self):
+        from tools.bbma_orchestrator.verified import load_verified_module_graph
+
+        root = Path(__file__).resolve().parents[1]
+        graph = load_verified_module_graph(root / "config" / "bbma_module_graph.json")
+        expected = {f"M{i:02d}" for i in range(1, 28)} | {"M12N"}
+        self.assertEqual(set(graph["modules"]), expected)
+        for module_id, module in graph["modules"].items():
+            self.assertEqual(module["module_id"], module_id)
+            self.assertIn(module["status"], {"VERIFIED", "NOT VERIFIED", "HOLD"})
+            self.assertTrue(module["ownership"])
+            self.assertTrue(module["evidence"])
+            for consumer in module["consumers"]:
+                self.assertIn(consumer["module"], expected)
+                self.assertTrue(consumer["evidence"])
+
+    def test_graph_rejects_uncited_consumer_edge(self):
+        from tools.bbma_orchestrator.verified import load_verified_module_graph
+
+        graph = self._minimal_graph()
+        graph["modules"]["M01"]["consumers"] = [
+            {"module": "M02", "relationship": "declares shared types", "evidence": []}
+        ]
+        self._assert_invalid_graph(graph, "consumer evidence")
+
+    def test_graph_rejects_unknown_consumer_module(self):
+        from tools.bbma_orchestrator.verified import load_verified_module_graph
+
+        graph = self._minimal_graph()
+        graph["modules"]["M01"]["consumers"] = [
+            {"module": "M99", "relationship": "invalid", "evidence": ["SOURCE"]}
+        ]
+        self._assert_invalid_graph(graph, "unknown consumer")
+
+    def test_graph_rejects_malformed_authority_commit(self):
+        graph = self._minimal_graph()
+        graph["authority"]["commit"] = "not-a-commit"
+        self._assert_invalid_graph(graph, "authority commit")
+
+    def test_graph_rejects_invalid_coverage_claim(self):
+        graph = self._minimal_graph()
+        graph["coverage"]["consumer_edges"] = "COMPLETE"
+        self._assert_invalid_graph(graph, "consumer-edge coverage")
+
+    def test_graph_rejects_false_verified_module_coverage(self):
+        graph = self._minimal_graph()
+        graph["modules"]["M01"]["status"] = "NOT VERIFIED"
+        self._assert_invalid_graph(graph, "module-identity coverage")
+
+    def test_graph_rejects_partial_coverage_without_known_unknowns(self):
+        graph = self._minimal_graph()
+        graph["known_unknowns"] = []
+        self._assert_invalid_graph(graph, "known_unknowns")
+
+    def test_graph_rejects_evidence_from_other_commit(self):
+        graph = self._minimal_graph()
+        graph["evidence_catalog"]["SOURCE"]["commit"] = "c" * 40
+        self._assert_invalid_graph(graph, "evidence SOURCE commit")
+
+    def _minimal_graph(self):
+        evidence = {
+            "SOURCE": {
+                "repository": "owner/repo",
+                "commit": "a" * 40,
+                "path": "source",
+                "blob_sha": "b" * 40,
+                "locator": "module header",
+            }
+        }
+        modules = {
+            module_id: {
+                "module_id": module_id,
+                "ownership": "owner",
+                "status": "VERIFIED",
+                "evidence": ["SOURCE"],
+                "consumers": [],
+            }
+            for module_id in ({f"M{i:02d}" for i in range(1, 28)} | {"M12N"})
+        }
+        return {
+            "schema_version": 1,
+            "authority": {
+                "repository": "owner/repo",
+                "branch": "verified-source",
+                "commit": "a" * 40,
+            },
+            "coverage": {
+                "module_identity": "VERIFIED",
+                "consumer_edges": "PARTIAL",
+                "tests": "NOT VERIFIED",
+            },
+            "evidence_catalog": evidence,
+            "modules": modules,
+            "known_unknowns": ["Consumer edges are intentionally partial."],
+        }
+
+    def _assert_invalid_graph(self, graph, message):
+        from tools.bbma_orchestrator.verified import load_verified_module_graph
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "graph.json"
+            path.write_text(json.dumps(graph), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, message):
+                load_verified_module_graph(path)
+
+
 class EvidenceTests(unittest.TestCase):
     def test_hash_store_cache_and_package(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -154,6 +154,14 @@ For every material Strategy-Core change or compliance audit:
 - trace the accepted rule to its owning module and code behaviour;
 - do not ask the user to repeatedly re-establish that BBMA/Oma Ally fidelity is required — it is permanent project governance under `PROJECT_INSTRUCTIONS.md`.
 
+### A4 G40 evidence adjudication provenance — 2026-09-12
+
+- Detailed decision authority remains in `blueprint/audits/BBMA_A4_5_SOL_HIGH_CONSOLIDATION_20260912.md` and the accepted handoff in `blueprint/audits/BBMA_A4_6_SOL_HIGH_HANDOFF_REVIEW_20260912.md`.
+- Consolidated state: 9 decision records — MATCH 0, PARTIAL 3 and UNCLEAR 6; four source-register indexes remain `NOT_AVAILABLE`. All A4 evidence remains provisional, unresolved evidence is not accepted Strategy Core, and this provenance pointer does not change accepted Core semantics.
+- HOLD from execution: the 6 UNCLEAR and 3 PARTIAL decisions, 4 active `A3_REVIEW_BLOCKED / PENDING_REVIEW` overlaps, 2 `EXCLUDED_UNCLEAR` A3 records, 6 `PENDING_AUDIO_RECHECK / AUDIO_RECHECK_EMPTY` queue records, and W004 `UNCLEAR / DUPLICATE_ASR / TRANSCRIPTION_UNCERTAINTY / DUPLICATE_CONFLICT / PENDING_REVIEW`. Blocked/excluded A3 evidence and either W004 duplicate text must not be used as independent evidence, encoded, or silently selected.
+- Integrity limits: media existence is not proof of content; transcript disagreement is not an approved-Core `SOURCE_CONFLICT`; A4 did not perform a code audit and does not prove an implementation gap. Two documentation contradictions and one `STATUS_STALENESS` item remain preserved in the A4.6 authority report.
+- Governance result: no genuine approved-Core source conflict affects the nine decisions. This pointer adds no rule, filter, detector, entry/exit, SL/TP, lifecycle behaviour, or implementation obligation; unresolved content remains excluded from execution until separately reviewed and explicitly reconciled.
+
 ## File-storage note
 The two original user-supplied PDF binaries are preserved in GitHub under `docs/references/original/` with their original filenames. Their SHA-256 hashes above remain the integrity reference and must continue to match the archived binaries.
 

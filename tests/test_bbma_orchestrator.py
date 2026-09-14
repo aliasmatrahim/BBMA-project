@@ -96,6 +96,16 @@ class TaskStateTests(unittest.TestCase):
         self.assertEqual(selector.select(["M12"]), ["global", "t12", "t13"])
         self.assertEqual(selector.select(["UNKNOWN"]), ["global"])
 
+    def test_regression_selector_walks_all_cited_consumers(self):
+        selector = RegressionSelector(
+            {
+                "M06": {"tests": ["t06"], "consumers": ["M08"]},
+                "M08": {"tests": ["t08"], "consumers": ["M13"]},
+                "M13": {"tests": ["t13"], "consumers": []},
+            }
+        )
+        self.assertEqual(selector.select(["M06"]), ["t06", "t08", "t13"])
+
     def test_context_pack_is_bounded_to_supplied_refs(self):
         manifest = TaskManifest("T1", "R1", "x", "source")
         pack = build_context_pack(
@@ -398,6 +408,163 @@ class VerifiedTraceabilityTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, message):
                 load_verified_traceability(
                     path, root / "config" / "bbma_module_graph.json"
+                )
+
+
+class VerifiedRegressionMapTests(unittest.TestCase):
+    def test_regression_map_matches_accepted_graph_and_verified_trace_tests(self):
+        from tools.bbma_orchestrator.verified import load_verified_regression_map
+
+        root = Path(__file__).resolve().parents[1]
+        mapping = load_verified_regression_map(
+            root / "config" / "bbma_regression_map.json",
+            root / "config" / "bbma_module_graph.json",
+            root / "config" / "bbma_traceability.json",
+        )
+        expected_modules = {f"M{i:02d}" for i in range(1, 28)} | {"M12N"}
+        self.assertEqual(set(mapping["modules"]), expected_modules)
+        self.assertEqual(
+            sum(len(item["consumers"]) for item in mapping["modules"].values()),
+            38,
+        )
+        self.assertEqual(
+            set(mapping["tests"]),
+            {
+                "TEST_DRIVER_F1",
+                "TEST_DRIVER_F2",
+                "TEST_DRIVER_F3",
+                "TEST_DRIVER_F5",
+                "TEST_DRIVER_F6",
+            },
+        )
+        self.assertEqual(mapping["mandatory_global"], [])
+        self.assertEqual(
+            mapping["modules"]["M12"]["tests"],
+            ["TEST_DRIVER_F3", "TEST_DRIVER_F6"],
+        )
+        for module_id in ("M11", "M15", "M16"):
+            self.assertEqual(mapping["modules"][module_id]["tests"], [])
+
+    def test_verified_selector_uses_transitive_cited_blast_radius(self):
+        from tools.bbma_orchestrator.verified import load_verified_regression_map
+
+        root = Path(__file__).resolve().parents[1]
+        mapping = load_verified_regression_map(
+            root / "config" / "bbma_regression_map.json",
+            root / "config" / "bbma_module_graph.json",
+            root / "config" / "bbma_traceability.json",
+        )
+        selector = RegressionSelector(
+            mapping["modules"], mapping["mandatory_global"], strict=True
+        )
+        self.assertEqual(
+            selector.select(["M06"]),
+            ["TEST_DRIVER_F2", "TEST_DRIVER_F3", "TEST_DRIVER_F6", "TEST_DRIVER_F1"],
+        )
+        self.assertEqual(selector.select(["M07"]), ["TEST_DRIVER_F5"])
+        with self.assertRaisesRegex(ValueError, "unknown changed modules"):
+            selector.select(["UNKNOWN"])
+        self.assertEqual(
+            set(selector.select([], release_candidate=True)),
+            set(mapping["tests"]),
+        )
+
+    def test_verified_regression_map_cli_selects_transitive_tests(self):
+        import contextlib
+        import io
+        from tools.bbma_orchestrator.cli import main
+
+        root = Path(__file__).resolve().parents[1]
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            exit_code = main([
+                "select-tests",
+                "--map", str(root / "config" / "bbma_regression_map.json"),
+                "--module-graph", str(root / "config" / "bbma_module_graph.json"),
+                "--traceability", str(root / "config" / "bbma_traceability.json"),
+                "--module", "M06",
+            ])
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(
+            json.loads(output.getvalue())["selected"],
+            ["TEST_DRIVER_F2", "TEST_DRIVER_F3", "TEST_DRIVER_F6", "TEST_DRIVER_F1"],
+        )
+
+    def test_verified_regression_map_cli_cannot_bypass_authority_validation(self):
+        from tools.bbma_orchestrator.cli import main
+
+        root = Path(__file__).resolve().parents[1]
+        with self.assertRaisesRegex(ValueError, "verified regression map requires"):
+            main([
+                "select-tests",
+                "--map", str(root / "config" / "bbma_regression_map.json"),
+                "--module", "M06",
+            ])
+
+    def test_verified_regression_map_cli_rejects_unknown_module(self):
+        from tools.bbma_orchestrator.cli import main
+
+        root = Path(__file__).resolve().parents[1]
+        with self.assertRaisesRegex(ValueError, "unknown changed modules"):
+            main([
+                "select-tests",
+                "--map", str(root / "config" / "bbma_regression_map.json"),
+                "--module-graph", str(root / "config" / "bbma_module_graph.json"),
+                "--traceability", str(root / "config" / "bbma_traceability.json"),
+                "--module", "UNKNOWN",
+            ])
+
+    def test_verified_regression_map_cli_requires_both_authorities(self):
+        import contextlib
+        import io
+        from tools.bbma_orchestrator.cli import main
+
+        root = Path(__file__).resolve().parents[1]
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit) as raised:
+                main([
+                    "select-tests",
+                    "--map", str(root / "config" / "bbma_regression_map.json"),
+                    "--module-graph", str(root / "config" / "bbma_module_graph.json"),
+                    "--module", "M06",
+                ])
+        self.assertEqual(raised.exception.code, 2)
+        self.assertIn("--module-graph and --traceability must be supplied together", error.getvalue())
+
+    def test_regression_map_rejects_consumer_drift(self):
+        data = self._regression_data()
+        data["modules"]["M06"]["consumers"].append("M13")
+        self._assert_invalid_regression(data, "consumer set mismatch")
+
+    def test_regression_map_rejects_uncited_test_assignment(self):
+        data = self._regression_data()
+        data["modules"]["M11"]["tests"].append("TEST_DRIVER_F1")
+        self._assert_invalid_regression(data, "assignment mismatch")
+
+    def test_regression_map_rejects_invented_mandatory_global(self):
+        data = self._regression_data()
+        data["mandatory_global"] = ["TEST_DRIVER_F1"]
+        self._assert_invalid_regression(data, "mandatory global regression")
+
+    def _regression_data(self):
+        root = Path(__file__).resolve().parents[1]
+        return json.loads(
+            (root / "config" / "bbma_regression_map.json").read_text(encoding="utf-8")
+        )
+
+    def _assert_invalid_regression(self, data, message):
+        from tools.bbma_orchestrator.verified import load_verified_regression_map
+
+        root = Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "regression.json"
+            path.write_text(json.dumps(data), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, message):
+                load_verified_regression_map(
+                    path,
+                    root / "config" / "bbma_module_graph.json",
+                    root / "config" / "bbma_traceability.json",
                 )
 
 

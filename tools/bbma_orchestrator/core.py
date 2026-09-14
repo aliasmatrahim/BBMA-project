@@ -225,9 +225,16 @@ def route_model(
     return "MEDIUM"
 
 class RegressionSelector:
-    def __init__(self, dependency_map: dict[str, dict[str, list[str]]], mandatory_global: Iterable[str] = ()):
+    def __init__(
+        self,
+        dependency_map: dict[str, dict[str, list[str]]],
+        mandatory_global: Iterable[str] = (),
+        *,
+        strict: bool = False,
+    ):
         self.dependency_map = dependency_map
         self.mandatory_global = tuple(dict.fromkeys(mandatory_global))
+        self.strict = strict
 
     def select(
         self,
@@ -237,11 +244,23 @@ class RegressionSelector:
         release_candidate: bool = False,
     ) -> list[str]:
         selected = list(self.mandatory_global)
-        for module in changed_modules:
+        pending = list(dict.fromkeys(changed_modules))
+        unknown = sorted(set(pending) - set(self.dependency_map))
+        if self.strict and unknown:
+            raise ValueError(f"unknown changed modules: {unknown}")
+        visited: set[str] = set()
+        while pending:
+            module = pending.pop(0)
+            if module in visited:
+                continue
+            visited.add(module)
             item = self.dependency_map.get(module, {})
             selected.extend(item.get("tests", []))
-            for consumer in item.get("consumers", []):
-                selected.extend(self.dependency_map.get(consumer, {}).get("tests", []))
+            pending.extend(
+                consumer
+                for consumer in item.get("consumers", [])
+                if consumer not in visited
+            )
         if release_candidate or risk_score >= 80:
             for item in self.dependency_map.values():
                 selected.extend(item.get("tests", []))

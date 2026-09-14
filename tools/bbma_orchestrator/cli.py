@@ -21,7 +21,7 @@ from .evidence import ContentAddressedStore, EvidenceDB, build_evidence_package,
 from .telemetry import TelemetryStore
 from .trace import classify_build_delta, compare_shadow
 from .native import NativeAdapter, git_snapshot, artifact_identity
-from .verified import materialize_traceability
+from .verified import load_verified_regression_map, materialize_traceability
 
 def _json_print(data) -> None:
     print(json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False))
@@ -186,8 +186,26 @@ def cmd_shadow_compare(args: argparse.Namespace) -> None:
     )
 
 def cmd_select_tests(args: argparse.Namespace) -> None:
-    mapping = _load_json(args.map)
-    selector = RegressionSelector(mapping.get("modules", mapping), mapping.get("mandatory_global", []))
+    if bool(args.module_graph) != bool(args.traceability):
+        raise ValueError("--module-graph and --traceability must be supplied together")
+    if args.module_graph:
+        mapping = load_verified_regression_map(
+            args.map, args.module_graph, args.traceability
+        )
+    else:
+        mapping = _load_json(args.map)
+        verified_fields = {
+            "schema_version", "authority", "coverage", "tests", "known_unknowns"
+        }
+        if verified_fields.intersection(mapping):
+            raise ValueError(
+                "verified regression map requires --module-graph and --traceability"
+            )
+    selector = RegressionSelector(
+        mapping.get("modules", mapping),
+        mapping.get("mandatory_global", []),
+        strict=bool(args.module_graph),
+    )
     selected = selector.select(args.module, risk_score=args.risk_score, release_candidate=args.release_candidate)
     _json_print({"selected": selected})
 
@@ -360,6 +378,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("select-tests")
     p.add_argument("--map", required=True)
+    p.add_argument("--module-graph", default="")
+    p.add_argument("--traceability", default="")
     p.add_argument("--module", action="append", default=[])
     p.add_argument("--risk-score", type=int, default=0)
     p.add_argument("--release-candidate", action="store_true")
@@ -395,6 +415,11 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if (
+        args.command == "select-tests"
+        and bool(args.module_graph) != bool(args.traceability)
+    ):
+        parser.error("--module-graph and --traceability must be supplied together")
     args.func(args)
     return 0
 

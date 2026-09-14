@@ -307,6 +307,147 @@ def load_verified_traceability(
     return traceability
 
 
+REGRESSION_COVERAGE_FIELDS = {
+    "module_identity",
+    "consumer_edges",
+    "test_assignments",
+    "mandatory_global",
+}
+
+
+def load_verified_regression_map(
+    path: str | Path,
+    module_graph_path: str | Path,
+    traceability_path: str | Path,
+) -> dict[str, Any]:
+    module_graph = load_verified_module_graph(module_graph_path)
+    traceability = load_verified_traceability(traceability_path, module_graph_path)
+    with Path(path).open("r", encoding="utf-8") as handle:
+        regression_map = json.load(handle)
+
+    _require(isinstance(regression_map, dict), "regression map must be an object")
+    _require(regression_map.get("schema_version") == 1,
+             "unsupported regression map schema_version")
+    _validate_authority(regression_map.get("authority"))
+    _require(regression_map["authority"] == module_graph["authority"],
+             "regression map authority must match module graph authority")
+    _require(regression_map["authority"] == traceability["authority"],
+             "regression map authority must match traceability authority")
+
+    coverage = regression_map.get("coverage")
+    _require(isinstance(coverage, dict)
+             and set(coverage) == REGRESSION_COVERAGE_FIELDS,
+             "regression coverage fields mismatch")
+    for field, status in coverage.items():
+        _require(status in TRACE_STATUSES,
+                 f"regression coverage status invalid for {field}")
+    _require(coverage["module_identity"] == module_graph["coverage"]["module_identity"],
+             "regression module coverage must match module graph")
+    _require(coverage["consumer_edges"] == module_graph["coverage"]["consumer_edges"],
+             "regression consumer coverage must match module graph")
+
+    known_unknowns = regression_map.get("known_unknowns")
+    _require(isinstance(known_unknowns, list)
+             and all(isinstance(item, str) and item.strip() for item in known_unknowns),
+             "regression known_unknowns must be non-empty strings")
+    if any(status != "VERIFIED" for status in coverage.values()):
+        _require(bool(known_unknowns),
+                 "known_unknowns must explain incomplete regression coverage")
+
+    mandatory_global = regression_map.get("mandatory_global")
+    _require(isinstance(mandatory_global, list)
+             and all(isinstance(item, str) for item in mandatory_global),
+             "mandatory_global must be a list of strings")
+    _require(len(mandatory_global) == len(set(mandatory_global)),
+             "mandatory_global has duplicates")
+    _require(coverage["mandatory_global"] == "NOT VERIFIED"
+             and not mandatory_global,
+             "mandatory global regression requires verified authority")
+
+    tests = regression_map.get("tests")
+    _require(isinstance(tests, dict) and tests,
+             "regression tests must be a non-empty object")
+    verified_rule_ids = {
+        rule_id
+        for rule_id, rule in traceability["rules"].items()
+        if rule["stages"]["test"]["status"] == "VERIFIED"
+    }
+    mapped_rule_ids: set[str] = set()
+    for test_id, item in tests.items():
+        _require(isinstance(item, dict), f"regression test {test_id} must be an object")
+        _require(item.get("status") == "VERIFIED",
+                 f"regression test {test_id} must be VERIFIED")
+        rule_id = item.get("core_rule_id")
+        _require(rule_id in verified_rule_ids,
+                 f"regression test {test_id} has no VERIFIED traceability test stage")
+        _require(rule_id not in mapped_rule_ids,
+                 f"duplicate regression mapping for {rule_id}")
+        mapped_rule_ids.add(rule_id)
+        refs = item.get("evidence")
+        expected_refs = traceability["rules"][rule_id]["stages"]["test"]["evidence"]
+        _require(refs == expected_refs,
+                 f"regression test {test_id} evidence mismatch for {rule_id}")
+        _require(test_id in refs,
+                 f"regression test {test_id} must identify its verified driver evidence")
+        driver = traceability["evidence_catalog"].get(test_id, {})
+        _require(driver.get("kind") == "test"
+                 and driver.get("path", "").startswith(".github/workflows/"),
+                 f"regression test {test_id} driver is not an attributable workflow")
+    _require(mapped_rule_ids == verified_rule_ids,
+             f"regression rule coverage mismatch: "
+             f"missing={sorted(verified_rule_ids - mapped_rule_ids)} "
+             f"extra={sorted(mapped_rule_ids - verified_rule_ids)}")
+    expected_test_coverage = (
+        "VERIFIED" if verified_rule_ids == set(traceability["rules"]) else "PARTIAL"
+    )
+    _require(coverage["test_assignments"] == expected_test_coverage,
+             "regression test-assignment coverage mismatch")
+
+    modules = regression_map.get("modules")
+    _require(isinstance(modules, dict), "regression modules must be an object")
+    module_ids = set(modules)
+    _require(module_ids == set(module_graph["modules"]),
+             f"regression module set mismatch: "
+             f"missing={sorted(set(module_graph['modules']) - module_ids)} "
+             f"extra={sorted(module_ids - set(module_graph['modules']))}")
+    assignments = {test_id: set() for test_id in tests}
+    for module_id, item in modules.items():
+        _require(isinstance(item, dict) and set(item) == {"tests", "consumers"},
+                 f"regression module {module_id} fields mismatch")
+        consumers = item["consumers"]
+        module_tests = item["tests"]
+        _require(isinstance(consumers, list)
+                 and all(isinstance(consumer, str) for consumer in consumers),
+                 f"regression consumers for {module_id} must be strings")
+        _require(len(consumers) == len(set(consumers)),
+                 f"regression consumers for {module_id} have duplicates")
+        expected_consumers = [
+            edge["module"] for edge in module_graph["modules"][module_id]["consumers"]
+        ]
+        _require(consumers == expected_consumers,
+                 f"regression consumer set mismatch for {module_id}")
+        _require(isinstance(module_tests, list)
+                 and all(isinstance(test_id, str) for test_id in module_tests),
+                 f"regression tests for {module_id} must be strings")
+        _require(len(module_tests) == len(set(module_tests)),
+                 f"regression tests for {module_id} have duplicates")
+        unknown_tests = sorted(set(module_tests) - set(tests))
+        _require(not unknown_tests,
+                 f"regression module {module_id} has unknown tests: {unknown_tests}")
+        for test_id in module_tests:
+            assignments[test_id].add(module_id)
+
+    for test_id, item in tests.items():
+        rule_id = item["core_rule_id"]
+        expected_modules = set(
+            traceability["rules"][rule_id]["stages"]["module"]["modules"]
+        )
+        _require(assignments[test_id] == expected_modules,
+                 f"regression assignment mismatch for {test_id}: "
+                 f"expected={sorted(expected_modules)} actual={sorted(assignments[test_id])}")
+    return regression_map
+
+
 def materialize_traceability(
     traceability_path: str | Path,
     module_graph_path: str | Path,

@@ -228,7 +228,10 @@ def cmd_native_describe(args: argparse.Namespace) -> None:
 
 def cmd_native_run(args: argparse.Namespace) -> None:
     adapter = NativeAdapter(args.config)
-    _json_print(adapter.run(args.name, execute=args.execute))
+    result = adapter.run(args.name, execute=args.execute)
+    _json_print(result)
+    if args.execute and result["status"] == "FAIL":
+        raise SystemExit(1)
 
 def cmd_git_snapshot(args: argparse.Namespace) -> None:
     _json_print(git_snapshot(args.repo))

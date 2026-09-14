@@ -115,9 +115,19 @@ Native commands come from an explicit JSON config and default to dry-run:
 {
   "commands": {
     "compile": {
-      "argv": ["C:\\path\\to\\wrapper.ps1"],
-      "cwd": "D:\\path\\to\\verified-worktree",
-      "timeout_seconds": 900
+      "argv": ["C:\\path\\to\\metaeditor.exe", "/compile:candidate.mq4"],
+      "cwd": "D:\\path\\to\\isolated-evidence",
+      "timeout_seconds": 900,
+      "enabled": true,
+      "expected_inputs": [
+        {"path": "candidate.mq4", "sha256": "<64-hex-sha256>"}
+      ],
+      "exclusive_process_names": ["metaeditor.exe"],
+      "result_contract": {
+        "kind": "metaeditor_0e0w",
+        "log_path": "compile.log",
+        "artifacts": ["candidate.ex4"]
+      }
     }
   }
 }
@@ -128,9 +138,18 @@ python -m tools.bbma_orchestrator native-describe --config native.json --name co
 python -m tools.bbma_orchestrator native-run --config native.json --name compile
 ```
 
-The second command is still dry-run. `--execute` is required after live-state verification.
+The second command is still dry-run. `--execute` is required after live-state
+verification. Execution fails closed if a command is disabled, an expected input
+hash drifts, an exclusive process is already active, or the declared result
+contract is not satisfied. MetaEditor PASS requires an attributable 0-error,
+0-warning log (UTF-8 or BOM-marked UTF-16) and every declared artifact; its raw
+process return code is retained separately.
 
-The repository intentionally does not ship a guessed G40/MetaEditor path or a command that restarts MT4. Native PASS remains unavailable until exact live G40 configuration is verified.
+Host-specific executable paths, hashes and source copies belong in task evidence,
+not in this repository. Existing specialized validation workflows remain external
+owners: the registry records their identities instead of copying their logic.
+Commands that would restart or launch MT4 must remain disabled with an explicit
+`blocked_reason` until current authority and user authorization are both present.
 
 ## Tests
 

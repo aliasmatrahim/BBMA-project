@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -729,6 +730,183 @@ class NativeAdapterTests(unittest.TestCase):
             adapter = NativeAdapter(config)
             with self.assertRaises(PermissionError):
                 adapter.run("unsafe")
+
+    def test_native_adapter_rejects_disabled_authority(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = root / "native.json"
+            config.write_text(json.dumps({
+                "commands": {
+                    "runtime": {
+                        "argv": [sys.executable, "-c", "print('must not run')"],
+                        "cwd": str(root),
+                        "enabled": False,
+                        "blocked_reason": "MT4 launch is not authorized",
+                    }
+                }
+            }), encoding="utf-8")
+            adapter = NativeAdapter(config)
+            with self.assertRaisesRegex(PermissionError, "MT4 launch is not authorized"):
+                adapter.run("runtime")
+
+    def test_native_adapter_rejects_input_identity_drift(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "candidate.mq4"
+            source.write_text("candidate", encoding="utf-8")
+            config = root / "native.json"
+            config.write_text(json.dumps({
+                "commands": {
+                    "compile": {
+                        "argv": [sys.executable, "-c", "print('must not run')"],
+                        "cwd": str(root),
+                        "expected_inputs": [
+                            {"path": str(source), "sha256": "0" * 64}
+                        ],
+                    }
+                }
+            }), encoding="utf-8")
+            adapter = NativeAdapter(config)
+            with self.assertRaisesRegex(ValueError, "identity mismatch"):
+                adapter.run("compile")
+
+    def test_native_adapter_rejects_duplicate_process_before_execute(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = root / "native.json"
+            config.write_text(json.dumps({
+                "commands": {
+                    "compile": {
+                        "argv": [sys.executable, "-c", "print('must not run')"],
+                        "cwd": str(root),
+                        "exclusive_process_names": ["metaeditor.exe"],
+                    }
+                }
+            }), encoding="utf-8")
+            adapter = NativeAdapter(
+                config, process_names_provider=lambda: {"metaeditor.exe"}
+            )
+            with self.assertRaisesRegex(RuntimeError, "matching process already active"):
+                adapter.run("compile", execute=True)
+
+    def test_native_adapter_verifies_metaeditor_result_contract(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "candidate.mq4"
+            log = root / "compile.log"
+            ex4 = root / "candidate.ex4"
+            source.write_text("candidate", encoding="utf-8")
+            script = (
+                "from pathlib import Path;"
+                "Path('compile.log').write_text('Result: 0 errors, 0 warnings', encoding='utf-16');"
+                "Path('candidate.ex4').write_bytes(b'ex4');"
+                "raise SystemExit(1)"
+            )
+            config = root / "native.json"
+            config.write_text(json.dumps({
+                "commands": {
+                    "compile": {
+                        "argv": [sys.executable, "-c", script],
+                        "cwd": str(root),
+                        "expected_inputs": [
+                            {"path": str(source), "sha256": sha256_file(source)}
+                        ],
+                        "result_contract": {
+                            "kind": "metaeditor_0e0w",
+                            "log_path": str(log),
+                            "artifacts": [str(ex4)],
+                        },
+                    }
+                }
+            }), encoding="utf-8")
+            adapter = NativeAdapter(config, process_names_provider=lambda: set())
+            result = adapter.run("compile", execute=True)
+            self.assertEqual(result["status"], "PASS")
+            self.assertEqual(result["returncode"], 1)
+            self.assertEqual(result["metaeditor_errors"], 0)
+            self.assertEqual(result["metaeditor_warnings"], 0)
+            self.assertTrue(result["artifacts"][0]["sha256"])
+
+    def test_native_adapter_fails_nonzero_metaeditor_summary(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            log = root / "compile.log"
+            ex4 = root / "candidate.ex4"
+            script = (
+                "from pathlib import Path;"
+                "Path('compile.log').write_text('Result: 1 error, 0 warnings', encoding='utf-16');"
+                "Path('candidate.ex4').write_bytes(b'ex4')"
+            )
+            config = root / "native.json"
+            config.write_text(json.dumps({
+                "commands": {
+                    "compile": {
+                        "argv": [sys.executable, "-c", script],
+                        "cwd": str(root),
+                        "result_contract": {
+                            "kind": "metaeditor_0e0w",
+                            "log_path": str(log),
+                            "artifacts": [str(ex4)],
+                        },
+                    }
+                }
+            }), encoding="utf-8")
+            adapter = NativeAdapter(config, process_names_provider=lambda: set())
+            result = adapter.run("compile", execute=True)
+            self.assertEqual(result["status"], "FAIL")
+            self.assertIn("not 0E0W", result["verification_error"])
+
+    def test_native_adapter_rejects_stale_metaeditor_evidence(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            log = root / "compile.log"
+            ex4 = root / "candidate.ex4"
+            log.write_text("Result: 0 errors, 0 warnings", encoding="utf-16")
+            ex4.write_bytes(b"old-ex4")
+            config = root / "native.json"
+            config.write_text(json.dumps({
+                "commands": {
+                    "compile": {
+                        "argv": [sys.executable, "-c", "raise SystemExit(1)"],
+                        "cwd": str(root),
+                        "result_contract": {
+                            "kind": "metaeditor_0e0w",
+                            "log_path": str(log),
+                            "artifacts": [str(ex4)],
+                        },
+                    }
+                }
+            }), encoding="utf-8")
+            adapter = NativeAdapter(config, process_names_provider=lambda: set())
+            result = adapter.run("compile", execute=True)
+            self.assertEqual(result["status"], "FAIL")
+            self.assertIn("not refreshed", result["verification_error"])
+
+    def test_native_run_cli_exits_nonzero_for_failed_execution(self):
+        import contextlib
+        import io
+        from tools.bbma_orchestrator.cli import main
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = root / "native.json"
+            config.write_text(json.dumps({
+                "commands": {
+                    "fail": {
+                        "argv": [sys.executable, "-c", "raise SystemExit(2)"],
+                        "cwd": str(root),
+                    }
+                }
+            }), encoding="utf-8")
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                with self.assertRaises(SystemExit) as raised:
+                    main([
+                        "native-run", "--config", str(config),
+                        "--name", "fail", "--execute",
+                    ])
+            self.assertEqual(raised.exception.code, 1)
+            self.assertEqual(json.loads(output.getvalue())["status"], "FAIL")
 
     def test_artifact_identity_hashes_existing_file(self):
         with tempfile.TemporaryDirectory() as tmp:

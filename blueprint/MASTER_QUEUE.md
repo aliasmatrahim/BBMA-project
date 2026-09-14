@@ -68,6 +68,26 @@ Required next steps after G40 reconnect:
 
 Build 4.80 or Strategy Tester evidence cannot substitute for exact 4.81 runtime closure.
 
+## P1 — Autonomous source-library infrastructure
+
+### Q3A — Build autonomous source-library lifecycle and reconciliation control plane
+Issue: **#152**
+Depends on: **PR #149 Task Orchestrator Contract + PR #151 autonomous engineering infrastructure**
+Priority: **HIGH / PARALLEL-SAFE SOURCE INFRASTRUCTURE**
+Status: **AUTHORIZED / P1 IMPLEMENTATION STARTING**
+
+Purpose: state-driven source maintenance, provenance/HOLD preservation, lower repeated scans/context, no transfer of Strategy-Core authority.
+
+Processing phase: `DISCOVERED -> INGESTED -> INTEGRITY_VERIFIED -> PROVENANCE_CLASSIFIED -> EXTRACTED -> RECONCILIATION_PENDING -> RECONCILED -> REGISTERED`.
+
+Semantic disposition: `UNREVIEWED | MATCH | CORROBORATION_ONLY | PARTIAL | UNCLEAR | SOURCE_CONFLICT | ACCEPTED_CORE | REJECTED`.
+
+Priority order: registry/invariants/idempotent SHA ingestion -> discovery/provenance -> reconciliation/no-promotion guard -> Evidence-DAG Core impact -> bounded SOURCE_INDEX/register updater -> failure-first dashboard/context pack -> G40 Primary-15/Group-3/media adapters -> end-to-end evidence package.
+
+Hard gates: no new rule/entry/exit/filter/SL/TP/lifecycle authority; HOLD/PARTIAL/UNCLEAR/SOURCE_CONFLICT/REJECTED remain non-executable; ACCEPTED_CORE requires explicit accepted authority; originals/corrected/derived stay separate; zero-result search is not absence; no automatic merge/deploy/restart/trading.
+
+Execution lane: initial deterministic tooling may run parallel to Q1-Q3, must reuse PR #151 primitives, and semantic adjudication still follows `SOURCE_INDEX -> routed evidence -> accepted Core -> contracts/decisions`.
+
 ## P1 — Source corpus completion / reconciliation
 
 ### Q4 — Finish Primary-15 same-engine transcription

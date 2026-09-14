@@ -76,6 +76,21 @@ Shadow comparison is explicitly read-only and reports `trade_authority: NONE`.
 
 Module identity is VERIFIED. Consumer-edge coverage is PARTIAL: an absent edge means NOT VERIFIED, never evidence that no dependency exists. Regression assignments remain NOT VERIFIED until their separate authority mapping is populated.
 
+## Verified Core traceability
+
+`config/bbma_traceability.json` maps the attributable `CORE-V2-F1` through `CORE-V2-F6` chains across source evidence, Core rule, contract, module, code, static test record and runtime. Every catalog item is pinned to the accepted `d1-owner-dev` commit and Git blob.
+
+```bash
+python -m tools.bbma_orchestrator traceability-materialize \
+  --traceability config/bbma_traceability.json \
+  --module-graph config/bbma_module_graph.json \
+  --db evidence.db
+```
+
+The loader accepts exactly F1-F6, rejects authority drift, resolves every catalog `commit:path` against the local Git object database, rejects blob mismatches, and rejects evidence-kind mismatches, duplicate or missing evidence references, unknown modules, and unsupported VERIFIED claims. Materialization reuses the existing evidence DAG, binds each node digest to the resolved immutable evidence records, and preserves each incomplete stage as `NOT VERIFIED` or `HOLD`.
+
+Runtime for F1-F6 remains `NOT VERIFIED`. F4 code coverage remains `SOURCE CONFLICT`: the pinned implementation-pending decision and the later current-code-implemented re-audit have no explicit adjudication artifact; its test coverage also remains `PARTIAL` until an attributable executable combined-regression command/result is mapped. F5 has no standalone active M07 contract. F7 is an umbrella with multiple provenance/lifecycle decisions and retained HOLD boundaries, so it is not flattened into an invented singular chain.
+
 ## Targeted regression selection
 
 The selector consumes a verified external map:

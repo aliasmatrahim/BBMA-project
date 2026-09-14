@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import re
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -126,3 +128,244 @@ def load_verified_module_graph(path: str | Path) -> dict[str, Any]:
                            f"consumer evidence for {module_id}->{target}")
 
     return graph
+
+
+TRACE_STAGES = (
+    "source_evidence",
+    "core_rule",
+    "contract",
+    "module",
+    "code",
+    "test",
+    "runtime",
+)
+TRACE_STATUSES = {
+    "VERIFIED", "PARTIAL", "NOT VERIFIED", "HOLD", "UNRESOLVED", "SOURCE CONFLICT"
+}
+TRACE_EVIDENCE_KINDS = {"source", "core_rule", "contract", "code", "test", "runtime"}
+TRACE_STAGE_KIND = {
+    "source_evidence": "source",
+    "core_rule": "core_rule",
+    "contract": "contract",
+    "code": "code",
+    "test": "test",
+    "runtime": "runtime",
+}
+TRACE_CORE_RULE_IDS = {f"CORE-V2-F{i}" for i in range(1, 7)}
+
+
+def _validate_trace_catalog(
+    catalog: Any, authority_repository: str, authority_commit: str
+) -> set[str]:
+    known = _validate_evidence_catalog(catalog, authority_repository, authority_commit)
+    for evidence_id, item in catalog.items():
+        _require(item.get("kind") in TRACE_EVIDENCE_KINDS,
+                 f"trace evidence {evidence_id} has invalid kind")
+    return known
+
+
+def _verify_git_evidence_catalog(
+    catalog: dict[str, Any], authority_commit: str, repository_hint: str | Path
+) -> None:
+    hint = Path(repository_hint).resolve().parent
+    root_result = subprocess.run(
+        ["git", "-C", str(hint), "rev-parse", "--show-toplevel"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    _require(
+        root_result.returncode == 0,
+        "unable to locate Git repository for traceability evidence",
+    )
+    repository_root = root_result.stdout.decode("utf-8", errors="replace").strip()
+    tree_result = subprocess.run(
+        ["git", "-C", repository_root, "ls-tree", "-r", "-z", "--full-tree", authority_commit],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    _require(
+        tree_result.returncode == 0,
+        f"unable to resolve traceability authority commit {authority_commit}",
+    )
+    blobs: dict[str, str] = {}
+    for raw_entry in tree_result.stdout.split(b"\0"):
+        if not raw_entry:
+            continue
+        metadata, raw_path = raw_entry.split(b"\t", 1)
+        _mode, object_type, object_sha = metadata.decode("ascii").split()
+        if object_type == "blob":
+            blobs[raw_path.decode("utf-8", errors="surrogateescape")] = object_sha
+    for evidence_id, item in catalog.items():
+        actual = blobs.get(item["path"])
+        _require(
+            actual is not None,
+            f"evidence {evidence_id} path missing at authority commit: {item['path']}",
+        )
+        _require(
+            actual == item["blob_sha"],
+            f"evidence {evidence_id} blob mismatch: "
+            f"expected={item['blob_sha']} actual={actual}",
+        )
+
+
+def load_verified_traceability(
+    path: str | Path, module_graph_path: str | Path
+) -> dict[str, Any]:
+    module_graph = load_verified_module_graph(module_graph_path)
+    with Path(path).open("r", encoding="utf-8") as handle:
+        traceability = json.load(handle)
+
+    _require(isinstance(traceability, dict), "traceability must be an object")
+    _require(traceability.get("schema_version") == 1,
+             "unsupported traceability schema_version")
+    authority_repository, authority_commit = _validate_authority(
+        traceability.get("authority")
+    )
+    _require(traceability["authority"] == module_graph["authority"],
+             "traceability authority must match module graph authority")
+    coverage = traceability.get("coverage")
+    _require(isinstance(coverage, dict) and set(coverage) == set(TRACE_STAGES),
+             "traceability coverage must contain every stage")
+    for stage, status in coverage.items():
+        _require(status in TRACE_STATUSES,
+                 f"traceability coverage status invalid for {stage}")
+    known_unknowns = traceability.get("known_unknowns")
+    _require(isinstance(known_unknowns, list)
+             and all(isinstance(item, str) and item.strip() for item in known_unknowns),
+             "traceability known_unknowns must be non-empty strings")
+    if any(status != "VERIFIED" for status in coverage.values()):
+        _require(bool(known_unknowns),
+                 "known_unknowns must explain non-VERIFIED traceability coverage")
+    known_evidence = _validate_trace_catalog(
+        traceability.get("evidence_catalog"), authority_repository, authority_commit
+    )
+    _verify_git_evidence_catalog(
+        traceability["evidence_catalog"], authority_commit, module_graph_path
+    )
+    rules = traceability.get("rules")
+    _require(isinstance(rules, dict) and rules, "traceability rules must be non-empty")
+    rule_ids = set(rules)
+    _require(
+        rule_ids == TRACE_CORE_RULE_IDS,
+        f"traceability rule set mismatch: missing={sorted(TRACE_CORE_RULE_IDS - rule_ids)} "
+        f"extra={sorted(rule_ids - TRACE_CORE_RULE_IDS)}",
+    )
+    for rule_id, rule in rules.items():
+        _require(isinstance(rule, dict), f"rule {rule_id} must be an object")
+        _require(isinstance(rule.get("title"), str) and rule["title"].strip(),
+                 f"rule {rule_id} title must be non-empty")
+        _require(rule.get("status") in TRACE_STATUSES,
+                 f"rule {rule_id} status is invalid")
+        stages = rule.get("stages")
+        _require(isinstance(stages, dict) and set(stages) == set(TRACE_STAGES),
+                 f"rule {rule_id} must contain every traceability stage")
+        for stage_name in TRACE_STAGES:
+            stage = stages[stage_name]
+            _require(isinstance(stage, dict),
+                     f"rule {rule_id} stage {stage_name} must be an object")
+            status = stage.get("status")
+            _require(status in TRACE_STATUSES,
+                     f"rule {rule_id} stage {stage_name} status is invalid")
+            refs = stage.get("evidence")
+            _require(isinstance(refs, list)
+                     and all(isinstance(ref, str) for ref in refs),
+                     f"rule {rule_id} stage {stage_name} evidence must be a list")
+            _require(len(refs) == len(set(refs)),
+                     f"rule {rule_id} stage {stage_name} has duplicate evidence")
+            missing = sorted(set(refs) - known_evidence)
+            _require(not missing,
+                     f"rule {rule_id} stage {stage_name} has unknown evidence: {missing}")
+            expected_kind = TRACE_STAGE_KIND.get(stage_name)
+            if expected_kind:
+                wrong = [ref for ref in refs
+                         if traceability["evidence_catalog"][ref]["kind"] != expected_kind]
+                _require(not wrong,
+                         f"rule {rule_id} stage {stage_name} evidence kind mismatch: {wrong}")
+            if stage_name == "module":
+                modules = stage.get("modules")
+                _require(isinstance(modules, list) and modules,
+                         f"rule {rule_id} module stage must name modules")
+                unknown_modules = sorted(set(modules) - set(module_graph["modules"]))
+                _require(not unknown_modules,
+                         f"rule {rule_id} has unknown modules: {unknown_modules}")
+                if status == "VERIFIED":
+                    unverified = [module for module in modules
+                                  if module_graph["modules"][module]["status"] != "VERIFIED"]
+                    _require(not unverified,
+                             f"rule {rule_id} cites unverified modules: {unverified}")
+            elif status == "VERIFIED":
+                _require(bool(refs),
+                         f"rule {rule_id} verified {stage_name} stage needs evidence")
+            if status != "VERIFIED":
+                _require(isinstance(stage.get("gap"), str) and stage["gap"].strip(),
+                         f"rule {rule_id} non-VERIFIED {stage_name} stage needs a gap")
+        if rule["status"] == "VERIFIED":
+            _require(all(stage["status"] == "VERIFIED" for stage in stages.values()),
+                     f"rule {rule_id} cannot be VERIFIED with incomplete stages")
+    return traceability
+
+
+def materialize_traceability(
+    traceability_path: str | Path,
+    module_graph_path: str | Path,
+    db_path: str | Path,
+) -> dict[str, int]:
+    from .evidence import EvidenceDB
+
+    traceability = load_verified_traceability(traceability_path, module_graph_path)
+    status_map = {
+        "VERIFIED": "VALID",
+        "PARTIAL": "NOT VERIFIED",
+        "NOT VERIFIED": "NOT VERIFIED",
+        "HOLD": "HOLD",
+        "UNRESOLVED": "HOLD",
+        "SOURCE CONFLICT": "HOLD",
+    }
+    node_count = 0
+    edge_count = 0
+    with EvidenceDB(db_path) as db:
+        for rule_id in sorted(traceability["rules"]):
+            stages = traceability["rules"][rule_id]["stages"]
+            node_ids: list[str] = []
+            for stage_name in TRACE_STAGES:
+                stage = stages[stage_name]
+                node_id = f"trace:{rule_id}:{stage_name}"
+                evidence_records = [
+                    {"evidence_id": ref, **traceability["evidence_catalog"][ref]}
+                    for ref in stage["evidence"]
+                ]
+                payload = json.dumps(
+                    {"stage": stage, "evidence_records": evidence_records},
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+                digest = hashlib.sha256(payload.encode("utf-8")).hexdigest()
+                metadata = {
+                    "rule_id": rule_id,
+                    "stage": stage_name,
+                    "evidence": stage["evidence"],
+                    "evidence_records": evidence_records,
+                }
+                if stage_name == "module":
+                    metadata["modules"] = stage["modules"]
+                if "gap" in stage:
+                    metadata["gap"] = stage["gap"]
+                db.add_node(
+                    node_id,
+                    "module" if stage_name == "module" else TRACE_STAGE_KIND[stage_name],
+                    digest,
+                    status=status_map[stage["status"]],
+                    metadata=metadata,
+                )
+                node_ids.append(node_id)
+                node_count += 1
+            for source, target in zip(node_ids, node_ids[1:]):
+                db.add_edge(source, target)
+                edge_count += 1
+    return {
+        "rules": len(traceability["rules"]),
+        "nodes": node_count,
+        "edges": edge_count,
+    }

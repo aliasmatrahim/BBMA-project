@@ -21,6 +21,7 @@ from .evidence import ContentAddressedStore, EvidenceDB, build_evidence_package,
 from .telemetry import TelemetryStore
 from .trace import classify_build_delta, compare_shadow
 from .native import NativeAdapter, git_snapshot, artifact_identity
+from .verified import materialize_traceability
 
 def _json_print(data) -> None:
     print(json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False))
@@ -142,6 +143,11 @@ def cmd_evidence_stale(args: argparse.Namespace) -> None:
     with EvidenceDB(args.db) as db:
         stale = db.mark_changed(args.node_id, args.digest)
         _json_print({"changed": args.node_id, "stale_descendants": stale, "coverage": db.coverage()})
+
+def cmd_traceability_materialize(args: argparse.Namespace) -> None:
+    _json_print(materialize_traceability(
+        args.traceability, args.module_graph, args.db
+    ))
 
 def cmd_evidence_package(args: argparse.Namespace) -> None:
     package = build_evidence_package(args.output, args.files, metadata={"label": args.label})
@@ -315,6 +321,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--node-id", required=True)
     p.add_argument("--digest", required=True)
     p.set_defaults(func=cmd_evidence_stale)
+
+    p = sub.add_parser("traceability-materialize")
+    p.add_argument("--traceability", required=True)
+    p.add_argument("--module-graph", required=True)
+    p.add_argument("--db", required=True)
+    p.set_defaults(func=cmd_traceability_materialize)
 
     p = sub.add_parser("evidence-package")
     p.add_argument("--output", required=True)

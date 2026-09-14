@@ -215,6 +215,192 @@ class VerifiedModuleGraphTests(unittest.TestCase):
                 load_verified_module_graph(path)
 
 
+class VerifiedTraceabilityTests(unittest.TestCase):
+    def test_traceability_covers_existing_core_ids_without_false_runtime_pass(self):
+        from tools.bbma_orchestrator.verified import load_verified_traceability
+
+        root = Path(__file__).resolve().parents[1]
+        traceability = load_verified_traceability(
+            root / "config" / "bbma_traceability.json",
+            root / "config" / "bbma_module_graph.json",
+        )
+        expected = {f"CORE-V2-F{i}" for i in range(1, 7)}
+        self.assertEqual(set(traceability["rules"]), expected)
+        for rule in traceability["rules"].values():
+            self.assertEqual(rule["stages"]["runtime"]["status"], "NOT VERIFIED")
+            self.assertEqual(rule["stages"]["runtime"]["evidence"], [])
+
+    def test_traceability_uses_regression_drivers_and_preserves_f4_test_gap(self):
+        from tools.bbma_orchestrator.verified import load_verified_traceability
+
+        root = Path(__file__).resolve().parents[1]
+        traceability = load_verified_traceability(
+            root / "config" / "bbma_traceability.json",
+            root / "config" / "bbma_module_graph.json",
+        )
+        catalog = traceability["evidence_catalog"]
+        expected_drivers = {
+            "CORE-V2-F1": ".github/workflows/core-v2-f1-pr-dispatch.yml",
+            "CORE-V2-F2": ".github/workflows/core-v2-f2-pr-dispatch.yml",
+            "CORE-V2-F3": ".github/workflows/core-v2-f3-pr-dispatch.yml",
+            "CORE-V2-F5": ".github/workflows/core-v2-f5-pr-dispatch.yml",
+            "CORE-V2-F6": ".github/workflows/core-v2-f6-pr-dispatch.yml",
+        }
+        for rule_id, expected_path in expected_drivers.items():
+            refs = traceability["rules"][rule_id]["stages"]["test"]["evidence"]
+            self.assertIn(expected_path, {catalog[ref]["path"] for ref in refs})
+
+        f4_source_refs = traceability["rules"]["CORE-V2-F4"]["stages"]["source_evidence"]["evidence"]
+        f4_source_paths = {catalog[ref]["path"] for ref in f4_source_refs}
+        self.assertIn(
+            "blueprint/decisions/HOME_COURSE_D1_MAJOR_TREND_VS_H4_IMMEDIATE_PARENT_RECONCILIATION.md",
+            f4_source_paths,
+        )
+        self.assertIn(
+            "blueprint/decisions/HOME_COURSE_D1_TRANSITION_MAJOR_TREND_OWNER_DECISION.md",
+            f4_source_paths,
+        )
+        f4_code = traceability["rules"]["CORE-V2-F4"]["stages"]["code"]
+        self.assertEqual(f4_code["status"], "SOURCE CONFLICT")
+        self.assertEqual(
+            {catalog[ref]["path"] for ref in f4_code["evidence"]},
+            {
+                "blueprint/source/BBMA_EA.mq4",
+                "blueprint/decisions/CORE_V2_F4_H1_RE_HTF_CONTEXT_DECISION.md",
+                "blueprint/audits/POSTFREEZE_D1_M11_M15_M16_REAUDIT_20260909.md",
+            },
+        )
+        self.assertTrue(f4_code["gap"])
+        f4_test = traceability["rules"]["CORE-V2-F4"]["stages"]["test"]
+        self.assertEqual(f4_test["status"], "PARTIAL")
+        self.assertTrue(f4_test["gap"])
+
+    def test_traceability_materializes_into_existing_evidence_dag(self):
+        from tools.bbma_orchestrator.verified import materialize_traceability
+
+        root = Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory() as tmp:
+            result = materialize_traceability(
+                root / "config" / "bbma_traceability.json",
+                root / "config" / "bbma_module_graph.json",
+                Path(tmp) / "evidence.db",
+            )
+            self.assertEqual(result, {"rules": 6, "nodes": 42, "edges": 36})
+            with EvidenceDB(Path(tmp) / "evidence.db") as db:
+                node = db.get_node("trace:CORE-V2-F2:runtime")
+                self.assertEqual(node["status"], "NOT VERIFIED")
+                edge_count = db.conn.execute("SELECT COUNT(*) FROM edges").fetchone()[0]
+                self.assertEqual(edge_count, 36)
+
+    def test_traceability_materialization_binds_resolved_evidence_identity(self):
+        from tools.bbma_orchestrator.verified import materialize_traceability
+
+        root = Path(__file__).resolve().parents[1]
+        original = json.loads(
+            (root / "config" / "bbma_traceability.json").read_text(encoding="utf-8")
+        )
+        changed = json.loads(json.dumps(original))
+        changed["evidence_catalog"]["SRC_PRIMARY_PDF"]["locator"] = "different verified locator"
+        with tempfile.TemporaryDirectory() as tmp:
+            work = Path(tmp)
+            original_path = work / "original.json"
+            changed_path = work / "changed.json"
+            original_path.write_text(json.dumps(original), encoding="utf-8")
+            changed_path.write_text(json.dumps(changed), encoding="utf-8")
+            materialize_traceability(
+                original_path, root / "config" / "bbma_module_graph.json", work / "original.db"
+            )
+            materialize_traceability(
+                changed_path, root / "config" / "bbma_module_graph.json", work / "changed.db"
+            )
+            with EvidenceDB(work / "original.db") as db:
+                original_node = db.get_node("trace:CORE-V2-F1:source_evidence")
+            with EvidenceDB(work / "changed.db") as db:
+                changed_node = db.get_node("trace:CORE-V2-F1:source_evidence")
+
+        self.assertNotEqual(original_node["digest"], changed_node["digest"])
+        evidence_record = changed_node["metadata"]["evidence_records"][0]
+        self.assertEqual(evidence_record["evidence_id"], "SRC_PRIMARY_PDF")
+        self.assertEqual(evidence_record["locator"], "different verified locator")
+
+    def test_traceability_rejects_forged_blob_identity(self):
+        data = self._traceability_data()
+        data["evidence_catalog"]["SRC_PRIMARY_PDF"]["blob_sha"] = "f" * 40
+        self._assert_invalid_traceability(data, "blob mismatch")
+
+    def test_traceability_cli_materializes_verified_map(self):
+        import contextlib
+        import io
+        from tools.bbma_orchestrator.cli import main
+
+        root = Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory() as tmp, io.StringIO() as output:
+            with contextlib.redirect_stdout(output):
+                exit_code = main([
+                    "traceability-materialize",
+                    "--traceability", str(root / "config" / "bbma_traceability.json"),
+                    "--module-graph", str(root / "config" / "bbma_module_graph.json"),
+                    "--db", str(Path(tmp) / "evidence.db"),
+                ])
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(json.loads(output.getvalue())["nodes"], 42)
+
+    def test_traceability_rejects_duplicate_evidence_reference(self):
+        root = Path(__file__).resolve().parents[1]
+        data = json.loads(
+            (root / "config" / "bbma_traceability.json").read_text(encoding="utf-8")
+        )
+        refs = data["rules"]["CORE-V2-F1"]["stages"]["source_evidence"]["evidence"]
+        refs.append(refs[0])
+        self._assert_invalid_traceability(data, "duplicate evidence")
+
+    def test_traceability_rejects_false_verified_runtime(self):
+        data = self._traceability_data()
+        runtime = data["rules"]["CORE-V2-F2"]["stages"]["runtime"]
+        runtime["status"] = "VERIFIED"
+        self._assert_invalid_traceability(data, "verified runtime stage needs evidence")
+
+    def test_traceability_rejects_unknown_module(self):
+        data = self._traceability_data()
+        data["rules"]["CORE-V2-F3"]["stages"]["module"]["modules"] = ["M99"]
+        self._assert_invalid_traceability(data, "unknown modules")
+
+    def test_traceability_rejects_evidence_kind_mismatch(self):
+        data = self._traceability_data()
+        data["rules"]["CORE-V2-F3"]["stages"]["code"]["evidence"] = ["SRC_V01"]
+        self._assert_invalid_traceability(data, "evidence kind mismatch")
+
+    def test_traceability_rejects_authority_mismatch(self):
+        data = self._traceability_data()
+        data["authority"]["commit"] = "c" * 40
+        self._assert_invalid_traceability(data, "must match module graph authority")
+
+    def test_traceability_rejects_rules_outside_exact_f1_through_f6_scope(self):
+        for unsupported in ("CORE-V2-F7", "CORE-V2-F1-BOGUS"):
+            with self.subTest(unsupported=unsupported):
+                data = self._traceability_data()
+                data["rules"][unsupported] = data["rules"].pop("CORE-V2-F6")
+                self._assert_invalid_traceability(data, "rule set mismatch")
+
+    def _traceability_data(self):
+        root = Path(__file__).resolve().parents[1]
+        return json.loads(
+            (root / "config" / "bbma_traceability.json").read_text(encoding="utf-8")
+        )
+
+    def _assert_invalid_traceability(self, data, message):
+        from tools.bbma_orchestrator.verified import load_verified_traceability
+
+        root = Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "traceability.json"
+            path.write_text(json.dumps(data), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, message):
+                load_verified_traceability(
+                    path, root / "config" / "bbma_module_graph.json"
+                )
+
+
 class EvidenceTests(unittest.TestCase):
     def test_hash_store_cache_and_package(self):
         with tempfile.TemporaryDirectory() as tmp:

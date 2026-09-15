@@ -428,6 +428,47 @@ class SourceDiscoveryTests(unittest.TestCase):
                 self.assertEqual(verified.authority_refs, ("SOURCE_INDEX.md",))
                 self.assertEqual(verified.phase, "DISCOVERED")
 
+class SourceReconcileTests(unittest.TestCase):
+    def test_enqueue_claims_preserves_adjudicated_dispositions_and_holds(self):
+        from tools.bbma_orchestrator.source_reconcile import enqueue_claims
+        items = enqueue_claims(
+            "SRC-1",
+            [
+                {"claim_id": "C2", "disposition": "UNCLEAR", "hold_items": ["missing page"]},
+                {"claim_id": "C1", "disposition": "MATCH"},
+            ],
+        )
+        self.assertEqual([item.claim_id for item in items], ["C2", "C1"])
+        self.assertEqual(items[0].hold_items, ("missing page",))
+        self.assertEqual(items[0].disposition, "UNCLEAR")
+
+    def test_reconciliation_hold_is_preserved_and_not_core_eligible(self):
+        from tools.bbma_orchestrator.source_reconcile import eligible_for_core_link, record_reconciliation
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            with SourceRegistry(Path(tmp) / "sources.db") as registry:
+                registry.register_discovered("SRC-1", "file:///a.pdf")
+                for phase in ("INGESTED", "INTEGRITY_VERIFIED", "PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("SRC-1", phase)
+                record = record_reconciliation(registry, "SRC-1", "PARTIAL", hold_items=("conflict",))
+                self.assertEqual(record.hold_items, ("conflict",))
+                self.assertFalse(eligible_for_core_link(record))
+
+    def test_accepted_core_requires_explicit_authority_and_no_hold(self):
+        from tools.bbma_orchestrator.source_reconcile import eligible_for_core_link, record_reconciliation
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            with SourceRegistry(Path(tmp) / "sources.db") as registry:
+                registry.register_discovered("SRC-1", "file:///a.pdf")
+                for phase in ("INGESTED", "INTEGRITY_VERIFIED", "PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("SRC-1", phase)
+                with self.assertRaises(ValueError):
+                    record_reconciliation(registry, "SRC-1", "ACCEPTED_CORE")
+                accepted = record_reconciliation(
+                    registry, "SRC-1", "ACCEPTED_CORE", accepted_authority="decision:CORE-001"
+                )
+                self.assertTrue(eligible_for_core_link(accepted))
+
 class SourceLibraryRegistryTests(unittest.TestCase):
     def test_source_phase_progression_and_skip_rejected(self):
         from tools.bbma_orchestrator.source_library import SourceRegistry

@@ -50,10 +50,10 @@
 
 **Interfaces:** `ReconciliationItem`, `enqueue_claims(...)`, `record_reconciliation(...)`, `eligible_for_core_link(...)`.
 
-- [ ] Test MATCH/CORROBORATION/PARTIAL/UNCLEAR/SOURCE_CONFLICT/REJECTED outcomes and HOLD preservation.
-- [ ] Test that `ACCEPTED_CORE` fails unless an explicit accepted decision/authority reference is supplied.
-- [ ] Implement queue state without embedding BBMA semantic judgments in code; callers provide adjudicated disposition.
-- [ ] Run focused/full tests and commit.
+- [x] Test MATCH/CORROBORATION/PARTIAL/UNCLEAR/SOURCE_CONFLICT/REJECTED outcomes and HOLD preservation.
+- [x] Test that `ACCEPTED_CORE` fails unless an explicit accepted decision/authority reference is supplied.
+- [x] Implement queue state without embedding BBMA semantic judgments in code; callers provide adjudicated disposition.
+- [x] Run focused/full tests and commit.
 ### Task 4: Source-to-Core impact bridge
 
 **Files:** Modify `tools/bbma_orchestrator/source_library.py`, `tools/bbma_orchestrator/evidence.py`; modify tests.

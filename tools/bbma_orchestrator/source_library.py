@@ -288,6 +288,16 @@ class SourceRegistry:
         self.conn.commit()
         return self.get(record.source_id)
 
+    def set_hold_items(self, source_id: str, hold_items: Iterable[str]) -> SourceRecord:
+        record = self.get(source_id)
+        holds = tuple(item.strip() for item in hold_items if item.strip())
+        self.conn.execute(
+            "UPDATE sources SET hold_items_json=?,updated_at=? WHERE source_id=?",
+            (self._dump(holds), utc_now(), record.source_id),
+        )
+        self.conn.commit()
+        return self.get(record.source_id)
+
     def ingest_file(
         self,
         source_id: str,

@@ -835,6 +835,33 @@ class TelemetryTests(unittest.TestCase):
                     store.ingest_mt4_log(source, source_kind="strategy-tester")
                 self.assertEqual(store.failure_first_summary()["total"], 0)
 
+    def test_mt4_log_ingest_rolls_back_on_injected_publish_fault(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "20260910.log"
+            row = (
+                "0\t10:29:27.700\tEA_BUILD GBPUSD,M15: [N1-NMJE] EURUSD "
+                "REL=ALIGNED SUB=NONE MAT=CONFIRMED P=H4_OWNER/B PRETAIN=Y "
+                "PSEL=CANONICAL PHASE=CONFIRMED PDUR=Y PE=ABC "
+                "J=EURUSD|H4_OWNER|240|SIGNAL_ECSD|B|1788768000 D1=- "
+                "H4=B H1=B M15=B R=OK"
+            )
+            source.write_text((row + "\n") * 2, encoding="utf-8")
+            with TelemetryStore(root / "t.db") as store:
+                original = store.ingest_event
+                calls = {"count": 0}
+
+                def injected(payload, **kwargs):
+                    calls["count"] += 1
+                    if calls["count"] == 2:
+                        raise RuntimeError("injected publish fault")
+                    return original(payload, **kwargs)
+
+                store.ingest_event = injected
+                with self.assertRaisesRegex(RuntimeError, "injected publish fault"):
+                    store.ingest_mt4_log(source, source_kind="mt4-expert")
+                self.assertEqual(store.failure_first_summary()["total"], 0)
+
     def test_mt4_log_ingest_rejects_file_changed_during_read(self):
         from unittest.mock import patch
 

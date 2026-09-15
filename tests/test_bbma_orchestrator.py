@@ -387,6 +387,47 @@ class NativeAdapterTests(unittest.TestCase):
             self.assertFalse(rows[1]["exists"])
 
 
+class SourceDiscoveryTests(unittest.TestCase):
+    def test_discover_paths_is_bounded_sorted_and_patterned(self):
+        from tools.bbma_orchestrator.source_discovery import discover_paths
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "z.pdf").write_text("z", encoding="utf-8")
+            (root / "a.pdf").write_text("a", encoding="utf-8")
+            (root / "note.txt").write_text("n", encoding="utf-8")
+            self.assertEqual(
+                discover_paths([root], patterns=("*.pdf",)),
+                [root / "a.pdf", root / "z.pdf"],
+            )
+
+    def test_artifact_role_explicit_and_filename_classification_are_separate(self):
+        from tools.bbma_orchestrator.source_discovery import classify_artifact_role
+        self.assertEqual(classify_artifact_role(Path("raw.pdf"), "RAW"), "RAW")
+        self.assertEqual(classify_artifact_role(Path("corrected_transcript.txt"), ""), "CORRECTED")
+        self.assertEqual(classify_artifact_role(Path("derived_summary.md"), ""), "DERIVED")
+        self.assertEqual(classify_artifact_role(Path("unknown.bin"), ""), "UNKNOWN")
+
+    def test_unknown_provenance_stays_unverified_without_phase_promotion(self):
+        from tools.bbma_orchestrator.source_discovery import record_provenance
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            with SourceRegistry(Path(tmp) / "sources.db") as registry:
+                registry.register_discovered("SRC-1", "file:///a.pdf")
+                unknown = record_provenance(registry, "SRC-1", "", "", ())
+                self.assertEqual(unknown.provenance, "UNVERIFIED")
+                self.assertEqual(unknown.phase, "DISCOVERED")
+                verified = record_provenance(
+                    registry,
+                    "SRC-1",
+                    "SOURCE_INDEX",
+                    "PRIMARY",
+                    ("SOURCE_INDEX.md",),
+                )
+                self.assertEqual(verified.provenance, "SOURCE_INDEX")
+                self.assertEqual(verified.tier, "PRIMARY")
+                self.assertEqual(verified.authority_refs, ("SOURCE_INDEX.md",))
+                self.assertEqual(verified.phase, "DISCOVERED")
+
 class SourceLibraryRegistryTests(unittest.TestCase):
     def test_source_phase_progression_and_skip_rejected(self):
         from tools.bbma_orchestrator.source_library import SourceRegistry

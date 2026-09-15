@@ -40,9 +40,9 @@
 
 **Interfaces:** `discover_paths(roots, patterns)`, `classify_artifact_role(path, explicit_role)`, `record_provenance(registry, source_id, provenance, tier, authority_refs)`.
 
-- [ ] Test deterministic sorted discovery, digest duplicate suppression, raw/corrected/derived role separation and unknown provenance remaining `UNVERIFIED` rather than promoted.
-- [ ] Implement bounded filesystem discovery only from caller-supplied roots; no ad-hoc internet crawling.
-- [ ] Run focused/full tests and commit the independent deliverable.
+- [x] Test deterministic sorted discovery, digest duplicate suppression, raw/corrected/derived role separation and unknown provenance remaining `UNVERIFIED` rather than promoted.
+- [x] Implement bounded filesystem discovery only from caller-supplied roots; no ad-hoc internet crawling.
+- [x] Run focused/full tests and commit the independent deliverable.
 
 ### Task 3: Reconciliation queue and no-promotion guard
 

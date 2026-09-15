@@ -265,6 +265,29 @@ class SourceRegistry:
         )
         self.conn.commit()
         return self.get(record.source_id)
+
+    def record_provenance(
+        self,
+        source_id: str,
+        provenance: str,
+        tier: str,
+        authority_refs: Iterable[str] = (),
+    ) -> SourceRecord:
+        record = self.get(source_id)
+        provenance_value = provenance.strip() or "UNVERIFIED"
+        tier_value = tier.strip() or "UNVERIFIED"
+        refs = tuple(ref.strip() for ref in authority_refs if ref.strip())
+        self.conn.execute(
+            """
+            UPDATE sources
+            SET provenance=?, tier=?, authority_refs_json=?, updated_at=?
+            WHERE source_id=?
+            """,
+            (provenance_value, tier_value, self._dump(refs), utc_now(), record.source_id),
+        )
+        self.conn.commit()
+        return self.get(record.source_id)
+
     def ingest_file(
         self,
         source_id: str,

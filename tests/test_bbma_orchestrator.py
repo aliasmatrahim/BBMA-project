@@ -386,5 +386,73 @@ class NativeAdapterTests(unittest.TestCase):
             self.assertTrue(rows[0]["sha256"])
             self.assertFalse(rows[1]["exists"])
 
+
+class SourceLibraryRegistryTests(unittest.TestCase):
+    def test_source_phase_progression_and_skip_rejected(self):
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            with SourceRegistry(Path(tmp) / "sources.db") as registry:
+                registry.register_discovered("SRC-1", "file:///a.pdf", media_type="pdf")
+                self.assertEqual(registry.get("SRC-1").phase, "DISCOVERED")
+                registry.transition_phase("SRC-1", "INGESTED")
+                registry.transition_phase("SRC-1", "INTEGRITY_VERIFIED")
+                self.assertEqual(registry.get("SRC-1").phase, "INTEGRITY_VERIFIED")
+                with self.assertRaises(ValueError):
+                    registry.transition_phase("SRC-1", "EXTRACTED")
+                with self.assertRaises(ValueError):
+                    registry.transition_phase("SRC-1", "DISCOVERED")
+
+    def test_disposition_independent_and_accepted_core_is_guarded(self):
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            with SourceRegistry(Path(tmp) / "sources.db") as registry:
+                registry.register_discovered("SRC-1", "file:///a.pdf")
+                registry.set_disposition("SRC-1", "UNCLEAR")
+                self.assertEqual(registry.get("SRC-1").disposition, "UNCLEAR")
+                with self.assertRaises(ValueError):
+                    registry.set_disposition("SRC-1", "ACCEPTED_CORE")
+                for phase in ("INGESTED", "INTEGRITY_VERIFIED", "PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("SRC-1", phase)
+                with self.assertRaises(ValueError):
+                    registry.set_disposition("SRC-1", "ACCEPTED_CORE")
+                registry.set_disposition("SRC-1", "ACCEPTED_CORE", accepted_authority="decision:CORE-001")
+                self.assertEqual(registry.get("SRC-1").accepted_authority, "decision:CORE-001")
+
+    def test_ingest_is_idempotent_and_detects_duplicate_digest(self):
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            file = root / "source.txt"
+            file.write_text("same", encoding="utf-8")
+            with SourceRegistry(root / "sources.db") as registry:
+                first = registry.ingest_file("SRC-1", file, media_type="text")
+                again = registry.ingest_file("SRC-1", file, media_type="text")
+                duplicate = registry.ingest_file("SRC-2", file, media_type="text")
+                self.assertEqual(first.status, "NEW")
+                self.assertEqual(again.status, "UNCHANGED")
+                self.assertEqual(duplicate.status, "DUPLICATE")
+                self.assertEqual(duplicate.duplicate_of, "SRC-1")
+                self.assertEqual(registry.get("SRC-1").digest, registry.get("SRC-2").digest)
+                self.assertEqual([r.source_id for r in registry.find_by_digest(first.record.digest)], ["SRC-1", "SRC-2"])
+
+    def test_changed_digest_resets_semantic_acceptance_fail_closed(self):
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            file = root / "source.txt"
+            file.write_text("v1", encoding="utf-8")
+            with SourceRegistry(root / "sources.db") as registry:
+                registry.ingest_file("SRC-1", file)
+                for phase in ("PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("SRC-1", phase)
+                registry.set_disposition("SRC-1", "ACCEPTED_CORE", accepted_authority="decision:CORE-001")
+                file.write_text("v2", encoding="utf-8")
+                changed = registry.ingest_file("SRC-1", file)
+                record = registry.get("SRC-1")
+                self.assertEqual(changed.status, "CHANGED")
+                self.assertEqual(record.phase, "INTEGRITY_VERIFIED")
+                self.assertEqual(record.disposition, "UNREVIEWED")
+                self.assertEqual(record.accepted_authority, "")
+
 if __name__ == "__main__":
     unittest.main()

@@ -5,6 +5,8 @@ on:
     paths:
       - "tools/bbma_orchestrator/**"
       - "tests/test_bbma_orchestrator.py"
+      - "config/bbma_architecture_invariants.json"
+      - "config/bbma_module_graph.json"
       - "docs/BBMA_AUTONOMOUS_ENGINEERING_INFRASTRUCTURE.md"
       - "docs/superpowers/plans/2026-09-14-autonomous-engineering-infrastructure.md"
       - ".github/workflows/orchestrator-integrity.yml"
@@ -14,6 +16,8 @@ on:
     paths:
       - "tools/bbma_orchestrator/**"
       - "tests/test_bbma_orchestrator.py"
+      - "config/bbma_architecture_invariants.json"
+      - "config/bbma_module_graph.json"
       - ".github/workflows/orchestrator-integrity.yml"
   workflow_dispatch:
 

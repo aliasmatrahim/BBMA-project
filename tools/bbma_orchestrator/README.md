@@ -112,6 +112,24 @@ Shadow comparison is explicitly read-only and reports `trade_authority: NONE`.
 
 Module identity is VERIFIED. Consumer-edge coverage is PARTIAL: an absent edge means NOT VERIFIED, never evidence that no dependency exists. Regression assignments remain NOT VERIFIED until their separate authority mapping is populated.
 
+## Evidence-bound architecture invariants
+
+`config/bbma_architecture_invariants.json` selects only explicit ownership
+boundaries backed by standalone contracts in the accepted module graph.
+
+```bash
+python -m tools.bbma_orchestrator architecture-invariants \
+  --catalog config/bbma_architecture_invariants.json \
+  --module-graph config/bbma_module_graph.json
+```
+
+The command verifies the authority commit and Git blobs, exact module ownership
+and evidence bindings, then exhaustively mutates every catalogued ownership
+boundary to prove the guard detects drift. It reports runtime enforcement as
+`NOT VERIFIED`; static validation cannot create native/runtime PASS. Catalog
+coverage is intentionally non-exhaustive, so absence is not proof that another
+module has no invariant.
+
 ## Verified Core traceability
 
 `config/bbma_traceability.json` maps the attributable `CORE-V2-F1` through `CORE-V2-F6` chains across source evidence, Core rule, contract, module, code, static test record and runtime. Every catalog item is pinned to the accepted `d1-owner-dev` commit and Git blob.
@@ -194,4 +212,4 @@ python -m compileall tools/bbma_orchestrator
 python -m unittest discover -s tests -p "test_bbma_orchestrator.py" -v
 ```
 
-The suite covers atomic persistence, recovery capsules, evidence staleness, failure-first telemetry, lifecycle property-style checks, mutation self-detection, golden traces, shadow comparison and native-adapter fail-closed behaviour.
+The suite covers atomic persistence, recovery capsules, evidence staleness, failure-first telemetry, lifecycle and evidence-bound BBMA architecture property checks, mutation self-detection, golden traces, shadow comparison and native-adapter fail-closed behaviour.

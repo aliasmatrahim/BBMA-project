@@ -226,6 +226,151 @@ class VerifiedModuleGraphTests(unittest.TestCase):
                 load_verified_module_graph(path)
 
 
+class ArchitectureInvariantTests(unittest.TestCase):
+    @staticmethod
+    def _paths():
+        root = Path(__file__).resolve().parents[1]
+        return (
+            root / "config" / "bbma_architecture_invariants.json",
+            root / "config" / "bbma_module_graph.json",
+        )
+
+    def test_catalog_binds_exact_contract_cited_ownership_boundaries(self):
+        from tools.bbma_orchestrator.verified import (
+            load_verified_architecture_invariants,
+        )
+
+        catalog_path, graph_path = self._paths()
+        catalog = load_verified_architecture_invariants(
+            catalog_path, graph_path
+        )
+        expected_modules = {
+            "M12N", "M13", "M14", "M15", "M18", "M19", "M22", "M27",
+        }
+        self.assertEqual(
+            {item["module"] for item in catalog["invariants"].values()},
+            expected_modules,
+        )
+        self.assertEqual(
+            catalog["coverage"]["runtime_enforcement"], "NOT VERIFIED"
+        )
+        for item in catalog["invariants"].values():
+            self.assertTrue(any(ref != "EA_HEADERS" for ref in item["evidence"]))
+
+    def test_catalog_rejects_scope_deletion_addition_or_substitution(self):
+        from tools.bbma_orchestrator.verified import (
+            validate_architecture_invariants,
+        )
+
+        catalog_path, graph_path = self._paths()
+        graph = json.loads(graph_path.read_text(encoding="utf-8"))
+        original = json.loads(catalog_path.read_text(encoding="utf-8"))
+
+        deleted = json.loads(json.dumps(original))
+        removed_id = next(iter(deleted["invariants"]))
+        del deleted["invariants"][removed_id]
+
+        added = json.loads(json.dumps(original))
+        added["invariants"]["ARCH-M06-UNAPPROVED"] = {
+            "module": "M06",
+            "ownership": graph["modules"]["M06"]["ownership"],
+            "evidence": graph["modules"]["M06"]["evidence"],
+        }
+
+        substituted = json.loads(json.dumps(added))
+        del substituted["invariants"][removed_id]
+
+        for label, catalog in (
+            ("deleted", deleted),
+            ("added", added),
+            ("substituted", substituted),
+        ):
+            with self.subTest(label=label):
+                with self.assertRaisesRegex(
+                    ValueError, "approved architecture invariant module set"
+                ):
+                    validate_architecture_invariants(catalog, graph)
+
+    def test_catalog_rejects_non_contract_evidence_path(self):
+        from tools.bbma_orchestrator.verified import (
+            validate_architecture_invariants,
+        )
+
+        catalog_path, graph_path = self._paths()
+        catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+        graph = json.loads(graph_path.read_text(encoding="utf-8"))
+        graph["evidence_catalog"]["C_M12N"]["path"] = (
+            "docs/M12N_NESTED_MTF_JOURNEY_ENGINE_CONTRACT.md"
+        )
+        with self.assertRaisesRegex(ValueError, "standalone contract evidence"):
+            validate_architecture_invariants(catalog, graph)
+
+    def test_catalog_rejects_ownership_or_evidence_drift(self):
+        from tools.bbma_orchestrator.verified import (
+            load_verified_architecture_invariants,
+            validate_architecture_invariants,
+        )
+
+        catalog_path, graph_path = self._paths()
+        catalog = load_verified_architecture_invariants(
+            catalog_path, graph_path
+        )
+        graph = json.loads(graph_path.read_text(encoding="utf-8"))
+        module = next(iter(catalog["invariants"].values()))["module"]
+        graph["modules"][module]["ownership"] += " MUTATED"
+        with self.assertRaisesRegex(ValueError, "ownership mismatch"):
+            validate_architecture_invariants(catalog, graph)
+
+        graph = json.loads(graph_path.read_text(encoding="utf-8"))
+        catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+        first = next(iter(catalog["invariants"].values()))
+        first["evidence"] = ["EA_HEADERS"]
+        with self.assertRaisesRegex(ValueError, "evidence mismatch"):
+            validate_architecture_invariants(catalog, graph)
+
+    def test_catalog_rejects_false_runtime_verification(self):
+        from tools.bbma_orchestrator.verified import (
+            validate_architecture_invariants,
+        )
+
+        catalog_path, graph_path = self._paths()
+        catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+        graph = json.loads(graph_path.read_text(encoding="utf-8"))
+        catalog["coverage"]["runtime_enforcement"] = "VERIFIED"
+        with self.assertRaisesRegex(ValueError, "runtime enforcement"):
+            validate_architecture_invariants(catalog, graph)
+
+    def test_exhaustive_mutation_check_detects_every_boundary(self):
+        from tools.bbma_orchestrator.verified import (
+            architecture_invariant_mutation_check,
+        )
+
+        catalog_path, graph_path = self._paths()
+        result = architecture_invariant_mutation_check(
+            catalog_path, graph_path
+        )
+        self.assertEqual(result["mutations"], 8)
+        self.assertEqual(result["detected"], result["mutations"])
+
+    def test_architecture_invariant_cli_reports_runtime_boundary(self):
+        import contextlib
+        import io
+        from tools.bbma_orchestrator.cli import main
+
+        catalog_path, graph_path = self._paths()
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            main([
+                "architecture-invariants",
+                "--catalog", str(catalog_path),
+                "--module-graph", str(graph_path),
+            ])
+        result = json.loads(output.getvalue())
+        self.assertEqual(result["invariants"], 8)
+        self.assertEqual(result["detected_mutations"], 8)
+        self.assertEqual(result["runtime_enforcement"], "NOT VERIFIED")
+
+
 class VerifiedTraceabilityTests(unittest.TestCase):
     def test_traceability_covers_existing_core_ids_without_false_runtime_pass(self):
         from tools.bbma_orchestrator.verified import load_verified_traceability

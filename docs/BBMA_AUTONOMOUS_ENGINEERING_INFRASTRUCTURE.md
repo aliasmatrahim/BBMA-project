@@ -97,6 +97,18 @@ The infrastructure model tests separation of candidate, confirmed, selected, val
 
 Randomized sequences, mutation self-tests and injected atomic-write failures prove that the test harness itself detects invalid lifecycle or persistence behaviour.
 
+## Evidence-bound architecture invariants
+`config/bbma_architecture_invariants.json` binds eight explicit ownership
+boundaries to the accepted module graph and its immutable contract blobs:
+M12N observation-only, M13 collect-only, M14 validate-only, M15 final-signal
+authority, M18 label-only, M19 filter-only, M22 dumb executor and M27
+orchestration-only. The validator rejects authority, ownership or evidence drift,
+and an exhaustive mutation self-check must detect every catalogued boundary.
+
+This is static architecture evidence, not runtime acceptance. Runtime enforcement
+remains `NOT VERIFIED`, and the catalog is deliberately limited to boundaries
+with standalone contract evidence rather than treating absent entries as proof.
+
 ## Reproducible environment and release candidate identity
 Environment snapshots record OS/Python/tool metadata supplied by the runner. Native G40 adapters later add exact MetaEditor/MT4 paths, versions, terminal identity and candidate MQ4/EX4 hashes.
 

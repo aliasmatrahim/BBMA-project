@@ -26,7 +26,12 @@ from .trace import (
     compare_trace_artifacts,
 )
 from .native import NativeAdapter, git_snapshot, artifact_identity
-from .verified import load_verified_regression_map, materialize_traceability
+from .verified import (
+    architecture_invariant_mutation_check,
+    load_verified_architecture_invariants,
+    load_verified_regression_map,
+    materialize_traceability,
+)
 
 def _json_print(data) -> None:
     print(json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False))
@@ -153,6 +158,21 @@ def cmd_traceability_materialize(args: argparse.Namespace) -> None:
     _json_print(materialize_traceability(
         args.traceability, args.module_graph, args.db
     ))
+
+def cmd_architecture_invariants(args: argparse.Namespace) -> None:
+    catalog = load_verified_architecture_invariants(
+        args.catalog, args.module_graph
+    )
+    mutation = architecture_invariant_mutation_check(
+        args.catalog, args.module_graph
+    )
+    _json_print(
+        {
+            "invariants": len(catalog["invariants"]),
+            "detected_mutations": mutation["detected"],
+            "runtime_enforcement": catalog["coverage"]["runtime_enforcement"],
+        }
+    )
 
 def cmd_evidence_package(args: argparse.Namespace) -> None:
     package = build_evidence_package(args.output, args.files, metadata={"label": args.label})
@@ -394,6 +414,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--module-graph", required=True)
     p.add_argument("--db", required=True)
     p.set_defaults(func=cmd_traceability_materialize)
+
+    p = sub.add_parser("architecture-invariants")
+    p.add_argument("--catalog", required=True)
+    p.add_argument("--module-graph", required=True)
+    p.set_defaults(func=cmd_architecture_invariants)
 
     p = sub.add_parser("evidence-package")
     p.add_argument("--output", required=True)

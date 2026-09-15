@@ -9,6 +9,9 @@ from typing import Any
 
 
 EXPECTED_MODULES = {f"M{i:02d}" for i in range(1, 28)} | {"M12N"}
+APPROVED_ARCHITECTURE_INVARIANT_MODULES = frozenset({
+    "M12N", "M13", "M14", "M15", "M18", "M19", "M22", "M27",
+})
 ALLOWED_STATUSES = {"VERIFIED", "NOT VERIFIED", "HOLD"}
 COVERAGE_STATUSES = {
     "VERIFIED", "PARTIAL", "NOT VERIFIED", "HOLD", "UNRESOLVED", "SOURCE CONFLICT"
@@ -510,3 +513,142 @@ def materialize_traceability(
         "nodes": node_count,
         "edges": edge_count,
     }
+
+
+ARCHITECTURE_COVERAGE_FIELDS = {
+    "ownership_boundaries",
+    "runtime_enforcement",
+}
+
+
+def validate_architecture_invariants(
+    catalog: dict[str, Any], module_graph: dict[str, Any]
+) -> dict[str, Any]:
+    _require(isinstance(catalog, dict), "architecture catalog must be an object")
+    _require(
+        set(catalog) == {
+            "schema_version", "authority", "coverage", "invariants",
+            "known_unknowns",
+        },
+        "architecture catalog fields mismatch",
+    )
+    _require(
+        catalog["schema_version"] == 1,
+        "unsupported architecture catalog schema_version",
+    )
+    _validate_authority(catalog["authority"])
+    _require(
+        isinstance(module_graph, dict)
+        and catalog["authority"] == module_graph.get("authority"),
+        "architecture authority must match module graph authority",
+    )
+    coverage = catalog["coverage"]
+    _require(
+        isinstance(coverage, dict)
+        and set(coverage) == ARCHITECTURE_COVERAGE_FIELDS,
+        "architecture coverage fields mismatch",
+    )
+    _require(
+        coverage["ownership_boundaries"] == "VERIFIED",
+        "ownership-boundary catalog must be VERIFIED",
+    )
+    _require(
+        coverage["runtime_enforcement"] == "NOT VERIFIED",
+        "runtime enforcement must remain NOT VERIFIED",
+    )
+    known_unknowns = catalog["known_unknowns"]
+    _require(
+        isinstance(known_unknowns, list)
+        and bool(known_unknowns)
+        and all(isinstance(item, str) and item.strip() for item in known_unknowns),
+        "architecture known_unknowns must be non-empty strings",
+    )
+    invariants = catalog["invariants"]
+    modules = module_graph.get("modules")
+    evidence_catalog = module_graph.get("evidence_catalog")
+    _require(isinstance(invariants, dict) and invariants,
+             "architecture invariants must be non-empty")
+    _require(isinstance(modules, dict), "module graph modules must be an object")
+    _require(
+        isinstance(evidence_catalog, dict),
+        "module graph evidence_catalog must be an object",
+    )
+    seen_modules: set[str] = set()
+    for invariant_id, item in invariants.items():
+        _require(
+            isinstance(invariant_id, str) and invariant_id.startswith("ARCH-"),
+            "invalid architecture invariant id",
+        )
+        _require(
+            isinstance(item, dict)
+            and set(item) == {"module", "ownership", "evidence"},
+            f"architecture invariant {invariant_id} fields mismatch",
+        )
+        module_id = item["module"]
+        _require(module_id in modules,
+                 f"architecture invariant {invariant_id} has unknown module")
+        _require(module_id not in seen_modules,
+                 f"duplicate architecture boundary for {module_id}")
+        _require(invariant_id.startswith(f"ARCH-{module_id}-"),
+                 f"architecture invariant id does not match {module_id}")
+        module = modules[module_id]
+        _require(module.get("status") == "VERIFIED",
+                 f"architecture module {module_id} is not VERIFIED")
+        _require(item["ownership"] == module.get("ownership"),
+                 f"architecture ownership mismatch for {module_id}")
+        _require(item["evidence"] == module.get("evidence"),
+                 f"architecture evidence mismatch for {module_id}")
+        contract_refs = [
+            ref for ref in item["evidence"]
+            if ref != "EA_HEADERS"
+            and isinstance(evidence_catalog.get(ref), dict)
+            and isinstance(evidence_catalog[ref].get("path"), str)
+            and bool(re.fullmatch(
+                r"blueprint/contracts/[^/]+\.md",
+                evidence_catalog[ref]["path"],
+            ))
+        ]
+        _require(
+            bool(contract_refs),
+            f"architecture boundary {module_id} lacks standalone contract evidence",
+        )
+        seen_modules.add(module_id)
+    _require(
+        seen_modules == APPROVED_ARCHITECTURE_INVARIANT_MODULES,
+        "approved architecture invariant module set mismatch",
+    )
+    return catalog
+
+
+def load_verified_architecture_invariants(
+    path: str | Path, module_graph_path: str | Path
+) -> dict[str, Any]:
+    module_graph = load_verified_module_graph(module_graph_path)
+    _verify_git_evidence_catalog(
+        module_graph["evidence_catalog"],
+        module_graph["authority"]["commit"],
+        module_graph_path,
+    )
+    with Path(path).open("r", encoding="utf-8") as handle:
+        catalog = json.load(handle)
+    return validate_architecture_invariants(catalog, module_graph)
+
+
+def architecture_invariant_mutation_check(
+    path: str | Path, module_graph_path: str | Path
+) -> dict[str, int]:
+    catalog = load_verified_architecture_invariants(path, module_graph_path)
+    module_graph = load_verified_module_graph(module_graph_path)
+    detected = 0
+    for item in catalog["invariants"].values():
+        mutated = json.loads(json.dumps(module_graph))
+        module_id = item["module"]
+        mutated["modules"][module_id]["ownership"] += " [MUTATED]"
+        try:
+            validate_architecture_invariants(catalog, mutated)
+        except ValueError:
+            detected += 1
+    mutation_count = len(catalog["invariants"])
+    _require(detected == mutation_count,
+             "architecture mutation self-check did not detect every mutation")
+    return {"mutations": mutation_count, "detected": detected}

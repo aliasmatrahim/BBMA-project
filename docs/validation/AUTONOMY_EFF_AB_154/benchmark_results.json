@@ -1,0 +1,926 @@
+{
+  "acceptance": {
+    "all_required_task_classes_present": true,
+    "no_source_authority_regression": true,
+    "no_strategy_or_runtime_ownership_duplication": true,
+    "no_strategy_runtime_promotion": true,
+    "no_validation_gate_bypass": true,
+    "repeated_work_reduction_ge_20pct": true,
+    "warm_context_reduction_ge_30pct": true
+  },
+  "authority_state": {
+    "d1_owner": "23def0919386263007ead1898b94637cc17f7f36",
+    "tooling_head": "b0db1b652a0f46691b5aad52299239ae42a98994",
+    "tooling_origin": "b0db1b652a0f46691b5aad52299239ae42a98994",
+    "tracked_status": ""
+  },
+  "measurements": {
+    "strategy_f6": {
+      "all_verified_test_drivers": [
+        "TEST_DRIVER_F1",
+        "TEST_DRIVER_F2",
+        "TEST_DRIVER_F3",
+        "TEST_DRIVER_F5",
+        "TEST_DRIVER_F6"
+      ],
+      "runtime": "NOT VERIFIED",
+      "selected_tests": [
+        "TEST_DRIVER_F3",
+        "TEST_DRIVER_F6",
+        "TEST_DRIVER_F1"
+      ],
+      "selection_reduction": 0.4,
+      "status": "NOT VERIFIED"
+    },
+    "warm_context": {
+      "baseline_bytes": 916773,
+      "reduction": 0.9956194172385094,
+      "upgraded_bytes": 4016
+    },
+    "warm_repeated_work": {
+      "baseline_validations": 3,
+      "reduction": 1.0,
+      "upgraded_validations": 0
+    },
+    "warm_wall_clock": {
+      "baseline_s": 105.153993,
+      "reduction": 0.9859628059963448,
+      "upgraded_s": 1.476067
+    }
+  },
+  "protocol": {
+    "d1_authority_commit": "23def0919386263007ead1898b94637cc17f7f36",
+    "issue": 154,
+    "iterations": [
+      "cold",
+      "warm"
+    ],
+    "measurement_mapping": {
+      "cache_hit_miss": "content-addressed destination existed before put",
+      "repeated_work_avoided": "digest+authority matched prior PASS so repeated validation command was skipped",
+      "source_context_usage": "model-facing payload bytes/lines/artifact count",
+      "wall_clock": "task workflow time excluding fixture materialization"
+    },
+    "python": "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\tools\\python312\\runtime\\python.exe",
+    "schema_version": 1,
+    "task_classes": [
+      "docs_traceability",
+      "telemetry_tooling",
+      "strategy_f6_readonly"
+    ],
+    "tooling_commit": "b0db1b652a0f46691b5aad52299239ae42a98994"
+  },
+  "runs": [
+    {
+      "cache_copy_bytes_avoided": 0,
+      "cache_hits": 0,
+      "cache_misses": 0,
+      "iteration": "cold",
+      "mode": "baseline",
+      "model_context": {
+        "artifacts": 5,
+        "bytes": 58449,
+        "files": [
+          {
+            "lines": 90,
+            "path": "D:\\BBMA\\Workspace\\autonomy-eff-ab-154\\README.md",
+            "sha256": "6892d7cbf72b0d10fbde01a55a859324185f8c11b9648bad18b8e193aa3f0638",
+            "size": 4629
+          },
+          {
+            "lines": 186,
+            "path": "D:\\BBMA\\Workspace\\autonomy-eff-ab-154\\docs\\BBMA_TASK_ORCHESTRATOR_CONTRACT.md",
+            "sha256": "ef3e95bbab895de1a38297a89b2985111ebe3704433ece9755809d3a22eef262",
+            "size": 8273
+          },
+          {
+            "lines": 134,
+            "path": "D:\\BBMA\\Workspace\\autonomy-eff-ab-154\\docs\\BBMA_AUTONOMOUS_ENGINEERING_INFRASTRUCTURE.md",
+            "sha256": "2e3acb543491896c204ce5cfd660a1499388b71f4dda94663e5d7215909b81aa",
+            "size": 9590
+          },
+          {
+            "lines": 142,
+            "path": "D:\\BBMA\\Workspace\\autonomy-eff-ab-154\\config\\bbma_traceability.json",
+            "sha256": "62665dae04353a3f6aeace578e45c5f75938af91bfa706bc9e0b96e6ec9fc1d5",
+            "size": 20525
+          },
+          {
+            "lines": 66,
+            "path": "D:\\BBMA\\Workspace\\autonomy-eff-ab-154\\config\\bbma_module_graph.json",
+            "sha256": "cdb672ec72e13f85dba736056950e53ca89541e6de4c4956dadd9645bfeeb969",
+            "size": 15432
+          }
+        ],
+        "lines": 618
+      },
+      "model_route": "MEDIUM",
+      "repeated_validation_avoided": 0,
+      "repeated_validation_executed": 1,
+      "risk_score": 0,
+      "task": "docs_traceability",
+      "validation": {
+        "command": [
+          "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\tools\\python312\\runtime\\python.exe",
+          "-m",
+          "tools.bbma_orchestrator",
+          "traceability-materialize",
+          "--traceability",
+          "config/bbma_traceability.json",
+          "--module-graph",
+          "config/bbma_module_graph.json",
+          "--db",
+          "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\docs_traceability\\baseline\\cold\\trace.db"
+        ],
+        "duration_s": 12.427742,
+        "label": "docs_traceability-baseline-cold-trace",
+        "log_path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\docs_traceability-baseline-cold-trace.json",
+        "returncode": 0,
+        "stderr": "",
+        "stdout": "{\n  \"edges\": 36,\n  \"nodes\": 42,\n  \"rules\": 6\n}\n"
+      },
+      "validation_status": "PASS",
+      "wall_clock_s": 12.533524
+    },
+    {
+      "cache_copy_bytes_avoided": 0,
+      "cache_hits": 0,
+      "cache_misses": 0,
+      "iteration": "warm",
+      "mode": "baseline",
+      "model_context": {
+        "artifacts": 5,
+        "bytes": 58449,
+        "files": [
+          {
+            "lines": 90,
+            "path": "D:\\BBMA\\Workspace\\autonomy-eff-ab-154\\README.md",
+            "sha256": "6892d7cbf72b0d10fbde01a55a859324185f8c11b9648bad18b8e193aa3f0638",
+            "size": 4629
+          },
+          {
+            "lines": 186,
+            "path": "D:\\BBMA\\Workspace\\autonomy-eff-ab-154\\docs\\BBMA_TASK_ORCHESTRATOR_CONTRACT.md",
+            "sha256": "ef3e95bbab895de1a38297a89b2985111ebe3704433ece9755809d3a22eef262",
+            "size": 8273
+          },
+          {
+            "lines": 134,
+            "path": "D:\\BBMA\\Workspace\\autonomy-eff-ab-154\\docs\\BBMA_AUTONOMOUS_ENGINEERING_INFRASTRUCTURE.md",
+            "sha256": "2e3acb543491896c204ce5cfd660a1499388b71f4dda94663e5d7215909b81aa",
+            "size": 9590
+          },
+          {
+            "lines": 142,
+            "path": "D:\\BBMA\\Workspace\\autonomy-eff-ab-154\\config\\bbma_traceability.json",
+            "sha256": "62665dae04353a3f6aeace578e45c5f75938af91bfa706bc9e0b96e6ec9fc1d5",
+            "size": 20525
+          },
+          {
+            "lines": 66,
+            "path": "D:\\BBMA\\Workspace\\autonomy-eff-ab-154\\config\\bbma_module_graph.json",
+            "sha256": "cdb672ec72e13f85dba736056950e53ca89541e6de4c4956dadd9645bfeeb969",
+            "size": 15432
+          }
+        ],
+        "lines": 618
+      },
+      "model_route": "MEDIUM",
+      "repeated_validation_avoided": 0,
+      "repeated_validation_executed": 1,
+      "risk_score": 0,
+      "task": "docs_traceability",
+      "validation": {
+        "command": [
+          "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\tools\\python312\\runtime\\python.exe",
+          "-m",
+          "tools.bbma_orchestrator",
+          "traceability-materialize",
+          "--traceability",
+          "config/bbma_traceability.json",
+          "--module-graph",
+          "config/bbma_module_graph.json",
+          "--db",
+          "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\docs_traceability\\baseline\\warm\\trace.db"
+        ],
+        "duration_s": 11.65431,
+        "label": "docs_traceability-baseline-warm-trace",
+        "log_path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\docs_traceability-baseline-warm-trace.json",
+        "returncode": 0,
+        "stderr": "",
+        "stdout": "{\n  \"edges\": 36,\n  \"nodes\": 42,\n  \"rules\": 6\n}\n"
+      },
+      "validation_status": "PASS",
+      "wall_clock_s": 11.66256
+    },
+    {
+      "cache_copy_bytes_avoided": 0,
+      "cache_hits": 0,
+      "cache_misses": 5,
+      "iteration": "cold",
+      "mode": "upgraded",
+      "model_context": {
+        "artifacts": 1,
+        "bytes": 1131,
+        "files": [
+          {
+            "lines": 38,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\contexts\\docs_traceability-cold.json",
+            "sha256": "f9001d26271c47cdb5041ddb64bebe2d2e612d0b766f372c001cdc8cb9709836",
+            "size": 1131
+          }
+        ],
+        "lines": 38
+      },
+      "model_route": "MEDIUM",
+      "repeated_validation_avoided": 0,
+      "repeated_validation_executed": 1,
+      "risk_score": 0,
+      "selected_tests": [],
+      "task": "docs_traceability",
+      "validation": {
+        "command": [
+          "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\tools\\python312\\runtime\\python.exe",
+          "-m",
+          "tools.bbma_orchestrator",
+          "traceability-materialize",
+          "--traceability",
+          "config/bbma_traceability.json",
+          "--module-graph",
+          "config/bbma_module_graph.json",
+          "--db",
+          "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\docs_traceability\\upgraded\\cold\\trace.db"
+        ],
+        "duration_s": 12.238618,
+        "label": "docs_traceability-upgraded-cold-trace",
+        "log_path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\docs_traceability-upgraded-cold-trace.json",
+        "returncode": 0,
+        "stderr": "",
+        "stdout": "{\n  \"edges\": 36,\n  \"nodes\": 42,\n  \"rules\": 6\n}\n"
+      },
+      "validation_status": "PASS",
+      "wall_clock_s": 12.96424
+    },
+    {
+      "cache_copy_bytes_avoided": 58449,
+      "cache_hits": 5,
+      "cache_misses": 0,
+      "iteration": "warm",
+      "mode": "upgraded",
+      "model_context": {
+        "artifacts": 1,
+        "bytes": 1131,
+        "files": [
+          {
+            "lines": 38,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\contexts\\docs_traceability-warm.json",
+            "sha256": "43cdc85b5151780b1408fdfb9e964108548f1374fb05451dc7cff6f1d0ffd53e",
+            "size": 1131
+          }
+        ],
+        "lines": 38
+      },
+      "model_route": "MEDIUM",
+      "repeated_validation_avoided": 1,
+      "repeated_validation_executed": 0,
+      "risk_score": 0,
+      "selected_tests": [],
+      "task": "docs_traceability",
+      "validation": {
+        "duration_s": 0.0,
+        "reason": "all validation inputs digest-match prior PASS under identical authority fingerprint",
+        "returncode": 0,
+        "reused": true
+      },
+      "validation_status": "REUSED_PASS",
+      "wall_clock_s": 0.081491
+    },
+    {
+      "cache_copy_bytes_avoided": 0,
+      "cache_hits": 0,
+      "cache_misses": 0,
+      "iteration": "cold",
+      "mode": "baseline",
+      "model_context": {
+        "artifacts": 4,
+        "bytes": 380604,
+        "files": [
+          {
+            "lines": 520,
+            "path": "D:\\BBMA\\Workspace\\autonomy-eff-ab-154\\tools\\bbma_orchestrator\\telemetry.py",
+            "sha256": "9227394b9e8951175eeea5d0dfa1a2160e67c0acf5a874a68994fb1c0b777b4f",
+            "size": 19477
+          },
+          {
+            "lines": 526,
+            "path": "D:\\BBMA\\Workspace\\autonomy-eff-ab-154\\tools\\bbma_orchestrator\\cli.py",
+            "sha256": "ef95e18ef2006ba0728aae756152a2881bc6fd6bcd99ae76dda6a1a7e203fcb6",
+            "size": 19807
+          },
+          {
+            "lines": 1445,
+            "path": "D:\\BBMA\\Workspace\\autonomy-eff-ab-154\\tests\\test_bbma_orchestrator.py",
+            "sha256": "e25c5255629ebb75de490cd9983e9aea2a358b4db663ff5d1d487fbd625a498b",
+            "size": 66969
+          },
+          {
+            "lines": 133,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\telemetry_raw.jsonl",
+            "sha256": "11d6f09179d6c88cf3339a77f6bc168a022735d1a96549cd796345a9d5aefbd9",
+            "size": 274351
+          }
+        ],
+        "lines": 2624
+      },
+      "model_route": "HIGH",
+      "repeated_validation_avoided": 0,
+      "repeated_validation_executed": 1,
+      "risk_score": 10,
+      "task": "telemetry_tooling",
+      "validation": {
+        "command": [
+          "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\tools\\python312\\runtime\\python.exe",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_bbma_orchestrator.py",
+          "-v"
+        ],
+        "duration_s": 87.033952,
+        "label": "telemetry_tooling-baseline-cold-tests",
+        "log_path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\telemetry_tooling-baseline-cold-tests.json",
+        "returncode": 0,
+        "stderr": "test_architecture_invariant_cli_reports_runtime_boundary (test_bbma_orchestrator.ArchitectureInvariantTests.test_architecture_invariant_cli_reports_runtime_boundary) ... ok\ntest_catalog_binds_exact_contract_cited_ownership_boundaries (test_bbma_orchestrator.ArchitectureInvariantTests.test_catalog_binds_exact_contract_cited_ownership_boundaries) ... ok\ntest_catalog_rejects_false_runtime_verification (test_bbma_orchestrator.ArchitectureInvariantTests.test_catalog_rejects_false_runtime_verification) ... ok\ntest_catalog_rejects_non_contract_evidence_path (test_bbma_orchestrator.ArchitectureInvariantTests.test_catalog_rejects_non_contract_evidence_path) ... ok\ntest_catalog_rejects_ownership_or_evidence_drift (test_bbma_orchestrator.ArchitectureInvariantTests.test_catalog_rejects_ownership_or_evidence_drift) ... ok\ntest_catalog_rejects_scope_deletion_addition_or_substitution (test_bbma_orchestrator.ArchitectureInvariantTests.test_catalog_rejects_scope_deletion_addition_or_substitution) ... ok\ntest_exhaustive_mutation_check_detects_every_boundary (test_bbma_orchestrator.ArchitectureInvariantTests.test_exhaustive_mutation_check_detects_every_boundary) ... ok\ntest_artifact_delta_requires_authorization_reference (test_bbma_orchestrator.AttributableTraceTests.test_artifact_delta_requires_authorization_reference) ... ok\ntest_attributable_events_require_exact_source_and_emitter (test_bbma_orchestrator.AttributableTraceTests.test_attributable_events_require_exact_source_and_emitter) ... ok\ntest_golden_role_requires_external_authority_reference (test_bbma_orchestrator.AttributableTraceTests.test_golden_role_requires_external_authority_reference) ... ok\ntest_trace_artifact_cli_export_and_diff (test_bbma_orchestrator.AttributableTraceTests.test_trace_artifact_cli_export_and_diff) ... ok\ntest_trace_artifact_is_deterministic_attributable_and_not_runtime_pass (test_bbma_orchestrator.AttributableTraceTests.test_trace_artifact_is_deterministic_attributable_and_not_runtime_pass) ... ok\ntest_trace_artifact_rejects_column_payload_identity_mismatch (test_bbma_orchestrator.AttributableTraceTests.test_trace_artifact_rejects_column_payload_identity_mismatch) ... ok\ntest_trace_artifact_rejects_self_hashed_invalid_metadata (test_bbma_orchestrator.AttributableTraceTests.test_trace_artifact_rejects_self_hashed_invalid_metadata) ... ok\ntest_trace_artifact_tampering_fails_closed (test_bbma_orchestrator.AttributableTraceTests.test_trace_artifact_tampering_fails_closed) ... ok\ntest_evidence_cache_reuse_requires_digest_and_authority (test_bbma_orchestrator.EvidenceTests.test_evidence_cache_reuse_requires_digest_and_authority) ... ok\ntest_evidence_dag_rejects_cycles (test_bbma_orchestrator.EvidenceTests.test_evidence_dag_rejects_cycles) ... ok\ntest_evidence_dag_stales_only_descendants (test_bbma_orchestrator.EvidenceTests.test_evidence_dag_stales_only_descendants) ... ok\ntest_hash_store_cache_and_package (test_bbma_orchestrator.EvidenceTests.test_hash_store_cache_and_package) ... ok\ntest_artifact_identity_hashes_existing_file (test_bbma_orchestrator.NativeAdapterTests.test_artifact_identity_hashes_existing_file) ... ok\ntest_native_adapter_blocks_forbidden_token (test_bbma_orchestrator.NativeAdapterTests.test_native_adapter_blocks_forbidden_token) ... ok\ntest_native_adapter_fails_nonzero_metaeditor_summary (test_bbma_orchestrator.NativeAdapterTests.test_native_adapter_fails_nonzero_metaeditor_summary) ... ok\ntest_native_adapter_is_dry_run_by_default (test_bbma_orchestrator.NativeAdapterTests.test_native_adapter_is_dry_run_by_default) ... ok\ntest_native_adapter_rejects_disabled_authority (test_bbma_orchestrator.NativeAdapterTests.test_native_adapter_rejects_disabled_authority) ... ok\ntest_native_adapter_rejects_duplicate_process_before_execute (test_bbma_orchestrator.NativeAdapterTests.test_native_adapter_rejects_duplicate_process_before_execute) ... ok\ntest_native_adapter_rejects_input_identity_drift (test_bbma_orchestrator.NativeAdapterTests.test_native_adapter_rejects_input_identity_drift) ... ok\ntest_native_adapter_rejects_stale_metaeditor_evidence (test_bbma_orchestrator.NativeAdapterTests.test_native_adapter_rejects_stale_metaeditor_evidence) ... ok\ntest_native_adapter_verifies_metaeditor_result_contract (test_bbma_orchestrator.NativeAdapterTests.test_native_adapter_verifies_metaeditor_result_contract) ... ok\ntest_native_run_cli_exits_nonzero_for_failed_execution (test_bbma_orchestrator.NativeAdapterTests.test_native_run_cli_exits_nonzero_for_failed_execution) ... ok\ntest_atomic_write_preserves_old_file_on_injected_failure (test_bbma_orchestrator.TaskStateTests.test_atomic_write_preserves_old_file_on_injected_failure) ... ok\ntest_context_pack_is_bounded_to_supplied_refs (test_bbma_orchestrator.TaskStateTests.test_context_pack_is_bounded_to_supplied_refs) ... ok\ntest_manifest_phase_and_pass_gate (test_bbma_orchestrator.TaskStateTests.test_manifest_phase_and_pass_gate) ... ok\ntest_manifest_rejects_skip (test_bbma_orchestrator.TaskStateTests.test_manifest_rejects_skip) ... ok\ntest_pass_before_closed_rejected (test_bbma_orchestrator.TaskStateTests.test_pass_before_closed_rejected) ... ok\ntest_regression_selector_uses_supplied_map_only (test_bbma_orchestrator.TaskStateTests.test_regression_selector_uses_supplied_map_only) ... ok\ntest_regression_selector_walks_all_cited_consumers (test_bbma_orchestrator.TaskStateTests.test_regression_selector_walks_all_cited_consumers) ... ok\ntest_risk_and_model_routing (test_bbma_orchestrator.TaskStateTests.test_risk_and_model_routing) ... ok\ntest_store_checkpoint_handoff_and_event (test_bbma_orchestrator.TaskStateTests.test_store_checkpoint_handoff_and_event) ... ok\ntest_csv_ingest (test_bbma_orchestrator.TelemetryTests.test_csv_ingest) ... ok\ntest_jsonl_failure_first_and_lookup (test_bbma_orchestrator.TelemetryTests.test_jsonl_failure_first_and_lookup) ... ok\ntest_mt4_log_cli_ingests_with_explicit_source_kind (test_bbma_orchestrator.TelemetryTests.test_mt4_log_cli_ingests_with_explicit_source_kind) ... ok\ntest_mt4_log_ingest_captures_append_only_current_n2_fields (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_captures_append_only_current_n2_fields) ... ok\ntest_mt4_log_ingest_fails_closed_before_partial_publish (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_fails_closed_before_partial_publish) ... ok\ntest_mt4_log_ingest_is_attributable_idempotent_and_never_implies_pass (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_is_attributable_idempotent_and_never_implies_pass) ... ok\ntest_mt4_log_ingest_rejects_ambiguous_or_unparsed_tokens (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_rejects_ambiguous_or_unparsed_tokens) ... ok\ntest_mt4_log_ingest_rejects_file_changed_during_read (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_rejects_file_changed_during_read) ... ok\ntest_mt4_log_ingest_rejects_invalid_utf8_without_publish (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_rejects_invalid_utf8_without_publish) ... ok\ntest_mt4_log_ingest_requires_current_identity_fields (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_requires_current_identity_fields) ... ok\ntest_mt4_log_ingest_rolls_back_on_injected_publish_fault (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_rolls_back_on_injected_publish_fault) ... ok\ntest_golden_trace_and_authorized_delta (test_bbma_orchestrator.TraceTests.test_golden_trace_and_authorized_delta) ... ok\ntest_lifecycle_rejects_skip_and_terminal_exit (test_bbma_orchestrator.TraceTests.test_lifecycle_rejects_skip_and_terminal_exit) ... ok\ntest_lifecycle_valid_path (test_bbma_orchestrator.TraceTests.test_lifecycle_valid_path) ... ok\ntest_mutation_self_test_detects_damaged_transition_table (test_bbma_orchestrator.TraceTests.test_mutation_self_test_detects_damaged_transition_table) ... ok\ntest_randomized_property_style_check (test_bbma_orchestrator.TraceTests.test_randomized_property_style_check) ... ok\ntest_shadow_is_read_only_comparison (test_bbma_orchestrator.TraceTests.test_shadow_is_read_only_comparison) ... ok\ntest_graph_covers_all_modules_and_cites_every_verified_edge (test_bbma_orchestrator.VerifiedModuleGraphTests.test_graph_covers_all_modules_and_cites_every_verified_edge) ... ok\ntest_graph_rejects_evidence_from_other_commit (test_bbma_orchestrator.VerifiedModuleGraphTests.test_graph_rejects_evidence_from_other_commit) ... ok\ntest_graph_rejects_false_verified_module_coverage (test_bbma_orchestrator.VerifiedModuleGraphTests.test_graph_rejects_false_verified_module_coverage) ... ok\ntest_graph_rejects_invalid_coverage_claim (test_bbma_orchestrator.VerifiedModuleGraphTests.test_graph_rejects_invalid_coverage_claim) ... ok\ntest_graph_rejects_malformed_authority_commit (test_bbma_orchestrator.VerifiedModuleGraphTests.test_graph_rejects_malformed_authority_commit) ... ok\ntest_graph_rejects_partial_coverage_without_known_unknowns (test_bbma_orchestrator.VerifiedModuleGraphTests.test_graph_rejects_partial_coverage_without_known_unknowns) ... ok\ntest_graph_rejects_uncited_consumer_edge (test_bbma_orchestrator.VerifiedModuleGraphTests.test_graph_rejects_uncited_consumer_edge) ... ok\ntest_graph_rejects_unknown_consumer_module (test_bbma_orchestrator.VerifiedModuleGraphTests.test_graph_rejects_unknown_consumer_module) ... ok\ntest_regression_map_matches_accepted_graph_and_verified_trace_tests (test_bbma_orchestrator.VerifiedRegressionMapTests.test_regression_map_matches_accepted_graph_and_verified_trace_tests) ... ok\ntest_regression_map_rejects_consumer_drift (test_bbma_orchestrator.VerifiedRegressionMapTests.test_regression_map_rejects_consumer_drift) ... ok\ntest_regression_map_rejects_invented_mandatory_global (test_bbma_orchestrator.VerifiedRegressionMapTests.test_regression_map_rejects_invented_mandatory_global) ... ok\ntest_regression_map_rejects_uncited_test_assignment (test_bbma_orchestrator.VerifiedRegressionMapTests.test_regression_map_rejects_uncited_test_assignment) ... ok\ntest_verified_regression_map_cli_cannot_bypass_authority_validation (test_bbma_orchestrator.VerifiedRegressionMapTests.test_verified_regression_map_cli_cannot_bypass_authority_validation) ... ok\ntest_verified_regression_map_cli_rejects_unknown_module (test_bbma_orchestrator.VerifiedRegressionMapTests.test_verified_regression_map_cli_rejects_unknown_module) ... ok\ntest_verified_regression_map_cli_requires_both_authorities (test_bbma_orchestrator.VerifiedRegressionMapTests.test_verified_regression_map_cli_requires_both_authorities) ... ok\ntest_verified_regression_map_cli_selects_transitive_tests (test_bbma_orchestrator.VerifiedRegressionMapTests.test_verified_regression_map_cli_selects_transitive_tests) ... ok\ntest_verified_selector_uses_transitive_cited_blast_radius (test_bbma_orchestrator.VerifiedRegressionMapTests.test_verified_selector_uses_transitive_cited_blast_radius) ... ok\ntest_traceability_cli_materializes_verified_map (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_cli_materializes_verified_map) ... ok\ntest_traceability_covers_existing_core_ids_without_false_runtime_pass (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_covers_existing_core_ids_without_false_runtime_pass) ... ok\ntest_traceability_materialization_binds_resolved_evidence_identity (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_materialization_binds_resolved_evidence_identity) ... ok\ntest_traceability_materializes_into_existing_evidence_dag (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_materializes_into_existing_evidence_dag) ... ok\ntest_traceability_rejects_authority_mismatch (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_rejects_authority_mismatch) ... ok\ntest_traceability_rejects_duplicate_evidence_reference (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_rejects_duplicate_evidence_reference) ... ok\ntest_traceability_rejects_evidence_kind_mismatch (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_rejects_evidence_kind_mismatch) ... ok\ntest_traceability_rejects_false_verified_runtime (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_rejects_false_verified_runtime) ... ok\ntest_traceability_rejects_forged_blob_identity (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_rejects_forged_blob_identity) ... ok\ntest_traceability_rejects_rules_outside_exact_f1_through_f6_scope (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_rejects_rules_outside_exact_f1_through_f6_scope) ... ok\ntest_traceability_rejects_unknown_module (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_rejects_unknown_module) ... ok\ntest_traceability_uses_regression_drivers_and_preserves_f4_test_gap (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_uses_regression_drivers_and_preserves_f4_test_gap) ... ok\n\n----------------------------------------------------------------------\nRan 84 tests in 85.676s\n\nOK\n",
+        "stdout": ""
+      },
+      "validation_status": "PASS",
+      "wall_clock_s": 87.078285
+    },
+    {
+      "cache_copy_bytes_avoided": 0,
+      "cache_hits": 0,
+      "cache_misses": 0,
+      "iteration": "warm",
+      "mode": "baseline",
+      "model_context": {
+        "artifacts": 4,
+        "bytes": 380604,
+        "files": [
+          {
+            "lines": 520,
+            "path": "D:\\BBMA\\Workspace\\autonomy-eff-ab-154\\tools\\bbma_orchestrator\\telemetry.py",
+            "sha256": "9227394b9e8951175eeea5d0dfa1a2160e67c0acf5a874a68994fb1c0b777b4f",
+            "size": 19477
+          },
+          {
+            "lines": 526,
+            "path": "D:\\BBMA\\Workspace\\autonomy-eff-ab-154\\tools\\bbma_orchestrator\\cli.py",
+            "sha256": "ef95e18ef2006ba0728aae756152a2881bc6fd6bcd99ae76dda6a1a7e203fcb6",
+            "size": 19807
+          },
+          {
+            "lines": 1445,
+            "path": "D:\\BBMA\\Workspace\\autonomy-eff-ab-154\\tests\\test_bbma_orchestrator.py",
+            "sha256": "e25c5255629ebb75de490cd9983e9aea2a358b4db663ff5d1d487fbd625a498b",
+            "size": 66969
+          },
+          {
+            "lines": 133,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\telemetry_raw.jsonl",
+            "sha256": "11d6f09179d6c88cf3339a77f6bc168a022735d1a96549cd796345a9d5aefbd9",
+            "size": 274351
+          }
+        ],
+        "lines": 2624
+      },
+      "model_route": "HIGH",
+      "repeated_validation_avoided": 0,
+      "repeated_validation_executed": 1,
+      "risk_score": 10,
+      "task": "telemetry_tooling",
+      "validation": {
+        "command": [
+          "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\tools\\python312\\runtime\\python.exe",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_bbma_orchestrator.py",
+          "-v"
+        ],
+        "duration_s": 79.635372,
+        "label": "telemetry_tooling-baseline-warm-tests",
+        "log_path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\telemetry_tooling-baseline-warm-tests.json",
+        "returncode": 0,
+        "stderr": "test_architecture_invariant_cli_reports_runtime_boundary (test_bbma_orchestrator.ArchitectureInvariantTests.test_architecture_invariant_cli_reports_runtime_boundary) ... ok\ntest_catalog_binds_exact_contract_cited_ownership_boundaries (test_bbma_orchestrator.ArchitectureInvariantTests.test_catalog_binds_exact_contract_cited_ownership_boundaries) ... ok\ntest_catalog_rejects_false_runtime_verification (test_bbma_orchestrator.ArchitectureInvariantTests.test_catalog_rejects_false_runtime_verification) ... ok\ntest_catalog_rejects_non_contract_evidence_path (test_bbma_orchestrator.ArchitectureInvariantTests.test_catalog_rejects_non_contract_evidence_path) ... ok\ntest_catalog_rejects_ownership_or_evidence_drift (test_bbma_orchestrator.ArchitectureInvariantTests.test_catalog_rejects_ownership_or_evidence_drift) ... ok\ntest_catalog_rejects_scope_deletion_addition_or_substitution (test_bbma_orchestrator.ArchitectureInvariantTests.test_catalog_rejects_scope_deletion_addition_or_substitution) ... ok\ntest_exhaustive_mutation_check_detects_every_boundary (test_bbma_orchestrator.ArchitectureInvariantTests.test_exhaustive_mutation_check_detects_every_boundary) ... ok\ntest_artifact_delta_requires_authorization_reference (test_bbma_orchestrator.AttributableTraceTests.test_artifact_delta_requires_authorization_reference) ... ok\ntest_attributable_events_require_exact_source_and_emitter (test_bbma_orchestrator.AttributableTraceTests.test_attributable_events_require_exact_source_and_emitter) ... ok\ntest_golden_role_requires_external_authority_reference (test_bbma_orchestrator.AttributableTraceTests.test_golden_role_requires_external_authority_reference) ... ok\ntest_trace_artifact_cli_export_and_diff (test_bbma_orchestrator.AttributableTraceTests.test_trace_artifact_cli_export_and_diff) ... ok\ntest_trace_artifact_is_deterministic_attributable_and_not_runtime_pass (test_bbma_orchestrator.AttributableTraceTests.test_trace_artifact_is_deterministic_attributable_and_not_runtime_pass) ... ok\ntest_trace_artifact_rejects_column_payload_identity_mismatch (test_bbma_orchestrator.AttributableTraceTests.test_trace_artifact_rejects_column_payload_identity_mismatch) ... ok\ntest_trace_artifact_rejects_self_hashed_invalid_metadata (test_bbma_orchestrator.AttributableTraceTests.test_trace_artifact_rejects_self_hashed_invalid_metadata) ... ok\ntest_trace_artifact_tampering_fails_closed (test_bbma_orchestrator.AttributableTraceTests.test_trace_artifact_tampering_fails_closed) ... ok\ntest_evidence_cache_reuse_requires_digest_and_authority (test_bbma_orchestrator.EvidenceTests.test_evidence_cache_reuse_requires_digest_and_authority) ... ok\ntest_evidence_dag_rejects_cycles (test_bbma_orchestrator.EvidenceTests.test_evidence_dag_rejects_cycles) ... ok\ntest_evidence_dag_stales_only_descendants (test_bbma_orchestrator.EvidenceTests.test_evidence_dag_stales_only_descendants) ... ok\ntest_hash_store_cache_and_package (test_bbma_orchestrator.EvidenceTests.test_hash_store_cache_and_package) ... ok\ntest_artifact_identity_hashes_existing_file (test_bbma_orchestrator.NativeAdapterTests.test_artifact_identity_hashes_existing_file) ... ok\ntest_native_adapter_blocks_forbidden_token (test_bbma_orchestrator.NativeAdapterTests.test_native_adapter_blocks_forbidden_token) ... ok\ntest_native_adapter_fails_nonzero_metaeditor_summary (test_bbma_orchestrator.NativeAdapterTests.test_native_adapter_fails_nonzero_metaeditor_summary) ... ok\ntest_native_adapter_is_dry_run_by_default (test_bbma_orchestrator.NativeAdapterTests.test_native_adapter_is_dry_run_by_default) ... ok\ntest_native_adapter_rejects_disabled_authority (test_bbma_orchestrator.NativeAdapterTests.test_native_adapter_rejects_disabled_authority) ... ok\ntest_native_adapter_rejects_duplicate_process_before_execute (test_bbma_orchestrator.NativeAdapterTests.test_native_adapter_rejects_duplicate_process_before_execute) ... ok\ntest_native_adapter_rejects_input_identity_drift (test_bbma_orchestrator.NativeAdapterTests.test_native_adapter_rejects_input_identity_drift) ... ok\ntest_native_adapter_rejects_stale_metaeditor_evidence (test_bbma_orchestrator.NativeAdapterTests.test_native_adapter_rejects_stale_metaeditor_evidence) ... ok\ntest_native_adapter_verifies_metaeditor_result_contract (test_bbma_orchestrator.NativeAdapterTests.test_native_adapter_verifies_metaeditor_result_contract) ... ok\ntest_native_run_cli_exits_nonzero_for_failed_execution (test_bbma_orchestrator.NativeAdapterTests.test_native_run_cli_exits_nonzero_for_failed_execution) ... ok\ntest_atomic_write_preserves_old_file_on_injected_failure (test_bbma_orchestrator.TaskStateTests.test_atomic_write_preserves_old_file_on_injected_failure) ... ok\ntest_context_pack_is_bounded_to_supplied_refs (test_bbma_orchestrator.TaskStateTests.test_context_pack_is_bounded_to_supplied_refs) ... ok\ntest_manifest_phase_and_pass_gate (test_bbma_orchestrator.TaskStateTests.test_manifest_phase_and_pass_gate) ... ok\ntest_manifest_rejects_skip (test_bbma_orchestrator.TaskStateTests.test_manifest_rejects_skip) ... ok\ntest_pass_before_closed_rejected (test_bbma_orchestrator.TaskStateTests.test_pass_before_closed_rejected) ... ok\ntest_regression_selector_uses_supplied_map_only (test_bbma_orchestrator.TaskStateTests.test_regression_selector_uses_supplied_map_only) ... ok\ntest_regression_selector_walks_all_cited_consumers (test_bbma_orchestrator.TaskStateTests.test_regression_selector_walks_all_cited_consumers) ... ok\ntest_risk_and_model_routing (test_bbma_orchestrator.TaskStateTests.test_risk_and_model_routing) ... ok\ntest_store_checkpoint_handoff_and_event (test_bbma_orchestrator.TaskStateTests.test_store_checkpoint_handoff_and_event) ... ok\ntest_csv_ingest (test_bbma_orchestrator.TelemetryTests.test_csv_ingest) ... ok\ntest_jsonl_failure_first_and_lookup (test_bbma_orchestrator.TelemetryTests.test_jsonl_failure_first_and_lookup) ... ok\ntest_mt4_log_cli_ingests_with_explicit_source_kind (test_bbma_orchestrator.TelemetryTests.test_mt4_log_cli_ingests_with_explicit_source_kind) ... ok\ntest_mt4_log_ingest_captures_append_only_current_n2_fields (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_captures_append_only_current_n2_fields) ... ok\ntest_mt4_log_ingest_fails_closed_before_partial_publish (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_fails_closed_before_partial_publish) ... ok\ntest_mt4_log_ingest_is_attributable_idempotent_and_never_implies_pass (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_is_attributable_idempotent_and_never_implies_pass) ... ok\ntest_mt4_log_ingest_rejects_ambiguous_or_unparsed_tokens (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_rejects_ambiguous_or_unparsed_tokens) ... ok\ntest_mt4_log_ingest_rejects_file_changed_during_read (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_rejects_file_changed_during_read) ... ok\ntest_mt4_log_ingest_rejects_invalid_utf8_without_publish (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_rejects_invalid_utf8_without_publish) ... ok\ntest_mt4_log_ingest_requires_current_identity_fields (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_requires_current_identity_fields) ... ok\ntest_mt4_log_ingest_rolls_back_on_injected_publish_fault (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_rolls_back_on_injected_publish_fault) ... ok\ntest_golden_trace_and_authorized_delta (test_bbma_orchestrator.TraceTests.test_golden_trace_and_authorized_delta) ... ok\ntest_lifecycle_rejects_skip_and_terminal_exit (test_bbma_orchestrator.TraceTests.test_lifecycle_rejects_skip_and_terminal_exit) ... ok\ntest_lifecycle_valid_path (test_bbma_orchestrator.TraceTests.test_lifecycle_valid_path) ... ok\ntest_mutation_self_test_detects_damaged_transition_table (test_bbma_orchestrator.TraceTests.test_mutation_self_test_detects_damaged_transition_table) ... ok\ntest_randomized_property_style_check (test_bbma_orchestrator.TraceTests.test_randomized_property_style_check) ... ok\ntest_shadow_is_read_only_comparison (test_bbma_orchestrator.TraceTests.test_shadow_is_read_only_comparison) ... ok\ntest_graph_covers_all_modules_and_cites_every_verified_edge (test_bbma_orchestrator.VerifiedModuleGraphTests.test_graph_covers_all_modules_and_cites_every_verified_edge) ... ok\ntest_graph_rejects_evidence_from_other_commit (test_bbma_orchestrator.VerifiedModuleGraphTests.test_graph_rejects_evidence_from_other_commit) ... ok\ntest_graph_rejects_false_verified_module_coverage (test_bbma_orchestrator.VerifiedModuleGraphTests.test_graph_rejects_false_verified_module_coverage) ... ok\ntest_graph_rejects_invalid_coverage_claim (test_bbma_orchestrator.VerifiedModuleGraphTests.test_graph_rejects_invalid_coverage_claim) ... ok\ntest_graph_rejects_malformed_authority_commit (test_bbma_orchestrator.VerifiedModuleGraphTests.test_graph_rejects_malformed_authority_commit) ... ok\ntest_graph_rejects_partial_coverage_without_known_unknowns (test_bbma_orchestrator.VerifiedModuleGraphTests.test_graph_rejects_partial_coverage_without_known_unknowns) ... ok\ntest_graph_rejects_uncited_consumer_edge (test_bbma_orchestrator.VerifiedModuleGraphTests.test_graph_rejects_uncited_consumer_edge) ... ok\ntest_graph_rejects_unknown_consumer_module (test_bbma_orchestrator.VerifiedModuleGraphTests.test_graph_rejects_unknown_consumer_module) ... ok\ntest_regression_map_matches_accepted_graph_and_verified_trace_tests (test_bbma_orchestrator.VerifiedRegressionMapTests.test_regression_map_matches_accepted_graph_and_verified_trace_tests) ... ok\ntest_regression_map_rejects_consumer_drift (test_bbma_orchestrator.VerifiedRegressionMapTests.test_regression_map_rejects_consumer_drift) ... ok\ntest_regression_map_rejects_invented_mandatory_global (test_bbma_orchestrator.VerifiedRegressionMapTests.test_regression_map_rejects_invented_mandatory_global) ... ok\ntest_regression_map_rejects_uncited_test_assignment (test_bbma_orchestrator.VerifiedRegressionMapTests.test_regression_map_rejects_uncited_test_assignment) ... ok\ntest_verified_regression_map_cli_cannot_bypass_authority_validation (test_bbma_orchestrator.VerifiedRegressionMapTests.test_verified_regression_map_cli_cannot_bypass_authority_validation) ... ok\ntest_verified_regression_map_cli_rejects_unknown_module (test_bbma_orchestrator.VerifiedRegressionMapTests.test_verified_regression_map_cli_rejects_unknown_module) ... ok\ntest_verified_regression_map_cli_requires_both_authorities (test_bbma_orchestrator.VerifiedRegressionMapTests.test_verified_regression_map_cli_requires_both_authorities) ... ok\ntest_verified_regression_map_cli_selects_transitive_tests (test_bbma_orchestrator.VerifiedRegressionMapTests.test_verified_regression_map_cli_selects_transitive_tests) ... ok\ntest_verified_selector_uses_transitive_cited_blast_radius (test_bbma_orchestrator.VerifiedRegressionMapTests.test_verified_selector_uses_transitive_cited_blast_radius) ... ok\ntest_traceability_cli_materializes_verified_map (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_cli_materializes_verified_map) ... ok\ntest_traceability_covers_existing_core_ids_without_false_runtime_pass (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_covers_existing_core_ids_without_false_runtime_pass) ... ok\ntest_traceability_materialization_binds_resolved_evidence_identity (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_materialization_binds_resolved_evidence_identity) ... ok\ntest_traceability_materializes_into_existing_evidence_dag (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_materializes_into_existing_evidence_dag) ... ok\ntest_traceability_rejects_authority_mismatch (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_rejects_authority_mismatch) ... ok\ntest_traceability_rejects_duplicate_evidence_reference (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_rejects_duplicate_evidence_reference) ... ok\ntest_traceability_rejects_evidence_kind_mismatch (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_rejects_evidence_kind_mismatch) ... ok\ntest_traceability_rejects_false_verified_runtime (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_rejects_false_verified_runtime) ... ok\ntest_traceability_rejects_forged_blob_identity (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_rejects_forged_blob_identity) ... ok\ntest_traceability_rejects_rules_outside_exact_f1_through_f6_scope (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_rejects_rules_outside_exact_f1_through_f6_scope) ... ok\ntest_traceability_rejects_unknown_module (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_rejects_unknown_module) ... ok\ntest_traceability_uses_regression_drivers_and_preserves_f4_test_gap (test_bbma_orchestrator.VerifiedTraceabilityTests.test_traceability_uses_regression_drivers_and_preserves_f4_test_gap) ... ok\n\n----------------------------------------------------------------------\nRan 84 tests in 78.876s\n\nOK\n",
+        "stdout": ""
+      },
+      "validation_status": "PASS",
+      "wall_clock_s": 79.650437
+    },
+    {
+      "cache_copy_bytes_avoided": 0,
+      "cache_hits": 0,
+      "cache_misses": 4,
+      "iteration": "cold",
+      "mode": "upgraded",
+      "model_context": {
+        "artifacts": 2,
+        "bytes": 1276,
+        "files": [
+          {
+            "lines": 32,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\contexts\\telemetry_tooling-cold.json",
+            "sha256": "a5a0470ad2b4621837636731ea432d006317cbd67232c466215e14157da5c4f0",
+            "size": 1061
+          },
+          {
+            "lines": 14,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\telemetry_summary.json",
+            "sha256": "d9b830738ae33df32f9c4913488fc3d83d880d97411cc3cb497499e03482ad9f",
+            "size": 215
+          }
+        ],
+        "lines": 46
+      },
+      "model_route": "HIGH",
+      "repeated_validation_avoided": 0,
+      "repeated_validation_executed": 1,
+      "risk_score": 10,
+      "selected_tests": [],
+      "task": "telemetry_tooling",
+      "validation": {
+        "command": [
+          "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\tools\\python312\\runtime\\python.exe",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_bbma_orchestrator.py",
+          "-k",
+          "TelemetryTests",
+          "-v"
+        ],
+        "duration_s": 12.565786,
+        "label": "telemetry_tooling-upgraded-cold-tests",
+        "log_path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\telemetry_tooling-upgraded-cold-tests.json",
+        "returncode": 0,
+        "stderr": "test_csv_ingest (test_bbma_orchestrator.TelemetryTests.test_csv_ingest) ... ok\ntest_jsonl_failure_first_and_lookup (test_bbma_orchestrator.TelemetryTests.test_jsonl_failure_first_and_lookup) ... ok\ntest_mt4_log_cli_ingests_with_explicit_source_kind (test_bbma_orchestrator.TelemetryTests.test_mt4_log_cli_ingests_with_explicit_source_kind) ... ok\ntest_mt4_log_ingest_captures_append_only_current_n2_fields (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_captures_append_only_current_n2_fields) ... ok\ntest_mt4_log_ingest_fails_closed_before_partial_publish (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_fails_closed_before_partial_publish) ... ok\ntest_mt4_log_ingest_is_attributable_idempotent_and_never_implies_pass (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_is_attributable_idempotent_and_never_implies_pass) ... ok\ntest_mt4_log_ingest_rejects_ambiguous_or_unparsed_tokens (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_rejects_ambiguous_or_unparsed_tokens) ... ok\ntest_mt4_log_ingest_rejects_file_changed_during_read (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_rejects_file_changed_during_read) ... ok\ntest_mt4_log_ingest_rejects_invalid_utf8_without_publish (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_rejects_invalid_utf8_without_publish) ... ok\ntest_mt4_log_ingest_requires_current_identity_fields (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_requires_current_identity_fields) ... ok\ntest_mt4_log_ingest_rolls_back_on_injected_publish_fault (test_bbma_orchestrator.TelemetryTests.test_mt4_log_ingest_rolls_back_on_injected_publish_fault) ... ok\n\n----------------------------------------------------------------------\nRan 11 tests in 11.745s\n\nOK\n",
+        "stdout": ""
+      },
+      "validation_status": "PASS",
+      "wall_clock_s": 13.311017
+    },
+    {
+      "cache_copy_bytes_avoided": 429837,
+      "cache_hits": 4,
+      "cache_misses": 0,
+      "iteration": "warm",
+      "mode": "upgraded",
+      "model_context": {
+        "artifacts": 2,
+        "bytes": 1276,
+        "files": [
+          {
+            "lines": 32,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\contexts\\telemetry_tooling-warm.json",
+            "sha256": "de811db4fbc1fb60205c059a9ee51d9322dca4b4a2921ddfe5ddaa4dbf3cab6a",
+            "size": 1061
+          },
+          {
+            "lines": 14,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\telemetry_summary.json",
+            "sha256": "d9b830738ae33df32f9c4913488fc3d83d880d97411cc3cb497499e03482ad9f",
+            "size": 215
+          }
+        ],
+        "lines": 46
+      },
+      "model_route": "HIGH",
+      "repeated_validation_avoided": 1,
+      "repeated_validation_executed": 0,
+      "risk_score": 10,
+      "selected_tests": [],
+      "task": "telemetry_tooling",
+      "validation": {
+        "duration_s": 0.0,
+        "reason": "all validation inputs digest-match prior PASS under identical authority fingerprint",
+        "returncode": 0,
+        "reused": true
+      },
+      "validation_status": "REUSED_PASS",
+      "wall_clock_s": 0.082901
+    },
+    {
+      "cache_copy_bytes_avoided": 0,
+      "cache_hits": 0,
+      "cache_misses": 0,
+      "iteration": "cold",
+      "mode": "baseline",
+      "model_context": {
+        "artifacts": 9,
+        "bytes": 477720,
+        "files": [
+          {
+            "lines": 165,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\docs\\references\\SOURCE_INDEX.md",
+            "sha256": "7031361c14b4edc3543e38fd97a2b67d4d7a087ae882ec60946de74ee2a8f452",
+            "size": 13320
+          },
+          {
+            "lines": 72,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\docs\\references\\video\\oma_ally_finale\\V06\\V06_extracted_rules.md",
+            "sha256": "4d23abbf0e376a7eebc8bedfb2b4da63c7a6708d8c50d515b1ba74275505e1ed",
+            "size": 4539
+          },
+          {
+            "lines": 593,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\docs\\references\\BBMA_STRATEGY_CORE_SOURCE_OF_TRUTH_V2.md",
+            "sha256": "68d404bf45f4f1f0fd65b55d9e099f8da664766aeb6c9c6a95fe6d47740779be",
+            "size": 39163
+          },
+          {
+            "lines": 41,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\blueprint\\CORE_V2_F6_TIMING_VERIFICATION_AUDIT.md",
+            "sha256": "8e9ad4b5735fcc3dd81ddc86d1314adede4c3e9d0b9b67bb5009c783442911a7",
+            "size": 2799
+          },
+          {
+            "lines": 118,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\blueprint\\contracts\\M12_REENTRY_SOURCE_CONTRACT.md",
+            "sha256": "d252e8ab2faddc5eb8d91834e69fc9426831652e83773405c6fb9a5a209b176c",
+            "size": 5963
+          },
+          {
+            "lines": 73,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\blueprint\\contracts\\M22_ORDER_EXECUTION_CONTRACT.md",
+            "sha256": "bb14ed1497d8ceb2d21eb55fcc88bdb9431c543af6024ee09d22d77e8e830a2b",
+            "size": 3966
+          },
+          {
+            "lines": 84,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\blueprint\\contracts\\M27_ORCHESTRATOR_END_TO_END_CONTRACT.md",
+            "sha256": "837254f707cce8ab043b5fb92ab4afb468239e54b31e2913ff263cf2ce8fa6b0",
+            "size": 4826
+          },
+          {
+            "lines": 10666,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\blueprint\\source\\BBMA_EA.mq4",
+            "sha256": "3be02985a6a3df9e001fb441beed3b8f8da2755c2ece2f78b43879c6e635311c",
+            "size": 401779
+          },
+          {
+            "lines": 46,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\.github\\workflows\\core-v2-f6-pr-dispatch.yml",
+            "sha256": "196a26f850d4ca3f9aa6d89fca7c050a9e77f4f88056f2ec017bfd124e6f0460",
+            "size": 1365
+          }
+        ],
+        "lines": 11858
+      },
+      "model_route": "HIGH/XHIGH",
+      "repeated_validation_avoided": 0,
+      "repeated_validation_executed": 1,
+      "risk_score": 30,
+      "task": "strategy_f6_readonly",
+      "validation": {
+        "duration_s": 13.612823,
+        "returncode": 0,
+        "selected_tests": [
+          "TEST_DRIVER_F3",
+          "TEST_DRIVER_F6",
+          "TEST_DRIVER_F1"
+        ],
+        "selection": {
+          "command": [
+            "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\tools\\python312\\runtime\\python.exe",
+            "-m",
+            "tools.bbma_orchestrator",
+            "select-tests",
+            "--map",
+            "config/bbma_regression_map.json",
+            "--module-graph",
+            "config/bbma_module_graph.json",
+            "--traceability",
+            "config/bbma_traceability.json",
+            "--module",
+            "M12",
+            "--module",
+            "M22",
+            "--module",
+            "M27",
+            "--risk-score",
+            "30"
+          ],
+          "duration_s": 1.161934,
+          "label": "strategy_f6_readonly-baseline-cold-selection",
+          "log_path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\strategy_f6_readonly-baseline-cold-selection.json",
+          "returncode": 0,
+          "stderr": "",
+          "stdout": "{\n  \"selected\": [\n    \"TEST_DRIVER_F3\",\n    \"TEST_DRIVER_F6\",\n    \"TEST_DRIVER_F1\"\n  ]\n}\n"
+        },
+        "trace": {
+          "command": [
+            "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\tools\\python312\\runtime\\python.exe",
+            "-m",
+            "tools.bbma_orchestrator",
+            "traceability-materialize",
+            "--traceability",
+            "config/bbma_traceability.json",
+            "--module-graph",
+            "config/bbma_module_graph.json",
+            "--db",
+            "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\strategy_f6_readonly\\baseline\\cold\\trace.db"
+          ],
+          "duration_s": 12.450889,
+          "label": "strategy_f6_readonly-baseline-cold-trace",
+          "log_path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\strategy_f6_readonly-baseline-cold-trace.json",
+          "returncode": 0,
+          "stderr": "",
+          "stdout": "{\n  \"edges\": 36,\n  \"nodes\": 42,\n  \"rules\": 6\n}\n"
+        }
+      },
+      "validation_status": "PASS",
+      "wall_clock_s": 14.031289
+    },
+    {
+      "cache_copy_bytes_avoided": 0,
+      "cache_hits": 0,
+      "cache_misses": 0,
+      "iteration": "warm",
+      "mode": "baseline",
+      "model_context": {
+        "artifacts": 9,
+        "bytes": 477720,
+        "files": [
+          {
+            "lines": 165,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\docs\\references\\SOURCE_INDEX.md",
+            "sha256": "7031361c14b4edc3543e38fd97a2b67d4d7a087ae882ec60946de74ee2a8f452",
+            "size": 13320
+          },
+          {
+            "lines": 72,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\docs\\references\\video\\oma_ally_finale\\V06\\V06_extracted_rules.md",
+            "sha256": "4d23abbf0e376a7eebc8bedfb2b4da63c7a6708d8c50d515b1ba74275505e1ed",
+            "size": 4539
+          },
+          {
+            "lines": 593,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\docs\\references\\BBMA_STRATEGY_CORE_SOURCE_OF_TRUTH_V2.md",
+            "sha256": "68d404bf45f4f1f0fd65b55d9e099f8da664766aeb6c9c6a95fe6d47740779be",
+            "size": 39163
+          },
+          {
+            "lines": 41,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\blueprint\\CORE_V2_F6_TIMING_VERIFICATION_AUDIT.md",
+            "sha256": "8e9ad4b5735fcc3dd81ddc86d1314adede4c3e9d0b9b67bb5009c783442911a7",
+            "size": 2799
+          },
+          {
+            "lines": 118,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\blueprint\\contracts\\M12_REENTRY_SOURCE_CONTRACT.md",
+            "sha256": "d252e8ab2faddc5eb8d91834e69fc9426831652e83773405c6fb9a5a209b176c",
+            "size": 5963
+          },
+          {
+            "lines": 73,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\blueprint\\contracts\\M22_ORDER_EXECUTION_CONTRACT.md",
+            "sha256": "bb14ed1497d8ceb2d21eb55fcc88bdb9431c543af6024ee09d22d77e8e830a2b",
+            "size": 3966
+          },
+          {
+            "lines": 84,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\blueprint\\contracts\\M27_ORCHESTRATOR_END_TO_END_CONTRACT.md",
+            "sha256": "837254f707cce8ab043b5fb92ab4afb468239e54b31e2913ff263cf2ce8fa6b0",
+            "size": 4826
+          },
+          {
+            "lines": 10666,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\blueprint\\source\\BBMA_EA.mq4",
+            "sha256": "3be02985a6a3df9e001fb441beed3b8f8da2755c2ece2f78b43879c6e635311c",
+            "size": 401779
+          },
+          {
+            "lines": 46,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\.github\\workflows\\core-v2-f6-pr-dispatch.yml",
+            "sha256": "196a26f850d4ca3f9aa6d89fca7c050a9e77f4f88056f2ec017bfd124e6f0460",
+            "size": 1365
+          }
+        ],
+        "lines": 11858
+      },
+      "model_route": "HIGH/XHIGH",
+      "repeated_validation_avoided": 0,
+      "repeated_validation_executed": 1,
+      "risk_score": 30,
+      "task": "strategy_f6_readonly",
+      "validation": {
+        "duration_s": 13.819622,
+        "returncode": 0,
+        "selected_tests": [
+          "TEST_DRIVER_F3",
+          "TEST_DRIVER_F6",
+          "TEST_DRIVER_F1"
+        ],
+        "selection": {
+          "command": [
+            "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\tools\\python312\\runtime\\python.exe",
+            "-m",
+            "tools.bbma_orchestrator",
+            "select-tests",
+            "--map",
+            "config/bbma_regression_map.json",
+            "--module-graph",
+            "config/bbma_module_graph.json",
+            "--traceability",
+            "config/bbma_traceability.json",
+            "--module",
+            "M12",
+            "--module",
+            "M22",
+            "--module",
+            "M27",
+            "--risk-score",
+            "30"
+          ],
+          "duration_s": 1.091434,
+          "label": "strategy_f6_readonly-baseline-warm-selection",
+          "log_path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\strategy_f6_readonly-baseline-warm-selection.json",
+          "returncode": 0,
+          "stderr": "",
+          "stdout": "{\n  \"selected\": [\n    \"TEST_DRIVER_F3\",\n    \"TEST_DRIVER_F6\",\n    \"TEST_DRIVER_F1\"\n  ]\n}\n"
+        },
+        "trace": {
+          "command": [
+            "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\tools\\python312\\runtime\\python.exe",
+            "-m",
+            "tools.bbma_orchestrator",
+            "traceability-materialize",
+            "--traceability",
+            "config/bbma_traceability.json",
+            "--module-graph",
+            "config/bbma_module_graph.json",
+            "--db",
+            "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\strategy_f6_readonly\\baseline\\warm\\trace.db"
+          ],
+          "duration_s": 12.728188,
+          "label": "strategy_f6_readonly-baseline-warm-trace",
+          "log_path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\strategy_f6_readonly-baseline-warm-trace.json",
+          "returncode": 0,
+          "stderr": "",
+          "stdout": "{\n  \"edges\": 36,\n  \"nodes\": 42,\n  \"rules\": 6\n}\n"
+        }
+      },
+      "validation_status": "PASS",
+      "wall_clock_s": 13.840996
+    },
+    {
+      "cache_copy_bytes_avoided": 35957,
+      "cache_hits": 2,
+      "cache_misses": 10,
+      "iteration": "cold",
+      "mode": "upgraded",
+      "model_context": {
+        "artifacts": 1,
+        "bytes": 1609,
+        "files": [
+          {
+            "lines": 52,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\contexts\\strategy_f6_readonly-cold.json",
+            "sha256": "a9b44c71016a8ae105739f9434f13226af14dd7d63c0daed8ad7a63319118eba",
+            "size": 1609
+          }
+        ],
+        "lines": 52
+      },
+      "model_route": "HIGH/XHIGH",
+      "repeated_validation_avoided": 0,
+      "repeated_validation_executed": 1,
+      "risk_score": 30,
+      "selected_tests": [
+        "TEST_DRIVER_F3",
+        "TEST_DRIVER_F6",
+        "TEST_DRIVER_F1"
+      ],
+      "task": "strategy_f6_readonly",
+      "validation": {
+        "duration_s": 14.508178,
+        "returncode": 0,
+        "selected_tests": [
+          "TEST_DRIVER_F3",
+          "TEST_DRIVER_F6",
+          "TEST_DRIVER_F1"
+        ],
+        "selection": {
+          "command": [
+            "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\tools\\python312\\runtime\\python.exe",
+            "-m",
+            "tools.bbma_orchestrator",
+            "select-tests",
+            "--map",
+            "config/bbma_regression_map.json",
+            "--module-graph",
+            "config/bbma_module_graph.json",
+            "--traceability",
+            "config/bbma_traceability.json",
+            "--module",
+            "M12",
+            "--module",
+            "M22",
+            "--module",
+            "M27",
+            "--risk-score",
+            "30"
+          ],
+          "duration_s": 1.229997,
+          "label": "strategy_f6_readonly-upgraded-cold-selection",
+          "log_path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\strategy_f6_readonly-upgraded-cold-selection.json",
+          "returncode": 0,
+          "stderr": "",
+          "stdout": "{\n  \"selected\": [\n    \"TEST_DRIVER_F3\",\n    \"TEST_DRIVER_F6\",\n    \"TEST_DRIVER_F1\"\n  ]\n}\n"
+        },
+        "trace": {
+          "command": [
+            "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\tools\\python312\\runtime\\python.exe",
+            "-m",
+            "tools.bbma_orchestrator",
+            "traceability-materialize",
+            "--traceability",
+            "config/bbma_traceability.json",
+            "--module-graph",
+            "config/bbma_module_graph.json",
+            "--db",
+            "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\strategy_f6_readonly\\upgraded\\cold\\trace.db"
+          ],
+          "duration_s": 13.278181,
+          "label": "strategy_f6_readonly-upgraded-cold-trace",
+          "log_path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\strategy_f6_readonly-upgraded-cold-trace.json",
+          "returncode": 0,
+          "stderr": "",
+          "stdout": "{\n  \"edges\": 36,\n  \"nodes\": 42,\n  \"rules\": 6\n}\n"
+        }
+      },
+      "validation_status": "PASS",
+      "wall_clock_s": 17.634103
+    },
+    {
+      "cache_copy_bytes_avoided": 516850,
+      "cache_hits": 12,
+      "cache_misses": 0,
+      "iteration": "warm",
+      "mode": "upgraded",
+      "model_context": {
+        "artifacts": 1,
+        "bytes": 1609,
+        "files": [
+          {
+            "lines": 52,
+            "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\contexts\\strategy_f6_readonly-warm.json",
+            "sha256": "be4bcf03dd1d876ba86ae134bce57a638b3cbc2395a7d1bdf0a0d0db5eeecb2d",
+            "size": 1609
+          }
+        ],
+        "lines": 52
+      },
+      "model_route": "HIGH/XHIGH",
+      "repeated_validation_avoided": 1,
+      "repeated_validation_executed": 0,
+      "risk_score": 30,
+      "selected_tests": [
+        "TEST_DRIVER_F3",
+        "TEST_DRIVER_F6",
+        "TEST_DRIVER_F1"
+      ],
+      "task": "strategy_f6_readonly",
+      "validation": {
+        "duration_s": 0.0,
+        "reason": "all validation inputs digest-match prior PASS under identical authority fingerprint",
+        "returncode": 0,
+        "reused": true
+      },
+      "validation_status": "REUSED_PASS",
+      "wall_clock_s": 1.311675
+    }
+  ],
+  "telemetry_summary": {
+    "by_event_type": {
+      "N1_NMJE_OBSERVATION": 126,
+      "N2_NMJE_DECISION": 6
+    },
+    "by_status": {
+      "OBSERVED": 132
+    },
+    "failure_like": 0,
+    "failures": [],
+    "pass_like": 0,
+    "total": 132
+  }
+}

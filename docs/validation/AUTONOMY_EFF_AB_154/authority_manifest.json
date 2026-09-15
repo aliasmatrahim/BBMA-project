@@ -1,0 +1,65 @@
+{
+  "d1_commit": "23def0919386263007ead1898b94637cc17f7f36",
+  "files": [
+    {
+      "lines": 165,
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\docs\\references\\SOURCE_INDEX.md",
+      "sha256": "7031361c14b4edc3543e38fd97a2b67d4d7a087ae882ec60946de74ee2a8f452",
+      "size": 13320
+    },
+    {
+      "lines": 72,
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\docs\\references\\video\\oma_ally_finale\\V06\\V06_extracted_rules.md",
+      "sha256": "4d23abbf0e376a7eebc8bedfb2b4da63c7a6708d8c50d515b1ba74275505e1ed",
+      "size": 4539
+    },
+    {
+      "lines": 593,
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\docs\\references\\BBMA_STRATEGY_CORE_SOURCE_OF_TRUTH_V2.md",
+      "sha256": "68d404bf45f4f1f0fd65b55d9e099f8da664766aeb6c9c6a95fe6d47740779be",
+      "size": 39163
+    },
+    {
+      "lines": 41,
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\blueprint\\CORE_V2_F6_TIMING_VERIFICATION_AUDIT.md",
+      "sha256": "8e9ad4b5735fcc3dd81ddc86d1314adede4c3e9d0b9b67bb5009c783442911a7",
+      "size": 2799
+    },
+    {
+      "lines": 118,
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\blueprint\\contracts\\M12_REENTRY_SOURCE_CONTRACT.md",
+      "sha256": "d252e8ab2faddc5eb8d91834e69fc9426831652e83773405c6fb9a5a209b176c",
+      "size": 5963
+    },
+    {
+      "lines": 73,
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\blueprint\\contracts\\M22_ORDER_EXECUTION_CONTRACT.md",
+      "sha256": "bb14ed1497d8ceb2d21eb55fcc88bdb9431c543af6024ee09d22d77e8e830a2b",
+      "size": 3966
+    },
+    {
+      "lines": 84,
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\blueprint\\contracts\\M27_ORCHESTRATOR_END_TO_END_CONTRACT.md",
+      "sha256": "837254f707cce8ab043b5fb92ab4afb468239e54b31e2913ff263cf2ce8fa6b0",
+      "size": 4826
+    },
+    {
+      "lines": 10666,
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\blueprint\\source\\BBMA_EA.mq4",
+      "sha256": "3be02985a6a3df9e001fb441beed3b8f8da2755c2ece2f78b43879c6e635311c",
+      "size": 401779
+    },
+    {
+      "lines": 46,
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\.github\\workflows\\core-v2-f6-pr-dispatch.yml",
+      "sha256": "196a26f850d4ca3f9aa6d89fca7c050a9e77f4f88056f2ec017bfd124e6f0460",
+      "size": 1365
+    }
+  ],
+  "telemetry_db": {
+    "lines": 95,
+    "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-150-telemetry-ingest\\g40-telemetry-strict.db",
+    "sha256": "456280a92a94060ab4bddbb5abe156da389206aa4bbfccf86fe5c54c6158d423",
+    "size": 323584
+  }
+}

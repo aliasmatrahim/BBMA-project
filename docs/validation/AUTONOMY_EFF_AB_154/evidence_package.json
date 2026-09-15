@@ -1,0 +1,290 @@
+{
+  "created_at": "2026-09-15T15:31:45+00:00",
+  "files": [
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\ACTIVE_TASK.json",
+      "sha256": "b4ff246f987031507b1de274fb3150823843e29a52ad4cbb33d037808800253d",
+      "size": 740
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_manifest.json",
+      "sha256": "a253aade1bbb01653464ad32f129c0fb94e79daab1a0137b35602a786f618210",
+      "size": 3125
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\.github\\workflows\\core-v2-f6-pr-dispatch.yml",
+      "sha256": "196a26f850d4ca3f9aa6d89fca7c050a9e77f4f88056f2ec017bfd124e6f0460",
+      "size": 1365
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\blueprint\\CORE_V2_F6_TIMING_VERIFICATION_AUDIT.md",
+      "sha256": "8e9ad4b5735fcc3dd81ddc86d1314adede4c3e9d0b9b67bb5009c783442911a7",
+      "size": 2799
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\blueprint\\contracts\\M12_REENTRY_SOURCE_CONTRACT.md",
+      "sha256": "d252e8ab2faddc5eb8d91834e69fc9426831652e83773405c6fb9a5a209b176c",
+      "size": 5963
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\blueprint\\contracts\\M22_ORDER_EXECUTION_CONTRACT.md",
+      "sha256": "bb14ed1497d8ceb2d21eb55fcc88bdb9431c543af6024ee09d22d77e8e830a2b",
+      "size": 3966
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\blueprint\\contracts\\M27_ORCHESTRATOR_END_TO_END_CONTRACT.md",
+      "sha256": "837254f707cce8ab043b5fb92ab4afb468239e54b31e2913ff263cf2ce8fa6b0",
+      "size": 4826
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\blueprint\\source\\BBMA_EA.mq4",
+      "sha256": "3be02985a6a3df9e001fb441beed3b8f8da2755c2ece2f78b43879c6e635311c",
+      "size": 401779
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\docs\\references\\BBMA_STRATEGY_CORE_SOURCE_OF_TRUTH_V2.md",
+      "sha256": "68d404bf45f4f1f0fd65b55d9e099f8da664766aeb6c9c6a95fe6d47740779be",
+      "size": 39163
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\docs\\references\\SOURCE_INDEX.md",
+      "sha256": "7031361c14b4edc3543e38fd97a2b67d4d7a087ae882ec60946de74ee2a8f452",
+      "size": 13320
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\authority_snapshot\\docs\\references\\video\\oma_ally_finale\\V06\\V06_extracted_rules.md",
+      "sha256": "4d23abbf0e376a7eebc8bedfb2b4da63c7a6708d8c50d515b1ba74275505e1ed",
+      "size": 4539
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\benchmark_protocol.json",
+      "sha256": "40df96a7f6a06c68cf379b32e68fa3349c801d88a36c4e1fcefd04f0cfa6cb6c",
+      "size": 797
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\benchmark_report.md",
+      "sha256": "dfc4cbea0ef817d6bff6e504ab618c996a2b76f365a7d36bf8c39e3e4b19b845",
+      "size": 1570
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\benchmark_results.json",
+      "sha256": "4f2757c36b208a29de11c2e7e48ce4a4644dc3e810d513b8196ea9bf6a8ea5d1",
+      "size": 63227
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\contexts\\docs_traceability-cold.json",
+      "sha256": "f9001d26271c47cdb5041ddb64bebe2d2e612d0b766f372c001cdc8cb9709836",
+      "size": 1131
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\contexts\\docs_traceability-warm.json",
+      "sha256": "43cdc85b5151780b1408fdfb9e964108548f1374fb05451dc7cff6f1d0ffd53e",
+      "size": 1131
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\contexts\\strategy_f6_readonly-cold.json",
+      "sha256": "a9b44c71016a8ae105739f9434f13226af14dd7d63c0daed8ad7a63319118eba",
+      "size": 1609
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\contexts\\strategy_f6_readonly-warm.json",
+      "sha256": "be4bcf03dd1d876ba86ae134bce57a638b3cbc2395a7d1bdf0a0d0db5eeecb2d",
+      "size": 1609
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\contexts\\telemetry_tooling-cold.json",
+      "sha256": "a5a0470ad2b4621837636731ea432d006317cbd67232c466215e14157da5c4f0",
+      "size": 1061
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\contexts\\telemetry_tooling-warm.json",
+      "sha256": "de811db4fbc1fb60205c059a9ee51d9322dca4b4a2921ddfe5ddaa4dbf3cab6a",
+      "size": 1061
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\docs_traceability-baseline-cold-trace.json",
+      "sha256": "e1056a7b55c08b30742093bd2189263fc44282fcf45058b41fa2f74580309683",
+      "size": 643
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\docs_traceability-baseline-warm-trace.json",
+      "sha256": "bea9b57b787c6c94c05b247ebca0809e02a4b2161627aa66847d508a186b35b2",
+      "size": 642
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\docs_traceability-upgraded-cold-trace.json",
+      "sha256": "f680d821169fbdfd206e5911344525864c160679a088adc5cf1f46801c2fd673",
+      "size": 643
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\strategy_f6_readonly-baseline-cold-selection.json",
+      "sha256": "b269a2fca7f07ff805023ad596da616d8f46c164b7c0406b2a4f576e975a61ab",
+      "size": 706
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\strategy_f6_readonly-baseline-cold-trace.json",
+      "sha256": "6d1cfce0a2d9757f203473411fca32502c1f4fbded60bebcc2b4045b537b056f",
+      "size": 649
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\strategy_f6_readonly-baseline-warm-selection.json",
+      "sha256": "de6c120e76ef0744577871feb3d99bcd2d26637dc8aecabe29f70492c3c4f4ea",
+      "size": 706
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\strategy_f6_readonly-baseline-warm-trace.json",
+      "sha256": "e93c49b4785c102e564e7df3d81814e6d77a4e7cd138e9dcfdece3585f6dd237",
+      "size": 649
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\strategy_f6_readonly-pack-cold-selection.json",
+      "sha256": "c363aa0ee53bf2b5b1ed8ac5b34cdcb1c0b704c78e37f7f827780e5bb4bbe25d",
+      "size": 702
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\strategy_f6_readonly-pack-warm-selection.json",
+      "sha256": "30e0dad606e47e502a0b4e2292d00a1670ace0dac7e26aecd94a7fe17d9aeb7c",
+      "size": 702
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\strategy_f6_readonly-upgraded-cold-selection.json",
+      "sha256": "f061ea9e559d55f7e75842e6b9a6d2fe4310b875df5b0553d9bf427e8105be55",
+      "size": 706
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\strategy_f6_readonly-upgraded-cold-trace.json",
+      "sha256": "a9db8a4dcd136dc4ae68cd9595d5c04e13dd41e6f1e29ca23d265cf285e3d21d",
+      "size": 649
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\telemetry_tooling-baseline-cold-tests.json",
+      "sha256": "78eee9f5c00f2d2b26964f1fe7a15c1432959a192341d3186f76023cb278b8f4",
+      "size": 13422
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\telemetry_tooling-baseline-warm-tests.json",
+      "sha256": "6cdd31597514e6386837412059ee7d7f2ad391b198c48374704e6287552e0869",
+      "size": 13422
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\logs\\telemetry_tooling-upgraded-cold-tests.json",
+      "sha256": "8d193ce85a0909b23d6b98164fe3154b08d4d1b67d976b9647da7413ed5ff06c",
+      "size": 2160
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\reuse.db",
+      "sha256": "cefa3c7f5225a7f1586219f31c20e7e0a3102c4ec4d674949dd2ced5cce2b9e7",
+      "size": 36864
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\docs_traceability\\baseline\\cold.json",
+      "sha256": "004b0940bc9c6850dfe1529e7bdf56ba6be5f8ffe01dec5d12c1b7ab341df644",
+      "size": 2530
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\docs_traceability\\baseline\\cold\\trace.db",
+      "sha256": "e7c493f7036ce420703e22f59a4e66e810a3adcddd204a86a9d148005c089c9e",
+      "size": 65536
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\docs_traceability\\baseline\\warm.json",
+      "sha256": "2a9710510a2232fd627588cbf7a5b4463092ff02ba5f4255ed581014ee9674ca",
+      "size": 2528
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\docs_traceability\\baseline\\warm\\trace.db",
+      "sha256": "a4344b2cf6b4444d4b92f38714cf6f0ea2ebed775a0864edbc157a2319592e2a",
+      "size": 65536
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\docs_traceability\\upgraded\\cold.json",
+      "sha256": "7bf9a249b4dcb6868ac177693b0747409957642289b79d1296ed70cadfa95514",
+      "size": 1609
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\docs_traceability\\upgraded\\cold\\trace.db",
+      "sha256": "cac4b01a254e60aeb33d384015b0ffc9b942888af3380f1408dd2db1a035a425",
+      "size": 65536
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\docs_traceability\\upgraded\\warm.json",
+      "sha256": "58e3de87e5d415308c9e68739a5e2b1c86b9681b311f56efd6fa710f15639c16",
+      "size": 969
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\strategy_f6_readonly\\baseline\\cold.json",
+      "sha256": "054f7e8cd8396b6af959585e17b086e3e9b38e342ec856d668567785338efaf4",
+      "size": 5415
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\strategy_f6_readonly\\baseline\\cold\\trace.db",
+      "sha256": "49beb837d7a746b6bb66b1f0805d74d83b142dded33980e8645637c21530e9f5",
+      "size": 65536
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\strategy_f6_readonly\\baseline\\warm.json",
+      "sha256": "8842090ee4dfc0351ec674fe5cf637c846889715f4fca5168c521331f0928955",
+      "size": 5415
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\strategy_f6_readonly\\baseline\\warm\\trace.db",
+      "sha256": "f462acc61162d75c72542f6778b56e6dd3909d9ab751fb80d18097c6a4602c47",
+      "size": 65536
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\strategy_f6_readonly\\upgraded\\cold.json",
+      "sha256": "c9e7b362e3bd1d3e472c9a845b35f197a1c09a5311668bd797c4b61da64ea64f",
+      "size": 2910
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\strategy_f6_readonly\\upgraded\\cold\\trace.db",
+      "sha256": "4cba523d89c5648e4b7bcb0ce62ae8d73ed119883c0b7ab017f47a58b217e9b1",
+      "size": 65536
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\strategy_f6_readonly\\upgraded\\warm.json",
+      "sha256": "5b4b40b8fd25e22296d399cba414f226a9767222615ad1154eeaff0e7c9e8411",
+      "size": 1054
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\telemetry_tooling\\baseline\\cold.json",
+      "sha256": "4cadc1f4fca3852036b89928aeffbde22d566ca337e25582e55dee30db4671cd",
+      "size": 15098
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\telemetry_tooling\\baseline\\warm.json",
+      "sha256": "7066f721abf4a133dac531f65b31d52e7c6aa588c15c799ebefc373764059bee",
+      "size": 15098
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\telemetry_tooling\\upgraded\\cold.json",
+      "sha256": "e2fa69f766dcd49eecd5ce4a701256e0c78a7e4a2900624684d8b1ca8511bcb7",
+      "size": 3399
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\runs\\telemetry_tooling\\upgraded\\warm.json",
+      "sha256": "16e834db0a0fa0b686bde9df20f5eaf6936863aa3efc483d9c6dc459fb78c141",
+      "size": 1240
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\telemetry_raw.jsonl",
+      "sha256": "11d6f09179d6c88cf3339a77f6bc168a022735d1a96549cd796345a9d5aefbd9",
+      "size": 274351
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark\\telemetry_summary.json",
+      "sha256": "d9b830738ae33df32f9c4913488fc3d83d880d97411cc3cb497499e03482ad9f",
+      "size": 215
+    },
+    {
+      "path": "D:\\BBMA\\Workspace\\infra150_validation\\task-154-autonomy-eff-ab\\benchmark_autonomy_eff_ab.py",
+      "sha256": "d0d6fc75d2404d564ced30947743a62fbff0a416f1add28e7db163918e04b48c",
+      "size": 22304
+    }
+  ],
+  "metadata": {
+    "issue": 154,
+    "label": "AUTONOMY-EFF-AB"
+  },
+  "schema_version": 1
+}

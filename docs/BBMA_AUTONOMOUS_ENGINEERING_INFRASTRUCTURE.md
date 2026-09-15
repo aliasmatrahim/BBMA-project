@@ -73,6 +73,8 @@ The selector consumes caller-supplied verified module/dependency metadata plus m
 ## Telemetry warehouse
 Runtime/test events are normalized into SQLite with timestamp, source, event type, JourneyID, DecisionID, symbol, status and raw JSON payload. Failure-first summaries return anomalies/failures first and aggregate PASS volume rather than streaming raw logs into ChatGPT.
 
+The native log adapter ingests the authoritative NMJE `[N1-NMJE]`, `[N2-NMJE-DEC]` and `[N2-NMJE-OUT]` formats from explicitly labelled MT4 Expert, Strategy Tester or runtime-smoke files. Every record carries source-file SHA-256, line number, emitter/build marker and raw text; repeated ingestion is idempotent. Ingestion status is `OBSERVED` with `runtime_verification: NOT VERIFIED`, so importing a log cannot manufacture runtime PASS.
+
 ## Golden traces and differential builds
 Golden traces compare normalized lifecycle events, not only P/L. Build comparison returns:
 - `NO_DELTA` when traces are equivalent;

@@ -18,7 +18,7 @@ from .core import (
     atomic_write_json,
 )
 from .evidence import ContentAddressedStore, EvidenceDB, build_evidence_package, sha256_file
-from .telemetry import TelemetryStore
+from .telemetry import MT4_SOURCE_KINDS, TelemetryStore
 from .trace import classify_build_delta, compare_shadow
 from .native import NativeAdapter, git_snapshot, artifact_identity
 from .verified import load_verified_regression_map, materialize_traceability
@@ -161,6 +161,13 @@ def cmd_ingest_jsonl(args: argparse.Namespace) -> None:
 def cmd_ingest_csv(args: argparse.Namespace) -> None:
     with TelemetryStore(args.db) as store:
         count = store.ingest_csv(args.path, source=args.source)
+        _json_print({"ingested": count, "summary": store.failure_first_summary(limit=args.limit)})
+
+def cmd_ingest_mt4_log(args: argparse.Namespace) -> None:
+    with TelemetryStore(args.db) as store:
+        count = store.ingest_mt4_log(
+            args.path, source=args.source, source_kind=args.source_kind
+        )
         _json_print({"ingested": count, "summary": store.failure_first_summary(limit=args.limit)})
 
 def cmd_telemetry_summary(args: argparse.Namespace) -> None:
@@ -362,6 +369,14 @@ def build_parser() -> argparse.ArgumentParser:
         p.add_argument("--source", default="")
         p.add_argument("--limit", type=int, default=50)
         p.set_defaults(func=func)
+
+    p = sub.add_parser("ingest-mt4-log")
+    p.add_argument("--db", required=True)
+    p.add_argument("--path", required=True)
+    p.add_argument("--source-kind", required=True, choices=MT4_SOURCE_KINDS)
+    p.add_argument("--source", default="")
+    p.add_argument("--limit", type=int, default=50)
+    p.set_defaults(func=cmd_ingest_mt4_log)
 
     p = sub.add_parser("telemetry-summary")
     p.add_argument("--db", required=True)

@@ -56,7 +56,24 @@ python -m tools.bbma_orchestrator telemetry-summary \
   --db telemetry.db --limit 50
 ```
 
-The summary is failure-first so large PASS volumes do not need to be sent to ChatGPT.
+For native MT4/tester logs:
+
+```bash
+python -m tools.bbma_orchestrator ingest-mt4-log \
+  --db telemetry.db --path 20260910.log \
+  --source-kind mt4-expert --source g40:terminal-id:20260910
+```
+
+`ingest-mt4-log` accepts an explicit `mt4-expert`, `strategy-tester`, or
+`runtime-smoke` source kind. It reuses the authoritative NMJE N1/N2 formats,
+requires identity-bearing fields for current additive formats, stores the file
+hash, line, emitter/build marker and raw record, and is idempotent by source
+hash plus line and marker. A recognized malformed marker rejects the whole file
+before partial publish.
+
+Ingestion records `OBSERVED` and `runtime_verification: NOT VERIFIED`; it never
+promotes a log to runtime PASS. The summary is failure-first so large PASS
+volumes do not need to be sent to ChatGPT.
 
 ## Golden/shadow traces
 

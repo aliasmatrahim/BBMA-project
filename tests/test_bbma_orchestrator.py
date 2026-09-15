@@ -646,6 +646,151 @@ class TelemetryTests(unittest.TestCase):
                 self.assertEqual(store.ingest_csv(source), 1)
                 self.assertEqual(store.failure_first_summary()["pass_like"], 1)
 
+    def test_mt4_log_ingest_is_attributable_idempotent_and_never_implies_pass(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "20260910.log"
+            journey = "EURUSD|H4_OWNER|240|SIGNAL_ECSD|B|1788768000"
+            decision_token = "EURUSD|2026.09.10~03:00|1|7|ABC"
+            decision_id = decision_token.replace("~", " ")
+            rows = [
+                f"0\\t10:29:27.700\\tEA_BUILD GBPUSD,M15: [N1-NMJE] EURUSD REL=ALIGNED SUB=NONE MAT=CONFIRMED P=H4_OWNER/B PRETAIN=Y PSEL=CANONICAL PHASE=CONFIRMED PDUR=Y PE=ABC J={journey} D1=- H4=B H1=B M15=B R=OK",
+                f"0\\t10:29:27.800\\tEA_BUILD GBPUSD,M15: [N2-NMJE-DEC] EURUSD SIG=SIGNAL_RE_ENTRY DIR=B REL=ALIGNED P=H4_OWNER/B PE=ABC J={journey} DID={decision_token} DIDH=ABC AUTH=STRAT OFAM=NONE OC= LTF=- OSH=ABC",
+                f"0\\t10:29:27.900\\tEA_BUILD GBPUSD,M15: [N2-NMJE-OUT] PAIR=EURUSD TICKET=123 DID={decision_token} DIDH=ABC NET=-1.25 CLOSE=1789000000 REC=REC_NORMAL",
+            ]
+            source.write_text("\n".join(rows) + "\n", encoding="utf-8")
+            with TelemetryStore(root / "t.db") as store:
+                self.assertEqual(store.ingest_mt4_log(source, source="g40-fixture", source_kind="mt4-expert"), 3)
+                self.assertEqual(store.ingest_mt4_log(source, source="g40-fixture", source_kind="mt4-expert"), 0)
+                journey_rows = store.lookup(journey_id=journey)
+                self.assertEqual(len(journey_rows), 2)
+                self.assertEqual(journey_rows[0]["payload"]["fields"]["sub"], "NONE")
+                decision_rows = store.lookup(decision_id=decision_id)
+                self.assertEqual([row["event_type"] for row in decision_rows], ["N2_NMJE_DECISION", "N2_NMJE_OUTCOME"])
+                self.assertEqual(decision_rows[0]["payload"]["fields"]["parent_event"], "ABC")
+                self.assertEqual(decision_rows[0]["payload"]["fields"]["opportunity_cycle"], "")
+                self.assertEqual(decision_rows[0]["payload"]["source_sha256"], sha256_file(source))
+                self.assertEqual(decision_rows[0]["payload"]["runtime_verification"], "NOT VERIFIED")
+                summary = store.failure_first_summary()
+                self.assertEqual(summary["total"], 3)
+                self.assertEqual(summary["pass_like"], 0)
+                self.assertEqual(summary["failure_like"], 0)
+
+    def test_mt4_log_ingest_fails_closed_before_partial_publish(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "20260910.log"
+            source.write_text(
+                "0\\t10:00:00.000\\tEA: [N1-NMJE] EURUSD REL=ALIGNED P=H4_OWNER/B J=J1 D1=- H4=B H1=B M15=B R=OK\n"
+                "0\\t10:00:01.000\\tEA: [N2-NMJE-OUT] PAIR=EURUSD TICKET=123 DID=broken\n",
+                encoding="utf-8",
+            )
+            with TelemetryStore(root / "t.db") as store:
+                with self.assertRaisesRegex(ValueError, "line 2: malformed.*N2-NMJE-OUT"):
+                    store.ingest_mt4_log(source, source_kind="strategy-tester")
+                self.assertEqual(store.failure_first_summary()["total"], 0)
+
+    def test_mt4_log_ingest_rejects_file_changed_during_read(self):
+        from unittest.mock import patch
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "20260910.log"
+            source.write_text(
+                "0\\t10:00:00.000\\tEA: [N1-NMJE] EURUSD REL=ALIGNED P=H4_OWNER/B J=J1 D1=- H4=B H1=B M15=B R=OK\n",
+                encoding="utf-8",
+            )
+            with TelemetryStore(root / "t.db") as store:
+                with patch(
+                    "tools.bbma_orchestrator.telemetry._sha256_file",
+                    side_effect=["a" * 64, "b" * 64],
+                ):
+                    with self.assertRaisesRegex(ValueError, "changed during ingestion"):
+                        store.ingest_mt4_log(source, source_kind="runtime-smoke")
+                self.assertEqual(store.failure_first_summary()["total"], 0)
+
+    def test_mt4_log_ingest_captures_append_only_current_n2_fields(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "20260910.log"
+            source.write_text(
+                "0\\t10:00:00.000\\tEA: [N2-NMJE-DEC] EURUSD SIG=RE DIR=B REL=ALIGNED P=H4/B J=J1 DID=D1 DIDH=H1 AUTH=OPP OFAM=CSD OC=CYCLE1 PE=ABC LTF=H1 OSH=SEQ1\n",
+                encoding="utf-8",
+            )
+            with TelemetryStore(root / "t.db") as store:
+                self.assertEqual(store.ingest_mt4_log(source, source_kind="mt4-expert"), 1)
+                row = store.lookup(decision_id="D1")[0]
+                self.assertEqual(row["payload"]["fields"]["parent_event"], "ABC")
+                self.assertEqual(row["payload"]["fields"]["ltf_cluster"], "H1")
+                self.assertEqual(row["payload"]["fields"]["opportunity_sequence_hash"], "SEQ1")
+
+    def test_mt4_log_ingest_rejects_ambiguous_or_unparsed_tokens(self):
+        invalid_rows = [
+            "0\\t10:00:00.000\\tEA: [N1-NMJE] EURUSD REL=ALIGNED P=H4/B J=J1 D1=- H4=B H1=B M15=B R=OK BROKEN=",
+            "0\\t10:00:00.000\\tEA: [N1-NMJE] EURUSD REL=ALIGNED P=H4/B J=J1 D1=- H4=B H1=B M15=B R=OK [N2-NMJE-OUT] BROKEN",
+            "0\\t10:00:00.000\\tEA: [N1-NMJE] EURUSD REL=ALIGNED P=H4/B J=J1 J=J2 D1=- H4=B H1=B M15=B R=OK",
+        ]
+        for raw_line in invalid_rows:
+            with self.subTest(raw_line=raw_line), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                source = root / "20260910.log"
+                source.write_text(raw_line + "\n", encoding="utf-8")
+                with TelemetryStore(root / "t.db") as store:
+                    with self.assertRaisesRegex(ValueError, "line 1: malformed"):
+                        store.ingest_mt4_log(source, source_kind="mt4-expert")
+                    self.assertEqual(store.failure_first_summary()["total"], 0)
+
+    def test_mt4_log_ingest_requires_current_identity_fields(self):
+        invalid_rows = [
+            "0\\t10:00:00.000\\tEA: [N1-NMJE] EURUSD REL=ALIGNED SUB=NONE MAT=CONFIRMED P=H4/B PRETAIN=Y PSEL=CANONICAL PHASE=CONFIRMED PDUR=Y J=J1 D1=- H4=B H1=B M15=B R=OK",
+            "0\\t10:00:00.000\\tEA: [N2-NMJE-DEC] EURUSD SIG=RE DIR=B REL=ALIGNED P=H4/B PE=ABC J=J1 DID=D1 AUTH=OPP OFAM=CSD OC=CYCLE1 LTF=H1",
+        ]
+        for raw_line in invalid_rows:
+            with self.subTest(raw_line=raw_line), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                source = root / "20260910.log"
+                source.write_text(raw_line + "\n", encoding="utf-8")
+                with TelemetryStore(root / "t.db") as store:
+                    with self.assertRaisesRegex(ValueError, "line 1: malformed"):
+                        store.ingest_mt4_log(source, source_kind="mt4-expert")
+                    self.assertEqual(store.failure_first_summary()["total"], 0)
+
+    def test_mt4_log_ingest_rejects_invalid_utf8_without_publish(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "20260910.log"
+            source.write_bytes(
+                b"0\\t10:00:00.000\\tEA: [N1-NMJE] EURUSD REL=ALIGNED P=H4/B J=J1 D1=- H4=B H1=B M15=B R=OK"
+                + bytes([255]) + b"\n"
+            )
+            with TelemetryStore(root / "t.db") as store:
+                with self.assertRaises(UnicodeDecodeError):
+                    store.ingest_mt4_log(source, source_kind="mt4-expert")
+                self.assertEqual(store.failure_first_summary()["total"], 0)
+
+    def test_mt4_log_cli_ingests_with_explicit_source_kind(self):
+        import contextlib
+        import io
+        from tools.bbma_orchestrator.cli import main
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "tester.log"
+            source.write_text(
+                "0\\t10:00:00.000\\tEA: [N1-NMJE] EURUSD REL=ALIGNED P=H4_OWNER/B J=J1 D1=- H4=B H1=B M15=B R=OK\n",
+                encoding="utf-8",
+            )
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                main([
+                    "ingest-mt4-log", "--db", str(root / "t.db"),
+                    "--path", str(source), "--source-kind", "strategy-tester",
+                    "--source", "fixture",
+                ])
+            result = json.loads(output.getvalue())
+            self.assertEqual(result["ingested"], 1)
+            self.assertEqual(result["summary"]["pass_like"], 0)
+
 class TraceTests(unittest.TestCase):
     def test_golden_trace_and_authorized_delta(self):
         baseline = [{"event_type": "A", "state": "CANDIDATE"}]

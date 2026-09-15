@@ -81,6 +81,15 @@ Golden traces compare normalized lifecycle events, not only P/L. Build compariso
 - `EXPECTED_DELTA` only when a caller explicitly authorizes the behavioural delta;
 - `UNEXPECTED_DELTA` otherwise.
 
+Attributable trace artifacts bind every normalized decision record to an exact
+telemetry source SHA-256, emitter/build marker, source line and event key. The
+artifact itself is content-hashed and comparison rejects tampering, mixed
+provenance and candidate-role baselines. A golden role requires an explicit
+external authority reference; the tooling does not infer baseline approval.
+Likewise, `EXPECTED_DELTA` requires an explicit authorization reference.
+Runtime-verification state is preserved from telemetry and is never promoted by
+trace export or comparison.
+
 A shadow trace is read-only evidence. It cannot create/reject/rank/execute a trade.
 
 ## Lifecycle property model

@@ -19,7 +19,12 @@ from .core import (
 )
 from .evidence import ContentAddressedStore, EvidenceDB, build_evidence_package, sha256_file
 from .telemetry import MT4_SOURCE_KINDS, TelemetryStore
-from .trace import classify_build_delta, compare_shadow
+from .trace import (
+    build_trace_artifact,
+    classify_build_delta,
+    compare_shadow,
+    compare_trace_artifacts,
+)
 from .native import NativeAdapter, git_snapshot, artifact_identity
 from .verified import load_verified_regression_map, materialize_traceability
 
@@ -173,6 +178,40 @@ def cmd_ingest_mt4_log(args: argparse.Namespace) -> None:
 def cmd_telemetry_summary(args: argparse.Namespace) -> None:
     with TelemetryStore(args.db) as store:
         _json_print(store.failure_first_summary(limit=args.limit))
+
+def cmd_trace_export_telemetry(args: argparse.Namespace) -> None:
+    with TelemetryStore(args.db) as store:
+        records = store.attributable_events(
+            source_sha256=args.source_sha256,
+            emitter=args.emitter,
+            limit=args.limit,
+        )
+    artifact = build_trace_artifact(
+        records,
+        source_sha256=args.source_sha256,
+        emitter=args.emitter,
+        role=args.role,
+        authority_ref=args.authority_ref,
+    )
+    atomic_write_json(args.output, artifact)
+    _json_print(
+        {
+            "output": str(Path(args.output).resolve()),
+            "role": artifact["role"],
+            "record_count": artifact["record_count"],
+            "trace_sha256": artifact["trace_sha256"],
+            "runtime_verification": artifact["runtime_verification"],
+        }
+    )
+
+def cmd_trace_diff_artifacts(args: argparse.Namespace) -> None:
+    baseline = _load_json(args.baseline)
+    candidate = _load_json(args.candidate)
+    _json_print(
+        compare_trace_artifacts(
+            baseline, candidate, authorization_ref=args.authorization_ref
+        )
+    )
 
 def cmd_trace_compare(args: argparse.Namespace) -> None:
     baseline = _load_json(args.baseline)
@@ -382,6 +421,22 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--db", required=True)
     p.add_argument("--limit", type=int, default=50)
     p.set_defaults(func=cmd_telemetry_summary)
+
+    p = sub.add_parser("trace-export-telemetry")
+    p.add_argument("--db", required=True)
+    p.add_argument("--source-sha256", required=True)
+    p.add_argument("--emitter", required=True)
+    p.add_argument("--output", required=True)
+    p.add_argument("--role", choices=("candidate", "golden"), default="candidate")
+    p.add_argument("--authority-ref", default="")
+    p.add_argument("--limit", type=int, default=10000)
+    p.set_defaults(func=cmd_trace_export_telemetry)
+
+    p = sub.add_parser("trace-diff-artifacts")
+    p.add_argument("--baseline", required=True)
+    p.add_argument("--candidate", required=True)
+    p.add_argument("--authorization-ref", default="")
+    p.set_defaults(func=cmd_trace_diff_artifacts)
 
     p = sub.add_parser("trace-compare")
     p.add_argument("--baseline", required=True)

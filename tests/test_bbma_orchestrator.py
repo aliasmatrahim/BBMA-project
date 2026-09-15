@@ -791,6 +791,212 @@ class TelemetryTests(unittest.TestCase):
             self.assertEqual(result["ingested"], 1)
             self.assertEqual(result["summary"]["pass_like"], 0)
 
+class AttributableTraceTests(unittest.TestCase):
+    @staticmethod
+    def _payload(source_sha256, emitter, *, line=1, direction="B"):
+        event_key = ("1" if source_sha256.startswith("a") else "2") * 64
+        return {
+            "event_type": "N2_NMJE_DECISION",
+            "journey_id": "J1",
+            "decision_id": "D1",
+            "symbol": "EURUSD",
+            "status": "OBSERVED",
+            "source_sha256": source_sha256,
+            "source_path": "C:\\fixture\\tester.log",
+            "source_kind": "strategy-tester",
+            "source_line": line,
+            "event_key": event_key,
+            "emitter": emitter,
+            "runtime_verification": "NOT VERIFIED",
+            "fields": {
+                "pair": "EURUSD",
+                "journey": "J1",
+                "decision_id": "D1",
+                "direction": direction,
+                "decision_hash": "H1",
+            },
+        }
+
+    def _artifact(self, source_sha256, emitter, *, role, direction="B",
+                  authority_ref=""):
+        from tools.bbma_orchestrator.trace import build_trace_artifact
+
+        with tempfile.TemporaryDirectory() as tmp:
+            with TelemetryStore(Path(tmp) / "t.db") as store:
+                payload = self._payload(
+                    source_sha256, emitter, direction=direction
+                )
+                store.ingest_event(payload, event_key=payload["event_key"])
+                rows = store.attributable_events(
+                    source_sha256=source_sha256, emitter=emitter
+                )
+                return build_trace_artifact(
+                    rows,
+                    source_sha256=source_sha256,
+                    emitter=emitter,
+                    role=role,
+                    authority_ref=authority_ref,
+                )
+
+    def test_attributable_events_require_exact_source_and_emitter(self):
+        source_sha256 = "a" * 64
+        with tempfile.TemporaryDirectory() as tmp:
+            with TelemetryStore(Path(tmp) / "t.db") as store:
+                payload = self._payload(source_sha256, "BUILD1")
+                store.ingest_event(payload, event_key=payload["event_key"])
+                rows = store.attributable_events(
+                    source_sha256=source_sha256, emitter="BUILD1"
+                )
+                self.assertEqual(len(rows), 1)
+                with self.assertRaisesRegex(ValueError, "no attributable events"):
+                    store.attributable_events(
+                        source_sha256=source_sha256, emitter="BUILD2"
+                    )
+
+    def test_trace_artifact_is_deterministic_attributable_and_not_runtime_pass(self):
+        artifact = self._artifact("a" * 64, "BUILD1", role="candidate")
+        self.assertEqual(artifact["record_count"], 1)
+        self.assertEqual(artifact["source_sha256"], "a" * 64)
+        self.assertEqual(artifact["emitter"], "BUILD1")
+        self.assertEqual(artifact["runtime_verification"], "NOT VERIFIED")
+        self.assertEqual(artifact["records"][0]["provenance"]["source_line"], 1)
+        self.assertEqual(len(artifact["trace_sha256"]), 64)
+        self.assertEqual(
+            artifact,
+            self._artifact("a" * 64, "BUILD1", role="candidate"),
+        )
+
+    def test_trace_artifact_rejects_column_payload_identity_mismatch(self):
+        from tools.bbma_orchestrator.trace import build_trace_artifact
+
+        source_sha256 = "a" * 64
+        with tempfile.TemporaryDirectory() as tmp:
+            with TelemetryStore(Path(tmp) / "t.db") as store:
+                payload = self._payload(source_sha256, "BUILD1")
+                store.ingest_event(payload, event_key=payload["event_key"])
+                rows = store.attributable_events(
+                    source_sha256=source_sha256, emitter="BUILD1"
+                )
+                rows[0]["decision_id"] = "D2"
+                with self.assertRaisesRegex(ValueError, "row/payload mismatch"):
+                    build_trace_artifact(
+                        rows,
+                        source_sha256=source_sha256,
+                        emitter="BUILD1",
+                    )
+
+    def test_golden_role_requires_external_authority_reference(self):
+        with self.assertRaisesRegex(ValueError, "authority_ref"):
+            self._artifact("a" * 64, "BUILD1", role="golden")
+
+    def test_artifact_delta_requires_authorization_reference(self):
+        from tools.bbma_orchestrator.trace import compare_trace_artifacts
+
+        baseline = self._artifact(
+            "a" * 64, "BUILD1", role="golden",
+            authority_ref="evidence:approved-baseline",
+        )
+        same = self._artifact("b" * 64, "BUILD2", role="candidate")
+        self.assertEqual(
+            compare_trace_artifacts(baseline, same)["classification"],
+            "NO_DELTA",
+        )
+        changed = self._artifact(
+            "b" * 64, "BUILD2", role="candidate", direction="S"
+        )
+        self.assertEqual(
+            compare_trace_artifacts(baseline, changed)["classification"],
+            "UNEXPECTED_DELTA",
+        )
+        result = compare_trace_artifacts(
+            baseline, changed, authorization_ref="decision:approved-delta"
+        )
+        self.assertEqual(result["classification"], "EXPECTED_DELTA")
+        self.assertEqual(result["authorization_ref"], "decision:approved-delta")
+
+    def test_trace_artifact_tampering_fails_closed(self):
+        from tools.bbma_orchestrator.trace import compare_trace_artifacts
+
+        baseline = self._artifact(
+            "a" * 64, "BUILD1", role="golden",
+            authority_ref="evidence:approved-baseline",
+        )
+        candidate = self._artifact("b" * 64, "BUILD2", role="candidate")
+        candidate["records"][0]["fields"]["direction"] = "S"
+        with self.assertRaisesRegex(ValueError, "trace hash mismatch"):
+            compare_trace_artifacts(baseline, candidate)
+
+    def test_trace_artifact_rejects_self_hashed_invalid_metadata(self):
+        from tools.bbma_orchestrator.trace import (
+            _canonical_digest,
+            validate_trace_artifact,
+        )
+
+        artifact = self._artifact("a" * 64, "BUILD1", role="candidate")
+        invalid_values = {
+            "authority_ref": 7,
+            "source_path": 7,
+            "source_kind": "",
+            "runtime_verification": "",
+        }
+        for field, value in invalid_values.items():
+            with self.subTest(field=field):
+                damaged = json.loads(json.dumps(artifact))
+                damaged[field] = value
+                body = dict(damaged)
+                del body["trace_sha256"]
+                damaged["trace_sha256"] = _canonical_digest(body)
+                with self.assertRaisesRegex(
+                    ValueError, f"invalid trace {field}"
+                ):
+                    validate_trace_artifact(damaged)
+
+    def test_trace_artifact_cli_export_and_diff(self):
+        import contextlib
+        import io
+        from tools.bbma_orchestrator.cli import main
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            db_path = root / "t.db"
+            source_sha256 = "b" * 64
+            with TelemetryStore(db_path) as store:
+                payload = self._payload(source_sha256, "BUILD2")
+                store.ingest_event(payload, event_key=payload["event_key"])
+            candidate_path = root / "candidate.json"
+            stdout = io.StringIO()
+            with contextlib.redirect_stdout(stdout):
+                main([
+                    "trace-export-telemetry",
+                    "--db", str(db_path),
+                    "--source-sha256", source_sha256,
+                    "--emitter", "BUILD2",
+                    "--output", str(candidate_path),
+                ])
+            export_result = json.loads(stdout.getvalue())
+            self.assertEqual(export_result["record_count"], 1)
+            self.assertEqual(export_result["role"], "candidate")
+
+            baseline_path = root / "baseline.json"
+            baseline_path.write_text(
+                json.dumps(self._artifact(
+                    "a" * 64, "BUILD1", role="golden",
+                    authority_ref="evidence:approved-baseline",
+                )),
+                encoding="utf-8",
+            )
+            stdout = io.StringIO()
+            with contextlib.redirect_stdout(stdout):
+                main([
+                    "trace-diff-artifacts",
+                    "--baseline", str(baseline_path),
+                    "--candidate", str(candidate_path),
+                ])
+            self.assertEqual(
+                json.loads(stdout.getvalue())["classification"],
+                "NO_DELTA",
+            )
+
 class TraceTests(unittest.TestCase):
     def test_golden_trace_and_authorized_delta(self):
         baseline = [{"event_type": "A", "state": "CANDIDATE"}]

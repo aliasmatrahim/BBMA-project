@@ -431,6 +431,56 @@ class TelemetryStore:
             ],
         }
 
+    def attributable_events(
+        self, *, source_sha256: str, emitter: str, limit: int = 10000,
+    ) -> list[dict[str, Any]]:
+        if not re.fullmatch(r"[0-9a-fA-F]{64}", source_sha256):
+            raise ValueError("source_sha256 must be a 64-character hex digest")
+        if not emitter.strip():
+            raise ValueError("emitter is required")
+        if limit < 1:
+            raise ValueError("limit must be positive")
+        selected: list[dict[str, Any]] = []
+        rows = self.conn.execute(
+            """
+            SELECT id,ts,source,event_type,journey_id,decision_id,symbol,status,
+                   event_key,payload_json
+            FROM events
+            ORDER BY id
+            """
+        )
+        for row in rows:
+            payload = json.loads(row[9])
+            if (
+                payload.get("source_sha256", "").lower() != source_sha256.lower()
+                or payload.get("emitter") != emitter
+            ):
+                continue
+            if payload.get("event_key") != row[8]:
+                raise ValueError(f"event {row[0]} provenance event_key mismatch")
+            selected.append(
+                {
+                    "id": row[0],
+                    "ts": row[1],
+                    "source": row[2],
+                    "event_type": row[3],
+                    "journey_id": row[4],
+                    "decision_id": row[5],
+                    "symbol": row[6],
+                    "status": row[7],
+                    "payload": payload,
+                }
+            )
+            if len(selected) > limit:
+                raise ValueError(
+                    f"attributable event selection exceeds limit {limit}"
+                )
+        if not selected:
+            raise ValueError(
+                "no attributable events for exact source_sha256 and emitter"
+            )
+        return selected
+
     def lookup(self, *, journey_id: str = "", decision_id: str = "", limit: int = 200) -> list[dict[str, Any]]:
         if not journey_id and not decision_id:
             raise ValueError("journey_id or decision_id is required")

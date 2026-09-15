@@ -85,6 +85,25 @@ python -m tools.bbma_orchestrator shadow-compare \
   --authoritative authoritative.json --shadow shadow.json
 ```
 
+For attributable telemetry artifacts:
+
+```bash
+python -m tools.bbma_orchestrator trace-export-telemetry \
+  --db telemetry.db --source-sha256 <log-sha256> \
+  --emitter "<exact build emitter>" --output candidate-trace.json
+
+python -m tools.bbma_orchestrator trace-diff-artifacts \
+  --baseline approved-golden.json --candidate candidate-trace.json
+```
+
+Export requires an exact source-file SHA-256 and emitter, preserves source-line
+and event-key provenance, and writes a tamper-evident trace hash. The default
+role is `candidate`. Creating a `golden` role requires an external
+`--authority-ref`; comparing against a candidate-role baseline fails closed.
+A changed artifact is `EXPECTED_DELTA` only when
+`--authorization-ref <evidence>` is explicitly supplied. Runtime verification
+is copied from telemetry and is never promoted by export or comparison.
+
 Shadow comparison is explicitly read-only and reports `trade_authority: NONE`.
 
 ## Verified module graph

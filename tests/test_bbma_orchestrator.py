@@ -2012,5 +2012,74 @@ class SourceFailureSummaryTests(unittest.TestCase):
         with_summary = build_context_pack(manifest, source_summary=requested)
         self.assertEqual(with_summary["source_summary"], requested)
         self.assertIsNot(with_summary["source_summary"], requested)
+
+
+class SourceG40AdapterTests(unittest.TestCase):
+    def _write_manifest(self, root, payload):
+        manifest = root / "manifest.json"
+        manifest.parent.mkdir(parents=True, exist_ok=True)
+        manifest.write_text(json.dumps(payload), encoding="utf-8")
+        return manifest
+
+    def test_completed_asr_manifest_is_never_rerun_or_promoted_to_core(self):
+        from tools.bbma_orchestrator.source_g40 import plan_resume, scan_manifest
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "video_10" / "retranscript_faster"
+            manifest = self._write_manifest(
+                root,
+                {"video_dir": "video_10", "status": "ASR-DRAFT", "chunks": 2, "completed": "2026-09-16T00:00:00Z"},
+            )
+            chunks = root / "chunks"
+            chunks.mkdir()
+            (chunks / "chunk_000.done").write_text("done", encoding="utf-8")
+            (chunks / "chunk_001.done").write_text("done", encoding="utf-8")
+            scanned = scan_manifest(manifest)
+            self.assertEqual(scanned["processing_state"], "COMPLETE")
+            self.assertEqual(scanned["semantic_authority"], "ASR_DRAFT_ONLY")
+            self.assertFalse(scanned["core_eligible"])
+            self.assertEqual(scanned["missing_units"], [])
+            plan = plan_resume([scanned])[0]
+            self.assertEqual(plan["action"], "SKIP_COMPLETE")
+            self.assertEqual(plan["missing_units"], [])
+
+    def test_partial_manifest_resumes_only_missing_units(self):
+        from tools.bbma_orchestrator.source_g40 import plan_resume, scan_manifest
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "video_partial" / "retranscript_faster"
+            manifest = self._write_manifest(root, {"video_dir": "video_partial", "status": "ASR-DRAFT", "chunks": 3})
+            chunks = root / "chunks"
+            chunks.mkdir()
+            (chunks / "chunk_000.done").write_text("done", encoding="utf-8")
+            (chunks / "chunk_002.done").write_text("done", encoding="utf-8")
+            scanned = scan_manifest(manifest)
+            self.assertEqual(scanned["processing_state"], "PARTIAL")
+            self.assertEqual(scanned["missing_units"], [1])
+            plan = plan_resume([scanned])[0]
+            self.assertEqual(plan["action"], "RESUME_MISSING")
+            self.assertEqual(plan["missing_units"], [1])
+
+    def test_unknown_manifest_schema_fails_closed_to_review(self):
+        from tools.bbma_orchestrator.source_g40 import plan_resume, scan_manifest
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest = self._write_manifest(
+                Path(tmp) / "sample",
+                {"video_dir": "sample", "engine": "faster-whisper", "legacy_transcript_untouched": True},
+            )
+            scanned = scan_manifest(manifest)
+            self.assertEqual(scanned["processing_state"], "REVIEW_REQUIRED")
+            self.assertFalse(scanned["core_eligible"])
+            self.assertEqual(plan_resume([scanned])[0]["action"], "REVIEW_REQUIRED")
+
+    def test_resume_plan_is_deterministic_and_contains_no_execution_command(self):
+        from tools.bbma_orchestrator.source_g40 import plan_resume
+        manifests = [
+            {"source_id": "B", "manifest_path": "B.json", "processing_state": "PENDING", "missing_units": [0, 1], "semantic_authority": "ASR_DRAFT_ONLY", "core_eligible": False},
+            {"source_id": "A", "manifest_path": "A.json", "processing_state": "COMPLETE", "missing_units": [], "semantic_authority": "ASR_DRAFT_ONLY", "core_eligible": False},
+        ]
+        plan = plan_resume(manifests)
+        self.assertEqual([item["source_id"] for item in plan], ["A", "B"])
+        self.assertEqual([item["action"] for item in plan], ["SKIP_COMPLETE", "START_EXPLICIT"])
+        self.assertNotIn("command", json.dumps(plan, sort_keys=True).lower())
+
 if __name__ == "__main__":
     unittest.main()

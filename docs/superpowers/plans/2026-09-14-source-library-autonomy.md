@@ -91,10 +91,10 @@
 
 **Interfaces:** `scan_manifest(path)`, `classify_manifest_state(payload)`, `plan_resume(manifests)`.
 
-- [ ] Test completed manifests are never blindly rerun, partial work resumes only missing units, and ASR-DRAFT never equals reconciled/accepted Core.
-- [ ] Implement read-only manifest inspection first; any long-running local process remains explicit through the native adapter.
-- [ ] Validate against fixture data, then bounded live G40 manifests; record local evidence separately.
-- [ ] Commit deterministic code only; do not alter original media/transcripts.
+- [x] Test completed manifests are never blindly rerun, partial work resumes only missing units, and ASR-DRAFT never equals reconciled/accepted Core.
+- [x] Implement read-only manifest inspection first; any long-running local process remains explicit through the native adapter.
+- [x] Validate against fixture data, then bounded live G40 manifests; record local evidence separately.
+- [x] Commit deterministic code only; do not alter original media/transcripts.
 ### Task 8: End-to-end acceptance and immutable evidence package
 
 **Files:** Modify orchestrator README/docs, CI workflow path filters if needed, and tests; use existing evidence-package generator.

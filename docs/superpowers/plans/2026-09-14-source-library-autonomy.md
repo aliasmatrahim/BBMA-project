@@ -103,7 +103,7 @@
 - [x] Verify duplicate ingestion, changed-digest staleness, reconciliation HOLD, bounded index proposal, failure-first summary and interruption/resume checkpoint in one integration test.
 - [x] Run `python -m compileall tools/bbma_orchestrator` and the full orchestrator test suite from a clean checkout/worktree.
 - [x] Generate immutable evidence package containing changed files, hashes, test result references and authority metadata.
-- [ ] Open Draft PR to current canonical `main`; PR #151 is already merged, and #152 remains no-auto-merge.
+- [x] Open Draft PR #158 to current canonical `main`; PR #151 is already merged, and #152 remains no-auto-merge.
 
 ## Execution routing
 Runtime model routing: Task 1 is executed on Luna Medium for deterministic implementation and tests. Warn before escalation if a later step requires Sol/Astra because of source-authority ambiguity, recovery semantics, or unresolved Core/source conflict. Task 2-8 retain the same escalation boundary; G40/local evidence remains required for live media claims. No automatic model escalation or XHigh routing.

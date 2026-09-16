@@ -170,6 +170,28 @@ Rules:
 - Keep experimental development away from stable project state.
 - Do not merge source/runtime changes until their required validation gates actually pass.
 
+### Autonomous merge policy
+A PR may be merged autonomously without a separate user confirmation only when **all** of the following are true:
+
+- the exact PR head SHA has passed every validation gate required for its scope;
+- the intended target/current owner branch has been resolved from live GitHub state;
+- the diff does **not** alter Strategy-Core semantics or accepted source authority;
+- the diff does **not** modify `blueprint/source/BBMA_EA.mq4` or otherwise change EA trading behaviour;
+- the diff does **not** change runtime, execution, trade, production or release authority;
+- the change is limited to low-risk documentation, governance, tooling, tests, audit/evidence or status/reconciliation work;
+- no required CI/check is pending or failing, and no unresolved review blocker, `HOLD`, source conflict or classification uncertainty remains.
+
+Separate explicit user approval is still required **before merge** when any change:
+
+- alters Strategy Core, accepted Core/source authority or behaviour-bearing contracts;
+- changes the canonical EA source or EA behaviour;
+- changes runtime/execution/trade authority or production/release authority;
+- requires force-update, force-push, branch deletion, destructive overwrite or another irreversible/destructive Git action;
+- cannot be confidently classified as low-risk/non-authority after review.
+
+After an autonomous merge, record the PR/commit result and verify that the intended target branch contains the exact merged change. Do not use this policy to bypass missing validation evidence.
+
+
 ---
 
 ## 11. Tool Responsibilities

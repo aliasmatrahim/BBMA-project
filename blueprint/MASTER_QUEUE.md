@@ -1,8 +1,8 @@
 # BBMA Active Master Queue
 
-Reconciled: **2026-09-09**
+Reconciled: **2026-09-16**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`262ff66dfdeed2cd4a7ac20fb82c47136db59451`**
+Owner head at reconciliation: **`efe9ede3211ef306d74bb3ce566ed9b3677e3163`**
 
 This file is the active queue. The pre-2026-09-09 historical queue is preserved byte-for-byte at `blueprint/archive/MASTER_QUEUE_pre_20260909.md`.
 
@@ -13,62 +13,17 @@ This file is the active queue. The pre-2026-09-09 historical queue is preserved 
 - Do not create a new trading rule merely to close a gap or improve past performance.
 - No primary MT4 restart, trading enablement, or production activation is implied by queue progression.
 
-## P0 — Immediate correctness / infrastructure blockers
+## Execution order / dependency path
+Stable Q IDs are preserved. The active dependency order is:
+- **Source evidence:** Q4 -> Q5
+- **Core / architecture:** Q1 -> Q2
+- **Parallel validation / data:** Q3 + Q6
+- **Integration / final acceptance:** Q7 -> Q8 -> Q10
+- **Deferred / future:** Q9 + Q11
 
-### Q1 — Restore NMJE read-only authority
-Issue: **#141**
-PR: **#142**
-Priority: **CRITICAL / ARCHITECTURE AUTHORITY**
-Status: **SOURCE FIX + NATIVE VALIDATION PENDING G40**
+Q3 and Q6 may progress in parallel when their runtime/data conditions are available. Q7 remains blocked until Q1/Q2 and materially relevant Q5 reconciliation are sufficiently closed.
 
-Required next steps:
-1. Reconnect G40 and re-read local `nmje-readonly-141` worktree before editing.
-2. Preserve/finish unique Build **4.83** identity.
-3. Remove NMJE relation-based execution rejection from the active preflight path while preserving N1/N2 observation/attribution telemetry.
-4. Prove NMJE cannot create/reject/rank/execute under current policy.
-5. Run targeted regression and native MetaEditor **0E0W**.
-6. Push only exact verified source/evidence to PR #142.
-7. Runtime validation must be attributable to the exact candidate before #141 closes.
-
-Do not add a replacement nested filter or score.
-
-### Q2 — Complete F7/C044 Build 4.82 infrastructure hardening
-Issues: **#127 #132 #133 #138**
-PR: **#140**
-Priority: **CRITICAL / RUNTIME PROVENANCE + RESTART INTEGRITY**
-Status: **REMOTE MODEL PASS / LOCAL SOURCE PATCH PENDING G40 RECONCILIATION**
-
-Required next steps:
-1. Reconnect G40 and preserve/re-read the existing uncommitted local v4.82 patch before any fetch/merge/edit that could overwrite it.
-2. Reconcile local source against current PR #140 and current owner head.
-3. Ensure `[F7-BUILD]` is emitted before initialization/recovery telemetry can be accepted.
-4. Use frozen exact-ticket `info.open_time` for EXEC telemetry.
-5. Make C044 lifecycle+replay persistence one verified generation: invalidate old commit first, clear/verify old payload, write/verify all new payload, publish commit marker last.
-6. Fail frozen on legacy/unprovable/mixed/partial generations.
-7. Run deterministic torn-prefix and injected writer-failure model/static regressions.
-8. Native MetaEditor **0E0W**.
-9. Push exact verified source/evidence to PR #140.
-10. Physical/runtime acceptance remains separate; do not restart primary MT4 just to close static work.
-
-### Q3 — Close exact C10 Build 4.81 broker-clock restart acceptance
-Issues: **#122 #123**
-PR: **#131** (with #125/#129/#130 retained as provenance/base lineage)
-Priority: **HIGH / ISOLATED RUNTIME EVIDENCE**
-Status: **SOURCE+STATIC+NATIVE PASS / FINAL RUNTIME GATE PENDING**
-
-Required next steps after G40 reconnect:
-1. Verify exact deployed MQ4/EX4/build/config/InstanceID=81 before accepting new evidence.
-2. Keep `Authority=NONE`, `ExpertsTrades=false`, `MaxTradePerPair=0`, `MaxTotalTrade=0`.
-3. Wait for one genuine fresh `ACTIVE`; do not synthesize a signal.
-4. Perform same-isolated-terminal physical stop/restart with proper log flushing.
-5. Require exact ACTIVE recovery plus `[C10][SHADOW_RECOVERY] Active=1` and exact-config `[C10][READY] ... Authority=NONE`.
-6. Run hardened verifier.
-7. Require zero malformed/duplicate target-domain rows, no ledger disable, no broker action and no `DEC_EXECUTED`.
-8. Only then close #122/#123 / promote the C10 evidence state.
-
-Build 4.80 or Strategy Tester evidence cannot substitute for exact 4.81 runtime closure.
-
-## P1 — Source corpus completion / reconciliation
+## Stage A - Source evidence / reconciliation
 
 ### Q4 — Primary-15 same-engine transcription
 Priority: **HIGH / SOURCE EVIDENCE**
@@ -110,7 +65,62 @@ Rules:
 - production change requires a separately authorized minimal fix;
 - HOLD/PARTIAL/UNCLEAR evidence remains non-executable.
 
-## P1 — Historical/backtest environment
+## Stage B - Core / architecture correctness
+
+### Q1 — Restore NMJE read-only authority
+Issue: **#141**
+PR: **#142**
+Priority: **CRITICAL / ARCHITECTURE AUTHORITY**
+Status: **SOURCE FIX + NATIVE VALIDATION PENDING G40**
+
+Required next steps:
+1. Reconnect G40 and re-read local `nmje-readonly-141` worktree before editing.
+2. Preserve/finish unique Build **4.83** identity.
+3. Remove NMJE relation-based execution rejection from the active preflight path while preserving N1/N2 observation/attribution telemetry.
+4. Prove NMJE cannot create/reject/rank/execute under current policy.
+5. Run targeted regression and native MetaEditor **0E0W**.
+6. Push only exact verified source/evidence to PR #142.
+7. Runtime validation must be attributable to the exact candidate before #141 closes.
+
+Do not add a replacement nested filter or score.
+
+### Q2 — Complete F7/C044 Build 4.82 infrastructure hardening
+Issues: **#127 #132 #133 #138**
+PR: **#140**
+Priority: **CRITICAL / RUNTIME PROVENANCE + RESTART INTEGRITY**
+Status: **REMOTE MODEL PASS / LOCAL SOURCE PATCH PENDING G40 RECONCILIATION**
+
+Required next steps:
+1. Reconnect G40 and preserve/re-read the existing uncommitted local v4.82 patch before any fetch/merge/edit that could overwrite it.
+2. Reconcile local source against current PR #140 and current owner head.
+3. Ensure `[F7-BUILD]` is emitted before initialization/recovery telemetry can be accepted.
+4. Use frozen exact-ticket `info.open_time` for EXEC telemetry.
+5. Make C044 lifecycle+replay persistence one verified generation: invalidate old commit first, clear/verify old payload, write/verify all new payload, publish commit marker last.
+6. Fail frozen on legacy/unprovable/mixed/partial generations.
+7. Run deterministic torn-prefix and injected writer-failure model/static regressions.
+8. Native MetaEditor **0E0W**.
+9. Push exact verified source/evidence to PR #140.
+10. Physical/runtime acceptance remains separate; do not restart primary MT4 just to close static work.
+
+## Stage C - Parallel runtime validation / historical data
+
+### Q3 — Close exact C10 Build 4.81 broker-clock restart acceptance
+Issues: **#122 #123**
+PR: **#131** (with #125/#129/#130 retained as provenance/base lineage)
+Priority: **HIGH / ISOLATED RUNTIME EVIDENCE**
+Status: **SOURCE+STATIC+NATIVE PASS / FINAL RUNTIME GATE PENDING**
+
+Required next steps after G40 reconnect:
+1. Verify exact deployed MQ4/EX4/build/config/InstanceID=81 before accepting new evidence.
+2. Keep `Authority=NONE`, `ExpertsTrades=false`, `MaxTradePerPair=0`, `MaxTotalTrade=0`.
+3. Wait for one genuine fresh `ACTIVE`; do not synthesize a signal.
+4. Perform same-isolated-terminal physical stop/restart with proper log flushing.
+5. Require exact ACTIVE recovery plus `[C10][SHADOW_RECOVERY] Active=1` and exact-config `[C10][READY] ... Authority=NONE`.
+6. Run hardened verifier.
+7. Require zero malformed/duplicate target-domain rows, no ledger disable, no broker action and no `DEC_EXECUTED`.
+8. Only then close #122/#123 / promote the C10 evidence state.
+
+Build 4.80 or Strategy Tester evidence cannot substitute for exact 4.81 runtime closure.
 
 ### Q6 — Complete canonical Dukascopy-native 3-pair archive
 Issue: **#128**
@@ -135,7 +145,7 @@ Required next steps:
 
 Synthetic-v3 remains engineering-only; its tick volume normalization cannot become native tick authority.
 
-## P2 — Integration after blockers
+## Stage D - Integration / regression / final acceptance
 
 ### Q7 — Build one integrated candidate from verified current workstreams
 Priority: **HIGH AFTER Q1/Q2 + REQUIRED SOURCE RECONCILIATION**
@@ -156,7 +166,13 @@ Status: **PENDING**
 
 Use isolated/canonical historical environment. Separate mechanism correctness from profitability claims. Any proposed accuracy filter/policy must start as evidence/shadow work and requires explicit Strategy-Core authorization before reducing valid trade opportunity.
 
-## P3 — Deferred/future
+### Q10 — Final automated broker/demo acceptance
+Issue: **#109**
+Status: **DEFERRED UNTIL FINAL INTEGRATION CANDIDATE**
+
+Do not run the historical v4.59 R1–R6 runner as if it were the final programme. Resolve and freeze the exact final candidate, then generate/run the candidate-specific demo acceptance matrix with fail-closed demo identity and evidence packaging.
+
+## Stage E - Deferred / future
 
 ### Q9 — NMJE v2 M5 accuracy hardening
 Issue: **#101**
@@ -164,12 +180,6 @@ PR: **#126 retained as future replacement staging/evidence**
 Status: **DEFERRED UNTIL CURRENT NMJE BASELINE IS CLEAN**
 
 Do not resume old PR #102 lineage; it is historical evidence and has been closed. Rebase/re-audit future work against the then-current owner. M5 remains lower-TF context/shadow/refinement and cannot become an independent clock/create/reject/execute authority without a separate explicit policy decision.
-
-### Q10 — Final automated broker/demo acceptance
-Issue: **#109**
-Status: **DEFERRED UNTIL FINAL INTEGRATION CANDIDATE**
-
-Do not run the historical v4.59 R1–R6 runner as if it were the final programme. Resolve and freeze the exact final candidate, then generate/run the candidate-specific demo acceptance matrix with fail-closed demo identity and evidence packaging.
 
 ### Q11 — Dashboard / observer future materialization
 Status: **DEFERRED / RE-AUDIT REQUIRED**
@@ -184,4 +194,8 @@ Older dashboard/observer PRs were prepared against historical frozen candidates.
 - historical v4.59 demo runner is not a current release path.
 
 ## G40 resume policy
-Current G40 device is offline at this reconciliation, auth token valid. An hourly condition watcher is enabled. When G40 reconnects it must first re-read local process/worktree/manifests and then resume Q1/Q2/Q3/Q4/Q6 from exact actual state. No destructive reset or blind recreation is permitted.
+G40 was reachable during the 2026-09-16 queue reconciliation. Future work must still re-read actual local process/worktree/manifest state before any mutation.
+
+G40-dependent active workstreams that require live-state recovery are **Q1, Q2, Q3 and Q6**. Q4 is mechanically complete and must not be re-added to the resume list without new evidence that a specific source unit is missing or invalid.
+
+No destructive reset, blind recreation, automatic MT4 restart, or trading enablement is authorized by this queue.

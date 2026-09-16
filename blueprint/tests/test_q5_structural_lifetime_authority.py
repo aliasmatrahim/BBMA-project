@@ -56,3 +56,8 @@ def test_specific_reentry_retains_structural_invalidation():
     assert "reEntry.State == RE_STATE_CANDIDATE" in update
     assert "reEntry.State == RE_STATE_CONFIRMED" in update
     assert "IsReEntryMAClusterCloseSideFailure" in update
+
+
+def test_build_identity_is_unique_v486():
+    assert '//| Version 4.8.6 - Structural Lifetime Authority Repair' in SRC
+    assert '#property version   "4.86"' in SRC

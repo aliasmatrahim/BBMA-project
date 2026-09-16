@@ -1,0 +1,98 @@
+diff --git "a/D:\\BBMA\\Workspace\\q5-lifetime-173\\blueprint\\source\\BBMA_EA.mq4" "b/D:\\BBMA\\MT4_TesterRunner_Diag\\MQL4\\Experts\\BBMA_EA_V486_LIFETIME_HARNESS.mq4"
+index ff9b90d..5b3318e 100644
+--- "a/D:\\BBMA\\Workspace\\q5-lifetime-173\\blueprint\\source\\BBMA_EA.mq4"
++++ "b/D:\\BBMA\\MT4_TesterRunner_Diag\\MQL4\\Experts\\BBMA_EA_V486_LIFETIME_HARNESS.mq4"
+@@ -1,6 +1,6 @@
+ //+------------------------------------------------------------------+
+ //|                                           BBMA_EA.mq4 |
+-//| Version 4.8.6 - Structural Lifetime Authority Repair       |
++//| Version 4.8.6T1 - Q5 Lifetime Runtime Harness              |
+ //|                                           CODE-READY              |
+ //+------------------------------------------------------------------+
+ //+------------------------------------------------------------------+
+@@ -31,7 +31,7 @@
+ //+------------------------------------------------------------------+
+ #property copyright "BBMA EA"
+ #property link      ""
+-#property version   "4.86"
++#property version   "4.861"
+ #property strict
+
+ //+------------------------------------------------------------------+
+@@ -1066,6 +1066,9 @@ string FindActualSymbol(string symbol)
+    string requested = StringTrimLeft(StringTrimRight(symbol));
+    if(requested == "") return "";
+
++   // TESTER-ONLY HARNESS: accept the current tester symbol when the offline catalogue is unavailable.
++   if(IsTesting() && requested == Symbol()) return Symbol();
++
+    // 1) Exact broker symbol wins when it exists and can be selected.
+    int totalAll = SymbolsTotal(false);
+    for(int i = 0; i < totalAll; i++)
+@@ -1172,6 +1175,7 @@ double RoundDownToLotStep(double lot, string pair)
+
+ bool IsTerminalConnected()
+ {
++   if(IsTesting()) return true;
+    return IsConnected();
+ }
+
+@@ -4336,6 +4340,17 @@ ENUM_RE_STATE UpdateReEntryState(ReEntryData &reEntry, string pair,
+       reEntry.IsValid = true;
+       reEntry.LastUpdateBar = data.barIndex;
+       reEntry.LastUpdateCandleTime = data.candle_time;
++
++      if(IsTesting() && reEntry.ConfirmationCandle > 0 && reEntry.Timeframe > 0)
++      {
++         double ageBars = (double)(data.candle_time - reEntry.ConfirmationCandle) / (reEntry.Timeframe * 60.0);
++         Print("[Q5LIFE][RE_OWNER] Type=", EnumToString(reEntry.Type),
++               " TF=", reEntry.Timeframe,
++               " Dir=", EnumToString(reEntry.Direction),
++               " Confirm=", TimeToString(reEntry.ConfirmationCandle),
++               " Now=", TimeToString(data.candle_time),
++               " AgeBars=", DoubleToString(ageBars, 2));
++      }
+    }
+
+    return reEntry.State;
+@@ -5874,6 +5889,16 @@ void UpdatePersistentExtremeState(Signal &matureExtreme, Signal &state)
+    }
+
+    state = matureExtreme;
++
++   if(IsTesting() && state.Valid && state.CandleTime > 0 && state.Timeframe > 0)
++   {
++      double ageBars = (double)(g_processing_time - state.CandleTime) / (state.Timeframe * 60.0);
++      Print("[Q5LIFE][EXT_OWNER] TF=", state.Timeframe,
++            " Dir=", EnumToString(state.Direction),
++            " Source=", TimeToString(state.CandleTime),
++            " Now=", TimeToString(g_processing_time),
++            " AgeBars=", DoubleToString(ageBars, 2));
++   }
+ }
+
+ bool IsPersistentExtremeComponentValid(PairState &pairState,
+@@ -10537,13 +10562,17 @@ int OnInit()
+       return INIT_FAILED;
+    }
+
+-   ResetLastError();
+-   if(!EventSetTimer(1))
++   // TESTER-ONLY HARNESS: Strategy Tester rejects EventSetTimer; OnTick still drives OnTickMain.
++   if(!IsTesting())
+    {
+-      int timerError = GetLastError();
+-      g_is_initialized = false;
+-      Log(DBG_ERROR, "Failed to register EA timer, error=" + IntegerToString(timerError));
+-      return INIT_FAILED;
++      ResetLastError();
++      if(!EventSetTimer(1))
++      {
++         int timerError = GetLastError();
++         g_is_initialized = false;
++         Log(DBG_ERROR, "Failed to register EA timer, error=" + IntegerToString(timerError));
++         return INIT_FAILED;
++      }
+    }
+
+    Log(DBG_FULL, "BBMA EA V4.5.9 P0 EXEC_ID Persistence Fix initialized successfully");

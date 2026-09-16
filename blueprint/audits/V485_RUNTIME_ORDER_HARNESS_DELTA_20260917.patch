@@ -1,0 +1,38 @@
+diff --git "a/D:\\BBMA\\Workspace\\q5-m12n-order-174\\blueprint\\source\\BBMA_EA.mq4" "b/D:\\BBMA\\MT4_TesterRunner_Diag\\MQL4\\Experts\\BBMA_EA_V485_ORDER_HARNESS.mq4"
+index ba97c2b..2bd0f84 100644
+--- "a/D:\\BBMA\\Workspace\\q5-m12n-order-174\\blueprint\\source\\BBMA_EA.mq4"
++++ "b/D:\\BBMA\\MT4_TesterRunner_Diag\\MQL4\\Experts\\BBMA_EA_V485_ORDER_HARNESS.mq4"
+@@ -1066,6 +1066,9 @@ string FindActualSymbol(string symbol)
+    string requested = StringTrimLeft(StringTrimRight(symbol));
+    if(requested == "") return "";
+
++   // TESTER-ONLY HARNESS: current tester symbol is already selected, while SymbolSelect() returns false.
++   if(IsTesting() && requested == Symbol()) return Symbol();
++
+    // 1) Exact broker symbol wins when it exists and can be selected.
+    int totalAll = SymbolsTotal(false);
+    for(int i = 0; i < totalAll; i++)
+@@ -10614,13 +10617,17 @@ int OnInit()
+       return INIT_FAILED;
+    }
+
+-   ResetLastError();
+-   if(!EventSetTimer(1))
++   // TESTER-ONLY HARNESS: Strategy Tester rejects EventSetTimer; OnTick still drives OnTickMain.
++   if(!IsTesting())
+    {
+-      int timerError = GetLastError();
+-      g_is_initialized = false;
+-      Log(DBG_ERROR, "Failed to register EA timer, error=" + IntegerToString(timerError));
+-      return INIT_FAILED;
++      ResetLastError();
++      if(!EventSetTimer(1))
++      {
++         int timerError = GetLastError();
++         g_is_initialized = false;
++         Log(DBG_ERROR, "Failed to register EA timer, error=" + IntegerToString(timerError));
++         return INIT_FAILED;
++      }
+    }
+
+    Log(DBG_FULL, "BBMA EA V4.5.9 P0 EXEC_ID Persistence Fix initialized successfully");

@@ -1,0 +1,46 @@
+{
+  "owner_mode1": {
+    "lines": 13738,
+    "retrace": 56,
+    "retrace_bad": 0,
+    "confirm": 56,
+    "confirm_bad": 0,
+    "m15_select": 126,
+    "m16_pass": 126,
+    "rem_select": 0,
+    "order_markers": 0,
+    "deinit0": 1,
+    "processed": 1,
+    "sha256": "07C53BD616A88BA1D6E8ED8943B7C5D652A69A0B34E27A66E3E72DBD5C041C91"
+  },
+  "fixed_mode1": {
+    "lines": 13738,
+    "retrace": 56,
+    "retrace_bad": 0,
+    "confirm": 56,
+    "confirm_bad": 0,
+    "m15_select": 126,
+    "m16_pass": 126,
+    "rem_select": 0,
+    "order_markers": 0,
+    "deinit0": 1,
+    "processed": 1,
+    "sha256": "855CF92B9DBAA843E3EFA486F34CF414BCEC808E7DB590C0F8C37E7DECEE85B2"
+  },
+  "fixed_mode2": {
+    "lines": 13402,
+    "retrace": 56,
+    "retrace_bad": 0,
+    "confirm": 56,
+    "confirm_bad": 0,
+    "m15_select": 159,
+    "m16_pass": 159,
+    "rem_select": 10,
+    "order_markers": 0,
+    "deinit0": 1,
+    "processed": 1,
+    "sha256": "7BC4DFE63042EB77BCADE1D0E054287D1424DC23E5DA41A20F322B28C8C9CB1E"
+  },
+  "negative_case_observed": false,
+  "negative_case_claim": "NOT OBSERVED in bounded GBPUSD Aug-2026 runtime; prevention is TDD/static verified"
+}

@@ -50,6 +50,7 @@ Primary reference page 10:
 Blueprint consequence:
 - CSM alone is only a candidate precursor, never an immediately valid Re-Entry.
 - Confirmation occurs on a later closed candle that retraces to the relevant MA5 or MA50 support/resistance level.
+- The validation close must also remain on the permitted side of the full relevant MA5/MA10 cluster; an MA50 touch does not exempt the general Re-Entry close-side validity rule.
 
 ### Type 4 — CSD Re-Entry
 Primary reference page 10:

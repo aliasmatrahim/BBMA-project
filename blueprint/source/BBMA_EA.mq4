@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.6.1 - F7 Re-Entry Lifecycle Integration        |
+//| Version 4.8.7 - Type3 Re-Entry Close-Side Repair         |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.61"
+#property version   "4.87"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -3974,7 +3974,7 @@ void AdoptType1DirectionOwner(ReEntryData &reEntry, ENUM_DIRECTION direction,
                     "; awaiting structural pause/retrace";
 }
 
-bool IsType1MAClusterCloseSideFailure(TimeframeData &data,
+bool IsReEntryMAClusterCloseSideFailure(TimeframeData &data,
                                       ENUM_DIRECTION direction)
 {
    double ma5, ma10;
@@ -4153,7 +4153,7 @@ ENUM_RE_STATE UpdateReEntryState(ReEntryData &reEntry, string pair,
    // Confirmed Type 1 remains structurally valid only while its owner survives.
    if(reEntry.State == RE_STATE_CONFIRMED && reEntry.Type == RE_TYPE_1)
    {
-      if(IsType1MAClusterCloseSideFailure(data, direction))
+      if(IsReEntryMAClusterCloseSideFailure(data, direction))
       {
          ResetReEntryState(reEntry, direction, data.timeframe);
          return RE_STATE_NONE;
@@ -4215,7 +4215,7 @@ ENUM_RE_STATE UpdateReEntryState(ReEntryData &reEntry, string pair,
          return RE_STATE_NONE;
       }
 
-      if(IsType1MAClusterCloseSideFailure(data, direction))
+      if(IsReEntryMAClusterCloseSideFailure(data, direction))
       {
          ResetReEntryState(reEntry, direction, data.timeframe);
          return RE_STATE_NONE;
@@ -4253,7 +4253,7 @@ ENUM_RE_STATE UpdateReEntryState(ReEntryData &reEntry, string pair,
       if(reEntry.Type == RE_TYPE_1)
       {
          // Structural invalidation / ownership transfer has priority.
-         if(IsType1MAClusterCloseSideFailure(data, direction))
+         if(IsReEntryMAClusterCloseSideFailure(data, direction))
          {
             ResetReEntryState(reEntry, direction, data.timeframe);
             return RE_STATE_NONE;
@@ -4327,6 +4327,7 @@ ENUM_RE_STATE UpdateReEntryState(ReEntryData &reEntry, string pair,
       if(reEntry.Type == RE_TYPE_3_CSM)
       {
          if(!HasReEntryMA5OrMA50Touch(data, direction)) return RE_STATE_CANDIDATE;
+         if(IsReEntryMAClusterCloseSideFailure(data, direction)) return RE_STATE_CANDIDATE;
 
          ConfirmReEntryState(reEntry, data,
             "Type3 confirmed: post-CSM retrace to MA5 or MA50");

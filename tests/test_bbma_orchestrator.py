@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -79,6 +80,164 @@ class TaskStateTests(unittest.TestCase):
             self.assertLessEqual(len(capsule.splitlines()), 40)
             self.assertIn("DoNotRedo: phase-1", capsule)
 
+    def test_closeout_requires_closed_pass_and_unique_explicit_candidate(self):
+        from tools.bbma_orchestrator.core import build_closeout
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            current = TaskStore(root / "current")
+            manifest = TaskManifest("CURRENT", "R1", "current", "implementation")
+            current.save(manifest)
+            current.append_event(manifest, "INIT")
+            current.checkpoint(manifest, "before-close")
+            with self.assertRaisesRegex(ValueError, "CLOSED/PASS"):
+                build_closeout(current, [], root / "package.json")
+
+            manifest.transition("PREFLIGHT")
+            manifest.transition("IN_PROGRESS")
+            manifest.transition("VALIDATION")
+            manifest.transition("CLOSED")
+            manifest.result = "PASS"
+            current.save(manifest)
+            current.checkpoint(manifest, "closed")
+
+            candidate = TaskStore(root / "candidate")
+            next_manifest = TaskManifest(
+                "NEXT", "R1", "next", "implementation",
+                latest_verified_step="CURRENT CLOSED/PASS",
+            )
+            candidate.save(next_manifest)
+            package = build_closeout(current, [candidate], root / "package.json")
+            self.assertEqual(package["next_task_id"], "NEXT")
+            self.assertIn("ACTIVE_TASK.json", package["files"][0]["path"])
+            self.assertIn("Task: CURRENT", package["handoff"])
+
+    def test_closeout_rejects_noneligible_candidates_and_missing_artifacts(self):
+        from tools.bbma_orchestrator.core import build_closeout
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            current = TaskStore(root / "current")
+            manifest = TaskManifest("CURRENT", "R1", "current", "implementation")
+            for phase in ("PREFLIGHT", "IN_PROGRESS", "VALIDATION", "CLOSED"):
+                manifest.transition(phase)
+            manifest.result = "PASS"
+            current.save(manifest)
+            current.append_event(manifest, "CLOSED")
+            current.checkpoint(manifest, "closed")
+
+            def candidate(name, result="NOT VERIFIED"):
+                store = TaskStore(root / name)
+                state = TaskManifest(
+                    name, "R1", name, "implementation",
+                    result=result,
+                    latest_verified_step="CURRENT CLOSED/PASS",
+                )
+                store.save(state)
+                return store
+
+            with self.assertRaisesRegex(ValueError, "exactly one"):
+                build_closeout(current, [], root / "zero.json")
+            with self.assertRaisesRegex(ValueError, "exactly one"):
+                build_closeout(
+                    current, [candidate("ONE"), candidate("TWO")], root / "two.json"
+                )
+            with self.assertRaisesRegex(ValueError, "exactly one"):
+                build_closeout(current, [candidate("HOLD", "HOLD")], root / "hold.json")
+
+            current.events_path.unlink()
+            with self.assertRaises(FileNotFoundError):
+                build_closeout(current, [candidate("NEXT")], root / "missing.json")
+
+    def test_closeout_rejects_self_successor_and_unverified_lineage(self):
+        from tools.bbma_orchestrator.core import build_closeout
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            current = TaskStore(root / "current")
+            manifest = TaskManifest("CURRENT", "R1", "current", "implementation")
+            for phase in ("PREFLIGHT", "IN_PROGRESS", "VALIDATION", "CLOSED"):
+                manifest.transition(phase)
+            manifest.result = "PASS"
+            current.save(manifest)
+            current.append_event(manifest, "CLOSED")
+            current.checkpoint(manifest, "closed")
+
+            self_store = TaskStore(root / "self")
+            self_store.save(TaskManifest(
+                "CURRENT", "R2", "self", "implementation",
+                latest_verified_step="CURRENT CLOSED/PASS",
+            ))
+            with self.assertRaisesRegex(ValueError, "exactly one"):
+                build_closeout(current, [self_store], root / "self.json")
+
+            stale_lineage = TaskStore(root / "stale-lineage")
+            stale_lineage.save(TaskManifest(
+                "NEXT", "R2", "next", "implementation",
+                latest_verified_step="CURRENT NOT VERIFIED",
+            ))
+            with self.assertRaisesRegex(ValueError, "exactly one"):
+                build_closeout(current, [stale_lineage], root / "stale.json")
+
+    def test_closeout_selects_latest_checkpoint_by_timestamp_not_label(self):
+        from tools.bbma_orchestrator.core import atomic_write_json, build_closeout
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            current = TaskStore(root / "current")
+            manifest = TaskManifest("CURRENT", "R1", "current", "implementation")
+            for phase in ("PREFLIGHT", "IN_PROGRESS", "VALIDATION", "CLOSED"):
+                manifest.transition(phase)
+            manifest.result = "PASS"
+            current.save(manifest)
+            current.append_event(manifest, "CLOSED")
+            current.checkpoints_dir.mkdir(parents=True, exist_ok=True)
+            old_path = current.checkpoints_dir / "CURRENT_z-old_20260101T000000Z.json"
+            new_path = current.checkpoints_dir / "CURRENT_a-new_20260102T000000Z.json"
+            atomic_write_json(old_path, manifest.to_dict())
+            atomic_write_json(new_path, manifest.to_dict())
+
+            candidate = TaskStore(root / "candidate")
+            next_manifest = TaskManifest(
+                "NEXT", "R1", "next", "implementation",
+                latest_verified_step="CURRENT CLOSED/PASS",
+            )
+            candidate.save(next_manifest)
+
+            package = build_closeout(current, [candidate], root / "package.json")
+            packaged_paths = {item["path"] for item in package["files"]}
+            self.assertIn(str(new_path), packaged_paths)
+            self.assertNotIn(str(old_path), packaged_paths)
+
+    def test_closeout_requires_closed_pass_checkpoint_snapshot(self):
+        from tools.bbma_orchestrator.core import atomic_write_json, build_closeout
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            current = TaskStore(root / "current")
+            stale = TaskManifest("CURRENT", "R1", "current", "implementation")
+            current.save(stale)
+            current.append_event(stale, "INIT")
+            current.checkpoints_dir.mkdir(parents=True, exist_ok=True)
+            atomic_write_json(
+                current.checkpoints_dir / "CURRENT_stale_20260101T000000Z.json",
+                stale.to_dict(),
+            )
+            for phase in ("PREFLIGHT", "IN_PROGRESS", "VALIDATION", "CLOSED"):
+                stale.transition(phase)
+            stale.result = "PASS"
+            current.save(stale)
+
+            candidate = TaskStore(root / "candidate")
+            next_manifest = TaskManifest(
+                "NEXT", "R1", "next", "implementation",
+                latest_verified_step="CURRENT CLOSED/PASS",
+            )
+            candidate.save(next_manifest)
+
+            with self.assertRaisesRegex(ValueError, "CLOSED/PASS checkpoint"):
+                build_closeout(current, [candidate], root / "package.json")
+
     def test_risk_and_model_routing(self):
         risk = compute_risk_score(strategy_core=True, execution_authority=True, code_change=True)
         self.assertGreaterEqual(risk, 60)
@@ -95,6 +254,16 @@ class TaskStateTests(unittest.TestCase):
         )
         self.assertEqual(selector.select(["M12"]), ["global", "t12", "t13"])
         self.assertEqual(selector.select(["UNKNOWN"]), ["global"])
+
+    def test_regression_selector_walks_all_cited_consumers(self):
+        selector = RegressionSelector(
+            {
+                "M06": {"tests": ["t06"], "consumers": ["M08"]},
+                "M08": {"tests": ["t08"], "consumers": ["M13"]},
+                "M13": {"tests": ["t13"], "consumers": []},
+            }
+        )
+        self.assertEqual(selector.select(["M06"]), ["t06", "t08", "t13"])
 
     def test_context_pack_is_bounded_to_supplied_refs(self):
         manifest = TaskManifest("T1", "R1", "x", "source")
@@ -215,6 +384,494 @@ class VerifiedModuleGraphTests(unittest.TestCase):
                 load_verified_module_graph(path)
 
 
+class ArchitectureInvariantTests(unittest.TestCase):
+    @staticmethod
+    def _paths():
+        root = Path(__file__).resolve().parents[1]
+        return (
+            root / "config" / "bbma_architecture_invariants.json",
+            root / "config" / "bbma_module_graph.json",
+        )
+
+    def test_catalog_binds_exact_contract_cited_ownership_boundaries(self):
+        from tools.bbma_orchestrator.verified import (
+            load_verified_architecture_invariants,
+        )
+
+        catalog_path, graph_path = self._paths()
+        catalog = load_verified_architecture_invariants(
+            catalog_path, graph_path
+        )
+        expected_modules = {
+            "M12N", "M13", "M14", "M15", "M18", "M19", "M22", "M27",
+        }
+        self.assertEqual(
+            {item["module"] for item in catalog["invariants"].values()},
+            expected_modules,
+        )
+        self.assertEqual(
+            catalog["coverage"]["runtime_enforcement"], "NOT VERIFIED"
+        )
+        for item in catalog["invariants"].values():
+            self.assertTrue(any(ref != "EA_HEADERS" for ref in item["evidence"]))
+
+    def test_catalog_rejects_scope_deletion_addition_or_substitution(self):
+        from tools.bbma_orchestrator.verified import (
+            validate_architecture_invariants,
+        )
+
+        catalog_path, graph_path = self._paths()
+        graph = json.loads(graph_path.read_text(encoding="utf-8"))
+        original = json.loads(catalog_path.read_text(encoding="utf-8"))
+
+        deleted = json.loads(json.dumps(original))
+        removed_id = next(iter(deleted["invariants"]))
+        del deleted["invariants"][removed_id]
+
+        added = json.loads(json.dumps(original))
+        added["invariants"]["ARCH-M06-UNAPPROVED"] = {
+            "module": "M06",
+            "ownership": graph["modules"]["M06"]["ownership"],
+            "evidence": graph["modules"]["M06"]["evidence"],
+        }
+
+        substituted = json.loads(json.dumps(added))
+        del substituted["invariants"][removed_id]
+
+        for label, catalog in (
+            ("deleted", deleted),
+            ("added", added),
+            ("substituted", substituted),
+        ):
+            with self.subTest(label=label):
+                with self.assertRaisesRegex(
+                    ValueError, "approved architecture invariant module set"
+                ):
+                    validate_architecture_invariants(catalog, graph)
+
+    def test_catalog_rejects_non_contract_evidence_path(self):
+        from tools.bbma_orchestrator.verified import (
+            validate_architecture_invariants,
+        )
+
+        catalog_path, graph_path = self._paths()
+        catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+        graph = json.loads(graph_path.read_text(encoding="utf-8"))
+        graph["evidence_catalog"]["C_M12N"]["path"] = (
+            "docs/M12N_NESTED_MTF_JOURNEY_ENGINE_CONTRACT.md"
+        )
+        with self.assertRaisesRegex(ValueError, "standalone contract evidence"):
+            validate_architecture_invariants(catalog, graph)
+
+    def test_catalog_rejects_ownership_or_evidence_drift(self):
+        from tools.bbma_orchestrator.verified import (
+            load_verified_architecture_invariants,
+            validate_architecture_invariants,
+        )
+
+        catalog_path, graph_path = self._paths()
+        catalog = load_verified_architecture_invariants(
+            catalog_path, graph_path
+        )
+        graph = json.loads(graph_path.read_text(encoding="utf-8"))
+        module = next(iter(catalog["invariants"].values()))["module"]
+        graph["modules"][module]["ownership"] += " MUTATED"
+        with self.assertRaisesRegex(ValueError, "ownership mismatch"):
+            validate_architecture_invariants(catalog, graph)
+
+        graph = json.loads(graph_path.read_text(encoding="utf-8"))
+        catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+        first = next(iter(catalog["invariants"].values()))
+        first["evidence"] = ["EA_HEADERS"]
+        with self.assertRaisesRegex(ValueError, "evidence mismatch"):
+            validate_architecture_invariants(catalog, graph)
+
+    def test_catalog_rejects_false_runtime_verification(self):
+        from tools.bbma_orchestrator.verified import (
+            validate_architecture_invariants,
+        )
+
+        catalog_path, graph_path = self._paths()
+        catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+        graph = json.loads(graph_path.read_text(encoding="utf-8"))
+        catalog["coverage"]["runtime_enforcement"] = "VERIFIED"
+        with self.assertRaisesRegex(ValueError, "runtime enforcement"):
+            validate_architecture_invariants(catalog, graph)
+
+    def test_exhaustive_mutation_check_detects_every_boundary(self):
+        from tools.bbma_orchestrator.verified import (
+            architecture_invariant_mutation_check,
+        )
+
+        catalog_path, graph_path = self._paths()
+        result = architecture_invariant_mutation_check(
+            catalog_path, graph_path
+        )
+        self.assertEqual(result["mutations"], 8)
+        self.assertEqual(result["detected"], result["mutations"])
+
+    def test_architecture_invariant_cli_reports_runtime_boundary(self):
+        import contextlib
+        import io
+        from tools.bbma_orchestrator.cli import main
+
+        catalog_path, graph_path = self._paths()
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            main([
+                "architecture-invariants",
+                "--catalog", str(catalog_path),
+                "--module-graph", str(graph_path),
+            ])
+        result = json.loads(output.getvalue())
+        self.assertEqual(result["invariants"], 8)
+        self.assertEqual(result["detected_mutations"], 8)
+        self.assertEqual(result["runtime_enforcement"], "NOT VERIFIED")
+
+
+class VerifiedTraceabilityTests(unittest.TestCase):
+    def test_traceability_covers_existing_core_ids_without_false_runtime_pass(self):
+        from tools.bbma_orchestrator.verified import load_verified_traceability
+
+        root = Path(__file__).resolve().parents[1]
+        traceability = load_verified_traceability(
+            root / "config" / "bbma_traceability.json",
+            root / "config" / "bbma_module_graph.json",
+        )
+        expected = {f"CORE-V2-F{i}" for i in range(1, 7)}
+        self.assertEqual(set(traceability["rules"]), expected)
+        for rule in traceability["rules"].values():
+            self.assertEqual(rule["stages"]["runtime"]["status"], "NOT VERIFIED")
+            self.assertEqual(rule["stages"]["runtime"]["evidence"], [])
+
+    def test_traceability_uses_regression_drivers_and_preserves_f4_test_gap(self):
+        from tools.bbma_orchestrator.verified import load_verified_traceability
+
+        root = Path(__file__).resolve().parents[1]
+        traceability = load_verified_traceability(
+            root / "config" / "bbma_traceability.json",
+            root / "config" / "bbma_module_graph.json",
+        )
+        catalog = traceability["evidence_catalog"]
+        expected_drivers = {
+            "CORE-V2-F1": ".github/workflows/core-v2-f1-pr-dispatch.yml",
+            "CORE-V2-F2": ".github/workflows/core-v2-f2-pr-dispatch.yml",
+            "CORE-V2-F3": ".github/workflows/core-v2-f3-pr-dispatch.yml",
+            "CORE-V2-F5": ".github/workflows/core-v2-f5-pr-dispatch.yml",
+            "CORE-V2-F6": ".github/workflows/core-v2-f6-pr-dispatch.yml",
+        }
+        for rule_id, expected_path in expected_drivers.items():
+            refs = traceability["rules"][rule_id]["stages"]["test"]["evidence"]
+            self.assertIn(expected_path, {catalog[ref]["path"] for ref in refs})
+
+        f4_source_refs = traceability["rules"]["CORE-V2-F4"]["stages"]["source_evidence"]["evidence"]
+        f4_source_paths = {catalog[ref]["path"] for ref in f4_source_refs}
+        self.assertIn(
+            "blueprint/decisions/HOME_COURSE_D1_MAJOR_TREND_VS_H4_IMMEDIATE_PARENT_RECONCILIATION.md",
+            f4_source_paths,
+        )
+        self.assertIn(
+            "blueprint/decisions/HOME_COURSE_D1_TRANSITION_MAJOR_TREND_OWNER_DECISION.md",
+            f4_source_paths,
+        )
+        f4_code = traceability["rules"]["CORE-V2-F4"]["stages"]["code"]
+        self.assertEqual(f4_code["status"], "SOURCE CONFLICT")
+        self.assertEqual(
+            {catalog[ref]["path"] for ref in f4_code["evidence"]},
+            {
+                "blueprint/source/BBMA_EA.mq4",
+                "blueprint/decisions/CORE_V2_F4_H1_RE_HTF_CONTEXT_DECISION.md",
+                "blueprint/audits/POSTFREEZE_D1_M11_M15_M16_REAUDIT_20260909.md",
+            },
+        )
+        self.assertTrue(f4_code["gap"])
+        f4_test = traceability["rules"]["CORE-V2-F4"]["stages"]["test"]
+        self.assertEqual(f4_test["status"], "PARTIAL")
+        self.assertTrue(f4_test["gap"])
+
+    def test_traceability_materializes_into_existing_evidence_dag(self):
+        from tools.bbma_orchestrator.verified import materialize_traceability
+
+        root = Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory() as tmp:
+            result = materialize_traceability(
+                root / "config" / "bbma_traceability.json",
+                root / "config" / "bbma_module_graph.json",
+                Path(tmp) / "evidence.db",
+            )
+            self.assertEqual(result, {"rules": 6, "nodes": 42, "edges": 36})
+            with EvidenceDB(Path(tmp) / "evidence.db") as db:
+                node = db.get_node("trace:CORE-V2-F2:runtime")
+                self.assertEqual(node["status"], "NOT VERIFIED")
+                edge_count = db.conn.execute("SELECT COUNT(*) FROM edges").fetchone()[0]
+                self.assertEqual(edge_count, 36)
+
+    def test_traceability_materialization_binds_resolved_evidence_identity(self):
+        from tools.bbma_orchestrator.verified import materialize_traceability
+
+        root = Path(__file__).resolve().parents[1]
+        original = json.loads(
+            (root / "config" / "bbma_traceability.json").read_text(encoding="utf-8")
+        )
+        changed = json.loads(json.dumps(original))
+        changed["evidence_catalog"]["SRC_PRIMARY_PDF"]["locator"] = "different verified locator"
+        with tempfile.TemporaryDirectory() as tmp:
+            work = Path(tmp)
+            original_path = work / "original.json"
+            changed_path = work / "changed.json"
+            original_path.write_text(json.dumps(original), encoding="utf-8")
+            changed_path.write_text(json.dumps(changed), encoding="utf-8")
+            materialize_traceability(
+                original_path, root / "config" / "bbma_module_graph.json", work / "original.db"
+            )
+            materialize_traceability(
+                changed_path, root / "config" / "bbma_module_graph.json", work / "changed.db"
+            )
+            with EvidenceDB(work / "original.db") as db:
+                original_node = db.get_node("trace:CORE-V2-F1:source_evidence")
+            with EvidenceDB(work / "changed.db") as db:
+                changed_node = db.get_node("trace:CORE-V2-F1:source_evidence")
+
+        self.assertNotEqual(original_node["digest"], changed_node["digest"])
+        evidence_record = changed_node["metadata"]["evidence_records"][0]
+        self.assertEqual(evidence_record["evidence_id"], "SRC_PRIMARY_PDF")
+        self.assertEqual(evidence_record["locator"], "different verified locator")
+
+    def test_traceability_rejects_forged_blob_identity(self):
+        data = self._traceability_data()
+        data["evidence_catalog"]["SRC_PRIMARY_PDF"]["blob_sha"] = "f" * 40
+        self._assert_invalid_traceability(data, "blob mismatch")
+
+    def test_traceability_cli_materializes_verified_map(self):
+        import contextlib
+        import io
+        from tools.bbma_orchestrator.cli import main
+
+        root = Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory() as tmp, io.StringIO() as output:
+            with contextlib.redirect_stdout(output):
+                exit_code = main([
+                    "traceability-materialize",
+                    "--traceability", str(root / "config" / "bbma_traceability.json"),
+                    "--module-graph", str(root / "config" / "bbma_module_graph.json"),
+                    "--db", str(Path(tmp) / "evidence.db"),
+                ])
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(json.loads(output.getvalue())["nodes"], 42)
+
+    def test_traceability_rejects_duplicate_evidence_reference(self):
+        root = Path(__file__).resolve().parents[1]
+        data = json.loads(
+            (root / "config" / "bbma_traceability.json").read_text(encoding="utf-8")
+        )
+        refs = data["rules"]["CORE-V2-F1"]["stages"]["source_evidence"]["evidence"]
+        refs.append(refs[0])
+        self._assert_invalid_traceability(data, "duplicate evidence")
+
+    def test_traceability_rejects_false_verified_runtime(self):
+        data = self._traceability_data()
+        runtime = data["rules"]["CORE-V2-F2"]["stages"]["runtime"]
+        runtime["status"] = "VERIFIED"
+        self._assert_invalid_traceability(data, "verified runtime stage needs evidence")
+
+    def test_traceability_rejects_unknown_module(self):
+        data = self._traceability_data()
+        data["rules"]["CORE-V2-F3"]["stages"]["module"]["modules"] = ["M99"]
+        self._assert_invalid_traceability(data, "unknown modules")
+
+    def test_traceability_rejects_evidence_kind_mismatch(self):
+        data = self._traceability_data()
+        data["rules"]["CORE-V2-F3"]["stages"]["code"]["evidence"] = ["SRC_V01"]
+        self._assert_invalid_traceability(data, "evidence kind mismatch")
+
+    def test_traceability_rejects_authority_mismatch(self):
+        data = self._traceability_data()
+        data["authority"]["commit"] = "c" * 40
+        self._assert_invalid_traceability(data, "must match module graph authority")
+
+    def test_traceability_rejects_rules_outside_exact_f1_through_f6_scope(self):
+        for unsupported in ("CORE-V2-F7", "CORE-V2-F1-BOGUS"):
+            with self.subTest(unsupported=unsupported):
+                data = self._traceability_data()
+                data["rules"][unsupported] = data["rules"].pop("CORE-V2-F6")
+                self._assert_invalid_traceability(data, "rule set mismatch")
+
+    def _traceability_data(self):
+        root = Path(__file__).resolve().parents[1]
+        return json.loads(
+            (root / "config" / "bbma_traceability.json").read_text(encoding="utf-8")
+        )
+
+    def _assert_invalid_traceability(self, data, message):
+        from tools.bbma_orchestrator.verified import load_verified_traceability
+
+        root = Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "traceability.json"
+            path.write_text(json.dumps(data), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, message):
+                load_verified_traceability(
+                    path, root / "config" / "bbma_module_graph.json"
+                )
+
+
+class VerifiedRegressionMapTests(unittest.TestCase):
+    def test_regression_map_matches_accepted_graph_and_verified_trace_tests(self):
+        from tools.bbma_orchestrator.verified import load_verified_regression_map
+
+        root = Path(__file__).resolve().parents[1]
+        mapping = load_verified_regression_map(
+            root / "config" / "bbma_regression_map.json",
+            root / "config" / "bbma_module_graph.json",
+            root / "config" / "bbma_traceability.json",
+        )
+        expected_modules = {f"M{i:02d}" for i in range(1, 28)} | {"M12N"}
+        self.assertEqual(set(mapping["modules"]), expected_modules)
+        self.assertEqual(
+            sum(len(item["consumers"]) for item in mapping["modules"].values()),
+            38,
+        )
+        self.assertEqual(
+            set(mapping["tests"]),
+            {
+                "TEST_DRIVER_F1",
+                "TEST_DRIVER_F2",
+                "TEST_DRIVER_F3",
+                "TEST_DRIVER_F5",
+                "TEST_DRIVER_F6",
+            },
+        )
+        self.assertEqual(mapping["mandatory_global"], [])
+        self.assertEqual(
+            mapping["modules"]["M12"]["tests"],
+            ["TEST_DRIVER_F3", "TEST_DRIVER_F6"],
+        )
+        for module_id in ("M11", "M15", "M16"):
+            self.assertEqual(mapping["modules"][module_id]["tests"], [])
+
+    def test_verified_selector_uses_transitive_cited_blast_radius(self):
+        from tools.bbma_orchestrator.verified import load_verified_regression_map
+
+        root = Path(__file__).resolve().parents[1]
+        mapping = load_verified_regression_map(
+            root / "config" / "bbma_regression_map.json",
+            root / "config" / "bbma_module_graph.json",
+            root / "config" / "bbma_traceability.json",
+        )
+        selector = RegressionSelector(
+            mapping["modules"], mapping["mandatory_global"], strict=True
+        )
+        self.assertEqual(
+            selector.select(["M06"]),
+            ["TEST_DRIVER_F2", "TEST_DRIVER_F3", "TEST_DRIVER_F6", "TEST_DRIVER_F1"],
+        )
+        self.assertEqual(selector.select(["M07"]), ["TEST_DRIVER_F5"])
+        with self.assertRaisesRegex(ValueError, "unknown changed modules"):
+            selector.select(["UNKNOWN"])
+        self.assertEqual(
+            set(selector.select([], release_candidate=True)),
+            set(mapping["tests"]),
+        )
+
+    def test_verified_regression_map_cli_selects_transitive_tests(self):
+        import contextlib
+        import io
+        from tools.bbma_orchestrator.cli import main
+
+        root = Path(__file__).resolve().parents[1]
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            exit_code = main([
+                "select-tests",
+                "--map", str(root / "config" / "bbma_regression_map.json"),
+                "--module-graph", str(root / "config" / "bbma_module_graph.json"),
+                "--traceability", str(root / "config" / "bbma_traceability.json"),
+                "--module", "M06",
+            ])
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(
+            json.loads(output.getvalue())["selected"],
+            ["TEST_DRIVER_F2", "TEST_DRIVER_F3", "TEST_DRIVER_F6", "TEST_DRIVER_F1"],
+        )
+
+    def test_verified_regression_map_cli_cannot_bypass_authority_validation(self):
+        from tools.bbma_orchestrator.cli import main
+
+        root = Path(__file__).resolve().parents[1]
+        with self.assertRaisesRegex(ValueError, "verified regression map requires"):
+            main([
+                "select-tests",
+                "--map", str(root / "config" / "bbma_regression_map.json"),
+                "--module", "M06",
+            ])
+
+    def test_verified_regression_map_cli_rejects_unknown_module(self):
+        from tools.bbma_orchestrator.cli import main
+
+        root = Path(__file__).resolve().parents[1]
+        with self.assertRaisesRegex(ValueError, "unknown changed modules"):
+            main([
+                "select-tests",
+                "--map", str(root / "config" / "bbma_regression_map.json"),
+                "--module-graph", str(root / "config" / "bbma_module_graph.json"),
+                "--traceability", str(root / "config" / "bbma_traceability.json"),
+                "--module", "UNKNOWN",
+            ])
+
+    def test_verified_regression_map_cli_requires_both_authorities(self):
+        import contextlib
+        import io
+        from tools.bbma_orchestrator.cli import main
+
+        root = Path(__file__).resolve().parents[1]
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit) as raised:
+                main([
+                    "select-tests",
+                    "--map", str(root / "config" / "bbma_regression_map.json"),
+                    "--module-graph", str(root / "config" / "bbma_module_graph.json"),
+                    "--module", "M06",
+                ])
+        self.assertEqual(raised.exception.code, 2)
+        self.assertIn("--module-graph and --traceability must be supplied together", error.getvalue())
+
+    def test_regression_map_rejects_consumer_drift(self):
+        data = self._regression_data()
+        data["modules"]["M06"]["consumers"].append("M13")
+        self._assert_invalid_regression(data, "consumer set mismatch")
+
+    def test_regression_map_rejects_uncited_test_assignment(self):
+        data = self._regression_data()
+        data["modules"]["M11"]["tests"].append("TEST_DRIVER_F1")
+        self._assert_invalid_regression(data, "assignment mismatch")
+
+    def test_regression_map_rejects_invented_mandatory_global(self):
+        data = self._regression_data()
+        data["mandatory_global"] = ["TEST_DRIVER_F1"]
+        self._assert_invalid_regression(data, "mandatory global regression")
+
+    def _regression_data(self):
+        root = Path(__file__).resolve().parents[1]
+        return json.loads(
+            (root / "config" / "bbma_regression_map.json").read_text(encoding="utf-8")
+        )
+
+    def _assert_invalid_regression(self, data, message):
+        from tools.bbma_orchestrator.verified import load_verified_regression_map
+
+        root = Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "regression.json"
+            path.write_text(json.dumps(data), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, message):
+                load_verified_regression_map(
+                    path,
+                    root / "config" / "bbma_module_graph.json",
+                    root / "config" / "bbma_traceability.json",
+                )
+
+
 class EvidenceTests(unittest.TestCase):
     def test_hash_store_cache_and_package(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -291,6 +948,384 @@ class TelemetryTests(unittest.TestCase):
             with TelemetryStore(root / "t.db") as store:
                 self.assertEqual(store.ingest_csv(source), 1)
                 self.assertEqual(store.failure_first_summary()["pass_like"], 1)
+
+    def test_mt4_log_ingest_is_attributable_idempotent_and_never_implies_pass(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "20260910.log"
+            journey = "EURUSD|H4_OWNER|240|SIGNAL_ECSD|B|1788768000"
+            decision_token = "EURUSD|2026.09.10~03:00|1|7|ABC"
+            decision_id = decision_token.replace("~", " ")
+            rows = [
+                f"0\\t10:29:27.700\\tEA_BUILD GBPUSD,M15: [N1-NMJE] EURUSD REL=ALIGNED SUB=NONE MAT=CONFIRMED P=H4_OWNER/B PRETAIN=Y PSEL=CANONICAL PHASE=CONFIRMED PDUR=Y PE=ABC J={journey} D1=- H4=B H1=B M15=B R=OK",
+                f"0\\t10:29:27.800\\tEA_BUILD GBPUSD,M15: [N2-NMJE-DEC] EURUSD SIG=SIGNAL_RE_ENTRY DIR=B REL=ALIGNED P=H4_OWNER/B PE=ABC J={journey} DID={decision_token} DIDH=ABC AUTH=STRAT OFAM=NONE OC= LTF=- OSH=ABC",
+                f"0\\t10:29:27.900\\tEA_BUILD GBPUSD,M15: [N2-NMJE-OUT] PAIR=EURUSD TICKET=123 DID={decision_token} DIDH=ABC NET=-1.25 CLOSE=1789000000 REC=REC_NORMAL",
+            ]
+            source.write_text("\n".join(rows) + "\n", encoding="utf-8")
+            with TelemetryStore(root / "t.db") as store:
+                self.assertEqual(store.ingest_mt4_log(source, source="g40-fixture", source_kind="mt4-expert"), 3)
+                self.assertEqual(store.ingest_mt4_log(source, source="g40-fixture", source_kind="mt4-expert"), 0)
+                journey_rows = store.lookup(journey_id=journey)
+                self.assertEqual(len(journey_rows), 2)
+                self.assertEqual(journey_rows[0]["payload"]["fields"]["sub"], "NONE")
+                decision_rows = store.lookup(decision_id=decision_id)
+                self.assertEqual([row["event_type"] for row in decision_rows], ["N2_NMJE_DECISION", "N2_NMJE_OUTCOME"])
+                self.assertEqual(decision_rows[0]["payload"]["fields"]["parent_event"], "ABC")
+                self.assertEqual(decision_rows[0]["payload"]["fields"]["opportunity_cycle"], "")
+                self.assertEqual(decision_rows[0]["payload"]["source_sha256"], sha256_file(source))
+                self.assertEqual(decision_rows[0]["payload"]["runtime_verification"], "NOT VERIFIED")
+                summary = store.failure_first_summary()
+                self.assertEqual(summary["total"], 3)
+                self.assertEqual(summary["pass_like"], 0)
+                self.assertEqual(summary["failure_like"], 0)
+
+    def test_mt4_log_ingest_fails_closed_before_partial_publish(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "20260910.log"
+            source.write_text(
+                "0\\t10:00:00.000\\tEA: [N1-NMJE] EURUSD REL=ALIGNED P=H4_OWNER/B J=J1 D1=- H4=B H1=B M15=B R=OK\n"
+                "0\\t10:00:01.000\\tEA: [N2-NMJE-OUT] PAIR=EURUSD TICKET=123 DID=broken\n",
+                encoding="utf-8",
+            )
+            with TelemetryStore(root / "t.db") as store:
+                with self.assertRaisesRegex(ValueError, "line 2: malformed.*N2-NMJE-OUT"):
+                    store.ingest_mt4_log(source, source_kind="strategy-tester")
+                self.assertEqual(store.failure_first_summary()["total"], 0)
+
+    def test_mt4_log_ingest_rolls_back_on_injected_publish_fault(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "20260910.log"
+            row = (
+                "0\t10:29:27.700\tEA_BUILD GBPUSD,M15: [N1-NMJE] EURUSD "
+                "REL=ALIGNED SUB=NONE MAT=CONFIRMED P=H4_OWNER/B PRETAIN=Y "
+                "PSEL=CANONICAL PHASE=CONFIRMED PDUR=Y PE=ABC "
+                "J=EURUSD|H4_OWNER|240|SIGNAL_ECSD|B|1788768000 D1=- "
+                "H4=B H1=B M15=B R=OK"
+            )
+            source.write_text((row + "\n") * 2, encoding="utf-8")
+            with TelemetryStore(root / "t.db") as store:
+                original = store.ingest_event
+                calls = {"count": 0}
+
+                def injected(payload, **kwargs):
+                    calls["count"] += 1
+                    if calls["count"] == 2:
+                        raise RuntimeError("injected publish fault")
+                    return original(payload, **kwargs)
+
+                store.ingest_event = injected
+                with self.assertRaisesRegex(RuntimeError, "injected publish fault"):
+                    store.ingest_mt4_log(source, source_kind="mt4-expert")
+                self.assertEqual(store.failure_first_summary()["total"], 0)
+
+    def test_mt4_log_ingest_rejects_file_changed_during_read(self):
+        from unittest.mock import patch
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "20260910.log"
+            source.write_text(
+                "0\\t10:00:00.000\\tEA: [N1-NMJE] EURUSD REL=ALIGNED P=H4_OWNER/B J=J1 D1=- H4=B H1=B M15=B R=OK\n",
+                encoding="utf-8",
+            )
+            with TelemetryStore(root / "t.db") as store:
+                with patch(
+                    "tools.bbma_orchestrator.telemetry._sha256_file",
+                    side_effect=["a" * 64, "b" * 64],
+                ):
+                    with self.assertRaisesRegex(ValueError, "changed during ingestion"):
+                        store.ingest_mt4_log(source, source_kind="runtime-smoke")
+                self.assertEqual(store.failure_first_summary()["total"], 0)
+
+    def test_mt4_log_ingest_captures_append_only_current_n2_fields(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "20260910.log"
+            source.write_text(
+                "0\\t10:00:00.000\\tEA: [N2-NMJE-DEC] EURUSD SIG=RE DIR=B REL=ALIGNED P=H4/B J=J1 DID=D1 DIDH=H1 AUTH=OPP OFAM=CSD OC=CYCLE1 PE=ABC LTF=H1 OSH=SEQ1\n",
+                encoding="utf-8",
+            )
+            with TelemetryStore(root / "t.db") as store:
+                self.assertEqual(store.ingest_mt4_log(source, source_kind="mt4-expert"), 1)
+                row = store.lookup(decision_id="D1")[0]
+                self.assertEqual(row["payload"]["fields"]["parent_event"], "ABC")
+                self.assertEqual(row["payload"]["fields"]["ltf_cluster"], "H1")
+                self.assertEqual(row["payload"]["fields"]["opportunity_sequence_hash"], "SEQ1")
+
+    def test_mt4_log_ingest_rejects_ambiguous_or_unparsed_tokens(self):
+        invalid_rows = [
+            "0\\t10:00:00.000\\tEA: [N1-NMJE] EURUSD REL=ALIGNED P=H4/B J=J1 D1=- H4=B H1=B M15=B R=OK BROKEN=",
+            "0\\t10:00:00.000\\tEA: [N1-NMJE] EURUSD REL=ALIGNED P=H4/B J=J1 D1=- H4=B H1=B M15=B R=OK [N2-NMJE-OUT] BROKEN",
+            "0\\t10:00:00.000\\tEA: [N1-NMJE] EURUSD REL=ALIGNED P=H4/B J=J1 J=J2 D1=- H4=B H1=B M15=B R=OK",
+        ]
+        for raw_line in invalid_rows:
+            with self.subTest(raw_line=raw_line), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                source = root / "20260910.log"
+                source.write_text(raw_line + "\n", encoding="utf-8")
+                with TelemetryStore(root / "t.db") as store:
+                    with self.assertRaisesRegex(ValueError, "line 1: malformed"):
+                        store.ingest_mt4_log(source, source_kind="mt4-expert")
+                    self.assertEqual(store.failure_first_summary()["total"], 0)
+
+    def test_mt4_log_ingest_requires_current_identity_fields(self):
+        invalid_rows = [
+            "0\\t10:00:00.000\\tEA: [N1-NMJE] EURUSD REL=ALIGNED SUB=NONE MAT=CONFIRMED P=H4/B PRETAIN=Y PSEL=CANONICAL PHASE=CONFIRMED PDUR=Y J=J1 D1=- H4=B H1=B M15=B R=OK",
+            "0\\t10:00:00.000\\tEA: [N2-NMJE-DEC] EURUSD SIG=RE DIR=B REL=ALIGNED P=H4/B PE=ABC J=J1 DID=D1 AUTH=OPP OFAM=CSD OC=CYCLE1 LTF=H1",
+        ]
+        for raw_line in invalid_rows:
+            with self.subTest(raw_line=raw_line), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                source = root / "20260910.log"
+                source.write_text(raw_line + "\n", encoding="utf-8")
+                with TelemetryStore(root / "t.db") as store:
+                    with self.assertRaisesRegex(ValueError, "line 1: malformed"):
+                        store.ingest_mt4_log(source, source_kind="mt4-expert")
+                    self.assertEqual(store.failure_first_summary()["total"], 0)
+
+    def test_mt4_log_ingest_rejects_invalid_utf8_without_publish(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "20260910.log"
+            source.write_bytes(
+                b"0\\t10:00:00.000\\tEA: [N1-NMJE] EURUSD REL=ALIGNED P=H4/B J=J1 D1=- H4=B H1=B M15=B R=OK"
+                + bytes([255]) + b"\n"
+            )
+            with TelemetryStore(root / "t.db") as store:
+                with self.assertRaises(UnicodeDecodeError):
+                    store.ingest_mt4_log(source, source_kind="mt4-expert")
+                self.assertEqual(store.failure_first_summary()["total"], 0)
+
+    def test_mt4_log_cli_ingests_with_explicit_source_kind(self):
+        import contextlib
+        import io
+        from tools.bbma_orchestrator.cli import main
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "tester.log"
+            source.write_text(
+                "0\\t10:00:00.000\\tEA: [N1-NMJE] EURUSD REL=ALIGNED P=H4_OWNER/B J=J1 D1=- H4=B H1=B M15=B R=OK\n",
+                encoding="utf-8",
+            )
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                main([
+                    "ingest-mt4-log", "--db", str(root / "t.db"),
+                    "--path", str(source), "--source-kind", "strategy-tester",
+                    "--source", "fixture",
+                ])
+            result = json.loads(output.getvalue())
+            self.assertEqual(result["ingested"], 1)
+            self.assertEqual(result["summary"]["pass_like"], 0)
+
+class AttributableTraceTests(unittest.TestCase):
+    @staticmethod
+    def _payload(source_sha256, emitter, *, line=1, direction="B"):
+        event_key = ("1" if source_sha256.startswith("a") else "2") * 64
+        return {
+            "event_type": "N2_NMJE_DECISION",
+            "journey_id": "J1",
+            "decision_id": "D1",
+            "symbol": "EURUSD",
+            "status": "OBSERVED",
+            "source_sha256": source_sha256,
+            "source_path": "C:\\fixture\\tester.log",
+            "source_kind": "strategy-tester",
+            "source_line": line,
+            "event_key": event_key,
+            "emitter": emitter,
+            "runtime_verification": "NOT VERIFIED",
+            "fields": {
+                "pair": "EURUSD",
+                "journey": "J1",
+                "decision_id": "D1",
+                "direction": direction,
+                "decision_hash": "H1",
+            },
+        }
+
+    def _artifact(self, source_sha256, emitter, *, role, direction="B",
+                  authority_ref=""):
+        from tools.bbma_orchestrator.trace import build_trace_artifact
+
+        with tempfile.TemporaryDirectory() as tmp:
+            with TelemetryStore(Path(tmp) / "t.db") as store:
+                payload = self._payload(
+                    source_sha256, emitter, direction=direction
+                )
+                store.ingest_event(payload, event_key=payload["event_key"])
+                rows = store.attributable_events(
+                    source_sha256=source_sha256, emitter=emitter
+                )
+                return build_trace_artifact(
+                    rows,
+                    source_sha256=source_sha256,
+                    emitter=emitter,
+                    role=role,
+                    authority_ref=authority_ref,
+                )
+
+    def test_attributable_events_require_exact_source_and_emitter(self):
+        source_sha256 = "a" * 64
+        with tempfile.TemporaryDirectory() as tmp:
+            with TelemetryStore(Path(tmp) / "t.db") as store:
+                payload = self._payload(source_sha256, "BUILD1")
+                store.ingest_event(payload, event_key=payload["event_key"])
+                rows = store.attributable_events(
+                    source_sha256=source_sha256, emitter="BUILD1"
+                )
+                self.assertEqual(len(rows), 1)
+                with self.assertRaisesRegex(ValueError, "no attributable events"):
+                    store.attributable_events(
+                        source_sha256=source_sha256, emitter="BUILD2"
+                    )
+
+    def test_trace_artifact_is_deterministic_attributable_and_not_runtime_pass(self):
+        artifact = self._artifact("a" * 64, "BUILD1", role="candidate")
+        self.assertEqual(artifact["record_count"], 1)
+        self.assertEqual(artifact["source_sha256"], "a" * 64)
+        self.assertEqual(artifact["emitter"], "BUILD1")
+        self.assertEqual(artifact["runtime_verification"], "NOT VERIFIED")
+        self.assertEqual(artifact["records"][0]["provenance"]["source_line"], 1)
+        self.assertEqual(len(artifact["trace_sha256"]), 64)
+        self.assertEqual(
+            artifact,
+            self._artifact("a" * 64, "BUILD1", role="candidate"),
+        )
+
+    def test_trace_artifact_rejects_column_payload_identity_mismatch(self):
+        from tools.bbma_orchestrator.trace import build_trace_artifact
+
+        source_sha256 = "a" * 64
+        with tempfile.TemporaryDirectory() as tmp:
+            with TelemetryStore(Path(tmp) / "t.db") as store:
+                payload = self._payload(source_sha256, "BUILD1")
+                store.ingest_event(payload, event_key=payload["event_key"])
+                rows = store.attributable_events(
+                    source_sha256=source_sha256, emitter="BUILD1"
+                )
+                rows[0]["decision_id"] = "D2"
+                with self.assertRaisesRegex(ValueError, "row/payload mismatch"):
+                    build_trace_artifact(
+                        rows,
+                        source_sha256=source_sha256,
+                        emitter="BUILD1",
+                    )
+
+    def test_golden_role_requires_external_authority_reference(self):
+        with self.assertRaisesRegex(ValueError, "authority_ref"):
+            self._artifact("a" * 64, "BUILD1", role="golden")
+
+    def test_artifact_delta_requires_authorization_reference(self):
+        from tools.bbma_orchestrator.trace import compare_trace_artifacts
+
+        baseline = self._artifact(
+            "a" * 64, "BUILD1", role="golden",
+            authority_ref="evidence:approved-baseline",
+        )
+        same = self._artifact("b" * 64, "BUILD2", role="candidate")
+        self.assertEqual(
+            compare_trace_artifacts(baseline, same)["classification"],
+            "NO_DELTA",
+        )
+        changed = self._artifact(
+            "b" * 64, "BUILD2", role="candidate", direction="S"
+        )
+        self.assertEqual(
+            compare_trace_artifacts(baseline, changed)["classification"],
+            "UNEXPECTED_DELTA",
+        )
+        result = compare_trace_artifacts(
+            baseline, changed, authorization_ref="decision:approved-delta"
+        )
+        self.assertEqual(result["classification"], "EXPECTED_DELTA")
+        self.assertEqual(result["authorization_ref"], "decision:approved-delta")
+
+    def test_trace_artifact_tampering_fails_closed(self):
+        from tools.bbma_orchestrator.trace import compare_trace_artifacts
+
+        baseline = self._artifact(
+            "a" * 64, "BUILD1", role="golden",
+            authority_ref="evidence:approved-baseline",
+        )
+        candidate = self._artifact("b" * 64, "BUILD2", role="candidate")
+        candidate["records"][0]["fields"]["direction"] = "S"
+        with self.assertRaisesRegex(ValueError, "trace hash mismatch"):
+            compare_trace_artifacts(baseline, candidate)
+
+    def test_trace_artifact_rejects_self_hashed_invalid_metadata(self):
+        from tools.bbma_orchestrator.trace import (
+            _canonical_digest,
+            validate_trace_artifact,
+        )
+
+        artifact = self._artifact("a" * 64, "BUILD1", role="candidate")
+        invalid_values = {
+            "authority_ref": 7,
+            "source_path": 7,
+            "source_kind": "",
+            "runtime_verification": "",
+        }
+        for field, value in invalid_values.items():
+            with self.subTest(field=field):
+                damaged = json.loads(json.dumps(artifact))
+                damaged[field] = value
+                body = dict(damaged)
+                del body["trace_sha256"]
+                damaged["trace_sha256"] = _canonical_digest(body)
+                with self.assertRaisesRegex(
+                    ValueError, f"invalid trace {field}"
+                ):
+                    validate_trace_artifact(damaged)
+
+    def test_trace_artifact_cli_export_and_diff(self):
+        import contextlib
+        import io
+        from tools.bbma_orchestrator.cli import main
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            db_path = root / "t.db"
+            source_sha256 = "b" * 64
+            with TelemetryStore(db_path) as store:
+                payload = self._payload(source_sha256, "BUILD2")
+                store.ingest_event(payload, event_key=payload["event_key"])
+            candidate_path = root / "candidate.json"
+            stdout = io.StringIO()
+            with contextlib.redirect_stdout(stdout):
+                main([
+                    "trace-export-telemetry",
+                    "--db", str(db_path),
+                    "--source-sha256", source_sha256,
+                    "--emitter", "BUILD2",
+                    "--output", str(candidate_path),
+                ])
+            export_result = json.loads(stdout.getvalue())
+            self.assertEqual(export_result["record_count"], 1)
+            self.assertEqual(export_result["role"], "candidate")
+
+            baseline_path = root / "baseline.json"
+            baseline_path.write_text(
+                json.dumps(self._artifact(
+                    "a" * 64, "BUILD1", role="golden",
+                    authority_ref="evidence:approved-baseline",
+                )),
+                encoding="utf-8",
+            )
+            stdout = io.StringIO()
+            with contextlib.redirect_stdout(stdout):
+                main([
+                    "trace-diff-artifacts",
+                    "--baseline", str(baseline_path),
+                    "--candidate", str(candidate_path),
+                ])
+            self.assertEqual(
+                json.loads(stdout.getvalue())["classification"],
+                "NO_DELTA",
+            )
 
 class TraceTests(unittest.TestCase):
     def test_golden_trace_and_authorized_delta(self):
@@ -376,6 +1411,183 @@ class NativeAdapterTests(unittest.TestCase):
             adapter = NativeAdapter(config)
             with self.assertRaises(PermissionError):
                 adapter.run("unsafe")
+
+    def test_native_adapter_rejects_disabled_authority(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = root / "native.json"
+            config.write_text(json.dumps({
+                "commands": {
+                    "runtime": {
+                        "argv": [sys.executable, "-c", "print('must not run')"],
+                        "cwd": str(root),
+                        "enabled": False,
+                        "blocked_reason": "MT4 launch is not authorized",
+                    }
+                }
+            }), encoding="utf-8")
+            adapter = NativeAdapter(config)
+            with self.assertRaisesRegex(PermissionError, "MT4 launch is not authorized"):
+                adapter.run("runtime")
+
+    def test_native_adapter_rejects_input_identity_drift(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "candidate.mq4"
+            source.write_text("candidate", encoding="utf-8")
+            config = root / "native.json"
+            config.write_text(json.dumps({
+                "commands": {
+                    "compile": {
+                        "argv": [sys.executable, "-c", "print('must not run')"],
+                        "cwd": str(root),
+                        "expected_inputs": [
+                            {"path": str(source), "sha256": "0" * 64}
+                        ],
+                    }
+                }
+            }), encoding="utf-8")
+            adapter = NativeAdapter(config)
+            with self.assertRaisesRegex(ValueError, "identity mismatch"):
+                adapter.run("compile")
+
+    def test_native_adapter_rejects_duplicate_process_before_execute(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = root / "native.json"
+            config.write_text(json.dumps({
+                "commands": {
+                    "compile": {
+                        "argv": [sys.executable, "-c", "print('must not run')"],
+                        "cwd": str(root),
+                        "exclusive_process_names": ["metaeditor.exe"],
+                    }
+                }
+            }), encoding="utf-8")
+            adapter = NativeAdapter(
+                config, process_names_provider=lambda: {"metaeditor.exe"}
+            )
+            with self.assertRaisesRegex(RuntimeError, "matching process already active"):
+                adapter.run("compile", execute=True)
+
+    def test_native_adapter_verifies_metaeditor_result_contract(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "candidate.mq4"
+            log = root / "compile.log"
+            ex4 = root / "candidate.ex4"
+            source.write_text("candidate", encoding="utf-8")
+            script = (
+                "from pathlib import Path;"
+                "Path('compile.log').write_text('Result: 0 errors, 0 warnings', encoding='utf-16');"
+                "Path('candidate.ex4').write_bytes(b'ex4');"
+                "raise SystemExit(1)"
+            )
+            config = root / "native.json"
+            config.write_text(json.dumps({
+                "commands": {
+                    "compile": {
+                        "argv": [sys.executable, "-c", script],
+                        "cwd": str(root),
+                        "expected_inputs": [
+                            {"path": str(source), "sha256": sha256_file(source)}
+                        ],
+                        "result_contract": {
+                            "kind": "metaeditor_0e0w",
+                            "log_path": str(log),
+                            "artifacts": [str(ex4)],
+                        },
+                    }
+                }
+            }), encoding="utf-8")
+            adapter = NativeAdapter(config, process_names_provider=lambda: set())
+            result = adapter.run("compile", execute=True)
+            self.assertEqual(result["status"], "PASS")
+            self.assertEqual(result["returncode"], 1)
+            self.assertEqual(result["metaeditor_errors"], 0)
+            self.assertEqual(result["metaeditor_warnings"], 0)
+            self.assertTrue(result["artifacts"][0]["sha256"])
+
+    def test_native_adapter_fails_nonzero_metaeditor_summary(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            log = root / "compile.log"
+            ex4 = root / "candidate.ex4"
+            script = (
+                "from pathlib import Path;"
+                "Path('compile.log').write_text('Result: 1 error, 0 warnings', encoding='utf-16');"
+                "Path('candidate.ex4').write_bytes(b'ex4')"
+            )
+            config = root / "native.json"
+            config.write_text(json.dumps({
+                "commands": {
+                    "compile": {
+                        "argv": [sys.executable, "-c", script],
+                        "cwd": str(root),
+                        "result_contract": {
+                            "kind": "metaeditor_0e0w",
+                            "log_path": str(log),
+                            "artifacts": [str(ex4)],
+                        },
+                    }
+                }
+            }), encoding="utf-8")
+            adapter = NativeAdapter(config, process_names_provider=lambda: set())
+            result = adapter.run("compile", execute=True)
+            self.assertEqual(result["status"], "FAIL")
+            self.assertIn("not 0E0W", result["verification_error"])
+
+    def test_native_adapter_rejects_stale_metaeditor_evidence(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            log = root / "compile.log"
+            ex4 = root / "candidate.ex4"
+            log.write_text("Result: 0 errors, 0 warnings", encoding="utf-16")
+            ex4.write_bytes(b"old-ex4")
+            config = root / "native.json"
+            config.write_text(json.dumps({
+                "commands": {
+                    "compile": {
+                        "argv": [sys.executable, "-c", "raise SystemExit(1)"],
+                        "cwd": str(root),
+                        "result_contract": {
+                            "kind": "metaeditor_0e0w",
+                            "log_path": str(log),
+                            "artifacts": [str(ex4)],
+                        },
+                    }
+                }
+            }), encoding="utf-8")
+            adapter = NativeAdapter(config, process_names_provider=lambda: set())
+            result = adapter.run("compile", execute=True)
+            self.assertEqual(result["status"], "FAIL")
+            self.assertIn("not refreshed", result["verification_error"])
+
+    def test_native_run_cli_exits_nonzero_for_failed_execution(self):
+        import contextlib
+        import io
+        from tools.bbma_orchestrator.cli import main
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = root / "native.json"
+            config.write_text(json.dumps({
+                "commands": {
+                    "fail": {
+                        "argv": [sys.executable, "-c", "raise SystemExit(2)"],
+                        "cwd": str(root),
+                    }
+                }
+            }), encoding="utf-8")
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                with self.assertRaises(SystemExit) as raised:
+                    main([
+                        "native-run", "--config", str(config),
+                        "--name", "fail", "--execute",
+                    ])
+            self.assertEqual(raised.exception.code, 1)
+            self.assertEqual(json.loads(output.getvalue())["status"], "FAIL")
 
     def test_artifact_identity_hashes_existing_file(self):
         with tempfile.TemporaryDirectory() as tmp:

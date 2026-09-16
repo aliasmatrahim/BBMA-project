@@ -1,7 +1,7 @@
 # BBMA Autonomous Engineering Infrastructure
 
-Status: **IMPLEMENTATION SPEC — Issue #150**  
-Depends on: **PR #149 / `docs/BBMA_TASK_ORCHESTRATOR_CONTRACT.md`**  
+Status: **IMPLEMENTATION SPEC — Issue #150**
+Depends on: **PR #149 / `docs/BBMA_TASK_ORCHESTRATOR_CONTRACT.md`**
 Scope: governance/tooling/validation infrastructure only. No Strategy-Core or EA behaviour change.
 
 ## Goal
@@ -73,11 +73,22 @@ The selector consumes caller-supplied verified module/dependency metadata plus m
 ## Telemetry warehouse
 Runtime/test events are normalized into SQLite with timestamp, source, event type, JourneyID, DecisionID, symbol, status and raw JSON payload. Failure-first summaries return anomalies/failures first and aggregate PASS volume rather than streaming raw logs into ChatGPT.
 
+The native log adapter ingests the authoritative NMJE `[N1-NMJE]`, `[N2-NMJE-DEC]` and `[N2-NMJE-OUT]` formats from explicitly labelled MT4 Expert, Strategy Tester or runtime-smoke files. Every record carries source-file SHA-256, line number, emitter/build marker and raw text; repeated ingestion is idempotent. Ingestion status is `OBSERVED` with `runtime_verification: NOT VERIFIED`, so importing a log cannot manufacture runtime PASS.
+
 ## Golden traces and differential builds
 Golden traces compare normalized lifecycle events, not only P/L. Build comparison returns:
 - `NO_DELTA` when traces are equivalent;
 - `EXPECTED_DELTA` only when a caller explicitly authorizes the behavioural delta;
 - `UNEXPECTED_DELTA` otherwise.
+
+Attributable trace artifacts bind every normalized decision record to an exact
+telemetry source SHA-256, emitter/build marker, source line and event key. The
+artifact itself is content-hashed and comparison rejects tampering, mixed
+provenance and candidate-role baselines. A golden role requires an explicit
+external authority reference; the tooling does not infer baseline approval.
+Likewise, `EXPECTED_DELTA` requires an explicit authorization reference.
+Runtime-verification state is preserved from telemetry and is never promoted by
+trace export or comparison.
 
 A shadow trace is read-only evidence. It cannot create/reject/rank/execute a trade.
 
@@ -85,6 +96,18 @@ A shadow trace is read-only evidence. It cannot create/reject/rank/execute a tra
 The infrastructure model tests separation of candidate, confirmed, selected, validated, risk-approved, entry-ready, executed and terminal states. It is an engineering invariant model, not a new BBMA signal rule. Invalid backward/skipping transitions are rejected unless an explicit transition is defined by the model.
 
 Randomized sequences, mutation self-tests and injected atomic-write failures prove that the test harness itself detects invalid lifecycle or persistence behaviour.
+
+## Evidence-bound architecture invariants
+`config/bbma_architecture_invariants.json` binds eight explicit ownership
+boundaries to the accepted module graph and its immutable contract blobs:
+M12N observation-only, M13 collect-only, M14 validate-only, M15 final-signal
+authority, M18 label-only, M19 filter-only, M22 dumb executor and M27
+orchestration-only. The validator rejects authority, ownership or evidence drift,
+and an exhaustive mutation self-check must detect every catalogued boundary.
+
+This is static architecture evidence, not runtime acceptance. Runtime enforcement
+remains `NOT VERIFIED`, and the catalog is deliberately limited to boundaries
+with standalone contract evidence rather than treating absent entries as proof.
 
 ## Reproducible environment and release candidate identity
 Environment snapshots record OS/Python/tool metadata supplied by the runner. Native G40 adapters later add exact MetaEditor/MT4 paths, versions, terminal identity and candidate MQ4/EX4 hashes.

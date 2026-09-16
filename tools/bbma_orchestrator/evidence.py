@@ -15,6 +15,7 @@ VALID_NODE_KINDS = {
     "source",
     "core_rule",
     "contract",
+    "module",
     "code",
     "test",
     "compile",

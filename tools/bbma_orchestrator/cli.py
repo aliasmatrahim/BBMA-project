@@ -16,11 +16,23 @@ from .core import (
     route_model,
     utc_now,
     atomic_write_json,
+    build_closeout,
 )
 from .evidence import ContentAddressedStore, EvidenceDB, build_evidence_package, sha256_file
-from .telemetry import TelemetryStore
-from .trace import classify_build_delta, compare_shadow
+from .telemetry import MT4_SOURCE_KINDS, TelemetryStore
+from .trace import (
+    build_trace_artifact,
+    classify_build_delta,
+    compare_shadow,
+    compare_trace_artifacts,
+)
 from .native import NativeAdapter, git_snapshot, artifact_identity
+from .verified import (
+    architecture_invariant_mutation_check,
+    load_verified_architecture_invariants,
+    load_verified_regression_map,
+    materialize_traceability,
+)
 
 def _json_print(data) -> None:
     print(json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False))
@@ -143,9 +155,34 @@ def cmd_evidence_stale(args: argparse.Namespace) -> None:
         stale = db.mark_changed(args.node_id, args.digest)
         _json_print({"changed": args.node_id, "stale_descendants": stale, "coverage": db.coverage()})
 
+def cmd_traceability_materialize(args: argparse.Namespace) -> None:
+    _json_print(materialize_traceability(
+        args.traceability, args.module_graph, args.db
+    ))
+
+def cmd_architecture_invariants(args: argparse.Namespace) -> None:
+    catalog = load_verified_architecture_invariants(
+        args.catalog, args.module_graph
+    )
+    mutation = architecture_invariant_mutation_check(
+        args.catalog, args.module_graph
+    )
+    _json_print(
+        {
+            "invariants": len(catalog["invariants"]),
+            "detected_mutations": mutation["detected"],
+            "runtime_enforcement": catalog["coverage"]["runtime_enforcement"],
+        }
+    )
+
 def cmd_evidence_package(args: argparse.Namespace) -> None:
     package = build_evidence_package(args.output, args.files, metadata={"label": args.label})
     _json_print(package)
+
+def cmd_closeout(args: argparse.Namespace) -> None:
+    current = TaskStore(args.root)
+    candidates = [TaskStore(root) for root in args.candidate_root]
+    _json_print(build_closeout(current, candidates, args.output, extra_files=args.file))
 
 def cmd_ingest_jsonl(args: argparse.Namespace) -> None:
     with TelemetryStore(args.db) as store:
@@ -157,9 +194,50 @@ def cmd_ingest_csv(args: argparse.Namespace) -> None:
         count = store.ingest_csv(args.path, source=args.source)
         _json_print({"ingested": count, "summary": store.failure_first_summary(limit=args.limit)})
 
+def cmd_ingest_mt4_log(args: argparse.Namespace) -> None:
+    with TelemetryStore(args.db) as store:
+        count = store.ingest_mt4_log(
+            args.path, source=args.source, source_kind=args.source_kind
+        )
+        _json_print({"ingested": count, "summary": store.failure_first_summary(limit=args.limit)})
+
 def cmd_telemetry_summary(args: argparse.Namespace) -> None:
     with TelemetryStore(args.db) as store:
         _json_print(store.failure_first_summary(limit=args.limit))
+
+def cmd_trace_export_telemetry(args: argparse.Namespace) -> None:
+    with TelemetryStore(args.db) as store:
+        records = store.attributable_events(
+            source_sha256=args.source_sha256,
+            emitter=args.emitter,
+            limit=args.limit,
+        )
+    artifact = build_trace_artifact(
+        records,
+        source_sha256=args.source_sha256,
+        emitter=args.emitter,
+        role=args.role,
+        authority_ref=args.authority_ref,
+    )
+    atomic_write_json(args.output, artifact)
+    _json_print(
+        {
+            "output": str(Path(args.output).resolve()),
+            "role": artifact["role"],
+            "record_count": artifact["record_count"],
+            "trace_sha256": artifact["trace_sha256"],
+            "runtime_verification": artifact["runtime_verification"],
+        }
+    )
+
+def cmd_trace_diff_artifacts(args: argparse.Namespace) -> None:
+    baseline = _load_json(args.baseline)
+    candidate = _load_json(args.candidate)
+    _json_print(
+        compare_trace_artifacts(
+            baseline, candidate, authorization_ref=args.authorization_ref
+        )
+    )
 
 def cmd_trace_compare(args: argparse.Namespace) -> None:
     baseline = _load_json(args.baseline)
@@ -180,8 +258,26 @@ def cmd_shadow_compare(args: argparse.Namespace) -> None:
     )
 
 def cmd_select_tests(args: argparse.Namespace) -> None:
-    mapping = _load_json(args.map)
-    selector = RegressionSelector(mapping.get("modules", mapping), mapping.get("mandatory_global", []))
+    if bool(args.module_graph) != bool(args.traceability):
+        raise ValueError("--module-graph and --traceability must be supplied together")
+    if args.module_graph:
+        mapping = load_verified_regression_map(
+            args.map, args.module_graph, args.traceability
+        )
+    else:
+        mapping = _load_json(args.map)
+        verified_fields = {
+            "schema_version", "authority", "coverage", "tests", "known_unknowns"
+        }
+        if verified_fields.intersection(mapping):
+            raise ValueError(
+                "verified regression map requires --module-graph and --traceability"
+            )
+    selector = RegressionSelector(
+        mapping.get("modules", mapping),
+        mapping.get("mandatory_global", []),
+        strict=bool(args.module_graph),
+    )
     selected = selector.select(args.module, risk_score=args.risk_score, release_candidate=args.release_candidate)
     _json_print({"selected": selected})
 
@@ -204,7 +300,10 @@ def cmd_native_describe(args: argparse.Namespace) -> None:
 
 def cmd_native_run(args: argparse.Namespace) -> None:
     adapter = NativeAdapter(args.config)
-    _json_print(adapter.run(args.name, execute=args.execute))
+    result = adapter.run(args.name, execute=args.execute)
+    _json_print(result)
+    if args.execute and result["status"] == "FAIL":
+        raise SystemExit(1)
 
 def cmd_git_snapshot(args: argparse.Namespace) -> None:
     _json_print(git_snapshot(args.repo))
@@ -316,11 +415,29 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--digest", required=True)
     p.set_defaults(func=cmd_evidence_stale)
 
+    p = sub.add_parser("traceability-materialize")
+    p.add_argument("--traceability", required=True)
+    p.add_argument("--module-graph", required=True)
+    p.add_argument("--db", required=True)
+    p.set_defaults(func=cmd_traceability_materialize)
+
+    p = sub.add_parser("architecture-invariants")
+    p.add_argument("--catalog", required=True)
+    p.add_argument("--module-graph", required=True)
+    p.set_defaults(func=cmd_architecture_invariants)
+
     p = sub.add_parser("evidence-package")
     p.add_argument("--output", required=True)
     p.add_argument("--label", default="")
     p.add_argument("files", nargs="+")
     p.set_defaults(func=cmd_evidence_package)
+
+    p = sub.add_parser("closeout")
+    p.add_argument("--root", required=True)
+    p.add_argument("--candidate-root", action="append", required=True)
+    p.add_argument("--output", required=True)
+    p.add_argument("--file", action="append", default=[])
+    p.set_defaults(func=cmd_closeout)
 
     for name, func in (("ingest-jsonl", cmd_ingest_jsonl), ("ingest-csv", cmd_ingest_csv)):
         p = sub.add_parser(name)
@@ -330,10 +447,34 @@ def build_parser() -> argparse.ArgumentParser:
         p.add_argument("--limit", type=int, default=50)
         p.set_defaults(func=func)
 
+    p = sub.add_parser("ingest-mt4-log")
+    p.add_argument("--db", required=True)
+    p.add_argument("--path", required=True)
+    p.add_argument("--source-kind", required=True, choices=MT4_SOURCE_KINDS)
+    p.add_argument("--source", default="")
+    p.add_argument("--limit", type=int, default=50)
+    p.set_defaults(func=cmd_ingest_mt4_log)
+
     p = sub.add_parser("telemetry-summary")
     p.add_argument("--db", required=True)
     p.add_argument("--limit", type=int, default=50)
     p.set_defaults(func=cmd_telemetry_summary)
+
+    p = sub.add_parser("trace-export-telemetry")
+    p.add_argument("--db", required=True)
+    p.add_argument("--source-sha256", required=True)
+    p.add_argument("--emitter", required=True)
+    p.add_argument("--output", required=True)
+    p.add_argument("--role", choices=("candidate", "golden"), default="candidate")
+    p.add_argument("--authority-ref", default="")
+    p.add_argument("--limit", type=int, default=10000)
+    p.set_defaults(func=cmd_trace_export_telemetry)
+
+    p = sub.add_parser("trace-diff-artifacts")
+    p.add_argument("--baseline", required=True)
+    p.add_argument("--candidate", required=True)
+    p.add_argument("--authorization-ref", default="")
+    p.set_defaults(func=cmd_trace_diff_artifacts)
 
     p = sub.add_parser("trace-compare")
     p.add_argument("--baseline", required=True)
@@ -348,6 +489,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("select-tests")
     p.add_argument("--map", required=True)
+    p.add_argument("--module-graph", default="")
+    p.add_argument("--traceability", default="")
     p.add_argument("--module", action="append", default=[])
     p.add_argument("--risk-score", type=int, default=0)
     p.add_argument("--release-candidate", action="store_true")
@@ -383,6 +526,11 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if (
+        args.command == "select-tests"
+        and bool(args.module_graph) != bool(args.traceability)
+    ):
+        parser.error("--module-graph and --traceability must be supplied together")
     args.func(args)
     return 0
 

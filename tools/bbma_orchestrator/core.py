@@ -225,9 +225,16 @@ def route_model(
     return "MEDIUM"
 
 class RegressionSelector:
-    def __init__(self, dependency_map: dict[str, dict[str, list[str]]], mandatory_global: Iterable[str] = ()):
+    def __init__(
+        self,
+        dependency_map: dict[str, dict[str, list[str]]],
+        mandatory_global: Iterable[str] = (),
+        *,
+        strict: bool = False,
+    ):
         self.dependency_map = dependency_map
         self.mandatory_global = tuple(dict.fromkeys(mandatory_global))
+        self.strict = strict
 
     def select(
         self,
@@ -237,11 +244,23 @@ class RegressionSelector:
         release_candidate: bool = False,
     ) -> list[str]:
         selected = list(self.mandatory_global)
-        for module in changed_modules:
+        pending = list(dict.fromkeys(changed_modules))
+        unknown = sorted(set(pending) - set(self.dependency_map))
+        if self.strict and unknown:
+            raise ValueError(f"unknown changed modules: {unknown}")
+        visited: set[str] = set()
+        while pending:
+            module = pending.pop(0)
+            if module in visited:
+                continue
+            visited.add(module)
             item = self.dependency_map.get(module, {})
             selected.extend(item.get("tests", []))
-            for consumer in item.get("consumers", []):
-                selected.extend(self.dependency_map.get(consumer, {}).get("tests", []))
+            pending.extend(
+                consumer
+                for consumer in item.get("consumers", [])
+                if consumer not in visited
+            )
         if release_candidate or risk_score >= 80:
             for item in self.dependency_map.values():
                 selected.extend(item.get("tests", []))
@@ -277,4 +296,74 @@ def build_context_pack(
         "selected_validations": list(dict.fromkeys(selected_validations)),
         "evidence_nodes": list(dict.fromkeys(evidence_nodes)),
         "generated_at": utc_now(),
+    }
+
+
+def build_closeout(
+    current_store: TaskStore,
+    candidate_stores: Iterable[TaskStore],
+    output_path: str | Path,
+    *,
+    extra_files: Iterable[str | Path] = (),
+) -> dict[str, Any]:
+    """Package a closed task and select one explicit eligible successor."""
+    current = current_store.load()
+    if current.phase != "CLOSED" or current.result != "PASS":
+        raise ValueError("closeout requires current task CLOSED/PASS")
+    checkpoints: list[tuple[datetime, int, Path]] = []
+    for path in current_store.checkpoints_dir.glob(f"{current.task_id}_*.json"):
+        try:
+            stamp = datetime.strptime(path.stem.rsplit("_", 1)[-1], "%Y%m%dT%H%M%SZ").replace(
+                tzinfo=timezone.utc
+            )
+            with path.open("r", encoding="utf-8") as handle:
+                snapshot = TaskManifest.from_dict(json.load(handle))
+        except (OSError, json.JSONDecodeError, TypeError, ValueError) as exc:
+            raise ValueError(f"invalid closeout checkpoint: {path}") from exc
+        if (
+            snapshot.task_id == current.task_id
+            and snapshot.phase == "CLOSED"
+            and snapshot.result == "PASS"
+        ):
+            checkpoints.append((stamp, path.stat().st_mtime_ns, path))
+    if not checkpoints:
+        raise ValueError("closeout requires a CLOSED/PASS checkpoint")
+    latest_checkpoint = max(checkpoints, key=lambda item: (item[0], item[1]))[2]
+
+    eligible: list[TaskManifest] = []
+    for store in candidate_stores:
+        candidate = store.load()
+        if (
+            candidate.task_id != current.task_id
+            and candidate.phase == "PENDING"
+            and candidate.result == "NOT VERIFIED"
+            and not candidate.blockers
+            and not candidate.hold_items
+            and candidate.latest_verified_step.startswith(
+                f"{current.task_id} CLOSED/PASS"
+            )
+        ):
+            eligible.append(candidate)
+    if len(eligible) != 1:
+        raise ValueError("closeout requires exactly one explicit eligible candidate")
+
+    files = [current_store.manifest_path, current_store.events_path, latest_checkpoint]
+    files.extend(Path(path) for path in extra_files)
+    from .evidence import build_evidence_package
+
+    package = build_evidence_package(
+        output_path,
+        files,
+        metadata={
+            "task_id": current.task_id,
+            "roadmap_id": current.roadmap_id,
+            "commit": current.commit,
+            "next_task_id": eligible[0].task_id,
+        },
+    )
+    return {
+        "package": package,
+        "files": package["files"],
+        "handoff": current_store.handoff_capsule(current),
+        "next_task_id": eligible[0].task_id,
     }

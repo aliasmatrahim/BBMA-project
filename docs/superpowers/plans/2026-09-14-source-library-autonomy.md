@@ -60,10 +60,10 @@
 
 **Interfaces:** `link_evidence_node(source_id, node_id)`, `propagate_source_change(source_id, new_digest, evidence_db)`.
 
-- [ ] Test that only explicitly linked downstream Core/contract/code/test nodes become stale after an accepted evidence digest changes.
-- [ ] Test that unrelated Evidence-DAG nodes remain VALID and unknown semantic edges are never invented.
-- [ ] Implement the minimal bridge by delegating staleness to `EvidenceDB.mark_changed`.
-- [ ] Run focused/full tests and commit.
+- [x] Test that only explicitly linked downstream Core/contract/code/test nodes become stale after an accepted evidence digest changes.
+- [x] Test that unrelated Evidence-DAG nodes remain VALID and unknown semantic edges are never invented.
+- [x] Implement the minimal bridge by delegating staleness to `EvidenceDB.mark_changed`.
+- [x] Run focused/full tests and commit.
 
 ### Task 5: Bounded SOURCE_INDEX/register update generator
 

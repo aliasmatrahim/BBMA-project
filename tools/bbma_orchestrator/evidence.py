@@ -198,8 +198,11 @@ class EvidenceDB:
         return out
 
     def mark_changed(self, node_id: str, new_digest: str) -> list[str]:
-        if self.conn.execute("SELECT 1 FROM nodes WHERE node_id=?", (node_id,)).fetchone() is None:
+        row = self.conn.execute("SELECT digest FROM nodes WHERE node_id=?", (node_id,)).fetchone()
+        if row is None:
             raise KeyError(node_id)
+        if row[0] == new_digest:
+            return []
         self.conn.execute(
             "UPDATE nodes SET digest=?,status='NOT VERIFIED',updated_at=? WHERE node_id=?",
             (new_digest, utc_now(), node_id),

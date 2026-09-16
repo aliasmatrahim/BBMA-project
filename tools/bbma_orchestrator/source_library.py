@@ -7,7 +7,7 @@ import json
 import sqlite3
 
 from .core import utc_now
-from .evidence import sha256_file
+from .evidence import EvidenceDB, sha256_file
 
 SOURCE_PHASES = (
     "DISCOVERED",
@@ -106,6 +106,14 @@ class SourceRegistry:
                 updated_at TEXT NOT NULL
             );
             CREATE INDEX IF NOT EXISTS idx_sources_digest ON sources(digest);
+            CREATE TABLE IF NOT EXISTS source_evidence_links (
+                source_id TEXT NOT NULL,
+                node_id TEXT NOT NULL,
+                source_digest TEXT NOT NULL,
+                accepted_authority TEXT NOT NULL,
+                linked_at TEXT NOT NULL,
+                PRIMARY KEY (source_id, node_id)
+            );
             """
         )
         self.conn.commit()
@@ -297,6 +305,74 @@ class SourceRegistry:
         )
         self.conn.commit()
         return self.get(record.source_id)
+
+    def link_evidence_node(self, source_id: str, node_id: str) -> str:
+        record = self.get(source_id)
+        node_id = node_id.strip()
+        if not node_id:
+            raise ValueError("node_id is required")
+        if (
+            record.phase not in {"RECONCILED", "REGISTERED"}
+            or record.disposition != "ACCEPTED_CORE"
+            or not record.accepted_authority
+            or record.hold_items
+        ):
+            raise ValueError("source evidence link requires reconciled ACCEPTED_CORE without HOLD")
+        if not record.digest:
+            raise ValueError("accepted source digest is required for evidence linking")
+        self.conn.execute(
+            """
+            INSERT INTO source_evidence_links(
+                source_id,node_id,source_digest,accepted_authority,linked_at
+            ) VALUES(?,?,?,?,?)
+            ON CONFLICT(source_id,node_id) DO UPDATE SET
+                source_digest=excluded.source_digest,
+                accepted_authority=excluded.accepted_authority,
+                linked_at=excluded.linked_at
+            """,
+            (record.source_id, node_id, record.digest, record.accepted_authority, utc_now()),
+        )
+        self.conn.commit()
+        return node_id
+
+    def propagate_source_change(
+        self,
+        source_id: str,
+        new_digest: str,
+        evidence_db: EvidenceDB,
+    ) -> list[str]:
+        record = self.get(source_id)
+        new_digest = new_digest.strip()
+        if not new_digest:
+            raise ValueError("new_digest is required")
+        if record.digest != new_digest:
+            raise ValueError("new_digest must match the current source registry digest")
+        links = self.conn.execute(
+            """
+            SELECT node_id,source_digest
+            FROM source_evidence_links
+            WHERE source_id=?
+            ORDER BY node_id
+            """,
+            (record.source_id,),
+        ).fetchall()
+        validated_nodes: list[str] = []
+        for node_id, accepted_digest in links:
+            node = evidence_db.get_node(node_id)
+            if node["kind"] != "source":
+                raise ValueError(f"linked node {node_id} is not a source evidence node")
+            if node["digest"] not in {accepted_digest, new_digest}:
+                raise ValueError(f"linked source evidence digest mismatch: {node_id}")
+            validated_nodes.append(node_id)
+
+        stale: list[str] = []
+        seen: set[str] = set()
+        for node_id in validated_nodes:
+            for descendant in evidence_db.mark_changed(node_id, new_digest):
+                if descendant not in seen:
+                    seen.add(descendant)
+                    stale.append(descendant)
+        return stale
 
     def ingest_file(
         self,

@@ -517,6 +517,115 @@ class SourceLibraryRegistryTests(unittest.TestCase):
                 self.assertEqual(registry.get("SRC-1").digest, registry.get("SRC-2").digest)
                 self.assertEqual([r.source_id for r in registry.find_by_digest(first.record.digest)], ["SRC-1", "SRC-2"])
 
+    def test_source_change_stales_only_explicit_evidence_descendants(self):
+        from tools.bbma_orchestrator.evidence import EvidenceDB
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            file = root / "source.txt"
+            file.write_text("v1", encoding="utf-8")
+            with SourceRegistry(root / "sources.db") as registry, EvidenceDB(root / "evidence.db") as evidence:
+                ingested = registry.ingest_file("SRC-1", file)
+                for phase in ("PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("SRC-1", phase)
+                registry.set_disposition("SRC-1", "ACCEPTED_CORE", accepted_authority="decision:CORE-001")
+
+                evidence.add_node("source:SRC-1", "source", ingested.record.digest, status="VALID")
+                evidence.add_node("core:RE", "core_rule", "core-v1", status="VALID")
+                evidence.add_node("contract:M12", "contract", "contract-v1", status="VALID")
+                evidence.add_node("code:M12", "code", "code-v1", status="VALID")
+                evidence.add_node("test:M12", "test", "test-v1", status="VALID")
+                evidence.add_node("core:OTHER", "core_rule", "other-v1", status="VALID")
+                evidence.add_node("code:OTHER", "code", "other-code-v1", status="VALID")
+                evidence.add_edge("source:SRC-1", "core:RE")
+                evidence.add_edge("core:RE", "contract:M12")
+                evidence.add_edge("contract:M12", "code:M12")
+                evidence.add_edge("code:M12", "test:M12")
+                evidence.add_edge("core:OTHER", "code:OTHER")
+                edge_count = evidence.conn.execute("SELECT COUNT(*) FROM edges").fetchone()[0]
+
+                registry.link_evidence_node("SRC-1", "source:SRC-1")
+                file.write_text("v2", encoding="utf-8")
+                changed = registry.ingest_file("SRC-1", file)
+                stale = registry.propagate_source_change("SRC-1", changed.record.digest, evidence)
+
+                self.assertEqual(stale, ["core:RE", "contract:M12", "code:M12", "test:M12"])
+                self.assertEqual(evidence.get_node("source:SRC-1")["digest"], changed.record.digest)
+                self.assertEqual(evidence.get_node("source:SRC-1")["status"], "NOT VERIFIED")
+                for node_id in stale:
+                    self.assertEqual(evidence.get_node(node_id)["status"], "STALE")
+                self.assertEqual(evidence.get_node("core:OTHER")["status"], "VALID")
+                self.assertEqual(evidence.get_node("code:OTHER")["status"], "VALID")
+                self.assertEqual(evidence.conn.execute("SELECT COUNT(*) FROM edges").fetchone()[0], edge_count)
+
+    def test_source_impact_bridge_is_fail_closed_and_idempotent(self):
+        from tools.bbma_orchestrator.evidence import EvidenceDB
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            file = root / "source.txt"
+            file.write_text("v1", encoding="utf-8")
+            with SourceRegistry(root / "sources.db") as registry, EvidenceDB(root / "evidence.db") as evidence:
+                registry.register_discovered("NO-DIGEST", "file:///missing.pdf")
+                for phase in ("INGESTED", "INTEGRITY_VERIFIED", "PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("NO-DIGEST", phase)
+                registry.set_disposition("NO-DIGEST", "ACCEPTED_CORE", accepted_authority="decision:CORE-000")
+                with self.assertRaisesRegex(ValueError, "digest"):
+                    registry.link_evidence_node("NO-DIGEST", "source:NO-DIGEST")
+
+                ingested = registry.ingest_file("SRC-1", file)
+                with self.assertRaisesRegex(ValueError, "ACCEPTED_CORE"):
+                    registry.link_evidence_node("SRC-1", "source:SRC-1")
+                for phase in ("PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("SRC-1", phase)
+                registry.set_disposition("SRC-1", "ACCEPTED_CORE", accepted_authority="decision:CORE-001")
+                evidence.add_node("source:SRC-1", "source", ingested.record.digest, status="VALID")
+                evidence.add_node("core:RE", "core_rule", "core-v1", status="VALID")
+                evidence.add_edge("source:SRC-1", "core:RE")
+                registry.link_evidence_node("SRC-1", "source:SRC-1")
+                self.assertEqual(registry.propagate_source_change("SRC-1", ingested.record.digest, evidence), [])
+                self.assertEqual(evidence.get_node("core:RE")["status"], "VALID")
+
+                bad_file = root / "bad.txt"
+                bad_file.write_text("b1", encoding="utf-8")
+                bad = registry.ingest_file("SRC-BAD", bad_file)
+                for phase in ("PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("SRC-BAD", phase)
+                registry.set_disposition("SRC-BAD", "ACCEPTED_CORE", accepted_authority="decision:CORE-BAD")
+                evidence.add_node("core:BAD", "core_rule", bad.record.digest, status="VALID")
+                registry.link_evidence_node("SRC-BAD", "core:BAD")
+                bad_file.write_text("b2", encoding="utf-8")
+                bad_changed = registry.ingest_file("SRC-BAD", bad_file)
+                with self.assertRaisesRegex(ValueError, "source evidence node"):
+                    registry.propagate_source_change("SRC-BAD", bad_changed.record.digest, evidence)
+
+    def test_source_impact_bridge_prevalidates_all_links_before_staling(self):
+        from tools.bbma_orchestrator.evidence import EvidenceDB
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            file = root / "source.txt"
+            file.write_text("v1", encoding="utf-8")
+            with SourceRegistry(root / "sources.db") as registry, EvidenceDB(root / "evidence.db") as evidence:
+                ingested = registry.ingest_file("SRC-1", file)
+                for phase in ("PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("SRC-1", phase)
+                registry.set_disposition("SRC-1", "ACCEPTED_CORE", accepted_authority="decision:CORE-001")
+                evidence.add_node("a:valid-source", "source", ingested.record.digest, status="VALID")
+                evidence.add_node("core:child", "core_rule", "core-v1", status="VALID")
+                evidence.add_node("z:invalid-kind", "core_rule", ingested.record.digest, status="VALID")
+                evidence.add_edge("a:valid-source", "core:child")
+                registry.link_evidence_node("SRC-1", "a:valid-source")
+                registry.link_evidence_node("SRC-1", "z:invalid-kind")
+
+                file.write_text("v2", encoding="utf-8")
+                changed = registry.ingest_file("SRC-1", file)
+                with self.assertRaisesRegex(ValueError, "source evidence node"):
+                    registry.propagate_source_change("SRC-1", changed.record.digest, evidence)
+                self.assertEqual(evidence.get_node("a:valid-source")["digest"], ingested.record.digest)
+                self.assertEqual(evidence.get_node("a:valid-source")["status"], "VALID")
+                self.assertEqual(evidence.get_node("core:child")["status"], "VALID")
+
     def test_changed_digest_resets_semantic_acceptance_fail_closed(self):
         from tools.bbma_orchestrator.source_library import SourceRegistry
         with tempfile.TemporaryDirectory() as tmp:

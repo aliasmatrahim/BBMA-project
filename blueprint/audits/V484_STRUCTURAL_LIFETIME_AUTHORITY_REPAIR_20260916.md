@@ -1,8 +1,8 @@
-# Build 4.84 Structural Lifetime Authority Repair — 2026-09-16
+﻿# Build 4.84 Structural Lifetime Authority Repair â€” 2026-09-16
 
-Issue: #173  
-Branch: `fix/q5-lifetime-173`  
-Base: `d1-owner-dev@e2c1a35743e6251f8ee499870aad248e43adb06b`  
+Issue: #173
+Branch: `fix/q5-lifetime-173`
+Base: `d1-owner-dev@e2c1a35743e6251f8ee499870aad248e43adb06b`
 Status: **STATIC / NATIVE COMPILE VERIFIED; RUNTIME NOT VERIFIED**
 
 ## Root cause

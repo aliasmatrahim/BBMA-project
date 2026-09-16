@@ -99,6 +99,12 @@ Unresolved items remain in `BBMA_FINALE_SOURCE_CONFLICT_REGISTER.md`. Active cod
 
 The Finale material does **not automatically override** the established PDF contracts. A source clarification and an implementation fix are deliberately treated as separate decisions.
 
+### A4/A5 supplemental video reconciliation
+- Closure record: `blueprint/audits/BBMA_Q5_A4A5_SEMANTIC_RESOLUTION_20260916.md`.
+- Nine retained A4/A5 evidence rows are resolved at the Strategy-Core semantic layer as 6 `CORROBORATION_ONLY` + 3 `REJECTED`.
+- None is `ACCEPTED_CORE`; no source conflict, detector, filter, timing rule or other executable authority is created.
+- Historical A3 blocked/excluded rows, audio-recheck-empty rows and W004 duplicate wording remain transcript/provenance QA residuals only and must not be normalized into Core without materially better evidence.
+
 ## Product-linked supplemental source
 ### BBMA Home Course Workbook — Tier B / strong-provenance copy
 - Artifact reviewed: 19-page `BBMA Home Course Workbook` PDF supplied by the user.

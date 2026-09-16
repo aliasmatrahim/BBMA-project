@@ -47,17 +47,18 @@ Status: **SOURCE/STATIC/NATIVE COMPILE PASS / FINAL BROKER-CLOCK RESTART GATE PE
 - Build 4.80 or Strategy Tester evidence cannot substitute for this exact 4.81 gate.
 
 ### 4. Primary-15 source transcription / reconciliation
-Status: **MECHANICAL TRANSCRIPTION COMPLETE / SEMANTIC RECONCILIATION REMAINS OPEN**.
+Status: **MECHANICAL TRANSCRIPTION COMPLETE / A4-A5 STRATEGY-CORE SEMANTIC BLOCKERS RESOLVED; TRANSCRIPT-QA RESIDUALS RETAINED**.
 Fresh Source Autonomy recheck on 2026-09-16 from live G40 manifests and completion markers:
 - 63 existing Primary-15/Group-3 manifests inspected;
 - 63/63 are mechanically complete; missing units = 0;
 - Primary-15 videos 01-04 also have completed `AUDIO_RECHECK_CORRECTED` outputs from the same `faster-whisper` / `standard-large-v3-turbo-ct2` engine; absence of chunk-style manifests for those four does not authorize a blind rerun;
 - Group-3 remains mechanically complete;
 - `ASR-DRAFT` remains source/research evidence only and is never Core authority.
-Reconciliation remains fail-closed:
-- A4/A5 retains 9 adjudication records: 6 `UNCLEAR`, 3 `PARTIAL`, 0 `MATCH`;
-- 4 active A3 overlaps remain blocked, 2 A3 records remain excluded, 6 audio-recheck-empty review rows remain pending, and W004 retains its duplicate conflict;
-- a mechanical media recheck confirms the six audio-recheck-empty source files contain audio streams, but this does not resolve their semantic uncertainty.
+Q5 A4/A5 semantic reconciliation is fail-closed under `blueprint/audits/BBMA_Q5_A4A5_SEMANTIC_RESOLUTION_20260916.md`:
+- the 9 retained rows resolve to 6 `CORROBORATION_ONLY` + 3 `REJECTED`; Strategy-Core semantic `UNCLEAR`/`PARTIAL` = 0, `SOURCE_CONFLICT` = 0 and `ACCEPTED_CORE` = 0;
+- the historical 4 A3 blocked overlaps, 2 excluded A3 records, 6 audio-recheck-empty review rows and W004 duplicate conflict remain preserved as provenance/transcript-QA states only, not Strategy-Core blockers;
+- exact-wording uncertainty remains for five bounded transcript fragments and must not be normalized into source text without materially better evidence;
+- the six audio-recheck-empty source files contain audio streams, and local Finale V07 media is now recovered in the source-audit workspace; neither fact creates new Core authority.
 Rules:
 - do not rerun completed manifests/chunks blindly;
 - no transcript directly creates a production rule; reconcile through the Section 17 source hierarchy first;

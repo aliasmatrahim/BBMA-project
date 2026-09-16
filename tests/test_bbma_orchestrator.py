@@ -80,6 +80,164 @@ class TaskStateTests(unittest.TestCase):
             self.assertLessEqual(len(capsule.splitlines()), 40)
             self.assertIn("DoNotRedo: phase-1", capsule)
 
+    def test_closeout_requires_closed_pass_and_unique_explicit_candidate(self):
+        from tools.bbma_orchestrator.core import build_closeout
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            current = TaskStore(root / "current")
+            manifest = TaskManifest("CURRENT", "R1", "current", "implementation")
+            current.save(manifest)
+            current.append_event(manifest, "INIT")
+            current.checkpoint(manifest, "before-close")
+            with self.assertRaisesRegex(ValueError, "CLOSED/PASS"):
+                build_closeout(current, [], root / "package.json")
+
+            manifest.transition("PREFLIGHT")
+            manifest.transition("IN_PROGRESS")
+            manifest.transition("VALIDATION")
+            manifest.transition("CLOSED")
+            manifest.result = "PASS"
+            current.save(manifest)
+            current.checkpoint(manifest, "closed")
+
+            candidate = TaskStore(root / "candidate")
+            next_manifest = TaskManifest(
+                "NEXT", "R1", "next", "implementation",
+                latest_verified_step="CURRENT CLOSED/PASS",
+            )
+            candidate.save(next_manifest)
+            package = build_closeout(current, [candidate], root / "package.json")
+            self.assertEqual(package["next_task_id"], "NEXT")
+            self.assertIn("ACTIVE_TASK.json", package["files"][0]["path"])
+            self.assertIn("Task: CURRENT", package["handoff"])
+
+    def test_closeout_rejects_noneligible_candidates_and_missing_artifacts(self):
+        from tools.bbma_orchestrator.core import build_closeout
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            current = TaskStore(root / "current")
+            manifest = TaskManifest("CURRENT", "R1", "current", "implementation")
+            for phase in ("PREFLIGHT", "IN_PROGRESS", "VALIDATION", "CLOSED"):
+                manifest.transition(phase)
+            manifest.result = "PASS"
+            current.save(manifest)
+            current.append_event(manifest, "CLOSED")
+            current.checkpoint(manifest, "closed")
+
+            def candidate(name, result="NOT VERIFIED"):
+                store = TaskStore(root / name)
+                state = TaskManifest(
+                    name, "R1", name, "implementation",
+                    result=result,
+                    latest_verified_step="CURRENT CLOSED/PASS",
+                )
+                store.save(state)
+                return store
+
+            with self.assertRaisesRegex(ValueError, "exactly one"):
+                build_closeout(current, [], root / "zero.json")
+            with self.assertRaisesRegex(ValueError, "exactly one"):
+                build_closeout(
+                    current, [candidate("ONE"), candidate("TWO")], root / "two.json"
+                )
+            with self.assertRaisesRegex(ValueError, "exactly one"):
+                build_closeout(current, [candidate("HOLD", "HOLD")], root / "hold.json")
+
+            current.events_path.unlink()
+            with self.assertRaises(FileNotFoundError):
+                build_closeout(current, [candidate("NEXT")], root / "missing.json")
+
+    def test_closeout_rejects_self_successor_and_unverified_lineage(self):
+        from tools.bbma_orchestrator.core import build_closeout
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            current = TaskStore(root / "current")
+            manifest = TaskManifest("CURRENT", "R1", "current", "implementation")
+            for phase in ("PREFLIGHT", "IN_PROGRESS", "VALIDATION", "CLOSED"):
+                manifest.transition(phase)
+            manifest.result = "PASS"
+            current.save(manifest)
+            current.append_event(manifest, "CLOSED")
+            current.checkpoint(manifest, "closed")
+
+            self_store = TaskStore(root / "self")
+            self_store.save(TaskManifest(
+                "CURRENT", "R2", "self", "implementation",
+                latest_verified_step="CURRENT CLOSED/PASS",
+            ))
+            with self.assertRaisesRegex(ValueError, "exactly one"):
+                build_closeout(current, [self_store], root / "self.json")
+
+            stale_lineage = TaskStore(root / "stale-lineage")
+            stale_lineage.save(TaskManifest(
+                "NEXT", "R2", "next", "implementation",
+                latest_verified_step="CURRENT NOT VERIFIED",
+            ))
+            with self.assertRaisesRegex(ValueError, "exactly one"):
+                build_closeout(current, [stale_lineage], root / "stale.json")
+
+    def test_closeout_selects_latest_checkpoint_by_timestamp_not_label(self):
+        from tools.bbma_orchestrator.core import atomic_write_json, build_closeout
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            current = TaskStore(root / "current")
+            manifest = TaskManifest("CURRENT", "R1", "current", "implementation")
+            for phase in ("PREFLIGHT", "IN_PROGRESS", "VALIDATION", "CLOSED"):
+                manifest.transition(phase)
+            manifest.result = "PASS"
+            current.save(manifest)
+            current.append_event(manifest, "CLOSED")
+            current.checkpoints_dir.mkdir(parents=True, exist_ok=True)
+            old_path = current.checkpoints_dir / "CURRENT_z-old_20260101T000000Z.json"
+            new_path = current.checkpoints_dir / "CURRENT_a-new_20260102T000000Z.json"
+            atomic_write_json(old_path, manifest.to_dict())
+            atomic_write_json(new_path, manifest.to_dict())
+
+            candidate = TaskStore(root / "candidate")
+            next_manifest = TaskManifest(
+                "NEXT", "R1", "next", "implementation",
+                latest_verified_step="CURRENT CLOSED/PASS",
+            )
+            candidate.save(next_manifest)
+
+            package = build_closeout(current, [candidate], root / "package.json")
+            packaged_paths = {item["path"] for item in package["files"]}
+            self.assertIn(str(new_path), packaged_paths)
+            self.assertNotIn(str(old_path), packaged_paths)
+
+    def test_closeout_requires_closed_pass_checkpoint_snapshot(self):
+        from tools.bbma_orchestrator.core import atomic_write_json, build_closeout
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            current = TaskStore(root / "current")
+            stale = TaskManifest("CURRENT", "R1", "current", "implementation")
+            current.save(stale)
+            current.append_event(stale, "INIT")
+            current.checkpoints_dir.mkdir(parents=True, exist_ok=True)
+            atomic_write_json(
+                current.checkpoints_dir / "CURRENT_stale_20260101T000000Z.json",
+                stale.to_dict(),
+            )
+            for phase in ("PREFLIGHT", "IN_PROGRESS", "VALIDATION", "CLOSED"):
+                stale.transition(phase)
+            stale.result = "PASS"
+            current.save(stale)
+
+            candidate = TaskStore(root / "candidate")
+            next_manifest = TaskManifest(
+                "NEXT", "R1", "next", "implementation",
+                latest_verified_step="CURRENT CLOSED/PASS",
+            )
+            candidate.save(next_manifest)
+
+            with self.assertRaisesRegex(ValueError, "CLOSED/PASS checkpoint"):
+                build_closeout(current, [candidate], root / "package.json")
+
     def test_risk_and_model_routing(self):
         risk = compute_risk_score(strategy_core=True, execution_authority=True, code_change=True)
         self.assertGreaterEqual(risk, 60)

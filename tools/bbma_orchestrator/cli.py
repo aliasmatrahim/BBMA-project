@@ -16,6 +16,7 @@ from .core import (
     route_model,
     utc_now,
     atomic_write_json,
+    build_closeout,
 )
 from .evidence import ContentAddressedStore, EvidenceDB, build_evidence_package, sha256_file
 from .telemetry import MT4_SOURCE_KINDS, TelemetryStore
@@ -177,6 +178,11 @@ def cmd_architecture_invariants(args: argparse.Namespace) -> None:
 def cmd_evidence_package(args: argparse.Namespace) -> None:
     package = build_evidence_package(args.output, args.files, metadata={"label": args.label})
     _json_print(package)
+
+def cmd_closeout(args: argparse.Namespace) -> None:
+    current = TaskStore(args.root)
+    candidates = [TaskStore(root) for root in args.candidate_root]
+    _json_print(build_closeout(current, candidates, args.output, extra_files=args.file))
 
 def cmd_ingest_jsonl(args: argparse.Namespace) -> None:
     with TelemetryStore(args.db) as store:
@@ -425,6 +431,13 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--label", default="")
     p.add_argument("files", nargs="+")
     p.set_defaults(func=cmd_evidence_package)
+
+    p = sub.add_parser("closeout")
+    p.add_argument("--root", required=True)
+    p.add_argument("--candidate-root", action="append", required=True)
+    p.add_argument("--output", required=True)
+    p.add_argument("--file", action="append", default=[])
+    p.set_defaults(func=cmd_closeout)
 
     for name, func in (("ingest-jsonl", cmd_ingest_jsonl), ("ingest-csv", cmd_ingest_csv)):
         p = sub.add_parser(name)

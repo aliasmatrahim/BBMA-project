@@ -70,28 +70,33 @@ Build 4.80 or Strategy Tester evidence cannot substitute for exact 4.81 runtime 
 
 ## P1 — Source corpus completion / reconciliation
 
-### Q4 — Finish Primary-15 same-engine transcription
+### Q4 — Primary-15 same-engine transcription
 Priority: **HIGH / SOURCE EVIDENCE**
-Status: **LOCAL RESUME PENDING G40**
+Status: **COMPLETE / DO NOT RERUN**
 
-At reconnect, re-read manifests first. Last observed state only:
-- 05–09 complete;
-- 10 partial (2/10 chunks observed);
-- 11 pending;
-- 12–15 complete;
-- 01–04 queued for same-engine re-transcription where required;
-- Group-3 BBMATV corpus complete at last rescan.
+Fresh Source Autonomy recheck on 2026-09-16 from live G40 manifests and `.done` markers:
+- 63 existing Primary-15/Group-3 manifests inspected;
+- 63/63 mechanically COMPLETE;
+- missing units = 0;
+- Primary-15 videos 01-04 also have completed `AUDIO_RECHECK_CORRECTED` outputs from the same `faster-whisper` / `standard-large-v3-turbo-ct2` engine;
+- `ASR-DRAFT` remains non-Core and cannot create executable Strategy-Core authority.
 
-Required handling:
-1. Resume only missing chunks/videos.
-2. Preserve original audio/video and transcript provenance.
-3. Produce corrected technical transcript separately from raw ASR where needed.
-4. Reconcile evidence into MATCH/PARTIAL/MISSING/CONFLICT before any Strategy-Core proposal.
-5. Do not modify production rules directly from ASR output.
+Closure handling:
+1. Do not rerun completed manifests/chunks blindly.
+2. Preserve original audio/video, raw ASR and corrected evidence as separate provenance layers.
+3. Any future re-transcription requires new evidence that a specific source unit is mechanically missing or invalid.
+4. Continue semantic work under Q5; mechanical completion is not reconciliation or Core acceptance.
 
 ### Q5 — Reconcile completed source evidence against current Core/code
-Priority: **HIGH AFTER RELEVANT TRANSCRIPTS**
-Status: **PENDING**
+Priority: **HIGH / SOURCE RECONCILIATION**
+Status: **IN PROGRESS / HOLD-AWARE**
+
+Current retained unresolved state:
+- A4/A5 adjudication: 9 records = 6 `UNCLEAR`, 3 `PARTIAL`, 0 `MATCH`;
+- 4 active A3 overlaps remain blocked;
+- 2 A3 records remain excluded;
+- 6 `AUDIO_RECHECK_EMPTY` review rows remain pending; source-media recheck confirms audio streams exist, but empty/invalid recheck text does not resolve semantic uncertainty;
+- W004 remains duplicate-conflict / pending review.
 
 Scope:
 - Extreme/MHV/MLV/Re-Entry/CSA-CSAK/Momentum/F7 timing/lifecycle;
@@ -102,7 +107,8 @@ Rules:
 - no rule addition merely because an evidence gap exists;
 - source contradiction remains HOLD until resolved;
 - compare Evidence -> Core -> Contract -> Code -> Test evidence;
-- production change requires a separately authorized minimal fix.
+- production change requires a separately authorized minimal fix;
+- HOLD/PARTIAL/UNCLEAR evidence remains non-executable.
 
 ## P1 — Historical/backtest environment
 

@@ -47,18 +47,21 @@ Status: **SOURCE/STATIC/NATIVE COMPILE PASS / FINAL BROKER-CLOCK RESTART GATE PE
 - Build 4.80 or Strategy Tester evidence cannot substitute for this exact 4.81 gate.
 
 ### 4. Primary-15 source transcription / reconciliation
-Status: **LOCAL PIPELINE INTERRUPTED BY G40 DISCONNECT / RESUME-SAFE**.
-Last observed same-engine/local state, to be rechecked from manifests before resuming:
-- videos 05–09 complete;
-- video 10 partially complete (last observed 2/10 chunks);
-- video 11 pending;
-- videos 12–15 complete;
-- videos 01–04 remain queued for same-engine re-transcription behind 05–11 where required;
-- Group-3 BBMATV corpus was already complete at the last local rescan.
+Status: **MECHANICAL TRANSCRIPTION COMPLETE / SEMANTIC RECONCILIATION REMAINS OPEN**.
+Fresh Source Autonomy recheck on 2026-09-16 from live G40 manifests and completion markers:
+- 63 existing Primary-15/Group-3 manifests inspected;
+- 63/63 are mechanically complete; missing units = 0;
+- Primary-15 videos 01-04 also have completed `AUDIO_RECHECK_CORRECTED` outputs from the same `faster-whisper` / `standard-large-v3-turbo-ct2` engine; absence of chunk-style manifests for those four does not authorize a blind rerun;
+- Group-3 remains mechanically complete;
+- `ASR-DRAFT` remains source/research evidence only and is never Core authority.
+Reconciliation remains fail-closed:
+- A4/A5 retains 9 adjudication records: 6 `UNCLEAR`, 3 `PARTIAL`, 0 `MATCH`;
+- 4 active A3 overlaps remain blocked, 2 A3 records remain excluded, 6 audio-recheck-empty review rows remain pending, and W004 retains its duplicate conflict;
+- a mechanical media recheck confirms the six audio-recheck-empty source files contain audio streams, but this does not resolve their semantic uncertainty.
 Rules:
-- never redo a completed manifest/chunk blindly;
-- transcription evidence is source/research input only;
-- no transcript directly creates a production rule; reconcile through the Section 17 source hierarchy first.
+- do not rerun completed manifests/chunks blindly;
+- no transcript directly creates a production rule; reconcile through the Section 17 source hierarchy first;
+- HOLD/PARTIAL/UNCLEAR evidence remains non-executable until explicit reconciliation.
 
 ### 5. Canonical historical-data environment — Issue #128
 Status: **SYNTHETIC-V3 HST/TESTER GATES PASS / FULL NATIVE TICK ARCHIVE INCOMPLETE**.

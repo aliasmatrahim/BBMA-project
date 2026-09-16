@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "authority": {"repository": "aliasmatrahim/BBMA-project", "branch": "d1-owner-dev", "commit": "23def0919386263007ead1898b94637cc17f7f36"},
+  "coverage": {"ownership_boundaries": "VERIFIED", "runtime_enforcement": "NOT VERIFIED"},
+  "invariants": {
+    "ARCH-M12N-OBSERVATION-ONLY": {"module": "M12N", "ownership": "NESTED MTF JOURNEY ENGINE (N1 OBSERVATION ONLY)", "evidence": ["EA_HEADERS", "C_M12N"]},
+    "ARCH-M13-COLLECT-ONLY": {"module": "M13", "ownership": "COMBINATION ENGINE (COLLECT ONLY)", "evidence": ["EA_HEADERS", "C_M13"]},
+    "ARCH-M14-VALIDATE-ONLY": {"module": "M14", "ownership": "SEQUENCE ENGINE (VALIDATE ONLY)", "evidence": ["EA_HEADERS", "C_M14"]},
+    "ARCH-M15-FINAL-SIGNAL-AUTHORITY": {"module": "M15", "ownership": "PRIORITY ENGINE (FINAL SIGNAL AUTHORITY)", "evidence": ["EA_HEADERS", "C_M15"]},
+    "ARCH-M18-LABEL-ONLY": {"module": "M18", "ownership": "SIGNAL SCORING ENGINE (LABEL ONLY)", "evidence": ["EA_HEADERS", "C_M18"]},
+    "ARCH-M19-FILTER-ONLY": {"module": "M19", "ownership": "RISK ENGINE (FILTER ONLY)", "evidence": ["EA_HEADERS", "C_M19"]},
+    "ARCH-M22-DUMB-EXECUTOR": {"module": "M22", "ownership": "ORDER EXECUTION ENGINE (DUMB EXECUTOR)", "evidence": ["EA_HEADERS", "C_M22"]},
+    "ARCH-M27-ORCHESTRATION-ONLY": {"module": "M27", "ownership": "MAIN CONTROLLER (ORCHESTRATOR ONLY)", "evidence": ["EA_HEADERS", "C_M27"]}
+  },
+  "known_unknowns": [
+    "This catalog is limited to exact ownership boundaries with standalone contract evidence in the accepted module graph.",
+    "Runtime enforcement is NOT VERIFIED and is not promoted by static catalog validation.",
+    "CORE-V2-F4 remains excluded while its code-stage source conflict is unresolved."
+  ]
+}

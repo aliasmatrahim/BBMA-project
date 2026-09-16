@@ -68,6 +68,22 @@ The repository already contains specialized GitHub Actions for native MetaEditor
 
 Never report a check as PASS unless evidence was actually produced.
 
+### Verified targeted-regression selection
+
+`config/bbma_regression_map.json` binds the accepted module graph to only the test
+drivers whose traceability test stage is VERIFIED. Invoke it with both authority
+inputs so the CLI rejects graph, evidence or assignment drift before selection:
+
+```text
+py -m tools.bbma_orchestrator select-tests --map config/bbma_regression_map.json --module-graph config/bbma_module_graph.json --traceability config/bbma_traceability.json --module M06
+```
+
+Selection walks all transitively cited consumers. The map deliberately excludes
+CORE-V2-F4 while its code-stage source conflict and PARTIAL test evidence remain
+unresolved. No mandatory global regression command is claimed because its
+authority is NOT VERIFIED. Mapping a selected driver to its authoritative native
+G40/MetaEditor/MT4 command belongs to the native command registry.
+
 ## Repository protection status
 
 `main` is currently not branch-protected. The intended final policy is PR-only integration with appropriate required checks. Branch protection must be enabled in GitHub repository settings/rulesets before it can be treated as enforced.

@@ -1,7 +1,7 @@
 # BBMA Autonomous Engineering Infrastructure
 
-Status: **IMPLEMENTATION SPEC — Issue #150**  
-Depends on: **PR #149 / `docs/BBMA_TASK_ORCHESTRATOR_CONTRACT.md`**  
+Status: **IMPLEMENTATION SPEC — Issue #150**
+Depends on: **PR #149 / `docs/BBMA_TASK_ORCHESTRATOR_CONTRACT.md`**
 Scope: governance/tooling/validation infrastructure only. No Strategy-Core or EA behaviour change.
 
 ## Goal

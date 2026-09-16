@@ -1,8 +1,8 @@
 ﻿# Build 4.83 NMJE Read-Only Revalidation â€” 2026-09-16
 
-Issue: #141  
-PR: #142  
-Branch: `fix/nmje-readonly-authority-141`  
+Issue: #141
+PR: #142
+Branch: `fix/nmje-readonly-authority-141`
 Current owner base synced: `e2c1a35743e6251f8ee499870aad248e43adb06b`
 
 ## Root cause
@@ -31,4 +31,3 @@ The fresh compiler log is `blueprint/audits/V483_METAEDITOR_COMPILE_20260916_REV
 Static authority fix remains limited to removing the NMJE execution rejection path while preserving N1/N2 observation telemetry. D1/M15/M16/M17/risk/execution semantics are otherwise unchanged by this repair.
 
 Runtime status: **NOT RUNTIME VERIFIED on the 2026-09-16 synced candidate**. No primary MT4 restart or trading activation was performed.
-

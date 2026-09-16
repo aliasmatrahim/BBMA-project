@@ -1,46 +1,204 @@
 {
-  "owner_mode1": {
+  "owner_mode1_jul": {
+    "lines": 17774,
+    "retrace": 59,
+    "retrace_bad": 1,
+    "confirm": 59,
+    "confirm_bad": 1,
+    "confirm_valid": 58,
+    "m15_select": 147,
+    "m16_pass": 147,
+    "rem_select": 0,
+    "eval_by_type": {
+      "RE_TYPE_1": 264,
+      "RE_TYPE_2": 0,
+      "RE_TYPE_3_CSM": 116,
+      "RE_TYPE_4_CSD": 140
+    },
+    "admit_by_type": {
+      "RE_TYPE_1": 144,
+      "RE_TYPE_2": 0,
+      "RE_TYPE_3_CSM": 34,
+      "RE_TYPE_4_CSD": 24
+    },
+    "order_markers": 0,
+    "deinit0": 1,
+    "processed": 1,
+    "sha256": "0791DE560685587D532EBA7A478ABB91E4E8D8EFF4B79A694A658E8FF67F3A18"
+  },
+  "owner_mode2_jul": {
+    "lines": 17867,
+    "retrace": 59,
+    "retrace_bad": 1,
+    "confirm": 59,
+    "confirm_bad": 1,
+    "confirm_valid": 58,
+    "m15_select": 233,
+    "m16_pass": 233,
+    "rem_select": 4,
+    "eval_by_type": {
+      "RE_TYPE_1": 0,
+      "RE_TYPE_2": 0,
+      "RE_TYPE_3_CSM": 0,
+      "RE_TYPE_4_CSD": 0
+    },
+    "admit_by_type": {
+      "RE_TYPE_1": 0,
+      "RE_TYPE_2": 0,
+      "RE_TYPE_3_CSM": 0,
+      "RE_TYPE_4_CSD": 0
+    },
+    "order_markers": 0,
+    "deinit0": 1,
+    "processed": 1,
+    "sha256": "14041E3E644343E483B74D5EC611802EBAEDF9308E9E7294E7E267E8C4E0ADCC"
+  },
+  "fixed_mode1_jul": {
+    "lines": 17773,
+    "retrace": 59,
+    "retrace_bad": 1,
+    "confirm": 58,
+    "confirm_bad": 0,
+    "confirm_valid": 58,
+    "m15_select": 147,
+    "m16_pass": 147,
+    "rem_select": 0,
+    "eval_by_type": {
+      "RE_TYPE_1": 264,
+      "RE_TYPE_2": 0,
+      "RE_TYPE_3_CSM": 116,
+      "RE_TYPE_4_CSD": 140
+    },
+    "admit_by_type": {
+      "RE_TYPE_1": 144,
+      "RE_TYPE_2": 0,
+      "RE_TYPE_3_CSM": 34,
+      "RE_TYPE_4_CSD": 24
+    },
+    "order_markers": 0,
+    "deinit0": 1,
+    "processed": 1,
+    "sha256": "14E885DFFA3C0CCED1F08C1674EEE560C97A1B18D222A25200C374C51EBD89CD"
+  },
+  "fixed_mode2_jul": {
+    "lines": 17866,
+    "retrace": 59,
+    "retrace_bad": 1,
+    "confirm": 58,
+    "confirm_bad": 0,
+    "confirm_valid": 58,
+    "m15_select": 233,
+    "m16_pass": 233,
+    "rem_select": 4,
+    "eval_by_type": {
+      "RE_TYPE_1": 0,
+      "RE_TYPE_2": 0,
+      "RE_TYPE_3_CSM": 0,
+      "RE_TYPE_4_CSD": 0
+    },
+    "admit_by_type": {
+      "RE_TYPE_1": 0,
+      "RE_TYPE_2": 0,
+      "RE_TYPE_3_CSM": 0,
+      "RE_TYPE_4_CSD": 0
+    },
+    "order_markers": 0,
+    "deinit0": 1,
+    "processed": 1,
+    "sha256": "B778EFA59A97AB51E0EB5F0E4F3184D1A07FBCFE15100FB1E7AA190BC7880BB2"
+  },
+  "owner_mode1_aug": {
     "lines": 13738,
     "retrace": 56,
     "retrace_bad": 0,
     "confirm": 56,
     "confirm_bad": 0,
+    "confirm_valid": 56,
     "m15_select": 126,
     "m16_pass": 126,
     "rem_select": 0,
+    "eval_by_type": {
+      "RE_TYPE_1": 193,
+      "RE_TYPE_2": 0,
+      "RE_TYPE_3_CSM": 180,
+      "RE_TYPE_4_CSD": 140
+    },
+    "admit_by_type": {
+      "RE_TYPE_1": 136,
+      "RE_TYPE_2": 0,
+      "RE_TYPE_3_CSM": 56,
+      "RE_TYPE_4_CSD": 28
+    },
     "order_markers": 0,
     "deinit0": 1,
     "processed": 1,
     "sha256": "07C53BD616A88BA1D6E8ED8943B7C5D652A69A0B34E27A66E3E72DBD5C041C91"
   },
-  "fixed_mode1": {
+  "fixed_mode1_aug": {
     "lines": 13738,
     "retrace": 56,
     "retrace_bad": 0,
     "confirm": 56,
     "confirm_bad": 0,
+    "confirm_valid": 56,
     "m15_select": 126,
     "m16_pass": 126,
     "rem_select": 0,
+    "eval_by_type": {
+      "RE_TYPE_1": 193,
+      "RE_TYPE_2": 0,
+      "RE_TYPE_3_CSM": 180,
+      "RE_TYPE_4_CSD": 140
+    },
+    "admit_by_type": {
+      "RE_TYPE_1": 136,
+      "RE_TYPE_2": 0,
+      "RE_TYPE_3_CSM": 56,
+      "RE_TYPE_4_CSD": 28
+    },
     "order_markers": 0,
     "deinit0": 1,
     "processed": 1,
     "sha256": "855CF92B9DBAA843E3EFA486F34CF414BCEC808E7DB590C0F8C37E7DECEE85B2"
   },
-  "fixed_mode2": {
+  "fixed_mode2_aug": {
     "lines": 13402,
     "retrace": 56,
     "retrace_bad": 0,
     "confirm": 56,
     "confirm_bad": 0,
+    "confirm_valid": 56,
     "m15_select": 159,
     "m16_pass": 159,
     "rem_select": 10,
+    "eval_by_type": {
+      "RE_TYPE_1": 0,
+      "RE_TYPE_2": 0,
+      "RE_TYPE_3_CSM": 0,
+      "RE_TYPE_4_CSD": 0
+    },
+    "admit_by_type": {
+      "RE_TYPE_1": 0,
+      "RE_TYPE_2": 0,
+      "RE_TYPE_3_CSM": 0,
+      "RE_TYPE_4_CSD": 0
+    },
     "order_markers": 0,
     "deinit0": 1,
     "processed": 1,
     "sha256": "7BC4DFE63042EB77BCADE1D0E054287D1424DC23E5DA41A20F322B28C8C9CB1E"
   },
-  "negative_case_observed": false,
-  "negative_case_claim": "NOT OBSERVED in bounded GBPUSD Aug-2026 runtime; prevention is TDD/static verified"
+  "negative_case_observed": true,
+  "negative_case": {
+    "pair": "GBPUSD",
+    "timeframe": "M15",
+    "validation_candle": "2026.07.13 12:15",
+    "direction": "BUY",
+    "close": 1.33898,
+    "ma5_low": 1.33909,
+    "ma10_low": 1.33904,
+    "owner_confirmed_invalid": true,
+    "fixed_mode1_confirmed_invalid": false,
+    "fixed_mode2_confirmed_invalid": false
+  }
 }

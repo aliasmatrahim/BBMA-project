@@ -1,0 +1,22 @@
+{
+  "d1_authority_commit": "23def0919386263007ead1898b94637cc17f7f36",
+  "issue": 154,
+  "iterations": [
+    "cold",
+    "warm"
+  ],
+  "measurement_mapping": {
+    "cache_hit_miss": "content-addressed destination existed before put",
+    "repeated_work_avoided": "digest+authority matched prior PASS so repeated validation command was skipped",
+    "source_context_usage": "model-facing payload bytes/lines/artifact count",
+    "wall_clock": "task workflow time excluding fixture materialization"
+  },
+  "python": "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\tools\\python312\\runtime\\python.exe",
+  "schema_version": 1,
+  "task_classes": [
+    "docs_traceability",
+    "telemetry_tooling",
+    "strategy_f6_readonly"
+  ],
+  "tooling_commit": "b0db1b652a0f46691b5aad52299239ae42a98994"
+}

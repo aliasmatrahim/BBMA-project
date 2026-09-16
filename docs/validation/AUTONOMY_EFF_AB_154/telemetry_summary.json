@@ -1,0 +1,13 @@
+{
+  "by_event_type": {
+    "N1_NMJE_OBSERVATION": 126,
+    "N2_NMJE_DECISION": 6
+  },
+  "by_status": {
+    "OBSERVED": 132
+  },
+  "failure_like": 0,
+  "failures": [],
+  "pass_like": 0,
+  "total": 132
+}

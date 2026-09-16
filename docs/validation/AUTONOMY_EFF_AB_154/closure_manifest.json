@@ -1,0 +1,63 @@
+{
+  "d1_authority_commit": "23def0919386263007ead1898b94637cc17f7f36",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "sha256": "31f1cf2af82e6e0b5baee343345e25f36d4b75e8fe206789a0a5d8c6dc78456b",
+      "size": 101
+    },
+    {
+      "path": "authority_manifest.json",
+      "sha256": "5276f2606cfbd440e8a873d75e0d5cde1949a440151e78dba804262a7f81cfe5",
+      "size": 3060
+    },
+    {
+      "path": "benchmark_autonomy_eff_ab.py",
+      "sha256": "d0d6fc75d2404d564ced30947743a62fbff0a416f1add28e7db163918e04b48c",
+      "size": 22304
+    },
+    {
+      "path": "benchmark_protocol.json",
+      "sha256": "f9a2629c9cc28c01581124e7868985a76abe145743bc5d6ada97902a8bc3d734",
+      "size": 775
+    },
+    {
+      "path": "benchmark_report.md",
+      "sha256": "377368c607658d08c265bfcaa74f383e72436fb9dcbbc82ce4e7e89a4cdde0be",
+      "size": 1539
+    },
+    {
+      "path": "benchmark_results.json",
+      "sha256": "3d75d2561d918d56826e17b1cc288b69c2a948ba440e6dd0e67965cae90ffcfd",
+      "size": 62301
+    },
+    {
+      "path": "evidence_package.json",
+      "sha256": "9a3f40ee9151047f4459d9fe0fa096321a1560c432166b835dec2f88dbbb5c61",
+      "size": 14659
+    },
+    {
+      "path": "evidence_package.sha256",
+      "sha256": "a2d330b2e231f13f67d4456de25674d15e042684cd88c2411f8b8a99db904f2a",
+      "size": 65
+    },
+    {
+      "path": "independent_verification.json",
+      "sha256": "9794c11d6f830e89ad966ec962a7d46507ac470ec8a282092ec2a14c6bb860df",
+      "size": 1502
+    },
+    {
+      "path": "README.md",
+      "sha256": "9e4e6f832674995824574ddcd4b3c674d5361e7e913506cd9a4e136474ab8c76",
+      "size": 1283
+    },
+    {
+      "path": "telemetry_summary.json",
+      "sha256": "230fb34ca360b65e0c6e359cf1049485b775ac00936fe3f38cfcd113fc1afa0d",
+      "size": 202
+    }
+  ],
+  "issue": 154,
+  "schema_version": 1,
+  "tooling_commit": "b0db1b652a0f46691b5aad52299239ae42a98994"
+}

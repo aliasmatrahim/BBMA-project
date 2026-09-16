@@ -1,9 +1,9 @@
-# Build 4.85 M12N Orchestration Order Repair — 2026-09-17
+# Build 4.85 M12N Orchestration Order Repair â€” 2026-09-17
 
 Issue: #174
 Branch: `fix/q5-m12n-order-174`
-Base: `d1-owner-dev@e2c1a35743e6251f8ee499870aad248e43adb06b`
-Status: **STATIC / NATIVE COMPILE VERIFIED; RUNTIME NOT VERIFIED**
+Base synced: `d1-owner-dev@0d8c8ac71aeb9947d48f89239f46a88c31981182`
+Status: **STATIC / NATIVE COMPILE / HARNESS RUNTIME CHRONOLOGY VERIFIED; EXACT-BINARY BROKER N1 VERIFIED**
 
 ## Root cause
 Current `ProcessPair()` updated M12 owners and immediately assembled M13/M14 candidates inside each direction pass. The sole `UpdateNestedJourneyObservation(pairIndex)` call ran only after both candidate-assembly passes. This violated the locked M27 order `M06-M12 owners -> M12N -> M13 -> M14 -> M15 -> M16`.
@@ -23,12 +23,12 @@ No detector formula, combination signature, D1 authority, risk or execution rule
 - `git diff --check`: PASS.
 
 ## Native compile
-- MetaEditor result: **0 errors / 0 warnings**, 722 ms.
+- MetaEditor final synced result: **0 errors / 0 warnings**, 744 ms.
 - MQ4 SHA-256: `C66B33546AC93DFA88A4B3E0AF299F8483CC9A614BFD2623657D46F1F28C8D2A`.
-- EX4 SHA-256: `0F1E8CC7C0A81A53C2B8DB0A21290CBE028AC508256B071E3FB6C045AC3B1D8C`.
-- Compile log: `blueprint/audits/V485_METAEDITOR_COMPILE_20260917.log`.
+- Final exact-binary EX4 SHA-256: `D2F278CA037881361D7DC3FB50AEB37DA11B353C6C2D093760B976D08CDDF309`.
+- Final compile log: `blueprint/audits/V485_METAEDITOR_COMPILE_20260917_FINAL.log`.
 
 ## Boundary
-#175 Mode-2 standalone Extreme scope remains HOLD and is untouched.
-No primary MT4 restart, broker action or production activation was performed.
-Runtime chronology remains **NOT RUNTIME VERIFIED**; static ordering and native compile evidence do not substitute for a deterministic runtime chronology trace.
+#175 standalone Extreme work is separate (PR #182) and untouched by this branch.
+Primary MT4 was not restarted or modified; isolated broker smoke only.
+Historical runtime chronology is **VERIFIED under the bounded tester harness**: 68/68 RE_EVAL observations had a prior same-M15-time N1 observation, zero ordering violations. Exact Build 4.85 broker runtime separately verified initialization, connection and live N1 observation; current live broker state produced no RE_EVAL, so exact-binary live N1 -> RE_EVAL chronology is **NOT OBSERVABLE / NOT CLAIMED**.

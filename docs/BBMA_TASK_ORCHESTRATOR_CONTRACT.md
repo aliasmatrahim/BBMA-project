@@ -1,6 +1,6 @@
 # BBMA Task Orchestrator Contract
 
-Status: **PROPOSED GOVERNANCE CONTRACT**  
+Status: **ACTIVE GOVERNANCE CONTRACT**<br>
 Scope: task selection, execution continuity, checkpointing, model routing and closure.  
 Issue: #148  
 This contract does not change BBMA Strategy Core, M01-M27/M12N ownership, EA source, release state or trading behaviour.

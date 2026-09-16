@@ -81,9 +81,9 @@
 
 **Interfaces:** `SourceRegistry.failure_first_summary()`, source summary field in bounded context pack.
 
-- [ ] Test ordering: conflicts/unclear/partial/missing/stale first, aggregate registered MATCH volume, no raw transcript/log streaming.
-- [ ] Extend context packs with caller-requested source summary only; never inject whole project history.
-- [ ] Run focused/full tests and commit.
+- [x] Test ordering: conflicts/unclear/partial/missing/stale first, aggregate registered MATCH volume, no raw transcript/log streaming.
+- [x] Extend context packs with caller-requested source summary only; never inject whole project history.
+- [x] Run focused/full tests and commit.
 
 ### Task 7: G40 Primary-15/Group-3/media adapters
 

@@ -1936,5 +1936,81 @@ class SourceUpdateGeneratorTests(unittest.TestCase):
         )
         self.assertIn("UNCLEAR", patch["inserted_text"])
         self.assertNotIn("decision:SHOULD-NOT-PROMOTE", patch["inserted_text"])
+
+class SourceFailureSummaryTests(unittest.TestCase):
+    @staticmethod
+    def _reconcile(registry, source_id, disposition, *, hold_items=()):
+        for phase in ("PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+            registry.transition_phase(source_id, phase)
+        registry.set_disposition(source_id, disposition)
+        registry.set_hold_items(source_id, hold_items)
+
+    def test_failure_first_summary_orders_failures_and_aggregates_registered_match(self):
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with SourceRegistry(root / "sources.db") as registry:
+                registry.register_discovered("SRC-MISSING", "file:///missing.pdf", metadata={"raw_transcript": "SECRET-MISSING"})
+                for source_id, disposition in (
+                    ("SRC-CONFLICT", "SOURCE_CONFLICT"),
+                    ("SRC-UNCLEAR", "UNCLEAR"),
+                    ("SRC-PARTIAL", "PARTIAL"),
+                    ("SRC-MATCH", "MATCH"),
+                ):
+                    path = root / f"{source_id}.txt"
+                    path.write_text(source_id, encoding="utf-8")
+                    registry.ingest_file(source_id, path, metadata={"raw_transcript": f"SECRET-{source_id}"})
+                    self._reconcile(registry, source_id, disposition, hold_items=("HOLD-1",) if source_id == "SRC-CONFLICT" else ())
+                registry.transition_phase("SRC-MATCH", "REGISTERED")
+
+                stale_path = root / "stale.txt"
+                stale_path.write_text("v1", encoding="utf-8")
+                registry.ingest_file("SRC-STALE", stale_path)
+                for phase in ("PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("SRC-STALE", phase)
+                registry.set_disposition("SRC-STALE", "ACCEPTED_CORE", accepted_authority="decision:CORE-001")
+                registry.link_evidence_node("SRC-STALE", "source:SRC-STALE")
+                stale_path.write_text("v2", encoding="utf-8")
+                registry.ingest_file("SRC-STALE", stale_path)
+
+                duplicate_path = root / "duplicate.txt"
+                duplicate_path.write_text("same", encoding="utf-8")
+                registry.ingest_file("SRC-DUP-A", duplicate_path)
+                registry.ingest_file("SRC-DUP-B", duplicate_path)
+
+                summary = registry.failure_first_summary()
+                self.assertEqual(
+                    [item["category"] for item in summary["items"][:5]],
+                    ["SOURCE_CONFLICT", "UNCLEAR", "PARTIAL", "MISSING", "STALE"],
+                )
+                self.assertEqual(summary["registered_match_count"], 1)
+                self.assertEqual(summary["duplicate_digest_groups"], 1)
+                self.assertGreaterEqual(summary["counts"]["RECHECK_REQUIRED"], 2)
+                rendered = json.dumps(summary, sort_keys=True)
+                self.assertNotIn("SECRET-", rendered)
+                self.assertNotIn("raw_transcript", rendered)
+
+    def test_failure_summary_is_bounded_and_deterministic(self):
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with SourceRegistry(root / "sources.db") as registry:
+                for source_id in ("SRC-Z", "SRC-A", "SRC-M"):
+                    registry.register_discovered(source_id, f"file:///{source_id}.pdf")
+                first = registry.failure_first_summary(limit=2)
+                second = registry.failure_first_summary(limit=2)
+                self.assertEqual(first, second)
+                self.assertEqual([item["source_id"] for item in first["items"]], ["SRC-A", "SRC-M"])
+                self.assertEqual(first["total_failure_items"], 3)
+                self.assertTrue(first["truncated"])
+
+    def test_context_pack_includes_source_summary_only_when_requested(self):
+        manifest = TaskManifest("T-SRC", "R-SRC", "source context", "source")
+        without = build_context_pack(manifest)
+        self.assertNotIn("source_summary", without)
+        requested = {"counts": {"SOURCE_CONFLICT": 1}, "items": [{"source_id": "SRC-1"}]}
+        with_summary = build_context_pack(manifest, source_summary=requested)
+        self.assertEqual(with_summary["source_summary"], requested)
+        self.assertIsNot(with_summary["source_summary"], requested)
 if __name__ == "__main__":
     unittest.main()

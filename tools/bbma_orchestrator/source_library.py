@@ -374,6 +374,81 @@ class SourceRegistry:
                     stale.append(descendant)
         return stale
 
+    def failure_first_summary(self, *, limit: int = 25) -> dict[str, Any]:
+        if limit < 0:
+            raise ValueError("limit must be >= 0")
+        records = [
+            self._from_row(row)
+            for row in self.conn.execute("SELECT * FROM sources ORDER BY source_id").fetchall()
+        ]
+        stale_ids = {
+            row[0]
+            for row in self.conn.execute(
+                """
+                SELECT DISTINCT l.source_id
+                FROM source_evidence_links l
+                JOIN sources s ON s.source_id=l.source_id
+                WHERE l.source_digest<>s.digest
+                """
+            ).fetchall()
+        }
+        duplicate_groups = int(
+            self.conn.execute(
+                """
+                SELECT COUNT(*) FROM (
+                    SELECT digest FROM sources
+                    WHERE digest<>''
+                    GROUP BY digest HAVING COUNT(*)>1
+                )
+                """
+            ).fetchone()[0]
+        )
+        priority = {
+            "SOURCE_CONFLICT": 0,
+            "UNCLEAR": 1,
+            "PARTIAL": 2,
+            "MISSING": 3,
+            "STALE": 4,
+            "RECHECK_REQUIRED": 5,
+        }
+        counts = {name: 0 for name in priority}
+        items: list[dict[str, Any]] = []
+        registered_match_count = 0
+        for record in records:
+            if record.phase == "REGISTERED" and record.disposition == "MATCH":
+                registered_match_count += 1
+            if record.disposition in {"SOURCE_CONFLICT", "UNCLEAR", "PARTIAL"}:
+                category = record.disposition
+            elif not record.digest:
+                category = "MISSING"
+            elif record.source_id in stale_ids:
+                category = "STALE"
+            elif record.phase != "REGISTERED" and record.disposition == "UNREVIEWED":
+                category = "RECHECK_REQUIRED"
+            else:
+                continue
+            counts[category] += 1
+            items.append(
+                {
+                    "source_id": record.source_id,
+                    "category": category,
+                    "phase": record.phase,
+                    "disposition": record.disposition,
+                    "hold_count": len(record.hold_items),
+                }
+            )
+        items.sort(key=lambda item: (priority[item["category"]], item["source_id"]))
+        total_failure_items = len(items)
+        bounded = items[:limit]
+        return {
+            "counts": counts,
+            "items": bounded,
+            "total_failure_items": total_failure_items,
+            "truncated": total_failure_items > len(bounded),
+            "registered_match_count": registered_match_count,
+            "duplicate_digest_groups": duplicate_groups,
+        }
+
     def ingest_file(
         self,
         source_id: str,

@@ -2081,5 +2081,73 @@ class SourceG40AdapterTests(unittest.TestCase):
         self.assertEqual([item["action"] for item in plan], ["SKIP_COMPLETE", "START_EXPLICIT"])
         self.assertNotIn("command", json.dumps(plan, sort_keys=True).lower())
 
+
+
+class SourceAutonomyEndToEndTests(unittest.TestCase):
+    def test_source_autonomy_end_to_end_acceptance(self):
+        from tools.bbma_orchestrator.evidence import EvidenceDB
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        from tools.bbma_orchestrator.source_reconcile import record_reconciliation
+        from tools.bbma_orchestrator.source_updates import build_index_patch
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "source.md"
+            source.write_text("v1", encoding="utf-8")
+            held_source = root / "held.md"
+            held_source.write_text("hold", encoding="utf-8")
+
+            with SourceRegistry(root / "sources.db") as registry, EvidenceDB(root / "evidence.db") as evidence:
+                ingested = registry.ingest_file("SRC-E2E", source, artifact_role="DERIVED")
+                for phase in ("PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("SRC-E2E", phase)
+                matched = record_reconciliation(registry, "SRC-E2E", "MATCH")
+                registered = registry.transition_phase(matched.source_id, "REGISTERED")
+                self.assertEqual((registered.phase, registered.disposition), ("REGISTERED", "MATCH"))
+
+                duplicate = registry.ingest_file("SRC-DUP", source)
+                self.assertEqual(duplicate.status, "DUPLICATE")
+                self.assertEqual(duplicate.duplicate_of, "SRC-E2E")
+
+                current_index = "# Source Index\n\n## Registered sources\n"
+                proposal = build_index_patch([registered], current_index, "## Registered sources")
+                self.assertEqual(current_index, "# Source Index\n\n## Registered sources\n")
+                self.assertIn("SRC-E2E", proposal["proposed_text"])
+
+                registry.ingest_file("SRC-HOLD", held_source)
+                for phase in ("PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("SRC-HOLD", phase)
+                held = record_reconciliation(registry, "SRC-HOLD", "PARTIAL", hold_items=("HOLD-E2E",))
+                self.assertEqual(held.hold_items, ("HOLD-E2E",))
+                summary = registry.failure_first_summary()
+                self.assertIn("PARTIAL", [item["category"] for item in summary["items"]])
+                self.assertEqual(summary["registered_match_count"], 1)
+
+                registry.set_disposition("SRC-E2E", "ACCEPTED_CORE", accepted_authority="decision:E2E")
+                evidence.add_node("source:SRC-E2E", "source", ingested.record.digest, status="VALID")
+                evidence.add_node("core:E2E", "core_rule", "core-v1", status="VALID")
+                evidence.add_edge("source:SRC-E2E", "core:E2E")
+                registry.link_evidence_node("SRC-E2E", "source:SRC-E2E")
+                source.write_text("v2", encoding="utf-8")
+                changed = registry.ingest_file("SRC-E2E", source)
+                stale = registry.propagate_source_change("SRC-E2E", changed.record.digest, evidence)
+                self.assertEqual(stale, ["core:E2E"])
+                self.assertEqual(evidence.get_node("core:E2E")["status"], "STALE")
+
+            store = TaskStore(root / "task")
+            manifest = TaskManifest("SRC-E2E-TASK", "SOURCE-AUTONOMY-152", "e2e", "source")
+            manifest.transition("PREFLIGHT")
+            manifest.transition("IN_PROGRESS")
+            manifest.latest_verified_step = "source registry and impact verified"
+            manifest.next_safe_action = "resume remaining acceptance only"
+            manifest.do_not_redo = ["source registry and impact verified"]
+            store.save(manifest)
+            checkpoint = store.checkpoint(manifest, "e2e-boundary")
+            resumed = store.load()
+            capsule = store.handoff_capsule(resumed)
+            self.assertTrue(checkpoint.is_file())
+            self.assertEqual(resumed.latest_verified_step, manifest.latest_verified_step)
+            self.assertIn("DoNotRedo: source registry and impact verified", capsule)
+
 if __name__ == "__main__":
     unittest.main()

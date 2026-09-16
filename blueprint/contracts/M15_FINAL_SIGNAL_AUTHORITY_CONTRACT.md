@@ -61,14 +61,15 @@ Candidate/unconfirmed/expired Re-Entry is not eligible.
 
 ### EntryMode 2 — ALL_VALIDATED_BBMA_ENTRIES
 Structurally eligible candidate types:
+- standalone H1 `SIGNAL_EXTREME` only from exact M08 `RETEST/ENTRY-READY` maturity;
 - confirmed H1 `SIGNAL_RE_ENTRY`;
 - validated `SIGNAL_REM`;
 - validated `SIGNAL_RRE`;
 - validated `SIGNAL_REE`.
 
-All still require the same-direction confirmed D1 strategic owner before final new-entry authority.
+All still require the same-direction confirmed D1 strategic owner before final new-entry authority. Standalone H1 Extreme also preserves the existing same-direction active H4 immediate-owner boundary.
 
-This does not make raw Extreme, CSD, eCSD, CSM or MHV/MLV directly executable.
+M15 does not redetect Extreme. Its standalone Extreme candidate identity is the exact H1 M08 lifecycle: one `SIGNAL_EXTREME` component anchored to `RetestCompletionCandleTime`, with `SequenceStartTime = RawCandleTime`. RAW and reversal-only standalone Extreme remain non-executable. CSD, eCSD, CSM and MHV/MLV remain non-executable directly.
 
 ## REM / RRE / REE boundary
 M15 must preserve exact source signatures produced/validated by M13/M14:

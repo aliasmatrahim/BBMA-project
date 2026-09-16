@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.6.1 - F7 Re-Entry Lifecycle Integration        |
+//| Version 4.84 - Q5 Standalone Extreme Execution          |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.61"
+#property version   "4.84"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -43,7 +43,7 @@
 enum ENUM_ENTRY_MODE_INPUT
 {
    MODE_1_RE_ENTRY_ONLY          = 1, // Re-Entry only | selective
-   MODE_2_ALL_VALIDATED_BBMA     = 2  // RE + REM/RRE/REE | more opportunities
+   MODE_2_ALL_VALIDATED_BBMA     = 2  // Retest-ready Extreme + RE + REM/RRE/REE
 };
 
 enum ENUM_MM_MODE_INPUT
@@ -69,7 +69,7 @@ enum ENUM_DEBUG_LEVEL
 };
 
 //--- 01 TRADING SETUP
-input ENUM_ENTRY_MODE_INPUT EntryMode             = MODE_2_ALL_VALIDATED_BBMA; // 01 Trading | Mode 1=RE only, Mode 2=RE+REM/RRE/REE
+input ENUM_ENTRY_MODE_INPUT EntryMode             = MODE_2_ALL_VALIDATED_BBMA; // 01 Trading | Mode 1=RE only, Mode 2=Extreme+RE+REM/RRE/REE
 
 //--- 02 PAIR SELECTION
 input string   PairList                           = "EURUSD,GBPUSD,USDJPY,USDCHF,USDCAD,AUDUSD,NZDUSD,EURJPY,GBPJPY,EURGBP,AUDJPY,CADJPY,CHFJPY,NZDJPY,EURAUD,EURCAD,EURCHF,GBPAUD,GBPCAD,AUDCAD"; // 02 Pairs | default 20-pair FX universe
@@ -148,6 +148,7 @@ int            AllowedExecutionDeviation_MinPoints= 5;
 #define MA5_LOW_PERIOD          5
 #define MA10_LOW_PERIOD         10
 #define EMA50_PERIOD            50
+#define EXTREME_WICK_BUFFER_PIPS 3.0
 #define MAX_PAIRS               40
 #define MAX_TRADES_PER_PAIR     20
 #define MAX_MONITORED           400
@@ -5472,7 +5473,8 @@ bool IsEntryModeCandidateAllowed(ValidatedSequenceCandidate &candidate)
 
    if(EntryMode == 2)
    {
-      return (candidate.SequenceType == SIGNAL_RE_ENTRY ||
+      return (candidate.SequenceType == SIGNAL_EXTREME ||
+              candidate.SequenceType == SIGNAL_RE_ENTRY ||
               candidate.SequenceType == SIGNAL_REM ||
               candidate.SequenceType == SIGNAL_RRE ||
               candidate.SequenceType == SIGNAL_REE);
@@ -5546,6 +5548,43 @@ void BuildConfirmedReEntryCandidate(ReEntryData &reEntry,
             " Dir=", EnumToString(reEntry.Direction),
             " Confirm=", TimeToString(reEntry.ConfirmationCandle),
             " Hash=", candidate.SequenceHash);
+}
+
+void BuildStandaloneExtremeCandidate(ExtremeLifecycleData &extreme,
+                                     H4DirectionalOwner &h4Owner,
+                                     ValidatedSequenceCandidate &candidate)
+{
+   ZeroMemory(candidate);
+   if(EntryMode != MODE_2_ALL_VALIDATED_BBMA) return;
+   if(extreme.Maturity != EXT_MAT_RETEST_READY || !extreme.IsValid) return;
+   if(extreme.Direction != DIR_BUY && extreme.Direction != DIR_SELL) return;
+   if(extreme.Timeframe != PERIOD_H1) return;
+   if(extreme.RawCandleTime <= 0 || extreme.RetestCompletionCandleTime <= 0) return;
+   if(extreme.RawCandleTime > extreme.RetestCompletionCandleTime) return;
+
+   if(!h4Owner.RecoveryComplete || !h4Owner.IsValid ||
+      h4Owner.State != H4_OWNER_ACTIVE || h4Owner.Direction != extreme.Direction)
+      return;
+
+   candidate.SequenceType = SIGNAL_EXTREME;
+   candidate.Direction = extreme.Direction;
+   candidate.ComponentCount = 1;
+   candidate.Components[0].ComponentType = SIGNAL_EXTREME;
+   candidate.Components[0].Direction = extreme.Direction;
+   candidate.Components[0].Timeframe = PERIOD_H1;
+   candidate.Components[0].CandleTime = extreme.RetestCompletionCandleTime;
+   candidate.SequenceStartTime = extreme.RawCandleTime;
+   string hashInput = "EXTREME_RETEST|" + IntegerToString(extreme.Direction) + "|" +
+                      TimeToString(extreme.RawCandleTime) + "|" +
+                      TimeToString(extreme.RetestCompletionCandleTime);
+   candidate.SequenceHash = SHORT_HASH(hashInput, 16);
+   candidate.Expiry = 0;
+   candidate.SLTPSource = SIGNAL_EXTREME;
+   candidate.PriorityTier = TIER_NONE;
+   candidate.RequirementCompleteness = 1;
+   candidate.SequenceCompleteness = 1;
+   candidate.PatternStrength = 0;
+   candidate.Valid = true;
 }
 
 void AppendValidatedCandidate(ValidatedSequenceCandidate &candidate,
@@ -5725,6 +5764,20 @@ bool ResolveSelectedSLTPSourceComponent(ValidatedSequenceCandidate &selected,
             source = component;
             return true;
          }
+      }
+      return false;
+   }
+
+   if(selected.SequenceType == SIGNAL_EXTREME)
+   {
+      for(int i = 0; i < selected.ComponentCount; i++)
+      {
+         ComponentIdentity component = selected.Components[i];
+         if(component.ComponentType != SIGNAL_EXTREME) continue;
+         if(component.Timeframe != PERIOD_H1) continue;
+         if(component.Direction != selected.Direction || component.CandleTime <= 0) continue;
+         source = component;
+         return true;
       }
       return false;
    }
@@ -5923,6 +5976,24 @@ bool IsPersistentExtremeComponentValid(PairState &pairState,
                                        bool &expired)
 {
    expired = false;
+
+   // Standalone H1 Extreme uses the exact M08 RETEST/ENTRY-READY lifecycle
+   // identity. Combination Extremes continue through the existing maturity
+   // snapshot path below and remain reversal-confirmed component semantics.
+   ExtremeLifecycleData lifecycle;
+   ZeroMemory(lifecycle);
+   if(component.Timeframe == PERIOD_H1 && component.Direction == DIR_BUY)
+      lifecycle = pairState.extreme_h1_buy_lifecycle;
+   else if(component.Timeframe == PERIOD_H1 && component.Direction == DIR_SELL)
+      lifecycle = pairState.extreme_h1_sell_lifecycle;
+
+   if(lifecycle.Maturity == EXT_MAT_RETEST_READY && lifecycle.IsValid &&
+      lifecycle.Direction == component.Direction && lifecycle.Timeframe == PERIOD_H1 &&
+      lifecycle.RawCandleTime > 0 && lifecycle.RetestCompletionCandleTime > 0 &&
+      lifecycle.RawCandleTime <= lifecycle.RetestCompletionCandleTime &&
+      lifecycle.RetestCompletionCandleTime == component.CandleTime)
+      return true;
+
    Signal state;
    ZeroMemory(state);
 
@@ -6200,10 +6271,13 @@ bool IsApprovedSLTPSourceComponent(BBMA_Decision &decision,
                                    ComponentIdentity &source)
 {
    if(!decision.HasSLTPSourceComponent) return false;
-   if(source.ComponentType != SIGNAL_RE_ENTRY) return false;
    if(source.Direction != decision.Direction) return false;
    if(source.CandleTime <= 0) return false;
 
+   if(decision.SignalType == SIGNAL_EXTREME)
+      return (source.ComponentType == SIGNAL_EXTREME && source.Timeframe == PERIOD_H1);
+
+   if(source.ComponentType != SIGNAL_RE_ENTRY) return false;
    if(decision.SignalType == SIGNAL_RE_ENTRY)
    {
       if(decision.D1AuthorityMode == D1_AUTH_OPPORTUNITY &&
@@ -6347,6 +6421,65 @@ bool ResolveSourceOwnedStructuralAnchor(string pair, ComponentIdentity &source,
    return (anchor > 0.0 && confirmationWick > 0.0);
 }
 
+bool ResolveMatchingStandaloneExtremeLifecycle(string pair, ComponentIdentity &source,
+                                              ExtremeLifecycleData &extreme)
+{
+   ZeroMemory(extreme);
+   if(source.ComponentType != SIGNAL_EXTREME || source.Timeframe != PERIOD_H1) return false;
+   int pairIndex = FindPairStateIndex(pair);
+   if(pairIndex < 0 || pairIndex >= g_pair_count) return false;
+
+   if(source.Direction == DIR_BUY)
+      extreme = g_pair_states[pairIndex].extreme_h1_buy_lifecycle;
+   else if(source.Direction == DIR_SELL)
+      extreme = g_pair_states[pairIndex].extreme_h1_sell_lifecycle;
+   else
+      return false;
+
+   if(extreme.Maturity != EXT_MAT_RETEST_READY || !extreme.IsValid) return false;
+   if(extreme.Direction != source.Direction || extreme.Timeframe != PERIOD_H1) return false;
+   if(extreme.RawCandleTime <= 0 || extreme.RetestCompletionCandleTime <= 0) return false;
+   if(extreme.RawCandleTime > extreme.RetestCompletionCandleTime) return false;
+   return (extreme.RetestCompletionCandleTime == source.CandleTime);
+}
+
+bool ResolveStandaloneExtremeStructuralAnchor(string pair, ComponentIdentity &source,
+                                              ENUM_DIRECTION direction, double &anchor,
+                                              datetime &startTime, datetime &completionTime,
+                                              double &completionWick)
+{
+   anchor = 0.0; startTime = 0; completionTime = 0; completionWick = 0.0;
+   ExtremeLifecycleData extreme;
+   if(!ResolveMatchingStandaloneExtremeLifecycle(pair, source, extreme)) return false;
+   if(direction != source.Direction) return false;
+
+   startTime = extreme.RawCandleTime;
+   completionTime = extreme.RetestCompletionCandleTime;
+   int rawShift = iBarShift(pair, PERIOD_H1, startTime, true);
+   int completionShift = iBarShift(pair, PERIOD_H1, completionTime, true);
+   if(rawShift < 1 || completionShift < 1 || rawShift < completionShift) return false;
+   if(iTime(pair, PERIOD_H1, rawShift) != startTime ||
+      iTime(pair, PERIOD_H1, completionShift) != completionTime) return false;
+
+   int tfSeconds = GetTimeframeSeconds(PERIOD_H1);
+   if(tfSeconds <= 0) return false;
+   for(int shift = completionShift; shift <= rawShift; shift++)
+   {
+      datetime barTime = iTime(pair, PERIOD_H1, shift);
+      if(barTime <= 0 || barTime < startTime || barTime > completionTime) return false;
+      if(!IsCandleClosed(barTime, tfSeconds)) return false;
+      double low = iLow(pair, PERIOD_H1, shift);
+      double high = iHigh(pair, PERIOD_H1, shift);
+      if(low <= 0.0 || high <= 0.0 || high < low) return false;
+      if(direction == DIR_BUY && (anchor <= 0.0 || low < anchor)) anchor = low;
+      else if(direction == DIR_SELL && (anchor <= 0.0 || high > anchor)) anchor = high;
+   }
+   completionWick = (direction == DIR_BUY)
+                    ? iLow(pair, PERIOD_H1, completionShift)
+                    : iHigh(pair, PERIOD_H1, completionShift);
+   return (anchor > 0.0 && completionWick > 0.0);
+}
+
 bool ResolveApprovedBBDestination(string pair, ComponentIdentity &source,
                                   ENUM_DIRECTION direction, double &destination)
 {
@@ -6361,6 +6494,36 @@ bool ResolveApprovedBBDestination(string pair, ComponentIdentity &source,
    destination = iBands(pair, source.Timeframe,
                         BB_PERIOD, BB_DEVIATION, 0, PRICE_CLOSE,
                         mode, shift);
+   return (destination > 0.0);
+}
+
+bool ResolveStandaloneExtremeTPWajib(string pair, ComponentIdentity &source,
+                                      ENUM_DIRECTION direction, double &destination)
+{
+   destination = 0.0;
+   if(source.ComponentType != SIGNAL_EXTREME || source.Timeframe != PERIOD_H1) return false;
+   int shift = ResolveClosedSourceShift(pair, source);
+   if(shift < 1) return false;
+
+   double ma5 = 0.0;
+   double ma10 = 0.0;
+   if(direction == DIR_BUY)
+   {
+      ma5 = BBMAHighMA(pair, PERIOD_H1, MA5_HIGH_PERIOD, shift);
+      ma10 = BBMAHighMA(pair, PERIOD_H1, MA10_HIGH_PERIOD, shift);
+      if(ma5 <= 0.0 || ma10 <= 0.0) return false;
+      destination = MathMin(ma5, ma10);
+   }
+   else if(direction == DIR_SELL)
+   {
+      ma5 = BBMALowMA(pair, PERIOD_H1, MA5_LOW_PERIOD, shift);
+      ma10 = BBMALowMA(pair, PERIOD_H1, MA10_LOW_PERIOD, shift);
+      if(ma5 <= 0.0 || ma10 <= 0.0) return false;
+      destination = MathMax(ma5, ma10);
+   }
+   else
+      return false;
+
    return (destination > 0.0);
 }
 
@@ -6400,6 +6563,7 @@ bool ResolveApprovedInitialSLTP(BBMA_Decision &decision,
                                      decision.SLTPSourceComponent))
       return false;
 
+   bool standaloneExtreme = (decision.SignalType == SIGNAL_EXTREME);
    bool d1TPWLifecycle = IsD1TPWLifecycleIdentity(decision);
    if(d1TPWLifecycle && !EnableD1TPWLifecycle)
       return false; // never execute EXTREME_TPW with the legacy RE outer-BB TP
@@ -6412,24 +6576,37 @@ bool ResolveApprovedInitialSLTP(BBMA_Decision &decision,
    datetime structuralConfirmation = 0;
    double confirmationWick = 0.0;
    double destination = 0.0;
-   if(!ResolveSourceOwnedStructuralAnchor(decision.Pair,
-                                          decision.SLTPSourceComponent,
-                                          decision.Direction,
-                                          structuralAnchor,
-                                          structuralStart,
-                                          structuralConfirmation,
-                                          confirmationWick))
-      return false;
+   bool structuralResolved = standaloneExtreme
+      ? ResolveStandaloneExtremeStructuralAnchor(decision.Pair,
+                                                 decision.SLTPSourceComponent,
+                                                 decision.Direction,
+                                                 structuralAnchor,
+                                                 structuralStart,
+                                                 structuralConfirmation,
+                                                 confirmationWick)
+      : ResolveSourceOwnedStructuralAnchor(decision.Pair,
+                                           decision.SLTPSourceComponent,
+                                           decision.Direction,
+                                           structuralAnchor,
+                                           structuralStart,
+                                           structuralConfirmation,
+                                           confirmationWick);
+   if(!structuralResolved) return false;
 
    // C044 is intentionally fail-safe gated OFF until M23/M24 lifecycle support
    // is complete. While OFF, preserve the v4.52 static destination exactly.
    if(!targetlessLifecycle)
    {
-      if(!ResolveApprovedBBDestination(decision.Pair,
-                                       decision.SLTPSourceComponent,
-                                       decision.Direction,
-                                       destination))
-         return false;
+      bool destinationResolved = standaloneExtreme
+         ? ResolveStandaloneExtremeTPWajib(decision.Pair,
+                                           decision.SLTPSourceComponent,
+                                           decision.Direction,
+                                           destination)
+         : ResolveApprovedBBDestination(decision.Pair,
+                                        decision.SLTPSourceComponent,
+                                        decision.Direction,
+                                        destination);
+      if(!destinationResolved) return false;
 
       if(decision.Direction == DIR_BUY && destination <= decision.EntryPrice)
          return false;
@@ -6440,6 +6617,12 @@ bool ResolveApprovedInitialSLTP(BBMA_Decision &decision,
    if(snapshot.Point <= 0.0 || decision.EntryPrice <= 0.0) return false;
 
    double safetyBuffer = snapshot.Point;
+   if(standaloneExtreme)
+   {
+      double pipValue = GetPipValue(decision.Pair);
+      if(pipValue <= 0.0) return false;
+      safetyBuffer = EXTREME_WICK_BUFFER_PIPS * pipValue;
+   }
    double structuralSL = (decision.Direction == DIR_BUY)
       ? structuralAnchor - safetyBuffer
       : structuralAnchor + safetyBuffer;
@@ -6513,7 +6696,8 @@ bool ResolveApprovedInitialSLTP(BBMA_Decision &decision,
             " FinalBrokerSL=", DoubleToString(decision.StopLoss, snapshot.Digits),
             " TP=", DoubleToString(decision.TakeProfit, snapshot.Digits),
             " C044=", decision.C044LifecycleManaged ? "Y" : "N",
-            " D1TPW=", decision.D1TPWLifecycleManaged ? "Y" : "N");
+            " D1TPW=", decision.D1TPWLifecycleManaged ? "Y" : "N",
+            " Extreme=", standaloneExtreme ? "Y" : "N");
    }
    return true;
 }
@@ -10462,6 +10646,17 @@ void ProcessPair(int pairIndex)
       BuildConfirmedReEntryCandidate(
          reEntry, g_pair_states[pairIndex].h4_direction_owner, reEntryCandidate);
       AppendValidatedCandidate(reEntryCandidate, allCandidates, allCandidateCount);
+
+      ValidatedSequenceCandidate standaloneExtremeCandidate;
+      if(direction == DIR_BUY)
+         BuildStandaloneExtremeCandidate(g_pair_states[pairIndex].extreme_h1_buy_lifecycle,
+                                         g_pair_states[pairIndex].h4_direction_owner,
+                                         standaloneExtremeCandidate);
+      else
+         BuildStandaloneExtremeCandidate(g_pair_states[pairIndex].extreme_h1_sell_lifecycle,
+                                         g_pair_states[pairIndex].h4_direction_owner,
+                                         standaloneExtremeCandidate);
+      AppendValidatedCandidate(standaloneExtremeCandidate, allCandidates, allCandidateCount);
 
       ComponentSet allSets[3];
       allSets[0] = rem;

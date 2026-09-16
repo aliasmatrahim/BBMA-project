@@ -88,6 +88,23 @@ M17 does not substitute another timeframe or manufacture a replacement target.
 
 A BUY target at/below execution entry or SELL target at/above execution entry fails closed with `REJ_SLTP_UNRESOLVED`.
 
+## Standalone H1 Extreme — Issue #175 execution mapping
+
+Classification boundaries:
+- standalone `RETEST/ENTRY-READY` maturity and normal Extreme TP-Wajib semantics: `BBMA_STRATEGY_CORE` / accepted reconciled source;
+- H1-only autonomous execution scope, exact structural wick window and numeric 3.0-pip buffer: `PROJECT_EXECUTION_POLICY`;
+- spread/tick/StopLevel/FreezeLevel handling: `EA_SAFETY`.
+
+M17 resolves standalone H1 Extreme only from an exact `SIGNAL_EXTREME` source component whose candle identity is the M08 `RetestCompletionCandleTime`. It resolves the same live owner lifecycle and fails closed unless the owner remains `EXT_MAT_RETEST_READY`, valid, same direction and H1 timeframe.
+
+The exact structural window is `RawCandleTime -> RetestCompletionCandleTime`, inclusive, using closed H1 candles only. BUY anchor = lowest Low; SELL anchor = highest High. Structural hard SL is BUY `anchor - 3.0 pips` and SELL `anchor + 3.0 pips`.
+
+SELL then retains the existing frozen Ask-trigger spread normalization `max(2, ceil(CurrentSpreadPips))`; BUY adds no spread buffer. Final SL is normalized outward to broker tick size. No arbitrary lookback, fixed 5-pip fallback, ATR, MA10+allowance or RR-derived SL is permitted.
+
+Normal Extreme TP-Wajib remains the opposite MA5/MA10 area first. For deterministic initial H1 broker TP, the exact retest-completion candle maps to the first zone edge: BUY `min(MA5 High, MA10 High)`; SELL `max(MA5 Low, MA10 Low)`. Mid BB remains farther context and is not a fallback target. Wrong-side, stale or unresolved geometry fails closed.
+
+Authority: `blueprint/decisions/Q5_STANDALONE_EXTREME_EXECUTION_POLICY_DECISION_20260917.md`.
+
 ## Protective hard SL — M17-SLRANGE-01
 
 Classification: **EA_SAFETY / STRUCTURAL EXECUTION NORMALIZATION**.

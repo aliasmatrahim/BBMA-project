@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -273,8 +274,9 @@ def build_context_pack(
     changed_modules: Iterable[str] = (),
     selected_validations: Iterable[str] = (),
     evidence_nodes: Iterable[str] = (),
+    source_summary: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    return {
+    pack = {
         "task": {
             "task_id": manifest.task_id,
             "roadmap_id": manifest.roadmap_id,
@@ -297,6 +299,9 @@ def build_context_pack(
         "evidence_nodes": list(dict.fromkeys(evidence_nodes)),
         "generated_at": utc_now(),
     }
+    if source_summary is not None:
+        pack["source_summary"] = deepcopy(source_summary)
+    return pack
 
 
 def build_closeout(

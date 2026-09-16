@@ -205,6 +205,31 @@ owners: the registry records their identities instead of copying their logic.
 Commands that would restart or launch MT4 must remain disabled with an explicit
 `blocked_reason` until current authority and user authorization are both present.
 
+### G40 source-manifest planning
+
+`source_g40.scan_manifest(...)` and `source_g40.plan_resume(...)` are read-only.
+They inspect manifest JSON plus sibling `chunk_###.done` markers and return a
+bounded plan; they never launch transcription/media jobs and never grant Core
+authority. `ASR-DRAFT` remains `core_eligible: false` even when processing is
+mechanically complete. Unknown/incomplete schemas fail closed to `REVIEW_REQUIRED`.
+
+Any later resume command must still be declared explicitly through the native
+adapter. Start disabled and bind only the reviewed missing units, for example:
+
+```json
+{
+  "commands": {
+    "source-resume": {
+      "argv": ["<explicit-local-runner>", "--units", "<reviewed-missing-units>"],
+      "cwd": "<isolated-source-workspace>",
+      "timeout_seconds": 3600,
+      "enabled": false,
+      "blocked_reason": "Review source_g40 resume plan and authorize execution first"
+    }
+  }
+}
+```
+
 ## Tests
 
 ```bash

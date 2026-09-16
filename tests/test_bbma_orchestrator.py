@@ -1598,5 +1598,556 @@ class NativeAdapterTests(unittest.TestCase):
             self.assertTrue(rows[0]["sha256"])
             self.assertFalse(rows[1]["exists"])
 
+
+class SourceDiscoveryTests(unittest.TestCase):
+    def test_discover_paths_is_bounded_sorted_and_patterned(self):
+        from tools.bbma_orchestrator.source_discovery import discover_paths
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "z.pdf").write_text("z", encoding="utf-8")
+            (root / "a.pdf").write_text("a", encoding="utf-8")
+            (root / "note.txt").write_text("n", encoding="utf-8")
+            self.assertEqual(
+                discover_paths([root], patterns=("*.pdf",)),
+                [root / "a.pdf", root / "z.pdf"],
+            )
+
+    def test_artifact_role_explicit_and_filename_classification_are_separate(self):
+        from tools.bbma_orchestrator.source_discovery import classify_artifact_role
+        self.assertEqual(classify_artifact_role(Path("raw.pdf"), "RAW"), "RAW")
+        self.assertEqual(classify_artifact_role(Path("corrected_transcript.txt"), ""), "CORRECTED")
+        self.assertEqual(classify_artifact_role(Path("derived_summary.md"), ""), "DERIVED")
+        self.assertEqual(classify_artifact_role(Path("unknown.bin"), ""), "UNKNOWN")
+
+    def test_unknown_provenance_stays_unverified_without_phase_promotion(self):
+        from tools.bbma_orchestrator.source_discovery import record_provenance
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            with SourceRegistry(Path(tmp) / "sources.db") as registry:
+                registry.register_discovered("SRC-1", "file:///a.pdf")
+                unknown = record_provenance(registry, "SRC-1", "", "", ())
+                self.assertEqual(unknown.provenance, "UNVERIFIED")
+                self.assertEqual(unknown.phase, "DISCOVERED")
+                verified = record_provenance(
+                    registry,
+                    "SRC-1",
+                    "SOURCE_INDEX",
+                    "PRIMARY",
+                    ("SOURCE_INDEX.md",),
+                )
+                self.assertEqual(verified.provenance, "SOURCE_INDEX")
+                self.assertEqual(verified.tier, "PRIMARY")
+                self.assertEqual(verified.authority_refs, ("SOURCE_INDEX.md",))
+                self.assertEqual(verified.phase, "DISCOVERED")
+
+class SourceReconcileTests(unittest.TestCase):
+    def test_enqueue_claims_preserves_adjudicated_dispositions_and_holds(self):
+        from tools.bbma_orchestrator.source_reconcile import enqueue_claims
+        items = enqueue_claims(
+            "SRC-1",
+            [
+                {"claim_id": "C2", "disposition": "UNCLEAR", "hold_items": ["missing page"]},
+                {"claim_id": "C1", "disposition": "MATCH"},
+            ],
+        )
+        self.assertEqual([item.claim_id for item in items], ["C2", "C1"])
+        self.assertEqual(items[0].hold_items, ("missing page",))
+        self.assertEqual(items[0].disposition, "UNCLEAR")
+
+    def test_reconciliation_hold_is_preserved_and_not_core_eligible(self):
+        from tools.bbma_orchestrator.source_reconcile import eligible_for_core_link, record_reconciliation
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            with SourceRegistry(Path(tmp) / "sources.db") as registry:
+                registry.register_discovered("SRC-1", "file:///a.pdf")
+                for phase in ("INGESTED", "INTEGRITY_VERIFIED", "PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("SRC-1", phase)
+                record = record_reconciliation(registry, "SRC-1", "PARTIAL", hold_items=("conflict",))
+                self.assertEqual(record.hold_items, ("conflict",))
+                self.assertFalse(eligible_for_core_link(record))
+
+    def test_accepted_core_requires_explicit_authority_and_no_hold(self):
+        from tools.bbma_orchestrator.source_reconcile import eligible_for_core_link, record_reconciliation
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            with SourceRegistry(Path(tmp) / "sources.db") as registry:
+                registry.register_discovered("SRC-1", "file:///a.pdf")
+                for phase in ("INGESTED", "INTEGRITY_VERIFIED", "PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("SRC-1", phase)
+                with self.assertRaises(ValueError):
+                    record_reconciliation(registry, "SRC-1", "ACCEPTED_CORE")
+                accepted = record_reconciliation(
+                    registry, "SRC-1", "ACCEPTED_CORE", accepted_authority="decision:CORE-001"
+                )
+                self.assertTrue(eligible_for_core_link(accepted))
+
+class SourceLibraryRegistryTests(unittest.TestCase):
+    def test_source_phase_progression_and_skip_rejected(self):
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            with SourceRegistry(Path(tmp) / "sources.db") as registry:
+                registry.register_discovered("SRC-1", "file:///a.pdf", media_type="pdf")
+                self.assertEqual(registry.get("SRC-1").phase, "DISCOVERED")
+                registry.transition_phase("SRC-1", "INGESTED")
+                registry.transition_phase("SRC-1", "INTEGRITY_VERIFIED")
+                self.assertEqual(registry.get("SRC-1").phase, "INTEGRITY_VERIFIED")
+                with self.assertRaises(ValueError):
+                    registry.transition_phase("SRC-1", "EXTRACTED")
+                with self.assertRaises(ValueError):
+                    registry.transition_phase("SRC-1", "DISCOVERED")
+
+    def test_disposition_independent_and_accepted_core_is_guarded(self):
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            with SourceRegistry(Path(tmp) / "sources.db") as registry:
+                registry.register_discovered("SRC-1", "file:///a.pdf")
+                registry.set_disposition("SRC-1", "UNCLEAR")
+                self.assertEqual(registry.get("SRC-1").disposition, "UNCLEAR")
+                with self.assertRaises(ValueError):
+                    registry.set_disposition("SRC-1", "ACCEPTED_CORE")
+                for phase in ("INGESTED", "INTEGRITY_VERIFIED", "PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("SRC-1", phase)
+                with self.assertRaises(ValueError):
+                    registry.set_disposition("SRC-1", "ACCEPTED_CORE")
+                registry.set_disposition("SRC-1", "ACCEPTED_CORE", accepted_authority="decision:CORE-001")
+                self.assertEqual(registry.get("SRC-1").accepted_authority, "decision:CORE-001")
+
+    def test_ingest_is_idempotent_and_detects_duplicate_digest(self):
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            file = root / "source.txt"
+            file.write_text("same", encoding="utf-8")
+            with SourceRegistry(root / "sources.db") as registry:
+                first = registry.ingest_file("SRC-1", file, media_type="text")
+                again = registry.ingest_file("SRC-1", file, media_type="text")
+                duplicate = registry.ingest_file("SRC-2", file, media_type="text")
+                self.assertEqual(first.status, "NEW")
+                self.assertEqual(again.status, "UNCHANGED")
+                self.assertEqual(duplicate.status, "DUPLICATE")
+                self.assertEqual(duplicate.duplicate_of, "SRC-1")
+                self.assertEqual(registry.get("SRC-1").digest, registry.get("SRC-2").digest)
+                self.assertEqual([r.source_id for r in registry.find_by_digest(first.record.digest)], ["SRC-1", "SRC-2"])
+
+    def test_source_change_stales_only_explicit_evidence_descendants(self):
+        from tools.bbma_orchestrator.evidence import EvidenceDB
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            file = root / "source.txt"
+            file.write_text("v1", encoding="utf-8")
+            with SourceRegistry(root / "sources.db") as registry, EvidenceDB(root / "evidence.db") as evidence:
+                ingested = registry.ingest_file("SRC-1", file)
+                for phase in ("PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("SRC-1", phase)
+                registry.set_disposition("SRC-1", "ACCEPTED_CORE", accepted_authority="decision:CORE-001")
+
+                evidence.add_node("source:SRC-1", "source", ingested.record.digest, status="VALID")
+                evidence.add_node("core:RE", "core_rule", "core-v1", status="VALID")
+                evidence.add_node("contract:M12", "contract", "contract-v1", status="VALID")
+                evidence.add_node("code:M12", "code", "code-v1", status="VALID")
+                evidence.add_node("test:M12", "test", "test-v1", status="VALID")
+                evidence.add_node("core:OTHER", "core_rule", "other-v1", status="VALID")
+                evidence.add_node("code:OTHER", "code", "other-code-v1", status="VALID")
+                evidence.add_edge("source:SRC-1", "core:RE")
+                evidence.add_edge("core:RE", "contract:M12")
+                evidence.add_edge("contract:M12", "code:M12")
+                evidence.add_edge("code:M12", "test:M12")
+                evidence.add_edge("core:OTHER", "code:OTHER")
+                edge_count = evidence.conn.execute("SELECT COUNT(*) FROM edges").fetchone()[0]
+
+                registry.link_evidence_node("SRC-1", "source:SRC-1")
+                file.write_text("v2", encoding="utf-8")
+                changed = registry.ingest_file("SRC-1", file)
+                stale = registry.propagate_source_change("SRC-1", changed.record.digest, evidence)
+
+                self.assertEqual(stale, ["core:RE", "contract:M12", "code:M12", "test:M12"])
+                self.assertEqual(evidence.get_node("source:SRC-1")["digest"], changed.record.digest)
+                self.assertEqual(evidence.get_node("source:SRC-1")["status"], "NOT VERIFIED")
+                for node_id in stale:
+                    self.assertEqual(evidence.get_node(node_id)["status"], "STALE")
+                self.assertEqual(evidence.get_node("core:OTHER")["status"], "VALID")
+                self.assertEqual(evidence.get_node("code:OTHER")["status"], "VALID")
+                self.assertEqual(evidence.conn.execute("SELECT COUNT(*) FROM edges").fetchone()[0], edge_count)
+
+    def test_source_impact_bridge_is_fail_closed_and_idempotent(self):
+        from tools.bbma_orchestrator.evidence import EvidenceDB
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            file = root / "source.txt"
+            file.write_text("v1", encoding="utf-8")
+            with SourceRegistry(root / "sources.db") as registry, EvidenceDB(root / "evidence.db") as evidence:
+                registry.register_discovered("NO-DIGEST", "file:///missing.pdf")
+                for phase in ("INGESTED", "INTEGRITY_VERIFIED", "PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("NO-DIGEST", phase)
+                registry.set_disposition("NO-DIGEST", "ACCEPTED_CORE", accepted_authority="decision:CORE-000")
+                with self.assertRaisesRegex(ValueError, "digest"):
+                    registry.link_evidence_node("NO-DIGEST", "source:NO-DIGEST")
+
+                ingested = registry.ingest_file("SRC-1", file)
+                with self.assertRaisesRegex(ValueError, "ACCEPTED_CORE"):
+                    registry.link_evidence_node("SRC-1", "source:SRC-1")
+                for phase in ("PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("SRC-1", phase)
+                registry.set_disposition("SRC-1", "ACCEPTED_CORE", accepted_authority="decision:CORE-001")
+                evidence.add_node("source:SRC-1", "source", ingested.record.digest, status="VALID")
+                evidence.add_node("core:RE", "core_rule", "core-v1", status="VALID")
+                evidence.add_edge("source:SRC-1", "core:RE")
+                registry.link_evidence_node("SRC-1", "source:SRC-1")
+                self.assertEqual(registry.propagate_source_change("SRC-1", ingested.record.digest, evidence), [])
+                self.assertEqual(evidence.get_node("core:RE")["status"], "VALID")
+
+                bad_file = root / "bad.txt"
+                bad_file.write_text("b1", encoding="utf-8")
+                bad = registry.ingest_file("SRC-BAD", bad_file)
+                for phase in ("PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("SRC-BAD", phase)
+                registry.set_disposition("SRC-BAD", "ACCEPTED_CORE", accepted_authority="decision:CORE-BAD")
+                evidence.add_node("core:BAD", "core_rule", bad.record.digest, status="VALID")
+                registry.link_evidence_node("SRC-BAD", "core:BAD")
+                bad_file.write_text("b2", encoding="utf-8")
+                bad_changed = registry.ingest_file("SRC-BAD", bad_file)
+                with self.assertRaisesRegex(ValueError, "source evidence node"):
+                    registry.propagate_source_change("SRC-BAD", bad_changed.record.digest, evidence)
+
+    def test_source_impact_bridge_prevalidates_all_links_before_staling(self):
+        from tools.bbma_orchestrator.evidence import EvidenceDB
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            file = root / "source.txt"
+            file.write_text("v1", encoding="utf-8")
+            with SourceRegistry(root / "sources.db") as registry, EvidenceDB(root / "evidence.db") as evidence:
+                ingested = registry.ingest_file("SRC-1", file)
+                for phase in ("PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("SRC-1", phase)
+                registry.set_disposition("SRC-1", "ACCEPTED_CORE", accepted_authority="decision:CORE-001")
+                evidence.add_node("a:valid-source", "source", ingested.record.digest, status="VALID")
+                evidence.add_node("core:child", "core_rule", "core-v1", status="VALID")
+                evidence.add_node("z:invalid-kind", "core_rule", ingested.record.digest, status="VALID")
+                evidence.add_edge("a:valid-source", "core:child")
+                registry.link_evidence_node("SRC-1", "a:valid-source")
+                registry.link_evidence_node("SRC-1", "z:invalid-kind")
+
+                file.write_text("v2", encoding="utf-8")
+                changed = registry.ingest_file("SRC-1", file)
+                with self.assertRaisesRegex(ValueError, "source evidence node"):
+                    registry.propagate_source_change("SRC-1", changed.record.digest, evidence)
+                self.assertEqual(evidence.get_node("a:valid-source")["digest"], ingested.record.digest)
+                self.assertEqual(evidence.get_node("a:valid-source")["status"], "VALID")
+                self.assertEqual(evidence.get_node("core:child")["status"], "VALID")
+
+    def test_changed_digest_resets_semantic_acceptance_fail_closed(self):
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            file = root / "source.txt"
+            file.write_text("v1", encoding="utf-8")
+            with SourceRegistry(root / "sources.db") as registry:
+                registry.ingest_file("SRC-1", file)
+                for phase in ("PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("SRC-1", phase)
+                registry.set_disposition("SRC-1", "ACCEPTED_CORE", accepted_authority="decision:CORE-001")
+                file.write_text("v2", encoding="utf-8")
+                changed = registry.ingest_file("SRC-1", file)
+                record = registry.get("SRC-1")
+                self.assertEqual(changed.status, "CHANGED")
+                self.assertEqual(record.phase, "INTEGRITY_VERIFIED")
+                self.assertEqual(record.disposition, "UNREVIEWED")
+                self.assertEqual(record.accepted_authority, "")
+
+
+class SourceUpdateGeneratorTests(unittest.TestCase):
+    @staticmethod
+    def _record(source_id, *, disposition="MATCH", accepted_authority="", hold_items=(), phase="RECONCILED"):
+        from tools.bbma_orchestrator.source_library import SourceRecord
+        return SourceRecord(
+            source_id=source_id,
+            uri=f"file:///{source_id}.md",
+            digest=f"sha256-{source_id}",
+            size=123,
+            media_type="text/markdown",
+            artifact_role="DERIVED",
+            provenance="SOURCE_INDEX",
+            tier="PROJECT_REFERENCE",
+            phase=phase,
+            disposition=disposition,
+            accepted_authority=accepted_authority,
+            authority_refs=("SOURCE_INDEX.md",),
+            core_rule_ids=("CORE-V2-F6",),
+            affected_modules=("M12",),
+            hold_items=tuple(hold_items),
+            metadata={"note": source_id},
+            created_at="2026-09-16T00:00:00Z",
+            updated_at="2026-09-16T00:00:00Z",
+        )
+
+    def test_source_update_output_is_deterministic_and_sorted(self):
+        from tools.bbma_orchestrator.source_updates import build_index_patch, build_register_rows
+        a = self._record("SRC-A")
+        b = self._record("SRC-B", disposition="CORROBORATION_ONLY")
+        current = "# Index\n\n## Registered sources\n\nTail\n"
+        first = build_index_patch([b, a], current, "## Registered sources")
+        second = build_index_patch([a, b], current, "## Registered sources")
+        self.assertEqual(first, second)
+        self.assertEqual(first["source_ids"], ["SRC-A", "SRC-B"])
+        self.assertEqual([row["source_id"] for row in build_register_rows([b, a])], ["SRC-A", "SRC-B"])
+        self.assertIn("SRC-A", first["inserted_text"])
+        self.assertIn("SRC-B", first["inserted_text"])
+        self.assertTrue(first["diff"])
+
+    def test_index_patch_requires_exactly_one_anchor(self):
+        from tools.bbma_orchestrator.source_updates import build_index_patch
+        record = self._record("SRC-A")
+        with self.assertRaisesRegex(ValueError, "exactly once"):
+            build_index_patch([record], "# Index\n", "## Registered sources")
+        with self.assertRaisesRegex(ValueError, "exactly once"):
+            build_index_patch(
+                [record],
+                "## Registered sources\nA\n## Registered sources\nB\n",
+                "## Registered sources",
+            )
+
+    def test_register_rows_do_not_alias_or_mutate_original_evidence(self):
+        from tools.bbma_orchestrator.source_updates import build_register_rows
+        record = self._record("SRC-A")
+        original_metadata = dict(record.metadata)
+        rows = build_register_rows([record])
+        rows[0]["metadata"]["note"] = "changed-in-proposal"
+        self.assertEqual(record.metadata, original_metadata)
+        self.assertEqual(record.metadata["note"], "SRC-A")
+
+    def test_unresolved_disposition_cannot_emit_core_promotion(self):
+        from tools.bbma_orchestrator.source_updates import build_index_patch, build_register_rows
+        inconsistent = self._record(
+            "SRC-U",
+            disposition="UNCLEAR",
+            accepted_authority="decision:SHOULD-NOT-PROMOTE",
+            hold_items=("HOLD-1",),
+        )
+        with self.assertRaisesRegex(ValueError, "Core promotion"):
+            build_register_rows([inconsistent])
+        unresolved = self._record("SRC-U", disposition="UNCLEAR", hold_items=("HOLD-1",))
+        patch = build_index_patch(
+            [unresolved],
+            "# Index\n\n## Registered sources\n",
+            "## Registered sources",
+        )
+        self.assertIn("UNCLEAR", patch["inserted_text"])
+        self.assertNotIn("decision:SHOULD-NOT-PROMOTE", patch["inserted_text"])
+
+class SourceFailureSummaryTests(unittest.TestCase):
+    @staticmethod
+    def _reconcile(registry, source_id, disposition, *, hold_items=()):
+        for phase in ("PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+            registry.transition_phase(source_id, phase)
+        registry.set_disposition(source_id, disposition)
+        registry.set_hold_items(source_id, hold_items)
+
+    def test_failure_first_summary_orders_failures_and_aggregates_registered_match(self):
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with SourceRegistry(root / "sources.db") as registry:
+                registry.register_discovered("SRC-MISSING", "file:///missing.pdf", metadata={"raw_transcript": "SECRET-MISSING"})
+                for source_id, disposition in (
+                    ("SRC-CONFLICT", "SOURCE_CONFLICT"),
+                    ("SRC-UNCLEAR", "UNCLEAR"),
+                    ("SRC-PARTIAL", "PARTIAL"),
+                    ("SRC-MATCH", "MATCH"),
+                ):
+                    path = root / f"{source_id}.txt"
+                    path.write_text(source_id, encoding="utf-8")
+                    registry.ingest_file(source_id, path, metadata={"raw_transcript": f"SECRET-{source_id}"})
+                    self._reconcile(registry, source_id, disposition, hold_items=("HOLD-1",) if source_id == "SRC-CONFLICT" else ())
+                registry.transition_phase("SRC-MATCH", "REGISTERED")
+
+                stale_path = root / "stale.txt"
+                stale_path.write_text("v1", encoding="utf-8")
+                registry.ingest_file("SRC-STALE", stale_path)
+                for phase in ("PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("SRC-STALE", phase)
+                registry.set_disposition("SRC-STALE", "ACCEPTED_CORE", accepted_authority="decision:CORE-001")
+                registry.link_evidence_node("SRC-STALE", "source:SRC-STALE")
+                stale_path.write_text("v2", encoding="utf-8")
+                registry.ingest_file("SRC-STALE", stale_path)
+
+                duplicate_path = root / "duplicate.txt"
+                duplicate_path.write_text("same", encoding="utf-8")
+                registry.ingest_file("SRC-DUP-A", duplicate_path)
+                registry.ingest_file("SRC-DUP-B", duplicate_path)
+
+                summary = registry.failure_first_summary()
+                self.assertEqual(
+                    [item["category"] for item in summary["items"][:5]],
+                    ["SOURCE_CONFLICT", "UNCLEAR", "PARTIAL", "MISSING", "STALE"],
+                )
+                self.assertEqual(summary["registered_match_count"], 1)
+                self.assertEqual(summary["duplicate_digest_groups"], 1)
+                self.assertGreaterEqual(summary["counts"]["RECHECK_REQUIRED"], 2)
+                rendered = json.dumps(summary, sort_keys=True)
+                self.assertNotIn("SECRET-", rendered)
+                self.assertNotIn("raw_transcript", rendered)
+
+    def test_failure_summary_is_bounded_and_deterministic(self):
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with SourceRegistry(root / "sources.db") as registry:
+                for source_id in ("SRC-Z", "SRC-A", "SRC-M"):
+                    registry.register_discovered(source_id, f"file:///{source_id}.pdf")
+                first = registry.failure_first_summary(limit=2)
+                second = registry.failure_first_summary(limit=2)
+                self.assertEqual(first, second)
+                self.assertEqual([item["source_id"] for item in first["items"]], ["SRC-A", "SRC-M"])
+                self.assertEqual(first["total_failure_items"], 3)
+                self.assertTrue(first["truncated"])
+
+    def test_context_pack_includes_source_summary_only_when_requested(self):
+        manifest = TaskManifest("T-SRC", "R-SRC", "source context", "source")
+        without = build_context_pack(manifest)
+        self.assertNotIn("source_summary", without)
+        requested = {"counts": {"SOURCE_CONFLICT": 1}, "items": [{"source_id": "SRC-1"}]}
+        with_summary = build_context_pack(manifest, source_summary=requested)
+        self.assertEqual(with_summary["source_summary"], requested)
+        self.assertIsNot(with_summary["source_summary"], requested)
+
+
+class SourceG40AdapterTests(unittest.TestCase):
+    def _write_manifest(self, root, payload):
+        manifest = root / "manifest.json"
+        manifest.parent.mkdir(parents=True, exist_ok=True)
+        manifest.write_text(json.dumps(payload), encoding="utf-8")
+        return manifest
+
+    def test_completed_asr_manifest_is_never_rerun_or_promoted_to_core(self):
+        from tools.bbma_orchestrator.source_g40 import plan_resume, scan_manifest
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "video_10" / "retranscript_faster"
+            manifest = self._write_manifest(
+                root,
+                {"video_dir": "video_10", "status": "ASR-DRAFT", "chunks": 2, "completed": "2026-09-16T00:00:00Z"},
+            )
+            chunks = root / "chunks"
+            chunks.mkdir()
+            (chunks / "chunk_000.done").write_text("done", encoding="utf-8")
+            (chunks / "chunk_001.done").write_text("done", encoding="utf-8")
+            scanned = scan_manifest(manifest)
+            self.assertEqual(scanned["processing_state"], "COMPLETE")
+            self.assertEqual(scanned["semantic_authority"], "ASR_DRAFT_ONLY")
+            self.assertFalse(scanned["core_eligible"])
+            self.assertEqual(scanned["missing_units"], [])
+            plan = plan_resume([scanned])[0]
+            self.assertEqual(plan["action"], "SKIP_COMPLETE")
+            self.assertEqual(plan["missing_units"], [])
+
+    def test_partial_manifest_resumes_only_missing_units(self):
+        from tools.bbma_orchestrator.source_g40 import plan_resume, scan_manifest
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "video_partial" / "retranscript_faster"
+            manifest = self._write_manifest(root, {"video_dir": "video_partial", "status": "ASR-DRAFT", "chunks": 3})
+            chunks = root / "chunks"
+            chunks.mkdir()
+            (chunks / "chunk_000.done").write_text("done", encoding="utf-8")
+            (chunks / "chunk_002.done").write_text("done", encoding="utf-8")
+            scanned = scan_manifest(manifest)
+            self.assertEqual(scanned["processing_state"], "PARTIAL")
+            self.assertEqual(scanned["missing_units"], [1])
+            plan = plan_resume([scanned])[0]
+            self.assertEqual(plan["action"], "RESUME_MISSING")
+            self.assertEqual(plan["missing_units"], [1])
+
+    def test_unknown_manifest_schema_fails_closed_to_review(self):
+        from tools.bbma_orchestrator.source_g40 import plan_resume, scan_manifest
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest = self._write_manifest(
+                Path(tmp) / "sample",
+                {"video_dir": "sample", "engine": "faster-whisper", "legacy_transcript_untouched": True},
+            )
+            scanned = scan_manifest(manifest)
+            self.assertEqual(scanned["processing_state"], "REVIEW_REQUIRED")
+            self.assertFalse(scanned["core_eligible"])
+            self.assertEqual(plan_resume([scanned])[0]["action"], "REVIEW_REQUIRED")
+
+    def test_resume_plan_is_deterministic_and_contains_no_execution_command(self):
+        from tools.bbma_orchestrator.source_g40 import plan_resume
+        manifests = [
+            {"source_id": "B", "manifest_path": "B.json", "processing_state": "PENDING", "missing_units": [0, 1], "semantic_authority": "ASR_DRAFT_ONLY", "core_eligible": False},
+            {"source_id": "A", "manifest_path": "A.json", "processing_state": "COMPLETE", "missing_units": [], "semantic_authority": "ASR_DRAFT_ONLY", "core_eligible": False},
+        ]
+        plan = plan_resume(manifests)
+        self.assertEqual([item["source_id"] for item in plan], ["A", "B"])
+        self.assertEqual([item["action"] for item in plan], ["SKIP_COMPLETE", "START_EXPLICIT"])
+        self.assertNotIn("command", json.dumps(plan, sort_keys=True).lower())
+
+
+
+class SourceAutonomyEndToEndTests(unittest.TestCase):
+    def test_source_autonomy_end_to_end_acceptance(self):
+        from tools.bbma_orchestrator.evidence import EvidenceDB
+        from tools.bbma_orchestrator.source_library import SourceRegistry
+        from tools.bbma_orchestrator.source_reconcile import record_reconciliation
+        from tools.bbma_orchestrator.source_updates import build_index_patch
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "source.md"
+            source.write_text("v1", encoding="utf-8")
+            held_source = root / "held.md"
+            held_source.write_text("hold", encoding="utf-8")
+
+            with SourceRegistry(root / "sources.db") as registry, EvidenceDB(root / "evidence.db") as evidence:
+                ingested = registry.ingest_file("SRC-E2E", source, artifact_role="DERIVED")
+                for phase in ("PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("SRC-E2E", phase)
+                matched = record_reconciliation(registry, "SRC-E2E", "MATCH")
+                registered = registry.transition_phase(matched.source_id, "REGISTERED")
+                self.assertEqual((registered.phase, registered.disposition), ("REGISTERED", "MATCH"))
+
+                duplicate = registry.ingest_file("SRC-DUP", source)
+                self.assertEqual(duplicate.status, "DUPLICATE")
+                self.assertEqual(duplicate.duplicate_of, "SRC-E2E")
+
+                current_index = "# Source Index\n\n## Registered sources\n"
+                proposal = build_index_patch([registered], current_index, "## Registered sources")
+                self.assertEqual(current_index, "# Source Index\n\n## Registered sources\n")
+                self.assertIn("SRC-E2E", proposal["proposed_text"])
+
+                registry.ingest_file("SRC-HOLD", held_source)
+                for phase in ("PROVENANCE_CLASSIFIED", "EXTRACTED", "RECONCILIATION_PENDING", "RECONCILED"):
+                    registry.transition_phase("SRC-HOLD", phase)
+                held = record_reconciliation(registry, "SRC-HOLD", "PARTIAL", hold_items=("HOLD-E2E",))
+                self.assertEqual(held.hold_items, ("HOLD-E2E",))
+                summary = registry.failure_first_summary()
+                self.assertIn("PARTIAL", [item["category"] for item in summary["items"]])
+                self.assertEqual(summary["registered_match_count"], 1)
+
+                registry.set_disposition("SRC-E2E", "ACCEPTED_CORE", accepted_authority="decision:E2E")
+                evidence.add_node("source:SRC-E2E", "source", ingested.record.digest, status="VALID")
+                evidence.add_node("core:E2E", "core_rule", "core-v1", status="VALID")
+                evidence.add_edge("source:SRC-E2E", "core:E2E")
+                registry.link_evidence_node("SRC-E2E", "source:SRC-E2E")
+                source.write_text("v2", encoding="utf-8")
+                changed = registry.ingest_file("SRC-E2E", source)
+                stale = registry.propagate_source_change("SRC-E2E", changed.record.digest, evidence)
+                self.assertEqual(stale, ["core:E2E"])
+                self.assertEqual(evidence.get_node("core:E2E")["status"], "STALE")
+
+            store = TaskStore(root / "task")
+            manifest = TaskManifest("SRC-E2E-TASK", "SOURCE-AUTONOMY-152", "e2e", "source")
+            manifest.transition("PREFLIGHT")
+            manifest.transition("IN_PROGRESS")
+            manifest.latest_verified_step = "source registry and impact verified"
+            manifest.next_safe_action = "resume remaining acceptance only"
+            manifest.do_not_redo = ["source registry and impact verified"]
+            store.save(manifest)
+            checkpoint = store.checkpoint(manifest, "e2e-boundary")
+            resumed = store.load()
+            capsule = store.handoff_capsule(resumed)
+            self.assertTrue(checkpoint.is_file())
+            self.assertEqual(resumed.latest_verified_step, manifest.latest_verified_step)
+            self.assertIn("DoNotRedo: source registry and impact verified", capsule)
+
 if __name__ == "__main__":
     unittest.main()

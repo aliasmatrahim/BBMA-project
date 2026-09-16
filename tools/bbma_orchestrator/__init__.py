@@ -12,6 +12,7 @@ from .core import (
 from .evidence import EvidenceDB, ContentAddressedStore, build_evidence_package, sha256_file
 from .telemetry import TelemetryStore
 from .native import NativeAdapter, git_snapshot, artifact_identity
+from .source_updates import build_index_patch, build_register_rows
 from .trace import (
     LifecycleModel,
     classify_build_delta,
@@ -37,6 +38,8 @@ __all__ = [
     "NativeAdapter",
     "git_snapshot",
     "artifact_identity",
+    "build_index_patch",
+    "build_register_rows",
     "LifecycleModel",
     "classify_build_delta",
     "compare_shadow",

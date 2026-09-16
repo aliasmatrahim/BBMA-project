@@ -1857,5 +1857,84 @@ class SourceLibraryRegistryTests(unittest.TestCase):
                 self.assertEqual(record.disposition, "UNREVIEWED")
                 self.assertEqual(record.accepted_authority, "")
 
+
+class SourceUpdateGeneratorTests(unittest.TestCase):
+    @staticmethod
+    def _record(source_id, *, disposition="MATCH", accepted_authority="", hold_items=(), phase="RECONCILED"):
+        from tools.bbma_orchestrator.source_library import SourceRecord
+        return SourceRecord(
+            source_id=source_id,
+            uri=f"file:///{source_id}.md",
+            digest=f"sha256-{source_id}",
+            size=123,
+            media_type="text/markdown",
+            artifact_role="DERIVED",
+            provenance="SOURCE_INDEX",
+            tier="PROJECT_REFERENCE",
+            phase=phase,
+            disposition=disposition,
+            accepted_authority=accepted_authority,
+            authority_refs=("SOURCE_INDEX.md",),
+            core_rule_ids=("CORE-V2-F6",),
+            affected_modules=("M12",),
+            hold_items=tuple(hold_items),
+            metadata={"note": source_id},
+            created_at="2026-09-16T00:00:00Z",
+            updated_at="2026-09-16T00:00:00Z",
+        )
+
+    def test_source_update_output_is_deterministic_and_sorted(self):
+        from tools.bbma_orchestrator.source_updates import build_index_patch, build_register_rows
+        a = self._record("SRC-A")
+        b = self._record("SRC-B", disposition="CORROBORATION_ONLY")
+        current = "# Index\n\n## Registered sources\n\nTail\n"
+        first = build_index_patch([b, a], current, "## Registered sources")
+        second = build_index_patch([a, b], current, "## Registered sources")
+        self.assertEqual(first, second)
+        self.assertEqual(first["source_ids"], ["SRC-A", "SRC-B"])
+        self.assertEqual([row["source_id"] for row in build_register_rows([b, a])], ["SRC-A", "SRC-B"])
+        self.assertIn("SRC-A", first["inserted_text"])
+        self.assertIn("SRC-B", first["inserted_text"])
+        self.assertTrue(first["diff"])
+
+    def test_index_patch_requires_exactly_one_anchor(self):
+        from tools.bbma_orchestrator.source_updates import build_index_patch
+        record = self._record("SRC-A")
+        with self.assertRaisesRegex(ValueError, "exactly once"):
+            build_index_patch([record], "# Index\n", "## Registered sources")
+        with self.assertRaisesRegex(ValueError, "exactly once"):
+            build_index_patch(
+                [record],
+                "## Registered sources\nA\n## Registered sources\nB\n",
+                "## Registered sources",
+            )
+
+    def test_register_rows_do_not_alias_or_mutate_original_evidence(self):
+        from tools.bbma_orchestrator.source_updates import build_register_rows
+        record = self._record("SRC-A")
+        original_metadata = dict(record.metadata)
+        rows = build_register_rows([record])
+        rows[0]["metadata"]["note"] = "changed-in-proposal"
+        self.assertEqual(record.metadata, original_metadata)
+        self.assertEqual(record.metadata["note"], "SRC-A")
+
+    def test_unresolved_disposition_cannot_emit_core_promotion(self):
+        from tools.bbma_orchestrator.source_updates import build_index_patch, build_register_rows
+        inconsistent = self._record(
+            "SRC-U",
+            disposition="UNCLEAR",
+            accepted_authority="decision:SHOULD-NOT-PROMOTE",
+            hold_items=("HOLD-1",),
+        )
+        with self.assertRaisesRegex(ValueError, "Core promotion"):
+            build_register_rows([inconsistent])
+        unresolved = self._record("SRC-U", disposition="UNCLEAR", hold_items=("HOLD-1",))
+        patch = build_index_patch(
+            [unresolved],
+            "# Index\n\n## Registered sources\n",
+            "## Registered sources",
+        )
+        self.assertIn("UNCLEAR", patch["inserted_text"])
+        self.assertNotIn("decision:SHOULD-NOT-PROMOTE", patch["inserted_text"])
 if __name__ == "__main__":
     unittest.main()

@@ -71,9 +71,9 @@
 
 **Interfaces:** `build_index_patch(records, current_text, anchor)`, `build_register_rows(records)` returning proposed text/diff data only.
 
-- [ ] Test deterministic output, single-anchor enforcement, no mutation of original evidence, and refusal to emit Core promotion for unresolved dispositions.
-- [ ] Implement proposal generation only; writing/committing stays under normal Issue/branch/PR workflow.
-- [ ] Run focused/full tests and commit.
+- [x] Test deterministic output, single-anchor enforcement, no mutation of original evidence, and refusal to emit Core promotion for unresolved dispositions.
+- [x] Implement proposal generation only; writing/committing stays under normal Issue/branch/PR workflow.
+- [x] Run focused/full tests and commit.
 
 ### Task 6: Failure-first source dashboard and context integration
 

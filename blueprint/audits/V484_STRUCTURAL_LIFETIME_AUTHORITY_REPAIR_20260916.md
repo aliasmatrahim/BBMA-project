@@ -1,4 +1,4 @@
-﻿# Build 4.84 Structural Lifetime Authority Repair â€” 2026-09-16
+# Build 4.84 Structural Lifetime Authority Repair — 2026-09-16
 
 Issue: #173
 Branch: `fix/q5-lifetime-173`

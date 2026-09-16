@@ -4,7 +4,7 @@ Date: 2026-09-16
 Issue: #169
 Branch: `audit/q5-semantic-resolution-169`
 Base: `d1-owner-dev@ea4c48262c4bb058e375fb9a1b564fa132ba578b`
-Status: RESOLUTION COMPLETE / REPORT VALIDATION PENDING
+Status: RESOLUTION COMPLETE / VALIDATED / CANONICAL MERGE PENDING
 
 ## Scope and authority
 
@@ -77,6 +77,14 @@ Fresh caption hashes retained locally in the isolated resolution workspace inclu
 - VMDF `id-orig`: `F187322C0251C72DDEE10F342B2483078D945AC4D338ECD591BAAF00F6753BB3`
 
 YouTube caption download for sZ Malay was rate-limited (HTTP 429), and W004 exposes no automatic captions in its stored metadata. Neither failure was treated as evidence of absence or used to invent wording.
+
+## Validation
+
+- Resolution table contains exactly 9 retained A4/A5 rows.
+- Final dispositions are exactly 6 `CORROBORATION_ONLY` + 3 `REJECTED`.
+- `blueprint/source/BBMA_EA.mq4` blob is unchanged from the owner base (`6e629128f37c3fd482dd49e275360503f73fee68`).
+- No Core rule, contract, EA source or runtime artifact is modified by this closure.
+- Active-status reconciliation is limited to `CURRENT.md`, `MASTER_QUEUE.md`, `SOURCE_INDEX.md` and two stale branch-wording corrections in Finale governance documents.
 
 ## Decision
 

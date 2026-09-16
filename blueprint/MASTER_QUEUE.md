@@ -44,14 +44,14 @@ Closure handling:
 
 ### Q5 — Reconcile completed source evidence against current Core/code
 Priority: **HIGH / SOURCE RECONCILIATION**
-Status: **IN PROGRESS / HOLD-AWARE**
+Status: **IN PROGRESS / A4-A5 SEMANTIC BLOCKERS RESOLVED; TRANSCRIPT-QA RESIDUALS NON-BLOCKING**
 
-Current retained unresolved state:
-- A4/A5 adjudication: 9 records = 6 `UNCLEAR`, 3 `PARTIAL`, 0 `MATCH`;
-- 4 active A3 overlaps remain blocked;
-- 2 A3 records remain excluded;
-- 6 `AUDIO_RECHECK_EMPTY` review rows remain pending; source-media recheck confirms audio streams exist, but empty/invalid recheck text does not resolve semantic uncertainty;
-- W004 remains duplicate-conflict / pending review.
+Current A4/A5 semantic state after Issue #169 / PR #170 reconciliation:
+- 9 retained records = 6 `CORROBORATION_ONLY` + 3 `REJECTED`; Strategy-Core semantic `UNCLEAR`/`PARTIAL` = 0;
+- no row is promoted to `ACCEPTED_CORE`, no source conflict is created and no detector/filter/timing authority is added;
+- 4 historical A3 blocked overlaps, 2 excluded A3 records, 6 `AUDIO_RECHECK_EMPTY` rows and W004 duplicate-conflict remain retained as provenance/transcript-QA residuals only;
+- five exact-wording fragments remain uncertain and non-executable pending materially better evidence;
+- these transcript-QA residuals do not block accepted Core semantics or authorize production changes.
 
 Scope:
 - Extreme/MHV/MLV/Re-Entry/CSA-CSAK/Momentum/F7 timing/lifecycle;

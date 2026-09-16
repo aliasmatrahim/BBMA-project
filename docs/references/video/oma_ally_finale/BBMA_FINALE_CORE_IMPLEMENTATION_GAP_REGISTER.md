@@ -7,7 +7,7 @@ Audit basis:
 - `docs/references/BBMA_OMA_ALLY_RULE_INDEX.md`
 - current Core contracts (`M08`, `M10`, `M12`, `M15`, `M17`)
 - BBMA Finale V01–V07 evidence
-- active `blueprint/source/BBMA_EA.mq4` on `blueprint-dev`
+- active `blueprint/source/BBMA_EA.mq4` on the status-owner branch identified by `blueprint/CURRENT.md`
 
 No item in this file is an instruction to patch the EA during the current runtime/debug phase. It is a KIV source-alignment backlog.
 

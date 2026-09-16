@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.6.1 - F7 Re-Entry Lifecycle Integration        |
+//| Version 4.8.4 - Structural Lifetime Authority Repair       |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.61"
+#property version   "4.84"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -108,10 +108,10 @@ input int      StrategyID                         = 1;          // 08 Advanced |
 input int      InstanceID                         = 0;          // 08 Advanced | instance identity 0-99
 
 //--- INTERNAL / LOCKED (not shown in MT4 Inputs; defaults preserved)
-int            MaxWaitBars_Extreme                = 5;
+int            MaxWaitBars_Extreme                = 5;          // Legacy diagnostic metadata only; no Strategy-Core expiry
 int            MaxWaitBars_MLV                    = 5;          // Legacy compatibility only; canonical MHV/MLV has no strategy TTL
 int            MaxWaitBars_CSD                    = 5;
-int            MaxWaitBars_ReEntry                = 5;
+int            MaxWaitBars_ReEntry                = 5;          // Legacy diagnostic metadata only; no Strategy-Core expiry
 int            MaxWaitBars_Combined               = 5;
 int            MaxWaitBars_Global                 = 10;
 int            SignalMode                         = 1;          // Deprecated compatibility/display only
@@ -2538,9 +2538,8 @@ ENUM_EXTREME_MATURITY UpdateExtremeLifecycle(ExtremeLifecycleData &extreme,
    if(extreme.Direction != direction || extreme.Timeframe != data.timeframe)
       ResetExtremeLifecycle(extreme, direction, data.timeframe);
 
-   // F2 maturity has NO fixed candle/session expiry. MaxWaitBars_Extreme stays
-   // downstream as a project component-freshness overlay only; it must not
-   // erase lifecycle provenance needed by later structural stages such as F1.
+   // F2 maturity has NO fixed candle/session expiry. MaxWaitBars_Extreme is
+   // retained only as legacy diagnostic metadata and never invalidates owner state.
 
    if(extreme.Maturity == EXT_MAT_VOID || extreme.Maturity == EXT_MAT_SUPERSEDED)
    {
@@ -3912,14 +3911,6 @@ void ResetReEntryState(ReEntryData &reEntry, ENUM_DIRECTION direction, int timef
    reEntry.Type1OwnerSignal = SIGNAL_NONE;
 }
 
-bool IsReEntryIntrinsicExpired(ReEntryData &reEntry, datetime currentCandleTime)
-{
-   // CORE-V2-F3: Type 1 has structural owner lifetime, not a generic candle TTL.
-   if(reEntry.Type == RE_TYPE_1) return false;
-   if(reEntry.StartCandleTime <= 0 || reEntry.ExpiryCandleTime <= 0) return false;
-   return (currentCandleTime > reEntry.ExpiryCandleTime);
-}
-
 void SetReEntrySnapshotLevels(ReEntryData &reEntry, TimeframeData &data)
 {
    double ma5, ma10;
@@ -3974,7 +3965,7 @@ void AdoptType1DirectionOwner(ReEntryData &reEntry, ENUM_DIRECTION direction,
                     "; awaiting structural pause/retrace";
 }
 
-bool IsType1MAClusterCloseSideFailure(TimeframeData &data,
+bool IsReEntryMAClusterCloseSideFailure(TimeframeData &data,
                                       ENUM_DIRECTION direction)
 {
    double ma5, ma10;
@@ -4046,9 +4037,10 @@ void StartSpecificReEntryCandidate(ReEntryData &reEntry,
    reEntry.StartCandleTime = data.candle_time;
    reEntry.LastUpdateBar = data.barIndex;
    reEntry.LastUpdateCandleTime = data.candle_time;
-   reEntry.ExpiryBar = MaxWaitBars_ReEntry;
-   reEntry.ExpiryCandleTime =
-      reEntry.StartCandleTime + MaxWaitBars_ReEntry * data.timeframe * 60;
+   // Legacy expiry fields remain zero for compatibility/telemetry only.
+   // Type 2/3/4 validity is structural and must not use a fixed candle TTL.
+   reEntry.ExpiryBar = 0;
+   reEntry.ExpiryCandleTime = 0;
    reEntry.QualifyingCandles = 1;
    SetReEntrySnapshotLevels(reEntry, data);
 
@@ -4132,33 +4124,26 @@ ENUM_RE_STATE UpdateReEntryState(ReEntryData &reEntry, string pair,
    // Type-1 directional context. The opposite-direction state is managed by
    // its own ReEntryData owner in the parallel direction pass.
    if(oppositeSignal != SIGNAL_NONE &&
-      (reEntry.Type == RE_TYPE_1 ||
+      (reEntry.State == RE_STATE_CANDIDATE ||
+       reEntry.State == RE_STATE_CONFIRMED ||
        reEntry.Type1ContextState != TYPE1_CTX_NONE))
    {
       ResetReEntryState(reEntry, direction, data.timeframe);
       return RE_STATE_NONE;
    }
 
-   if((reEntry.State == RE_STATE_CANDIDATE || reEntry.State == RE_STATE_CONFIRMED) &&
-      IsReEntryIntrinsicExpired(reEntry, data.candle_time))
+   // Any confirmed Re-Entry remains valid only while the common MA5/10
+   // close-side structure survives. This is structural invalidation, not age.
+   if(reEntry.State == RE_STATE_CONFIRMED &&
+      IsReEntryMAClusterCloseSideFailure(data, direction))
    {
-      reEntry.State = RE_STATE_EXPIRED;
-      reEntry.IsValid = false;
-      reEntry.Reason = "MaxWaitBars_ReEntry expired";
-      reEntry.LastUpdateBar = data.barIndex;
-      reEntry.LastUpdateCandleTime = data.candle_time;
-      return RE_STATE_EXPIRED;
+      ResetReEntryState(reEntry, direction, data.timeframe);
+      return RE_STATE_NONE;
    }
 
-   // Confirmed Type 1 remains structurally valid only while its owner survives.
+   // Type 1 additionally tracks same-direction owner transfer/progression.
    if(reEntry.State == RE_STATE_CONFIRMED && reEntry.Type == RE_TYPE_1)
    {
-      if(IsType1MAClusterCloseSideFailure(data, direction))
-      {
-         ResetReEntryState(reEntry, direction, data.timeframe);
-         return RE_STATE_NONE;
-      }
-
       if(sameSignal == SIGNAL_CSM || sameSignal == SIGNAL_CSD)
       {
          // Exact Type 3/4 may take ownership immediately on their precursor.
@@ -4215,7 +4200,7 @@ ENUM_RE_STATE UpdateReEntryState(ReEntryData &reEntry, string pair,
          return RE_STATE_NONE;
       }
 
-      if(IsType1MAClusterCloseSideFailure(data, direction))
+      if(IsReEntryMAClusterCloseSideFailure(data, direction))
       {
          ResetReEntryState(reEntry, direction, data.timeframe);
          return RE_STATE_NONE;
@@ -4250,15 +4235,16 @@ ENUM_RE_STATE UpdateReEntryState(ReEntryData &reEntry, string pair,
 
    if(reEntry.State == RE_STATE_CANDIDATE)
    {
+      // General Re-Entry close-side validity applies to every type.
+      if(IsReEntryMAClusterCloseSideFailure(data, direction))
+      {
+         ResetReEntryState(reEntry, direction, data.timeframe);
+         return RE_STATE_NONE;
+      }
+
       if(reEntry.Type == RE_TYPE_1)
       {
-         // Structural invalidation / ownership transfer has priority.
-         if(IsType1MAClusterCloseSideFailure(data, direction))
-         {
-            ResetReEntryState(reEntry, direction, data.timeframe);
-            return RE_STATE_NONE;
-         }
-
+         // Structural ownership transfer has priority.
          if(sameSignal == SIGNAL_CSM || sameSignal == SIGNAL_CSD)
          {
             if(TryStartSpecificReEntry(reEntry, pair, direction, data))
@@ -5519,7 +5505,6 @@ void BuildConfirmedReEntryCandidate(ReEntryData &reEntry,
       return;
 
    if(reEntry.ConfirmationCandle <= 0) return;
-   if(reEntry.ExpiryCandleTime > 0 && reEntry.ExpiryCandleTime < g_processing_time) return;
 
    candidate.SequenceType = SIGNAL_RE_ENTRY;
    candidate.Direction = reEntry.Direction;
@@ -5534,7 +5519,7 @@ void BuildConfirmedReEntryCandidate(ReEntryData &reEntry,
                       IntegerToString(reEntry.Timeframe) + "|" +
                       TimeToString(reEntry.ConfirmationCandle);
    candidate.SequenceHash = SHORT_HASH(hashInput, 16);
-   candidate.Expiry = reEntry.ExpiryCandleTime;
+   candidate.Expiry = 0; // structural owner lifetime; no generic Re-Entry TTL
    candidate.SLTPSource = SIGNAL_NONE;
    candidate.PriorityTier = TIER_NONE;
    candidate.RequirementCompleteness = 1;
@@ -5582,7 +5567,6 @@ bool IsFreshOpportunityReEntry(ReEntryData &reEntry,
    if(reEntry.State != RE_STATE_CONFIRMED || !reEntry.IsValid) return false;
    if(reEntry.Direction != direction || reEntry.Timeframe != expectedTimeframe) return false;
    if(reEntry.ConfirmationCandle <= 0 || activationTime <= 0) return false;
-   if(reEntry.ExpiryCandleTime > 0 && g_processing_time > reEntry.ExpiryCandleTime) return false;
    return (OpportunityReEntryReadyTime(reEntry) > activationTime);
 }
 
@@ -5593,13 +5577,6 @@ void SetOpportunityREComponent(ComponentIdentity &component, ReEntryData &reEntr
    component.Direction = reEntry.Direction;
    component.Timeframe = reEntry.Timeframe;
    component.CandleTime = reEntry.ConfirmationCandle;
-}
-
-datetime MinPositiveExpiry(datetime a, datetime b)
-{
-   if(a <= 0) return b;
-   if(b <= 0) return a;
-   return MathMin(a, b);
 }
 
 void BuildD1OpportunityCandidate(int pairIndex,
@@ -5642,13 +5619,10 @@ void BuildD1OpportunityCandidate(int pairIndex,
    }
 
    int componentCount = 0;
-   datetime expiry = 0;
-
    if(h1Fresh)
    {
       SetOpportunityREComponent(candidate.Components[componentCount], h1);
       componentCount++;
-      expiry = MinPositiveExpiry(expiry, h1.ExpiryCandleTime);
    }
 
    // Same-cycle M15 is folded into the same cluster when H4 confirms lineage.
@@ -5656,7 +5630,6 @@ void BuildD1OpportunityCandidate(int pairIndex,
    {
       SetOpportunityREComponent(candidate.Components[componentCount], m15);
       componentCount++;
-      expiry = MinPositiveExpiry(expiry, m15.ExpiryCandleTime);
    }
 
    if(componentCount <= 0 || componentCount > 2) return;
@@ -5671,7 +5644,7 @@ void BuildD1OpportunityCandidate(int pairIndex,
                               IntegerToString(identityRE.Timeframe) + "|" +
                               TimeToString(identityRE.ConfirmationCandle);
    candidate.SequenceHash = SHORT_HASH(canonicalIdentity, 16);
-   candidate.Expiry = expiry;
+   candidate.Expiry = 0; // D1 opportunity freshness is structural/activation-owned
    candidate.SLTPSource = SIGNAL_RE_ENTRY;
    candidate.PriorityTier = TIER_NONE;
    candidate.RequirementCompleteness = componentCount;
@@ -5890,20 +5863,10 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
 //| LEVEL: EXPERT-RESTRICTED                                         |
 //+------------------------------------------------------------------+
 
-bool IsExtremeStateExpired(Signal &extreme, datetime currentTime)
-{
-   if(extreme.CandleTime <= 0 || extreme.Timeframe <= 0)
-      return false;
-
-   datetime expiry = extreme.CandleTime +
-                     (MaxWaitBars_Extreme * extreme.Timeframe * 60);
-   return (currentTime > expiry);
-}
-
 void UpdatePersistentExtremeState(Signal &matureExtreme, Signal &state)
 {
-   // M08 lifecycle owns RAW/reversal/retest/invalidation semantics. M16 keeps
-   // only the existing project component-freshness overlay.
+   // M08 lifecycle exclusively owns Extreme validity through structural
+   // VOID/supersession. M16 mirrors the current exact owner; age is metadata only.
    if(!matureExtreme.Valid)
    {
       ZeroMemory(state);
@@ -5911,11 +5874,6 @@ void UpdatePersistentExtremeState(Signal &matureExtreme, Signal &state)
    }
 
    state = matureExtreme;
-   if(IsExtremeStateExpired(state, g_processing_time))
-   {
-      state.Valid = false;
-      state.Reason = "Extreme component expired by timeframe-aware project window";
-   }
 }
 
 bool IsPersistentExtremeComponentValid(PairState &pairState,
@@ -5936,12 +5894,6 @@ bool IsPersistentExtremeComponentValid(PairState &pairState,
       state = pairState.extreme_h4_sell_state;
    else
       return false;
-
-   if(IsExtremeStateExpired(state, g_processing_time))
-   {
-      expired = true;
-      return false;
-   }
 
    return (state.Valid &&
            state.Type == SIGNAL_EXTREME &&
@@ -5999,12 +5951,6 @@ bool IsPersistentReEntryComponentValid(PairState &pairState,
       reEntry = pairState.re_m15_sell_state;
    else
       return false;
-
-   if(reEntry.ExpiryCandleTime > 0 && g_processing_time > reEntry.ExpiryCandleTime)
-   {
-      expired = true;
-      return false;
-   }
 
    return (reEntry.State == RE_STATE_CONFIRMED &&
            reEntry.IsValid &&

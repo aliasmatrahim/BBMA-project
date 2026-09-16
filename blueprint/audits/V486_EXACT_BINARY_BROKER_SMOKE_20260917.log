@@ -1,4 +1,4 @@
-﻿=== MQL4 EXPERT LOG ===
+=== MQL4 EXPERT LOG ===
 0	04:10:59.463	Expert BBMA_EA_Q5_173_486 EURUSD,M15: loaded successfully
 0	04:10:59.464	BBMA_EA_Q5_173_486 EURUSD,M15 inputs: EntryMode=2; PairList=EURUSD; MaxTradePerPair=0; MaxTotalTrade=0; MaxActivePair=1; MMMode=1; AutoLotPercent=1.0; FixedLot=0.01; MaxAutoLot=1.0; TradeLockMode=2; MaxSpreadPips=10.0; MaxDrawdownPercent=50.0; BasketLossPercent=50.0; MaxTotalRiskPercent=50.0; ShowDashboard=false; MinRRRatio=0.0; BlockNMJEConflict=true; BlockNMJEBuilding=true; MaxSLPips=100.0; Slippage=3; DebugLevel=4; StrategyID=73; InstanceID=86;
 0	04:11:07.205	BBMA_EA_Q5_173_486 EURUSD,M15: [P3S1] InitializeEA start PairList=EURUSD RequestedMaxActivePair=1 EffectiveMaxActivePair=1
@@ -30,8 +30,8 @@
 0	04:10:55.635	Data Folder: D:\BBMA\MT4_Q5_173_Demo
 0	04:10:56.018	Started with configuration file 'config\q5_173_readonly.ini'
 2	04:10:59.463	Expert BBMA_EA_Q5_173_486 EURUSD,M15: loaded successfully
-0	04:11:02.951	'175663245': login on MetaQuotes-Demo through Access Point 5 (ping: 186.39 ms)
-0	04:11:05.929	'175663245': previous successful authorization performed from 49.125.221.186
-0	04:11:11.740	'175663245': ping to current access point Access Point 5 is 187.00 ms
+0	04:11:02.951	'DEMO_ACCOUNT_REDACTED': login on MetaQuotes-Demo through Access Point 5 (ping: 186.39 ms)
+0	04:11:05.929	'DEMO_ACCOUNT_REDACTED': previous successful authorization performed from IP_REDACTED
+0	04:11:11.740	'DEMO_ACCOUNT_REDACTED': ping to current access point Access Point 5 is 187.00 ms
 2	04:14:52.410	Expert BBMA_EA_Q5_173_486 EURUSD,M15: removed
 0	04:14:53.208	MetaTrader 4 build 1479 stopped

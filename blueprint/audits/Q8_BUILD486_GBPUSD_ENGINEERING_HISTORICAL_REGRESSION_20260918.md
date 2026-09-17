@@ -88,7 +88,7 @@ Committed small evidence package:
 - four period summary JSON files;
 - `local_evidence_manifest.json` containing SHA-256 references to the retained G40 reports, raw tester logs, HST files, exact candidate bytes and harness bytes.
 
-Local evidence-manifest SHA-256: `110442FDE33D618498578889E3DDC482BE20E9ACFB0EEBA6BA888BA869C48AF8`.
+Local evidence-manifest SHA-256: `37F305FD03308986237B675086673F256C7EB98AB30D57F4C27C3FE9A4D005D1`.
 Deep-matrix SHA-256: `5940383CF49226861802CF040FED3EEC981FFAABE16B8D934D79AE30F70FDB25`.
 
 Q3 Build 4.81 isolated watcher/runtime was not restarted or modified by this work.

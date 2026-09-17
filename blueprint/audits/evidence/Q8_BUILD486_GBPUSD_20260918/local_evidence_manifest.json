@@ -147,6 +147,16 @@
       "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\GBPUSD1440.hst",
       "bytes": 312508,
       "sha256": "6EE8DED5B0027A2340D15196F34DA603899D648A772919AF6FACD156F81800AC"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\Q8_BUILD486_GBPUSD_20260918\\SMOKE_202608.html",
+      "bytes": 4549,
+      "sha256": "F38A2AA36EB423F4EAC731A462154AFDF1C53A0E780950CD15BF3C874267C8D5"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\Q8_BUILD486_GBPUSD_20260918\\SMOKE_202608_tester_newlog.bin",
+      "bytes": 2346,
+      "sha256": "72B9C0E7707C420B537A94E647D680859D9E69BCA6AD4F8FB62BB807EE7E3392"
     }
   ]
 }

@@ -1,0 +1,13 @@
+[F7-BUILD] EA=BBMA_EA Build=4.84 BuildTag=V484_Q5_EXTREME_20260917 SourceRev=Q5_STANDALONE_EXTREME_175_20260917
+[P3S1][PASS] Broker spec EURUSD PID=13 Magic=858413
+[P3S1][PASS] PairID validation
+[P3S1][PASS] Magic validation
+[P3S1][PASS] EA initialized successfully with 1 pairs
+BBMA EA V4.8.4 Q5 Standalone Extreme Execution initialized successfully
+[F7-TELEM] Event=HEARTBEAT Init=1 Connected=1 Monitored=0 F7Managed=0
+[N1-NMJE] EURUSD REL=BUILDING P=H4_OWNER/S D1=OWN/S H4=OWN/S H1=- M15=- R=PARENT_WAITING_FOR_CHILD
+EA deinitialized, reason: 9
+RUNTIME_COUNTS N1=1 NMJE_GATE=0 OrderSend=0 DEC_EXECUTED=0 F7_BUILD=1 Connected=1
+PROFILE EntryMode=2 MaxTradePerPair=0 MaxTotalTrade=0 TradeLockMode=2 BlockNMJEConflict=true BlockNMJEBuilding=true StrategyID=75 InstanceID=84
+TERMINAL Expert=BBMA_EA_Q5_175_484 MetaQuotes-Demo=LOGIN_OK Shutdown=GRACEFUL
+PRIVACY demo account/IP identifiers omitted

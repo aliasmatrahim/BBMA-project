@@ -1,0 +1,13 @@
+[F7-BUILD] EA=BBMA_EA Build=4.85 BuildTag=V485_M12N_ORDER_20260917 SourceRev=Q5_M12N_ORDER_174_20260917
+[P3S1] LoadPairs completed count=18
+[P3S1][PASS] PairID validation
+[P3S1][PASS] Magic validation
+[P3S1][PASS] EA initialized successfully with 18 pairs
+BBMA EA V4.8.5 M12N Orchestration Order Repair initialized successfully
+[F7-TELEM] Event=HEARTBEAT Init=1 Connected=1 Monitored=0 F7Managed=0
+[N1-NMJE] observations=35; relations include BUILDING and SUPPORTING; H4_RE context observed on EURAUD
+EA deinitialized, reason: 9
+RUNTIME_COUNTS N1=35 NMJE_GATE=0 OrderSend=0 DEC_EXECUTED=0 F7_BUILD=1 Connected=1
+PROFILE EntryMode=1 MaxTradePerPair=0 MaxTotalTrade=0 TradeLockMode=2 BlockNMJEConflict=true BlockNMJEBuilding=true StrategyID=74 InstanceID=85
+TERMINAL Expert=BBMA_EA_Q5_174_485 MetaQuotes-Demo=LOGIN_OK Shutdown=GRACEFUL
+PRIVACY demo account/IP identifiers omitted

@@ -1,7 +1,7 @@
 # BBMA Finale — Master Strategy Core Rule Index
 
 ## Status
-Final evidence synthesis from BBMA Finale V01–V07, reconciled against the **current** PDF-derived BBMA Core contracts and the active `blueprint/source/BBMA_EA.mq4` on `blueprint-dev`.
+Final evidence synthesis from BBMA Finale V01–V07, reconciled against the **current** PDF-derived BBMA Core contracts and the active `blueprint/source/BBMA_EA.mq4` on the status-owner branch identified by `blueprint/CURRENT.md`.
 
 This is a source-analysis layer only. It does **not** authorize an EA code change by itself.
 

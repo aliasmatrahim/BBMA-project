@@ -99,6 +99,12 @@ Unresolved items remain in `BBMA_FINALE_SOURCE_CONFLICT_REGISTER.md`. Active cod
 
 The Finale material does **not automatically override** the established PDF contracts. A source clarification and an implementation fix are deliberately treated as separate decisions.
 
+### A4/A5 supplemental video reconciliation
+- Closure record: `blueprint/audits/BBMA_Q5_A4A5_SEMANTIC_RESOLUTION_20260916.md`.
+- Nine retained A4/A5 evidence rows are resolved at the Strategy-Core semantic layer as 6 `CORROBORATION_ONLY` + 3 `REJECTED`.
+- None is `ACCEPTED_CORE`; no source conflict, detector, filter, timing rule or other executable authority is created.
+- Historical A3 blocked/excluded rows, audio-recheck-empty rows and W004 duplicate wording remain transcript/provenance QA residuals only and must not be normalized into Core without materially better evidence.
+
 ## Product-linked supplemental source
 ### BBMA Home Course Workbook — Tier B / strong-provenance copy
 - Artifact reviewed: 19-page `BBMA Home Course Workbook` PDF supplied by the user.
@@ -159,6 +165,6 @@ The two original user-supplied PDF binaries are preserved in GitHub under `docs/
 
 All seven original BBMA Finale SRT files are preserved in GitHub under `docs/references/original/video/oma_ally_finale/` with their original supplied filenames and verified hashes.
 
-The reviewed Tier-B Home Course Workbook is currently represented in GitHub by its authentication/reconciliation records; do not relabel it as an original Tier-A archived source unless a purchaser-preserved/official binary provenance chain is later established and recorded.
+The reviewed Tier-B Home Course Workbook binary is preserved in GitHub as `docs/references/original/333531988-BBMA-Home-Course.pdf` (SHA-256 `b20b8de38d878fa192d0a2fb9d70aba15b59208b477a3cefe73936974a5c2ee7`). It remains a Tier-B / strong-provenance copy and must not be relabelled as an original Tier-A archived source unless a purchaser-preserved/official binary provenance chain is later established and recorded.
 
 The GitHub connector used by ChatGPT exposes UTF-8 text writes but no mounted/local-file upload parameter, so future binary/local-file source additions may require manual upload to the repository. Derived analysis Markdown can be committed directly to GitHub.

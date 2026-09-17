@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 SRC = Path("blueprint/source/BBMA_EA.mq4").read_text(encoding="utf-8")
 
@@ -28,10 +29,11 @@ def test_m12n_runs_once_after_owner_updates_before_combination_assembly():
     assert nmje < body.index("BuildConfirmedReEntryCandidate(")
     assert nmje < body.index("ValidateSequence(")
 
-def test_integrated_build_identity_is_consistent_for_485():
-    assert "Version 4.85 - M12N Orchestration Order Repair" in SRC
-    assert '#property version   "4.85"' in SRC
-    assert '#define BBMA_BUILD_TAG      "V485_M12N_ORDER_20260917"' in SRC
-    assert '#define BBMA_SOURCE_REV_TAG "Q5_M12N_ORDER_174_20260917"' in SRC
-    assert '[F7-BUILD] EA=BBMA_EA Build=4.85 BuildTag=' in SRC
-    assert 'BBMA EA V4.8.5 M12N Orchestration Order Repair initialized successfully' in SRC
+def test_m12n_repair_survives_later_build_identity():
+    match = re.search(r'#property\s+version\s+"([0-9.]+)"', SRC)
+    assert match
+    version = match.group(1)
+    assert float(version) >= 4.85
+    assert f'[F7-BUILD] EA=BBMA_EA Build={version} BuildTag=' in SRC
+    assert '#define BBMA_BUILD_TAG' in SRC
+    assert '#define BBMA_SOURCE_REV_TAG' in SRC

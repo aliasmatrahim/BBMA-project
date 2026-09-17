@@ -1,0 +1,48 @@
+{
+  "mode1": {
+    "lines": 2536,
+    "re_owner": 73,
+    "re_gt5": 26,
+    "re_max": 15.0,
+    "ext_owner": 276,
+    "ext_gt5": 169,
+    "ext_max": 20.75,
+    "expired": 0,
+    "orders": 0
+  },
+  "mode2": {
+    "lines": 2422,
+    "re_owner": 73,
+    "re_gt5": 26,
+    "re_max": 15.0,
+    "ext_owner": 276,
+    "ext_gt5": 169,
+    "ext_max": 20.75,
+    "select_gt5": 47,
+    "m16_gt5": 47,
+    "expired": 0,
+    "orders": 0
+  },
+  "mode1_re_types": {
+    "RE_TYPE_4_CSD": {
+      "gt5": 15,
+      "max": 10.0
+    },
+    "RE_TYPE_3_CSM": {
+      "gt5": 11,
+      "max": 15.0
+    }
+  },
+  "mode1_ext_tf": {
+    "240": {
+      "gt5": 95,
+      "max": 10.94
+    },
+    "60": {
+      "gt5": 74,
+      "max": 20.75
+    }
+  },
+  "mode1_sha256": "4F7D47DF1FCFD5120AE111D6267E3D1E9971812B762742763DC5DB102A852A0D",
+  "mode2_sha256": "CFF275C2D75732D23EF466CCF1150B998CBF47B1304EF409E5D660006097E855"
+}

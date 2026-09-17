@@ -1,4 +1,4 @@
-# M16 Conflict / Invalidation / Owner-Aware Freshness Contract
+# M16 Conflict / Invalidation / Owner-Identity Contract
 
 ## Status
 P0 Step 7 architecture contract for Module 16, reconciled 2026-08-24 with the D1 strategic-owner specification.
@@ -11,7 +11,7 @@ The primary BBMA reference states that an Extreme requires reversal-candle confi
 The original Step 7 contract therefore connected temporal CSM invalidation to Extreme validity. That ownership remains unchanged.
 
 ## Ownership
-M16 is conflict / invalidation / owner-aware freshness authority only.
+M16 is conflict / invalidation / exact-owner revalidation authority only.
 
 M16 does not:
 - detect a new BBMA strategy signal;
@@ -65,12 +65,12 @@ M16 must distinguish:
 
 A valid D1 Re-Entry does not automatically prove the M11 strategic owner is confirmed in the same direction.
 
-## Persistent Extreme validity overlay
+## Persistent Extreme owner-validity overlay
 PairState currently stores independent H1/H4 BUY/SELL Extreme validity snapshots.
 
 Original Step 7 behavior remains:
 1. M08-originating source-valid Extreme may populate the appropriate slot;
-2. M16 applies owner-aware freshness/invalidation;
+2. M16 verifies exact current owner identity/structural validity and adds no fixed-age Strategy-Core TTL;
 3. later same-timeframe closed source-valid CSM may invalidate the stored Extreme according to the source contract.
 
 This does not turn M16 into an Extreme detector.
@@ -84,10 +84,10 @@ Operational encoding remains:
 - later than the Extreme candle;
 - no unsupported extra direction qualification is invented when the source sentence does not provide one.
 
-## Expiry is not invalidation
-Continue to distinguish:
-- `EXPIRED` -> owner/project time window ended;
-- `INVALIDATED` -> strategy/owner identity is no longer valid.
+## Structural invalidation is not age expiry
+Extreme and Re-Entry Strategy-Core validity is structural. M16 must not mark an otherwise source-valid Extreme or Type 1/2/3/4 Re-Entry invalid merely because a generic project candle window elapsed.
+
+`EXPIRED` may remain an enum/compatibility state for an explicitly owned non-Core expiry contract, but `MaxWaitBars_Extreme` and generic `MaxWaitBars_ReEntry` are not Strategy-Core death authority.
 
 D1 transition/opposite-owner failure is a strategic-owner eligibility failure for a pending new-entry decision, not a generic time expiry.
 
@@ -103,7 +103,7 @@ Valid only when the matching H1/H4/D1 M12 slot remains:
 - valid;
 - same direction/timeframe;
 - same confirmation-candle identity;
-- within any explicit owner validity contract.
+- still source-valid under the M12 structural owner contract; no generic fixed-age TTL is added by M16.
 
 ### MHV/MLV component
 Valid only when the matching M09 owner state remains at the required maturity/identity for the selected decision.

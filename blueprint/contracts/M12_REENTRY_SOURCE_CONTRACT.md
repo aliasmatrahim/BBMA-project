@@ -66,10 +66,12 @@ Blueprint consequence:
 Only confirmed Re-Entry state may be exported downstream as `SIGNAL_RE_ENTRY`.
 
 Type-specific lifecycle:
-- Type 1: `NONE -> CONFIRMED -> EXPIRED` on the source-defined closed-candle MA5/10 setup; no invented extra confirmation stage.
-- Type 2: `NONE -> CANDIDATE -> CONFIRMED -> EXPIRED`.
-- Type 3: `NONE -> CANDIDATE(CSM) -> CONFIRMED(retrace MA5/MA50) -> EXPIRED`.
-- Type 4: `NONE -> CANDIDATE(CSD) -> CONFIRMED(retrace MA5/10) -> EXPIRED`.
+- Type 1: source-valid direction owner -> structural ranging/retrace -> `CANDIDATE` -> `CONFIRMED`; validity ends only through source-owned structural invalidation/ownership transfer.
+- Type 2: `NONE -> CANDIDATE -> CONFIRMED`; confluence break, MA5/MA10 close-side failure or opposite source-valid direction/momentum resets the current owner.
+- Type 3: `NONE -> CANDIDATE(CSM) -> CONFIRMED(retrace MA5/MA50)`; MA5/MA10 close-side failure or opposite source-valid direction/momentum resets the current owner.
+- Type 4: `NONE -> CANDIDATE(CSD) -> CONFIRMED(retrace MA5/10)`; MA5/MA10 close-side failure or opposite source-valid direction/momentum resets the current owner.
+
+`MaxWaitBars_ReEntry` is not Strategy-Core lifetime authority for Type 1/2/3/4. Age/expiry fields may remain for compatibility or diagnostics only and must not invalidate an otherwise source-valid owner.
 
 M15 remains the sole orchestration clock, but H1/H4/D1 lifecycle state advances only when a new closed candle of that state slot's own timeframe is observed.
 

@@ -1,8 +1,8 @@
 # BBMA Current Project State
 
-Updated: **2026-09-09**
+Updated: **2026-09-17**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`262ff66dfdeed2cd4a7ac20fb82c47136db59451`**
+Owner head at reconciliation: **`b4772efc7cac5a7e3061473a4c1a7c4c305b1835`**
 
 This file is the active current-state record. The pre-2026-09-09 historical `CURRENT.md` is preserved byte-for-byte at `blueprint/archive/CURRENT_pre_20260909.md`.
 
@@ -10,31 +10,24 @@ This file is the active current-state record. The pre-2026-09-09 historical `CUR
 - GitHub `aliasmatrahim/BBMA-project` is authoritative for live project state.
 - Strategy/source semantics are routed through `docs/references/SOURCE_INDEX.md` and the accepted Core/source evidence chain.
 - Canonical active EA path: `blueprint/source/BBMA_EA.mq4`.
-- Canonical owner source at this reconciliation: `Version 4.6.1 - F7 Re-Entry Lifecycle Integration`, property `4.61`, Git blob `6e629128f37c3fd482dd49e275360503f73fee68`.
-- The owner source is not a production-readiness claim. Runtime/source attribution and several acceptance gates remain open.
+- Canonical owner source: Build `4.86` / `V486_STRUCTURAL_LIFETIME_20260917`; raw Git MQ4 SHA-256 `D737A25FD01D6BA879118479401B5E7969DF20F528E53E43515852C555DD3308`.
+- Q7 freezes this exact Build 4.86 source as the integrated candidate under Issue #186; this is not a production-readiness claim.
 
-## Current blocking workstreams
+## Current active workstreams / integrated state
 
-### 1. NMJE execution-authority repair — Issue #141 / Draft PR #142
-Status: **CONFIRMED AUTHORITY VIOLATION / SOURCE FIX PENDING G40 NATIVE VALIDATION**.
-- Current v4.61 can reject M15/M16-valid Re-Entry decisions through `NMJE_PassExecutionGate()`.
-- Active M12N/N3 contract requires NMJE to remain observation/read-only; execution policy is not authorized.
-- Remote PR #142 contains authority audit + test-first guard only.
-- Branch: `fix/nmje-readonly-authority-141`.
-- Head at reconciliation: `8aea5000a98252fc80d2d4ea36582bec73ffd964`.
-- Intended unique candidate build: **4.83**.
-- Required closure: smallest execution-neutral source fix, preserve N1/N2 telemetry, static/cross-module proof, native MetaEditor **0E0W**, targeted regression, attributable runtime evidence.
-- No replacement NMJE strategy rule is authorized.
+### 1. NMJE read-only authority — Issue #141 / PR #142
+Status: **IMPLEMENTATION MERGED / VERIFIED IN OWNER BUILD 4.83+**.
+- PR #142 merged as `193735e2079936003e87bfd0db39ba6585757aa3`.
+- NMJE remains observation-only: no create/reject/rank/execute authority under the active policy.
+- Current Build 4.86 preserves the verified Q1 repair and attributable runtime proof.
+- Issue-level tracking may remain open, but this implementation prerequisite no longer blocks Q7.
 
-### 2. F7/C044 infrastructure hardening — Issues #127/#132/#133/#138 / Draft PR #140
-Status: **REMOTE MODEL/AUDIT READY / LOCAL SOURCE PATCH PENDING G40 RECONCILIATION**.
-- Branch: `upgrade/f7-infra-postfreeze-20260909`.
-- Head at reconciliation: `f0147f6a211be916f773b8e3152a85a42752235c`.
-- Intended unique candidate build: **4.82**.
-- Scope: deterministic `[F7-BUILD]`, exact-ticket EXEC open time, live-vs-canonical F7 provenance reconciliation, generation-atomic C044 checkpoint/replay persistence.
-- Remote PR contains model/audit/test files only; no remote EA-source implementation is claimed.
-- An uncommitted local v4.82 source patch was observed on G40 before disconnect and must be preserved/re-read rather than overwritten.
-- Required closure: strengthened atomicity/static regression + native MetaEditor **0E0W** before source push; physical/runtime acceptance remains separate.
+### 2. F7/C044 infrastructure hardening — Issues #127/#132/#133/#138 / PR #140
+Status: **IMPLEMENTATION MERGED / VERIFIED IN OWNER BUILD 4.82+**.
+- PR #140 merged as `30ac09675734da7bf4a23dae6b12faec8138f506`.
+- Deterministic build identity, exact-ticket frozen open-time telemetry source path and generation-atomic C044 persistence are integrated.
+- Deterministic C044 model, static/cross-module guards and native compile passed; current Build 4.86 preserves this lineage.
+- Residual issue-level live exact-ticket/runtime observations remain separate and do not require recreating Q2 for Q7.
 
 ### 3. C10 Build 4.81 runtime closure — Issues #122/#123 / Draft PR #131
 Status: **SOURCE/STATIC/NATIVE COMPILE PASS / FINAL BROKER-CLOCK RESTART GATE PENDING**.
@@ -75,10 +68,16 @@ Status: **SYNTHETIC-V3 HST/TESTER GATES PASS / FULL NATIVE TICK ARCHIVE INCOMPLE
 - Resume from the first incomplete verified pair-month only; do not redownload COMPLETE archive+SHA months.
 - Final tick-accurate claims remain blocked until all 720 target pair-months and remaining provenance/session/deployment-mapping gates close.
 
-## Current infrastructure blocker
-Authorized G40 Remote Desktop Commander device is **offline** at this reconciliation. Last seen: `2026-09-09T02:23:57.054+00:00` (10:23:57 Malaysia). Auth token remains valid.
+### 6. Q7 integrated candidate freeze — Issue #186
+Status: **VERIFIED / FROZEN**.
+- Exact owner head `b4772efc7cac5a7e3061473a4c1a7c4c305b1835`; implementation parent `beef83f94d8177959c085a827f8a425119065d16`.
+- Raw owner MQ4 bytes equal verified Build 4.86 bytes; no protected EA/Core/contract change exists after the implementation parent.
+- Exact Build 4.86 EX4 SHA-256 remains `6A7116B26CDB7BA87B8CCC3415D2309BF414C32D274A66B4903D6E47FC93A5C6`.
+- Freeze record: `blueprint/audits/Q7_BUILD486_INTEGRATED_CANDIDATE_FREEZE_20260917.md`.
+- Q6 is sequenced next before Q8; Q3 continues independently in isolated shadow runtime.
 
-An hourly condition watcher is configured to resume the five G40-dependent workstreams above only when the device becomes available. It must re-read actual local state before mutation.
+## Current infrastructure blocker
+Authorized G40 Remote Desktop Commander was reachable during the 2026-09-17 Q7 recovery. Active live-state work remains Q3 isolated runtime and Q6 archive resumption; all must re-read actual local state before mutation.
 
 ## Recently closed tracking/governance work
 - stale v4.58 CI PR-gate bug #136 closed; workflow-only fix merged.
@@ -95,6 +94,6 @@ An hourly condition watcher is configured to resume the five G40-dependent works
 ## Safety boundary
 - No primary MT4 restart is authorized by this status record.
 - Do not enable trading or lifecycle authority merely because static/native tests pass.
-- Do not merge PR #140/#142/#131 until their own evidence gates close.
+- PR #140 and #142 are already merged into the verified lineage; PR #131 remains gated by its exact C10 runtime acceptance.
 - Do not invent a Strategy-Core rule to fill source uncertainty or improve historical profitability.
 - Every EA source change requires a unique visible build identity and attributable native compile/runtime evidence.

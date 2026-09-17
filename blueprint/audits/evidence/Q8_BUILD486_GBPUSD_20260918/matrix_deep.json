@@ -1,0 +1,164 @@
+{
+  "label": "ENGINEERING HISTORICAL EVIDENCE / NOT FINAL TICK-ACCURATE",
+  "candidate": "Build 4.86 / V486_STRUCTURAL_LIFETIME_20260917",
+  "pair": "GBPUSD",
+  "periods": [
+    {
+      "stem": "Q8_2024",
+      "summary_acceptance": "PASS",
+      "exec_count": 396,
+      "exec_sequence_failures": 0,
+      "exec_missing_final_executed": 0,
+      "exec_bad_closed_candle_clock": 0,
+      "duplicate_exec_decision_ids": 0,
+      "duplicate_tickets": 0,
+      "fatal_runtime": {
+        "zero divide": 0,
+        "array out of range": 0,
+        "critical error": 0,
+        "unresolved stack function": 0,
+        "access violation": 0
+      },
+      "owner_clock_samples": 24996,
+      "owner_m15_chronology_ok": true,
+      "lifecycle_state_observations": {
+        "EXT_MAT_VOID": 140914,
+        "EXT_MAT_SUPERSEDED": 6327,
+        "EXT_MAT_RETEST_READY": 31044,
+        "EXT_MAT_REVERSAL_CONFIRMED": 4574,
+        "RE_STATE_CANDIDATE": 41656,
+        "RE_STATE_CONFIRMED": 48270,
+        "MLV_FORMATION_ESTABLISHED": 1242,
+        "MLV_RETEST_COMPLETE": 1746,
+        "MLV_SUPERSEDED": 2251,
+        "MLV_VOID": 20652,
+        "EXPIRED": 0
+      },
+      "performance": {
+        "net_profit": "-47.47",
+        "profit_factor": "0.79",
+        "maximal_drawdown": "75.89 (0.76%)",
+        "total_trades": "396"
+      },
+      "deep_acceptance": "PASS"
+    },
+    {
+      "stem": "Q8_2025H1",
+      "summary_acceptance": "PASS",
+      "exec_count": 206,
+      "exec_sequence_failures": 0,
+      "exec_missing_final_executed": 0,
+      "exec_bad_closed_candle_clock": 0,
+      "duplicate_exec_decision_ids": 0,
+      "duplicate_tickets": 0,
+      "fatal_runtime": {
+        "zero divide": 0,
+        "array out of range": 0,
+        "critical error": 0,
+        "unresolved stack function": 0,
+        "access violation": 0
+      },
+      "owner_clock_samples": 12288,
+      "owner_m15_chronology_ok": true,
+      "lifecycle_state_observations": {
+        "EXT_MAT_VOID": 66223,
+        "EXT_MAT_SUPERSEDED": 2283,
+        "EXT_MAT_RETEST_READY": 15383,
+        "EXT_MAT_REVERSAL_CONFIRMED": 2575,
+        "RE_STATE_CANDIDATE": 22148,
+        "RE_STATE_CONFIRMED": 21378,
+        "MLV_FORMATION_ESTABLISHED": 527,
+        "MLV_RETEST_COMPLETE": 856,
+        "MLV_SUPERSEDED": 1913,
+        "MLV_VOID": 9972,
+        "EXPIRED": 0
+      },
+      "performance": {
+        "net_profit": "-23.14",
+        "profit_factor": "0.86",
+        "maximal_drawdown": "56.63 (0.57%)",
+        "total_trades": "206"
+      },
+      "deep_acceptance": "PASS"
+    },
+    {
+      "stem": "Q8_2025H2",
+      "summary_acceptance": "PASS",
+      "exec_count": 173,
+      "exec_sequence_failures": 0,
+      "exec_missing_final_executed": 0,
+      "exec_bad_closed_candle_clock": 0,
+      "duplicate_exec_decision_ids": 0,
+      "duplicate_tickets": 0,
+      "fatal_runtime": {
+        "zero divide": 0,
+        "array out of range": 0,
+        "critical error": 0,
+        "unresolved stack function": 0,
+        "access violation": 0
+      },
+      "owner_clock_samples": 12612,
+      "owner_m15_chronology_ok": true,
+      "lifecycle_state_observations": {
+        "EXT_MAT_VOID": 68623,
+        "EXT_MAT_SUPERSEDED": 2650,
+        "EXT_MAT_RETEST_READY": 13674,
+        "EXT_MAT_REVERSAL_CONFIRMED": 2895,
+        "RE_STATE_CANDIDATE": 20126,
+        "RE_STATE_CONFIRMED": 23850,
+        "MLV_FORMATION_ESTABLISHED": 659,
+        "MLV_RETEST_COMPLETE": 774,
+        "MLV_SUPERSEDED": 1143,
+        "MLV_VOID": 9672,
+        "EXPIRED": 0
+      },
+      "performance": {
+        "net_profit": "1.77",
+        "profit_factor": "1.02",
+        "maximal_drawdown": "31.69 (0.32%)",
+        "total_trades": "173"
+      },
+      "deep_acceptance": "PASS"
+    },
+    {
+      "stem": "Q8_2026YTD",
+      "summary_acceptance": "PASS",
+      "exec_count": 270,
+      "exec_sequence_failures": 0,
+      "exec_missing_final_executed": 0,
+      "exec_bad_closed_candle_clock": 0,
+      "duplicate_exec_decision_ids": 0,
+      "duplicate_tickets": 0,
+      "fatal_runtime": {
+        "zero divide": 0,
+        "array out of range": 0,
+        "critical error": 0,
+        "unresolved stack function": 0,
+        "access violation": 0
+      },
+      "owner_clock_samples": 16512,
+      "owner_m15_chronology_ok": true,
+      "lifecycle_state_observations": {
+        "EXT_MAT_VOID": 95593,
+        "EXT_MAT_SUPERSEDED": 3485,
+        "EXT_MAT_RETEST_READY": 18430,
+        "EXT_MAT_REVERSAL_CONFIRMED": 3626,
+        "RE_STATE_CANDIDATE": 25524,
+        "RE_STATE_CONFIRMED": 34496,
+        "MLV_FORMATION_ESTABLISHED": 803,
+        "MLV_RETEST_COMPLETE": 1256,
+        "MLV_SUPERSEDED": 999,
+        "MLV_VOID": 13602,
+        "EXPIRED": 0
+      },
+      "performance": {
+        "net_profit": "-50.81",
+        "profit_factor": "0.70",
+        "maximal_drawdown": "62.88 (0.63%)",
+        "total_trades": "270"
+      },
+      "deep_acceptance": "PASS"
+    }
+  ],
+  "matrix_acceptance": "PASS"
+}

@@ -1,8 +1,8 @@
 # BBMA Active Master Queue
 
-Reconciled: **2026-09-17**
+Reconciled: **2026-09-18**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`b4772efc7cac5a7e3061473a4c1a7c4c305b1835`**
+Owner head at reconciliation: **`3fdd918151f99f1b57db8929efbe39e07f61a697`**
 
 This file is the active queue. The pre-2026-09-09 historical queue is preserved byte-for-byte at `blueprint/archive/MASTER_QUEUE_pre_20260909.md`.
 
@@ -21,7 +21,7 @@ Stable Q IDs are preserved. The active dependency order is:
 - **Integration / final acceptance:** Q7 -> Q8 -> Q10
 - **Deferred / future:** Q9 + Q11
 
-Q3 and Q6 may progress in parallel when their runtime/data conditions are available. Q7 prerequisites are now satisfied and exact Build 4.86 is frozen under Issue #186. Current user sequencing is Q7 complete -> Q6 -> Q8; Q3 remains parallel.
+Q3 and Q6 may progress in parallel when their runtime/data conditions are available. Q7 is frozen and the scoped GBPUSD Q8 engineering regression is now complete under Issue #188. Q6 native final-authority residuals remain open under Issue #128; Q3 remains parallel and Q10 remains separately gated.
 
 ## Stage A - Source evidence / reconciliation
 
@@ -147,13 +147,22 @@ Status: **VERIFIED / FROZEN — BUILD 4.86**
 - Q1/Q2/#175/#174/#173 lineage is integrated; post-Build-4.86 owner change is governance-only.
 - Exact-source compile/regression/deterministic/cross-module/runtime evidence is reused; no new EA build or duplicate integration is justified.
 - Freeze record: `blueprint/audits/Q7_BUILD486_INTEGRATED_CANDIDATE_FREEZE_20260917.md`.
-- Current user sequence: complete Q6 next, then run Q8 against this frozen candidate.
+- Q8 scoped GBPUSD engineering regression is complete; Q6 native final-authority residuals remain open and Q10 remains separately gated.
 
 ### Q8 — Regression/backtest programme
+Issue: **#188**
 Priority: **AFTER Q7 FROZEN CANDIDATE + Q6 USABLE HISTORICAL PROFILE**
-Status: **PENDING**
+Status: **VERIFIED / COMPLETE — GBPUSD ENGINEERING HISTORICAL EVIDENCE**
 
-Use isolated/canonical historical environment. Separate mechanism correctness from profitability claims. Any proposed accuracy filter/policy must start as evidence/shadow work and requires explicit Strategy-Core authorization before reducing valid trade opportunity.
+- Frozen lineage: Build `4.86` / `V486_STRUCTURAL_LIFETIME_20260917`.
+- Scope executed: GBPUSD only; 2024, 2025 H1, 2025 H2, 2026 YTD through 2026-09-01 exclusive, plus bounded August-2026 smoke.
+- Exact candidate MQ4/EX4 identity and six GBPUSD HST identities were freshly reverified before continuation.
+- Offline tester used a separately hashed three-guard tester-only adapter; invariant verification proves no Strategy-Core/risk/execution/lifecycle semantic delta.
+- Native harness compile 0E0W; every matrix run passed init/deinit, M15 chronology, M16->preflight->execution ordering, lifecycle coverage, duplicate/order and fatal-runtime checks.
+- Performance results are descriptive only; no optimization/filter/rule was introduced.
+- Evidence remains `ENGINEERING HISTORICAL EVIDENCE / NOT FINAL TICK-ACCURATE`.
+- Audit: `blueprint/audits/Q8_BUILD486_GBPUSD_ENGINEERING_HISTORICAL_REGRESSION_20260918.md`.
+- Q6 native archive/provenance and Q10 final broker/demo acceptance remain separate gates.
 
 ### Q10 — Final automated broker/demo acceptance
 Issue: **#109**

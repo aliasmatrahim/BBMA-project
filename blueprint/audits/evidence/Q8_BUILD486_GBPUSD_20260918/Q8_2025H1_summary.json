@@ -1,0 +1,30 @@
+{
+  "stem": "Q8_2025H1",
+  "model_every_tick": true,
+  "mismatched_chart_errors": "0",
+  "net_profit": "-23.14",
+  "profit_factor": "0.86",
+  "maximal_drawdown": "56.63 (0.57%)",
+  "total_trades": "206",
+  "build486_exact_marker": 1,
+  "init_pass": 1,
+  "init_failed": 0,
+  "deinit_reason0": 1,
+  "m16_pass": 4219,
+  "m17_struct": 3612,
+  "exec_count": 206,
+  "exec_unique_decision_ids": 206,
+  "exec_duplicate_decision_ids": 0,
+  "ticket_duplicates": 0,
+  "rej_duplicate": 4258,
+  "owner_clock_samples": 12288,
+  "owner_m15_chronology_ok": true,
+  "fatal_runtime": {
+    "zero divide": 0,
+    "array out of range": 0,
+    "critical error": 0,
+    "unresolved stack function": 0,
+    "access violation": 0
+  },
+  "acceptance": "PASS"
+}

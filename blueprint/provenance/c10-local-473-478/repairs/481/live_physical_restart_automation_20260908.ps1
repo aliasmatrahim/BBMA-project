@@ -129,11 +129,11 @@ while((Get-Date)-lt $postDeadline){
     $readyRegex='\[C10\]\[READY\].*Config='+[regex]::Escape($pre.ConfigFingerprint)+'.*Authority=NONE'
     if($postText -match $readyRegex){$readySeen=$true}
   }
-  if($postMatch){break}
+  if($postMatch -and $recoverySeen -and $readySeen){break}
   Start-Sleep -Milliseconds 100
 }
-if(!$postMatch){
-  Log 'FAIL POST_RESTART_ACTIVE_NOT_RECOVERED'
+if(!$postMatch -or !$recoverySeen -or !$readySeen){
+  Log ('FAIL POST_RESTART_RECOVERY_NOT_PROVEN Active='+$postMatch+' Recovery='+$recoverySeen+' Ready='+$readySeen)
   $rp=GetIsoProc
   if($rp){Stop-Process -Id $rp.ProcessId -Force}
   exit 6

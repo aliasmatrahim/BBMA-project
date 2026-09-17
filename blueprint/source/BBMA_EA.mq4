@@ -34,6 +34,9 @@
 #property version   "4.83"
 #property strict
 
+#define BBMA_BUILD_TAG      "V483_NMJE_READONLY_20260917"
+#define BBMA_SOURCE_REV_TAG "NMJE_READONLY_Q1_20260917"
+
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
 //| LEVEL: BEGINNER                                                  |
@@ -296,7 +299,6 @@ enum ENUM_REJECTION_REASON
    REJ_EXPIRED,
    REJ_OPPOSITE_SIGNAL,
    REJ_SEQUENCE_BREAK,
-   REJ_NMJE_RELATION,
    REJ_SPREAD_HIGH,
    REJ_DD_LIMIT,
    REJ_BASKET_LOSS,
@@ -7771,6 +7773,7 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
          MarkDecisionExecuted(decision.DecisionID, ticket);
          decision.DecisionState = DEC_EXECUTED;
          decision.RejectionReason = REJ_NONE;
+         F7ProspectiveContextTelemetry(pairIdx, decision, ticket);
          if(EntryMode == 1)
             Print("[P3M1][EXEC] Ticket=", ticket,
                   " Pair=", pair,
@@ -7778,7 +7781,7 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
                   " Signal=", EnumToString(decision.SignalType),
                   " Dir=", EnumToString(decision.Direction),
                   " ValidateCandle=", TimeToString(decision.CandleTime),
-                  " OrderOpen=", TimeToString(OrderOpenTime()));
+                  " OrderOpen=", TimeToString(info.open_time));
          if(EntryMode == 2)
             Print("[P3M2][EXEC] Ticket=", ticket,
                   " Pair=", pair,
@@ -7786,7 +7789,7 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
                   " Signal=", EnumToString(decision.SignalType),
                   " Dir=", EnumToString(decision.Direction),
                   " ValidateCandle=", TimeToString(decision.CandleTime),
-                  " OrderOpen=", TimeToString(OrderOpenTime()));
+                  " OrderOpen=", TimeToString(info.open_time));
          return;
       }
 
@@ -8239,6 +8242,15 @@ void F7TelemetryWrite(string line)
    FileSeek(h,0,SEEK_END); FileWriteString(h,line+"\r\n"); FileFlush(h); FileClose(h);
 }
 
+void F7BuildIdentityTelemetry()
+{
+   string line="[F7-BUILD] EA=BBMA_EA Build=4.83 BuildTag="+string(BBMA_BUILD_TAG)+
+      " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
+      " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
+   Print(line);
+   F7TelemetryWrite(line);
+}
+
 void F7Telemetry(string eventName, TradeInfo &info, string detail="")
 {
    string line="[F7-TELEM] Event="+eventName+" Ticket="+IntegerToString(info.ticket)+" Pair="+info.pair+
@@ -8248,7 +8260,7 @@ void F7Telemetry(string eventName, TradeInfo &info, string detail="")
    Print(line); F7TelemetryWrite(line);
 }
 
-void F7ProspectiveContextTelemetry(int pairIndex, BBMA_Decision &decision)
+void F7ProspectiveContextTelemetry(int pairIndex, BBMA_Decision &decision, int ticket)
 {
    if(pairIndex < 0 || pairIndex >= g_pair_count) return;
    if(!decision.Valid || decision.DecisionState != DEC_EXECUTED) return;
@@ -8271,7 +8283,7 @@ void F7ProspectiveContextTelemetry(int pairIndex, BBMA_Decision &decision)
 
    NestedJourneyState journey = g_nested_journeys[pairIndex];
    string journeyId = (journey.JourneyID == "" ? "-" : journey.JourneyID);
-   string line = "[F7-PROSPECTIVE] Pair="+decision.Pair+
+   string line = "[F7-PROSPECTIVE] Ticket="+IntegerToString(ticket)+" Pair="+decision.Pair+
       " DecisionID="+NMJE_LogIdentityToken(decision.DecisionID)+
       " DIDH="+SHORT_HASH(decision.DecisionID)+
       " Dir="+NMJE_DirText(decision.Direction)+
@@ -8835,6 +8847,10 @@ bool C044CheckpointExists(TradeInfo &info)
 {
    if(info.ticket <= 0) return false;
    string base = C044CheckpointBase(info);
+   if(!GlobalVariableCheck(base + "CM") || !GlobalVariableCheck(base + "G")) return false;
+   double committed = GlobalVariableGet(base + "CM");
+   double generation = GlobalVariableGet(base + "G");
+   if(committed <= 0.0 || generation != committed) return false;
    string keys[10] = {"D","TF","OR","EP","LP","ST","XR","XL","OT","MG"};
    for(int i = 0; i < 10; i++)
       if(!GlobalVariableCheck(base + keys[i])) return false;
@@ -8851,26 +8867,76 @@ string C044ReplayGVKey(string base, string group, int index)
    return base + group + IntegerToString(index);
 }
 
-void ClearC044ReplaySeed(TradeInfo &info)
+bool C044DeleteGVExact(string key)
 {
-   if(info.ticket <= 0) return;
-   string base = C044ReplayGVBase(info);
-   if(GlobalVariableCheck(base + "V")) GlobalVariableDel(base + "V");
-   for(int i = 0; i < 20; i++)
-      if(GlobalVariableCheck(C044ReplayGVKey(base, "R", i)))
-         GlobalVariableDel(C044ReplayGVKey(base, "R", i));
-   for(int j = 0; j < 19; j++)
-   {
-      if(GlobalVariableCheck(C044ReplayGVKey(base, "B", j)))
-         GlobalVariableDel(C044ReplayGVKey(base, "B", j));
-      if(GlobalVariableCheck(C044ReplayGVKey(base, "S", j)))
-         GlobalVariableDel(C044ReplayGVKey(base, "S", j));
-   }
+   if(!GlobalVariableCheck(key)) return true;
+   ResetLastError();
+   if(!GlobalVariableDel(key)) return false;
+   return !GlobalVariableCheck(key);
 }
 
-bool SaveC044ReplaySeed(TradeInfo &info)
+bool C044SetGVExact(string key, double value)
 {
-   if(!info.c044_replay_seed_valid || info.ticket <= 0) return false;
+   ResetLastError();
+   if(GlobalVariableSet(key, value) == 0) return false;
+   if(!GlobalVariableCheck(key)) return false;
+   return (GlobalVariableGet(key) == value);
+}
+
+bool C044ReplayPayloadAbsent(string base)
+{
+   if(GlobalVariableCheck(base + "V") || GlobalVariableCheck(base + "G")) return false;
+   for(int i = 0; i < 20; i++)
+      if(GlobalVariableCheck(C044ReplayGVKey(base, "R", i))) return false;
+   for(int j = 0; j < 19; j++)
+   {
+      if(GlobalVariableCheck(C044ReplayGVKey(base, "B", j))) return false;
+      if(GlobalVariableCheck(C044ReplayGVKey(base, "S", j))) return false;
+   }
+   return true;
+}
+
+bool ClearC044ReplaySeedExact(TradeInfo &info)
+{
+   if(info.ticket <= 0) return false;
+   string base = C044ReplayGVBase(info);
+   if(!C044DeleteGVExact(base + "V")) return false;
+   if(!C044DeleteGVExact(base + "G")) return false;
+   for(int i = 0; i < 20; i++)
+      if(!C044DeleteGVExact(C044ReplayGVKey(base, "R", i))) return false;
+   for(int j = 0; j < 19; j++)
+   {
+      if(!C044DeleteGVExact(C044ReplayGVKey(base, "B", j))) return false;
+      if(!C044DeleteGVExact(C044ReplayGVKey(base, "S", j))) return false;
+   }
+   GlobalVariablesFlush();
+   return C044ReplayPayloadAbsent(base);
+}
+
+bool ClearC044GenerationPayloadExact(TradeInfo &info)
+{
+   if(info.ticket <= 0) return false;
+   string base = C044CheckpointBase(info);
+   string keys[10] = {"D","TF","OR","EP","LP","ST","XR","XL","OT","MG"};
+   for(int i = 0; i < 10; i++)
+      if(!C044DeleteGVExact(base + keys[i])) return false;
+   if(!C044DeleteGVExact(base + "G")) return false;
+   if(!ClearC044ReplaySeedExact(info)) return false;
+   GlobalVariablesFlush();
+   for(int j = 0; j < 10; j++)
+      if(GlobalVariableCheck(base + keys[j])) return false;
+   if(GlobalVariableCheck(base + "G")) return false;
+   return true;
+}
+
+void ClearC044ReplaySeed(TradeInfo &info)
+{
+   ClearC044ReplaySeedExact(info);
+}
+
+bool SaveC044ReplaySeed(TradeInfo &info, double generation)
+{
+   if(!info.c044_replay_seed_valid || info.ticket <= 0 || generation <= 0.0) return false;
    if(info.c044_replay_reentry.Direction != info.direction ||
       info.c044_replay_reentry.Timeframe != info.c044_owner_timeframe ||
       info.c044_replay_extreme_buy.Direction != DIR_BUY ||
@@ -8880,72 +8946,78 @@ bool SaveC044ReplaySeed(TradeInfo &info)
       return false;
 
    string base = C044ReplayGVBase(info);
-   GlobalVariableSet(base + "V", 1.0);
+   if(!C044ReplayPayloadAbsent(base)) return false;
+   if(!C044SetGVExact(base + "V", 2.0)) return false;
 
-   GlobalVariableSet(C044ReplayGVKey(base,"R",0),  (double)info.c044_replay_reentry.Type);
-   GlobalVariableSet(C044ReplayGVKey(base,"R",1),  (double)info.c044_replay_reentry.State);
-   GlobalVariableSet(C044ReplayGVKey(base,"R",2),  (double)info.c044_replay_reentry.Direction);
-   GlobalVariableSet(C044ReplayGVKey(base,"R",3),  (double)info.c044_replay_reentry.Timeframe);
-   GlobalVariableSet(C044ReplayGVKey(base,"R",4),  (double)info.c044_replay_reentry.StartBar);
-   GlobalVariableSet(C044ReplayGVKey(base,"R",5),  (double)info.c044_replay_reentry.StartCandleTime);
-   GlobalVariableSet(C044ReplayGVKey(base,"R",6),  (double)info.c044_replay_reentry.LastUpdateBar);
-   GlobalVariableSet(C044ReplayGVKey(base,"R",7),  (double)info.c044_replay_reentry.LastUpdateCandleTime);
-   GlobalVariableSet(C044ReplayGVKey(base,"R",8),  (double)info.c044_replay_reentry.ConfirmationBar);
-   GlobalVariableSet(C044ReplayGVKey(base,"R",9),  (double)info.c044_replay_reentry.ConfirmationCandle);
-   GlobalVariableSet(C044ReplayGVKey(base,"R",10), (double)info.c044_replay_reentry.ExpiryBar);
-   GlobalVariableSet(C044ReplayGVKey(base,"R",11), (double)info.c044_replay_reentry.ExpiryCandleTime);
-   GlobalVariableSet(C044ReplayGVKey(base,"R",12), (double)info.c044_replay_reentry.MinCandlesRequired);
-   GlobalVariableSet(C044ReplayGVKey(base,"R",13), (double)info.c044_replay_reentry.QualifyingCandles);
-   GlobalVariableSet(C044ReplayGVKey(base,"R",14), (double)info.c044_replay_reentry.Type1ContextState);
-   GlobalVariableSet(C044ReplayGVKey(base,"R",15), (double)info.c044_replay_reentry.Type1OwnerSignal);
-   GlobalVariableSet(C044ReplayGVKey(base,"R",16), (double)info.c044_replay_reentry.Type1OwnerCandleTime);
-   GlobalVariableSet(C044ReplayGVKey(base,"R",17), (double)info.c044_replay_reentry.Type1RangingStartCandleTime);
-   GlobalVariableSet(C044ReplayGVKey(base,"R",18), info.c044_replay_reentry.Type1PreviousClose);
-   GlobalVariableSet(C044ReplayGVKey(base,"R",19), info.c044_replay_reentry.IsValid ? 1.0 : 0.0);
+   if(!C044SetGVExact(C044ReplayGVKey(base,"R",0),  (double)info.c044_replay_reentry.Type)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"R",1),  (double)info.c044_replay_reentry.State)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"R",2),  (double)info.c044_replay_reentry.Direction)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"R",3),  (double)info.c044_replay_reentry.Timeframe)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"R",4),  (double)info.c044_replay_reentry.StartBar)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"R",5),  (double)info.c044_replay_reentry.StartCandleTime)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"R",6),  (double)info.c044_replay_reentry.LastUpdateBar)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"R",7),  (double)info.c044_replay_reentry.LastUpdateCandleTime)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"R",8),  (double)info.c044_replay_reentry.ConfirmationBar)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"R",9),  (double)info.c044_replay_reentry.ConfirmationCandle)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"R",10), (double)info.c044_replay_reentry.ExpiryBar)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"R",11), (double)info.c044_replay_reentry.ExpiryCandleTime)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"R",12), (double)info.c044_replay_reentry.MinCandlesRequired)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"R",13), (double)info.c044_replay_reentry.QualifyingCandles)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"R",14), (double)info.c044_replay_reentry.Type1ContextState)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"R",15), (double)info.c044_replay_reentry.Type1OwnerSignal)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"R",16), (double)info.c044_replay_reentry.Type1OwnerCandleTime)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"R",17), (double)info.c044_replay_reentry.Type1RangingStartCandleTime)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"R",18), info.c044_replay_reentry.Type1PreviousClose)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"R",19), info.c044_replay_reentry.IsValid ? 1.0 : 0.0)) return false;
 
    ExtremeLifecycleData buy = info.c044_replay_extreme_buy;
    ExtremeLifecycleData sell = info.c044_replay_extreme_sell;
-   GlobalVariableSet(C044ReplayGVKey(base,"B",0),  (double)buy.Maturity);
-   GlobalVariableSet(C044ReplayGVKey(base,"B",1),  (double)buy.Direction);
-   GlobalVariableSet(C044ReplayGVKey(base,"B",2),  (double)buy.Timeframe);
-   GlobalVariableSet(C044ReplayGVKey(base,"B",3),  (double)buy.RawBar);
-   GlobalVariableSet(C044ReplayGVKey(base,"B",4),  (double)buy.RawCandleTime);
-   GlobalVariableSet(C044ReplayGVKey(base,"B",5),  (double)buy.ConfirmationBar);
-   GlobalVariableSet(C044ReplayGVKey(base,"B",6),  (double)buy.ConfirmationCandleTime);
-   GlobalVariableSet(C044ReplayGVKey(base,"B",7),  buy.ConfirmationClose);
-   GlobalVariableSet(C044ReplayGVKey(base,"B",8),  (double)buy.LastUpdateBar);
-   GlobalVariableSet(C044ReplayGVKey(base,"B",9),  (double)buy.LastUpdateCandleTime);
-   GlobalVariableSet(C044ReplayGVKey(base,"B",10), buy.PreviousClose);
-   GlobalVariableSet(C044ReplayGVKey(base,"B",11), buy.ProvisionalBodyAnchor);
-   GlobalVariableSet(C044ReplayGVKey(base,"B",12), buy.FrozenBodyAnchor);
-   GlobalVariableSet(C044ReplayGVKey(base,"B",13), buy.RelevantMA5);
-   GlobalVariableSet(C044ReplayGVKey(base,"B",14), (double)buy.RetestStartBar);
-   GlobalVariableSet(C044ReplayGVKey(base,"B",15), (double)buy.RetestStartCandleTime);
-   GlobalVariableSet(C044ReplayGVKey(base,"B",16), (double)buy.RetestCompletionBar);
-   GlobalVariableSet(C044ReplayGVKey(base,"B",17), (double)buy.RetestCompletionCandleTime);
-   GlobalVariableSet(C044ReplayGVKey(base,"B",18), buy.IsValid ? 1.0 : 0.0);
+   if(!C044SetGVExact(C044ReplayGVKey(base,"B",0),  (double)buy.Maturity)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"B",1),  (double)buy.Direction)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"B",2),  (double)buy.Timeframe)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"B",3),  (double)buy.RawBar)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"B",4),  (double)buy.RawCandleTime)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"B",5),  (double)buy.ConfirmationBar)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"B",6),  (double)buy.ConfirmationCandleTime)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"B",7),  buy.ConfirmationClose)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"B",8),  (double)buy.LastUpdateBar)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"B",9),  (double)buy.LastUpdateCandleTime)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"B",10), buy.PreviousClose)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"B",11), buy.ProvisionalBodyAnchor)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"B",12), buy.FrozenBodyAnchor)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"B",13), buy.RelevantMA5)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"B",14), (double)buy.RetestStartBar)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"B",15), (double)buy.RetestStartCandleTime)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"B",16), (double)buy.RetestCompletionBar)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"B",17), (double)buy.RetestCompletionCandleTime)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"B",18), buy.IsValid ? 1.0 : 0.0)) return false;
 
-   GlobalVariableSet(C044ReplayGVKey(base,"S",0),  (double)sell.Maturity);
-   GlobalVariableSet(C044ReplayGVKey(base,"S",1),  (double)sell.Direction);
-   GlobalVariableSet(C044ReplayGVKey(base,"S",2),  (double)sell.Timeframe);
-   GlobalVariableSet(C044ReplayGVKey(base,"S",3),  (double)sell.RawBar);
-   GlobalVariableSet(C044ReplayGVKey(base,"S",4),  (double)sell.RawCandleTime);
-   GlobalVariableSet(C044ReplayGVKey(base,"S",5),  (double)sell.ConfirmationBar);
-   GlobalVariableSet(C044ReplayGVKey(base,"S",6),  (double)sell.ConfirmationCandleTime);
-   GlobalVariableSet(C044ReplayGVKey(base,"S",7),  sell.ConfirmationClose);
-   GlobalVariableSet(C044ReplayGVKey(base,"S",8),  (double)sell.LastUpdateBar);
-   GlobalVariableSet(C044ReplayGVKey(base,"S",9),  (double)sell.LastUpdateCandleTime);
-   GlobalVariableSet(C044ReplayGVKey(base,"S",10), sell.PreviousClose);
-   GlobalVariableSet(C044ReplayGVKey(base,"S",11), sell.ProvisionalBodyAnchor);
-   GlobalVariableSet(C044ReplayGVKey(base,"S",12), sell.FrozenBodyAnchor);
-   GlobalVariableSet(C044ReplayGVKey(base,"S",13), sell.RelevantMA5);
-   GlobalVariableSet(C044ReplayGVKey(base,"S",14), (double)sell.RetestStartBar);
-   GlobalVariableSet(C044ReplayGVKey(base,"S",15), (double)sell.RetestStartCandleTime);
-   GlobalVariableSet(C044ReplayGVKey(base,"S",16), (double)sell.RetestCompletionBar);
-   GlobalVariableSet(C044ReplayGVKey(base,"S",17), (double)sell.RetestCompletionCandleTime);
-   GlobalVariableSet(C044ReplayGVKey(base,"S",18), sell.IsValid ? 1.0 : 0.0);
+   if(!C044SetGVExact(C044ReplayGVKey(base,"S",0),  (double)sell.Maturity)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"S",1),  (double)sell.Direction)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"S",2),  (double)sell.Timeframe)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"S",3),  (double)sell.RawBar)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"S",4),  (double)sell.RawCandleTime)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"S",5),  (double)sell.ConfirmationBar)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"S",6),  (double)sell.ConfirmationCandleTime)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"S",7),  sell.ConfirmationClose)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"S",8),  (double)sell.LastUpdateBar)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"S",9),  (double)sell.LastUpdateCandleTime)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"S",10), sell.PreviousClose)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"S",11), sell.ProvisionalBodyAnchor)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"S",12), sell.FrozenBodyAnchor)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"S",13), sell.RelevantMA5)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"S",14), (double)sell.RetestStartBar)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"S",15), (double)sell.RetestStartCandleTime)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"S",16), (double)sell.RetestCompletionBar)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"S",17), (double)sell.RetestCompletionCandleTime)) return false;
+   if(!C044SetGVExact(C044ReplayGVKey(base,"S",18), sell.IsValid ? 1.0 : 0.0)) return false;
+   if(!C044SetGVExact(base + "G", generation)) return false;
+   GlobalVariablesFlush();
+   if(!GlobalVariableCheck(base + "V") || (int)GlobalVariableGet(base + "V") != 2) return false;
+   if(!GlobalVariableCheck(base + "G") || GlobalVariableGet(base + "G") != generation) return false;
    return true;
 }
+
 
 bool ReadC044ReplayGV(string base, string group, int index, double &value)
 {
@@ -8955,11 +9027,14 @@ bool ReadC044ReplayGV(string base, string group, int index, double &value)
    return true;
 }
 
-bool LoadC044ReplaySeed(TradeInfo &info)
+bool LoadC044ReplaySeed(TradeInfo &info, double expectedGeneration)
 {
+   if(expectedGeneration <= 0.0) return false;
    string base = C044ReplayGVBase(info);
    if(!GlobalVariableCheck(base + "V") ||
-      (int)GlobalVariableGet(base + "V") != 1)
+      (int)GlobalVariableGet(base + "V") != 2 ||
+      !GlobalVariableCheck(base + "G") ||
+      GlobalVariableGet(base + "G") != expectedGeneration)
       return false;
 
    ZeroMemory(info.c044_replay_reentry);
@@ -9036,6 +9111,9 @@ bool LoadC044ReplaySeed(TradeInfo &info)
       info.c044_replay_extreme_sell.Timeframe != info.c044_owner_timeframe)
       return false;
 
+   if(!GlobalVariableCheck(base + "G") ||
+      GlobalVariableGet(base + "G") != expectedGeneration)
+      return false;
    info.c044_replay_seed_valid = true;
    return true;
 }
@@ -9047,7 +9125,11 @@ void ClearC044Checkpoint(TradeInfo &info)
    string keys[10] = {"D","TF","OR","EP","LP","ST","XR","XL","OT","MG"};
    for(int i = 0; i < 10; i++)
       if(GlobalVariableCheck(base + keys[i])) GlobalVariableDel(base + keys[i]);
+   if(GlobalVariableCheck(base + "G")) GlobalVariableDel(base + "G");
+   if(GlobalVariableCheck(base + "GN")) GlobalVariableDel(base + "GN");
+   if(GlobalVariableCheck(base + "CM")) GlobalVariableDel(base + "CM");
    ClearC044ReplaySeed(info);
+   GlobalVariablesFlush();
 }
 
 bool SaveC044Checkpoint(TradeInfo &info)
@@ -9061,33 +9143,60 @@ bool SaveC044Checkpoint(TradeInfo &info)
       info.c044_state == C044_LIFE_NONE)
       return false;
 
-   if(info.c044_state != C044_LIFE_FROZEN &&
-      (!info.c044_replay_seed_valid || !SaveC044ReplaySeed(info)))
-      return false;
-
    string base = C044CheckpointBase(info);
-   GlobalVariableSet(base + "D",  (double)info.direction);
-   GlobalVariableSet(base + "TF", (double)info.c044_owner_timeframe);
-   GlobalVariableSet(base + "OR", (double)info.c044_owner_reentry_candle);
-   GlobalVariableSet(base + "EP", (double)info.c044_epoch_anchor_candle);
-   GlobalVariableSet(base + "LP", (double)info.c044_last_processed_owner_candle);
-   GlobalVariableSet(base + "ST", (double)info.c044_state);
-   GlobalVariableSet(base + "XR", (double)info.c044_exit_reason);
-   GlobalVariableSet(base + "XL", (double)info.c044_exit_latched_candle);
-   GlobalVariableSet(base + "OT", (double)info.open_time);
-   GlobalVariableSet(base + "MG", (double)info.magic_number);
+   if(!C044DeleteGVExact(base + "CM")) return false;
+   GlobalVariablesFlush();
+   if(GlobalVariableCheck(base + "CM")) return false;
+   if(!ClearC044GenerationPayloadExact(info)) return false;
+
+   double priorGeneration = GlobalVariableCheck(base + "GN") ? GlobalVariableGet(base + "GN") : 0.0;
+   if(priorGeneration < 0.0 || priorGeneration > 9000000000000000.0) priorGeneration = 0.0;
+   double generation = MathFloor(priorGeneration) + 1.0;
+   if(!C044SetGVExact(base + "GN", generation)) return false;
+   if(!GlobalVariableCheck(base + "GN") || GlobalVariableGet(base + "GN") != generation) return false;
+
+   if(info.c044_state != C044_LIFE_FROZEN &&
+      (!info.c044_replay_seed_valid || !SaveC044ReplaySeed(info, generation)))
+      return false;
+   if(!C044SetGVExact(base + "D",  (double)info.direction)) return false;
+   if(!C044SetGVExact(base + "TF", (double)info.c044_owner_timeframe)) return false;
+   if(!C044SetGVExact(base + "OR", (double)info.c044_owner_reentry_candle)) return false;
+   if(!C044SetGVExact(base + "EP", (double)info.c044_epoch_anchor_candle)) return false;
+   if(!C044SetGVExact(base + "LP", (double)info.c044_last_processed_owner_candle)) return false;
+   if(!C044SetGVExact(base + "ST", (double)info.c044_state)) return false;
+   if(!C044SetGVExact(base + "XR", (double)info.c044_exit_reason)) return false;
+   if(!C044SetGVExact(base + "XL", (double)info.c044_exit_latched_candle)) return false;
+   if(!C044SetGVExact(base + "OT", (double)info.open_time)) return false;
+   if(!C044SetGVExact(base + "MG", (double)info.magic_number)) return false;
+   if(!C044SetGVExact(base + "G", generation)) return false;
    GlobalVariablesFlush();
 
    string keys[10] = {"D","TF","OR","EP","LP","ST","XR","XL","OT","MG"};
    for(int i = 0; i < 10; i++)
       if(!GlobalVariableCheck(base + keys[i])) return false;
-   return true;
+   if(!GlobalVariableCheck(base + "G") || GlobalVariableGet(base + "G") != generation) return false;
+   if(info.c044_state != C044_LIFE_FROZEN)
+   {
+      string replayBase = C044ReplayGVBase(info);
+      if(!GlobalVariableCheck(replayBase + "V") || (int)GlobalVariableGet(replayBase + "V") != 2 ||
+         !GlobalVariableCheck(replayBase + "G") || GlobalVariableGet(replayBase + "G") != generation)
+         return false;
+   }
+
+   if(!C044SetGVExact(base + "CM", generation)) return false;
+   GlobalVariablesFlush();
+   return (GlobalVariableCheck(base + "CM") &&
+           GlobalVariableGet(base + "CM") == generation &&
+           GlobalVariableGet(base + "G") == generation);
 }
+
 
 bool LoadC044Checkpoint(TradeInfo &info)
 {
    if(info.ticket <= 0 || info.magic_number <= 0 || info.open_time <= 0) return false;
+   if(!C044CheckpointExists(info)) return false;
    string base = C044CheckpointBase(info);
+   double committedGeneration = GlobalVariableGet(base + "CM");
    string keys[10] = {"D","TF","OR","EP","LP","ST","XR","XL","OT","MG"};
    for(int i = 0; i < 10; i++)
       if(!GlobalVariableCheck(base + keys[i])) return false;
@@ -9122,6 +9231,11 @@ bool LoadC044Checkpoint(TradeInfo &info)
       (exitReason != C044_EXIT_NONE || exitCandle != 0))
       return false;
 
+   if(!GlobalVariableCheck(base + "CM") || !GlobalVariableCheck(base + "G") ||
+      GlobalVariableGet(base + "CM") != committedGeneration ||
+      GlobalVariableGet(base + "G") != committedGeneration)
+      return false;
+
    info.c044_lifecycle_managed = true;
    info.c044_owner_timeframe = timeframe;
    info.c044_owner_reentry_candle = ownerRe;
@@ -9136,7 +9250,12 @@ bool LoadC044Checkpoint(TradeInfo &info)
       info.c044_replay_seed_valid = false;
       return true;
    }
-   return LoadC044ReplaySeed(info);
+   if(!LoadC044ReplaySeed(info, committedGeneration)) return false;
+   if(!GlobalVariableCheck(base + "CM") || !GlobalVariableCheck(base + "G") ||
+      GlobalVariableGet(base + "CM") != committedGeneration ||
+      GlobalVariableGet(base + "G") != committedGeneration)
+      return false;
+   return true;
 }
 
 string H4OwnerGVBase(PairState &state)
@@ -10494,7 +10613,6 @@ void ProcessPair(int pairIndex)
       // N2-01 shadow metadata only; execution path remains unchanged.
       NMJE_PrintValidatedDecisionShadow(pairIndex, decision);
       RunEntryPreflightAndExecute(decision, actual);
-      F7ProspectiveContextTelemetry(pairIndex, decision);
    }
 
    if(EntryMode == 2 && decision.Valid)
@@ -10525,6 +10643,8 @@ void OnTickMain()
 
    ManagePortfolio();
    ManagePositions();
+   // M23 lifecycle housekeeping owns registry compaction; telemetry remains read-only.
+   CompactMonitoredTrades();
 
    if(g_portfolio_emergency_close_requested) return;
    
@@ -10557,6 +10677,7 @@ void OnTickMain()
 //+------------------------------------------------------------------+
 int OnInit()
 {
+   F7BuildIdentityTelemetry();
    NormalizeRuntimeLimits();
    if(!ValidateInputParameters())
    {
@@ -10579,7 +10700,7 @@ int OnInit()
       return INIT_FAILED;
    }
    
-   Log(DBG_FULL, "BBMA EA V4.5.9 P0 EXEC_ID Persistence Fix initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.8.3 NMJE Read-Only Authority Restore initialized successfully");
    return INIT_SUCCEEDED;
 }
 

@@ -54,3 +54,15 @@ def test_candidate_uses_unique_post_482_build_identity():
     match = re.search(r'#property\s+version\s+"([0-9.]+)"', text)
     assert match, "missing MQL4 version identity"
     assert match.group(1) == "4.83"
+
+def test_integrated_f7_build_identity_matches_483():
+    text = SOURCE.read_text(encoding="utf-8", errors="replace")
+    assert '#define BBMA_BUILD_TAG      "V483_NMJE_READONLY_20260917"' in text
+    assert '#define BBMA_SOURCE_REV_TAG "NMJE_READONLY_Q1_20260917"' in text
+    assert '[F7-BUILD] EA=BBMA_EA Build=4.83 BuildTag=' in text
+
+
+def test_visible_runtime_identity_matches_483():
+    text = SOURCE.read_text(encoding="utf-8", errors="replace")
+    assert "V4.8.3 NMJE Read-Only Authority Restore initialized successfully" in text
+    assert "V4.8.2 Post-Freeze F7 Infrastructure initialized successfully" not in text

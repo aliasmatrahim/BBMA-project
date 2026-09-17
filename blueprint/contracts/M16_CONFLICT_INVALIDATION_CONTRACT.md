@@ -109,9 +109,11 @@ Valid only when the matching H1/H4/D1 M12 slot remains:
 Valid only when the matching M09 owner state remains at the required maturity/identity for the selected decision.
 
 ### Extreme component
-Valid only when the matching owner snapshot remains source-valid, same type/direction/timeframe/candle identity, and not structurally invalidated/superseded.
+For REM/REE component use, the matching owner snapshot must remain source-valid, same type/direction/timeframe/candle identity, and not structurally invalidated/superseded.
 
-If one required structural component is no longer owner-valid, the selected Re-Entry/REM/RRE/REE decision cannot proceed.
+For standalone H1 Extreme under Issue #175, M16 revalidates the exact M08 lifecycle rather than treating a reversal-confirmed component snapshot as entry-ready. Required identity is `EXT_MAT_RETEST_READY`, `IsValid == true`, matching H1 direction, valid `RawCandleTime <= RetestCompletionCandleTime`, and exact `RetestCompletionCandleTime == decision component CandleTime`.
+
+M16 does not detect or promote Extreme maturity; it only verifies the owner state selected by M15. If one required structural component is no longer owner-valid, the selected Extreme/Re-Entry/REM/RRE/REE decision cannot proceed.
 
 ## D1 transition is not a live-position exit
 M16's D1 revalidation applies to **not-yet-executed new-entry decisions**.

@@ -61,3 +61,7 @@ def test_specific_reentry_retains_structural_invalidation():
 def test_build_identity_is_unique_v486():
     assert '//| Version 4.8.6 - Structural Lifetime Authority Repair' in SRC
     assert '#property version   "4.86"' in SRC
+    assert '#define BBMA_BUILD_TAG      "V486_STRUCTURAL_LIFETIME_20260917"' in SRC
+    assert '#define BBMA_SOURCE_REV_TAG "Q5_STRUCTURAL_LIFETIME_173_20260917"' in SRC
+    assert '[F7-BUILD] EA=BBMA_EA Build=4.86 BuildTag=' in SRC
+    assert 'BBMA EA V4.8.6 Structural Lifetime Authority Repair initialized successfully' in SRC

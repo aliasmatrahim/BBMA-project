@@ -1,0 +1,70 @@
+﻿diff --git "a/blueprint\\source\\BBMA_EA.mq4" "b/blueprint\\runtime\\q5_175_offline_harness\\BBMA_EA_Q5_175_484T2.mq4"
+index 0fa206c..d32d68e 100644
+--- "a/blueprint\\source\\BBMA_EA.mq4"
++++ "b/blueprint\\runtime\\q5_175_offline_harness\\BBMA_EA_Q5_175_484T2.mq4"
+@@ -1,6 +1,6 @@
+ //+------------------------------------------------------------------+
+ //|                                           BBMA_EA.mq4 |
+-//| Version 4.84 - Q5 Standalone Extreme Execution          |
++//| Version 4.84T2 - Q5 Offline Runtime Harness             |
+ //|                                           CODE-READY              |
+ //+------------------------------------------------------------------+
+ //+------------------------------------------------------------------+
+@@ -31,7 +31,7 @@
+ //+------------------------------------------------------------------+
+ #property copyright "BBMA EA"
+ #property link      ""
+-#property version   "4.84"
++#property version   "4.842"
+ #property strict
+
+ //+------------------------------------------------------------------+
+@@ -1067,6 +1067,15 @@ string FindActualSymbol(string symbol)
+    string requested = StringTrimLeft(StringTrimRight(symbol));
+    if(requested == "") return "";
+
++   // Q5-175-OFFLINE-T2: Strategy Tester only. MT4 default offline
++   // environment exposes current Symbol() but SymbolsTotal(false)==0.
++   if(IsTesting())
++   {
++      string testerSymbol = Symbol();
++      if(testerSymbol == requested || RemoveSuffix(testerSymbol) == RemoveSuffix(requested))
++         return testerSymbol;
++   }
++
+    // 1) Exact broker symbol wins when it exists and can be selected.
+    int totalAll = SymbolsTotal(false);
+    for(int i = 0; i < totalAll; i++)
+@@ -1173,6 +1182,7 @@ double RoundDownToLotStep(double lot, string pair)
+
+ bool IsTerminalConnected()
+ {
++   if(IsTesting()) return true;
+    return IsConnected();
+ }
+
+@@ -10786,13 +10796,18 @@ int OnInit()
+       return INIT_FAILED;
+    }
+
+-   ResetLastError();
+-   if(!EventSetTimer(1))
++   // Q5-175-OFFLINE-T2: MT4 Strategy Tester rejects EventSetTimer().
++   // OnTick remains the sole processing driver during this harness run.
++   if(!IsTesting())
+    {
+-      int timerError = GetLastError();
+-      g_is_initialized = false;
+-      Log(DBG_ERROR, "Failed to register EA timer, error=" + IntegerToString(timerError));
+-      return INIT_FAILED;
++      ResetLastError();
++      if(!EventSetTimer(1))
++      {
++         int timerError = GetLastError();
++         g_is_initialized = false;
++         Log(DBG_ERROR, "Failed to register EA timer, error=" + IntegerToString(timerError));
++         return INIT_FAILED;
++      }
+    }
+
+    Log(DBG_FULL, "BBMA EA V4.5.9 P0 EXEC_ID Persistence Fix initialized successfully");

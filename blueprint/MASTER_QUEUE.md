@@ -1,8 +1,8 @@
 # BBMA Active Master Queue
 
-Reconciled: **2026-09-16**
+Reconciled: **2026-09-17**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`efe9ede3211ef306d74bb3ce566ed9b3677e3163`**
+Owner head at reconciliation: **`b4772efc7cac5a7e3061473a4c1a7c4c305b1835`**
 
 This file is the active queue. The pre-2026-09-09 historical queue is preserved byte-for-byte at `blueprint/archive/MASTER_QUEUE_pre_20260909.md`.
 
@@ -21,7 +21,7 @@ Stable Q IDs are preserved. The active dependency order is:
 - **Integration / final acceptance:** Q7 -> Q8 -> Q10
 - **Deferred / future:** Q9 + Q11
 
-Q3 and Q6 may progress in parallel when their runtime/data conditions are available. Q7 remains blocked until Q1/Q2 and materially relevant Q5 reconciliation are sufficiently closed.
+Q3 and Q6 may progress in parallel when their runtime/data conditions are available. Q7 prerequisites are now satisfied and exact Build 4.86 is frozen under Issue #186. Current user sequencing is Q7 complete -> Q6 -> Q8; Q3 remains parallel.
 
 ## Stage A - Source evidence / reconciliation
 
@@ -44,14 +44,15 @@ Closure handling:
 
 ### Q5 — Reconcile completed source evidence against current Core/code
 Priority: **HIGH / SOURCE RECONCILIATION**
-Status: **IN PROGRESS / A4-A5 SEMANTIC BLOCKERS RESOLVED; TRANSCRIPT-QA RESIDUALS NON-BLOCKING**
+Status: **COMPLETE FOR Q7 / TRANSCRIPT-QA RESIDUALS NON-BLOCKING**
 
-Current A4/A5 semantic state after Issue #169 / PR #170 reconciliation:
+Current semantic state after Issue #169 / PR #170 and full Q5 Issue #176 closure:
 - 9 retained records = 6 `CORROBORATION_ONLY` + 3 `REJECTED`; Strategy-Core semantic `UNCLEAR`/`PARTIAL` = 0;
 - no row is promoted to `ACCEPTED_CORE`, no source conflict is created and no detector/filter/timing authority is added;
 - 4 historical A3 blocked overlaps, 2 excluded A3 records, 6 `AUDIO_RECHECK_EMPTY` rows and W004 duplicate-conflict remain retained as provenance/transcript-QA residuals only;
 - five exact-wording fragments remain uncertain and non-executable pending materially better evidence;
-- these transcript-QA residuals do not block accepted Core semantics or authorize production changes.
+- these transcript-QA residuals do not block accepted Core semantics or authorize production changes;
+- Issue #180 / PR #183 is closed unmerged because current owner Build 4.86 already contains the shared MA5/MA10 close-side guard before Type-3 confirmation, so a Type-3-local patch would duplicate canonical logic.
 
 Scope:
 - Extreme/MHV/MLV/Re-Entry/CSA-CSAK/Momentum/F7 timing/lifecycle;
@@ -71,36 +72,23 @@ Rules:
 Issue: **#141**
 PR: **#142**
 Priority: **CRITICAL / ARCHITECTURE AUTHORITY**
-Status: **SOURCE FIX + NATIVE VALIDATION PENDING G40**
+Status: **IMPLEMENTATION MERGED / VERIFIED IN OWNER BUILD 4.83+**
 
-Required next steps:
-1. Reconnect G40 and re-read local `nmje-readonly-141` worktree before editing.
-2. Preserve/finish unique Build **4.83** identity.
-3. Remove NMJE relation-based execution rejection from the active preflight path while preserving N1/N2 observation/attribution telemetry.
-4. Prove NMJE cannot create/reject/rank/execute under current policy.
-5. Run targeted regression and native MetaEditor **0E0W**.
-6. Push only exact verified source/evidence to PR #142.
-7. Runtime validation must be attributable to the exact candidate before #141 closes.
-
-Do not add a replacement nested filter or score.
+- PR #142 merged as `193735e2079936003e87bfd0db39ba6585757aa3`.
+- NMJE execution rejection authority is removed; observation/telemetry remains.
+- Current Build 4.86 preserves Q1 and exact attributable runtime evidence.
+- Issue-level tracking may remain open; do not recreate or reapply the repair.
 
 ### Q2 — Complete F7/C044 Build 4.82 infrastructure hardening
 Issues: **#127 #132 #133 #138**
 PR: **#140**
 Priority: **CRITICAL / RUNTIME PROVENANCE + RESTART INTEGRITY**
-Status: **REMOTE MODEL PASS / LOCAL SOURCE PATCH PENDING G40 RECONCILIATION**
+Status: **IMPLEMENTATION MERGED / VERIFIED IN OWNER BUILD 4.82+**
 
-Required next steps:
-1. Reconnect G40 and preserve/re-read the existing uncommitted local v4.82 patch before any fetch/merge/edit that could overwrite it.
-2. Reconcile local source against current PR #140 and current owner head.
-3. Ensure `[F7-BUILD]` is emitted before initialization/recovery telemetry can be accepted.
-4. Use frozen exact-ticket `info.open_time` for EXEC telemetry.
-5. Make C044 lifecycle+replay persistence one verified generation: invalidate old commit first, clear/verify old payload, write/verify all new payload, publish commit marker last.
-6. Fail frozen on legacy/unprovable/mixed/partial generations.
-7. Run deterministic torn-prefix and injected writer-failure model/static regressions.
-8. Native MetaEditor **0E0W**.
-9. Push exact verified source/evidence to PR #140.
-10. Physical/runtime acceptance remains separate; do not restart primary MT4 just to close static work.
+- PR #140 merged as `30ac09675734da7bf4a23dae6b12faec8138f506`.
+- Deterministic `[F7-BUILD]`, frozen exact-ticket open-time telemetry source path and generation-atomic C044 persistence are integrated.
+- C044 deterministic model, static/cross-module guards, native 0E0W and isolated broker startup attribution passed.
+- Residual live exact-ticket/runtime observations remain issue-level acceptance evidence; do not recreate Q2.
 
 ## Stage C - Parallel runtime validation / historical data
 
@@ -148,20 +136,21 @@ Synthetic-v3 remains engineering-only; its tick volume normalization cannot beco
 ## Stage D - Integration / regression / final acceptance
 
 ### Q7 — Build one integrated candidate from verified current workstreams
-Priority: **HIGH AFTER Q1/Q2 + REQUIRED SOURCE RECONCILIATION**
-Status: **NOT YET AUTHORIZED**
+Issue: **#186**
+Priority: **HIGH / INTEGRATION FREEZE**
+Status: **VERIFIED / FROZEN — BUILD 4.86**
 
-Before integration:
-- Q1 NMJE read-only correction must be verified;
-- Q2 F7 infrastructure candidate must be verified;
-- D1 M11 -> M15 -> M16 is already integrated; do not duplicate it;
-- reconcile any source evidence that materially changes candidate semantics;
-- preserve M15/M16/M17/M19/M20/M21/M22/M23/M24 ownership boundaries.
-
-Integrated candidate requires unique build identity, protected-surface/static regression, native MetaEditor 0E0W, deterministic tests and attributable historical/runtime validation.
+- Exact owner head at freeze: `b4772efc7cac5a7e3061473a4c1a7c4c305b1835`.
+- Implementation parent: `beef83f94d8177959c085a827f8a425119065d16`.
+- Raw Git MQ4 SHA-256: `D737A25FD01D6BA879118479401B5E7969DF20F528E53E43515852C555DD3308`.
+- Verified EX4 SHA-256: `6A7116B26CDB7BA87B8CCC3415D2309BF414C32D274A66B4903D6E47FC93A5C6`.
+- Q1/Q2/#175/#174/#173 lineage is integrated; post-Build-4.86 owner change is governance-only.
+- Exact-source compile/regression/deterministic/cross-module/runtime evidence is reused; no new EA build or duplicate integration is justified.
+- Freeze record: `blueprint/audits/Q7_BUILD486_INTEGRATED_CANDIDATE_FREEZE_20260917.md`.
+- Current user sequence: complete Q6 next, then run Q8 against this frozen candidate.
 
 ### Q8 — Regression/backtest programme
-Priority: **AFTER EXACT INTEGRATION CANDIDATE + USABLE HISTORICAL PROFILE**
+Priority: **AFTER Q7 FROZEN CANDIDATE + Q6 USABLE HISTORICAL PROFILE**
 Status: **PENDING**
 
 Use isolated/canonical historical environment. Separate mechanism correctness from profitability claims. Any proposed accuracy filter/policy must start as evidence/shadow work and requires explicit Strategy-Core authorization before reducing valid trade opportunity.
@@ -194,8 +183,8 @@ Older dashboard/observer PRs were prepared against historical frozen candidates.
 - historical v4.59 demo runner is not a current release path.
 
 ## G40 resume policy
-G40 was reachable during the 2026-09-16 queue reconciliation. Future work must still re-read actual local process/worktree/manifest state before any mutation.
+G40 was reachable during the 2026-09-17 Q7 reconciliation. Future work must still re-read actual local process/worktree/manifest state before any mutation.
 
-G40-dependent active workstreams that require live-state recovery are **Q1, Q2, Q3 and Q6**. Q4 is mechanically complete and must not be re-added to the resume list without new evidence that a specific source unit is missing or invalid.
+G40-dependent active workstreams that require live-state recovery are **Q3 and Q6**. Q1/Q2 are already integrated and Q7 is frozen; do not recreate them. Q4 is mechanically complete and must not be re-added to the resume list without new evidence that a specific source unit is missing or invalid.
 
 No destructive reset, blind recreation, automatic MT4 restart, or trading enablement is authorized by this queue.

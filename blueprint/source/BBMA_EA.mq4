@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.84 - Q5 Standalone Extreme Execution          |
+//| Version 4.85 - M12N Orchestration Order Repair          |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.84"
+#property version   "4.85"
 #property strict
 
-#define BBMA_BUILD_TAG      "V484_Q5_EXTREME_20260917"
-#define BBMA_SOURCE_REV_TAG "Q5_STANDALONE_EXTREME_175_20260917"
+#define BBMA_BUILD_TAG      "V485_M12N_ORDER_20260917"
+#define BBMA_SOURCE_REV_TAG "Q5_M12N_ORDER_174_20260917"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -8428,7 +8428,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=4.84 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=4.85 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -10589,28 +10589,23 @@ void ProcessPair(int pairIndex)
    UpdatePersistentExtremeState(resolvedH4BuyExtreme, g_pair_states[pairIndex].extreme_h4_buy_state);
    UpdatePersistentExtremeState(resolvedH4SellExtreme, g_pair_states[pairIndex].extreme_h4_sell_state);
 
+   Signal m15CSDSnapshots[2], m15ECSDSnapshots[2], m15CSMSnapshots[2];
+   for(int snapIdx = 0; snapIdx < 2; snapIdx++)
+   {
+      ZeroMemory(m15CSDSnapshots[snapIdx]);
+      ZeroMemory(m15ECSDSnapshots[snapIdx]);
+      ZeroMemory(m15CSMSnapshots[snapIdx]);
+   }
+
+   // M27 locked Phase A: update all M06-M12 owners for both directions first.
    for(int dirIdx = 0; dirIdx < 2; dirIdx++)
    {
       ENUM_DIRECTION direction = (dirIdx == 0) ? DIR_BUY : DIR_SELL;
 
-      Signal h1ExtremeSnapshot, h4ExtremeSnapshot, m15MHVSnapshot, m15CSDSnapshot;
-      Signal m15ECSDSnapshot, m15CSMSnapshot;
-      ZeroMemory(h1ExtremeSnapshot); ZeroMemory(h4ExtremeSnapshot);
-      ZeroMemory(m15MHVSnapshot); ZeroMemory(m15CSDSnapshot);
-      ZeroMemory(m15ECSDSnapshot); ZeroMemory(m15CSMSnapshot);
-
-      Signal detectedH1Extreme, detectedH4Extreme;
-      ZeroMemory(detectedH1Extreme); ZeroMemory(detectedH4Extreme);
-      if(direction == DIR_BUY)
-      {
-         detectedH1Extreme = resolvedH1BuyExtreme;
-         detectedH4Extreme = resolvedH4BuyExtreme;
-      }
-      else
-      {
-         detectedH1Extreme = resolvedH1SellExtreme;
-         detectedH4Extreme = resolvedH4SellExtreme;
-      }
+      Signal m15CSDSnapshot, m15ECSDSnapshot, m15CSMSnapshot;
+      ZeroMemory(m15CSDSnapshot);
+      ZeroMemory(m15ECSDSnapshot);
+      ZeroMemory(m15CSMSnapshot);
 
       MovingAverage m15MA;
       m15MA.MA5_High = g_pair_states[pairIndex].m15_data.ma[0];
@@ -10669,8 +10664,6 @@ void ProcessPair(int pairIndex)
             g_pair_states[pairIndex].extreme_m15_sell_lifecycle,
             (m15CSDSnapshot.Valid || m15ECSDSnapshot.Valid));
          mlvSnapshot = g_pair_states[pairIndex].mlv_buy_state;
-         ExportCanonicalMHVSignal(g_pair_states[pairIndex].mlv_buy_state,
-                                  m15MHVSnapshot);
 
          UpdateReEntryState(g_pair_states[pairIndex].re_h1_buy_state, actual, direction,
                             g_pair_states[pairIndex].h1_data);
@@ -10693,8 +10686,6 @@ void ProcessPair(int pairIndex)
             g_pair_states[pairIndex].extreme_m15_buy_lifecycle,
             (m15CSDSnapshot.Valid || m15ECSDSnapshot.Valid));
          mlvSnapshot = g_pair_states[pairIndex].mlv_sell_state;
-         ExportCanonicalMHVSignal(g_pair_states[pairIndex].mlv_sell_state,
-                                  m15MHVSnapshot);
 
          UpdateReEntryState(g_pair_states[pairIndex].re_h1_sell_state, actual, direction,
                             g_pair_states[pairIndex].h1_data);
@@ -10710,10 +10701,51 @@ void ProcessPair(int pairIndex)
          NoteH4ReEntryInheritance(pairIndex, h4ReEntryState);
       }
 
+      m15CSDSnapshots[dirIdx] = m15CSDSnapshot;
+      m15ECSDSnapshots[dirIdx] = m15ECSDSnapshot;
+      m15CSMSnapshots[dirIdx] = m15CSMSnapshot;
+   }
+
+   // M12N observes only after both direction owners are current for this cycle.
+   UpdateNestedJourneyObservation(pairIndex);
+
+   // M27 locked Phase B: M13/M14 assembly consumes the frozen owner snapshots.
+   for(int assembleDirIdx = 0; assembleDirIdx < 2; assembleDirIdx++)
+   {
+      ENUM_DIRECTION direction = (assembleDirIdx == 0) ? DIR_BUY : DIR_SELL;
+      Signal h1ExtremeSnapshot, h4ExtremeSnapshot, m15MHVSnapshot;
+      Signal m15CSDSnapshot, m15ECSDSnapshot, m15CSMSnapshot;
+      ZeroMemory(h1ExtremeSnapshot); ZeroMemory(h4ExtremeSnapshot);
+      ZeroMemory(m15MHVSnapshot); ZeroMemory(m15CSDSnapshot);
+      ZeroMemory(m15ECSDSnapshot); ZeroMemory(m15CSMSnapshot);
+      m15CSDSnapshot = m15CSDSnapshots[assembleDirIdx];
+      m15ECSDSnapshot = m15ECSDSnapshots[assembleDirIdx];
+      m15CSMSnapshot = m15CSMSnapshots[assembleDirIdx];
+
+      MLVData mlvSnapshot;
+      ReEntryData h1ReEntrySnapshot, h4ReEntryState, d1ReEntryState;
+      ZeroMemory(mlvSnapshot);
+      ZeroMemory(h1ReEntrySnapshot); ZeroMemory(h4ReEntryState); ZeroMemory(d1ReEntryState);
       if(direction == DIR_BUY)
+      {
+         mlvSnapshot = g_pair_states[pairIndex].mlv_buy_state;
+         ExportCanonicalMHVSignal(g_pair_states[pairIndex].mlv_buy_state, m15MHVSnapshot);
          h1ExtremeSnapshot = g_pair_states[pairIndex].extreme_h1_buy_state;
+         h4ExtremeSnapshot = g_pair_states[pairIndex].extreme_h4_buy_state;
+         h1ReEntrySnapshot = g_pair_states[pairIndex].re_h1_buy_state;
+         h4ReEntryState = g_pair_states[pairIndex].re_h4_buy_state;
+         d1ReEntryState = g_pair_states[pairIndex].re_d1_buy_state;
+      }
       else
+      {
+         mlvSnapshot = g_pair_states[pairIndex].mlv_sell_state;
+         ExportCanonicalMHVSignal(g_pair_states[pairIndex].mlv_sell_state, m15MHVSnapshot);
          h1ExtremeSnapshot = g_pair_states[pairIndex].extreme_h1_sell_state;
+         h4ExtremeSnapshot = g_pair_states[pairIndex].extreme_h4_sell_state;
+         h1ReEntrySnapshot = g_pair_states[pairIndex].re_h1_sell_state;
+         h4ReEntryState = g_pair_states[pairIndex].re_h4_sell_state;
+         d1ReEntryState = g_pair_states[pairIndex].re_d1_sell_state;
+      }
 
       Signal extreme, mhv, csd, ecsd, csm;
       MLVData mlv;
@@ -10729,11 +10761,6 @@ void ProcessPair(int pairIndex)
       ZeroMemory(h4_reEntry); ZeroMemory(d1_reEntry); ZeroMemory(h4_extreme);
       ExportConfirmedReEntrySignal(h4ReEntryState, h4_reEntry);
       ExportConfirmedReEntrySignal(d1ReEntryState, d1_reEntry);
-
-      if(direction == DIR_BUY)
-         h4ExtremeSnapshot = g_pair_states[pairIndex].extreme_h4_buy_state;
-      else
-         h4ExtremeSnapshot = g_pair_states[pairIndex].extreme_h4_sell_state;
       h4_extreme = h4ExtremeSnapshot;
 
       ComponentSet rem, rre, ree;
@@ -10781,10 +10808,6 @@ void ProcessPair(int pairIndex)
    ValidatedSequenceCandidate d1OpportunityCandidate;
    BuildD1OpportunityCandidate(pairIndex, d1OpportunityCandidate);
    AppendValidatedCandidate(d1OpportunityCandidate, allCandidates, allCandidateCount);
-
-   // N1/N2 relationship observation remains descriptive; D1O execution uses
-   // the separately owned/frozen D1 opportunity identity, not NESTED_RELATION.
-   UpdateNestedJourneyObservation(pairIndex);
 
    BBMA_Decision decision;
    OppositeConflictPackage conflict;
@@ -10895,7 +10918,7 @@ int OnInit()
       return INIT_FAILED;
    }
    
-   Log(DBG_FULL, "BBMA EA V4.8.4 Q5 Standalone Extreme Execution initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.8.5 M12N Orchestration Order Repair initialized successfully");
    return INIT_SUCCEEDED;
 }
 

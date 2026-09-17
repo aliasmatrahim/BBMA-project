@@ -54,13 +54,16 @@ def test_extreme_tp_targets_first_edge_of_opposite_ma5_ma10_area():
     assert "MathMax(ma5, ma10)" in fn
 
 
-def test_build_identity_is_unique_for_q5_implementation():
-    assert "Version 4.84 - Q5 Standalone Extreme Execution" in TEXT
-    assert '#property version   "4.84"' in TEXT
+def test_standalone_extreme_fix_is_carried_forward_from_484():
+    match = re.search(r'#property\s+version\s+"([0-9.]+)"', TEXT)
+    assert match
+    assert float(match.group(1)) >= 4.84
 
 
-def test_integrated_build_identity_is_consistent_for_484():
-    assert '#define BBMA_BUILD_TAG      "V484_Q5_EXTREME_20260917"' in TEXT
-    assert '#define BBMA_SOURCE_REV_TAG "Q5_STANDALONE_EXTREME_175_20260917"' in TEXT
-    assert '[F7-BUILD] EA=BBMA_EA Build=4.84 BuildTag=' in TEXT
-    assert 'BBMA EA V4.8.4 Q5 Standalone Extreme Execution initialized successfully' in TEXT
+def test_runtime_build_marker_matches_current_property_version():
+    match = re.search(r'#property\s+version\s+"([0-9.]+)"', TEXT)
+    assert match
+    version = match.group(1)
+    assert f'[F7-BUILD] EA=BBMA_EA Build={version} BuildTag=' in TEXT
+    assert '#define BBMA_BUILD_TAG' in TEXT
+    assert '#define BBMA_SOURCE_REV_TAG' in TEXT

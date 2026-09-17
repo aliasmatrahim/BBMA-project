@@ -1,0 +1,10 @@
+{
+  "run_lines": 1675,
+  "n1_count": 192,
+  "re_eval_count": 68,
+  "re_admit_count": 19,
+  "unique_n1_times": 192,
+  "ordering_violations": [],
+  "init_fail_count": 0,
+  "order_markers": 0
+}

@@ -61,13 +61,13 @@ No raw-signal execution path may remain when the blueprint is promoted to LOCKED
 ## Step 6 implementation status
 P0 Step 6 implements this contract in M15/M27.
 
-Current eligible execution-candidate set:
+Current eligible execution-candidate set after Issue #175:
 - Mode 1: confirmed H1 Re-Entry only;
-- Mode 2: confirmed H1 Re-Entry plus validated REM/RRE/REE.
+- Mode 2: standalone H1 Extreme at `RETEST/ENTRY-READY`, confirmed H1 Re-Entry, plus validated REM/RRE/REE.
 
-Raw Extreme, MLV, CSD, eCSD and CSM remain non-executable by themselves.
+RAW Extreme and reversal-only standalone Extreme remain non-executable. MLV, CSD, eCSD and CSM also remain non-executable by themselves.
 
-Standalone Extreme is intentionally not yet included in Mode 2 because its source-required reversal-candle confirmation/retest entry lifecycle has not been deterministically locked. Mode 2 may expand only when another source-valid standalone entry contract is completed.
+Issue #175 closes the previous standalone-Extreme execution gap with the user-approved H1-only project mapping in `blueprint/decisions/Q5_STANDALONE_EXTREME_EXECUTION_POLICY_DECISION_20260917.md`. The M08 Extreme lifecycle remains authoritative; Mode 2 does not create a raw-signal execution path.
 
 M15 now sees BUY and SELL candidates in one atomic pair-level pool. If validated opposite-direction candidates coexist, no winner is invented and no final trade decision is created for that cycle.
 

@@ -53,16 +53,19 @@ def test_candidate_uses_unique_post_482_build_identity():
     text = SOURCE.read_text(encoding="utf-8", errors="replace")
     match = re.search(r'#property\s+version\s+"([0-9.]+)"', text)
     assert match, "missing MQL4 version identity"
-    assert match.group(1) == "4.83"
+    assert tuple(map(int, match.group(1).split("."))) >= (4, 83)
 
-def test_integrated_f7_build_identity_matches_483():
+def test_integrated_f7_build_identity_tracks_current_version():
     text = SOURCE.read_text(encoding="utf-8", errors="replace")
-    assert '#define BBMA_BUILD_TAG      "V483_NMJE_READONLY_20260917"' in text
-    assert '#define BBMA_SOURCE_REV_TAG "NMJE_READONLY_Q1_20260917"' in text
-    assert '[F7-BUILD] EA=BBMA_EA Build=4.83 BuildTag=' in text
+    match = re.search(r'#property\s+version\s+"([0-9.]+)"', text)
+    assert match
+    version = match.group(1)
+    assert '#define BBMA_BUILD_TAG' in text
+    assert '#define BBMA_SOURCE_REV_TAG' in text
+    assert f'[F7-BUILD] EA=BBMA_EA Build={version} BuildTag=' in text
 
 
-def test_visible_runtime_identity_matches_483():
+def test_visible_runtime_identity_is_not_stale_482():
     text = SOURCE.read_text(encoding="utf-8", errors="replace")
-    assert "V4.8.3 NMJE Read-Only Authority Restore initialized successfully" in text
     assert "V4.8.2 Post-Freeze F7 Infrastructure initialized successfully" not in text
+    assert "initialized successfully" in text

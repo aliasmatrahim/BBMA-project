@@ -1,0 +1,162 @@
+{
+  "label": "ENGINEERING HISTORICAL EVIDENCE / NOT FINAL TICK-ACCURATE",
+  "candidate": "Build 4.86 / V486_STRUCTURAL_LIFETIME_20260917",
+  "pair": "GBPUSD",
+  "files": [
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\MQL4\\Experts\\BBMA_EA_Q8_BUILD486_GBPUSD.mq4",
+      "bytes": 416344,
+      "sha256": "D737A25FD01D6BA879118479401B5E7969DF20F528E53E43515852C555DD3308"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\MQL4\\Experts\\BBMA_EA_Q8_BUILD486_GBPUSD.ex4",
+      "bytes": 550594,
+      "sha256": "6A7116B26CDB7BA87B8CCC3415D2309BF414C32D274A66B4903D6E47FC93A5C6"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\MQL4\\Experts\\BBMA_EA_Q8_BUILD486_GBPUSD_HARNESS.mq4",
+      "bytes": 416782,
+      "sha256": "E0FDE68F1EFE082F032785CAABA4DFE603FC53B6FB89323A583296E43432BBC4"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\MQL4\\Experts\\BBMA_EA_Q8_BUILD486_GBPUSD_HARNESS.ex4",
+      "bytes": 551868,
+      "sha256": "FFD0F34121B75C15F42009FE83F01BE69F005FA464D49FAB7715F0007D27EE7A"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\Q8_BUILD486_GBPUSD_20260918\\HARNESS_COMPILE.log",
+      "bytes": 420,
+      "sha256": "5C795E616D0E5DEA4ACAAD246A347CEF88C1F981B6E65E30511F434201C00D39"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\Q8_BUILD486_GBPUSD_20260918\\Q8_BUILD486_GBPUSD_MATRIX_DEEP.json",
+      "bytes": 5126,
+      "sha256": "5940383CF49226861802CF040FED3EEC981FFAABE16B8D934D79AE30F70FDB25"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\Q8_BUILD486_GBPUSD_20260918\\analyze_q8_matrix_deep.py",
+      "bytes": 5028,
+      "sha256": "4F02EECDF1455BFAFDBCF0A24FCB6AFBAC02AC32FFBFA64D94D91B726BE69DDC"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\Q8_BUILD486_GBPUSD_20260918\\verify_q8_lifecycle_coverage.py",
+      "bytes": 932,
+      "sha256": "82BA6FFA07EC44C3D0ABD999D8E87CDF45FB015164ED50752F8354A5A9FEE14B"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\Q8_BUILD486_GBPUSD_20260918\\SMOKE_HARNESS_202608_summary.json",
+      "bytes": 766,
+      "sha256": "5EB53C974DAE2EDD21ECEBFA7B837A8045436EBD87F3F5AAC2D2E00C21504B85"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\Q8_BUILD486_GBPUSD_20260918\\SMOKE_HARNESS_202608.html",
+      "bytes": 14199,
+      "sha256": "9A1CCFC63C76CFD3EA2D95CBF2A04D68BE5C078769EA9B9AE839F17A1644CBE2"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\Q8_BUILD486_GBPUSD_20260918\\SMOKE_HARNESS_202608_tester_newlog.bin",
+      "bytes": 4316313,
+      "sha256": "80CC6DF0CDFCCA58273C6B0B71428DD6EAF48A05998352FA4F07EED8BF8A4FF4"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\Q8_BUILD486_GBPUSD_20260918\\Q8_2024_summary.json",
+      "bytes": 763,
+      "sha256": "9658279D2F1FF911DDC408858F3446D66584C1A98D04152E3C1ABDC6D7291FDD"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\Q8_BUILD486_GBPUSD_20260918\\Q8_2024.html",
+      "bytes": 278288,
+      "sha256": "AF8075816F36FC9751B7E47F8244DC3CDFE48BA8DA8C5F76F261E0C0E721E1F9"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\Q8_BUILD486_GBPUSD_20260918\\Q8_2024_tester_newlog.bin",
+      "bytes": 58439073,
+      "sha256": "1FB2636807960A7430F424A84282A7D6D6EF7784BF92AF221746E6293CB960D5"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\Q8_BUILD486_GBPUSD_20260918\\Q8_2025H1_summary.json",
+      "bytes": 764,
+      "sha256": "0800FAD6D2EBB081F2CC3EA8F1609CD18DA4CA9156E57DCBDE22F777414F18FC"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\Q8_BUILD486_GBPUSD_20260918\\Q8_2025H1.html",
+      "bytes": 146721,
+      "sha256": "8FD929AB96B8E4D1D13C5A2E3B27B5013C7DF986A35AC7CF37553FF6A17DDDF5"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\Q8_BUILD486_GBPUSD_20260918\\Q8_2025H1_tester_newlog.bin",
+      "bytes": 28850539,
+      "sha256": "87A0648B72EFB4F2DD41517777845A536585BAF4A788024E15C9C1E8CE49CEAB"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\Q8_BUILD486_GBPUSD_20260918\\Q8_2025H2_summary.json",
+      "bytes": 762,
+      "sha256": "BE803AEE52263C1A7CD32D31BF9842EA558CCBA82FCD239860AE7816C5081CF0"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\Q8_BUILD486_GBPUSD_20260918\\Q8_2025H2.html",
+      "bytes": 124134,
+      "sha256": "AA0F72C46605091057A2434AD5F6C149786C2D0E8940BF2E85291FBD75262AD5"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\Q8_BUILD486_GBPUSD_20260918\\Q8_2025H2_tester_newlog.bin",
+      "bytes": 28467889,
+      "sha256": "9B486ADDDB20D8C227B6FEE2785EB2AB7B9BF4FB03EE97F6971DBAE3B5388040"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\Q8_BUILD486_GBPUSD_20260918\\Q8_2026YTD_summary.json",
+      "bytes": 765,
+      "sha256": "1C7A9A027E55DF63F62F8DC4ADA2CA5878EB4381E748F57E6AEBD1252050FE4D"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\Q8_BUILD486_GBPUSD_20260918\\Q8_2026YTD.html",
+      "bytes": 191069,
+      "sha256": "71DF06DFBAA48700239836D8E36E50BD58F4E1D6B085A1338930854058050A2C"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\Q8_BUILD486_GBPUSD_20260918\\Q8_2026YTD_tester_newlog.bin",
+      "bytes": 37519486,
+      "sha256": "5F436F9CD1E7C8C8B532AB010E107B6F0422C47CDB970F597CF86C1E53FE68E2"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\GBPUSD1.hst",
+      "bytes": 448208968,
+      "sha256": "64D5BED21B61CC119507FD552D6A86091B2CF4A580EEFB5C589AA97654F56019"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\GBPUSD5.hst",
+      "bytes": 89814568,
+      "sha256": "6F7A16A1A6BDAF6F6871F56AF399530974C2429D51E35F7584D37A2A88EC549D"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\GBPUSD15.hst",
+      "bytes": 29943688,
+      "sha256": "74DB0196F4D77FC66548CD41614ADFDDE9CA96F9E2DA91DAEBCD17E304C5E7B5"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\GBPUSD60.hst",
+      "bytes": 7486468,
+      "sha256": "566762B35FCE7EF2DCB5985A57DAC6BC5D0476A6A76DDEF2D680EF0905632389"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\GBPUSD240.hst",
+      "bytes": 1872148,
+      "sha256": "AA58B7E1114D20B135573168FD414DB7F210AB260427C8596CADFB8052E5015F"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\GBPUSD1440.hst",
+      "bytes": 312508,
+      "sha256": "6EE8DED5B0027A2340D15196F34DA603899D648A772919AF6FACD156F81800AC"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\Q8_BUILD486_GBPUSD_20260918\\SMOKE_202608.html",
+      "bytes": 4549,
+      "sha256": "F38A2AA36EB423F4EAC731A462154AFDF1C53A0E780950CD15BF3C874267C8D5"
+    },
+    {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\Q8_BUILD486_GBPUSD_20260918\\SMOKE_202608_tester_newlog.bin",
+      "bytes": 2346,
+      "sha256": "72B9C0E7707C420B537A94E647D680859D9E69BCA6AD4F8FB62BB807EE7E3392"
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 # BBMA Current Project State
 
-Updated: **2026-09-17**
+Updated: **2026-09-18**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`b4772efc7cac5a7e3061473a4c1a7c4c305b1835`**
+Owner head at reconciliation: **`3fdd918151f99f1b57db8929efbe39e07f61a697`**
 
 This file is the active current-state record. The pre-2026-09-09 historical `CURRENT.md` is preserved byte-for-byte at `blueprint/archive/CURRENT_pre_20260909.md`.
 
@@ -74,7 +74,17 @@ Status: **VERIFIED / FROZEN**.
 - Raw owner MQ4 bytes equal verified Build 4.86 bytes; no protected EA/Core/contract change exists after the implementation parent.
 - Exact Build 4.86 EX4 SHA-256 remains `6A7116B26CDB7BA87B8CCC3415D2309BF414C32D274A66B4903D6E47FC93A5C6`.
 - Freeze record: `blueprint/audits/Q7_BUILD486_INTEGRATED_CANDIDATE_FREEZE_20260917.md`.
-- Q6 is sequenced next before Q8; Q3 continues independently in isolated shadow runtime.
+- Q8 scoped GBPUSD engineering regression is now complete under Issue #188; Q6 native final-authority residuals remain separate and Q3 continues independently.
+
+### 7. Q8 Build 4.86 GBPUSD engineering historical regression — Issue #188
+Status: **VERIFIED / COMPLETE — ENGINEERING HISTORICAL EVIDENCE ONLY**.
+- Scope: GBPUSD only; 2024, 2025 H1, 2025 H2 and 2026 YTD through 2026-09-01 exclusive.
+- Exact Build 4.86 source/binary identity and all six installed GBPUSD HST identities were freshly reverified.
+- Offline Strategy Tester required a test-only three-guard environment adapter; invariant audit proves no Strategy-Core/risk/execution/lifecycle semantic delta.
+- Native harness compile: 0 errors / 0 warnings; all four matrix periods and the August-2026 smoke passed mechanism/runtime acceptance.
+- Deep matrix: 1,045 executions, zero duplicate executed DecisionIDs/tickets, zero execution-order/closed-candle chronology defects and zero targeted fatal runtime faults.
+- Audit: `blueprint/audits/Q8_BUILD486_GBPUSD_ENGINEERING_HISTORICAL_REGRESSION_20260918.md`.
+- This does not close Issue #128 native tick/deployment-time provenance and is not a profitability or production-readiness claim.
 
 ## Current infrastructure blocker
 Authorized G40 Remote Desktop Commander was reachable during the 2026-09-17 Q7 recovery. Active live-state work remains Q3 isolated runtime and Q6 archive resumption; all must re-read actual local state before mutation.

@@ -57,3 +57,10 @@ def test_extreme_tp_targets_first_edge_of_opposite_ma5_ma10_area():
 def test_build_identity_is_unique_for_q5_implementation():
     assert "Version 4.84 - Q5 Standalone Extreme Execution" in TEXT
     assert '#property version   "4.84"' in TEXT
+
+
+def test_integrated_build_identity_is_consistent_for_484():
+    assert '#define BBMA_BUILD_TAG      "V484_Q5_EXTREME_20260917"' in TEXT
+    assert '#define BBMA_SOURCE_REV_TAG "Q5_STANDALONE_EXTREME_175_20260917"' in TEXT
+    assert '[F7-BUILD] EA=BBMA_EA Build=4.84 BuildTag=' in TEXT
+    assert 'BBMA EA V4.8.4 Q5 Standalone Extreme Execution initialized successfully' in TEXT

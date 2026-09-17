@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.8.2 - Post-Freeze F7 Infrastructure            |
+//| Version 4.8.3 - NMJE Read-Only Authority Restore         |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.82"
+#property version   "4.83"
 #property strict
 
-#define BBMA_BUILD_TAG      "V482_F7_INFRA_20260909"
-#define BBMA_SOURCE_REV_TAG "F7_POSTFREEZE_A_20260909"
+#define BBMA_BUILD_TAG      "V483_NMJE_READONLY_20260917"
+#define BBMA_SOURCE_REV_TAG "NMJE_READONLY_Q1_20260917"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -102,8 +102,8 @@ input bool     ShowDashboard                      = true;       // 07 Display | 
 
 //--- 08 ADVANCED SAFETY / EXECUTION
 input double   MinRRRatio                         = 0.0;        // 08 Advanced | optional global Min RR filter; 0=disabled
-input bool     BlockNMJEConflict                  = true;       // 08 Advanced | block RE_ENTRY when NMJE=CONFLICT
-input bool     BlockNMJEBuilding                  = true;       // 08 Advanced | block RE_ENTRY when NMJE=BUILDING
+input bool     BlockNMJEConflict                  = true;       // 08 Legacy compatibility | INACTIVE: NMJE is observation-only
+input bool     BlockNMJEBuilding                  = true;       // 08 Legacy compatibility | INACTIVE: NMJE is observation-only
 input double   MaxSLPips                          = 100.0;      // 08 Advanced | maximum accepted SL distance
 input int      Slippage                           = 3;          // 08 Advanced | broker slippage in points
 input ENUM_DEBUG_LEVEL DebugLevel                 = DBG_OFF;    // 08 Advanced | OFF / ERROR / SIGNAL / TRADE / FULL
@@ -299,7 +299,6 @@ enum ENUM_REJECTION_REASON
    REJ_EXPIRED,
    REJ_OPPOSITE_SIGNAL,
    REJ_SEQUENCE_BREAK,
-   REJ_NMJE_RELATION,
    REJ_SPREAD_HIGH,
    REJ_DD_LIMIT,
    REJ_BASKET_LOSS,
@@ -7810,31 +7809,10 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
    }
 }
 
-bool NMJE_PassExecutionGate(string pair, BBMA_Decision &decision)
-{
-   if(decision.SignalType != SIGNAL_RE_ENTRY) return true;
-   int pairIndex = FindPairStateIndex(pair);
-   if(pairIndex < 0 || pairIndex >= g_pair_count) return true;
-   ENUM_NESTED_RELATION relation = g_nested_journeys[pairIndex].Relation;
-   if(BlockNMJEConflict && relation == NESTED_CONFLICT) return false;
-   if(BlockNMJEBuilding && relation == NESTED_BUILDING) return false;
-   return true;
-}
-
 bool RunEntryPreflightAndExecute(BBMA_Decision &decision, string pair)
 {
    if(decision.DecisionState != DEC_VALIDATED) return false;
    if(pair == "" || decision.Pair != pair) return false;
-   if(!NMJE_PassExecutionGate(pair, decision))
-   {
-      int nmjePairIndex = FindPairStateIndex(pair);
-      decision.DecisionState = DEC_REJECTED;
-      decision.RejectionReason = REJ_NMJE_RELATION;
-      Print("[NMJE-GATE] Pair=", pair, " DecisionID=", decision.DecisionID,
-            " Relation=", NMJE_RelationText(g_nested_journeys[nmjePairIndex].Relation),
-            " Action=REJECT");
-      return false;
-   }
    if(EntryMode == 1)
       Print("[P3M1][PREFLIGHT_START] Pair=", pair,
             " DecisionID=", decision.DecisionID,
@@ -8266,7 +8244,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=4.82 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=4.83 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -10722,7 +10700,7 @@ int OnInit()
       return INIT_FAILED;
    }
    
-   Log(DBG_FULL, "BBMA EA V4.8.2 Post-Freeze F7 Infrastructure initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.8.3 NMJE Read-Only Authority Restore initialized successfully");
    return INIT_SUCCEEDED;
 }
 

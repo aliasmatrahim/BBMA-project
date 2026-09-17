@@ -10,16 +10,21 @@ def section(start: str, end: str) -> str:
     return TEXT[a:b]
 
 
-def test_v482_identity_and_startup_order():
-    assert '//| Version 4.8.2 - Post-Freeze F7 Infrastructure            |' in TEXT
-    assert '#property version   "4.82"' in TEXT
+def test_f7_identity_and_startup_order():
+    import re
+    match = re.search(r'#property\s+version\s+"([0-9.]+)"', TEXT)
+    assert match, "missing MQL4 version identity"
+    version = match.group(1)
+    assert '#define BBMA_BUILD_TAG' in TEXT
+    assert '#define BBMA_SOURCE_REV_TAG' in TEXT
+    assert f'[F7-BUILD] EA=BBMA_EA Build={version} BuildTag=' in TEXT
     oninit = section("int OnInit()", "void OnDeinit")
     assert oninit.count("F7BuildIdentityTelemetry();") == 1
     assert oninit.index("F7BuildIdentityTelemetry();") < oninit.index("InitializeEA()")
 
 
 def test_exact_ticket_execution_telemetry_and_prospective_location():
-    entry = section("void ProcessEntry(", "bool NMJE_PassExecutionGate")
+    entry = section("void ProcessEntry(", "bool RunEntryPreflightAndExecute")
     assert entry.count('OrderOpen=", TimeToString(info.open_time)') == 2
     assert "OrderSelect(ticket, SELECT_BY_TICKET)" in entry
     assert "info.open_time = OrderOpenTime();" in entry

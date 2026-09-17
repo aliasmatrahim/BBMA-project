@@ -171,25 +171,28 @@ Rules:
 - Do not merge source/runtime changes until their required validation gates actually pass.
 
 ### Autonomous merge policy
-A PR may be merged autonomously without a separate user confirmation only when **all** of the following are true:
+
+The user has granted **standing authorization** for validated BBMA merges. A separate per-PR confirmation is not required when the assistant determines that all scope-required gates have passed and no genuine user gate remains.
+
+Autonomous merge is allowed for documentation/governance/tooling/tests/audit/evidence/status work and for EA/source/behaviour-bearing fixes when **all** of the following are true:
 
 - the exact PR head SHA has passed every validation gate required for its scope;
 - the intended target/current owner branch has been resolved from live GitHub state;
-- the diff does **not** alter Strategy-Core semantics or accepted source authority;
-- the diff does **not** modify `blueprint/source/BBMA_EA.mq4` or otherwise change EA trading behaviour;
-- the diff does **not** change runtime, execution, trade, production or release authority;
-- the change is limited to low-risk documentation, governance, tooling, tests, audit/evidence or status/reconciliation work;
-- no required CI/check is pending or failing, and no unresolved review blocker, `HOLD`, source conflict or classification uncertainty remains.
+- any Strategy-Core or behaviour-bearing change implements an already accepted source rule, contract or explicit project decision rather than inventing/adjudicating new semantics;
+- native compile, static, targeted regression, cross-module and runtime evidence required by the scope are complete and attributable to the exact candidate;
+- no required CI/check is pending or failing;
+- no unresolved review blocker, `HOLD`, `UNCERTAIN`, `UNRESOLVED`, source conflict or material classification ambiguity remains;
+- the merge does not silently broaden scope, change unrelated authority, or bypass a failed/unverified exit criterion.
 
-Separate explicit user approval is still required **before merge** when any change:
+A genuine user gate still requires consultation before proceeding when any of the following applies:
 
-- alters Strategy Core, accepted Core/source authority or behaviour-bearing contracts;
-- changes the canonical EA source or EA behaviour;
-- changes runtime/execution/trade authority or production/release authority;
-- requires force-update, force-push, branch deletion, destructive overwrite or another irreversible/destructive Git action;
-- cannot be confidently classified as low-risk/non-authority after review.
+- Strategy-Core/source semantics are genuinely new, conflicting, ambiguous or not already authorized by accepted evidence/decision;
+- a required compile/static/regression/runtime/CI gate is unavailable, failed, or cannot be attributed to the exact candidate;
+- force-update, force-push, branch deletion, destructive overwrite or another irreversible/destructive Git action is required;
+- production/trading activation, primary MT4 restart, live-account action, credentials, physical verification or another operationally irreversible action is required;
+- the requested merge would knowingly carry unresolved scope drift or an authority change outside the accepted contract/decision.
 
-After an autonomous merge, record the PR/commit result and verify that the intended target branch contains the exact merged change. Do not use this policy to bypass missing validation evidence.
+The standing authorization removes the repeated **merge-confirmation** gate; it does **not** remove Strategy-Core adjudication, validation, runtime, safety or provenance gates. After every autonomous merge, verify that the intended owner branch contains the exact merged change and record the PR/commit result.
 
 
 ---

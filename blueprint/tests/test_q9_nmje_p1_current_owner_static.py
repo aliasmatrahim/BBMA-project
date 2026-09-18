@@ -26,8 +26,8 @@ def main() -> None:
         SRC,
         "Version 4.8.7 - Q9 NMJE Lineage Provenance",
         '#property version   "4.87"',
-        '#define BBMA_BUILD_TAG      "V487_Q9_NMJE_LINEAGE_20260918"',
-        '#define BBMA_SOURCE_REV_TAG "Q9_P1_NMJE_LINEAGE_101_20260918"',
+        '#define BBMA_BUILD_TAG      "V487A_Q9_NMJE_LINEAGE_TRACEFIX_20260918"',
+        '#define BBMA_SOURCE_REV_TAG "Q9_P1_NMJE_LINEAGE_TRACEFIX_101_20260918"',
         "datetime             EpochStartCandleTime;",
         "string               CanonicalEventID;",
         "string                  ParentEventID;",
@@ -38,7 +38,9 @@ def main() -> None:
         "NMJE_H4OwnerEventID(",
         'return "J2|" + pair + "|" + NMJE_ParentText(kind) + "|" + parentEventID;',
         'parentReason = "PARENT_EVENT_ID_UNRESOLVED";',
+        'Log(DBG_FULL, "BBMA EA " + string(BBMA_BUILD_TAG) + " initialized successfully");',
     )
+    assert "V4.8.6 Structural Lifetime Authority Repair initialized successfully" not in SRC
 
     # Q9 P1 must remain provenance-only.
     for forbidden in (

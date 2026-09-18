@@ -2,7 +2,7 @@
 
 Updated: **2026-09-18**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`3fdd918151f99f1b57db8929efbe39e07f61a697`**
+Owner head at reconciliation: **`6be2eef1495e2d896e121f5c1846ab3cd14e0f12`**
 
 This file is the active current-state record. The pre-2026-09-09 historical `CURRENT.md` is preserved byte-for-byte at `blueprint/archive/CURRENT_pre_20260909.md`.
 

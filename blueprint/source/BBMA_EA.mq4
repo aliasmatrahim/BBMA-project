@@ -3302,26 +3302,18 @@ bool DetectECSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
 //| LEVEL: BEGINNER                                                  |
 //+------------------------------------------------------------------+
 
-// Q9 P1 engineering mapping for provenance only.
-// Classifies a historical closed-D1 snapshot with the existing M11 formula.
-bool M11_ClassifyD1OwnerAtShift(string pair, int shift,
-                                ENUM_D1_OWNER_STATE &ownerState,
-                                ENUM_DIRECTION &direction,
-                                datetime &candleTime)
+// M11 sole canonical D1 owner classifier.
+// Both the live closed-D1 snapshot and Q9 provenance reconstruction call this
+// one formula owner; Q9 does not duplicate or redefine the strategy rule.
+bool M11_ClassifyD1OwnerValues(double close1, double ma50_1, double ma50_2,
+                               ENUM_D1_OWNER_STATE &ownerState,
+                               ENUM_DIRECTION &direction)
 {
    ownerState = D1_OWNER_UNRESOLVED;
    direction = DIR_NONE;
-   candleTime = 0;
-   if(pair == "" || shift < 1) return false;
-
-   datetime t = iTime(pair, PERIOD_D1, shift);
-   double close1 = iClose(pair, PERIOD_D1, shift);
-   double ma50_1 = EMA(pair, PERIOD_D1, EMA50_PERIOD, shift);
-   double ma50_2 = EMA(pair, PERIOD_D1, EMA50_PERIOD, shift + 1);
-   if(t <= 0 || close1 <= 0.0 || ma50_1 <= 0.0 || ma50_2 <= 0.0)
+   if(close1 <= 0.0 || ma50_1 <= 0.0 || ma50_2 <= 0.0)
       return false;
 
-   candleTime = t;
    if(close1 > ma50_1 && ma50_1 > ma50_2)
    {
       ownerState = D1_OWNER_BUY_CONFIRMED;
@@ -3337,6 +3329,31 @@ bool M11_ClassifyD1OwnerAtShift(string pair, int shift,
       ownerState = D1_TRANSITION;
       direction = DIR_NONE;
    }
+   return true;
+}
+
+// Q9 P1 provenance adapter: reads an older fully closed D1 snapshot and routes
+// it through the same M11 classifier used by the live owner.
+bool M11_ClassifyD1OwnerAtShift(string pair, int shift,
+                                ENUM_D1_OWNER_STATE &ownerState,
+                                ENUM_DIRECTION &direction,
+                                datetime &candleTime)
+{
+   ownerState = D1_OWNER_UNRESOLVED;
+   direction = DIR_NONE;
+   candleTime = 0;
+   if(pair == "" || shift < 1) return false;
+
+   datetime t = iTime(pair, PERIOD_D1, shift);
+   double close1 = iClose(pair, PERIOD_D1, shift);
+   double ma50_1 = EMA(pair, PERIOD_D1, EMA50_PERIOD, shift);
+   double ma50_2 = EMA(pair, PERIOD_D1, EMA50_PERIOD, shift + 1);
+   if(t <= 0) return false;
+   if(!M11_ClassifyD1OwnerValues(close1, ma50_1, ma50_2,
+                                 ownerState, direction))
+      return false;
+
+   candleTime = t;
    return true;
 }
 
@@ -3450,27 +3467,27 @@ void UpdateD1MajorTrendOwner(string pair, PairState &state)
       return;
    }
 
-   owner.IsValid = true;
+   ENUM_D1_OWNER_STATE classifiedState;
+   ENUM_DIRECTION classifiedDirection;
+   if(!M11_ClassifyD1OwnerValues(owner.Close1, owner.MA50_1, owner.MA50_2,
+                                 classifiedState, classifiedDirection))
+   {
+      SetD1OwnerUnresolved(state, "Required closed D1 MA50 history unavailable");
+      TraceD1MajorTrendOwner(pair, state);
+      return;
+   }
 
-   if(owner.Close1 > owner.MA50_1 && owner.MA50_1 > owner.MA50_2)
-   {
-      owner.State = D1_OWNER_BUY_CONFIRMED;
-      owner.Direction = DIR_BUY;
+   owner.IsValid = true;
+   owner.State = classifiedState;
+   owner.Direction = classifiedDirection;
+
+   if(owner.State == D1_OWNER_BUY_CONFIRMED)
       owner.Reason = "Closed D1 above MA50 with rising MA50";
-   }
-   else if(owner.Close1 < owner.MA50_1 && owner.MA50_1 < owner.MA50_2)
-   {
-      owner.State = D1_OWNER_SELL_CONFIRMED;
-      owner.Direction = DIR_SELL;
+   else if(owner.State == D1_OWNER_SELL_CONFIRMED)
       owner.Reason = "Closed D1 below MA50 with falling MA50";
-   }
    else
-   {
-      owner.State = D1_TRANSITION;
-      owner.Direction = DIR_NONE;
       owner.Reason =
          "Closed D1 price-side and MA50 slope do not confirm one direction";
-   }
 
    // Q9 P1 provenance only. Preserve a proven same-owner epoch in memory.
    // On startup/recovery or owner transition, rebuild the exact contiguous

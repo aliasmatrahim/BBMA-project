@@ -82,6 +82,19 @@ def main() -> None:
         "epochStart = 0;",
     )
 
+    classifier = body("bool M11_ClassifyD1OwnerValues(")
+    require(
+        classifier,
+        "close1 > ma50_1 && ma50_1 > ma50_2",
+        "close1 < ma50_1 && ma50_1 < ma50_2",
+        "D1_OWNER_BUY_CONFIRMED",
+        "D1_OWNER_SELL_CONFIRMED",
+        "D1_TRANSITION",
+    )
+    # The canonical price-side + MA50-slope predicates must exist in one owner only.
+    assert SRC.count("close1 > ma50_1 && ma50_1 > ma50_2") == 1
+    assert SRC.count("close1 < ma50_1 && ma50_1 < ma50_2") == 1
+
     historical = body("bool M11_ClassifyD1OwnerAtShift(")
     require(
         historical,
@@ -90,7 +103,16 @@ def main() -> None:
         "iClose(pair, PERIOD_D1, shift)",
         "EMA(pair, PERIOD_D1, EMA50_PERIOD, shift)",
         "EMA(pair, PERIOD_D1, EMA50_PERIOD, shift + 1)",
+        "M11_ClassifyD1OwnerValues(close1, ma50_1, ma50_2,",
     )
+
+    live_owner = body("void UpdateD1MajorTrendOwner(")
+    require(
+        live_owner,
+        "M11_ClassifyD1OwnerValues(owner.Close1, owner.MA50_1, owner.MA50_2,",
+    )
+    assert "owner.Close1 > owner.MA50_1" not in live_owner
+    assert "owner.Close1 < owner.MA50_1" not in live_owner
 
     journey = body("string NMJE_BuildJourneyID(")
     require(journey, "parentEventID", '"J2|"')

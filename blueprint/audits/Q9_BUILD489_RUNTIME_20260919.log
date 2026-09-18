@@ -1,0 +1,64 @@
+Q9 Build 4.89 P4 D1 isolated runtime evidence — 2026-09-19
+
+Environment: D:\BBMA\MT4_NMJE_141_Demo
+Config: D:\BBMA\MT4_NMJE_141_Demo\config\q9_489_p4_readonly.ini
+Profile: Q9_489_P4_READONLY
+EA: BBMA_EA_Q9_489_P4
+ExpertsTrades=false
+MaxTradePerPair=0
+MaxTotalTrade=0
+InstanceID=89
+
+DEPLOYED IDENTITY
+Build: 4.89
+BuildTag: V489_Q9_P4_SHADOW_ATTR_20260919
+SourceRev: Q9_P4_D1_ATTRIBUTION_101_20260919
+MQ4 SHA-256: d274de09860ca137d90a7113494998fb7637a2e997fbff3cfe7eef6f32f757c6
+EX4 SHA-256: bd1a091c05e1cf42598a848eca63ecea47677b0633827d2cd1f18aeb90ccae82
+
+INITIAL ATTEMPT — TRANSIENT MT4 TIMER FAILURE
+02:30:29 [F7-BUILD] exact Build 4.89 identity
+02:30:33 [P3S1][PASS] EA initialized successfully with 1 pairs
+02:30:34 EventSetTimer failed; MQL4 error=4024
+02:30:34 initialization failed / uninit reason 8
+
+Attribution:
+- OnInit, OnDeinit and OnTimer are byte-identical to verified Build 4.88.
+- EventSetTimer call count is unchanged (1).
+- No P4 code executes on the timer-registration path.
+Classification: non-attributable transient MT4 runtime condition.
+
+FIRST RETRY — PROFILE AUTOSAVE SIDE EFFECT
+After the init failure, MT4 saved Q9_489_P4_READONLY/chart01.chr without its <expert> section.
+A retry therefore opened the terminal/chart but did not attach the EA.
+The terminal remained responsive.
+The profile was restored from verified Q9_488_STAGEC_READONLY and only EA name + InstanceID were changed.
+No EA source/binary/config safety setting changed.
+
+FINAL CLEAN RETRY
+02:38:34 Expert BBMA_EA_Q9_489_P4 EURUSD,M15 loaded successfully
+02:38:41 [F7-BUILD] EA=BBMA_EA Build=4.89 BuildTag=V489_Q9_P4_SHADOW_ATTR_20260919 SourceRev=Q9_P4_D1_ATTRIBUTION_101_20260919
+02:38:41 [P3S1][PASS] Broker spec EURUSD PID=13 Magic=868913
+02:38:41 [P3S1][PASS] PairID validation
+02:38:41 [P3S1][PASS] Magic validation
+02:38:41 [P3S1][PASS] EA initialized successfully with 1 pairs
+02:38:41 BBMA EA V489_Q9_P4_SHADOW_ATTR_20260919 initialized successfully
+02:38:42 [D1-03][OWNER] EURUSD D1 owner restored normally
+02:38:42 [N1-NMJE] EURUSD REL=BUILDING P=H4_OWNER/S J=J2|EURUSD|H4_OWNER|860D9AB84CCEB67A PE=860D9AB84CCEB67A
+02:38:42 [NMJE-M5-SHADOW] EURUSD PRESENT=N REL=UNRESOLVED DIR=- CTX=0 R=M5_NO_CANONICAL_CONTEXT
+02:38:42 [F7-TELEM] Event=HEARTBEAT Init=1 Connected=1 Monitored=0 F7Managed=0
+02:39:20 graceful uninit reason 9
+
+FINAL SAFETY RESULT
+- trading disabled by terminal config
+- zero trade caps
+- monitored trades = 0
+- no P4 OPEN/OUT/RECOVER row expected in this zero-trade runtime
+- no synthetic decision/trade was created
+- no OrderSend/OrderClose/OrderModify/OrderDelete action occurred
+- no DEC_EXECUTED marker occurred
+- no NMJE execution gate/rejection authority was introduced
+- no INIT_FAILED in the final clean retry
+
+LIMITATION
+P4 durable attribution OPEN/RECOVER/OUT was not live-broker exercised because this validation intentionally prohibited trading. Its persistence/recovery semantics are validated by focused static guards and the deterministic fail-closed persistence model, plus native MQL4 compile. This closure does not claim live-trade P4 attribution proof or production activation.

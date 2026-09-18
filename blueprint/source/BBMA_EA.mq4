@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.8.9 - Q9 NMJE Shadow Outcome Attribution            |
+//| Version 4.9.0 - Q9 NMJE Conflict Refinement            |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.89"
+#property version   "4.90"
 #property strict
 
-#define BBMA_BUILD_TAG      "V489_Q9_P4_SHADOW_ATTR_20260919"
-#define BBMA_SOURCE_REV_TAG "Q9_P4_D1_ATTRIBUTION_101_20260919"
+#define BBMA_BUILD_TAG      "V490_Q9_P5_CONFLICT_REFINEMENT_20260919"
+#define BBMA_SOURCE_REV_TAG "Q9_P5_CONFLICT_REFINEMENT_101_20260919"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -4885,8 +4885,8 @@ void NMJE_BuildM5Refinement(PairState &state, NestedJourneyState &journey)
       }
       else if(confirmedRE)
       {
-         snapshot.Relation = NESTED_CONFLICT;
-         snapshot.Reason = "M5_TEMPORARY_CONFIRMED_RE_OPPOSES_PARENT";
+         snapshot.Relation = NESTED_UNRESOLVED;
+         snapshot.Reason = "M5_OPPOSITE_CONFIRMED_RE_UNRESOLVED";
       }
       else if(selectedRE.Direction == journey.ParentDirection)
       {
@@ -4930,8 +4930,8 @@ void NMJE_BuildM5Refinement(PairState &state, NestedJourneyState &journey)
       }
       else
       {
-         snapshot.Relation = NESTED_CONFLICT;
-         snapshot.Reason = "M5_TEMPORARY_EXTREME_OPPOSES_PARENT";
+         snapshot.Relation = NESTED_BUILDING;
+         snapshot.Reason = "M5_OPPOSITE_EXTREME_BUILDING";
       }
    }
 
@@ -9167,7 +9167,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=4.89 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=4.90 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);

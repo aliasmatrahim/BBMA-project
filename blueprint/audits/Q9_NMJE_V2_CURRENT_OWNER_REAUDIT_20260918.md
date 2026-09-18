@@ -1,8 +1,8 @@
 # Q9 NMJE v2 Current-Owner Re-Audit — 2026-09-18
 
-Issue: #101  
-Branch: `q9-nmje-v2-current-owner-101`  
-Live owner base: `d1-owner-dev@01f7e8305f6ba558494fc559bb3c734dfc06124a`  
+Issue: #101
+Branch: `q9-nmje-v2-current-owner-101`
+Live owner base: `d1-owner-dev@01f7e8305f6ba558494fc559bb3c734dfc06124a`
 Canonical baseline: Build `4.86` / `V486_STRUCTURAL_LIFETIME_20260917`
 
 ## Classification

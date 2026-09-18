@@ -2,7 +2,7 @@
 
 Reconciled: **2026-09-18**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`3fdd918151f99f1b57db8929efbe39e07f61a697`**
+Owner head at reconciliation: **`6be2eef1495e2d896e121f5c1846ab3cd14e0f12`**
 
 This file is the active queue. The pre-2026-09-09 historical queue is preserved byte-for-byte at `blueprint/archive/MASTER_QUEUE_pre_20260909.md`.
 

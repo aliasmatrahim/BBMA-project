@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.9.0 - Q9 NMJE Conflict Refinement            |
+//| Version 4.9.1 - Q9 NMJE Maturity Fingerprint           |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.90"
+#property version   "4.91"
 #property strict
 
-#define BBMA_BUILD_TAG      "V490_Q9_P5_CONFLICT_REFINEMENT_20260919"
-#define BBMA_SOURCE_REV_TAG "Q9_P5_CONFLICT_REFINEMENT_101_20260919"
+#define BBMA_BUILD_TAG      "V491_Q9_P6_MATURITY_FINGERPRINT_20260919"
+#define BBMA_SOURCE_REV_TAG "Q9_P6_MATURITY_FINGERPRINT_101_20260919"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -9167,7 +9167,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=4.90 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=4.91 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);

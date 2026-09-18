@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.8.7 - Q9 NMJE Lineage Provenance                 |
+//| Version 4.8.8 - Q9 NMJE M5 Shadow Context                 |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.87"
+#property version   "4.88"
 #property strict
 
-#define BBMA_BUILD_TAG      "V487A_Q9_NMJE_LINEAGE_TRACEFIX_20260918"
-#define BBMA_SOURCE_REV_TAG "Q9_P1_NMJE_LINEAGE_TRACEFIX_101_20260918"
+#define BBMA_BUILD_TAG      "V488_Q9_NMJE_M5_SHADOW_20260918"
+#define BBMA_SOURCE_REV_TAG "Q9_C1C2_P2_M5_SHADOW_101_20260918"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -266,6 +266,14 @@ enum ENUM_NESTED_PARENT_KIND
    NESTED_PARENT_H4_OWNER,
    NESTED_PARENT_D1_RE,
    NESTED_PARENT_D1_OWNER
+};
+
+// Issue #101 Stage-C2 shadow-only canonical M5 context families.
+enum ENUM_NMJE_M5_CONTEXT_CODE
+{
+   NMJE_M5_CONTEXT_NONE = 0,
+   NMJE_M5_CONTEXT_RE_ENTRY = 1,
+   NMJE_M5_CONTEXT_EXTREME = 2
 };
 
 enum ENUM_EXTREME_TYPE { EXT_NONE, EXT_SIDEWAYS, EXT_WITH_MOMENTUM, EXT_WITHOUT_MOMENTUM };
@@ -620,6 +628,24 @@ struct NestedTFNode
    string               OverlayLabel;
 };
 
+// Q9 Stage-C2 provenance/shadow storage. No processing-clock, candidate,
+// rejection, ranking, risk or execution authority.
+struct NMJEM5RefinementState
+{
+   bool                 Present;
+   string               EventID;
+   string               ParentEventID;
+   string               JourneyID;
+   ENUM_DIRECTION       Direction;
+   int                  ContextCode;
+   datetime             EventStartCandleTime;
+   datetime             ClosedCandleTime;
+   ENUM_NESTED_RELATION Relation;
+   bool                 Valid;
+   bool                 Resolved;
+   string               Reason;
+};
+
 // N1-03: one pair-level nested journey observation per closed-M15 cycle.
 struct NestedJourneyState
 {
@@ -642,6 +668,8 @@ struct NestedJourneyState
    NestedTFNode            H4Node;
    NestedTFNode            H1Node;
    NestedTFNode            M15Node;
+   // Q9 Stage-C2 shadow-only M5 context. Never decision authority.
+   NMJEM5RefinementState    M5Refinement;
 
    // N1.1 read-only D1 Opportunity overlay; not parent or execution authority.
    bool                       D1OpportunityActive;
@@ -667,6 +695,8 @@ struct TimeframeSnapshot
    bool     H1_IsClosed;
    datetime M15_CandleTime;
    bool     M15_IsClosed;
+   datetime M5_CandleTime;
+   bool     M5_IsClosed;
 };
 
 struct TimeframeData
@@ -832,6 +862,8 @@ struct PairState
    TimeframeData        h4_data;
    TimeframeData        h1_data;
    TimeframeData        m15_data;
+   // Q9 Stage-C1 read-only closed-M5 data sampled only on the M15 clock.
+   TimeframeData        m5_data;
    Candle               last_3_candles[3];
    Candle               last_5_candles[5];
    Candle               last_20_candles[20];
@@ -850,6 +882,9 @@ struct PairState
    ReEntryData          re_d1_sell_state;
    ReEntryData          re_m15_buy_state;
    ReEntryData          re_m15_sell_state;
+   // Q9 Stage-C2 shadow detector state; never exported as a candidate.
+   ReEntryData          re_m5_buy_state;
+   ReEntryData          re_m5_sell_state;
    H4DirectionalOwner   h4_direction_owner;
    D1MajorTrendOwner    d1_major_trend_owner;
    D1OpportunityJourney d1_opportunity;
@@ -867,6 +902,9 @@ struct PairState
    // F1 uses the F2 Extreme maturity engine as same-TF M15 parent provenance.
    ExtremeLifecycleData extreme_m15_buy_lifecycle;
    ExtremeLifecycleData extreme_m15_sell_lifecycle;
+   // Q9 Stage-C2 shadow context; never exported as an executable Extreme.
+   ExtremeLifecycleData extreme_m5_buy_lifecycle;
+   ExtremeLifecycleData extreme_m5_sell_lifecycle;
    // M16 executable-component freshness/identity overlay for mature Extremes.
    // M08 owns RAW/reversal/retest maturity and strategy invalidation.
    Signal               extreme_h1_buy_state;
@@ -1383,6 +1421,7 @@ void InitPairState(PairState &state)
    InitTimeframeData(state.h4_data);
    InitTimeframeData(state.h1_data);
    InitTimeframeData(state.m15_data);
+   InitTimeframeData(state.m5_data);
 
    state.mlv_buy_state.State = MLV_NONE;
    state.mlv_buy_state.Direction = DIR_BUY;
@@ -1399,6 +1438,13 @@ void InitPairState(PairState &state)
    state.extreme_m15_sell_lifecycle.Maturity = EXT_MAT_NONE;
    state.extreme_m15_sell_lifecycle.Direction = DIR_SELL;
    state.extreme_m15_sell_lifecycle.Timeframe = PERIOD_M15;
+
+   state.extreme_m5_buy_lifecycle.Maturity = EXT_MAT_NONE;
+   state.extreme_m5_buy_lifecycle.Direction = DIR_BUY;
+   state.extreme_m5_buy_lifecycle.Timeframe = PERIOD_M5;
+   state.extreme_m5_sell_lifecycle.Maturity = EXT_MAT_NONE;
+   state.extreme_m5_sell_lifecycle.Direction = DIR_SELL;
+   state.extreme_m5_sell_lifecycle.Timeframe = PERIOD_M5;
 
    state.extreme_d1_buy_lifecycle.Maturity = EXT_MAT_NONE;
    state.extreme_d1_buy_lifecycle.Direction = DIR_BUY;
@@ -1431,6 +1477,12 @@ void InitPairState(PairState &state)
    state.re_m15_sell_state.State = RE_STATE_NONE;
    state.re_m15_sell_state.Direction = DIR_SELL;
    state.re_m15_sell_state.Timeframe = PERIOD_M15;
+   state.re_m5_buy_state.State = RE_STATE_NONE;
+   state.re_m5_buy_state.Direction = DIR_BUY;
+   state.re_m5_buy_state.Timeframe = PERIOD_M5;
+   state.re_m5_sell_state.State = RE_STATE_NONE;
+   state.re_m5_sell_state.Direction = DIR_SELL;
+   state.re_m5_sell_state.Timeframe = PERIOD_M5;
 
    state.h4_direction_owner.State = H4_OWNER_RECOVERY_UNRESOLVED;
    state.h4_direction_owner.Direction = DIR_NONE;
@@ -2085,6 +2137,9 @@ void BuildTimeframeSnapshot(string pair, TimeframeSnapshot &snapshot)
    
    snapshot.M15_CandleTime = GetLatestClosedCandleTime(pair, PERIOD_M15);
    snapshot.M15_IsClosed = IsCandleClosed(snapshot.M15_CandleTime, 900);
+
+   snapshot.M5_CandleTime = GetLatestClosedCandleTime(pair, PERIOD_M5);
+   snapshot.M5_IsClosed = IsCandleClosed(snapshot.M5_CandleTime, 300);
 }
 
 void BuildRiskValidationSnapshot(string pair, BBMA_Decision &decision, RiskValidationSnapshot &snapshot)
@@ -4620,6 +4675,39 @@ string NMJE_H4OwnerEventID(string pair, H4DirectionalOwner &owner)
    return NMJE_IdentityHash(raw);
 }
 
+// Q9 Stage-C2 deterministic M5 context identity. Inputs are explicit provenance only.
+string NMJE_M5ContextEventID(string pair, ENUM_DIRECTION direction,
+                             int contextCode, datetime eventStartCandleTime)
+{
+   if(pair == "" || eventStartCandleTime <= 0 || contextCode <= 0 ||
+      (direction != DIR_BUY && direction != DIR_SELL))
+      return "";
+   string raw = "M5CTX|" + pair + "|" + IntegerToString(PERIOD_M5) + "|" +
+                IntegerToString((int)direction) + "|" +
+                IntegerToString(contextCode) + "|" +
+                IntegerToString((int)eventStartCandleTime);
+   return NMJE_IdentityHash(raw);
+}
+
+// Any populated M5 snapshot must carry complete immutable lineage or fail closed.
+bool NMJE_M5LineageSnapshotValid(NMJEM5RefinementState &snapshot)
+{
+   if(!snapshot.Present) return true;
+   if(!snapshot.Valid || !snapshot.Resolved) return false;
+   if(snapshot.EventID == "" || snapshot.ParentEventID == "" ||
+      snapshot.JourneyID == "" || snapshot.EventStartCandleTime <= 0 ||
+      snapshot.ClosedCandleTime <= 0 ||
+      snapshot.ClosedCandleTime < snapshot.EventStartCandleTime)
+      return false;
+   if(snapshot.Relation != NESTED_BUILDING &&
+      snapshot.Relation != NESTED_SUPPORTING &&
+      snapshot.Relation != NESTED_ALIGNED &&
+      snapshot.Relation != NESTED_CONFLICT &&
+      snapshot.Relation != NESTED_UNRESOLVED)
+      return false;
+   return true;
+}
+
 void NMJE_ResetNode(NestedTFNode &node, int timeframe)
 {
    ZeroMemory(node);
@@ -4704,6 +4792,141 @@ bool NMJE_SelectCandidateRE(ReEntryData &buyState, ReEntryData &sellState,
    if(buyValid) selected = buyState;
    else selected = sellState;
    return true;
+}
+
+// Q9 Stage-C2: canonical M5 Re-Entry/Extreme context as shadow lineage only.
+void NMJE_BuildM5Refinement(PairState &state, NestedJourneyState &journey)
+{
+   NMJEM5RefinementState snapshot;
+   ZeroMemory(snapshot);
+   snapshot.Direction = DIR_NONE;
+   snapshot.ContextCode = NMJE_M5_CONTEXT_NONE;
+   snapshot.Relation = NESTED_UNRESOLVED;
+   snapshot.Reason = "M5_NO_CANONICAL_CONTEXT";
+
+   if(journey.ParentEventID == "" || journey.JourneyID == "" ||
+      (journey.ParentDirection != DIR_BUY && journey.ParentDirection != DIR_SELL))
+   {
+      snapshot.Reason = "M5_PARENT_LINEAGE_MISSING";
+      journey.M5Refinement = snapshot;
+      return;
+   }
+   if(!state.m5_data.is_valid || !state.m5_data.is_closed ||
+      state.m5_data.timeframe != PERIOD_M5 || state.m5_data.candle_time <= 0)
+   {
+      snapshot.Reason = "M5_CLOSED_DATA_UNAVAILABLE";
+      journey.M5Refinement = snapshot;
+      return;
+   }
+
+   ReEntryData selectedRE;
+   ZeroMemory(selectedRE);
+   bool ambiguous = false;
+   bool confirmedRE = NMJE_SelectConfirmedRE(state.re_m5_buy_state,
+                                               state.re_m5_sell_state,
+                                               selectedRE, ambiguous);
+   if(ambiguous)
+   {
+      snapshot.Reason = "M5_CONFIRMED_RE_AMBIGUOUS";
+      journey.M5Refinement = snapshot;
+      return;
+   }
+
+   bool candidateRE = false;
+   if(!confirmedRE)
+   {
+      candidateRE = NMJE_SelectCandidateRE(state.re_m5_buy_state,
+                                            state.re_m5_sell_state,
+                                            selectedRE, ambiguous);
+      if(ambiguous)
+      {
+         snapshot.Reason = "M5_CANDIDATE_RE_AMBIGUOUS";
+         journey.M5Refinement = snapshot;
+         return;
+      }
+   }
+
+   if(confirmedRE || candidateRE)
+   {
+      snapshot.Direction = selectedRE.Direction;
+      snapshot.ContextCode = NMJE_M5_CONTEXT_RE_ENTRY;
+      snapshot.EventStartCandleTime = selectedRE.StartCandleTime;
+      if(confirmedRE && selectedRE.Direction == journey.ParentDirection)
+      {
+         snapshot.Relation = NESTED_ALIGNED;
+         snapshot.Reason = "M5_CONFIRMED_RE_ALIGNED";
+      }
+      else if(confirmedRE)
+      {
+         snapshot.Relation = NESTED_CONFLICT;
+         snapshot.Reason = "M5_TEMPORARY_CONFIRMED_RE_OPPOSES_PARENT";
+      }
+      else if(selectedRE.Direction == journey.ParentDirection)
+      {
+         snapshot.Relation = NESTED_SUPPORTING;
+         snapshot.Reason = "M5_CANDIDATE_RE_SUPPORTING";
+      }
+      else
+      {
+         snapshot.Relation = NESTED_BUILDING;
+         snapshot.Reason = "M5_CANDIDATE_RETRACEMENT_BUILDING";
+      }
+   }
+   else
+   {
+      bool buyExtreme = NMJE_IsExtremeActive(state.extreme_m5_buy_lifecycle);
+      bool sellExtreme = NMJE_IsExtremeActive(state.extreme_m5_sell_lifecycle);
+      if(buyExtreme && sellExtreme)
+      {
+         snapshot.Reason = "M5_EXTREME_AMBIGUOUS";
+         journey.M5Refinement = snapshot;
+         return;
+      }
+      if(!buyExtreme && !sellExtreme)
+      {
+         journey.M5Refinement = snapshot;
+         return;
+      }
+
+      ExtremeLifecycleData selectedExtreme;
+      ZeroMemory(selectedExtreme);
+      if(buyExtreme) selectedExtreme = state.extreme_m5_buy_lifecycle;
+      else selectedExtreme = state.extreme_m5_sell_lifecycle;
+
+      snapshot.Direction = selectedExtreme.Direction;
+      snapshot.ContextCode = NMJE_M5_CONTEXT_EXTREME;
+      snapshot.EventStartCandleTime = selectedExtreme.RawCandleTime;
+      if(selectedExtreme.Direction == journey.ParentDirection)
+      {
+         snapshot.Relation = NESTED_SUPPORTING;
+         snapshot.Reason = "M5_EXTREME_SUPPORTING";
+      }
+      else
+      {
+         snapshot.Relation = NESTED_CONFLICT;
+         snapshot.Reason = "M5_TEMPORARY_EXTREME_OPPOSES_PARENT";
+      }
+   }
+
+   snapshot.Present = true;
+   snapshot.ParentEventID = journey.ParentEventID;
+   snapshot.JourneyID = journey.JourneyID;
+   snapshot.ClosedCandleTime = state.m5_data.candle_time;
+   snapshot.EventID = NMJE_M5ContextEventID(state.actual_symbol,
+                                             snapshot.Direction,
+                                             snapshot.ContextCode,
+                                             snapshot.EventStartCandleTime);
+   snapshot.Valid = true;
+   snapshot.Resolved = true;
+   if(!NMJE_M5LineageSnapshotValid(snapshot))
+   {
+      ZeroMemory(snapshot);
+      snapshot.Direction = DIR_NONE;
+      snapshot.ContextCode = NMJE_M5_CONTEXT_NONE;
+      snapshot.Relation = NESTED_UNRESOLVED;
+      snapshot.Reason = "M5_LINEAGE_INVALID";
+   }
+   journey.M5Refinement = snapshot;
 }
 
 void NMJE_SetRENode(string pair, NestedTFNode &node, ReEntryData &state, bool resolved)
@@ -5273,6 +5496,9 @@ void UpdateNestedJourneyObservation(int pairIndex)
       }
    }
 
+   // Stage-C2 binds M5 only after immutable parent and journey identities resolve.
+   // Its relation remains diagnostic and cannot modify the 4-TF verdict.
+   NMJE_BuildM5Refinement(g_pair_states[pairIndex], journey);
    g_nested_journeys[pairIndex] = journey;
    NMJE_PrintCoverageOverlay(journey);
    Print("[N1-NMJE] ", journey.Pair,
@@ -5285,6 +5511,59 @@ void UpdateNestedJourneyObservation(int pairIndex)
          " H1=", journey.H1Node.Label,
          " M15=", journey.M15Node.Label,
          " R=", journey.Reason);
+   Print("[NMJE-M5-SHADOW] ", journey.Pair,
+         " PRESENT=", (journey.M5Refinement.Present ? "Y" : "N"),
+         " REL=", NMJE_RelationText(journey.M5Refinement.Relation),
+         " DIR=", NMJE_DirText(journey.M5Refinement.Direction),
+         " CTX=", IntegerToString(journey.M5Refinement.ContextCode),
+         " E=", (journey.M5Refinement.EventID == "" ? "-" : journey.M5Refinement.EventID),
+         " PE=", (journey.M5Refinement.ParentEventID == "" ? "-" : journey.M5Refinement.ParentEventID),
+         " J=", (journey.M5Refinement.JourneyID == "" ? "-" : journey.M5Refinement.JourneyID),
+         " R=", journey.M5Refinement.Reason);
+}
+
+// Q9 P2: descriptive coherence metadata for equal-eligibility competition only.
+// No score/order is assigned because Issue #101 does not lock an arbitration ordering.
+void NMJE_PrintEqualEligibilityCoherenceShadow(int pairIndex,
+                                                ValidatedSequenceCandidate &candidates[],
+                                                int count,
+                                                PairState &pairState)
+{
+   if(pairIndex < 0 || pairIndex >= g_pair_count || count < 2) return;
+
+   int eligibleCount = 0;
+   for(int i = 0; i < count; i++)
+   {
+      if(!IsCandidateEligible(candidates[i])) continue;
+      if(!IsCandidateAllowedByD1Owner(candidates[i], pairState)) continue;
+      eligibleCount++;
+   }
+   if(eligibleCount < 2) return;
+
+   NestedJourneyState journey = g_nested_journeys[pairIndex];
+   for(int i = 0; i < count; i++)
+   {
+      if(!IsCandidateEligible(candidates[i])) continue;
+      if(!IsCandidateAllowedByD1Owner(candidates[i], pairState)) continue;
+
+      bool parentMatch = (journey.ParentDirection == candidates[i].Direction);
+      bool m5Match = (journey.M5Refinement.Present &&
+                      journey.M5Refinement.Direction == candidates[i].Direction);
+      Print("[Q9-P2-COHERENCE] Pair=", pairState.actual_symbol,
+            " Eligible=", eligibleCount,
+            " Seq=", (candidates[i].SequenceHash == "" ? "-" : candidates[i].SequenceHash),
+            " Sig=", EnumToString(candidates[i].SequenceType),
+            " Dir=", NMJE_DirText(candidates[i].Direction),
+            " ParentDir=", NMJE_DirText(journey.ParentDirection),
+            " ParentMatch=", (parentMatch ? "Y" : "N"),
+            " Rel4=", NMJE_RelationText(journey.Relation),
+            " M5Present=", (journey.M5Refinement.Present ? "Y" : "N"),
+            " M5Rel=", NMJE_RelationText(journey.M5Refinement.Relation),
+            " M5Dir=", NMJE_DirText(journey.M5Refinement.Direction),
+            " M5Match=", (m5Match ? "Y" : "N"),
+            " J=", (journey.JourneyID == "" ? "-" : journey.JourneyID),
+            " PE=", (journey.ParentEventID == "" ? "-" : journey.ParentEventID));
+   }
 }
 
 // N2-01: post-M16 shadow tag for validated decisions only.
@@ -8581,7 +8860,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=4.87 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=4.88 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -10629,6 +10908,9 @@ void ProcessPair(int pairIndex)
                        g_pair_states[pairIndex].h1_data);
    GetDataForTimeframe(actual, PERIOD_M15, g_pair_states[pairIndex].tf_snapshot.M15_CandleTime,
                        g_pair_states[pairIndex].m15_data);
+   // Q9 Stage-C1: latest fully closed M5 sample, loaded only inside this M15 cycle.
+   GetDataForTimeframe(actual, PERIOD_M5, g_pair_states[pairIndex].tf_snapshot.M5_CandleTime,
+                       g_pair_states[pairIndex].m5_data);
 
    // D1-01: classify strategic D1/MA50 owner from fully closed D1 data.
    // Producer only in this step; M15/M16 consumption is intentionally later.
@@ -10638,9 +10920,9 @@ void ProcessPair(int pairIndex)
    // source-valid authoritative H4 direction/momentum events.
    UpdateRuntimeH4DirectionalOwner(pairIndex);
 
-   BollingerBand d1Band, h1Band, h1PrevBand, h4Band, h4PrevBand, m15Band;
+   BollingerBand d1Band, h1Band, h1PrevBand, h4Band, h4PrevBand, m15Band, m5Band;
    ZeroMemory(d1Band); ZeroMemory(h1Band); ZeroMemory(h1PrevBand);
-   ZeroMemory(h4Band); ZeroMemory(h4PrevBand); ZeroMemory(m15Band);
+   ZeroMemory(h4Band); ZeroMemory(h4PrevBand); ZeroMemory(m15Band); ZeroMemory(m5Band);
 
    d1Band.TOP_BB = g_pair_states[pairIndex].d1_data.bollinger[0];
    d1Band.MID_BB = g_pair_states[pairIndex].d1_data.bollinger[1];
@@ -10665,6 +10947,12 @@ void ProcessPair(int pairIndex)
    m15Band.LOW_BB = g_pair_states[pairIndex].m15_data.bollinger[2];
    m15Band.Width = m15Band.TOP_BB - m15Band.LOW_BB;
    m15Band.State = BB_NONE;
+
+   m5Band.TOP_BB = g_pair_states[pairIndex].m5_data.bollinger[0];
+   m5Band.MID_BB = g_pair_states[pairIndex].m5_data.bollinger[1];
+   m5Band.LOW_BB = g_pair_states[pairIndex].m5_data.bollinger[2];
+   m5Band.Width = m5Band.TOP_BB - m5Band.LOW_BB;
+   m5Band.State = BB_NONE;
 
    if(EnableBBShapeEngine)
    {
@@ -10709,6 +10997,21 @@ void ProcessPair(int pairIndex)
    ResolveOppositeExtremeSupersession(g_pair_states[pairIndex].extreme_m15_buy_lifecycle,
                                       g_pair_states[pairIndex].extreme_m15_sell_lifecycle,
                                       g_pair_states[pairIndex].m15_data);
+
+   // Q9 Stage-C2: canonical M5 Extreme lifecycle advances only on this M15 cycle.
+   bool m5RawBuyExtreme = DetectExtreme(actual, DIR_BUY,
+                                         g_pair_states[pairIndex].m5_data, m5Band);
+   bool m5RawSellExtreme = DetectExtreme(actual, DIR_SELL,
+                                          g_pair_states[pairIndex].m5_data, m5Band);
+   UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_m5_buy_lifecycle,
+                          actual, DIR_BUY, g_pair_states[pairIndex].m5_data,
+                          m5Band, m5RawBuyExtreme);
+   UpdateExtremeLifecycle(g_pair_states[pairIndex].extreme_m5_sell_lifecycle,
+                          actual, DIR_SELL, g_pair_states[pairIndex].m5_data,
+                          m5Band, m5RawSellExtreme);
+   ResolveOppositeExtremeSupersession(g_pair_states[pairIndex].extreme_m5_buy_lifecycle,
+                                      g_pair_states[pairIndex].extreme_m5_sell_lifecycle,
+                                      g_pair_states[pairIndex].m5_data);
 
    bool h1RawBuyExtreme = DetectExtreme(actual, DIR_BUY, g_pair_states[pairIndex].h1_data, h1Band);
    bool h1RawSellExtreme = DetectExtreme(actual, DIR_SELL, g_pair_states[pairIndex].h1_data, h1Band);
@@ -10826,6 +11129,8 @@ void ProcessPair(int pairIndex)
                             g_pair_states[pairIndex].d1_data);
          UpdateReEntryState(g_pair_states[pairIndex].re_m15_buy_state, actual, direction,
                             g_pair_states[pairIndex].m15_data);
+         UpdateReEntryState(g_pair_states[pairIndex].re_m5_buy_state, actual, direction,
+                            g_pair_states[pairIndex].m5_data);
          h1ReEntrySnapshot = g_pair_states[pairIndex].re_h1_buy_state;
          h4ReEntryState = g_pair_states[pairIndex].re_h4_buy_state;
          d1ReEntryState = g_pair_states[pairIndex].re_d1_buy_state;
@@ -10848,6 +11153,8 @@ void ProcessPair(int pairIndex)
                             g_pair_states[pairIndex].d1_data);
          UpdateReEntryState(g_pair_states[pairIndex].re_m15_sell_state, actual, direction,
                             g_pair_states[pairIndex].m15_data);
+         UpdateReEntryState(g_pair_states[pairIndex].re_m5_sell_state, actual, direction,
+                            g_pair_states[pairIndex].m5_data);
          h1ReEntrySnapshot = g_pair_states[pairIndex].re_h1_sell_state;
          h4ReEntryState = g_pair_states[pairIndex].re_h4_sell_state;
          d1ReEntryState = g_pair_states[pairIndex].re_d1_sell_state;
@@ -10961,6 +11268,10 @@ void ProcessPair(int pairIndex)
    ValidatedSequenceCandidate d1OpportunityCandidate;
    BuildD1OpportunityCandidate(pairIndex, d1OpportunityCandidate);
    AppendValidatedCandidate(d1OpportunityCandidate, allCandidates, allCandidateCount);
+
+   // Q9 P2 shadow metadata only; cannot alter comparator or selected decision.
+   NMJE_PrintEqualEligibilityCoherenceShadow(pairIndex, allCandidates, allCandidateCount,
+                                             g_pair_states[pairIndex]);
 
    BBMA_Decision decision;
    OppositeConflictPackage conflict;

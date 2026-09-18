@@ -1,0 +1,2 @@
+SHA256=5B6D7952B27F1C0FE7A3AE7C1385C13776780A183AA63D88871506269FAD7BE0
+Artifact=build481_tester_runtime.log (inside raw_report_log_bundle.zip)

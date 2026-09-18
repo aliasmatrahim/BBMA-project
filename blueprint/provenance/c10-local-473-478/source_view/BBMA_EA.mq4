@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.8.0 - C10 Ledger Writer Namespace Fix            |
+//| Version 4.8.1 - C10 Shadow Missing-History Fail-Closed Fix            |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,7 +31,7 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.80"
+#property version   "4.81"
 #property strict
 
 //+------------------------------------------------------------------+
@@ -171,7 +171,7 @@ int            AllowedExecutionDeviation_MinPoints= 5;
 #define C10_LEDGER_MAX_PARTS    99
 #define C10_SHADOW_MAX          400
 #define C10_SHADOW_SEEN_MAX     4000
-#define C10_SOURCE_HASH         "5C672778E35AA2602702824778F8F7F6EE4BCDCDFB99B7E32679A17CC0DA2DC6"
+#define C10_SOURCE_HASH         "D6B0ADB94BB4EFB2829B33519550D349FABCB8C77251B6477E17489651F2089D"
 
 //+------------------------------------------------------------------+
 //| MODULE 02: ENUMS & STRUCTS                                       |
@@ -1980,7 +1980,7 @@ string C10_BuildConfigFingerprint()
 
 string C10_LedgerOwnerToken()
 {
-   string raw = "4.80|" + C10_SOURCE_HASH + "|" +
+   string raw = "4.81|" + C10_SOURCE_HASH + "|" +
                 C10_BuildConfigFingerprint();
    return "O" + SHORT_HASH(raw, 12);
 }
@@ -2465,7 +2465,7 @@ void C10_WriteSignalEvent(int pairIndex, BBMA_Decision &decision)
 
    string fields[27];
    fields[0]  = C10_SIGNAL_SCHEMA;
-   fields[1]  = "4.80";
+   fields[1]  = "4.81";
    fields[2]  = g_c10_source_hash;
    fields[3]  = g_c10_config_fingerprint;
    fields[4]  = g_c10_run_id;
@@ -2603,7 +2603,7 @@ bool C10_BuildShadowCheckpointRow(string decisionID, int activeIndex,
    if(decisionID == "") return false;
    string fields[22];
    fields[0] = C10_CHECKPOINT_SCHEMA;
-   fields[1] = "4.80";
+   fields[1] = "4.81";
    fields[2] = g_c10_source_hash;
    fields[3] = g_c10_config_fingerprint;
    fields[4] = activeIndex >= 0 ? "ACTIVE" : "SEEN";
@@ -2650,7 +2650,7 @@ bool C10_ValidateShadowCheckpointFile(string fileName)
       if(line == "" && FileIsEnding(handle)) break;
       string fields[];
       if(!C10_ParseQuotedCSVLine(line, 22, fields) ||
-         fields[0] != C10_CHECKPOINT_SCHEMA || fields[1] != "4.80" ||
+         fields[0] != C10_CHECKPOINT_SCHEMA || fields[1] != "4.81" ||
          fields[2] != g_c10_source_hash ||
          fields[3] != g_c10_config_fingerprint ||
          (fields[4] != "ACTIVE" && fields[4] != "SEEN") ||
@@ -2755,7 +2755,7 @@ bool C10_RebuildShadowSeenFromOutcomes()
             valid = false;
             break;
          }
-         if(fields[1] == "4.80" && fields[2] == g_c10_source_hash &&
+         if(fields[1] == "4.81" && fields[2] == g_c10_source_hash &&
             fields[3] == g_c10_config_fingerprint &&
             fields[8] != "" && fields[8] != "NA" &&
             !C10_ShadowDecisionSeen(fields[8]) &&
@@ -2957,7 +2957,7 @@ void C10_WriteShadowOutcome(C10ShadowInfo &info, datetime exitTime,
    string outcomeEventID = SHORT_HASH(identity, 16);
    string fields[35];
    fields[0]  = C10_OUTCOME_SCHEMA;
-   fields[1]  = "4.80";
+   fields[1]  = "4.81";
    fields[2]  = g_c10_source_hash;
    fields[3]  = g_c10_config_fingerprint;
    fields[4]  = g_c10_run_id;
@@ -3133,7 +3133,10 @@ void C10_UpdateShadowOutcomes()
          g_c10_shadows[i].pair, PERIOD_M5);
       int priorShift = iBarShift(g_c10_shadows[i].pair, PERIOD_M5,
                                  g_c10_shadows[i].last_m5_closed, true);
-      if(latestClosed > g_c10_shadows[i].last_m5_closed && priorShift < 1)
+      if(m5Seconds <= 0 || latestClosed <= 0 ||
+         g_c10_shadows[i].last_m5_closed <= 0 ||
+         latestClosed < g_c10_shadows[i].last_m5_closed ||
+         priorShift < 1)
       {
          g_c10_shadows[i].excursion_proven = false;
          C10_WriteShadowOutcome(g_c10_shadows[i], nowTime, 0.0,
@@ -3421,7 +3424,7 @@ void C10_WriteRealizedOutcome(TradeInfo &info)
    int digits = info.digits >= 0 ? info.digits : GetDigits(info.pair);
    string fields[35];
    fields[0]  = C10_OUTCOME_SCHEMA;
-   fields[1]  = "4.80";
+   fields[1]  = "4.81";
    fields[2]  = g_c10_source_hash;
    fields[3]  = g_c10_config_fingerprint;
    fields[4]  = g_c10_run_id;
@@ -12936,7 +12939,7 @@ void BuildDashboardSnapshot()
    int liveTradeCount = CountDashboardLiveEAOwnedTrades();
 
    g_dashboard_snapshot = "";
-   g_dashboard_snapshot += "=== BBMA EA V4.80 C10 Ledger Writer Namespace Fix ===\n";
+   g_dashboard_snapshot += "=== BBMA EA V4.81 C10 Shadow Missing-History Fail-Closed Fix ===\n";
    g_dashboard_snapshot += "Time: " + TimeToString(TimeCurrent()) + "\n";
    g_dashboard_snapshot += "Balance: " + DoubleToString(AccountBalance(), 2) + "\n";
    g_dashboard_snapshot += "Equity: " + DoubleToString(AccountEquity(), 2) + "\n";
@@ -13853,7 +13856,7 @@ int OnInit()
    else
       g_timer_registered = true;
    
-   Log(DBG_FULL, "BBMA EA V4.80 C10 Ledger Writer Namespace Fix initialized successfully");
+   Log(DBG_FULL, "BBMA EA V4.81 C10 Shadow Missing-History Fail-Closed Fix initialized successfully");
    return INIT_SUCCEEDED;
 }
 

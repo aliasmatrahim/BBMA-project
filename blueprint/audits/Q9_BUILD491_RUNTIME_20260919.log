@@ -1,0 +1,40 @@
+Q9 Build 4.91 P6 isolated runtime evidence — 2026-09-19
+Status: NOT RUNTIME VERIFIED
+Terminal: D:\BBMA\MT4_NMJE_141_Demo\terminal.exe
+Profile: Q9_491_P6_READONLY
+Config: q9_491_p6_readonly.ini
+Pair/TF: EURUSD,M15
+ExpertsEnable=true
+ExpertsTrades=false
+MaxTradePerPair=0
+MaxTotalTrade=0
+InstanceID=91
+
+Exact deployed source:
+MQ4 SHA-256 B9AB1289153DD3505E1B96C1970F30435A4819A2EDC3C8ED6E7E4E23140102E4
+Exact runtime-name compile:
+Result: 0 errors, 0 warnings, 1141 msec elapsed
+EX4 SHA-256 DBC4BA11AB2FE507E55B49283CD0D0A44F7434BB8710027D4EA7673B94377FDC
+EX4 size 619134 bytes
+
+Attempt 1
+07:42:58.607 MetaTrader 4 build 1479 started
+07:43:01.542 Expert BBMA_EA_Q9_491_P6 EURUSD,M15: loaded successfully
+07:43:01.542 inputs include PairList=EURUSD; MaxTradePerPair=0; MaxTotalTrade=0; MaxActivePair=1; InstanceID=91
+No broker login, [F7-BUILD], EA initialized, [N1-NMJE], [NMJE-M5-SHADOW], heartbeat or later OnInit evidence appeared.
+The isolated Q9 terminal failed to respond to the graceful-close request and was terminated by exact PID only.
+
+Attempt 2
+07:44:33.964 MetaTrader 4 build 1479 started
+07:44:36.434 Expert BBMA_EA_Q9_491_P6 EURUSD,M15: loaded successfully
+07:44:36.434 same zero-trade-cap inputs / InstanceID=91
+Again no broker login, [F7-BUILD], EA initialized, [N1-NMJE], [NMJE-M5-SHADOW], heartbeat or later OnInit evidence appeared.
+The isolated Q9 terminal was terminated by exact PID only.
+
+Classification
+VERIFICATION REQUIRED / RUNTIME-ENVIRONMENT BLOCKED.
+The executable loaded, but OnInit completion was not attributable in either bounded attempt.
+This evidence does not prove or disprove the P6 maturity runtime branches.
+No synthetic signal/trade was created.
+No P6 production/runtime PASS is claimed.
+P7 must not start from this checkpoint until the P6 runtime exit criterion is satisfied or an explicitly accepted alternative runtime criterion is recorded.

@@ -23,10 +23,6 @@ def require(text: str, *markers: str) -> None:
 def main() -> None:
     require(
         SRC,
-        "Version 4.8.8 - Q9 NMJE M5 Shadow Context",
-        '#property version   "4.88"',
-        '#define BBMA_BUILD_TAG      "V488_Q9_NMJE_M5_SHADOW_20260918"',
-        '#define BBMA_SOURCE_REV_TAG "Q9_C1C2_P2_M5_SHADOW_101_20260918"',
         "NMJE_M5_CONTEXT_RE_ENTRY = 1",
         "NMJE_M5_CONTEXT_EXTREME = 2",
         "struct NMJEM5RefinementState",

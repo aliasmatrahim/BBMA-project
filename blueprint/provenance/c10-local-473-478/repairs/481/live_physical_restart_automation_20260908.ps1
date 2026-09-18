@@ -110,7 +110,7 @@ Log ('PHYSICAL_RESTART PID='+$restart.Id)
 $postMatch=$false
 $recoverySeen=$false
 $readySeen=$false
-$postDeadline=(Get-Date).AddSeconds(60)
+$postDeadline=(Get-Date).AddSeconds(120)
 while((Get-Date)-lt $postDeadline){
   if(Test-Path $cp){
     $rows=Import-Csv $cp -ErrorAction SilentlyContinue

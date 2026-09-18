@@ -33,3 +33,11 @@ def test_post_restart_timeout_rejects_partial_proof():
     assert timeout_gate is not None, (
         "timeout must fail when checkpoint, recovery, or ready proof is missing"
     )
+
+def test_post_restart_timeout_allows_observed_startup_latency():
+    text = WATCHER.read_text(encoding="utf-8-sig")
+    match = re.search(r"\$postDeadline=\(Get-Date\)\.AddSeconds\((\d+)\)", text)
+    assert match is not None, "post-restart timeout must be explicit and bounded"
+    assert int(match.group(1)) >= 120, (
+        "timeout must exceed the observed ~60s Build 4.81 startup path with margin"
+    )

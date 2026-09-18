@@ -1,7 +1,7 @@
 # NMJE v2 / M5 Accuracy Hardening Contract — Current Owner
 
-Status: **Q9 ISOLATED / PROVENANCE-FIRST / SHADOW-ONLY / NO ACTIVATION**  
-Authority: Issue #101 + active M12N/N3 contracts  
+Status: **Q9 ISOLATED / PROVENANCE-FIRST / SHADOW-ONLY / NO ACTIVATION**
+Authority: Issue #101 + active M12N/N3 contracts
 Baseline: `d1-owner-dev@01f7e8305f6ba558494fc559bb3c734dfc06124a`, Build `4.86`
 
 ## Objective
@@ -32,10 +32,10 @@ NMJE/M5 must not:
 
 Current execution policy:
 
-`execution_policy = NONE`  
-`automatic_policy_authorized = false`  
-`m5_execution_authority = false`  
-`m5_processing_clock_authority = false`  
+`execution_policy = NONE`
+`automatic_policy_authorized = false`
+`m5_execution_authority = false`
+`m5_processing_clock_authority = false`
 `activation_authorized = false`
 
 ## P1 — temporal lineage / epoch correctness

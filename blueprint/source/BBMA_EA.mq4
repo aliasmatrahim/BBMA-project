@@ -34,8 +34,8 @@
 #property version   "4.87"
 #property strict
 
-#define BBMA_BUILD_TAG      "V487_Q9_NMJE_LINEAGE_20260918"
-#define BBMA_SOURCE_REV_TAG "Q9_P1_NMJE_LINEAGE_101_20260918"
+#define BBMA_BUILD_TAG      "V487A_Q9_NMJE_LINEAGE_TRACEFIX_20260918"
+#define BBMA_SOURCE_REV_TAG "Q9_P1_NMJE_LINEAGE_TRACEFIX_101_20260918"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -11071,7 +11071,7 @@ int OnInit()
       return INIT_FAILED;
    }
    
-   Log(DBG_FULL, "BBMA EA V4.8.6 Structural Lifetime Authority Repair initialized successfully");
+   Log(DBG_FULL, "BBMA EA " + string(BBMA_BUILD_TAG) + " initialized successfully");
    return INIT_SUCCEEDED;
 }
 

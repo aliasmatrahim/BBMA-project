@@ -1,0 +1,12 @@
+Q9 Build 4.90 P5 native MetaEditor compile — 2026-09-19
+
+Validation source Git blob: 1c38678521a6240157c9dcf55d66ca1e464350ea
+MQ4 SHA-256: F95BDAD80688E29643EB887EC66E2BE76AAD47394869C64148856936C75F83F6
+EX4 SHA-256: B31A118910A5FEFADBE0C15B48BA32AAB9445B26067C5DF69FAC984450217432
+EX4 size: 606400 bytes
+
+MetaEditor:
+D:\BBMA\Workspace\q9-p5-validation\blueprint\source\BBMA_EA.mq4 : information: compiling 'BBMA_EA.mq4'
+Result: 0 errors, 0 warnings, 1155 msec elapsed
+
+Note: MetaEditor process returned its normal connector-observed exit value 1 while the compile log itself reports 0 errors / 0 warnings; the wrapper completed successfully and produced the EX4 above.

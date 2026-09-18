@@ -64,11 +64,11 @@ def main() -> None:
         "snapshot.JourneyID = journey.JourneyID;",
         "snapshot.EventID = NMJE_M5ContextEventID",
         "M5_CONFIRMED_RE_ALIGNED",
-        "M5_TEMPORARY_CONFIRMED_RE_OPPOSES_PARENT",
+        "M5_OPPOSITE_CONFIRMED_RE_UNRESOLVED",
         "M5_CANDIDATE_RE_SUPPORTING",
         "M5_CANDIDATE_RETRACEMENT_BUILDING",
         "M5_EXTREME_SUPPORTING",
-        "M5_TEMPORARY_EXTREME_OPPOSES_PARENT",
+        "M5_OPPOSITE_EXTREME_BUILDING",
         "NMJE_M5LineageSnapshotValid(snapshot)",
     )
     assert "journey.Relation =" not in build
@@ -76,7 +76,7 @@ def main() -> None:
         "snapshot.Relation = NESTED_ALIGNED;",
         "snapshot.Relation = NESTED_SUPPORTING;",
         "snapshot.Relation = NESTED_BUILDING;",
-        "snapshot.Relation = NESTED_CONFLICT;",
+        "snapshot.Relation = NESTED_UNRESOLVED;",
     ):
         assert relation in build
 

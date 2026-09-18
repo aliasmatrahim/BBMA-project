@@ -126,17 +126,16 @@ def main() -> None:
         "ClearNMJEShadowAttribution("
     )
 
-    for name in (
-        "CompareCanonicalCandidates",
-        "PriorityEngine_Atomic",
-        "InvalidationEngine_Atomic",
-        "RunEntryPreflightAndExecute",
-        "CheckRiskBeforeTrade",
-        "SendOrderWithRetry",
-    ):
-        b = body(("int " if name == "CompareCanonicalCandidates" else
-                  "void " if name in ("PriorityEngine_Atomic","InvalidationEngine_Atomic","RunEntryPreflightAndExecute") else
-                  "bool ") + name + "(")
+    signatures = (
+        ("CompareCanonicalCandidates", "int CompareCanonicalCandidates("),
+        ("PriorityEngine_Atomic", "void PriorityEngine_Atomic("),
+        ("InvalidationEngine_Atomic", "void InvalidationEngine_Atomic("),
+        ("RunEntryPreflightAndExecute", "bool RunEntryPreflightAndExecute("),
+        ("CheckRiskBeforeTrade", "RiskStatus CheckRiskBeforeTrade("),
+        ("SendOrderWithRetry", "int SendOrderWithRetry("),
+    )
+    for name, signature in signatures:
+        b = body(signature)
         for marker in ("nmje_attribution", "SaveNMJEShadowAttribution", "LoadNMJEShadowAttribution"):
             assert marker not in b, f"{name}:{marker}"
 

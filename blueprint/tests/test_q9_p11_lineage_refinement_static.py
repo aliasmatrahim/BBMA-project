@@ -23,10 +23,11 @@ def require(text: str, *markers: str) -> None:
 def main() -> None:
     require(
         SRC,
-        "Version 4.9.5 - Q9 First/Continuation Lineage",
-        '#property version   "4.95"',
-        '#define BBMA_BUILD_TAG      "V495_Q9_P11_LINEAGE_REFINEMENT_20260920"',
-        '#define BBMA_SOURCE_REV_TAG "Q9_P11_LINEAGE_REFINEMENT_101_20260920"',
+        "Version 4.9.6 - Q9 Strict Journey Lineage",
+        '#property version   "4.96"',
+        '#define BBMA_BUILD_TAG      "V496_Q9_P11_STRICT_JOURNEY_LINEAGE_20260920"',
+        '#define BBMA_SOURCE_REV_TAG "Q9_P11_STRICT_JOURNEY_LINEAGE_101_20260920"',
+        '[F7-BUILD] EA=BBMA_EA Build=4.96 BuildTag=',
         "enum ENUM_NMJE_LINEAGE_EVENT_CLASS",
         "NMJE_LINEAGE_NONE",
         "NMJE_LINEAGE_FIRST",
@@ -50,17 +51,23 @@ def main() -> None:
     root = body("bool NMJE_ResolveLineageRootEventID(")
     require(
         root,
+        "journey.ParentEventID",
+        "journey.JourneyID",
+        "NMJE_IsCanonicalLineageEventID(journey.ParentEventID)",
+        'reason = "CANONICAL_JOURNEY_ROOT";',
+    )
+    for forbidden in (
         "D1_OWNER_BUY_CONFIRMED",
         "D1_OWNER_SELL_CONFIRMED",
-        "NMJE_D1OwnerEventID(state.actual_symbol",
-        "D1_TRANSITION",
-        "D1_OWNER_UNRESOLVED",
+        "NMJE_D1OwnerEventID(",
         "H4_OWNER_ACTIVE",
-        "NMJE_H4OwnerEventID(state.actual_symbol",
-        "journey.ParentEventID",
-        "NMJE_IsCanonicalLineageEventID(rootEventID)",
-    )
-    for forbidden in ("OrderSend(", "PriorityTier", "RejectionReason", "Candidate", "Sleep("):
+        "NMJE_H4OwnerEventID(",
+        "OrderSend(",
+        "PriorityTier",
+        "RejectionReason",
+        "Candidate",
+        "Sleep(",
+    ):
         assert forbidden not in root, forbidden
 
     apply = body("void NMJE_ApplyFirstContinuationLineage(")
@@ -68,13 +75,15 @@ def main() -> None:
         apply,
         "journey.LineageClass = NMJE_LINEAGE_NONE;",
         "journey.LineageClass = NMJE_LINEAGE_UNRESOLVED;",
-        "NMJE_IsCanonicalLineageEventID(previous.LineageRootEventID)",
-        "previous.LineageRootEventID != rootEventID",
+        "previous.JourneyID != journey.JourneyID",
+        "previous.ParentEventID != journey.ParentEventID",
         "journey.LineageClass = NMJE_LINEAGE_NEW_JOURNEY;",
+        "journey.PreviousLineageRootEventID = previous.ParentEventID;",
         "journey.ParentEventID == rootEventID",
         "journey.LineageClass = NMJE_LINEAGE_FIRST;",
-        "journey.LineageClass = NMJE_LINEAGE_CONTINUATION;",
+        'journey.LineageReason = "CONTINUATION_EVENT_ID_UNPROVABLE";',
     )
+    assert "journey.LineageClass = NMJE_LINEAGE_CONTINUATION;" not in apply
     for forbidden in ("TimeCurrent(", "GetProcessingBarIndex", "MaxWaitBars", "OrderSend(", "Reject"):
         assert forbidden not in apply, forbidden
 
@@ -111,6 +120,8 @@ def main() -> None:
     require(
         build,
         "attribution.LineageClass = decision.NMJELineageClass;",
+        "attribution.LineageClass == NMJE_LINEAGE_CONTINUATION",
+        "attribution.LineageClass = NMJE_LINEAGE_UNRESOLVED;",
         "attribution.LineageRootHash = SHORT_HASH(decision.NMJELineageRootEventID);",
         "PreviousLineageRootHash",
     )
@@ -121,6 +132,8 @@ def main() -> None:
     require(
         load,
         'GlobalVariableCheck(base + "LC")',
+        "info.nmje_attribution.LineageClass == NMJE_LINEAGE_CONTINUATION",
+        "info.nmje_attribution.LineageClass = NMJE_LINEAGE_UNRESOLVED;",
         'NMJELoadHex16(base, "L", info.nmje_attribution.LineageRootHash)',
         'GlobalVariableCheck(base + "LP")',
         'NMJELoadHex16(base, "N", info.nmje_attribution.PreviousLineageRootHash)',
@@ -133,6 +146,7 @@ def main() -> None:
         'NMJEStoreHex16(base, "N", a.PreviousLineageRootHash)',
         "verify.nmje_attribution.LineageClass == a.LineageClass",
     )
+    assert "a.LineageClass == NMJE_LINEAGE_CONTINUATION" not in save
     require(clear, '"LC"', '"LP"', '"L"', '"N"')
 
     decision_shadow = body("void NMJE_PrintValidatedDecisionShadow(")

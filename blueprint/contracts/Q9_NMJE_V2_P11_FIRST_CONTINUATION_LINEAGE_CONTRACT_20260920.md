@@ -1,8 +1,8 @@
-# Q9 NMJE v2 P11 First/Continuation Lineage Refinement Contract — 2026-09-20
+# Q9 NMJE v2 P11 Strict Canonical Journey Lineage Contract — 2026-09-20
 
 Issue: #101
 Base: verified P10 Build 4.94 / Draft PR #202
-Target: Build 4.95 / `V495_Q9_P11_LINEAGE_REFINEMENT_20260920`
+Target: Build 4.96 / `V496_Q9_P11_STRICT_JOURNEY_LINEAGE_20260920`
 Status: SHADOW / PROVENANCE METADATA ONLY / NO ACTIVATION
 
 ## Source / architecture boundary
@@ -17,39 +17,39 @@ Accepted Core remains the recurring BBMA journey:
 P11 MUST NOT infer that newest parent is best, earliest parent is best, or that continuation is executable authority.
 ## Deterministic lineage root
 
-For a valid resolved NMJE parent, P11 derives one observer-only `LineageRootEventID`.
+User decision A locks **strict canonical JourneyID semantics**.
 
-Fail-closed precedence:
-1. confirmed valid D1 major-trend owner epoch EventID;
-2. otherwise active valid H4 directional-owner EventID;
-3. otherwise current canonical ParentEventID as self-root.
+For a valid resolved NMJE journey, P11 sets observer-only `LineageRootEventID`
+to the exact canonical `ParentEventID` already used by `NMJE_BuildJourneyID()`.
 
-If D1 is TRANSITION/UNRESOLVED, or a required higher owner identity is malformed,
-the lineage root is unresolved rather than silently falling back through conflicting authority.
+A broader D1/H4 owner family is context only. It MUST NOT merge two different
+`ParentEventID/JourneyID` values into one same-journey lineage.
 
-The root is reconstructible from existing canonical owner/event identity helpers.
-No new detector or duplicate lifecycle owner is created.
+If ParentEventID is missing/malformed or JourneyID is unavailable, lineage is unresolved.
+No new detector, lifecycle owner or alternative JourneyID is created.
 
 ## Event-role classification
 
 Categorical values are storage labels only:
-- `FIRST`: current ParentEventID equals the deterministic LineageRootEventID;
-- `CONTINUATION`: current ParentEventID differs from the root while the same deterministic root owns the journey;
-- `NEW_JOURNEY`: current root differs from the previous valid root on consecutive M15 observations;
-- `UNRESOLVED`: valid parent exists but deterministic root cannot be proven;
+- `FIRST`: current canonical ParentEventID is the root event of the current JourneyID;
+- `CONTINUATION`: reserved for a distinct source-owned continuation/re-arm event identity that can be proven inside the unchanged canonical JourneyID;
+- `NEW_JOURNEY`: previous valid ParentEventID/JourneyID differs from the current canonical ParentEventID/JourneyID;
+- `UNRESOLVED`: required canonical lineage identity cannot be proven, including any attempted continuation without a distinct source-owned continuation-event identity;
 - `NONE`: no valid resolved parent.
 
 `NEW_JOURNEY` is a one-observation transition marker. It does not rewrite ParentEventID or JourneyID.
 ## Continuation / re-arm boundary
 
-`CONTINUATION` means only that a later canonical parent event remains under the same proven higher-owner root.
-A confirmed Re-Entry may therefore be observed as a continuation under an unchanged D1/H4 root.
+`CONTINUATION` requires a distinct source-owned continuation-event identity inside the unchanged
+canonical JourneyID. The current owner model does not expose such a separate identity.
+
+Therefore Build 4.96 MUST NOT infer CONTINUATION from elapsed M15 observations, an unchanged D1/H4
+owner family, or a later ParentEventID that would itself change JourneyID. The current canonical root
+remains `FIRST`; a ParentEventID/JourneyID transition is `NEW_JOURNEY`; any attempted continuation
+without a distinct identity is fail-closed `UNRESOLVED`.
 
 This label is NOT the C044/F7 trade-lifecycle `REENTRY_REARM` state and MUST NOT consume or modify C044.
 P11 does not create a universal BBMA “re-arm rule”.
-
-If no higher-owner root can prove same-journey continuity, a changed self-root is treated as NEW_JOURNEY,
-not silently promoted to continuation.
 
 ## Restart behavior
 
@@ -57,9 +57,10 @@ On restart, derive the current root from current canonical owner/event state.
 Do not synthesize a previous root that is no longer available in observer memory.
 
 Therefore:
-- FIRST/CONTINUATION may be reconstructed from current root vs current parent;
-- NEW_JOURNEY requires an attributable previous root in the current observer memory;
-- missing pre-restart transition history degrades to current-role metadata, never guessed transition metadata.
+- current canonical root may be reconstructed as FIRST;
+- CONTINUATION is not reconstructed without a distinct source-owned continuation-event identity;
+- NEW_JOURNEY requires attributable previous ParentEventID/JourneyID observer memory;
+- missing pre-restart transition history never fabricates NEW_JOURNEY or CONTINUATION.
 
 No P11 state is required for order/trade recovery.
 ## Selected-decision attribution and persistence
@@ -71,6 +72,11 @@ Only after the base decision is already DEC_VALIDATED, P11 may freeze:
 
 P4 ticket-bound attribution may persist additive hashes of the root identities plus lineage class.
 Pre-P11 records remain readable with lineage metadata unavailable.
+
+Under strict-A:
+- durable lineage persistence may write only FIRST or NEW_JOURNEY;
+- CONTINUATION must not be written without a distinct source-owned continuation-event identity;
+- a legacy Build 4.95 persisted CONTINUATION is read fail-closed as UNRESOLVED rather than accepted under Build 4.96 semantics.
 
 Persistence failure remains diagnostic only and MUST NOT alter recovery, candidate, risk, execution or lifecycle state.
 

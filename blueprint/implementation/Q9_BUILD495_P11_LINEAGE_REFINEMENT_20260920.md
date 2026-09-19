@@ -1,5 +1,7 @@
 # Q9 Build 4.95 P11 First/Continuation Lineage Refinement — 2026-09-20
 
+> **SUPERSEDED FOR P11 LINEAGE SEMANTICS.** Build 4.96 / decision A replaces the 4.95 higher-owner-root mapping with strict canonical ParentEventID/JourneyID semantics. Retain this file as historical evidence only.
+
 Issue: #101
 Branch: `q9-nmje-v2-p11-lineage-refinement-101`
 Base: verified P10 commit `dcf9d6a627e24dbc65b95b7374a5decc2a006fa2`

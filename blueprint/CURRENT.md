@@ -1,6 +1,6 @@
 # BBMA Current Project State
 
-Updated: **2026-09-18**
+Updated: **2026-09-20**
 Status owner: **`d1-owner-dev`**
 Owner head at reconciliation: **`6be2eef1495e2d896e121f5c1846ab3cd14e0f12`**
 
@@ -57,16 +57,20 @@ Rules:
 - no transcript directly creates a production rule; reconcile through the Section 17 source hierarchy first;
 - HOLD/PARTIAL/UNCLEAR evidence remains non-executable until explicit reconciliation.
 
-### 5. Canonical historical-data environment — Issue #128
-Status: **SYNTHETIC-V3 HST/TESTER GATES PASS / FULL NATIVE TICK ARCHIVE INCOMPLETE**.
-- Pairs: EURUSD, GBPUSD, USDJPY.
-- Target native window: 2006-09-01 through 2026-09-01 exclusive.
-- Synthetic-v3 HST binary/cross-TF/full-history command-line tester gates have passed for the engineering profile.
-- Synthetic profile remains engineering-only and is not tick-accurate.
-- First native pilot EURUSD 2006-09 is COMPLETE: 720/720 valid expected hours, archive entries=720, archive SHA-256 `6e0975c7ca1454ba1056f8b189c0e21f639936683bfa4f115a87bd823cf21f79`.
-- Last recorded orchestrator state had advanced to EURUSD 2006-10 using `BBMA_NATIVE_WORKERS=1` with a >120 GB free-space guard.
-- Resume from the first incomplete verified pair-month only; do not redownload COMPLETE archive+SHA months.
-- Final tick-accurate claims remain blocked until all 720 target pair-months and remaining provenance/session/deployment-mapping gates close.
+### 5. GBPUSD historical engineering profile / Q6 closure — Issue #128
+Status: **Q6 STOPPED BY USER / ISSUE #128 CLOSED NOT PLANNED / GBPUSD ENGINEERING PROFILE VERIFIED**.
+- User decision on 2026-09-20 stops the full three-pair Dukascopy-native Q6 archive. It must not auto-resume without a new explicit instruction.
+- Live G40 acquisition processes were stopped and rechecked; local range state is `STOPPED_BY_USER`. Existing verified native progress (17/720 pair-months) and partial artifacts are retained as historical evidence only.
+- The separate GBPUSD-only native archive is **not** complete: `0/240` native-only months under `native_archive_gbpusd_progress.json`. This native-only objective is not required for the retained engineering tester profile and is no longer active.
+- GBPUSD Jetta/raw-tick range is COMPLETE: `240/240` months, pending=0.
+- GBPUSD derived-v9 artifact integrity is PASS: 252 files, 19,254,140 checked rows, 0 errors.
+- GBPUSD derived-v9 cross-timeframe reconciliation M1 -> M5 -> M15 -> H1 -> H4/D1 is PASS with 0 errors.
+- Full GBPUSD 2006-09 through 2026-08 native/Jetta tick-to-derived M1 reconciliation v3 is PASS: 240 months, failedMonthCount=0.
+- All six installed GBPUSD HST files were freshly SHA-256 reverified on 2026-09-20 and exactly match the Q8 evidence manifest.
+- Build 4.86 EX4 and the Q8 tester harness EX4 were also freshly hash-matched to the Q8 evidence manifest.
+- Q8 Build 4.86 GBPUSD engineering historical regression remains VERIFIED / COMPLETE.
+- Classification: **READY FOR ISOLATED ENGINEERING STRATEGY TESTER USE / NOT FINAL TICK-ACCURATE / NOT DEPLOYMENT-BROKER CANONICAL**.
+- No EA Strategy-Core/code change is implied by this scope decision.
 
 ### 6. Q7 integrated candidate freeze — Issue #186
 Status: **VERIFIED / FROZEN**.
@@ -87,7 +91,7 @@ Status: **VERIFIED / COMPLETE — ENGINEERING HISTORICAL EVIDENCE ONLY**.
 - This does not close Issue #128 native tick/deployment-time provenance and is not a profitability or production-readiness claim.
 
 ## Current infrastructure blocker
-Authorized G40 Remote Desktop Commander was reachable during the 2026-09-17 Q7 recovery. Active live-state work remains Q3 isolated runtime and Q6 archive resumption; all must re-read actual local state before mutation.
+Authorized G40 Remote Desktop Commander is reachable. Active G40 live-state work is Q3 isolated runtime only. Q6 native acquisition was stopped by explicit user decision on 2026-09-20 and must not auto-resume.
 
 ## Recently closed tracking/governance work
 - stale v4.58 CI PR-gate bug #136 closed; workflow-only fix merged.

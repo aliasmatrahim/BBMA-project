@@ -2,7 +2,7 @@
 
 Updated: **2026-09-20**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`01f7e8305f6ba558494fc559bb3c734dfc06124a`**
+Owner head at reconciliation: **`cafa868206bc777d8163c32d4ad08894af6533bb`**
 
 This file is the active current-state record. The pre-2026-09-09 historical `CURRENT.md` is preserved byte-for-byte at `blueprint/archive/CURRENT_pre_20260909.md`.
 
@@ -35,7 +35,8 @@ Status: **SOURCE/STATIC/NATIVE COMPILE PASS / FINAL BROKER-CLOCK RESTART GATE PE
 - Source SHA-256: `5DE9FD783BB930CC0591612479FE9D9440C938C142D91CB3BA978A233A658D57`.
 - C10 SourceHash: `D6B0ADB94BB4EFB2829B33519550D349FABCB8C77251B6477E17489651F2089D`.
 - Runtime config: `E376D23AA953085D`, InstanceID `81`, `ExpertsTrades=false`, zero trade caps, `Authority=NONE`.
-- Last attributable pre-disconnect state: no final PASS/FAIL; checkpoint remained SEEN-only, no broker actions/ledger disable in reviewed target-domain evidence.
+- Fresh G40 recovery on 2026-09-20: watcher PID `8584` and isolated terminal PID `13064` remain alive; checkpoint is `SEEN=58 / ACTIVE=0`. No 2026-09-20 isolated MQL4 log exists, consistent with the recorded pre-login/pre-OnInit environment stall. No restart or synthetic ACTIVE was performed.
+- Classification remains **NOT RUNTIME VERIFIED / RUNTIME-ENVIRONMENT BLOCKED** until the exact natural gate is observable.
 - Final gate: genuine fresh `ACTIVE` -> same isolated terminal physical stop/restart -> exact recovery -> hardened verifier PASS -> no malformed/duplicate rows, no ledger disable, zero broker actions.
 - Build 4.80 or Strategy Tester evidence cannot substitute for this exact 4.81 gate.
 
@@ -100,9 +101,17 @@ Authorized G40 Remote Desktop Commander is reachable. Active G40 live-state work
 - historical one-shot trigger issues/PRs and validation-only PRs that explicitly said `do not merge` were closed without deleting their branches/evidence.
 - Issue #109 is deferred/reframed for the **final integration candidate**, not historical v4.59.
 
+### 8. Q9 NMJE v2 / M5 accuracy hardening — Issue #101
+Status: **ACTIVE SCOPED SHADOW RESEARCH / P1-P10 VERIFIED IN STACKED DRAFT LINEAGE / P11 HOLD-UNRESOLVED**.
+- Q9 is not merged into the canonical owner Build 4.86. Draft/scoped lineage #192-#202 contains verified research stages P1-P10; M5 remains closed-candle context/shadow only and NMJE remains non-executable.
+- P11 local partial Build 4.95 was recovered on 2026-09-20 from exact P10 base `dcf9d6a627e24dbc65b95b7374a5decc2a006fa2`; existing static/model/native/tester evidence was preserved, not rerun blindly.
+- Fresh source/contract adjudication found an unresolved engineering-lineage semantic conflict: P8 treats `ParentEventID/JourneyID` transition as a new journey, while the partial P11 D1-root mapping can label a changed parent/JourneyID as `CONTINUATION`.
+- Classification: **HOLD-UNRESOLVED / ENGINEERING LINEAGE SEMANTICS**. This does not change trading authority, but P11 must not be committed/promoted until “same journey” versus higher-owner lineage-family semantics is explicitly locked.
+- Issue #101 comment `5746024289` records the exact decision gate and preserved partial state.
+- No P2 ordering activation, no M5 execution authority, no production activation.
+
 ## Deferred / future work
-- Issue #101 NMJE v2 / M5 accuracy hardening: do not resume until the current NMJE read-only baseline/authority conflict is closed and current owner lineage is re-established. M5 remains context/shadow-only unless a separately approved policy changes that.
-- final automated broker/demo user-test programme (#109): run only after one exact final integration candidate is frozen and preceding native/historical/regression gates pass.
+- final automated broker/demo user-test programme (#109): run only after one exact final integration candidate is frozen and preceding eligible gates pass.
 - older dashboard/observer preparation branches are historical staging. Re-audit against the then-current owner before any future materialization; do not merge an old frozen-candidate patch directly.
 
 ## Safety boundary

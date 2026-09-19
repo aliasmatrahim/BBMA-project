@@ -1,0 +1,274 @@
+{
+  "deterministic": {
+    "A_lines": 22156,
+    "B_lines": 22156,
+    "equal": true,
+    "sha_A": "EA44E26346C49C89D40AE4F3A09F6089AFD9933B3462D66945829E97468D0983",
+    "sha_B": "EA44E26346C49C89D40AE4F3A09F6089AFD9933B3462D66945829E97468D0983",
+    "first_diff": null
+  },
+  "authority_markers": {
+    "[P3M2][M15_COUNTS]": {
+      "p6_count": 523,
+      "p7_count": 523,
+      "equal": true,
+      "p6_sha": "2323F5D0BF064A3E437807DAF2426C843E70382B393900C503E87929457BF02F",
+      "p7_sha": "2323F5D0BF064A3E437807DAF2426C843E70382B393900C503E87929457BF02F"
+    },
+    "[P3M2][M15_SELECT]": {
+      "p6_count": 523,
+      "p7_count": 523,
+      "equal": true,
+      "p6_sha": "7CC31E3A9E55C1A91A5E37C975D6451ADA99390E9946DC382B17B56BDA9BCDC1",
+      "p7_sha": "7CC31E3A9E55C1A91A5E37C975D6451ADA99390E9946DC382B17B56BDA9BCDC1"
+    },
+    "[P3M2][M15_CONFLICT]": {
+      "p6_count": 0,
+      "p7_count": 0,
+      "equal": true,
+      "p6_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "p7_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "[P3M2][M16_PASS]": {
+      "p6_count": 523,
+      "p7_count": 523,
+      "equal": true,
+      "p6_sha": "9B016D2A8DA87903541C2490F8064A0424E0409526F9E3980DB4294D8443C62F",
+      "p7_sha": "9B016D2A8DA87903541C2490F8064A0424E0409526F9E3980DB4294D8443C62F"
+    },
+    "[P3M2][M16_REJECT]": {
+      "p6_count": 0,
+      "p7_count": 0,
+      "equal": true,
+      "p6_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "p7_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "[P3M2][M16_OWNER_REJECT]": {
+      "p6_count": 0,
+      "p7_count": 0,
+      "equal": true,
+      "p6_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "p7_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "[P3M2][DECISION_FINAL]": {
+      "p6_count": 523,
+      "p7_count": 523,
+      "equal": true,
+      "p6_sha": "5C34C6588D7D6DD2DAE291C2811BE44388DF6798ABF561069D46D46A8215ED86",
+      "p7_sha": "5C34C6588D7D6DD2DAE291C2811BE44388DF6798ABF561069D46D46A8215ED86"
+    },
+    "[D1O][M15_D1_BLOCK]": {
+      "p6_count": 0,
+      "p7_count": 0,
+      "equal": true,
+      "p6_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "p7_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "[D1O][M16_D1_REJECT]": {
+      "p6_count": 0,
+      "p7_count": 0,
+      "equal": true,
+      "p6_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "p7_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    }
+  },
+  "authority_aggregate": {
+    "p6_count": 2092,
+    "p7_count": 2092,
+    "equal": true,
+    "p6_sha": "EFF894BAA8497EF6EB4A54AD43EB6354D80D61772B202E1ADBEAC430FEF2DDBF",
+    "p7_sha": "EFF894BAA8497EF6EB4A54AD43EB6354D80D61772B202E1ADBEAC430FEF2DDBF"
+  },
+  "density": {
+    "total": 1494,
+    "present": {
+      "Y": 1494
+    },
+    "d1_allowed": {
+      "N": 699,
+      "Y": 795
+    },
+    "by_signal": {
+      "SIGNAL_RE_ENTRY": 1058,
+      "SIGNAL_EXTREME": 336,
+      "SIGNAL_REM": 84,
+      "SIGNAL_RRE": 16
+    },
+    "unique_masks": 10,
+    "mask_distribution": [
+      {
+        "mask": 16,
+        "stages": "----R-",
+        "prefix": 0,
+        "count": 1,
+        "observations": 136
+      },
+      {
+        "mask": 17,
+        "stages": "E---R-",
+        "prefix": 1,
+        "count": 2,
+        "observations": 303
+      },
+      {
+        "mask": 23,
+        "stages": "ETH-R-",
+        "prefix": 7,
+        "count": 4,
+        "observations": 111
+      },
+      {
+        "mask": 24,
+        "stages": "---DR-",
+        "prefix": 0,
+        "count": 2,
+        "observations": 93
+      },
+      {
+        "mask": 25,
+        "stages": "E--DR-",
+        "prefix": 1,
+        "count": 3,
+        "observations": 68
+      },
+      {
+        "mask": 31,
+        "stages": "ETHDR-",
+        "prefix": 31,
+        "count": 5,
+        "observations": 403
+      },
+      {
+        "mask": 48,
+        "stages": "----RM",
+        "prefix": 0,
+        "count": 2,
+        "observations": 191
+      },
+      {
+        "mask": 49,
+        "stages": "E---RM",
+        "prefix": 1,
+        "count": 3,
+        "observations": 24
+      },
+      {
+        "mask": 55,
+        "stages": "ETH-RM",
+        "prefix": 7,
+        "count": 5,
+        "observations": 26
+      },
+      {
+        "mask": 63,
+        "stages": "ETHDRM",
+        "prefix": 63,
+        "count": 6,
+        "observations": 139
+      }
+    ],
+    "candidate_times": 1063,
+    "sole_candidate_times": 715,
+    "sole_candidate_lines": 715,
+    "multi_candidate_times": 348,
+    "sample": [
+      {
+        "time": "2026.08.03 23:00:01",
+        "seq": "DBC0AA67A621FECD",
+        "sig": "SIGNAL_RE_ENTRY",
+        "dir": "S",
+        "d1": "N",
+        "present": "Y",
+        "mask": 31,
+        "stages": "ETHDR-",
+        "prefix": 31,
+        "count": 5,
+        "journey": "J2|GBPUSD|H4_OWNER|7A5680E9ACAAA753",
+        "parent": "7A5680E9ACAAA753",
+        "reason": "CANONICAL_STRUCTURE_PRESENT"
+      },
+      {
+        "time": "2026.08.03 23:15:01",
+        "seq": "DBC0AA67A621FECD",
+        "sig": "SIGNAL_RE_ENTRY",
+        "dir": "S",
+        "d1": "N",
+        "present": "Y",
+        "mask": 31,
+        "stages": "ETHDR-",
+        "prefix": 31,
+        "count": 5,
+        "journey": "J2|GBPUSD|H4_OWNER|7A5680E9ACAAA753",
+        "parent": "7A5680E9ACAAA753",
+        "reason": "CANONICAL_STRUCTURE_PRESENT"
+      },
+      {
+        "time": "2026.08.03 23:30:01",
+        "seq": "DBC0AA67A621FECD",
+        "sig": "SIGNAL_RE_ENTRY",
+        "dir": "S",
+        "d1": "N",
+        "present": "Y",
+        "mask": 31,
+        "stages": "ETHDR-",
+        "prefix": 31,
+        "count": 5,
+        "journey": "J2|GBPUSD|H4_OWNER|7A5680E9ACAAA753",
+        "parent": "7A5680E9ACAAA753",
+        "reason": "CANONICAL_STRUCTURE_PRESENT"
+      },
+      {
+        "time": "2026.08.03 23:45:01",
+        "seq": "DBC0AA67A621FECD",
+        "sig": "SIGNAL_RE_ENTRY",
+        "dir": "S",
+        "d1": "N",
+        "present": "Y",
+        "mask": 31,
+        "stages": "ETHDR-",
+        "prefix": 31,
+        "count": 5,
+        "journey": "J2|GBPUSD|H4_OWNER|7A5680E9ACAAA753",
+        "parent": "7A5680E9ACAAA753",
+        "reason": "CANONICAL_STRUCTURE_PRESENT"
+      },
+      {
+        "time": "2026.08.04 00:00:01",
+        "seq": "DBC0AA67A621FECD",
+        "sig": "SIGNAL_RE_ENTRY",
+        "dir": "S",
+        "d1": "N",
+        "present": "Y",
+        "mask": 31,
+        "stages": "ETHDR-",
+        "prefix": 31,
+        "count": 5,
+        "journey": "J2|GBPUSD|H4_OWNER|7A5680E9ACAAA753",
+        "parent": "7A5680E9ACAAA753",
+        "reason": "CANONICAL_STRUCTURE_PRESENT"
+      }
+    ]
+  },
+  "broker_actions": {
+    "P7A": {
+      "count": 0,
+      "sample": []
+    },
+    "P7B": {
+      "count": 0,
+      "sample": []
+    },
+    "P6": {
+      "count": 0,
+      "sample": []
+    }
+  },
+  "summary": {
+    "P7A": "0\t13:18:52.052\tGBPUSD,M15: 2016 tick events (2016 bars, 3017 bar states) processed in 0:00:18.344 (total time 0:00:34.516)",
+    "P7B": "0\t13:21:12.204\tGBPUSD,M15: 2016 tick events (2016 bars, 3017 bar states) processed in 0:00:16.390 (total time 0:00:25.922)",
+    "P6": "0\t11:04:27.826\tGBPUSD,M15: 2016 tick events (2016 bars, 3017 bar states) processed in 0:00:16.359 (total time 0:00:25.953)"
+  },
+  "build": [
+    "0\t13:18:34.078\t2026.08.03 00:00:01  BBMA_EA_Q9_492_P7_TESTER GBPUSD,M15: [F7-BUILD] EA=BBMA_EA Build=4.92 BuildTag=V492_Q9_P7_STRUCTURAL_DENSITY_20260919 SourceRev=Q9_P7_STRUCTURAL_DENSITY_101_20260919 InitTime=2026.08.03 00:00:01"
+  ]
+}

@@ -1,0 +1,27 @@
+# Q9 P8 checkpoint — 2026-09-19
+
+- Task: Q9 P8 Parent/Child Hysteresis & Provenance Stability.
+- Phase: VALIDATION COMPLETE / READY FOR GIT TRACEABILITY.
+- Branch: `q9-nmje-v2-p8-provenance-stability-101`.
+- Base verified P7 head: `87e1417c2a99f8c595089f4d67f250fcdacfecb2`.
+- Build: 4.93 / `V493_Q9_P8_PROVENANCE_STABILITY_20260919`.
+- Canonical MQ4 SHA: `C041423D53E0425D3070BB5F1C1BB8DC083A0DF65874CC848C1A30040E55E17E`.
+- P8 static/model: PASS.
+- Inherited P7/P6/P5/P4/P2-P3/P1/read-only/M12N/D1O/N3: PASS.
+- Protected authority body compare P7->P8: PASS.
+- Native MetaEditor: 0E/0W.
+- P8 A/B: 2016 bars each; 24,172 normalized lines exact-equal.
+- Deterministic SHA: `C4562C5F5EE70EFD541A4C2BE24D65AECE72EFD3B7825D1B6B59DB41073D40DF`.
+- P7/P8 authority: 2,092/2,092 exact-equal.
+- Raw N1 P7/P8: 2,016/2,016 exact-equal.
+- August parent transitions: 28.
+- January natural HOLD_LAST_PROVEN_RELATION: 122.
+- January raw/stable differences: 122.
+- Broker-action markers: 0.
+- Tester globals restored to `AA6F6663...F208`.
+- Corrected recovery bug: D1-owner relation evidence now uses exact D1 owner EventID/state.
+- M5 stable-event runtime coverage: VERIFICATION REQUIRED / naturally unexercised.
+- P2 active ordering: HOLD/UNRESOLVED.
+- Q3/Q6 were not restarted or duplicated.
+- No merge / no production activation.
+- Exact next action: stage exact P8 files -> inspect cached diff -> commit/push -> Draft PR -> Issue #101 checkpoint.

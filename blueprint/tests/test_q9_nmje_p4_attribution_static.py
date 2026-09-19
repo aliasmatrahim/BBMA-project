@@ -23,10 +23,10 @@ def require(text: str, *markers: str) -> None:
 def main() -> None:
     require(
         SRC,
-        "Version 4.9.2 - Q9 NMJE Structural Density",
-        '#property version   "4.92"',
-        '#define BBMA_BUILD_TAG      "V492_Q9_P7_STRUCTURAL_DENSITY_20260919"',
-        '#define BBMA_SOURCE_REV_TAG "Q9_P7_STRUCTURAL_DENSITY_101_20260919"',
+        "Version 4.9.3 - Q9 NMJE Provenance Stability",
+        '#property version   "4.93"',
+        '#define BBMA_BUILD_TAG      "V493_Q9_P8_PROVENANCE_STABILITY_20260919"',
+        '#define BBMA_SOURCE_REV_TAG "Q9_P8_PROVENANCE_STABILITY_101_20260919"',
         "struct NMJEShadowAttributionState",
         "NMJEShadowAttributionState nmje_attribution;",
         "NMJEM5RefinementState        NMJEM5Refinement;",

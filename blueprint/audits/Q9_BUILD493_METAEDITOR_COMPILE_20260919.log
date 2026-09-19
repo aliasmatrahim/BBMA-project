@@ -1,0 +1,35 @@
+Q9 Build 4.93 P8 Native Compile Evidence — 2026-09-19
+
+Canonical source:
+D:\BBMA\Workspace\q9-nmje-v2-p8-provenance-stability-101\blueprint\source\BBMA_EA.mq4
+SHA-256: C041423D53E0425D3070BB5F1C1BB8DC083A0DF65874CC848C1A30040E55E17E
+
+Short-path exact-source staging:
+D:\BBMA\Compile\Q9_493\BBMA_EA.mq4
+SHA-256: C041423D53E0425D3070BB5F1C1BB8DC083A0DF65874CC848C1A30040E55E17E
+MetaEditor result: 0 errors, 0 warnings, 960 msec elapsed
+EX4 SHA-256: D4E0A43A492685E763ED2E1669E35B27E63CE758FB84E14FD8CB08EE0755BE1B
+EX4 size: 657462
+
+Exact runtime deployment name:
+D:\BBMA\MT4_NMJE_141_Demo\MQL4\Experts\BBMA_EA_Q9_493_P8.mq4
+MetaEditor result: 0 errors, 0 warnings, 948 msec elapsed
+EX4 SHA-256: CF9C02B041CC409F651F496F04E35A96D68523DE1D8AC4F0FFAC3BC6F1CACE2A
+EX4 size: 657900
+
+Strategy Tester adapter:
+Canonical MQ4 SHA-256: C041423D53E0425D3070BB5F1C1BB8DC083A0DF65874CC848C1A30040E55E17E
+Tester MQ4 SHA-256: FB1FDBF07FF776755A292652212AF79E7F01EAEC13294AAB0DA24CB0947EF41E
+Adapter diff lines: 46
+Adapter diff firewall: PASS
+Allowed tester-only deltas:
+- IsTerminalConnected(): IsTesting() bypass
+- FindActualSymbol(): current tester-symbol fallback
+- OnInit(): skip EventSetTimer while IsTesting()
+
+Tester adapter compile:
+MetaEditor result: 0 errors, 0 warnings, 894 msec elapsed
+EX4 SHA-256: 5FBE0659E0B408DEA8C1F42B6D6F50561C3DAF201B3AAAA67960F94052B602A6
+EX4 size: 656326
+
+No P8 stability helper or protected M13/M14/M15/M16/risk/execution body is changed by the tester adapter.

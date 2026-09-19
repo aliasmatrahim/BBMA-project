@@ -73,9 +73,11 @@ No numeric threshold, grade, score, minimum/maximum displacement or hard entry-d
 
 P10 attaches telemetry only after a broker ticket exists and `OrderOpenPrice()` is available.
 
-The P10 payload is optional research metadata inside the existing P4 ticket-bound attribution record.
+The P10 runtime measurement belongs to `TradeInfo.entry_displacement` and is built after a genuine broker ticket/open price exists, independently of NMJE availability.
 
-It may persist:
+When an existing P4 ticket-bound attribution record is available, P10 mirrors the same payload into that record for durable restart/outcome attribution. P10 does not create a second persistence owner.
+
+The durable mirror may persist:
 - source signal type;
 - source timeframe;
 - source candle time;
@@ -89,6 +91,10 @@ Persistence remains:
 - magic/open-time/execution-hash cross-validated by existing P4 ownership;
 - additive/backward-readable for pre-P10 records;
 - diagnostic only on failure.
+
+If P4 attribution is unavailable, P10 may still emit same-runtime open/outcome measurement from `TradeInfo`; restart durability is then unavailable rather than synthesized.
+
+On recovery, a valid P4 displacement mirror is copied back into `TradeInfo.entry_displacement`.
 
 A P10 persistence failure MUST NOT alter recovery state, trade lifecycle, candidate state, risk or execution.
 

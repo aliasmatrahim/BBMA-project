@@ -2,7 +2,7 @@
 
 Reconciled: **2026-09-20**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`6be2eef1495e2d896e121f5c1846ab3cd14e0f12`**
+Owner head at reconciliation: **`01f7e8305f6ba558494fc559bb3c734dfc06124a`**
 
 This file is the active queue. The pre-2026-09-09 historical queue is preserved byte-for-byte at `blueprint/archive/MASTER_QUEUE_pre_20260909.md`.
 
@@ -160,7 +160,7 @@ Status: **VERIFIED / COMPLETE — GBPUSD ENGINEERING HISTORICAL EVIDENCE**
 - Performance results are descriptive only; no optimization/filter/rule was introduced.
 - Evidence remains `ENGINEERING HISTORICAL EVIDENCE / NOT FINAL TICK-ACCURATE`.
 - Audit: `blueprint/audits/Q8_BUILD486_GBPUSD_ENGINEERING_HISTORICAL_REGRESSION_20260918.md`.
-- Q6 native archive/provenance and Q10 final broker/demo acceptance remain separate gates.
+- Q6 native archive work was later stopped/closed on 2026-09-20; Q10 final broker/demo acceptance remains separately gated.
 
 ### Q10 — Final automated broker/demo acceptance
 Issue: **#109**

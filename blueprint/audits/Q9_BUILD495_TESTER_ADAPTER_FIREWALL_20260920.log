@@ -1,0 +1,54 @@
+CANONICAL F8E9DD081BF660820F72467D45558C1A5D8F6B95FC0512F0A6DBE96334E6C52D 521524
+RUNTIME F8E9DD081BF660820F72467D45558C1A5D8F6B95FC0512F0A6DBE96334E6C52D 521524 EXACT True
+TESTER DDE545F8AD26ADCDAAD5729925D2806235BACF1CC07F4F6B209828C5D6931713 522099
+DIFF_LINES 46
+---
+
++++
+
+@@ -1244,4 +1244,13 @@
+
+    if(requested == "") return "";
+
++   // TESTER-ONLY ADAPTER: current Strategy Tester symbol is the authoritative
++   // offline symbol when broker symbol enumeration is unavailable.
++   if(IsTesting())
++   {
++      string testerSymbol = Symbol();
++      if(testerSymbol == requested || RemoveSuffix(testerSymbol) == RemoveSuffix(requested))
++         return testerSymbol;
++   }
++
+    // 1) Exact broker symbol wins when it exists and can be selected.
+    int totalAll = SymbolsTotal(false);
+@@ -1350,4 +1359,5 @@
+
+ bool IsTerminalConnected()
+ {
++   if(IsTesting()) return true;
+    return IsConnected();
+ }
+@@ -13016,11 +13026,16 @@
+
+    }
+
+-   ResetLastError();
+-   if(!EventSetTimer(1))
+-   {
+-      int timerError = GetLastError();
+-      g_is_initialized = false;
+-      Log(DBG_ERROR, "Failed to register EA timer, error=" + IntegerToString(timerError));
+-      return INIT_FAILED;
++   // TESTER-ONLY ADAPTER: MT4 Strategy Tester does not drive timer events.
++   // Production path is byte-equivalent when !IsTesting().
++   if(!IsTesting())
++   {
++      ResetLastError();
++      if(!EventSetTimer(1))
++      {
++         int timerError = GetLastError();
++         g_is_initialized = false;
++         Log(DBG_ERROR, "Failed to register EA timer, error=" + IntegerToString(timerError));
++         return INIT_FAILED;
++      }
+    }

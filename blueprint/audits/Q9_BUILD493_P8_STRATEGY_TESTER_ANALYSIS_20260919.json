@@ -1,0 +1,428 @@
+{
+  "deterministic": {
+    "A_lines": 24172,
+    "B_lines": 24172,
+    "equal": true,
+    "sha_A": "C4562C5F5EE70EFD541A4C2BE24D65AECE72EFD3B7825D1B6B59DB41073D40DF",
+    "sha_B": "C4562C5F5EE70EFD541A4C2BE24D65AECE72EFD3B7825D1B6B59DB41073D40DF"
+  },
+  "authority_markers": {
+    "[P3M2][M15_COUNTS]": {
+      "p7_count": 523,
+      "p8_count": 523,
+      "equal": true,
+      "p7_sha": "2323F5D0BF064A3E437807DAF2426C843E70382B393900C503E87929457BF02F",
+      "p8_sha": "2323F5D0BF064A3E437807DAF2426C843E70382B393900C503E87929457BF02F"
+    },
+    "[P3M2][M15_SELECT]": {
+      "p7_count": 523,
+      "p8_count": 523,
+      "equal": true,
+      "p7_sha": "7CC31E3A9E55C1A91A5E37C975D6451ADA99390E9946DC382B17B56BDA9BCDC1",
+      "p8_sha": "7CC31E3A9E55C1A91A5E37C975D6451ADA99390E9946DC382B17B56BDA9BCDC1"
+    },
+    "[P3M2][M15_CONFLICT]": {
+      "p7_count": 0,
+      "p8_count": 0,
+      "equal": true,
+      "p7_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "p8_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "[P3M2][M16_PASS]": {
+      "p7_count": 523,
+      "p8_count": 523,
+      "equal": true,
+      "p7_sha": "9B016D2A8DA87903541C2490F8064A0424E0409526F9E3980DB4294D8443C62F",
+      "p8_sha": "9B016D2A8DA87903541C2490F8064A0424E0409526F9E3980DB4294D8443C62F"
+    },
+    "[P3M2][M16_REJECT]": {
+      "p7_count": 0,
+      "p8_count": 0,
+      "equal": true,
+      "p7_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "p8_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "[P3M2][M16_OWNER_REJECT]": {
+      "p7_count": 0,
+      "p8_count": 0,
+      "equal": true,
+      "p7_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "p8_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "[P3M2][DECISION_FINAL]": {
+      "p7_count": 523,
+      "p8_count": 523,
+      "equal": true,
+      "p7_sha": "5C34C6588D7D6DD2DAE291C2811BE44388DF6798ABF561069D46D46A8215ED86",
+      "p8_sha": "5C34C6588D7D6DD2DAE291C2811BE44388DF6798ABF561069D46D46A8215ED86"
+    },
+    "[D1O][M15_D1_BLOCK]": {
+      "p7_count": 0,
+      "p8_count": 0,
+      "equal": true,
+      "p7_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "p8_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "[D1O][M16_D1_REJECT]": {
+      "p7_count": 0,
+      "p8_count": 0,
+      "equal": true,
+      "p7_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "p8_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    }
+  },
+  "authority_aggregate": {
+    "p7_count": 2092,
+    "p8_count": 2092,
+    "equal": true,
+    "p7_sha": "EFF894BAA8497EF6EB4A54AD43EB6354D80D61772B202E1ADBEAC430FEF2DDBF",
+    "p8_sha": "EFF894BAA8497EF6EB4A54AD43EB6354D80D61772B202E1ADBEAC430FEF2DDBF"
+  },
+  "raw_n1_regression": {
+    "p7_count": 2016,
+    "p8_count": 2016,
+    "equal": true,
+    "p7_sha": "B4843C86443C8C98830E10527CC05BC372715881F35A257A9E58FC29DD4C3952",
+    "p8_sha": "B4843C86443C8C98830E10527CC05BC372715881F35A257A9E58FC29DD4C3952"
+  },
+  "august_stability": {
+    "rows": 2016,
+    "reasons": {
+      "NO_PRIOR_PROVEN_RELATION": 9,
+      "CURRENT_CANONICAL_EVIDENCE": 1979,
+      "PARENT_TRANSITION_CURRENT_EVIDENCE": 28
+    },
+    "m5_reasons": {
+      "PARENT_TRANSITION_CLEARS_M5_STABILITY": 1,
+      "NO_CURRENT_M5_CONTEXT": 2015
+    },
+    "relation_pairs": {
+      "BUILDING->BUILDING": 1177,
+      "SUPPORTING->SUPPORTING": 303,
+      "CONFLICT->CONFLICT": 72,
+      "ALIGNED->ALIGNED": 464
+    },
+    "parent_transition_count": 28,
+    "raw_stable_difference_count": 0,
+    "hold_last_proven_count": 0,
+    "transition_missing_previous_parent": 0,
+    "nontransition_with_previous_parent": 0,
+    "transition_samples": [
+      {
+        "pair": "GBPUSD",
+        "rel": "BUILDING",
+        "srel": "BUILDING",
+        "re": "1B77BE0CC7CEB5A6",
+        "se": "1B77BE0CC7CEB5A6",
+        "ptr": "Y",
+        "ppe": "80C77F168BC6BC29",
+        "pe": "7A5680E9ACAAA753",
+        "j": "J2|GBPUSD|H4_OWNER|7A5680E9ACAAA753",
+        "stab": "PARENT_TRANSITION_CURRENT_EVIDENCE",
+        "m5p": "N",
+        "m5rel": "UNRESOLVED",
+        "m5srel": "UNRESOLVED",
+        "m5se": "-",
+        "m5stab": "NO_CURRENT_M5_CONTEXT"
+      },
+      {
+        "pair": "GBPUSD",
+        "rel": "BUILDING",
+        "srel": "BUILDING",
+        "re": "9BC14BDF904D7A30",
+        "se": "9BC14BDF904D7A30",
+        "ptr": "Y",
+        "ppe": "7A5680E9ACAAA753",
+        "pe": "885823F8D7EB46E1",
+        "j": "J2|GBPUSD|H4_RE|885823F8D7EB46E1",
+        "stab": "PARENT_TRANSITION_CURRENT_EVIDENCE",
+        "m5p": "N",
+        "m5rel": "UNRESOLVED",
+        "m5srel": "UNRESOLVED",
+        "m5se": "-",
+        "m5stab": "NO_CURRENT_M5_CONTEXT"
+      },
+      {
+        "pair": "GBPUSD",
+        "rel": "BUILDING",
+        "srel": "BUILDING",
+        "re": "1AF8A5382615185B",
+        "se": "1AF8A5382615185B",
+        "ptr": "Y",
+        "ppe": "885823F8D7EB46E1",
+        "pe": "71036579CD51FD59",
+        "j": "J2|GBPUSD|H4_OWNER|71036579CD51FD59",
+        "stab": "PARENT_TRANSITION_CURRENT_EVIDENCE",
+        "m5p": "N",
+        "m5rel": "UNRESOLVED",
+        "m5srel": "UNRESOLVED",
+        "m5se": "-",
+        "m5stab": "NO_CURRENT_M5_CONTEXT"
+      },
+      {
+        "pair": "GBPUSD",
+        "rel": "SUPPORTING",
+        "srel": "SUPPORTING",
+        "re": "E77F7B55F44241F0",
+        "se": "E77F7B55F44241F0",
+        "ptr": "Y",
+        "ppe": "71036579CD51FD59",
+        "pe": "DE65E1F1245DC181",
+        "j": "J2|GBPUSD|H4_OWNER|DE65E1F1245DC181",
+        "stab": "PARENT_TRANSITION_CURRENT_EVIDENCE",
+        "m5p": "N",
+        "m5rel": "UNRESOLVED",
+        "m5srel": "UNRESOLVED",
+        "m5se": "-",
+        "m5stab": "NO_CURRENT_M5_CONTEXT"
+      },
+      {
+        "pair": "GBPUSD",
+        "rel": "SUPPORTING",
+        "srel": "SUPPORTING",
+        "re": "106F3F9A44B7643E",
+        "se": "106F3F9A44B7643E",
+        "ptr": "Y",
+        "ppe": "DE65E1F1245DC181",
+        "pe": "ECA9FF88A450BCAD",
+        "j": "J2|GBPUSD|H4_OWNER|ECA9FF88A450BCAD",
+        "stab": "PARENT_TRANSITION_CURRENT_EVIDENCE",
+        "m5p": "N",
+        "m5rel": "UNRESOLVED",
+        "m5srel": "UNRESOLVED",
+        "m5se": "-",
+        "m5stab": "NO_CURRENT_M5_CONTEXT"
+      }
+    ],
+    "raw_stable_diff_samples": []
+  },
+  "january_hysteresis": {
+    "rows": 2016,
+    "reasons": {
+      "CURRENT_CANONICAL_EVIDENCE": 1806,
+      "PARENT_TRANSITION_RAW_INIT": 2,
+      "NO_PRIOR_PROVEN_RELATION": 62,
+      "HOLD_LAST_PROVEN_RELATION": 122,
+      "PARENT_TRANSITION_CURRENT_EVIDENCE": 24
+    },
+    "m5_reasons": {
+      "PARENT_TRANSITION_CLEARS_M5_STABILITY": 1,
+      "NO_CURRENT_M5_CONTEXT": 2015
+    },
+    "relation_pairs": {
+      "BUILDING->BUILDING": 896,
+      "ALIGNED->ALIGNED": 304,
+      "BUILDING->ALIGNED": 52,
+      "CONFLICT->CONFLICT": 252,
+      "SUPPORTING->SUPPORTING": 442,
+      "BUILDING->SUPPORTING": 58,
+      "BUILDING->CONFLICT": 12
+    },
+    "parent_transition_count": 26,
+    "raw_stable_difference_count": 122,
+    "hold_last_proven_count": 122,
+    "transition_missing_previous_parent": 0,
+    "nontransition_with_previous_parent": 0,
+    "transition_samples": [
+      {
+        "pair": "GBPUSD",
+        "rel": "BUILDING",
+        "srel": "BUILDING",
+        "re": "-",
+        "se": "-",
+        "ptr": "Y",
+        "ppe": "54235BECC01958CD",
+        "pe": "B57881E6DCAF0A0B",
+        "j": "J2|GBPUSD|H4_OWNER|B57881E6DCAF0A0B",
+        "stab": "PARENT_TRANSITION_RAW_INIT",
+        "m5p": "N",
+        "m5rel": "UNRESOLVED",
+        "m5srel": "UNRESOLVED",
+        "m5se": "-",
+        "m5stab": "NO_CURRENT_M5_CONTEXT"
+      },
+      {
+        "pair": "GBPUSD",
+        "rel": "BUILDING",
+        "srel": "BUILDING",
+        "re": "-",
+        "se": "-",
+        "ptr": "Y",
+        "ppe": "B57881E6DCAF0A0B",
+        "pe": "67C4F357857EA319",
+        "j": "J2|GBPUSD|H4_RE|67C4F357857EA319",
+        "stab": "PARENT_TRANSITION_RAW_INIT",
+        "m5p": "N",
+        "m5rel": "UNRESOLVED",
+        "m5srel": "UNRESOLVED",
+        "m5se": "-",
+        "m5stab": "NO_CURRENT_M5_CONTEXT"
+      },
+      {
+        "pair": "GBPUSD",
+        "rel": "BUILDING",
+        "srel": "BUILDING",
+        "re": "1217AE7515AFBD17",
+        "se": "1217AE7515AFBD17",
+        "ptr": "Y",
+        "ppe": "67C4F357857EA319",
+        "pe": "CF52CA6D6C6D6E14",
+        "j": "J2|GBPUSD|H4_OWNER|CF52CA6D6C6D6E14",
+        "stab": "PARENT_TRANSITION_CURRENT_EVIDENCE",
+        "m5p": "N",
+        "m5rel": "UNRESOLVED",
+        "m5srel": "UNRESOLVED",
+        "m5se": "-",
+        "m5stab": "NO_CURRENT_M5_CONTEXT"
+      },
+      {
+        "pair": "GBPUSD",
+        "rel": "BUILDING",
+        "srel": "BUILDING",
+        "re": "53420E039D32680A",
+        "se": "53420E039D32680A",
+        "ptr": "Y",
+        "ppe": "CF52CA6D6C6D6E14",
+        "pe": "A50631671632FB30",
+        "j": "J2|GBPUSD|H4_RE|A50631671632FB30",
+        "stab": "PARENT_TRANSITION_CURRENT_EVIDENCE",
+        "m5p": "N",
+        "m5rel": "UNRESOLVED",
+        "m5srel": "UNRESOLVED",
+        "m5se": "-",
+        "m5stab": "NO_CURRENT_M5_CONTEXT"
+      },
+      {
+        "pair": "GBPUSD",
+        "rel": "SUPPORTING",
+        "srel": "SUPPORTING",
+        "re": "19FCCEBAF5632104",
+        "se": "19FCCEBAF5632104",
+        "ptr": "Y",
+        "ppe": "A50631671632FB30",
+        "pe": "578181C95462F2C0",
+        "j": "J2|GBPUSD|H4_OWNER|578181C95462F2C0",
+        "stab": "PARENT_TRANSITION_CURRENT_EVIDENCE",
+        "m5p": "N",
+        "m5rel": "UNRESOLVED",
+        "m5srel": "UNRESOLVED",
+        "m5se": "-",
+        "m5stab": "NO_CURRENT_M5_CONTEXT"
+      }
+    ],
+    "raw_stable_diff_samples": [
+      {
+        "pair": "GBPUSD",
+        "rel": "BUILDING",
+        "srel": "ALIGNED",
+        "re": "-",
+        "se": "785F9FE321CB63B9",
+        "ptr": "N",
+        "ppe": "-",
+        "pe": "67C4F357857EA319",
+        "j": "J2|GBPUSD|H4_RE|67C4F357857EA319",
+        "stab": "HOLD_LAST_PROVEN_RELATION",
+        "m5p": "N",
+        "m5rel": "UNRESOLVED",
+        "m5srel": "UNRESOLVED",
+        "m5se": "-",
+        "m5stab": "NO_CURRENT_M5_CONTEXT"
+      },
+      {
+        "pair": "GBPUSD",
+        "rel": "BUILDING",
+        "srel": "ALIGNED",
+        "re": "-",
+        "se": "785F9FE321CB63B9",
+        "ptr": "N",
+        "ppe": "-",
+        "pe": "67C4F357857EA319",
+        "j": "J2|GBPUSD|H4_RE|67C4F357857EA319",
+        "stab": "HOLD_LAST_PROVEN_RELATION",
+        "m5p": "N",
+        "m5rel": "UNRESOLVED",
+        "m5srel": "UNRESOLVED",
+        "m5se": "-",
+        "m5stab": "NO_CURRENT_M5_CONTEXT"
+      },
+      {
+        "pair": "GBPUSD",
+        "rel": "BUILDING",
+        "srel": "ALIGNED",
+        "re": "-",
+        "se": "785F9FE321CB63B9",
+        "ptr": "N",
+        "ppe": "-",
+        "pe": "67C4F357857EA319",
+        "j": "J2|GBPUSD|H4_RE|67C4F357857EA319",
+        "stab": "HOLD_LAST_PROVEN_RELATION",
+        "m5p": "N",
+        "m5rel": "UNRESOLVED",
+        "m5srel": "UNRESOLVED",
+        "m5se": "-",
+        "m5stab": "NO_CURRENT_M5_CONTEXT"
+      },
+      {
+        "pair": "GBPUSD",
+        "rel": "BUILDING",
+        "srel": "ALIGNED",
+        "re": "-",
+        "se": "785F9FE321CB63B9",
+        "ptr": "N",
+        "ppe": "-",
+        "pe": "67C4F357857EA319",
+        "j": "J2|GBPUSD|H4_RE|67C4F357857EA319",
+        "stab": "HOLD_LAST_PROVEN_RELATION",
+        "m5p": "N",
+        "m5rel": "UNRESOLVED",
+        "m5srel": "UNRESOLVED",
+        "m5se": "-",
+        "m5stab": "NO_CURRENT_M5_CONTEXT"
+      },
+      {
+        "pair": "GBPUSD",
+        "rel": "BUILDING",
+        "srel": "ALIGNED",
+        "re": "-",
+        "se": "785F9FE321CB63B9",
+        "ptr": "N",
+        "ppe": "-",
+        "pe": "67C4F357857EA319",
+        "j": "J2|GBPUSD|H4_RE|67C4F357857EA319",
+        "stab": "HOLD_LAST_PROVEN_RELATION",
+        "m5p": "N",
+        "m5rel": "UNRESOLVED",
+        "m5srel": "UNRESOLVED",
+        "m5se": "-",
+        "m5stab": "NO_CURRENT_M5_CONTEXT"
+      }
+    ]
+  },
+  "broker_actions": {
+    "P7": {
+      "count": 0,
+      "sample": []
+    },
+    "P8A": {
+      "count": 0,
+      "sample": []
+    },
+    "P8B": {
+      "count": 0,
+      "sample": []
+    },
+    "P8JAN": {
+      "count": 0,
+      "sample": []
+    }
+  },
+  "summary": {
+    "P7": "0\t13:18:52.052\tGBPUSD,M15: 2016 tick events (2016 bars, 3017 bar states) processed in 0:00:18.344 (total time 0:00:34.516)",
+    "P8A": "0\t14:28:49.144\tGBPUSD,M15: 2016 tick events (2016 bars, 3017 bar states) processed in 0:00:18.468 (total time 0:00:34.218)",
+    "P8B": "0\t14:29:47.317\tGBPUSD,M15: 2016 tick events (2016 bars, 3017 bar states) processed in 0:00:18.125 (total time 0:00:27.687)",
+    "P8JAN": "0\t14:30:59.071\tGBPUSD,M15: 2016 tick events (2016 bars, 3017 bar states) processed in 0:00:17.593 (total time 0:00:29.437)"
+  },
+  "build": [
+    "0\t14:28:31.122\t2026.08.03 00:00:01  BBMA_EA_Q9_493_P8_TESTER GBPUSD,M15: [F7-BUILD] EA=BBMA_EA Build=4.93 BuildTag=V493_Q9_P8_PROVENANCE_STABILITY_20260919 SourceRev=Q9_P8_PROVENANCE_STABILITY_101_20260919 InitTime=2026.08.03 00:00:01"
+  ]
+}

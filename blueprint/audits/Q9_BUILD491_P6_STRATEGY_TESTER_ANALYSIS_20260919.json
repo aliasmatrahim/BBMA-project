@@ -1,0 +1,66 @@
+{
+  "deterministic_line_count_A": 20662,
+  "deterministic_line_count_B": 20662,
+  "deterministic_sha_A": "457B204DB50A71604995D349249BEC00E8C6E4E79A9BE20B74BF45D86373F3F7",
+  "deterministic_sha_B": "457B204DB50A71604995D349249BEC00E8C6E4E79A9BE20B74BF45D86373F3F7",
+  "deterministic_equal": true,
+  "[P3M2][M15_COUNTS]": {
+    "P6": 523,
+    "P5": 523,
+    "equal": true,
+    "sha": "2323F5D0BF064A3E437807DAF2426C843E70382B393900C503E87929457BF02F"
+  },
+  "[P3M2][M15_SELECT]": {
+    "P6": 523,
+    "P5": 523,
+    "equal": true,
+    "sha": "7CC31E3A9E55C1A91A5E37C975D6451ADA99390E9946DC382B17B56BDA9BCDC1"
+  },
+  "[P3M2][M16_PASS]": {
+    "P6": 523,
+    "P5": 523,
+    "equal": true,
+    "sha": "9B016D2A8DA87903541C2490F8064A0424E0409526F9E3980DB4294D8443C62F"
+  },
+  "[P3M2][DECISION_FINAL]": {
+    "P6": 523,
+    "P5": 523,
+    "equal": true,
+    "sha": "5C34C6588D7D6DD2DAE291C2811BE44388DF6798ABF561069D46D46A8215ED86"
+  },
+  "base_maturity_counts": {
+    "MOMENTUM_CONTINUATION": 102,
+    "RE_CONFIRMED": 1705,
+    "DIRECTION_STAGE": 72,
+    "OWNER_ONLY": 10,
+    "MHV_MATURE": 90,
+    "EXTREME_MATURE": 37
+  },
+  "aug_m5_total": 2016,
+  "aug_m5_present_y": 0,
+  "bounded_m5_scan": {
+    "2026.01": {
+      "m5_lines": 2016,
+      "present_y": 0
+    },
+    "2026.03": {
+      "m5_lines": 2112,
+      "present_y": 0
+    },
+    "2026.05": {
+      "m5_lines": 2016,
+      "present_y": 0
+    },
+    "2026.07": {
+      "m5_lines": 2208,
+      "present_y": 0
+    },
+    "2026.08": {
+      "m5_lines": 4128,
+      "present_y": 0
+    }
+  },
+  "broker_P6A": 0,
+  "broker_P6B": 0,
+  "broker_P5": 0
+}

@@ -97,6 +97,8 @@ M15 remains sole processing/final-decision clock. NMJE remains observer-only.
 Static/model/inherited regression: PASS.
 Protected authority body comparison: PASS.
 Native MetaEditor exact deployment-name compile: 0 errors / 0 warnings.
-Runtime: NOT RUNTIME VERIFIED — isolated MT4 loaded Build 4.91 expert and zero-trade inputs in two bounded attempts but stalled before broker login/OnInit/F7-BUILD.
+Strategy Tester functional runtime: PASS — historical P6 maturity transitions exercised, deterministic replay PASS, P5/P6 authority traces equal, zero broker actions.
+Live-terminal/timer runtime: PENDING — Saturday isolated terminal attempts stalled before attributable OnInit/F7-BUILD; live timer smoke is deferred to Monday.
+Natural M5 context: bounded historical search produced no genuine PRESENT=Y occurrence; M5 maturity remains static/model validated only.
 
-No production activation and no P7 advancement are authorized by this record.
+No production activation is authorized by this record. P7 was not started by the Strategy Tester validation task.

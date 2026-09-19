@@ -123,6 +123,7 @@ def main() -> None:
         "BuildNMJEShadowAttribution(decision, info.nmje_attribution);",
         "info.nmje_attribution.EntryDisplacement = info.entry_displacement;",
         "[NMJE-P4-OPEN]",
+        "[Q9-P10-DISP-OPEN]",
         '" DISP="',
         '" D12="',
         '" D2B="',
@@ -144,7 +145,7 @@ def main() -> None:
     )
 
     outcome = body("void NMJE_PrintClosedOutcomeShadow(")
-    require(outcome, "info.entry_displacement.Present", '" DISP="', '" DSIG="', '" DTF="', '" DSP="',
+    require(outcome, "info.entry_displacement.Present", "[Q9-P10-DISP-OUT]", '" DISP="', '" DSIG="', '" DTF="', '" DSP="',
             '" DPP="', '" DBP="', '" D12="', '" D2B="', '" D1B="')
 
     # P10 must not become authority before/at selection, validation, risk or order send.

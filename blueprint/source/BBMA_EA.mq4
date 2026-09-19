@@ -9456,6 +9456,20 @@ void NMJE_PrintClosedOutcomeShadow(TradeInfo &info)
          " SDM=", IntegerToString(info.nmje_attribution.StructureDensity.StageMask),
          " SDP=", IntegerToString(info.nmje_attribution.StructureDensity.PrefixMask),
          " SDC=", IntegerToString(info.nmje_attribution.StructureDensity.StageCount),
+         " M5=", info.nmje_attribution.M5Present ? "Y" : "N",
+         " M5E=", info.nmje_attribution.M5EventHash == "" ? "-" : info.nmje_attribution.M5EventHash,
+         " M5REL=", NMJE_RelationText(info.nmje_attribution.M5Relation),
+         " M5MAT=", NMJE_MaturityText(info.nmje_attribution.M5Maturity),
+         " M5DIR=", NMJE_DirText(info.nmje_attribution.M5Direction),
+         " M5CTX=", IntegerToString(info.nmje_attribution.M5ContextCode),
+         " M5STATE=", IntegerToString(info.nmje_attribution.M5ContextStateCode),
+         " M5RH=", info.nmje_attribution.M5ReasonHash == "" ? "-" : info.nmje_attribution.M5ReasonHash,
+         " NET=", DoubleToString(netProfit, 8),
+         " CLOSE=", IntegerToString((int)OrderCloseTime()));
+
+   Print("[Q9-P10-DISP-OUT] PAIR=", info.pair,
+         " TICKET=", IntegerToString(info.ticket),
+         " DIDH=", decisionHash,
          " DISP=", info.entry_displacement.Present ? "Y" : "N",
          " DSIG=", EnumToString(info.entry_displacement.SourceSignal),
          " DTF=", IntegerToString(info.entry_displacement.SourceTimeframe),
@@ -9466,14 +9480,6 @@ void NMJE_PrintClosedOutcomeShadow(TradeInfo &info)
          " D12=", DoubleToString(info.entry_displacement.SourceToPreflightPips, 4),
          " D2B=", DoubleToString(info.entry_displacement.PreflightToOpenPips, 4),
          " D1B=", DoubleToString(info.entry_displacement.SourceToOpenPips, 4),
-         " M5=", info.nmje_attribution.M5Present ? "Y" : "N",
-         " M5E=", info.nmje_attribution.M5EventHash == "" ? "-" : info.nmje_attribution.M5EventHash,
-         " M5REL=", NMJE_RelationText(info.nmje_attribution.M5Relation),
-         " M5MAT=", NMJE_MaturityText(info.nmje_attribution.M5Maturity),
-         " M5DIR=", NMJE_DirText(info.nmje_attribution.M5Direction),
-         " M5CTX=", IntegerToString(info.nmje_attribution.M5ContextCode),
-         " M5STATE=", IntegerToString(info.nmje_attribution.M5ContextStateCode),
-         " M5RH=", info.nmje_attribution.M5ReasonHash == "" ? "-" : info.nmje_attribution.M5ReasonHash,
          " NET=", DoubleToString(netProfit, 8),
          " CLOSE=", IntegerToString((int)OrderCloseTime()));
 }
@@ -9681,7 +9687,7 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
          bool nmjeAttributionBuilt =
             BuildNMJEShadowAttribution(decision, info.nmje_attribution);
          if(nmjeAttributionBuilt && entryDisplacementBuilt)
-            info.entry_displacement = info.entry_displacement;
+            info.nmje_attribution.EntryDisplacement = info.entry_displacement;
 
          ResetC044TradeState(info);
          ResetD1TPWTradeState(info);
@@ -9752,6 +9758,10 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
                " SDM=", IntegerToString(info.nmje_attribution.StructureDensity.StageMask),
                " SDP=", IntegerToString(info.nmje_attribution.StructureDensity.PrefixMask),
                " SDC=", IntegerToString(info.nmje_attribution.StructureDensity.StageCount),
+               " M5=", info.nmje_attribution.M5Present ? "Y" : "N");
+         Print("[Q9-P10-DISP-OPEN] PAIR=", pair,
+               " TICKET=", IntegerToString(ticket),
+               " DIDH=", info.execution_hash == "" ? "-" : info.execution_hash,
                " DISP=", info.entry_displacement.Present ? "Y" : "N",
                " DSIG=", EnumToString(info.entry_displacement.SourceSignal),
                " DTF=", IntegerToString(info.entry_displacement.SourceTimeframe),
@@ -9761,8 +9771,7 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
                " DBP=", DoubleToString(info.entry_displacement.BrokerOpenPrice, info.digits),
                " D12=", DoubleToString(info.entry_displacement.SourceToPreflightPips, 4),
                " D2B=", DoubleToString(info.entry_displacement.PreflightToOpenPips, 4),
-               " D1B=", DoubleToString(info.entry_displacement.SourceToOpenPips, 4),
-               " M5=", info.nmje_attribution.M5Present ? "Y" : "N");
+               " D1B=", DoubleToString(info.entry_displacement.SourceToOpenPips, 4));
          
          AddToMonitoredTrades(info);
          

@@ -12,10 +12,10 @@ def norm(direction, from_price, to_price, pip):
         return (from_price-to_price)/pip
     return 0.0
 
-def valid(present, source_signal=0, tf=0, candle=0, src=0, pre=0, broker=0):
+def valid(present, source_signal="", tf=0, candle=0, src=0, pre=0, broker=0):
     if not present:
         return True
-    if source_signal not in (7, 8):  # model-only RE / Extreme domain
+    if source_signal not in ("RE_ENTRY", "EXTREME"):
         return False
     return tf>0 and candle>0 and src>0 and pre>0 and broker>0
 
@@ -54,14 +54,15 @@ def main():
 
     # Optional displacement payload is all-or-none.
     assert load({"DP":1.0}) == "INVALID"
-    full={"DP":1.0,"DSG":7,"DTF":60,"DCT":1000,
+    full={"DP":1.0,"DSG":"RE_ENTRY","DTF":60,"DCT":1000,
           "DSP":1.1,"DPP":1.101,"DBP":1.1012,
           "D12":10.0,"D2B":2.0,"D1B":12.0}
     assert load(full)["D1B"]==12.0
 
     assert valid(False)
-    assert valid(True,7,60,1000,1.1,1.101,1.1012)
-    assert not valid(True,0,60,1000,1.1,1.101,1.1012)
+    assert valid(True,"RE_ENTRY",60,1000,1.1,1.101,1.1012)
+    assert valid(True,"EXTREME",60,1000,1.1,1.101,1.1012)
+    assert not valid(True,"",60,1000,1.1,1.101,1.1012)
     print("Q9_P10_ENTRY_DISPLACEMENT_MODEL=PASS")
 
 if __name__=="__main__":

@@ -1,6 +1,6 @@
 # BBMA Active Master Queue
 
-Reconciled: **2026-09-18**
+Reconciled: **2026-09-20**
 Status owner: **`d1-owner-dev`**
 Owner head at reconciliation: **`6be2eef1495e2d896e121f5c1846ab3cd14e0f12`**
 
@@ -17,11 +17,11 @@ This file is the active queue. The pre-2026-09-09 historical queue is preserved 
 Stable Q IDs are preserved. The active dependency order is:
 - **Source evidence:** Q4 -> Q5
 - **Core / architecture:** Q1 -> Q2
-- **Parallel validation / data:** Q3 + Q6
+- **Parallel validation / data:** Q3 (Q6 stopped/closed; GBPUSD engineering profile retained)
 - **Integration / final acceptance:** Q7 -> Q8 -> Q10
 - **Deferred / future:** Q9 + Q11
 
-Q3 and Q6 may progress in parallel when their runtime/data conditions are available. Q7 is frozen and the scoped GBPUSD Q8 engineering regression is now complete under Issue #188. Q6 native final-authority residuals remain open under Issue #128; Q3 remains parallel and Q10 remains separately gated.
+Q3 remains the active runtime-validation workstream. Q6 was stopped by explicit user decision on 2026-09-20 and Issue #128 is closed as not planned; do not auto-resume native acquisition. The already-verified GBPUSD engineering historical profile is retained for isolated Strategy Tester work. Q7 is frozen, GBPUSD Q8 is complete, and Q10 remains separately gated.
 
 ## Stage A - Source evidence / reconciliation
 
@@ -110,28 +110,26 @@ Required next steps after G40 reconnect:
 
 Build 4.80 or Strategy Tester evidence cannot substitute for exact 4.81 runtime closure.
 
-### Q6 — Complete canonical Dukascopy-native 3-pair archive
-Issue: **#128**
-Priority: **HIGH / LONG-RUNNING DATA PROVENANCE**
-Status: **SYNTHETIC-V3 TESTER GATES PASS / NATIVE ARCHIVE INCOMPLETE**
+### Q6 — Canonical Dukascopy-native 3-pair archive
+Issue: **#128 — CLOSED / NOT PLANNED**
+Priority: **STOPPED**
+Status: **STOPPED BY USER 2026-09-20 / DO NOT AUTO-RESUME**
 
-Current verified milestone:
-- EURUSD 2006-09 COMPLETE 720/720;
-- archive SHA-256 `6e0975c7ca1454ba1056f8b189c0e21f639936683bfa4f115a87bd823cf21f79`;
-- last recorded orchestrator position: EURUSD 2006-10;
-- worker policy: `BBMA_NATIVE_WORKERS=1` while Primary-15 ASR is active;
-- free-space fail-closed guard: >120 GB.
+Final active-state handling:
+1. Full EURUSD/GBPUSD/USDJPY native acquisition is no longer an active project requirement.
+2. Live G40 runner/downloader processes were stopped and rechecked; local range progress is `STOPPED_BY_USER`.
+3. Preserve the verified 17/720 native pair-months and any partial artifacts as historical evidence; do not delete or silently promote them.
+4. The separate GBPUSD native-only archive remains 0/240 and is not being pursued.
+5. For isolated historical tester work, use the already-verified GBPUSD engineering profile:
+   - Jetta/raw-tick range 240/240 COMPLETE;
+   - derived-v9 artifact integrity PASS;
+   - cross-TF reconciliation PASS;
+   - full 2006-09..2026-08 tick-to-derived reconciliation PASS;
+   - six installed GBPUSD HST identities hash-match Q8 evidence;
+   - Q8 Build 4.86 engineering regression VERIFIED / COMPLETE.
+6. Evidence classification remains **ENGINEERING HISTORICAL EVIDENCE / NOT FINAL TICK-ACCURATE / NOT DEPLOYMENT-BROKER CANONICAL**.
+7. A future native-archive restart requires a new explicit user instruction.
 
-Required next steps:
-1. Re-read manifests/process state on G40.
-2. Reuse every COMPLETE verified month; resume first incomplete pair-month only.
-3. Validate exact expected hourly artifact count, payload validity, manifest completeness, tar entry count and archive SHA for each month.
-4. Retry only missing/transient-failure hours; never accept invalid payload silently.
-5. Continue through all 720 target pair-months.
-6. Resolve remaining provenance/session/deployment broker-time engineering mapping.
-7. Only then permit final tick-accurate canonical historical claims.
-
-Synthetic-v3 remains engineering-only; its tick volume normalization cannot become native tick authority.
 
 ## Stage D - Integration / regression / final acceptance
 
@@ -194,6 +192,6 @@ Older dashboard/observer PRs were prepared against historical frozen candidates.
 ## G40 resume policy
 G40 was reachable during the 2026-09-17 Q7 reconciliation. Future work must still re-read actual local process/worktree/manifest state before any mutation.
 
-G40-dependent active workstreams that require live-state recovery are **Q3 and Q6**. Q1/Q2 are already integrated and Q7 is frozen; do not recreate them. Q4 is mechanically complete and must not be re-added to the resume list without new evidence that a specific source unit is missing or invalid.
+G40-dependent active workstream requiring live-state recovery is **Q3 only**. Q6 native acquisition is stopped/closed and must not auto-resume. Q1/Q2 are already integrated and Q7 is frozen; do not recreate them. Q4 is mechanically complete and must not be re-added to the resume list without new evidence that a specific source unit is missing or invalid.
 
 No destructive reset, blind recreation, automatic MT4 restart, or trading enablement is authorized by this queue.

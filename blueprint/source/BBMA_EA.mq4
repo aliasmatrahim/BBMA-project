@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.8.6 - Structural Lifetime Authority Repair       |
+//| Version 4.8.7 - Q9 NMJE Lineage Provenance                 |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.86"
+#property version   "4.87"
 #property strict
 
-#define BBMA_BUILD_TAG      "V486_STRUCTURAL_LIFETIME_20260917"
-#define BBMA_SOURCE_REV_TAG "Q5_STRUCTURAL_LIFETIME_173_20260917"
+#define BBMA_BUILD_TAG      "V487A_Q9_NMJE_LINEAGE_TRACEFIX_20260918"
+#define BBMA_SOURCE_REV_TAG "Q9_P1_NMJE_LINEAGE_TRACEFIX_101_20260918"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -558,6 +558,9 @@ struct D1MajorTrendOwner
    ENUM_D1_OWNER_STATE  State;
    ENUM_DIRECTION       Direction;
    datetime             SourceCandleTime;
+   // Q9 P1 engineering provenance: exact contiguous D1 owner-state epoch.
+   // Metadata only; it does not change the canonical M11 D1 formula.
+   datetime             EpochStartCandleTime;
    datetime             LastProcessedD1CandleTime;
    double               Close1;
    double               MA50_1;
@@ -592,6 +595,8 @@ struct NestedTFNode
    bool                 Valid;
    bool                 Resolved;
    string               Label;
+   // Q9 P1 provenance-only canonical event identity. Never strategy authority.
+   string               CanonicalEventID;
 
    // N1.1 coverage-only secondary overlays. These never own strategy state.
    ENUM_RE_STATE        ReEntryBuyState;
@@ -625,6 +630,8 @@ struct NestedJourneyState
    ENUM_SIGNAL_TYPE        ParentSignal;
    ENUM_DIRECTION          ParentDirection;
    datetime                ParentCandleTime;
+   // Q9 P1 exact canonical identity of the descriptive parent.
+   string                  ParentEventID;
    ENUM_DIRECTION          StrategicDirection;
    ENUM_NESTED_RELATION    Relation;
    bool                    Resolved;
@@ -1436,6 +1443,7 @@ void InitPairState(PairState &state)
    state.d1_major_trend_owner.State = D1_OWNER_UNRESOLVED;
    state.d1_major_trend_owner.Direction = DIR_NONE;
    state.d1_major_trend_owner.SourceCandleTime = 0;
+   state.d1_major_trend_owner.EpochStartCandleTime = 0;
    state.d1_major_trend_owner.LastProcessedD1CandleTime = 0;
    state.d1_major_trend_owner.Close1 = 0.0;
    state.d1_major_trend_owner.MA50_1 = 0.0;
@@ -3294,12 +3302,105 @@ bool DetectECSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
 //| LEVEL: BEGINNER                                                  |
 //+------------------------------------------------------------------+
 
+// M11 sole canonical D1 owner classifier.
+// Both the live closed-D1 snapshot and Q9 provenance reconstruction call this
+// one formula owner; Q9 does not duplicate or redefine the strategy rule.
+bool M11_ClassifyD1OwnerValues(double close1, double ma50_1, double ma50_2,
+                               ENUM_D1_OWNER_STATE &ownerState,
+                               ENUM_DIRECTION &direction)
+{
+   ownerState = D1_OWNER_UNRESOLVED;
+   direction = DIR_NONE;
+   if(close1 <= 0.0 || ma50_1 <= 0.0 || ma50_2 <= 0.0)
+      return false;
+
+   if(close1 > ma50_1 && ma50_1 > ma50_2)
+   {
+      ownerState = D1_OWNER_BUY_CONFIRMED;
+      direction = DIR_BUY;
+   }
+   else if(close1 < ma50_1 && ma50_1 < ma50_2)
+   {
+      ownerState = D1_OWNER_SELL_CONFIRMED;
+      direction = DIR_SELL;
+   }
+   else
+   {
+      ownerState = D1_TRANSITION;
+      direction = DIR_NONE;
+   }
+   return true;
+}
+
+// Q9 P1 provenance adapter: reads an older fully closed D1 snapshot and routes
+// it through the same M11 classifier used by the live owner.
+bool M11_ClassifyD1OwnerAtShift(string pair, int shift,
+                                ENUM_D1_OWNER_STATE &ownerState,
+                                ENUM_DIRECTION &direction,
+                                datetime &candleTime)
+{
+   ownerState = D1_OWNER_UNRESOLVED;
+   direction = DIR_NONE;
+   candleTime = 0;
+   if(pair == "" || shift < 1) return false;
+
+   datetime t = iTime(pair, PERIOD_D1, shift);
+   double close1 = iClose(pair, PERIOD_D1, shift);
+   double ma50_1 = EMA(pair, PERIOD_D1, EMA50_PERIOD, shift);
+   double ma50_2 = EMA(pair, PERIOD_D1, EMA50_PERIOD, shift + 1);
+   if(t <= 0) return false;
+   if(!M11_ClassifyD1OwnerValues(close1, ma50_1, ma50_2,
+                                 ownerState, direction))
+      return false;
+
+   candleTime = t;
+   return true;
+}
+
+// Reconstructs the exact contiguous owner epoch after restart/recovery.
+// If history cannot prove the older boundary, provenance stays unresolved.
+bool M11_ResolveD1OwnerEpochStart(string pair, D1MajorTrendOwner &owner,
+                                  datetime &epochStart)
+{
+   epochStart = 0;
+   if(pair == "" || owner.SourceCandleTime <= 0 || !owner.IsValid)
+      return false;
+
+   int shift = iBarShift(pair, PERIOD_D1, owner.SourceCandleTime, true);
+   int bars = iBars(pair, PERIOD_D1);
+   if(shift < 1 || bars <= shift + 1) return false;
+
+   epochStart = owner.SourceCandleTime;
+   for(int s = shift + 1; s < bars - 1; s++)
+   {
+      ENUM_D1_OWNER_STATE priorState;
+      ENUM_DIRECTION priorDirection;
+      datetime priorCandle = 0;
+      if(!M11_ClassifyD1OwnerAtShift(pair, s, priorState,
+                                     priorDirection, priorCandle))
+      {
+         epochStart = 0;
+         return false;
+      }
+
+      if(priorState != owner.State || priorDirection != owner.Direction)
+         return (epochStart > 0);
+
+      epochStart = priorCandle;
+   }
+
+   epochStart = 0;
+   return false;
+}
+
 void SetD1OwnerUnresolved(PairState &state, string reason)
 {
    D1MajorTrendOwner owner = state.d1_major_trend_owner;
    owner.State = D1_OWNER_UNRESOLVED;
    owner.Direction = DIR_NONE;
    owner.SourceCandleTime = state.d1_data.candle_time;
+   // Fail closed for NMJE provenance; M11 execution semantics are unchanged.
+   owner.EpochStartCandleTime = 0;
    owner.LastProcessedD1CandleTime = state.d1_data.candle_time;
    owner.Close1 = (state.d1_data.close > 0.0) ? state.d1_data.close : 0.0;
    owner.MA50_1 = (state.d1_data.ma[4] > 0.0) ? state.d1_data.ma[4] : 0.0;
@@ -3316,6 +3417,7 @@ void TraceD1MajorTrendOwner(string pair, PairState &state)
    D1MajorTrendOwner owner = state.d1_major_trend_owner;
    Print("[D1-03][OWNER] Pair=", pair,
          " Candle=", TimeToString(owner.SourceCandleTime),
+         " Epoch=", TimeToString(owner.EpochStartCandleTime),
          " State=", EnumToString(owner.State),
          " Dir=", EnumToString(owner.Direction),
          " Close=", DoubleToString(owner.Close1, state.d1_data.digits),
@@ -3344,6 +3446,10 @@ void UpdateD1MajorTrendOwner(string pair, PairState &state)
                              state.d1_data.barIndex + 1);
 
    D1MajorTrendOwner owner = state.d1_major_trend_owner;
+   ENUM_D1_OWNER_STATE previousState = owner.State;
+   ENUM_DIRECTION previousDirection = owner.Direction;
+   datetime previousEpoch = owner.EpochStartCandleTime;
+
    owner.SourceCandleTime = state.d1_data.candle_time;
    owner.LastProcessedD1CandleTime = state.d1_data.candle_time;
    owner.Close1 = state.d1_data.close;
@@ -3361,26 +3467,41 @@ void UpdateD1MajorTrendOwner(string pair, PairState &state)
       return;
    }
 
-   owner.IsValid = true;
+   ENUM_D1_OWNER_STATE classifiedState;
+   ENUM_DIRECTION classifiedDirection;
+   if(!M11_ClassifyD1OwnerValues(owner.Close1, owner.MA50_1, owner.MA50_2,
+                                 classifiedState, classifiedDirection))
+   {
+      SetD1OwnerUnresolved(state, "Required closed D1 MA50 history unavailable");
+      TraceD1MajorTrendOwner(pair, state);
+      return;
+   }
 
-   if(owner.Close1 > owner.MA50_1 && owner.MA50_1 > owner.MA50_2)
-   {
-      owner.State = D1_OWNER_BUY_CONFIRMED;
-      owner.Direction = DIR_BUY;
+   owner.IsValid = true;
+   owner.State = classifiedState;
+   owner.Direction = classifiedDirection;
+
+   if(owner.State == D1_OWNER_BUY_CONFIRMED)
       owner.Reason = "Closed D1 above MA50 with rising MA50";
-   }
-   else if(owner.Close1 < owner.MA50_1 && owner.MA50_1 < owner.MA50_2)
-   {
-      owner.State = D1_OWNER_SELL_CONFIRMED;
-      owner.Direction = DIR_SELL;
+   else if(owner.State == D1_OWNER_SELL_CONFIRMED)
       owner.Reason = "Closed D1 below MA50 with falling MA50";
-   }
    else
-   {
-      owner.State = D1_TRANSITION;
-      owner.Direction = DIR_NONE;
       owner.Reason =
          "Closed D1 price-side and MA50 slope do not confirm one direction";
+
+   // Q9 P1 provenance only. Preserve a proven same-owner epoch in memory.
+   // On startup/recovery or owner transition, rebuild the exact contiguous
+   // epoch from closed D1 history; failure leaves NMJE identity unresolved.
+   if(previousEpoch > 0 && owner.State == previousState &&
+      owner.Direction == previousDirection)
+      owner.EpochStartCandleTime = previousEpoch;
+   else
+   {
+      datetime resolvedEpoch = 0;
+      if(M11_ResolveD1OwnerEpochStart(pair, owner, resolvedEpoch))
+         owner.EpochStartCandleTime = resolvedEpoch;
+      else
+         owner.EpochStartCandleTime = 0;
    }
 
    state.d1_major_trend_owner = owner;
@@ -4431,6 +4552,74 @@ string NMJE_MLVStateText(ENUM_MLV_STATE state)
    return "N";
 }
 
+// Q9 P1 deterministic provenance identities. These helpers consume only
+// canonical owner facts and have no detection, ranking, rejection or execution authority.
+string NMJE_IdentityHash(string raw)
+{
+   if(raw == "") return "";
+   return SHORT_HASH(raw, 16);
+}
+
+string NMJE_ReEntryEventID(string pair, ReEntryData &state)
+{
+   if(pair == "" || state.Timeframe <= 0 || state.StartCandleTime <= 0 ||
+      (state.Direction != DIR_BUY && state.Direction != DIR_SELL) ||
+      state.Type == RE_NONE)
+      return "";
+   string raw = "RE|" + pair + "|" + IntegerToString(state.Timeframe) + "|" +
+                IntegerToString((int)state.Direction) + "|" +
+                IntegerToString((int)state.Type) + "|" +
+                IntegerToString((int)state.StartCandleTime);
+   return NMJE_IdentityHash(raw);
+}
+
+string NMJE_ExtremeEventID(string pair, ExtremeLifecycleData &state)
+{
+   if(pair == "" || state.Timeframe <= 0 || state.RawCandleTime <= 0 ||
+      (state.Direction != DIR_BUY && state.Direction != DIR_SELL))
+      return "";
+   string raw = "EXT|" + pair + "|" + IntegerToString(state.Timeframe) + "|" +
+                IntegerToString((int)state.Direction) + "|" +
+                IntegerToString((int)state.RawCandleTime);
+   return NMJE_IdentityHash(raw);
+}
+
+string NMJE_MLVEventID(string pair, MLVData &state)
+{
+   if(pair == "" || state.Timeframe != PERIOD_M15 ||
+      state.ParentRawCandleTime <= 0 || state.ParentConfirmationCandleTime <= 0 ||
+      (state.Direction != DIR_BUY && state.Direction != DIR_SELL))
+      return "";
+   string raw = "MLV|" + pair + "|" + IntegerToString(PERIOD_M15) + "|" +
+                IntegerToString((int)state.Direction) + "|" +
+                IntegerToString((int)state.ParentRawCandleTime) + "|" +
+                IntegerToString((int)state.ParentConfirmationCandleTime);
+   return NMJE_IdentityHash(raw);
+}
+
+string NMJE_D1OwnerEventID(string pair, D1MajorTrendOwner &owner)
+{
+   if(pair == "" || !owner.IsValid || owner.EpochStartCandleTime <= 0)
+      return "";
+   string raw = "D1OWN|" + pair + "|" + IntegerToString((int)owner.State) + "|" +
+                IntegerToString((int)owner.Direction) + "|" +
+                IntegerToString((int)owner.EpochStartCandleTime);
+   return NMJE_IdentityHash(raw);
+}
+
+string NMJE_H4OwnerEventID(string pair, H4DirectionalOwner &owner)
+{
+   if(pair == "" || owner.SourceCandleTime <= 0 ||
+      owner.State != H4_OWNER_ACTIVE ||
+      (owner.Direction != DIR_BUY && owner.Direction != DIR_SELL) ||
+      owner.SourceSignal == SIGNAL_NONE)
+      return "";
+   string raw = "H4OWN|" + pair + "|" + IntegerToString((int)owner.Direction) + "|" +
+                IntegerToString((int)owner.SourceSignal) + "|" +
+                IntegerToString((int)owner.SourceCandleTime);
+   return NMJE_IdentityHash(raw);
+}
+
 void NMJE_ResetNode(NestedTFNode &node, int timeframe)
 {
    ZeroMemory(node);
@@ -4442,6 +4631,7 @@ void NMJE_ResetNode(NestedTFNode &node, int timeframe)
    node.Valid = false;
    node.Resolved = false;
    node.Label = "-";
+   node.CanonicalEventID = "";
 }
 
 bool NMJE_IsConfirmedRE(ReEntryData &state)
@@ -4516,7 +4706,7 @@ bool NMJE_SelectCandidateRE(ReEntryData &buyState, ReEntryData &sellState,
    return true;
 }
 
-void NMJE_SetRENode(NestedTFNode &node, ReEntryData &state, bool resolved)
+void NMJE_SetRENode(string pair, NestedTFNode &node, ReEntryData &state, bool resolved)
 {
    node.StageType = SIGNAL_RE_ENTRY;
    node.Direction = state.Direction;
@@ -4525,10 +4715,11 @@ void NMJE_SetRENode(NestedTFNode &node, ReEntryData &state, bool resolved)
       ? state.ConfirmationCandle : state.StartCandleTime;
    node.Valid = state.IsValid;
    node.Resolved = resolved;
+   node.CanonicalEventID = NMJE_ReEntryEventID(pair, state);
    node.Label = "RE:" + NMJE_REStateText(state.State) + "/" + NMJE_DirText(state.Direction);
 }
 
-void NMJE_SetExtremeNode(NestedTFNode &node, ExtremeLifecycleData &state)
+void NMJE_SetExtremeNode(string pair, NestedTFNode &node, ExtremeLifecycleData &state)
 {
    node.StageType = SIGNAL_EXTREME;
    node.Direction = state.Direction;
@@ -4537,10 +4728,11 @@ void NMJE_SetExtremeNode(NestedTFNode &node, ExtremeLifecycleData &state)
       ? state.ConfirmationCandleTime : state.RawCandleTime;
    node.Valid = state.IsValid;
    node.Resolved = false; // Extreme is pre-direction context for N1 lineage.
+   node.CanonicalEventID = NMJE_ExtremeEventID(pair, state);
    node.Label = "EXT:" + NMJE_ExtremeStateText(state.Maturity) + "/" + NMJE_DirText(state.Direction);
 }
 
-void NMJE_SetMLVNode(NestedTFNode &node, MLVData &state)
+void NMJE_SetMLVNode(string pair, NestedTFNode &node, MLVData &state)
 {
    node.StageType = SIGNAL_MLV;
    node.Direction = state.Direction;
@@ -4549,6 +4741,7 @@ void NMJE_SetMLVNode(NestedTFNode &node, MLVData &state)
       ? state.ConfirmationCandleTime : state.LastUpdateCandleTime;
    node.Valid = state.IsValid;
    node.Resolved = false; // MHV/MLV is setup/context, not final direction authority.
+   node.CanonicalEventID = NMJE_MLVEventID(pair, state);
    node.Label = "MHV:" + NMJE_MLVStateText(state.State) + "/" + NMJE_DirText(state.Direction);
 }
 
@@ -4653,7 +4846,7 @@ void NMJE_BuildD1Node(PairState &state, NestedTFNode &node)
    if(NMJE_SelectConfirmedRE(state.re_d1_buy_state, state.re_d1_sell_state,
                              selected, ambiguous))
    {
-      NMJE_SetRENode(node, selected, true);
+      NMJE_SetRENode(state.actual_symbol, node, selected, true);
       return;
    }
    if(ambiguous)
@@ -4670,6 +4863,7 @@ void NMJE_BuildD1Node(PairState &state, NestedTFNode &node)
       node.CandleTime = state.d1_major_trend_owner.SourceCandleTime;
       node.Valid = true;
       node.Resolved = true;
+      node.CanonicalEventID = NMJE_D1OwnerEventID(state.actual_symbol, state.d1_major_trend_owner);
       node.Label = "OWN/" + NMJE_DirText(node.Direction);
       return;
    }
@@ -4678,6 +4872,7 @@ void NMJE_BuildD1Node(PairState &state, NestedTFNode &node)
    {
       node.Valid = true;
       node.Resolved = true;
+      node.CanonicalEventID = NMJE_D1OwnerEventID(state.actual_symbol, state.d1_major_trend_owner);
       node.Label = "TRANSITION";
       return;
    }
@@ -4696,7 +4891,7 @@ void NMJE_BuildH4Node(PairState &state, NestedTFNode &node)
    if(NMJE_SelectConfirmedRE(state.re_h4_buy_state, state.re_h4_sell_state,
                              selected, ambiguous))
    {
-      NMJE_SetRENode(node, selected, true);
+      NMJE_SetRENode(state.actual_symbol, node, selected, true);
       return;
    }
    if(ambiguous)
@@ -4708,7 +4903,7 @@ void NMJE_BuildH4Node(PairState &state, NestedTFNode &node)
    if(NMJE_SelectCandidateRE(state.re_h4_buy_state, state.re_h4_sell_state,
                              selected, ambiguous))
    {
-      NMJE_SetRENode(node, selected, false);
+      NMJE_SetRENode(state.actual_symbol, node, selected, false);
       return;
    }
    if(ambiguous)
@@ -4727,6 +4922,7 @@ void NMJE_BuildH4Node(PairState &state, NestedTFNode &node)
       node.CandleTime = state.h4_direction_owner.SourceCandleTime;
       node.Valid = true;
       node.Resolved = true;
+      node.CanonicalEventID = NMJE_H4OwnerEventID(state.actual_symbol, state.h4_direction_owner);
       node.Label = "OWN/" + NMJE_DirText(node.Direction);
       return;
    }
@@ -4735,8 +4931,8 @@ void NMJE_BuildH4Node(PairState &state, NestedTFNode &node)
    bool sellExtreme = NMJE_IsExtremeActive(state.extreme_h4_sell_lifecycle);
    if(buyExtreme != sellExtreme)
    {
-      if(buyExtreme) NMJE_SetExtremeNode(node, state.extreme_h4_buy_lifecycle);
-      else NMJE_SetExtremeNode(node, state.extreme_h4_sell_lifecycle);
+      if(buyExtreme) NMJE_SetExtremeNode(state.actual_symbol, node, state.extreme_h4_buy_lifecycle);
+      else NMJE_SetExtremeNode(state.actual_symbol, node, state.extreme_h4_sell_lifecycle);
    }
    else if(buyExtreme && sellExtreme)
       node.Label = "EXT:AMB";
@@ -4753,7 +4949,7 @@ void NMJE_BuildH1Node(PairState &state, NestedTFNode &node)
    if(NMJE_SelectConfirmedRE(state.re_h1_buy_state, state.re_h1_sell_state,
                              selected, ambiguous))
    {
-      NMJE_SetRENode(node, selected, true);
+      NMJE_SetRENode(state.actual_symbol, node, selected, true);
       return;
    }
    if(ambiguous)
@@ -4765,7 +4961,7 @@ void NMJE_BuildH1Node(PairState &state, NestedTFNode &node)
    if(NMJE_SelectCandidateRE(state.re_h1_buy_state, state.re_h1_sell_state,
                              selected, ambiguous))
    {
-      NMJE_SetRENode(node, selected, false);
+      NMJE_SetRENode(state.actual_symbol, node, selected, false);
       return;
    }
    if(ambiguous)
@@ -4778,8 +4974,8 @@ void NMJE_BuildH1Node(PairState &state, NestedTFNode &node)
    bool sellExtreme = NMJE_IsExtremeActive(state.extreme_h1_sell_lifecycle);
    if(buyExtreme != sellExtreme)
    {
-      if(buyExtreme) NMJE_SetExtremeNode(node, state.extreme_h1_buy_lifecycle);
-      else NMJE_SetExtremeNode(node, state.extreme_h1_sell_lifecycle);
+      if(buyExtreme) NMJE_SetExtremeNode(state.actual_symbol, node, state.extreme_h1_buy_lifecycle);
+      else NMJE_SetExtremeNode(state.actual_symbol, node, state.extreme_h1_sell_lifecycle);
    }
    else if(buyExtreme && sellExtreme)
       node.Label = "EXT:AMB";
@@ -4796,8 +4992,8 @@ void NMJE_BuildM15Node(PairState &state, NestedTFNode &node)
    bool sellMLV = NMJE_IsMLVActive(state.mlv_sell_state);
    if(buyMLV != sellMLV)
    {
-      if(buyMLV) NMJE_SetMLVNode(node, state.mlv_buy_state);
-      else NMJE_SetMLVNode(node, state.mlv_sell_state);
+      if(buyMLV) NMJE_SetMLVNode(state.actual_symbol, node, state.mlv_buy_state);
+      else NMJE_SetMLVNode(state.actual_symbol, node, state.mlv_sell_state);
    }
    else if(buyMLV && sellMLV)
       node.Label = "MHV:AMB";
@@ -4809,6 +5005,7 @@ bool NMJE_ResolveParent(PairState &state,
                         ENUM_SIGNAL_TYPE &signalType,
                         ENUM_DIRECTION &direction,
                         datetime &anchor,
+                        string &eventID,
                         string &reason)
 {
    kind = NESTED_PARENT_NONE;
@@ -4816,6 +5013,7 @@ bool NMJE_ResolveParent(PairState &state,
    signalType = SIGNAL_NONE;
    direction = DIR_NONE;
    anchor = 0;
+   eventID = "";
    reason = "NO_PARENT";
 
    ReEntryData selected;
@@ -4828,6 +5026,7 @@ bool NMJE_ResolveParent(PairState &state,
       signalType = SIGNAL_RE_ENTRY;
       direction = selected.Direction;
       anchor = selected.ConfirmationCandle;
+      eventID = NMJE_ReEntryEventID(state.actual_symbol, selected);
       reason = "H4_RE_PARENT";
       return true;
    }
@@ -4847,6 +5046,7 @@ bool NMJE_ResolveParent(PairState &state,
       signalType = state.h4_direction_owner.SourceSignal;
       direction = state.h4_direction_owner.Direction;
       anchor = state.h4_direction_owner.SourceCandleTime;
+      eventID = NMJE_H4OwnerEventID(state.actual_symbol, state.h4_direction_owner);
       reason = "H4_OWNER_PARENT";
       return true;
    }
@@ -4859,6 +5059,7 @@ bool NMJE_ResolveParent(PairState &state,
       signalType = SIGNAL_RE_ENTRY;
       direction = selected.Direction;
       anchor = selected.ConfirmationCandle;
+      eventID = NMJE_ReEntryEventID(state.actual_symbol, selected);
       reason = "D1_RE_PARENT";
       return true;
    }
@@ -4877,6 +5078,7 @@ bool NMJE_ResolveParent(PairState &state,
       signalType = SIGNAL_NONE;
       direction = state.d1_major_trend_owner.Direction;
       anchor = state.d1_major_trend_owner.SourceCandleTime;
+      eventID = NMJE_D1OwnerEventID(state.actual_symbol, state.d1_major_trend_owner);
       reason = "D1_OWNER_PARENT";
       return true;
    }
@@ -4897,12 +5099,10 @@ bool NMJE_HasChildActivity(PairState &state)
 }
 
 string NMJE_BuildJourneyID(string pair, ENUM_NESTED_PARENT_KIND kind,
-                           int timeframe, ENUM_SIGNAL_TYPE signalType,
-                           ENUM_DIRECTION direction, datetime anchor)
+                           string parentEventID)
 {
-   return pair + "|" + NMJE_ParentText(kind) + "|" +
-          IntegerToString(timeframe) + "|" + EnumToString(signalType) + "|" +
-          NMJE_DirText(direction) + "|" + IntegerToString((int)anchor);
+   if(pair == "" || parentEventID == "") return "";
+   return "J2|" + pair + "|" + NMJE_ParentText(kind) + "|" + parentEventID;
 }
 
 void UpdateNestedJourneyObservation(int pairIndex)
@@ -4948,10 +5148,16 @@ void UpdateNestedJourneyObservation(int pairIndex)
    ENUM_SIGNAL_TYPE parentSignal = SIGNAL_NONE;
    ENUM_DIRECTION parentDirection = DIR_NONE;
    datetime parentAnchor = 0;
+   string parentEventID = "";
    string parentReason = "";
    bool hasParent = NMJE_ResolveParent(g_pair_states[pairIndex], parentKind, parentTF,
                                        parentSignal, parentDirection, parentAnchor,
-                                       parentReason);
+                                       parentEventID, parentReason);
+   if(hasParent && parentEventID == "")
+   {
+      hasParent = false;
+      parentReason = "PARENT_EVENT_ID_UNRESOLVED";
+   }
 
    if(!hasParent)
    {
@@ -4981,8 +5187,8 @@ void UpdateNestedJourneyObservation(int pairIndex)
    journey.ParentSignal = parentSignal;
    journey.ParentDirection = parentDirection;
    journey.ParentCandleTime = parentAnchor;
-   journey.JourneyID = NMJE_BuildJourneyID(journey.Pair, parentKind, parentTF,
-                                            parentSignal, parentDirection, parentAnchor);
+   journey.ParentEventID = parentEventID;
+   journey.JourneyID = NMJE_BuildJourneyID(journey.Pair, parentKind, parentEventID);
    journey.Valid = true;
    journey.Resolved = true;
 
@@ -5073,6 +5279,7 @@ void UpdateNestedJourneyObservation(int pairIndex)
          " REL=", NMJE_RelationText(journey.Relation),
          " P=", NMJE_ParentText(journey.ParentKind), "/", NMJE_DirText(journey.ParentDirection),
          " J=", journey.JourneyID,
+         " PE=", journey.ParentEventID,
          " D1=", journey.D1Node.Label,
          " H4=", journey.H4Node.Label,
          " H1=", journey.H1Node.Label,
@@ -8374,7 +8581,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=4.86 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=4.87 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -10864,7 +11071,7 @@ int OnInit()
       return INIT_FAILED;
    }
    
-   Log(DBG_FULL, "BBMA EA V4.8.6 Structural Lifetime Authority Repair initialized successfully");
+   Log(DBG_FULL, "BBMA EA " + string(BBMA_BUILD_TAG) + " initialized successfully");
    return INIT_SUCCEEDED;
 }
 

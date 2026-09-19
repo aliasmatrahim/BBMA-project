@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.9.3 - Q9 NMJE Provenance Stability          |
+//| Version 4.9.4 - Q9 Entry Displacement Telemetry        |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.93"
+#property version   "4.94"
 #property strict
 
-#define BBMA_BUILD_TAG      "V493_Q9_P8_PROVENANCE_STABILITY_20260919"
-#define BBMA_SOURCE_REV_TAG "Q9_P8_PROVENANCE_STABILITY_101_20260919"
+#define BBMA_BUILD_TAG      "V494_Q9_P10_ENTRY_DISPLACEMENT_20260919"
+#define BBMA_SOURCE_REV_TAG "Q9_P10_ENTRY_DISPLACEMENT_101_20260919"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -692,6 +692,20 @@ struct NMJEStructuralDensityState
    string               Reason;
 };
 
+struct NMJEEntryDisplacementState
+{
+   bool                 Present;
+   ENUM_SIGNAL_TYPE     SourceSignal;
+   int                  SourceTimeframe;
+   datetime             SourceCandleTime;
+   double               SourceReferencePrice;
+   double               PreflightReferencePrice;
+   double               BrokerOpenPrice;
+   double               SourceToPreflightPips;
+   double               PreflightToOpenPips;
+   double               SourceToOpenPips;
+};
+
 struct NMJEShadowAttributionState
 {
    bool                 Present;
@@ -701,6 +715,7 @@ struct NMJEShadowAttributionState
    ENUM_NESTED_RELATION Relation;
    ENUM_NMJE_JOURNEY_MATURITY Maturity;
    NMJEStructuralDensityState StructureDensity;
+   NMJEEntryDisplacementState EntryDisplacement;
    bool                 M5Present;
    string               M5EventHash;
    ENUM_NESTED_RELATION M5Relation;
@@ -1043,6 +1058,8 @@ struct TradeInfo
    string               decision_id;
    string               execution_hash;
    string               sequence_hash_short;
+   // Q9 P10 runtime research measurement; never recovery/execution authority.
+   NMJEEntryDisplacementState entry_displacement;
    // Q9 P4 observer metadata; missing/corrupt state never changes recovery.
    NMJEShadowAttributionState nmje_attribution;
 
@@ -4881,6 +4898,19 @@ bool NMJE_IsMaturityDomainValue(ENUM_NMJE_JOURNEY_MATURITY maturity)
            maturity == NMJE_MATURITY_UNRESOLVED);
 }
 
+bool NMJE_IsEntryDisplacementValid(NMJEEntryDisplacementState &state)
+{
+   if(!state.Present) return true;
+   if(state.SourceSignal != SIGNAL_RE_ENTRY &&
+      state.SourceSignal != SIGNAL_EXTREME) return false;
+   if(state.SourceTimeframe <= 0 || state.SourceCandleTime <= 0) return false;
+   if(state.SourceReferencePrice <= 0.0 ||
+      state.PreflightReferencePrice <= 0.0 ||
+      state.BrokerOpenPrice <= 0.0) return false;
+   return true;
+}
+
+
 string NMJE_MaturityText(ENUM_NMJE_JOURNEY_MATURITY maturity)
 {
    if(maturity == NMJE_MATURITY_OWNER_ONLY) return "OWNER_ONLY";
@@ -6539,8 +6569,9 @@ void ClearNMJEShadowAttribution(int ticket)
 {
    if(ticket <= 0) return;
    string base = NMJEAttributionGVBase(ticket);
-   string fixedKeys[16] = {"V","M","O","R","JM","M5","MC","M5M","M5S","MR","MD","MS","MT","SDM","SDP","SDC"};
-   for(int i = 0; i < 16; i++) GlobalVariableDel(base + fixedKeys[i]);
+   string fixedKeys[26] = {"V","M","O","R","JM","M5","MC","M5M","M5S","MR","MD","MS","MT","SDM","SDP","SDC",
+                           "DP","DSG","DTF","DCT","DSP","DPP","DBP","D12","D2B","D1B"};
+   for(int i = 0; i < 26; i++) GlobalVariableDel(base + fixedKeys[i]);
    string prefixes[5] = {"X","J","P","E","Q"};
    for(int p = 0; p < 5; p++)
       for(int part = 0; part < 4; part++)
@@ -6640,6 +6671,37 @@ bool LoadNMJEShadowAttribution(TradeInfo &info)
          return false;
    }
 
+   // P10 displacement keys are additive so pre-P10 records remain readable.
+   if(GlobalVariableCheck(base + "DP"))
+   {
+      if(GlobalVariableGet(base + "DP") <= 0.5) return false;
+      string displacementKeys[9] = {"DSG","DTF","DCT","DSP","DPP","DBP","D12","D2B","D1B"};
+      for(int d = 0; d < 9; d++)
+         if(!GlobalVariableCheck(base + displacementKeys[d])) return false;
+
+      info.nmje_attribution.EntryDisplacement.Present = true;
+      info.nmje_attribution.EntryDisplacement.SourceSignal =
+         (ENUM_SIGNAL_TYPE)((int)GlobalVariableGet(base + "DSG"));
+      info.nmje_attribution.EntryDisplacement.SourceTimeframe =
+         (int)GlobalVariableGet(base + "DTF");
+      info.nmje_attribution.EntryDisplacement.SourceCandleTime =
+         (datetime)((int)GlobalVariableGet(base + "DCT"));
+      info.nmje_attribution.EntryDisplacement.SourceReferencePrice =
+         GlobalVariableGet(base + "DSP");
+      info.nmje_attribution.EntryDisplacement.PreflightReferencePrice =
+         GlobalVariableGet(base + "DPP");
+      info.nmje_attribution.EntryDisplacement.BrokerOpenPrice =
+         GlobalVariableGet(base + "DBP");
+      info.nmje_attribution.EntryDisplacement.SourceToPreflightPips =
+         GlobalVariableGet(base + "D12");
+      info.nmje_attribution.EntryDisplacement.PreflightToOpenPips =
+         GlobalVariableGet(base + "D2B");
+      info.nmje_attribution.EntryDisplacement.SourceToOpenPips =
+         GlobalVariableGet(base + "D1B");
+      if(!NMJE_IsEntryDisplacementValid(info.nmje_attribution.EntryDisplacement))
+         return false;
+   }
+
    info.nmje_attribution.M5Present = (GlobalVariableGet(base + "M5") > 0.5);
    info.nmje_attribution.M5ContextCode = (int)GlobalVariableGet(base + "MC");
    if(info.nmje_attribution.M5Present)
@@ -6712,6 +6774,20 @@ bool SaveNMJEShadowAttribution(TradeInfo &info)
       if(GlobalVariableSet(base + "SDP", (double)a.StructureDensity.PrefixMask) == 0) return false;
       if(GlobalVariableSet(base + "SDC", (double)a.StructureDensity.StageCount) == 0) return false;
    }
+   if(a.EntryDisplacement.Present)
+   {
+      if(!NMJE_IsEntryDisplacementValid(a.EntryDisplacement)) return false;
+      if(GlobalVariableSet(base + "DP", 1.0) == 0) return false;
+      if(GlobalVariableSet(base + "DSG", (double)a.EntryDisplacement.SourceSignal) == 0) return false;
+      if(GlobalVariableSet(base + "DTF", (double)a.EntryDisplacement.SourceTimeframe) == 0) return false;
+      if(GlobalVariableSet(base + "DCT", (double)a.EntryDisplacement.SourceCandleTime) == 0) return false;
+      if(GlobalVariableSet(base + "DSP", a.EntryDisplacement.SourceReferencePrice) == 0) return false;
+      if(GlobalVariableSet(base + "DPP", a.EntryDisplacement.PreflightReferencePrice) == 0) return false;
+      if(GlobalVariableSet(base + "DBP", a.EntryDisplacement.BrokerOpenPrice) == 0) return false;
+      if(GlobalVariableSet(base + "D12", a.EntryDisplacement.SourceToPreflightPips) == 0) return false;
+      if(GlobalVariableSet(base + "D2B", a.EntryDisplacement.PreflightToOpenPips) == 0) return false;
+      if(GlobalVariableSet(base + "D1B", a.EntryDisplacement.SourceToOpenPips) == 0) return false;
+   }
    if(GlobalVariableSet(base + "M5", a.M5Present ? 1.0 : 0.0) == 0) return false;
    if(GlobalVariableSet(base + "MC", (double)a.M5ContextCode) == 0) return false;
    if(!NMJEStoreHex16(base, "X", info.execution_hash) ||
@@ -6761,6 +6837,27 @@ bool SaveNMJEShadowAttribution(TradeInfo &info)
                a.StructureDensity.PrefixMask &&
              verify.nmje_attribution.StructureDensity.StageCount ==
                a.StructureDensity.StageCount)) &&
+           verify.nmje_attribution.EntryDisplacement.Present ==
+              a.EntryDisplacement.Present &&
+           (!a.EntryDisplacement.Present ||
+            (verify.nmje_attribution.EntryDisplacement.SourceSignal ==
+               a.EntryDisplacement.SourceSignal &&
+             verify.nmje_attribution.EntryDisplacement.SourceTimeframe ==
+               a.EntryDisplacement.SourceTimeframe &&
+             verify.nmje_attribution.EntryDisplacement.SourceCandleTime ==
+               a.EntryDisplacement.SourceCandleTime &&
+             verify.nmje_attribution.EntryDisplacement.SourceReferencePrice ==
+               a.EntryDisplacement.SourceReferencePrice &&
+             verify.nmje_attribution.EntryDisplacement.PreflightReferencePrice ==
+               a.EntryDisplacement.PreflightReferencePrice &&
+             verify.nmje_attribution.EntryDisplacement.BrokerOpenPrice ==
+               a.EntryDisplacement.BrokerOpenPrice &&
+             verify.nmje_attribution.EntryDisplacement.SourceToPreflightPips ==
+               a.EntryDisplacement.SourceToPreflightPips &&
+             verify.nmje_attribution.EntryDisplacement.PreflightToOpenPips ==
+               a.EntryDisplacement.PreflightToOpenPips &&
+             verify.nmje_attribution.EntryDisplacement.SourceToOpenPips ==
+               a.EntryDisplacement.SourceToOpenPips)) &&
            verify.nmje_attribution.M5Present == a.M5Present &&
            (!a.M5Present ||
             (verify.nmje_attribution.M5EventHash == a.M5EventHash &&
@@ -7894,6 +7991,64 @@ int ResolveClosedSourceShift(string pair, ComponentIdentity &source)
    if(resolvedTime != source.CandleTime) return -1;
    return shift;
 }
+
+double NMJE_DirectionNormalizedDisplacementPips(ENUM_DIRECTION direction,
+                                                double fromPrice,
+                                                double toPrice,
+                                                double pipValue)
+{
+   if(pipValue <= 0.0 || fromPrice <= 0.0 || toPrice <= 0.0) return 0.0;
+   if(direction == DIR_BUY) return (toPrice - fromPrice) / pipValue;
+   if(direction == DIR_SELL) return (fromPrice - toPrice) / pipValue;
+   return 0.0;
+}
+
+bool NMJE_BuildEntryDisplacementAttribution(BBMA_Decision &decision,
+                                            double brokerOpenPrice,
+                                            NMJEEntryDisplacementState &state)
+{
+   ZeroMemory(state);
+   if(!decision.HasSLTPSourceComponent ||
+      decision.EntryPrice <= 0.0 || brokerOpenPrice <= 0.0)
+      return false;
+
+   ComponentIdentity source = decision.SLTPSourceComponent;
+   if(!IsApprovedSLTPSourceComponent(decision, source)) return false;
+
+   int shift = ResolveClosedSourceShift(decision.Pair, source);
+   if(shift < 1) return false;
+
+   double sourceReferencePrice = iClose(decision.Pair, source.Timeframe, shift);
+   if(sourceReferencePrice <= 0.0) return false;
+
+   double pipValue = GetPipValue(decision.Pair);
+   if(pipValue <= 0.0) return false;
+
+   state.Present = true;
+   state.SourceSignal = source.ComponentType;
+   state.SourceTimeframe = source.Timeframe;
+   state.SourceCandleTime = source.CandleTime;
+   state.SourceReferencePrice = sourceReferencePrice;
+   state.PreflightReferencePrice = decision.EntryPrice;
+   state.BrokerOpenPrice = brokerOpenPrice;
+   state.SourceToPreflightPips =
+      NMJE_DirectionNormalizedDisplacementPips(decision.Direction,
+                                               sourceReferencePrice,
+                                               decision.EntryPrice,
+                                               pipValue);
+   state.PreflightToOpenPips =
+      NMJE_DirectionNormalizedDisplacementPips(decision.Direction,
+                                               decision.EntryPrice,
+                                               brokerOpenPrice,
+                                               pipValue);
+   state.SourceToOpenPips =
+      NMJE_DirectionNormalizedDisplacementPips(decision.Direction,
+                                               sourceReferencePrice,
+                                               brokerOpenPrice,
+                                               pipValue);
+   return NMJE_IsEntryDisplacementValid(state);
+}
+
 
 // M17-SLRANGE-01: resolve the exact M12 Re-Entry lifecycle that owns
 // the approved SLTP source component. This does not redetect Re-Entry.
@@ -9311,6 +9466,22 @@ void NMJE_PrintClosedOutcomeShadow(TradeInfo &info)
          " M5RH=", info.nmje_attribution.M5ReasonHash == "" ? "-" : info.nmje_attribution.M5ReasonHash,
          " NET=", DoubleToString(netProfit, 8),
          " CLOSE=", IntegerToString((int)OrderCloseTime()));
+
+   Print("[Q9-P10-DISP-OUT] PAIR=", info.pair,
+         " TICKET=", IntegerToString(info.ticket),
+         " DIDH=", decisionHash,
+         " DISP=", info.entry_displacement.Present ? "Y" : "N",
+         " DSIG=", EnumToString(info.entry_displacement.SourceSignal),
+         " DTF=", IntegerToString(info.entry_displacement.SourceTimeframe),
+         " DCT=", IntegerToString((int)info.entry_displacement.SourceCandleTime),
+         " DSP=", DoubleToString(info.entry_displacement.SourceReferencePrice, info.digits),
+         " DPP=", DoubleToString(info.entry_displacement.PreflightReferencePrice, info.digits),
+         " DBP=", DoubleToString(info.entry_displacement.BrokerOpenPrice, info.digits),
+         " D12=", DoubleToString(info.entry_displacement.SourceToPreflightPips, 4),
+         " D2B=", DoubleToString(info.entry_displacement.PreflightToOpenPips, 4),
+         " D1B=", DoubleToString(info.entry_displacement.SourceToOpenPips, 4),
+         " NET=", DoubleToString(netProfit, 8),
+         " CLOSE=", IntegerToString((int)OrderCloseTime()));
 }
 
 void CompactMonitoredTrades()
@@ -9510,8 +9681,13 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
          info.freeze_level = GetFreezeLevel(pair);
          info.decision_id = decision.DecisionID;
          info.sequence_hash_short = SHORT_HASH(decision.SequenceHash);
+         bool entryDisplacementBuilt =
+            NMJE_BuildEntryDisplacementAttribution(
+               decision, info.initial_entry_price, info.entry_displacement);
          bool nmjeAttributionBuilt =
             BuildNMJEShadowAttribution(decision, info.nmje_attribution);
+         if(nmjeAttributionBuilt && entryDisplacementBuilt)
+            info.nmje_attribution.EntryDisplacement = info.entry_displacement;
 
          ResetC044TradeState(info);
          ResetD1TPWTradeState(info);
@@ -9583,6 +9759,19 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
                " SDP=", IntegerToString(info.nmje_attribution.StructureDensity.PrefixMask),
                " SDC=", IntegerToString(info.nmje_attribution.StructureDensity.StageCount),
                " M5=", info.nmje_attribution.M5Present ? "Y" : "N");
+         Print("[Q9-P10-DISP-OPEN] PAIR=", pair,
+               " TICKET=", IntegerToString(ticket),
+               " DIDH=", info.execution_hash == "" ? "-" : info.execution_hash,
+               " DISP=", info.entry_displacement.Present ? "Y" : "N",
+               " DSIG=", EnumToString(info.entry_displacement.SourceSignal),
+               " DTF=", IntegerToString(info.entry_displacement.SourceTimeframe),
+               " DCT=", IntegerToString((int)info.entry_displacement.SourceCandleTime),
+               " DSP=", DoubleToString(info.entry_displacement.SourceReferencePrice, info.digits),
+               " DPP=", DoubleToString(info.entry_displacement.PreflightReferencePrice, info.digits),
+               " DBP=", DoubleToString(info.entry_displacement.BrokerOpenPrice, info.digits),
+               " D12=", DoubleToString(info.entry_displacement.SourceToPreflightPips, 4),
+               " D2B=", DoubleToString(info.entry_displacement.PreflightToOpenPips, 4),
+               " D1B=", DoubleToString(info.entry_displacement.SourceToOpenPips, 4));
          
          AddToMonitoredTrades(info);
          
@@ -10061,7 +10250,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=4.93 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=4.94 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -11602,6 +11791,9 @@ void RecoverExistingOrders()
       info.be_attempted = false;
 
       bool nmjeAttributionRecovered = LoadNMJEShadowAttribution(info);
+      if(nmjeAttributionRecovered &&
+         info.nmje_attribution.EntryDisplacement.Present)
+         info.entry_displacement = info.nmje_attribution.EntryDisplacement;
       if(DebugLevel >= DBG_SIGNAL)
          Print("[NMJE-P4-RECOVER] Ticket=", IntegerToString(info.ticket),
                " DIDH=", info.execution_hash == "" ? "-" : info.execution_hash,

@@ -1,0 +1,28 @@
+# Q9 P10 checkpoint — 2026-09-19
+
+- Task: Q9 P10 Entry Displacement Telemetry.
+- Phase: IMPLEMENTATION + AUTHORITY-PRESERVATION VALIDATION COMPLETE / READY FOR GIT TRACEABILITY.
+- Branch: `q9-nmje-v2-p10-entry-displacement-101`.
+- Base P9 head: `b5e945b864e0e39f1f9b075afd021e533d5ed01c`.
+- Build: 4.94 / `V494_Q9_P10_ENTRY_DISPLACEMENT_20260919`.
+- Canonical MQ4 SHA: `25F57C7E39CCB516B3463614CC77C4C924DA95753121E8F9605E10351DBC3CF6`.
+- P10 static/model: PASS.
+- Inherited P8/P7/P6/P5/P4/P2-P3/P1 epoch/read-only/M12N/D1O/N3: PASS.
+- Protected P8->P10 authority bodies: exact-equal.
+- Native MetaEditor: 0 errors / 0 warnings.
+- Exact runtime-name MetaEditor: 0 errors / 0 warnings.
+- Tester adapter firewall: PASS; compile 0 errors / 0 warnings.
+- P10 A/B: 2016 bars each; 24,172 normalized lines exact-equal.
+- Deterministic SHA: `45501221FB9D6AF0AAE79FD5C3E76638A8B4C7B454EDA2F8AC93AD3DCEE20411`.
+- P8/P10 authority trace: 2,092/2,092 exact-equal.
+- Authority SHA: `EFF894BAA8497EF6EB4A54AD43EB6354D80D61772B202E1ADBEAC430FEF2DDBF`.
+- Broker-action markers: P8=0 / P10A=0 / P10B=0.
+- Runtime error scan: none.
+- P10 OPEN/OUT displacement rows: 0 because tester profile has zero-trade caps.
+- Natural successful-fill P10 branch: VERIFICATION REQUIRED / BOUNDED-UNEXERCISED.
+- OfflineDiag globals restored to pre-test SHA `AA6F6663F81F2278953EF87147C53EA0A9FF8F7947C8BE6CAB1DC285D4F0F208`.
+- Q3 terminal PID 13064 remains active and untouched.
+- Q6 was not restarted or duplicated; its last recovered progress artifact reported FAIL 14/720 on missing manifest/tar.
+- Corrected before closure: P10 durable mirror self-assignment and MQL4 Print parameter overflow.
+- No merge / no production activation.
+- Exact next action: stage task-owned files -> cached diff check -> commit/push -> Draft PR stacked on P9 -> Issue #101 checkpoint.

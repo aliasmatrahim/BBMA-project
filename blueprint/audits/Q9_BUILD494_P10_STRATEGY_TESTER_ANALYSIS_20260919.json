@@ -1,0 +1,114 @@
+{
+  "deterministic": {
+    "A_lines": 24172,
+    "B_lines": 24172,
+    "equal": true,
+    "sha_A": "45501221FB9D6AF0AAE79FD5C3E76638A8B4C7B454EDA2F8AC93AD3DCEE20411",
+    "sha_B": "45501221FB9D6AF0AAE79FD5C3E76638A8B4C7B454EDA2F8AC93AD3DCEE20411"
+  },
+  "authority_markers": {
+    "[P3M2][M15_COUNTS]": {
+      "p8_count": 523,
+      "p10_count": 523,
+      "equal": true,
+      "p8_sha": "2323F5D0BF064A3E437807DAF2426C843E70382B393900C503E87929457BF02F",
+      "p10_sha": "2323F5D0BF064A3E437807DAF2426C843E70382B393900C503E87929457BF02F"
+    },
+    "[P3M2][M15_SELECT]": {
+      "p8_count": 523,
+      "p10_count": 523,
+      "equal": true,
+      "p8_sha": "7CC31E3A9E55C1A91A5E37C975D6451ADA99390E9946DC382B17B56BDA9BCDC1",
+      "p10_sha": "7CC31E3A9E55C1A91A5E37C975D6451ADA99390E9946DC382B17B56BDA9BCDC1"
+    },
+    "[P3M2][M15_CONFLICT]": {
+      "p8_count": 0,
+      "p10_count": 0,
+      "equal": true,
+      "p8_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "p10_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "[P3M2][M16_PASS]": {
+      "p8_count": 523,
+      "p10_count": 523,
+      "equal": true,
+      "p8_sha": "9B016D2A8DA87903541C2490F8064A0424E0409526F9E3980DB4294D8443C62F",
+      "p10_sha": "9B016D2A8DA87903541C2490F8064A0424E0409526F9E3980DB4294D8443C62F"
+    },
+    "[P3M2][M16_REJECT]": {
+      "p8_count": 0,
+      "p10_count": 0,
+      "equal": true,
+      "p8_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "p10_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "[P3M2][M16_OWNER_REJECT]": {
+      "p8_count": 0,
+      "p10_count": 0,
+      "equal": true,
+      "p8_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "p10_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "[P3M2][DECISION_FINAL]": {
+      "p8_count": 523,
+      "p10_count": 523,
+      "equal": true,
+      "p8_sha": "5C34C6588D7D6DD2DAE291C2811BE44388DF6798ABF561069D46D46A8215ED86",
+      "p10_sha": "5C34C6588D7D6DD2DAE291C2811BE44388DF6798ABF561069D46D46A8215ED86"
+    },
+    "[D1O][M15_D1_BLOCK]": {
+      "p8_count": 0,
+      "p10_count": 0,
+      "equal": true,
+      "p8_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "p10_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "[D1O][M16_D1_REJECT]": {
+      "p8_count": 0,
+      "p10_count": 0,
+      "equal": true,
+      "p8_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "p10_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    }
+  },
+  "authority_aggregate": {
+    "p8_count": 2092,
+    "p10_count": 2092,
+    "equal": true,
+    "p8_sha": "EFF894BAA8497EF6EB4A54AD43EB6354D80D61772B202E1ADBEAC430FEF2DDBF",
+    "p10_sha": "EFF894BAA8497EF6EB4A54AD43EB6354D80D61772B202E1ADBEAC430FEF2DDBF"
+  },
+  "broker_actions": {
+    "P8": {
+      "count": 0,
+      "sample": []
+    },
+    "P10A": {
+      "count": 0,
+      "sample": []
+    },
+    "P10B": {
+      "count": 0,
+      "sample": []
+    }
+  },
+  "p10_displacement_rows": {
+    "A_open": 0,
+    "A_out": 0,
+    "B_open": 0,
+    "B_out": 0
+  },
+  "summary": {
+    "P8": "0\t14:28:49.144\tGBPUSD,M15: 2016 tick events (2016 bars, 3017 bar states) processed in 0:00:18.468 (total time 0:00:34.218)",
+    "P10A": "0\t19:58:12.725\tGBPUSD,M15: 2016 tick events (2016 bars, 3017 bar states) processed in 0:00:18.438 (total time 0:00:34.672)",
+    "P10B": "0\t19:59:38.846\tGBPUSD,M15: 2016 tick events (2016 bars, 3017 bar states) processed in 0:00:18.313 (total time 0:00:34.094)"
+  },
+  "build": {
+    "P10A": "0\t19:57:54.670\t2026.08.03 00:00:01  BBMA_EA_Q9_494_P10_TESTER GBPUSD,M15: [F7-BUILD] EA=BBMA_EA Build=4.94 BuildTag=V494_Q9_P10_ENTRY_DISPLACEMENT_20260919 SourceRev=Q9_P10_ENTRY_DISPLACEMENT_101_20260919 InitTime=2026.08.03 00:00:01",
+    "P10B": "0\t19:59:20.906\t2026.08.03 00:00:01  BBMA_EA_Q9_494_P10_TESTER GBPUSD,M15: [F7-BUILD] EA=BBMA_EA Build=4.94 BuildTag=V494_Q9_P10_ENTRY_DISPLACEMENT_20260919 SourceRev=Q9_P10_ENTRY_DISPLACEMENT_101_20260919 InitTime=2026.08.03 00:00:01"
+  },
+  "runtime_errors": {
+    "A": [],
+    "B": []
+  }
+}

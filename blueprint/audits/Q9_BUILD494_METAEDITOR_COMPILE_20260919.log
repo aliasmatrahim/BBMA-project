@@ -1,0 +1,29 @@
+Q9 Build 4.94 P10 Native Compile Evidence — 2026-09-19
+
+Canonical source:
+D:\BBMA\Workspace\q9-nmje-v2-p10-entry-displacement-101\blueprint\source\BBMA_EA.mq4
+SHA-256: 25F57C7E39CCB516B3463614CC77C4C924DA95753121E8F9605E10351DBC3CF6
+
+Short-path exact-source staging:
+D:\BBMA\Compile\Q9_494\BBMA_EA.mq4
+SHA-256: 25F57C7E39CCB516B3463614CC77C4C924DA95753121E8F9605E10351DBC3CF6
+MetaEditor result: 0 errors, 0 warnings, 1174 msec elapsed
+EX4 SHA-256: 9BD4EAA603A20B9BFFE4C11E2CDA099F77FC38C25E04A753DF55A852224AAE66
+EX4 size: 666168
+
+Exact runtime deployment name:
+D:\BBMA\MT4_NMJE_141_Demo\MQL4\Experts\BBMA_EA_Q9_494_P10.mq4
+MetaEditor result: 0 errors, 0 warnings, 1027 msec elapsed
+EX4 SHA-256: D2AE82940F1DF91F4CC54EF6D2686C3EA4D1C485C2BCD65DE67D06AAE2715832
+EX4 size: 669718
+
+Strategy Tester adapter:
+Canonical MQ4 SHA-256: 25F57C7E39CCB516B3463614CC77C4C924DA95753121E8F9605E10351DBC3CF6
+Tester MQ4 SHA-256: EDB70A67CEE7910E2FDF6A2C87B7C2F297CC1501DC3DA4A556BCBFD77B076945
+Adapter diff lines: 46
+Adapter diff firewall: PASS
+Tester MetaEditor result: 0 errors, 0 warnings, 1239 msec elapsed
+Tester EX4 SHA-256: 0EA0E2D13363B52FCC480D5FEEA4A0FC6EDE9D111D0270BE320E64D7248789FA
+Tester EX4 size: 669840
+
+MetaEditor launcher exit code may be 1 on this environment; compiler Result=0 errors/0 warnings and EX4 hash are authoritative compile evidence.

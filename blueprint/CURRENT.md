@@ -78,7 +78,7 @@ Status: **VERIFIED / FROZEN**.
 - Raw owner MQ4 bytes equal verified Build 4.86 bytes; no protected EA/Core/contract change exists after the implementation parent.
 - Exact Build 4.86 EX4 SHA-256 remains `6A7116B26CDB7BA87B8CCC3415D2309BF414C32D274A66B4903D6E47FC93A5C6`.
 - Freeze record: `blueprint/audits/Q7_BUILD486_INTEGRATED_CANDIDATE_FREEZE_20260917.md`.
-- Q8 scoped GBPUSD engineering regression is now complete under Issue #188; Q6 native final-authority residuals remain separate and Q3 continues independently.
+- Q8 scoped GBPUSD engineering regression is complete under Issue #188; Q6 native acquisition was stopped/closed on 2026-09-20 and Q3 continues independently.
 
 ### 7. Q8 Build 4.86 GBPUSD engineering historical regression — Issue #188
 Status: **VERIFIED / COMPLETE — ENGINEERING HISTORICAL EVIDENCE ONLY**.

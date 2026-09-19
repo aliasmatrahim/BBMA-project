@@ -29,6 +29,7 @@ def main() -> None:
         '#define BBMA_SOURCE_REV_TAG "Q9_P10_ENTRY_DISPLACEMENT_101_20260919"',
         "struct NMJEEntryDisplacementState",
         "NMJEEntryDisplacementState EntryDisplacement;",
+        "NMJEEntryDisplacementState entry_displacement;",
         "double               SourceReferencePrice;",
         "double               PreflightReferencePrice;",
         "double               BrokerOpenPrice;",
@@ -117,9 +118,10 @@ def main() -> None:
     require(
         entry,
         "info.initial_entry_price = OrderOpenPrice();",
-        "BuildNMJEShadowAttribution(decision, info.nmje_attribution);",
         "NMJE_BuildEntryDisplacementAttribution(",
-        "decision, info.initial_entry_price",
+        "decision, info.initial_entry_price, info.entry_displacement",
+        "BuildNMJEShadowAttribution(decision, info.nmje_attribution);",
+        "info.nmje_attribution.EntryDisplacement = info.entry_displacement;",
         "[NMJE-P4-OPEN]",
         '" DISP="',
         '" D12="',
@@ -129,9 +131,20 @@ def main() -> None:
     assert entry.index("SendOrderWithRetry(") < entry.index(
         "info.initial_entry_price = OrderOpenPrice();"
     ) < entry.index("NMJE_BuildEntryDisplacementAttribution(")
+    assert entry.index("NMJE_BuildEntryDisplacementAttribution(") < entry.index(
+        "BuildNMJEShadowAttribution("
+    )
+    assert "info.entry_displacement.Present" in entry
+
+    recovery = body("void RecoverExistingOrders(")
+    require(
+        recovery,
+        "LoadNMJEShadowAttribution(info)",
+        "info.entry_displacement = info.nmje_attribution.EntryDisplacement;",
+    )
 
     outcome = body("void NMJE_PrintClosedOutcomeShadow(")
-    require(outcome, '" DISP="', '" DSIG="', '" DTF="', '" DSP="',
+    require(outcome, "info.entry_displacement.Present", '" DISP="', '" DSIG="', '" DTF="', '" DSP="',
             '" DPP="', '" DBP="', '" D12="', '" D2B="', '" D1B="')
 
     # P10 must not become authority before/at selection, validation, risk or order send.

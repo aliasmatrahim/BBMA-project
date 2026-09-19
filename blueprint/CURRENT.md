@@ -2,7 +2,7 @@
 
 Updated: **2026-09-20**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`6be2eef1495e2d896e121f5c1846ab3cd14e0f12`**
+Owner head at reconciliation: **`01f7e8305f6ba558494fc559bb3c734dfc06124a`**
 
 This file is the active current-state record. The pre-2026-09-09 historical `CURRENT.md` is preserved byte-for-byte at `blueprint/archive/CURRENT_pre_20260909.md`.
 
@@ -88,7 +88,7 @@ Status: **VERIFIED / COMPLETE — ENGINEERING HISTORICAL EVIDENCE ONLY**.
 - Native harness compile: 0 errors / 0 warnings; all four matrix periods and the August-2026 smoke passed mechanism/runtime acceptance.
 - Deep matrix: 1,045 executions, zero duplicate executed DecisionIDs/tickets, zero execution-order/closed-candle chronology defects and zero targeted fatal runtime faults.
 - Audit: `blueprint/audits/Q8_BUILD486_GBPUSD_ENGINEERING_HISTORICAL_REGRESSION_20260918.md`.
-- This does not close Issue #128 native tick/deployment-time provenance and is not a profitability or production-readiness claim.
+- This remains engineering historical evidence and is not a profitability or production-readiness claim. The former Issue #128 native final-authority programme was later stopped by user decision and closed not planned on 2026-09-20.
 
 ## Current infrastructure blocker
 Authorized G40 Remote Desktop Commander is reachable. Active G40 live-state work is Q3 isolated runtime only. Q6 native acquisition was stopped by explicit user decision on 2026-09-20 and must not auto-resume.

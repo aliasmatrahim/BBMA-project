@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.9.0 - Q9 NMJE Conflict Refinement            |
+//| Version 4.9.1 - Q9 NMJE Maturity Fingerprint           |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.90"
+#property version   "4.91"
 #property strict
 
-#define BBMA_BUILD_TAG      "V490_Q9_P5_CONFLICT_REFINEMENT_20260919"
-#define BBMA_SOURCE_REV_TAG "Q9_P5_CONFLICT_REFINEMENT_101_20260919"
+#define BBMA_BUILD_TAG      "V491_Q9_P6_MATURITY_FINGERPRINT_20260919"
+#define BBMA_SOURCE_REV_TAG "Q9_P6_MATURITY_FINGERPRINT_101_20260919"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -274,6 +274,24 @@ enum ENUM_NMJE_M5_CONTEXT_CODE
    NMJE_M5_CONTEXT_NONE = 0,
    NMJE_M5_CONTEXT_RE_ENTRY = 1,
    NMJE_M5_CONTEXT_EXTREME = 2
+};
+
+// Q9 P6 categorical journey maturity fingerprint. Enum ordinals are storage
+// values only and must never be interpreted as score, strength or priority.
+enum ENUM_NMJE_JOURNEY_MATURITY
+{
+   NMJE_MATURITY_NONE,
+   NMJE_MATURITY_OWNER_ONLY,
+   NMJE_MATURITY_EXTREME_DEVELOPING,
+   NMJE_MATURITY_EXTREME_MATURE,
+   NMJE_MATURITY_MHV_DEVELOPING,
+   NMJE_MATURITY_MHV_MATURE,
+   NMJE_MATURITY_DIRECTION_STAGE,
+   NMJE_MATURITY_REENTRY_CANDIDATE,
+   NMJE_MATURITY_REENTRY_CONFIRMED,
+   NMJE_MATURITY_MOMENTUM_CONTINUATION,
+   NMJE_MATURITY_OWNER_TRANSITION,
+   NMJE_MATURITY_UNRESOLVED
 };
 
 enum ENUM_EXTREME_TYPE { EXT_NONE, EXT_SIDEWAYS, EXT_WITH_MOMENTUM, EXT_WITHOUT_MOMENTUM };
@@ -638,9 +656,11 @@ struct NMJEM5RefinementState
    string               JourneyID;
    ENUM_DIRECTION       Direction;
    int                  ContextCode;
+   int                  ContextStateCode;
    datetime             EventStartCandleTime;
    datetime             ClosedCandleTime;
    ENUM_NESTED_RELATION Relation;
+   ENUM_NMJE_JOURNEY_MATURITY Maturity;
    bool                 Valid;
    bool                 Resolved;
    string               Reason;
@@ -653,11 +673,14 @@ struct NMJEShadowAttributionState
    string               JourneyHash;
    string               ParentEventHash;
    ENUM_NESTED_RELATION Relation;
+   ENUM_NMJE_JOURNEY_MATURITY Maturity;
    bool                 M5Present;
    string               M5EventHash;
    ENUM_NESTED_RELATION M5Relation;
+   ENUM_NMJE_JOURNEY_MATURITY M5Maturity;
    ENUM_DIRECTION       M5Direction;
    int                  M5ContextCode;
+   int                  M5ContextStateCode;
    datetime             M5EventStartCandleTime;
    datetime             M5ClosedCandleTime;
    string               M5ReasonHash;
@@ -677,6 +700,7 @@ struct NestedJourneyState
    string                  ParentEventID;
    ENUM_DIRECTION          StrategicDirection;
    ENUM_NESTED_RELATION    Relation;
+   ENUM_NMJE_JOURNEY_MATURITY Maturity;
    bool                    Resolved;
    bool                    Valid;
    datetime                UpdateCandleTime;
@@ -788,6 +812,7 @@ struct BBMA_Decision
    string                       NMJEJourneyID;
    string                       NMJEParentEventID;
    ENUM_NESTED_RELATION         NMJERelation;
+   ENUM_NMJE_JOURNEY_MATURITY   NMJEMaturity;
    datetime                     NMJEUpdateCandleTime;
    NMJEM5RefinementState        NMJEM5Refinement;
    
@@ -4726,6 +4751,12 @@ bool NMJE_M5LineageSnapshotValid(NMJEM5RefinementState &snapshot)
       snapshot.ClosedCandleTime <= 0 ||
       snapshot.ClosedCandleTime < snapshot.EventStartCandleTime)
       return false;
+   if(!NMJE_IsM5ContextStateValid(snapshot.ContextCode,
+                                   snapshot.ContextStateCode))
+      return false;
+   if(!NMJE_IsMaturityDomainValue(snapshot.Maturity) ||
+      snapshot.Maturity != NMJE_ClassifyM5Maturity(snapshot))
+      return false;
    if(snapshot.Relation != NESTED_BUILDING &&
       snapshot.Relation != NESTED_SUPPORTING &&
       snapshot.Relation != NESTED_ALIGNED &&
@@ -4795,6 +4826,139 @@ bool NMJE_IsMLVSupporting(MLVData &state)
            state.State == MLV_DIRECTION_TAKEN);
 }
 
+bool NMJE_IsMaturityDomainValue(ENUM_NMJE_JOURNEY_MATURITY maturity)
+{
+   return (maturity == NMJE_MATURITY_NONE ||
+           maturity == NMJE_MATURITY_OWNER_ONLY ||
+           maturity == NMJE_MATURITY_EXTREME_DEVELOPING ||
+           maturity == NMJE_MATURITY_EXTREME_MATURE ||
+           maturity == NMJE_MATURITY_MHV_DEVELOPING ||
+           maturity == NMJE_MATURITY_MHV_MATURE ||
+           maturity == NMJE_MATURITY_DIRECTION_STAGE ||
+           maturity == NMJE_MATURITY_REENTRY_CANDIDATE ||
+           maturity == NMJE_MATURITY_REENTRY_CONFIRMED ||
+           maturity == NMJE_MATURITY_MOMENTUM_CONTINUATION ||
+           maturity == NMJE_MATURITY_OWNER_TRANSITION ||
+           maturity == NMJE_MATURITY_UNRESOLVED);
+}
+
+string NMJE_MaturityText(ENUM_NMJE_JOURNEY_MATURITY maturity)
+{
+   if(maturity == NMJE_MATURITY_OWNER_ONLY) return "OWNER_ONLY";
+   if(maturity == NMJE_MATURITY_EXTREME_DEVELOPING) return "EXTREME_DEVELOPING";
+   if(maturity == NMJE_MATURITY_EXTREME_MATURE) return "EXTREME_MATURE";
+   if(maturity == NMJE_MATURITY_MHV_DEVELOPING) return "MHV_DEVELOPING";
+   if(maturity == NMJE_MATURITY_MHV_MATURE) return "MHV_MATURE";
+   if(maturity == NMJE_MATURITY_DIRECTION_STAGE) return "DIRECTION_STAGE";
+   if(maturity == NMJE_MATURITY_REENTRY_CANDIDATE) return "RE_CANDIDATE";
+   if(maturity == NMJE_MATURITY_REENTRY_CONFIRMED) return "RE_CONFIRMED";
+   if(maturity == NMJE_MATURITY_MOMENTUM_CONTINUATION) return "MOMENTUM_CONTINUATION";
+   if(maturity == NMJE_MATURITY_OWNER_TRANSITION) return "OWNER_TRANSITION";
+   if(maturity == NMJE_MATURITY_UNRESOLVED) return "UNRESOLVED";
+   return "NONE";
+}
+
+bool NMJE_IsM5ContextStateValid(int contextCode, int stateCode)
+{
+   if(contextCode == NMJE_M5_CONTEXT_RE_ENTRY)
+      return (stateCode == RE_STATE_CANDIDATE || stateCode == RE_STATE_CONFIRMED);
+   if(contextCode == NMJE_M5_CONTEXT_EXTREME)
+      return (stateCode == EXT_MAT_RAW ||
+              stateCode == EXT_MAT_REVERSAL_CONFIRMED ||
+              stateCode == EXT_MAT_RETEST_PHASE ||
+              stateCode == EXT_MAT_RETEST_READY);
+   return false;
+}
+
+ENUM_NMJE_JOURNEY_MATURITY NMJE_ClassifyM5Maturity(
+   NMJEM5RefinementState &snapshot)
+{
+   if(!snapshot.Present)
+   {
+      if(snapshot.Reason == "M5_NO_CANONICAL_CONTEXT")
+         return NMJE_MATURITY_NONE;
+      return NMJE_MATURITY_UNRESOLVED;
+   }
+
+   if(!NMJE_IsM5ContextStateValid(snapshot.ContextCode,
+                                  snapshot.ContextStateCode))
+      return NMJE_MATURITY_UNRESOLVED;
+
+   if(snapshot.ContextCode == NMJE_M5_CONTEXT_RE_ENTRY)
+   {
+      if(snapshot.ContextStateCode == RE_STATE_CONFIRMED)
+         return NMJE_MATURITY_REENTRY_CONFIRMED;
+      return NMJE_MATURITY_REENTRY_CANDIDATE;
+   }
+
+   if(snapshot.ContextCode == NMJE_M5_CONTEXT_EXTREME)
+   {
+      if(snapshot.ContextStateCode == EXT_MAT_RAW)
+         return NMJE_MATURITY_EXTREME_DEVELOPING;
+      return NMJE_MATURITY_EXTREME_MATURE;
+   }
+   return NMJE_MATURITY_UNRESOLVED;
+}
+
+ENUM_NMJE_JOURNEY_MATURITY NMJE_ClassifyJourneyMaturity(
+   PairState &state, NestedJourneyState &journey)
+{
+   if(state.d1_major_trend_owner.State == D1_OWNER_UNRESOLVED)
+      return NMJE_MATURITY_UNRESOLVED;
+   if(state.d1_major_trend_owner.State == D1_TRANSITION)
+      return NMJE_MATURITY_OWNER_TRANSITION;
+   if(journey.Relation == NESTED_NOT_APPLICABLE && journey.Resolved)
+      return NMJE_MATURITY_NONE;
+   if(!journey.Valid || !journey.Resolved ||
+      journey.Relation == NESTED_UNRESOLVED)
+      return NMJE_MATURITY_UNRESOLVED;
+
+   if(NMJE_IsConfirmedRE(state.re_h1_buy_state) ||
+      NMJE_IsConfirmedRE(state.re_h1_sell_state) ||
+      NMJE_IsConfirmedRE(state.re_m15_buy_state) ||
+      NMJE_IsConfirmedRE(state.re_m15_sell_state))
+      return NMJE_MATURITY_REENTRY_CONFIRMED;
+
+   if(NMJE_IsCandidateRE(state.re_h1_buy_state) ||
+      NMJE_IsCandidateRE(state.re_h1_sell_state) ||
+      NMJE_IsCandidateRE(state.re_m15_buy_state) ||
+      NMJE_IsCandidateRE(state.re_m15_sell_state))
+      return NMJE_MATURITY_REENTRY_CANDIDATE;
+
+   if(journey.ParentKind == NESTED_PARENT_H4_OWNER &&
+      journey.ParentSignal == SIGNAL_CSM)
+      return NMJE_MATURITY_MOMENTUM_CONTINUATION;
+
+   if(journey.ParentKind == NESTED_PARENT_H4_OWNER &&
+      (journey.ParentSignal == SIGNAL_CSD ||
+       journey.ParentSignal == SIGNAL_ECSD))
+      return NMJE_MATURITY_DIRECTION_STAGE;
+
+   if(NMJE_IsMLVSupporting(state.mlv_buy_state) ||
+      NMJE_IsMLVSupporting(state.mlv_sell_state))
+      return NMJE_MATURITY_MHV_MATURE;
+
+   if(NMJE_IsMLVActive(state.mlv_buy_state) ||
+      NMJE_IsMLVActive(state.mlv_sell_state))
+      return NMJE_MATURITY_MHV_DEVELOPING;
+
+   if(NMJE_IsExtremeSupporting(state.extreme_h1_buy_lifecycle) ||
+      NMJE_IsExtremeSupporting(state.extreme_h1_sell_lifecycle) ||
+      NMJE_IsExtremeSupporting(state.extreme_m15_buy_lifecycle) ||
+      NMJE_IsExtremeSupporting(state.extreme_m15_sell_lifecycle))
+      return NMJE_MATURITY_EXTREME_MATURE;
+
+   if(NMJE_IsExtremeActive(state.extreme_h1_buy_lifecycle) ||
+      NMJE_IsExtremeActive(state.extreme_h1_sell_lifecycle) ||
+      NMJE_IsExtremeActive(state.extreme_m15_buy_lifecycle) ||
+      NMJE_IsExtremeActive(state.extreme_m15_sell_lifecycle))
+      return NMJE_MATURITY_EXTREME_DEVELOPING;
+
+   if(journey.ParentEventID != "" && journey.JourneyID != "")
+      return NMJE_MATURITY_OWNER_ONLY;
+   return NMJE_MATURITY_NONE;
+}
+
 bool NMJE_SelectConfirmedRE(ReEntryData &buyState, ReEntryData &sellState,
                             ReEntryData &selected, bool &ambiguous)
 {
@@ -4821,6 +4985,13 @@ bool NMJE_SelectCandidateRE(ReEntryData &buyState, ReEntryData &sellState,
    return true;
 }
 
+void NMJE_CommitM5Refinement(NestedJourneyState &journey,
+                             NMJEM5RefinementState &snapshot)
+{
+   snapshot.Maturity = NMJE_ClassifyM5Maturity(snapshot);
+   journey.M5Refinement = snapshot;
+}
+
 // Q9 Stage-C2: canonical M5 Re-Entry/Extreme context as shadow lineage only.
 void NMJE_BuildM5Refinement(PairState &state, NestedJourneyState &journey)
 {
@@ -4828,6 +4999,7 @@ void NMJE_BuildM5Refinement(PairState &state, NestedJourneyState &journey)
    ZeroMemory(snapshot);
    snapshot.Direction = DIR_NONE;
    snapshot.ContextCode = NMJE_M5_CONTEXT_NONE;
+   snapshot.ContextStateCode = 0;
    snapshot.Relation = NESTED_UNRESOLVED;
    snapshot.Reason = "M5_NO_CANONICAL_CONTEXT";
 
@@ -4835,14 +5007,14 @@ void NMJE_BuildM5Refinement(PairState &state, NestedJourneyState &journey)
       (journey.ParentDirection != DIR_BUY && journey.ParentDirection != DIR_SELL))
    {
       snapshot.Reason = "M5_PARENT_LINEAGE_MISSING";
-      journey.M5Refinement = snapshot;
+      NMJE_CommitM5Refinement(journey, snapshot);
       return;
    }
    if(!state.m5_data.is_valid || !state.m5_data.is_closed ||
       state.m5_data.timeframe != PERIOD_M5 || state.m5_data.candle_time <= 0)
    {
       snapshot.Reason = "M5_CLOSED_DATA_UNAVAILABLE";
-      journey.M5Refinement = snapshot;
+      NMJE_CommitM5Refinement(journey, snapshot);
       return;
    }
 
@@ -4855,7 +5027,7 @@ void NMJE_BuildM5Refinement(PairState &state, NestedJourneyState &journey)
    if(ambiguous)
    {
       snapshot.Reason = "M5_CONFIRMED_RE_AMBIGUOUS";
-      journey.M5Refinement = snapshot;
+      NMJE_CommitM5Refinement(journey, snapshot);
       return;
    }
 
@@ -4868,7 +5040,7 @@ void NMJE_BuildM5Refinement(PairState &state, NestedJourneyState &journey)
       if(ambiguous)
       {
          snapshot.Reason = "M5_CANDIDATE_RE_AMBIGUOUS";
-         journey.M5Refinement = snapshot;
+         NMJE_CommitM5Refinement(journey, snapshot);
          return;
       }
    }
@@ -4877,6 +5049,7 @@ void NMJE_BuildM5Refinement(PairState &state, NestedJourneyState &journey)
    {
       snapshot.Direction = selectedRE.Direction;
       snapshot.ContextCode = NMJE_M5_CONTEXT_RE_ENTRY;
+      snapshot.ContextStateCode = (int)selectedRE.State;
       snapshot.EventStartCandleTime = selectedRE.StartCandleTime;
       if(confirmedRE && selectedRE.Direction == journey.ParentDirection)
       {
@@ -4906,12 +5079,12 @@ void NMJE_BuildM5Refinement(PairState &state, NestedJourneyState &journey)
       if(buyExtreme && sellExtreme)
       {
          snapshot.Reason = "M5_EXTREME_AMBIGUOUS";
-         journey.M5Refinement = snapshot;
+         NMJE_CommitM5Refinement(journey, snapshot);
          return;
       }
       if(!buyExtreme && !sellExtreme)
       {
-         journey.M5Refinement = snapshot;
+         NMJE_CommitM5Refinement(journey, snapshot);
          return;
       }
 
@@ -4922,6 +5095,7 @@ void NMJE_BuildM5Refinement(PairState &state, NestedJourneyState &journey)
 
       snapshot.Direction = selectedExtreme.Direction;
       snapshot.ContextCode = NMJE_M5_CONTEXT_EXTREME;
+      snapshot.ContextStateCode = (int)selectedExtreme.Maturity;
       snapshot.EventStartCandleTime = selectedExtreme.RawCandleTime;
       if(selectedExtreme.Direction == journey.ParentDirection)
       {
@@ -4950,10 +5124,11 @@ void NMJE_BuildM5Refinement(PairState &state, NestedJourneyState &journey)
       ZeroMemory(snapshot);
       snapshot.Direction = DIR_NONE;
       snapshot.ContextCode = NMJE_M5_CONTEXT_NONE;
+      snapshot.ContextStateCode = 0;
       snapshot.Relation = NESTED_UNRESOLVED;
       snapshot.Reason = "M5_LINEAGE_INVALID";
    }
-   journey.M5Refinement = snapshot;
+   NMJE_CommitM5Refinement(journey, snapshot);
 }
 
 void NMJE_SetRENode(string pair, NestedTFNode &node, ReEntryData &state, bool resolved)
@@ -5364,6 +5539,7 @@ void UpdateNestedJourneyObservation(int pairIndex)
    ZeroMemory(journey);
    journey.Pair = g_pair_states[pairIndex].actual_symbol;
    journey.Relation = NESTED_NOT_APPLICABLE;
+   journey.Maturity = NMJE_MATURITY_NONE;
    journey.ParentKind = NESTED_PARENT_NONE;
    journey.ParentSignal = SIGNAL_NONE;
    journey.ParentDirection = DIR_NONE;
@@ -5385,6 +5561,8 @@ void UpdateNestedJourneyObservation(int pairIndex)
    {
       journey.Relation = NESTED_UNRESOLVED;
       journey.Reason = "D1_OWNER_UNRESOLVED";
+      journey.Maturity =
+         NMJE_ClassifyJourneyMaturity(g_pair_states[pairIndex], journey);
       g_nested_journeys[pairIndex] = journey;
       NMJE_PrintCoverageOverlay(journey);
       Print("[N1-NMJE] ", journey.Pair, " REL=UNRESOLVED P=NONE J=- D1=", journey.D1Node.Label,
@@ -5423,6 +5601,8 @@ void UpdateNestedJourneyObservation(int pairIndex)
          journey.Reason = "NO_PARENT_NO_CHILD";
          journey.Resolved = true;
       }
+      journey.Maturity =
+         NMJE_ClassifyJourneyMaturity(g_pair_states[pairIndex], journey);
       g_nested_journeys[pairIndex] = journey;
       NMJE_PrintCoverageOverlay(journey);
       Print("[N1-NMJE] ", journey.Pair, " REL=", NMJE_RelationText(journey.Relation),
@@ -5523,6 +5703,9 @@ void UpdateNestedJourneyObservation(int pairIndex)
       }
    }
 
+   journey.Maturity =
+      NMJE_ClassifyJourneyMaturity(g_pair_states[pairIndex], journey);
+
    // Stage-C2 binds M5 only after immutable parent and journey identities resolve.
    // Its relation remains diagnostic and cannot modify the 4-TF verdict.
    NMJE_BuildM5Refinement(g_pair_states[pairIndex], journey);
@@ -5530,6 +5713,7 @@ void UpdateNestedJourneyObservation(int pairIndex)
    NMJE_PrintCoverageOverlay(journey);
    Print("[N1-NMJE] ", journey.Pair,
          " REL=", NMJE_RelationText(journey.Relation),
+         " MAT=", NMJE_MaturityText(journey.Maturity),
          " P=", NMJE_ParentText(journey.ParentKind), "/", NMJE_DirText(journey.ParentDirection),
          " J=", journey.JourneyID,
          " PE=", journey.ParentEventID,
@@ -5541,6 +5725,7 @@ void UpdateNestedJourneyObservation(int pairIndex)
    Print("[NMJE-M5-SHADOW] ", journey.Pair,
          " PRESENT=", (journey.M5Refinement.Present ? "Y" : "N"),
          " REL=", NMJE_RelationText(journey.M5Refinement.Relation),
+         " MAT=", NMJE_MaturityText(journey.M5Refinement.Maturity),
          " DIR=", NMJE_DirText(journey.M5Refinement.Direction),
          " CTX=", IntegerToString(journey.M5Refinement.ContextCode),
          " E=", (journey.M5Refinement.EventID == "" ? "-" : journey.M5Refinement.EventID),
@@ -5637,6 +5822,7 @@ void NMJE_PrintValidatedDecisionShadow(int pairIndex, BBMA_Decision &decision)
          " SIG=", EnumToString(decision.SignalType),
          " DIR=", NMJE_DirText(decision.Direction),
          " REL=", NMJE_RelationText(journey.Relation),
+         " MAT=", NMJE_MaturityText(journey.Maturity),
          " P=", NMJE_ParentText(journey.ParentKind), "/", NMJE_DirText(journey.ParentDirection),
          " J=", journeyId,
          " DID=", decisionToken,
@@ -5655,6 +5841,7 @@ void NMJE_FreezeValidatedDecisionAttribution(int pairIndex, BBMA_Decision &decis
    decision.NMJEJourneyID = "";
    decision.NMJEParentEventID = "";
    decision.NMJERelation = NESTED_NOT_APPLICABLE;
+   decision.NMJEMaturity = NMJE_MATURITY_NONE;
    decision.NMJEUpdateCandleTime = 0;
    ZeroMemory(decision.NMJEM5Refinement);
    decision.NMJEM5Refinement.Direction = DIR_NONE;
@@ -5672,6 +5859,7 @@ void NMJE_FreezeValidatedDecisionAttribution(int pairIndex, BBMA_Decision &decis
    decision.NMJEJourneyID = journey.JourneyID;
    decision.NMJEParentEventID = journey.ParentEventID;
    decision.NMJERelation = journey.Relation;
+   decision.NMJEMaturity = journey.Maturity;
    decision.NMJEUpdateCandleTime = journey.UpdateCandleTime;
    decision.NMJEM5Refinement = journey.M5Refinement;
 }
@@ -5681,8 +5869,11 @@ bool BuildNMJEShadowAttribution(BBMA_Decision &decision,
 {
    ZeroMemory(attribution);
    attribution.Relation = NESTED_NOT_APPLICABLE;
+   attribution.Maturity = NMJE_MATURITY_UNRESOLVED;
    attribution.M5Relation = NESTED_UNRESOLVED;
+   attribution.M5Maturity = NMJE_MATURITY_UNRESOLVED;
    attribution.M5Direction = DIR_NONE;
+   attribution.M5ContextStateCode = 0;
    if(!decision.NMJESnapshotPresent ||
       decision.NMJEJourneyID == "" || decision.NMJEParentEventID == "")
       return false;
@@ -5693,8 +5884,12 @@ bool BuildNMJEShadowAttribution(BBMA_Decision &decision,
       StringLen(attribution.ParentEventHash) != 16)
       return false;
 
+   if(!NMJE_IsMaturityDomainValue(decision.NMJEMaturity))
+      return false;
+
    attribution.Present = true;
    attribution.Relation = decision.NMJERelation;
+   attribution.Maturity = decision.NMJEMaturity;
 
    NMJEM5RefinementState m5 = decision.NMJEM5Refinement;
    if(m5.Present && NMJE_M5LineageSnapshotValid(m5))
@@ -5702,8 +5897,10 @@ bool BuildNMJEShadowAttribution(BBMA_Decision &decision,
       attribution.M5Present = true;
       attribution.M5EventHash = SHORT_HASH(m5.EventID);
       attribution.M5Relation = m5.Relation;
+      attribution.M5Maturity = m5.Maturity;
       attribution.M5Direction = m5.Direction;
       attribution.M5ContextCode = m5.ContextCode;
+      attribution.M5ContextStateCode = m5.ContextStateCode;
       attribution.M5EventStartCandleTime = m5.EventStartCandleTime;
       attribution.M5ClosedCandleTime = m5.ClosedCandleTime;
       attribution.M5ReasonHash = SHORT_HASH(m5.Reason);
@@ -5712,8 +5909,11 @@ bool BuildNMJEShadowAttribution(BBMA_Decision &decision,
       {
          ZeroMemory(attribution);
          attribution.Relation = NESTED_NOT_APPLICABLE;
+         attribution.Maturity = NMJE_MATURITY_UNRESOLVED;
          attribution.M5Relation = NESTED_UNRESOLVED;
+         attribution.M5Maturity = NMJE_MATURITY_UNRESOLVED;
          attribution.M5Direction = DIR_NONE;
+         attribution.M5ContextStateCode = 0;
          return false;
       }
    }
@@ -5730,8 +5930,8 @@ void ClearNMJEShadowAttribution(int ticket)
 {
    if(ticket <= 0) return;
    string base = NMJEAttributionGVBase(ticket);
-   string fixedKeys[10] = {"V","M","O","R","M5","MC","MR","MD","MS","MT"};
-   for(int i = 0; i < 10; i++) GlobalVariableDel(base + fixedKeys[i]);
+   string fixedKeys[13] = {"V","M","O","R","JM","M5","MC","M5M","M5S","MR","MD","MS","MT"};
+   for(int i = 0; i < 13; i++) GlobalVariableDel(base + fixedKeys[i]);
    string prefixes[5] = {"X","J","P","E","Q"};
    for(int p = 0; p < 5; p++)
       for(int part = 0; part < 4; part++)
@@ -5768,8 +5968,11 @@ bool LoadNMJEShadowAttribution(TradeInfo &info)
 {
    ZeroMemory(info.nmje_attribution);
    info.nmje_attribution.Relation = NESTED_NOT_APPLICABLE;
+   info.nmje_attribution.Maturity = NMJE_MATURITY_UNRESOLVED;
    info.nmje_attribution.M5Relation = NESTED_UNRESOLVED;
+   info.nmje_attribution.M5Maturity = NMJE_MATURITY_UNRESOLVED;
    info.nmje_attribution.M5Direction = DIR_NONE;
+   info.nmje_attribution.M5ContextStateCode = 0;
    if(info.ticket <= 0 || info.magic_number <= 0 || info.open_time <= 0 ||
       StringLen(info.execution_hash) != 16)
       return false;
@@ -5798,6 +6001,15 @@ bool LoadNMJEShadowAttribution(TradeInfo &info)
       info.nmje_attribution.Relation > NESTED_UNRESOLVED)
       return false;
 
+   // P6 keys are additive so pre-P6 P4 records remain research-readable.
+   if(GlobalVariableCheck(base + "JM"))
+   {
+      info.nmje_attribution.Maturity =
+         (ENUM_NMJE_JOURNEY_MATURITY)((int)GlobalVariableGet(base + "JM"));
+      if(!NMJE_IsMaturityDomainValue(info.nmje_attribution.Maturity))
+         return false;
+   }
+
    info.nmje_attribution.M5Present = (GlobalVariableGet(base + "M5") > 0.5);
    info.nmje_attribution.M5ContextCode = (int)GlobalVariableGet(base + "MC");
    if(info.nmje_attribution.M5Present)
@@ -5812,6 +6024,22 @@ bool LoadNMJEShadowAttribution(TradeInfo &info)
          (ENUM_NESTED_RELATION)((int)GlobalVariableGet(base + "MR"));
       info.nmje_attribution.M5Direction =
          (ENUM_DIRECTION)((int)GlobalVariableGet(base + "MD"));
+
+      bool hasM5Maturity = GlobalVariableCheck(base + "M5M");
+      bool hasM5State = GlobalVariableCheck(base + "M5S");
+      if(hasM5Maturity != hasM5State) return false;
+      if(hasM5Maturity)
+      {
+         info.nmje_attribution.M5Maturity =
+            (ENUM_NMJE_JOURNEY_MATURITY)((int)GlobalVariableGet(base + "M5M"));
+         info.nmje_attribution.M5ContextStateCode =
+            (int)GlobalVariableGet(base + "M5S");
+         if(!NMJE_IsMaturityDomainValue(info.nmje_attribution.M5Maturity) ||
+            !NMJE_IsM5ContextStateValid(info.nmje_attribution.M5ContextCode,
+                                        info.nmje_attribution.M5ContextStateCode))
+            return false;
+      }
+
       info.nmje_attribution.M5EventStartCandleTime =
          (datetime)((int)GlobalVariableGet(base + "MS"));
       info.nmje_attribution.M5ClosedCandleTime =
@@ -5845,6 +6073,8 @@ bool SaveNMJEShadowAttribution(TradeInfo &info)
    if(GlobalVariableSet(base + "M", (double)info.magic_number) == 0) return false;
    if(GlobalVariableSet(base + "O", (double)info.open_time) == 0) return false;
    if(GlobalVariableSet(base + "R", (double)a.Relation) == 0) return false;
+   if(!NMJE_IsMaturityDomainValue(a.Maturity)) return false;
+   if(GlobalVariableSet(base + "JM", (double)a.Maturity) == 0) return false;
    if(GlobalVariableSet(base + "M5", a.M5Present ? 1.0 : 0.0) == 0) return false;
    if(GlobalVariableSet(base + "MC", (double)a.M5ContextCode) == 0) return false;
    if(!NMJEStoreHex16(base, "X", info.execution_hash) ||
@@ -5854,8 +6084,12 @@ bool SaveNMJEShadowAttribution(TradeInfo &info)
 
    if(a.M5Present)
    {
-      if(StringLen(a.M5EventHash) != 16 || StringLen(a.M5ReasonHash) != 16)
+      if(StringLen(a.M5EventHash) != 16 || StringLen(a.M5ReasonHash) != 16 ||
+         !NMJE_IsMaturityDomainValue(a.M5Maturity) ||
+         !NMJE_IsM5ContextStateValid(a.M5ContextCode, a.M5ContextStateCode))
          return false;
+      if(GlobalVariableSet(base + "M5M", (double)a.M5Maturity) == 0) return false;
+      if(GlobalVariableSet(base + "M5S", (double)a.M5ContextStateCode) == 0) return false;
       if(GlobalVariableSet(base + "MR", (double)a.M5Relation) == 0) return false;
       if(GlobalVariableSet(base + "MD", (double)a.M5Direction) == 0) return false;
       if(GlobalVariableSet(base + "MS", (double)a.M5EventStartCandleTime) == 0) return false;
@@ -5880,9 +6114,12 @@ bool SaveNMJEShadowAttribution(TradeInfo &info)
    return (verify.nmje_attribution.JourneyHash == a.JourneyHash &&
            verify.nmje_attribution.ParentEventHash == a.ParentEventHash &&
            verify.nmje_attribution.Relation == a.Relation &&
+           verify.nmje_attribution.Maturity == a.Maturity &&
            verify.nmje_attribution.M5Present == a.M5Present &&
            (!a.M5Present ||
             (verify.nmje_attribution.M5EventHash == a.M5EventHash &&
+             verify.nmje_attribution.M5Maturity == a.M5Maturity &&
+             verify.nmje_attribution.M5ContextStateCode == a.M5ContextStateCode &&
              verify.nmje_attribution.M5ReasonHash == a.M5ReasonHash &&
              verify.nmje_attribution.M5Relation == a.M5Relation &&
              verify.nmje_attribution.M5Direction == a.M5Direction &&
@@ -8413,11 +8650,14 @@ void NMJE_PrintClosedOutcomeShadow(TradeInfo &info)
          " JH=", info.nmje_attribution.JourneyHash == "" ? "-" : info.nmje_attribution.JourneyHash,
          " PH=", info.nmje_attribution.ParentEventHash == "" ? "-" : info.nmje_attribution.ParentEventHash,
          " REL=", NMJE_RelationText(info.nmje_attribution.Relation),
+         " MAT=", NMJE_MaturityText(info.nmje_attribution.Maturity),
          " M5=", info.nmje_attribution.M5Present ? "Y" : "N",
          " M5E=", info.nmje_attribution.M5EventHash == "" ? "-" : info.nmje_attribution.M5EventHash,
          " M5REL=", NMJE_RelationText(info.nmje_attribution.M5Relation),
+         " M5MAT=", NMJE_MaturityText(info.nmje_attribution.M5Maturity),
          " M5DIR=", NMJE_DirText(info.nmje_attribution.M5Direction),
          " M5CTX=", IntegerToString(info.nmje_attribution.M5ContextCode),
+         " M5STATE=", IntegerToString(info.nmje_attribution.M5ContextStateCode),
          " M5RH=", info.nmje_attribution.M5ReasonHash == "" ? "-" : info.nmje_attribution.M5ReasonHash,
          " NET=", DoubleToString(netProfit, 8),
          " CLOSE=", IntegerToString((int)OrderCloseTime()));
@@ -9167,7 +9407,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=4.90 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=4.91 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);

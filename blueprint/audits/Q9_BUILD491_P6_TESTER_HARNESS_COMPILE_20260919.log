@@ -1,0 +1,25 @@
+Q9 Build 4.91 P6 Strategy Tester harness compile — 2026-09-19
+Canonical source SHA-256:
+B9AB1289153DD3505E1B96C1970F30435A4819A2EDC3C8ED6E7E4E23140102E4
+
+P5 tester adapter:
+MQ4 SHA-256 85A8FA6054013845767C6B09613E82426C046EC9863B968FB43AFD1825186B92
+MetaEditor: Result: 0 errors, 0 warnings, 1190 msec elapsed
+EX4 SHA-256 34A3E679F7A9451918742C2F68BF8C82EB68DC8C6BEF93B4B6A043A9B3E5DD73
+EX4 size 606936
+
+P6 tester adapter:
+MQ4 SHA-256 81F3A4ACAC1C6BAD5A157F796D9AF09595E994A11E6461211331FC9134E60FB3
+MetaEditor: Result: 0 errors, 0 warnings, 1027 msec elapsed
+EX4 SHA-256 407F8CCEF6E9243202047CBAC65F2F98F0BC120DC3F5A60B4043B16528DC1D17
+EX4 size 619818
+
+Tester-adapter diff firewall:
+PASS
+Allowed deltas only:
+- IsTerminalConnected(): IsTesting() bypass
+- FindActualSymbol(): current Strategy Tester symbol fallback
+- OnInit(): skip EventSetTimer while IsTesting()
+
+No P6 maturity classifier or protected authority function was modified in tester adapters.
+Tester harness files were local validation artifacts and are not committed as canonical EA source.

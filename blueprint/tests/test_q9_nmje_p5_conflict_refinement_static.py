@@ -17,8 +17,8 @@ def body(signature: str) -> str:
     raise AssertionError(signature)
 
 def main() -> None:
-    assert "V490_Q9_P5_CONFLICT_REFINEMENT_20260919" in SRC
-    assert '#property version   "4.90"' in SRC
+    assert "V491_Q9_P6_MATURITY_FINGERPRINT_20260919" in SRC
+    assert '#property version   "4.91"' in SRC
     build = body("void NMJE_BuildM5Refinement(")
     assert 'snapshot.Relation = NESTED_UNRESOLVED;\n         snapshot.Reason = "M5_OPPOSITE_CONFIRMED_RE_UNRESOLVED";' in build
     assert 'snapshot.Relation = NESTED_BUILDING;\n         snapshot.Reason = "M5_OPPOSITE_EXTREME_BUILDING";' in build

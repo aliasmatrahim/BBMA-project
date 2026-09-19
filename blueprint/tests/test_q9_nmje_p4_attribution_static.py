@@ -23,10 +23,10 @@ def require(text: str, *markers: str) -> None:
 def main() -> None:
     require(
         SRC,
-        "Version 4.9.0 - Q9 NMJE Conflict Refinement",
-        '#property version   "4.90"',
-        '#define BBMA_BUILD_TAG      "V490_Q9_P5_CONFLICT_REFINEMENT_20260919"',
-        '#define BBMA_SOURCE_REV_TAG "Q9_P5_CONFLICT_REFINEMENT_101_20260919"',
+        "Version 4.9.1 - Q9 NMJE Maturity Fingerprint",
+        '#property version   "4.91"',
+        '#define BBMA_BUILD_TAG      "V491_Q9_P6_MATURITY_FINGERPRINT_20260919"',
+        '#define BBMA_SOURCE_REV_TAG "Q9_P6_MATURITY_FINGERPRINT_101_20260919"',
         "struct NMJEShadowAttributionState",
         "NMJEShadowAttributionState nmje_attribution;",
         "NMJEM5RefinementState        NMJEM5Refinement;",

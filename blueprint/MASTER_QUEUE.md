@@ -2,7 +2,7 @@
 
 Reconciled: **2026-09-20**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`cafa868206bc777d8163c32d4ad08894af6533bb`**
+Owner head at reconciliation: **`f69492c85792f1e42624f7c796b4265335a38886`**
 
 This file is the active queue. The pre-2026-09-09 historical queue is preserved byte-for-byte at `blueprint/archive/MASTER_QUEUE_pre_20260909.md`.
 
@@ -21,7 +21,7 @@ Stable Q IDs are preserved. The active dependency order is:
 - **Integration / final acceptance:** Q7 -> Q8 -> Q10
 - **Deferred / future:** Q11
 
-Q3 remains the active isolated runtime-validation workstream but is currently environment-blocked at `SEEN=58 / ACTIVE=0`. Q9 is an active scoped shadow-research lineage; P1-P10 are verified in stacked Draft branches while P11 is now HOLD-UNRESOLVED on lineage semantics. Q6 was stopped by explicit user decision on 2026-09-20 and Issue #128 is closed as not planned; do not auto-resume native acquisition. Q7 is frozen, GBPUSD Q8 is complete, and Q10 remains separately gated.
+Q3 remains the active isolated runtime-validation workstream but is currently environment-blocked at `SEEN=58 / ACTIVE=0`. Q9 P1-P11 is verified in the scoped Draft research lineage with strict canonical JourneyID semantics; no Q9 activation or merge is authorized. The next eligible downstream re-audit from Issue #101 is D1TPW lifecycle. Q6 was stopped by explicit user decision on 2026-09-20 and Issue #128 is closed as not planned; do not auto-resume native acquisition. Q7 is frozen, GBPUSD Q8 is complete, and Q10 remains separately gated.
 
 ## Stage A - Source evidence / reconciliation
 
@@ -172,20 +172,30 @@ Do not run the historical v4.59 R1–R6 runner as if it were the final programme
 
 ### Q9 — NMJE v2 M5 accuracy hardening
 Issue: **#101**
-Scoped lineage: **Draft PRs #192-#202 + recovered local P11 worktree**
+Scoped lineage: **Draft PRs #192-#205**
 Priority: **HIGH / SHADOW-RESEARCH CORRECTNESS**
-Status: **P1-P10 VERIFIED IN SCOPED DRAFT LINEAGE / P11 HOLD-UNRESOLVED**
+Status: **P1-P11 VERIFIED / CONTRACT STABILIZED / NO ACTIVATION**
 
-Current sequencing:
+Current state:
 1. Do not rerun P1-P10; their exact scoped evidence remains reusable.
-2. Preserve canonical owner Build 4.86 unchanged; Q9 staged source is not promoted merely because a research stage passes.
-3. P11 local Build 4.95 partial is preserved on exact P10 base `dcf9d6a627e24dbc65b95b7374a5decc2a006fa2`.
-4. P11 cannot be committed/promoted yet: verified P8 says `ParentEventID/JourneyID` change starts a new journey, while current P11 partial can classify that same transition as `CONTINUATION` under an unchanged D1 lineage root.
-5. Resolve the explicit Issue #101 decision gate before changing P11 semantics:
-   - strict canonical JourneyID semantics; or
-   - higher-owner lineage-family semantics with terminology that does not claim same-JourneyID continuation.
-6. Until resolved: **HOLD/UNRESOLVED, non-executable**. Do not activate P2 ordering, M5 authority, a rejection gate or production behavior.
-7. Old PR #102/#126 lineage remains historical/staging evidence only; do not merge it directly.
+2. P11 decision A is locked as strict canonical JourneyID semantics.
+3. Accepted P11: PR #205 head `0f80addc9080e726b8e6bb26a34094ae41ac3256`, Build `4.96`, source SHA-256 `B08CBDEFED1B1A6B6F0B9CADC3CA53B25BD3F98334E7E797A51D765F53E0C148`.
+4. Build 4.95 lineage semantics are superseded; ParentEventID/JourneyID transition = NEW_JOURNEY, unchanged canonical root = FIRST, and CONTINUATION remains unproven without a separate source-owned continuation-event identity.
+5. Static/model/persistence + native compile + deterministic GBPUSD tester authority regression PASS; broker actions=0.
+6. Preserve canonical owner Build 4.86 unchanged. PR #205 stays Draft: no merge, no production activation, no P2 ordering activation, no M5 execution authority.
+7. Next downstream sequence from Issue #101 is now eligible, in order:
+   - D1TPW lifecycle re-audit;
+   - C044 lifecycle;
+   - D1/D1O identity & dedup;
+   - M17 validation/SL geometry;
+   - TradeLock/cumulative risk/execution ambiguity;
+   - N1/N2/N3 end-to-end provenance/firewall;
+   - M25 dashboard materialization;
+   - Observer finalization;
+   - M01-M27 + M12N cross-module audit;
+   - final integration candidate/tests/backtest;
+   - final HFM demo acceptance last.
+8. Old PR #102/#126 lineage remains historical/staging evidence only; do not merge it directly.
 
 ### Q11 — Dashboard / observer future materialization
 Status: **DEFERRED / RE-AUDIT REQUIRED**
@@ -202,6 +212,6 @@ Older dashboard/observer PRs were prepared against historical frozen candidates.
 ## G40 resume policy
 G40 was reachable during the 2026-09-17 Q7 reconciliation. Future work must still re-read actual local process/worktree/manifest state before any mutation.
 
-G40-dependent live state includes **Q3** (watcher/isolated terminal preserved; environment-blocked) and the preserved **Q9 P11 local worktree** (HOLD-UNRESOLVED; do not mutate until its decision gate is resolved). Q6 native acquisition is stopped/closed and must not auto-resume. Q1/Q2 are already integrated and Q7 is frozen; do not recreate them. Q4 is mechanically complete and must not be re-added without new evidence.
+G40-dependent live process state is **Q3** (watcher/isolated terminal preserved; environment-blocked). Q9 P11 is now verified and pushed to its scoped Draft branch; do not merge/activate it through this queue. Q6 native acquisition is stopped/closed and must not auto-resume. Q1/Q2 are already integrated and Q7 is frozen; do not recreate them. Q4 is mechanically complete and must not be re-added without new evidence.
 
 No destructive reset, blind recreation, automatic MT4 restart, or trading enablement is authorized by this queue.

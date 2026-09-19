@@ -2,7 +2,7 @@
 
 Updated: **2026-09-20**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`cafa868206bc777d8163c32d4ad08894af6533bb`**
+Owner head at reconciliation: **`f69492c85792f1e42624f7c796b4265335a38886`**
 
 This file is the active current-state record. The pre-2026-09-09 historical `CURRENT.md` is preserved byte-for-byte at `blueprint/archive/CURRENT_pre_20260909.md`.
 
@@ -92,7 +92,7 @@ Status: **VERIFIED / COMPLETE — ENGINEERING HISTORICAL EVIDENCE ONLY**.
 - This remains engineering historical evidence and is not a profitability or production-readiness claim. The former Issue #128 native final-authority programme was later stopped by user decision and closed not planned on 2026-09-20.
 
 ## Current infrastructure blocker
-Authorized G40 Remote Desktop Commander is reachable. Active G40 live-state work is Q3 isolated runtime only. Q6 native acquisition was stopped by explicit user decision on 2026-09-20 and must not auto-resume.
+Authorized G40 Remote Desktop Commander is reachable. Active live process state is Q3 isolated runtime only; Q9 P11 is now a verified scoped Draft branch with no production activation. Q6 native acquisition was stopped by explicit user decision on 2026-09-20 and must not auto-resume.
 
 ## Recently closed tracking/governance work
 - stale v4.58 CI PR-gate bug #136 closed; workflow-only fix merged.
@@ -102,13 +102,16 @@ Authorized G40 Remote Desktop Commander is reachable. Active G40 live-state work
 - Issue #109 is deferred/reframed for the **final integration candidate**, not historical v4.59.
 
 ### 8. Q9 NMJE v2 / M5 accuracy hardening — Issue #101
-Status: **ACTIVE SCOPED SHADOW RESEARCH / P1-P10 VERIFIED IN STACKED DRAFT LINEAGE / P11 HOLD-UNRESOLVED**.
-- Q9 is not merged into the canonical owner Build 4.86. Draft/scoped lineage #192-#202 contains verified research stages P1-P10; M5 remains closed-candle context/shadow only and NMJE remains non-executable.
-- P11 local partial Build 4.95 was recovered on 2026-09-20 from exact P10 base `dcf9d6a627e24dbc65b95b7374a5decc2a006fa2`; existing static/model/native/tester evidence was preserved, not rerun blindly.
-- Fresh source/contract adjudication found an unresolved engineering-lineage semantic conflict: P8 treats `ParentEventID/JourneyID` transition as a new journey, while the partial P11 D1-root mapping can label a changed parent/JourneyID as `CONTINUATION`.
-- Classification: **HOLD-UNRESOLVED / ENGINEERING LINEAGE SEMANTICS**. This does not change trading authority, but P11 must not be committed/promoted until “same journey” versus higher-owner lineage-family semantics is explicitly locked.
-- Issue #101 comment `5746024289` records the exact decision gate and preserved partial state.
-- No P2 ordering activation, no M5 execution authority, no production activation.
+Status: **P1-P11 VERIFIED IN SCOPED DRAFT RESEARCH / CONTRACT STABILIZED / NO ACTIVATION**.
+- Q9 remains outside canonical owner Build 4.86. Draft/scoped lineage #192-#205 contains the verified P1-P11 research implementation; NMJE remains observation-only and M5 remains closed-candle context/shadow only.
+- User decision A locks strict canonical JourneyID semantics for P11.
+- Accepted P11 head: PR #205 commit `0f80addc9080e726b8e6bb26a34094ae41ac3256`, Build `4.96` / `V496_Q9_P11_STRICT_JOURNEY_LINEAGE_20260920`, MQ4 SHA-256 `B08CBDEFED1B1A6B6F0B9CADC3CA53B25BD3F98334E7E797A51D765F53E0C148`.
+- ParentEventID/JourneyID transition is NEW_JOURNEY; unchanged canonical root is FIRST; CONTINUATION is not inferred without a distinct source-owned continuation-event identity.
+- Legacy Build 4.95 higher-owner-root semantics are superseded; durable 4.95 CONTINUATION loads fail-closed as UNRESOLVED under 4.96.
+- Exact P10/P11 authority trace remains 2,092/2,092 equal; final tester lineage per run: FIRST=1988, NEW_JOURNEY=28, CONTINUATION=0; broker actions=0.
+- Canonical/runtime/tester native MetaEditor compile = 0 errors / 0 warnings.
+- PR #205 remains Draft: **NO MERGE / NO PRODUCTION ACTIVATION / NO P2 ACTIVATION / NO M5 EXECUTION AUTHORITY**.
+- Issue #101 downstream sequence is now eligible for read-only re-audit, starting with D1TPW lifecycle.
 
 ## Deferred / future work
 - final automated broker/demo user-test programme (#109): run only after one exact final integration candidate is frozen and preceding eligible gates pass.

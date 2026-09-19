@@ -1,0 +1,35 @@
+Q9 Build 4.92 P7 Native Compile Evidence — 2026-09-19
+
+Canonical source:
+D:\BBMA\Workspace\q9-nmje-v2-p7-structural-density-101\blueprint\source\BBMA_EA.mq4
+SHA-256: 8EAA8CF57B003FC3E553260D2DFC52080680E6234176001650672B53FE67377E
+
+Short-path exact-source staging:
+D:\BBMA\Compile\Q9_492\BBMA_EA.mq4
+SHA-256: 8EAA8CF57B003FC3E553260D2DFC52080680E6234176001650672B53FE67377E
+MetaEditor result: 0 errors, 0 warnings, 840 msec elapsed
+EX4 SHA-256: B88019D8EDCA0A85321FB80275AC132FB9916F53C50F3C0515AD60DC94FAC22D
+EX4 size: 632846
+
+Exact runtime deployment name:
+D:\BBMA\MT4_NMJE_141_Demo\MQL4\Experts\BBMA_EA_Q9_492_P7.mq4
+MetaEditor result: 0 errors, 0 warnings, 1031 msec elapsed
+EX4 SHA-256: 72058BB9D266EFFDDCA47AA95536EF3509415229115B4D21A524EC05253FD266
+EX4 size: 634894
+
+Strategy Tester adapter:
+Canonical MQ4 SHA-256: 8EAA8CF57B003FC3E553260D2DFC52080680E6234176001650672B53FE67377E
+Tester MQ4 SHA-256: 4FC4CDCFA60D999B93C783046BFE7FF557173244B48EEE7BD7FD7AFF65230EB8
+Adapter diff lines: 46
+Adapter diff firewall: PASS
+Allowed tester-only deltas:
+- IsTerminalConnected(): IsTesting() bypass
+- FindActualSymbol(): current tester-symbol fallback
+- OnInit(): skip EventSetTimer while IsTesting()
+
+Tester adapter compile:
+MetaEditor result: 0 errors, 0 warnings, 636 msec elapsed
+EX4 SHA-256: BD089127577A56C5D627977857E918A3D544DD77FC6D0A2A261030D47A5E7050
+EX4 size: 635950
+
+No P7 density helper/classifier or protected M13/M14/M15/M16/risk/execution body was changed by the tester adapter.

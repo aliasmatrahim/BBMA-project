@@ -1,0 +1,25 @@
+﻿> py -3.12 blueprint\tests\test_c044_fail_frozen_recovery_static.py
+C044_FAIL_FROZEN_RECOVERY_STATIC=PASS
+> py -3.12 blueprint\tests\test_c044_recovery_transaction_model.py
+C044_RECOVERY_TRANSACTION_MODEL=PASS
+> py -3.12 blueprint\tests\compare_c044_486_497_protected.py D:\BBMA\Temp\owner486.mq4 blueprint\source\BBMA_EA.mq4
+bool IsF7LifecycleIdentity 97e5dc69faaa8c51
+bool ResolveApprovedInitialSLTP 5c093b38174653e5
+bool ProcessC044OwnerClosedCandle 64638224ed81425b
+bool AdvanceC044OwnerEventOneCandle d357edcc83417439
+void AdvanceC044OwnerEventsForPair afa6a568a3821269
+bool LatchC044Exit 54bdddc7703599c0
+bool ExecuteLatchedC044Close e48cb667744fd7dd
+bool InitializeC044TradeStateFromDecision 03e876efc2efbdb2
+bool SaveC044ReplaySeed eac2d727c3a66a2e
+bool SaveC044Checkpoint 5be128283051a77f
+void RecoverExistingOrders 339004bed63059cb
+void PriorityEngine_Atomic 980b71b42301bbf9
+void InvalidationEngine_Atomic 72aa5de85fb747e7
+RiskStatus CheckRiskBeforeTrade 5806b1e22ae89609
+bool RunEntryPreflightAndExecute ae7eae85403777fc
+int SendOrderWithRetry 9c10592790d30497
+C044_486_497_PROTECTED=PASS
+> py -3.12 blueprint\tests\test_c044_generation_atomicity.py
+C044_GENERATION_MODEL=PASS normal_ops=145 frozen_ops=85 normal_failure_points=145 frozen_failure_points=85
+> py -3.12 blueprint\tests\test_v482_f7_source_guards.py

@@ -1,0 +1,5 @@
+PASS: base replacements exact
+PASS: candidate equals exact adapter transform
+PASS: build identity preserved
+PASS: source revision preserved
+D1O498_TESTER_ADAPTER_INVARIANT=PASS

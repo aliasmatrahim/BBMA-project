@@ -1,0 +1,28 @@
+﻿> py -3.12 blueprint\tests\test_d1o_extreme_tpw_same_identity_precedence_model.py
+D1O_EXTREME_TPW_PRECEDENCE_MODEL=PASS
+> py -3.12 blueprint\tests\test_d1o_extreme_tpw_same_identity_precedence_static.py
+D1O_EXTREME_TPW_PRECEDENCE_STATIC=PASS
+> py -3.12 blueprint\tests\test_d1o_execution_identity_contract.py
+D1O execution identity contract drift guard: PASS
+> py -3.12 blueprint\tests\test_d1o_canonical_dedup_log_analyzer.py
+D1O-09 canonical dedup analyzer synthetic self-test: PASS
+> py -3.12 blueprint\tests\compare_d1o_486_498_protected.py D:\BBMA\Temp\owner486.mq4 blueprint\source\BBMA_EA.mq4
+string GenerateDecisionID 6379623d4045971a
+bool IsDecisionExecuted 31a178add946fd42
+void BuildConfirmedReEntryCandidate f83d269f2624692b
+void BuildD1OpportunityCandidate 58b3c5a6a214b8e4
+datetime GetCandidateAnchorTime 4bcabd5e9994aa98
+bool ResolveSelectedSLTPSourceComponent c1cead173c4db5de
+bool IsD1OpportunityCandidateAuthorityReady 1554539ecc4c6f9f
+bool FreezeD1OpportunitySnapshot eb18b2750431808c
+void PriorityEngine_Atomic 980b71b42301bbf9
+bool ValidateDecisionD1OpportunitySnapshot bc23d5f95506914b
+bool IsD1TPWLifecycleIdentity 847e60c1b996035a
+bool IsF7LifecycleIdentity 97e5dc69faaa8c51
+bool ResolveApprovedInitialSLTP 5c093b38174653e5
+RiskStatus CheckRiskBeforeTrade 5806b1e22ae89609
+int FindExistingExecutionTicket c06c2d353372722f
+int SendOrderWithRetry 9c10592790d30497
+void RecoverExistingOrders 339004bed63059cb
+D1O_486_498_PROTECTED=PASS
+> py -3.12 blueprint\tests\test_v482_f7_source_guards.py

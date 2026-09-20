@@ -1,0 +1,38 @@
+{
+  "issue": 212,
+  "branch": "fix/c044-fail-frozen-recovery-212",
+  "base_owner": "8da9dae0801f414f8d4c659a226ff58451cca7e6",
+  "build": "4.97",
+  "build_tag": "V497_C044_FAIL_FROZEN_RECOVERY_20260920",
+  "source_rev": "C044_FAIL_FROZEN_RECOVERY_212_20260920",
+  "classification": "OFFLINE_ENGINEERING_VALIDATION_NOT_LIVE_RESTART_PROOF",
+  "source_mq4": {
+    "bytes": 427380,
+    "sha256": "9C69F89865559B460B7DB93B4A643E576362D1F7916AEEB60F09FED979DF4786"
+  },
+  "compile_ex4": {
+    "bytes": 551602,
+    "sha256": "8A891A36F0EEEE6AA12915489FD3248EC812C9E826F6677256425C4EBA13AD5F"
+  },
+  "tester_mq4": {
+    "bytes": 416878,
+    "sha256": "174934861256A1CC112E856ADC5066A8BBD3DDB580252299A14A1C61DE79B4F6"
+  },
+  "tester_ex4": {
+    "bytes": 552852,
+    "sha256": "08A05D70C917C8A6DD3ECDD15A012B893D3AD2A58CFF80D3929023E23B07160D"
+  },  "smoke_log": {
+    "bytes": 4260564,
+    "sha256": "6E75F93B529D18C4BD62EB5BBEFF2462CC5241DF5BE541B53EFFF0AD81437C0D"
+  },
+  "q8_baseline_log": {
+    "bytes": 4316313,
+    "sha256": "80CC6DF0CDFCCA58273C6B0B71428DD6EAF48A05998352FA4F07EED8BF8A4FF4"
+  },
+  "gvariables_pre_and_restored": {
+    "bytes": 240,
+    "sha256": "DD8320C5529D41EB90F55290CBF3D5AAFE74F7A30964A647AF075DDFD7BA91A6"
+  },
+  "source_equals_compile_input": true,
+  "gvariables_restored_exact": true
+}

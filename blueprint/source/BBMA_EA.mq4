@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.9.4 - Q9 Entry Displacement Telemetry        |
+//| Version 4.9.6 - Q9 Strict Journey Lineage             |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.94"
+#property version   "4.96"
 #property strict
 
-#define BBMA_BUILD_TAG      "V494_Q9_P10_ENTRY_DISPLACEMENT_20260919"
-#define BBMA_SOURCE_REV_TAG "Q9_P10_ENTRY_DISPLACEMENT_101_20260919"
+#define BBMA_BUILD_TAG      "V496_Q9_P11_STRICT_JOURNEY_LINEAGE_20260920"
+#define BBMA_SOURCE_REV_TAG "Q9_P11_STRICT_JOURNEY_LINEAGE_101_20260920"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -304,6 +304,16 @@ enum ENUM_NMJE_STRUCTURE_STAGE_BIT
    NMJE_STRUCTURE_DIRECTION = 8,
    NMJE_STRUCTURE_REENTRY   = 16,
    NMJE_STRUCTURE_MOMENTUM  = 32
+};
+
+// Q9 P11 observer-only parent-event role within a deterministic lineage root.
+enum ENUM_NMJE_LINEAGE_EVENT_CLASS
+{
+   NMJE_LINEAGE_NONE,
+   NMJE_LINEAGE_FIRST,
+   NMJE_LINEAGE_CONTINUATION,
+   NMJE_LINEAGE_NEW_JOURNEY,
+   NMJE_LINEAGE_UNRESOLVED
 };
 
 enum ENUM_EXTREME_TYPE { EXT_NONE, EXT_SIDEWAYS, EXT_WITH_MOMENTUM, EXT_WITHOUT_MOMENTUM };
@@ -712,6 +722,9 @@ struct NMJEShadowAttributionState
    bool                 Durable;
    string               JourneyHash;
    string               ParentEventHash;
+   ENUM_NMJE_LINEAGE_EVENT_CLASS LineageClass;
+   string               LineageRootHash;
+   string               PreviousLineageRootHash;
    ENUM_NESTED_RELATION Relation;
    ENUM_NMJE_JOURNEY_MATURITY Maturity;
    NMJEStructuralDensityState StructureDensity;
@@ -748,6 +761,11 @@ struct NestedJourneyState
    string                  StableRelationEvidenceID;
    bool                    ParentTransitioned;
    string                  PreviousParentEventID;
+   // Q9 P11 observer-only first/continuation/new-journey lineage metadata.
+   ENUM_NMJE_LINEAGE_EVENT_CLASS LineageClass;
+   string                  LineageRootEventID;
+   string                  PreviousLineageRootEventID;
+   string                  LineageReason;
    string                  StabilityReason;
    ENUM_NMJE_JOURNEY_MATURITY Maturity;
    bool                    Resolved;
@@ -865,6 +883,9 @@ struct BBMA_Decision
    string                       NMJEStableRelationEvidenceID;
    bool                         NMJEParentTransitioned;
    string                       NMJEPreviousParentEventID;
+   ENUM_NMJE_LINEAGE_EVENT_CLASS NMJELineageClass;
+   string                       NMJELineageRootEventID;
+   string                       NMJEPreviousLineageRootEventID;
    ENUM_NMJE_JOURNEY_MATURITY   NMJEMaturity;
    NMJEStructuralDensityState    NMJEStructureDensity;
    datetime                     NMJEUpdateCandleTime;
@@ -4927,6 +4948,15 @@ string NMJE_MaturityText(ENUM_NMJE_JOURNEY_MATURITY maturity)
    return "NONE";
 }
 
+string NMJE_LineageClassText(ENUM_NMJE_LINEAGE_EVENT_CLASS lineageClass)
+{
+   if(lineageClass == NMJE_LINEAGE_FIRST) return "FIRST";
+   if(lineageClass == NMJE_LINEAGE_CONTINUATION) return "CONTINUATION";
+   if(lineageClass == NMJE_LINEAGE_NEW_JOURNEY) return "NEW_JOURNEY";
+   if(lineageClass == NMJE_LINEAGE_UNRESOLVED) return "UNRESOLVED";
+   return "NONE";
+}
+
 bool NMJE_IsStructureMaskDomainValue(int mask)
 {
    return (mask >= 0 && mask <=
@@ -5819,6 +5849,110 @@ string NMJE_BuildJourneyID(string pair, ENUM_NESTED_PARENT_KIND kind,
    return "J2|" + pair + "|" + NMJE_ParentText(kind) + "|" + parentEventID;
 }
 
+bool NMJE_IsCanonicalLineageEventID(string eventID)
+{
+   return (StringLen(eventID) == 16);
+}
+
+bool NMJE_ResolveLineageRootEventID(PairState &state,
+                                    NestedJourneyState &journey,
+                                    string &rootEventID,
+                                    string &reason)
+{
+   rootEventID = "";
+   reason = "NO_VALID_PARENT";
+   if(!journey.Valid || !journey.Resolved ||
+      journey.ParentEventID == "" || journey.JourneyID == "")
+      return false;
+
+   // P11 strict canonical-JourneyID policy:
+   // the canonical NMJE parent event is the root of this JourneyID.
+   // Higher D1/H4 owner families may provide context, but they cannot merge
+   // two different ParentEventID/JourneyID values into one "same journey".
+   if(!NMJE_IsCanonicalLineageEventID(journey.ParentEventID))
+   {
+      reason = "PARENT_ID_UNRESOLVED";
+      return false;
+   }
+
+   rootEventID = journey.ParentEventID;
+   reason = "CANONICAL_JOURNEY_ROOT";
+   return true;
+}
+
+void NMJE_ApplyFirstContinuationLineage(PairState &state,
+                                        NestedJourneyState &previous,
+                                        NestedJourneyState &journey)
+{
+   journey.LineageClass = NMJE_LINEAGE_NONE;
+   journey.LineageRootEventID = "";
+   journey.PreviousLineageRootEventID = "";
+   journey.LineageReason = "NO_VALID_PARENT";
+
+   if(!journey.Valid || !journey.Resolved ||
+      journey.ParentEventID == "" || journey.JourneyID == "")
+      return;
+
+   string rootEventID = "";
+   string rootReason = "";
+   if(!NMJE_ResolveLineageRootEventID(state, journey,
+                                      rootEventID, rootReason))
+   {
+      journey.LineageClass = NMJE_LINEAGE_UNRESOLVED;
+      journey.LineageReason = rootReason;
+      return;
+   }
+
+   journey.LineageRootEventID = rootEventID;
+
+   bool previousCanonical =
+      previous.Valid && previous.Resolved &&
+      NMJE_IsCanonicalLineageEventID(previous.ParentEventID) &&
+      previous.JourneyID != "";
+
+   if(previousCanonical &&
+      (previous.JourneyID != journey.JourneyID ||
+       previous.ParentEventID != journey.ParentEventID))
+   {
+      journey.LineageClass = NMJE_LINEAGE_NEW_JOURNEY;
+      journey.PreviousLineageRootEventID = previous.ParentEventID;
+      journey.LineageReason = "CANONICAL_JOURNEY_TRANSITION";
+      return;
+   }
+
+   if(journey.ParentEventID == rootEventID)
+   {
+      // Current implementation has no separate source-owned continuation-event
+      // identity inside an unchanged JourneyID. Keep the canonical root event
+      // classified as FIRST; do not invent CONTINUATION from elapsed observations.
+      journey.LineageClass = NMJE_LINEAGE_FIRST;
+      journey.LineageReason = previousCanonical
+         ? "CANONICAL_ROOT_STILL_CURRENT"
+         : "CANONICAL_ROOT_CURRENT";
+      return;
+   }
+
+   journey.LineageClass = NMJE_LINEAGE_UNRESOLVED;
+   journey.LineageReason = "CONTINUATION_EVENT_ID_UNPROVABLE";
+}
+
+void NMJE_PrintFirstContinuationLineage(NestedJourneyState &journey)
+{
+   if(!journey.Valid || !journey.Resolved ||
+      journey.ParentEventID == "" || journey.JourneyID == "")
+      return;
+
+   Print("[Q9-P11-LINEAGE] Pair=", journey.Pair,
+         " LC=", NMJE_LineageClassText(journey.LineageClass),
+         " LR=", (journey.LineageRootEventID == "" ? "-" :
+                   journey.LineageRootEventID),
+         " PLR=", (journey.PreviousLineageRootEventID == "" ? "-" :
+                    journey.PreviousLineageRootEventID),
+         " PE=", journey.ParentEventID,
+         " J=", journey.JourneyID,
+         " R=", journey.LineageReason);
+}
+
 bool NMJE_IsRelationDomainValue(ENUM_NESTED_RELATION relation)
 {
    return (relation == NESTED_NOT_APPLICABLE ||
@@ -6183,6 +6317,8 @@ void UpdateNestedJourneyObservation(int pairIndex)
    journey.JourneyID = NMJE_BuildJourneyID(journey.Pair, parentKind, parentEventID);
    journey.Valid = true;
    journey.Resolved = true;
+   NMJE_ApplyFirstContinuationLineage(g_pair_states[pairIndex], previous, journey);
+   NMJE_PrintFirstContinuationLineage(journey);
 
    if(d1State == D1_TRANSITION)
    {
@@ -6438,6 +6574,9 @@ void NMJE_PrintValidatedDecisionShadow(int pairIndex, BBMA_Decision &decision)
          " PTR=", (decision.NMJEParentTransitioned ? "Y" : "N"),
          " PPE=", (decision.NMJEPreviousParentEventID == "" ? "-" :
                    decision.NMJEPreviousParentEventID),
+         " LC=", NMJE_LineageClassText(decision.NMJELineageClass),
+         " LR=", (decision.NMJELineageRootEventID == "" ? "-" :
+                  decision.NMJELineageRootEventID),
          " MAT=", NMJE_MaturityText(journey.Maturity),
          " SD=", (decision.NMJEStructureDensity.Present ? "Y" : "N"),
          " SDM=", IntegerToString(decision.NMJEStructureDensity.StageMask),
@@ -6465,6 +6604,9 @@ void NMJE_FreezeValidatedDecisionAttribution(int pairIndex, BBMA_Decision &decis
    decision.NMJEStableRelationEvidenceID = "";
    decision.NMJEParentTransitioned = false;
    decision.NMJEPreviousParentEventID = "";
+   decision.NMJELineageClass = NMJE_LINEAGE_NONE;
+   decision.NMJELineageRootEventID = "";
+   decision.NMJEPreviousLineageRootEventID = "";
    decision.NMJEMaturity = NMJE_MATURITY_NONE;
    ZeroMemory(decision.NMJEStructureDensity);
    decision.NMJEUpdateCandleTime = 0;
@@ -6488,6 +6630,9 @@ void NMJE_FreezeValidatedDecisionAttribution(int pairIndex, BBMA_Decision &decis
    decision.NMJEStableRelationEvidenceID = journey.StableRelationEvidenceID;
    decision.NMJEParentTransitioned = journey.ParentTransitioned;
    decision.NMJEPreviousParentEventID = journey.PreviousParentEventID;
+   decision.NMJELineageClass = journey.LineageClass;
+   decision.NMJELineageRootEventID = journey.LineageRootEventID;
+   decision.NMJEPreviousLineageRootEventID = journey.PreviousLineageRootEventID;
    decision.NMJEMaturity = journey.Maturity;
    NMJE_BuildDecisionStructuralDensity(g_pair_states[pairIndex], journey,
                                        decision, decision.NMJEStructureDensity);
@@ -6505,6 +6650,7 @@ bool BuildNMJEShadowAttribution(BBMA_Decision &decision,
    attribution.M5Maturity = NMJE_MATURITY_UNRESOLVED;
    attribution.M5Direction = DIR_NONE;
    attribution.M5ContextStateCode = 0;
+   attribution.LineageClass = NMJE_LINEAGE_NONE;
    ZeroMemory(attribution.StructureDensity);
    if(!decision.NMJESnapshotPresent ||
       decision.NMJEJourneyID == "" || decision.NMJEParentEventID == "")
@@ -6515,6 +6661,27 @@ bool BuildNMJEShadowAttribution(BBMA_Decision &decision,
    if(StringLen(attribution.JourneyHash) != 16 ||
       StringLen(attribution.ParentEventHash) != 16)
       return false;
+
+   attribution.LineageClass = decision.NMJELineageClass;
+   if(attribution.LineageClass == NMJE_LINEAGE_CONTINUATION)
+      attribution.LineageClass = NMJE_LINEAGE_UNRESOLVED;
+   if(attribution.LineageClass == NMJE_LINEAGE_FIRST ||
+      attribution.LineageClass == NMJE_LINEAGE_NEW_JOURNEY)
+   {
+      attribution.LineageRootHash = SHORT_HASH(decision.NMJELineageRootEventID);
+      if(StringLen(attribution.LineageRootHash) != 16)
+      {
+         attribution.LineageClass = NMJE_LINEAGE_UNRESOLVED;
+         attribution.LineageRootHash = "";
+      }
+      if(decision.NMJEPreviousLineageRootEventID != "")
+      {
+         attribution.PreviousLineageRootHash =
+            SHORT_HASH(decision.NMJEPreviousLineageRootEventID);
+         if(StringLen(attribution.PreviousLineageRootHash) != 16)
+            attribution.PreviousLineageRootHash = "";
+      }
+   }
 
    if(!NMJE_IsMaturityDomainValue(decision.NMJEMaturity))
       return false;
@@ -6569,11 +6736,11 @@ void ClearNMJEShadowAttribution(int ticket)
 {
    if(ticket <= 0) return;
    string base = NMJEAttributionGVBase(ticket);
-   string fixedKeys[26] = {"V","M","O","R","JM","M5","MC","M5M","M5S","MR","MD","MS","MT","SDM","SDP","SDC",
-                           "DP","DSG","DTF","DCT","DSP","DPP","DBP","D12","D2B","D1B"};
-   for(int i = 0; i < 26; i++) GlobalVariableDel(base + fixedKeys[i]);
-   string prefixes[5] = {"X","J","P","E","Q"};
-   for(int p = 0; p < 5; p++)
+   string fixedKeys[28] = {"V","M","O","R","JM","M5","MC","M5M","M5S","MR","MD","MS","MT","SDM","SDP","SDC",
+                           "DP","DSG","DTF","DCT","DSP","DPP","DBP","D12","D2B","D1B","LC","LP"};
+   for(int i = 0; i < 28; i++) GlobalVariableDel(base + fixedKeys[i]);
+   string prefixes[7] = {"X","J","P","E","Q","L","N"};
+   for(int p = 0; p < 7; p++)
       for(int part = 0; part < 4; part++)
          GlobalVariableDel(base + prefixes[p] + IntegerToString(part));
 }
@@ -6613,6 +6780,7 @@ bool LoadNMJEShadowAttribution(TradeInfo &info)
    info.nmje_attribution.M5Maturity = NMJE_MATURITY_UNRESOLVED;
    info.nmje_attribution.M5Direction = DIR_NONE;
    info.nmje_attribution.M5ContextStateCode = 0;
+   info.nmje_attribution.LineageClass = NMJE_LINEAGE_NONE;
    ZeroMemory(info.nmje_attribution.StructureDensity);
    if(info.ticket <= 0 || info.magic_number <= 0 || info.open_time <= 0 ||
       StringLen(info.execution_hash) != 16)
@@ -6641,6 +6809,34 @@ bool LoadNMJEShadowAttribution(TradeInfo &info)
    if(info.nmje_attribution.Relation < NESTED_BUILDING ||
       info.nmje_attribution.Relation > NESTED_UNRESOLVED)
       return false;
+
+   // P11 keys are additive so pre-P11 attribution remains readable.
+   if(GlobalVariableCheck(base + "LC"))
+   {
+      info.nmje_attribution.LineageClass =
+         (ENUM_NMJE_LINEAGE_EVENT_CLASS)((int)GlobalVariableGet(base + "LC"));
+      if(info.nmje_attribution.LineageClass == NMJE_LINEAGE_CONTINUATION)
+      {
+         // Build 4.95 legacy label: strict-A cannot prove this identity.
+         info.nmje_attribution.LineageClass = NMJE_LINEAGE_UNRESOLVED;
+      }
+      else
+      {
+         if(info.nmje_attribution.LineageClass != NMJE_LINEAGE_FIRST &&
+            info.nmje_attribution.LineageClass != NMJE_LINEAGE_NEW_JOURNEY)
+            return false;
+         if(!NMJELoadHex16(base, "L", info.nmje_attribution.LineageRootHash) ||
+            !GlobalVariableCheck(base + "LP"))
+            return false;
+         bool hasPreviousLineageRoot = (GlobalVariableGet(base + "LP") > 0.5);
+         if(hasPreviousLineageRoot &&
+            !NMJELoadHex16(base, "N", info.nmje_attribution.PreviousLineageRootHash))
+            return false;
+         if(info.nmje_attribution.LineageClass == NMJE_LINEAGE_NEW_JOURNEY &&
+            !hasPreviousLineageRoot)
+            return false;
+      }
+   }
 
    // P6 keys are additive so pre-P6 P4 records remain research-readable.
    if(GlobalVariableCheck(base + "JM"))
@@ -6765,6 +6961,24 @@ bool SaveNMJEShadowAttribution(TradeInfo &info)
    if(GlobalVariableSet(base + "M", (double)info.magic_number) == 0) return false;
    if(GlobalVariableSet(base + "O", (double)info.open_time) == 0) return false;
    if(GlobalVariableSet(base + "R", (double)a.Relation) == 0) return false;
+   bool hasLineage =
+      ((a.LineageClass == NMJE_LINEAGE_FIRST ||
+        a.LineageClass == NMJE_LINEAGE_NEW_JOURNEY) &&
+       StringLen(a.LineageRootHash) == 16);
+   if(hasLineage)
+   {
+      if(GlobalVariableSet(base + "LC", (double)a.LineageClass) == 0) return false;
+      if(!NMJEStoreHex16(base, "L", a.LineageRootHash)) return false;
+      bool hasPreviousLineageRoot = (StringLen(a.PreviousLineageRootHash) == 16);
+      if(GlobalVariableSet(base + "LP", hasPreviousLineageRoot ? 1.0 : 0.0) == 0)
+         return false;
+      if(hasPreviousLineageRoot &&
+         !NMJEStoreHex16(base, "N", a.PreviousLineageRootHash))
+         return false;
+      if(a.LineageClass == NMJE_LINEAGE_NEW_JOURNEY &&
+         !hasPreviousLineageRoot)
+         return false;
+   }
    if(!NMJE_IsMaturityDomainValue(a.Maturity)) return false;
    if(GlobalVariableSet(base + "JM", (double)a.Maturity) == 0) return false;
    if(a.StructureDensity.Present)
@@ -6827,6 +7041,13 @@ bool SaveNMJEShadowAttribution(TradeInfo &info)
    return (verify.nmje_attribution.JourneyHash == a.JourneyHash &&
            verify.nmje_attribution.ParentEventHash == a.ParentEventHash &&
            verify.nmje_attribution.Relation == a.Relation &&
+           ((a.LineageClass == NMJE_LINEAGE_FIRST ||
+             a.LineageClass == NMJE_LINEAGE_NEW_JOURNEY)
+              ? (verify.nmje_attribution.LineageClass == a.LineageClass &&
+                 verify.nmje_attribution.LineageRootHash == a.LineageRootHash &&
+                 verify.nmje_attribution.PreviousLineageRootHash ==
+                    a.PreviousLineageRootHash)
+              : (verify.nmje_attribution.LineageClass == NMJE_LINEAGE_NONE)) &&
            verify.nmje_attribution.Maturity == a.Maturity &&
            verify.nmje_attribution.StructureDensity.Present ==
               a.StructureDensity.Present &&
@@ -10250,7 +10471,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=4.94 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=4.96 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);

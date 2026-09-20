@@ -23,10 +23,10 @@ def require(text: str, *markers: str) -> None:
 def main() -> None:
     require(
         SRC,
-        "Version 4.9.4 - Q9 Entry Displacement Telemetry",
-        '#property version   "4.94"',
-        '#define BBMA_BUILD_TAG      "V494_Q9_P10_ENTRY_DISPLACEMENT_20260919"',
-        '#define BBMA_SOURCE_REV_TAG "Q9_P10_ENTRY_DISPLACEMENT_101_20260919"',
+        "Version 4.9.6 - Q9 Strict Journey Lineage",
+        '#property version   "4.96"',
+        '#define BBMA_BUILD_TAG      "V496_Q9_P11_STRICT_JOURNEY_LINEAGE_20260920"',
+        '#define BBMA_SOURCE_REV_TAG "Q9_P11_STRICT_JOURNEY_LINEAGE_101_20260920"',
         "ENUM_NESTED_RELATION StableRelation;",
         "string               StableEventID;",
         "string               StabilityReason;",

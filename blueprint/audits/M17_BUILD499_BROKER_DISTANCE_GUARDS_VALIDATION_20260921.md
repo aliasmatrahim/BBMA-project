@@ -98,3 +98,16 @@ G40 remote execution was unavailable at this checkpoint. The next safe gate is:
 7. record hashes/logs and update this audit.
 
 Until those gates pass: **NOT NATIVE COMPILE VERIFIED / NOT RUNTIME VERIFIED / NO MERGE / NO ACTIVATION**.
+
+
+## GitHub Actions note
+
+PR #217 triggered two historical v4.58 workflows:
+- N3 NMJE v4.58 staging selftest run 35539270375;
+- N2 NMJE v4.58 research selftest run 35539270386.
+
+Both fail before their substantive selftests because the workflow checkout is current `d1-owner-dev@8da9dae0801f414f8d4c659a226ff58451cca7e6` while their source guards still require literal Build 4.58 markers such as `Version 4.5.8 - D1 TP-Wajib Lifecycle Stage` / `#property version "4.58"`.
+
+Classification: **STALE WORKFLOW BASELINE MISMATCH / NOT BUILD 4.99 SOURCE-FAILURE EVIDENCE**.
+
+They are not rerun as #216 validation.

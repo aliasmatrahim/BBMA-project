@@ -6884,36 +6884,6 @@ bool ValidateSLTP(BBMA_Decision &decision, RiskValidationSnapshot &snapshot,
    return true;
 }
 
-bool ValidateStopLevel(double price, string pair, ENUM_DIRECTION direction)
-{
-   int stopLevel = GetStopLevel(pair);
-   double point = GetPointSize(pair);
-   if(stopLevel <= 0) return true;
-   if(point <= 0.0) return false;
-
-   double minDist = stopLevel * point;
-   double currentPrice = (direction == DIR_BUY)
-      ? MarketInfo(pair, MODE_BID)
-      : (direction == DIR_SELL ? MarketInfo(pair, MODE_ASK) : 0.0);
-   if(currentPrice <= 0.0) return false;
-   return (MathAbs(price - currentPrice) >= minDist);
-}
-
-bool ValidateFreezeLevel(double price, string pair, ENUM_DIRECTION direction)
-{
-   int freezeLevel = GetFreezeLevel(pair);
-   double point = GetPointSize(pair);
-   if(freezeLevel <= 0) return true;
-   if(point <= 0.0) return false;
-
-   double minDist = freezeLevel * point;
-   double currentPrice = (direction == DIR_BUY)
-      ? MarketInfo(pair, MODE_BID)
-      : (direction == DIR_SELL ? MarketInfo(pair, MODE_ASK) : 0.0);
-   if(currentPrice <= 0.0) return false;
-   return (MathAbs(price - currentPrice) >= minDist);
-}
-
 //+------------------------------------------------------------------+
 //| MODULE 18: SIGNAL SCORING ENGINE (LABEL ONLY)                    |
 //| LEVEL: INTERMEDIATE                                              |

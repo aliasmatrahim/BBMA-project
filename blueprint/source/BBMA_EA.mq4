@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.8.6 - Structural Lifetime Authority Repair       |
+//| Version 4.9.9 - M17 Broker Distance Guards                 |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.86"
+#property version   "4.99"
 #property strict
 
-#define BBMA_BUILD_TAG      "V486_STRUCTURAL_LIFETIME_20260917"
-#define BBMA_SOURCE_REV_TAG "Q5_STRUCTURAL_LIFETIME_173_20260917"
+#define BBMA_BUILD_TAG      "V499_M17_BROKER_DISTANCE_GUARDS_20260921"
+#define BBMA_SOURCE_REV_TAG "M17_BROKER_DISTANCE_GUARDS_216_20260921"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -771,6 +771,7 @@ struct RiskValidationSnapshot
    double               MaxLot;
    double               Point;
    double               StopLevel;
+   double               FreezeLevel;
    int                  Digits;
    int                  LotDigits;
    double               CurrentSpreadPrice;
@@ -2094,6 +2095,7 @@ void BuildRiskValidationSnapshot(string pair, BBMA_Decision &decision, RiskValid
    snapshot.MaxLot = GetMaxLot(pair);
    snapshot.Point = GetPointSize(pair);
    snapshot.StopLevel = MarketInfo(pair, MODE_STOPLEVEL);
+   snapshot.FreezeLevel = MarketInfo(pair, MODE_FREEZELEVEL);
    snapshot.Digits = GetDigits(pair);
    snapshot.LotDigits = GetLotDigits(pair);
    snapshot.CurrentSpreadPrice = MathAbs(snapshot.Ask - snapshot.Bid);
@@ -6701,6 +6703,75 @@ bool ValidateDirectionalSLTPGeometry(BBMA_Decision &decision)
    return false;
 }
 
+bool ValidateFrozenBrokerDistanceGeometry(BBMA_Decision &decision,
+                                          RiskValidationSnapshot &snapshot,
+                                          bool validateTP,
+                                          ENUM_REJECTION_REASON &rejection)
+{
+   if(snapshot.Point <= 0.0 || snapshot.StopLevel < 0.0 ||
+      snapshot.FreezeLevel < 0.0)
+   {
+      rejection = REJ_BROKER_SPEC_INVALID;
+      return false;
+   }
+
+   double closePrice = GetDirectionalClosePrice(snapshot, decision.Direction);
+   if(closePrice <= 0.0)
+   {
+      rejection = REJ_MARKET_PRICE_INVALID;
+      return false;
+   }
+
+   double stopDistance = snapshot.StopLevel * snapshot.Point;
+   double freezeDistance = snapshot.FreezeLevel * snapshot.Point;
+   double requiredDistance = MathMax(stopDistance, freezeDistance);
+
+   if(decision.Direction == DIR_BUY)
+   {
+      if(decision.StopLoss >= closePrice ||
+         (requiredDistance > 0.0 &&
+          (closePrice - decision.StopLoss) < requiredDistance))
+      {
+         rejection = REJ_INVALID_SL;
+         return false;
+      }
+
+      if(validateTP &&
+         (decision.TakeProfit <= closePrice ||
+          (requiredDistance > 0.0 &&
+           (decision.TakeProfit - closePrice) < requiredDistance)))
+      {
+         rejection = REJ_INVALID_TP;
+         return false;
+      }
+      return true;
+   }
+
+   if(decision.Direction == DIR_SELL)
+   {
+      if(decision.StopLoss <= closePrice ||
+         (requiredDistance > 0.0 &&
+          (decision.StopLoss - closePrice) < requiredDistance))
+      {
+         rejection = REJ_INVALID_SL;
+         return false;
+      }
+
+      if(validateTP &&
+         (decision.TakeProfit >= closePrice ||
+          (requiredDistance > 0.0 &&
+           (closePrice - decision.TakeProfit) < requiredDistance)))
+      {
+         rejection = REJ_INVALID_TP;
+         return false;
+      }
+      return true;
+   }
+
+   rejection = REJ_MARKET_PRICE_INVALID;
+   return false;
+}
+
 bool ValidateSLTP(BBMA_Decision &decision, RiskValidationSnapshot &snapshot,
                   ENUM_REJECTION_REASON &rejection)
 {
@@ -6752,20 +6823,17 @@ bool ValidateSLTP(BBMA_Decision &decision, RiskValidationSnapshot &snapshot,
          return false;
       }
 
-      // F7 targetless Re-Entry lifecycle has no source-proven reward coordinate.
-      // MinRR is intentionally bypassed; do not manufacture a reward target.
-      double closePrice = GetDirectionalClosePrice(snapshot, decision.Direction);
-      double minDistance = snapshot.StopLevel * snapshot.Point;
-      if(closePrice <= 0.0)
+      // Targetless lifecycle has no deterministic fixed reward coordinate.
+      // If the optional MinRR filter is enabled, fail closed rather than
+      // bypassing it or manufacturing a reward target.
+      if(MinRRRatio > 0.0)
       {
-         rejection = REJ_MARKET_PRICE_INVALID;
+         rejection = REJ_INVALID_RR;
          return false;
       }
-      if(minDistance > 0.0 && MathAbs(decision.StopLoss - closePrice) < minDistance)
-      {
-         rejection = REJ_INVALID_SL;
+
+      if(!ValidateFrozenBrokerDistanceGeometry(decision, snapshot, false, rejection))
          return false;
-      }
 
       decision.StopLossPoints = slDistance / snapshot.Point;
       return true;
@@ -6809,27 +6877,8 @@ bool ValidateSLTP(BBMA_Decision &decision, RiskValidationSnapshot &snapshot,
       return false;
    }
 
-   double closePrice = GetDirectionalClosePrice(snapshot, decision.Direction);
-   double minDistance = snapshot.StopLevel * snapshot.Point;
-   if(closePrice <= 0.0)
-   {
-      rejection = REJ_MARKET_PRICE_INVALID;
+   if(!ValidateFrozenBrokerDistanceGeometry(decision, snapshot, true, rejection))
       return false;
-   }
-
-   if(minDistance > 0.0)
-   {
-      if(MathAbs(decision.StopLoss - closePrice) < minDistance)
-      {
-         rejection = REJ_INVALID_SL;
-         return false;
-      }
-      if(MathAbs(decision.TakeProfit - closePrice) < minDistance)
-      {
-         rejection = REJ_INVALID_TP;
-         return false;
-      }
-   }
 
    decision.StopLossPoints = slDistance / snapshot.Point;
    return true;
@@ -8374,7 +8423,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=4.86 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=4.99 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);

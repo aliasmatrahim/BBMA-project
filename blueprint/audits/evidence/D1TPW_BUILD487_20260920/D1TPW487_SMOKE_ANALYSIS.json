@@ -1,0 +1,95 @@
+{
+  "build_marker": 1,
+  "init_pass": 1,
+  "init_failed": 0,
+  "deinit_reason0": 1,
+  "model_every_tick": true,
+  "mismatched_chart_errors": "0",
+  "total_trades": "14",
+  "net_profit": "-0.00",
+  "authority": {
+    "[P3M2][M15_COUNTS]": {
+      "baseline_count": 523,
+      "candidate_count": 523,
+      "equal": true,
+      "baseline_sha": "2323F5D0BF064A3E437807DAF2426C843E70382B393900C503E87929457BF02F",
+      "candidate_sha": "2323F5D0BF064A3E437807DAF2426C843E70382B393900C503E87929457BF02F"
+    },
+    "[P3M2][M15_SELECT]": {
+      "baseline_count": 523,
+      "candidate_count": 523,
+      "equal": true,
+      "baseline_sha": "7CC31E3A9E55C1A91A5E37C975D6451ADA99390E9946DC382B17B56BDA9BCDC1",
+      "candidate_sha": "7CC31E3A9E55C1A91A5E37C975D6451ADA99390E9946DC382B17B56BDA9BCDC1"
+    },
+    "[P3M2][M15_CONFLICT]": {
+      "baseline_count": 0,
+      "candidate_count": 0,
+      "equal": true,
+      "baseline_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "candidate_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "[P3M2][M16_PASS]": {
+      "baseline_count": 523,
+      "candidate_count": 523,
+      "equal": true,
+      "baseline_sha": "9B016D2A8DA87903541C2490F8064A0424E0409526F9E3980DB4294D8443C62F",
+      "candidate_sha": "9B016D2A8DA87903541C2490F8064A0424E0409526F9E3980DB4294D8443C62F"
+    },
+    "[P3M2][M16_REJECT]": {
+      "baseline_count": 0,
+      "candidate_count": 0,
+      "equal": true,
+      "baseline_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "candidate_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "[P3M2][M16_OWNER_REJECT]": {
+      "baseline_count": 0,
+      "candidate_count": 0,
+      "equal": true,
+      "baseline_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "candidate_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "[P3M2][DECISION_FINAL]": {
+      "baseline_count": 523,
+      "candidate_count": 523,
+      "equal": true,
+      "baseline_sha": "BFCB9A7C0CC61FE4B8AADE3AE90448CEF5CA9AC22F94233907A1D1B244728A16",
+      "candidate_sha": "BFCB9A7C0CC61FE4B8AADE3AE90448CEF5CA9AC22F94233907A1D1B244728A16"
+    },
+    "[P3M2][EXEC]": {
+      "baseline_count": 14,
+      "candidate_count": 14,
+      "equal": true,
+      "baseline_sha": "C38E5714422B2C678EA8C390022631094415F612118E44EDB9229CD2906E9BBB",
+      "candidate_sha": "C38E5714422B2C678EA8C390022631094415F612118E44EDB9229CD2906E9BBB"
+    },
+    "[D1O][M15_D1_BLOCK]": {
+      "baseline_count": 0,
+      "candidate_count": 0,
+      "equal": true,
+      "baseline_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "candidate_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    "[D1O][M16_D1_REJECT]": {
+      "baseline_count": 0,
+      "candidate_count": 0,
+      "equal": true,
+      "baseline_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "candidate_sha": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    }
+  },
+  "authority_all_equal": true,
+  "baseline_total_trades": "14",
+  "d1tpw_managed_yes": 0,
+  "d1tpw_freeze": 0,
+  "d1tpw_checkpoint_fail": 0,
+  "fatal_runtime": {
+    "zero divide": 0,
+    "array out of range": 0,
+    "critical error": 0,
+    "unresolved stack function": 0,
+    "access violation": 0
+  },
+  "acceptance": "PASS"
+}

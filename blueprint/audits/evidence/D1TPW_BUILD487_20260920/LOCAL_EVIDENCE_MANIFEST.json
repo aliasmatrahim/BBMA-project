@@ -1,0 +1,49 @@
+{
+  "issue": 210,
+  "branch": "fix/d1tpw-checkpoint-atomicity-210",
+  "base_owner": "8da9dae0801f414f8d4c659a226ff58451cca7e6",
+  "build": "4.87",
+  "build_tag": "V487_D1TPW_CHECKPOINT_ATOMICITY_20260920",
+  "source_rev": "D1TPW_CHECKPOINT_ATOMICITY_210_20260920",
+  "classification": "OFFLINE_ENGINEERING_VALIDATION_NOT_LIVE_D1TPW_RUNTIME",
+  "files": {
+    "source_mq4": {
+      "bytes": 430053,
+      "sha256": "E66B444E66CF0F4F5A6AF9A87D5133D1F17A5F88251D1E48D8D013C0A7C74B26"
+    },
+    "compile_mq4": {
+      "bytes": 430053,
+      "sha256": "E66B444E66CF0F4F5A6AF9A87D5133D1F17A5F88251D1E48D8D013C0A7C74B26"
+    },
+    "compile_ex4": {
+      "bytes": 555832,
+      "sha256": "3ECEE2B74F30600C95F539C8B7782F43F0C4450E09A9AE025CFEE7490CF3370B"
+    },
+    "tester_mq4": {
+      "bytes": 419491,
+      "sha256": "6F3AD0746371D20B14532936C5E63BE6BB1330D4D4677BDCA2EB1DCE3E47E752"
+    },
+    "tester_ex4": {
+      "bytes": 557500,
+      "sha256": "09A90C9928ECE5ED9B892E7E1B77B69B274468EE7F4418F36691BFDD0967931C"
+    },
+    "smoke_log": {
+      "bytes": 4279152,
+      "sha256": "408F2A7D3F1431D263FC2B474FBED17ADBA6C12BE1ADDA5D648D1FCDA72FF58B"
+    },
+    "q8_baseline_log": {
+      "bytes": 4316313,
+      "sha256": "80CC6DF0CDFCCA58273C6B0B71428DD6EAF48A05998352FA4F07EED8BF8A4FF4"
+    },
+    "gvariables_pre": {
+      "bytes": 240,
+      "sha256": "DD8320C5529D41EB90F55290CBF3D5AAFE74F7A30964A647AF075DDFD7BA91A6"
+    },
+    "gvariables_restored": {
+      "bytes": 240,
+      "sha256": "DD8320C5529D41EB90F55290CBF3D5AAFE74F7A30964A647AF075DDFD7BA91A6"
+    }
+  },
+  "source_equals_compile_mq4": true,
+  "gvariables_restored_exact": true
+}

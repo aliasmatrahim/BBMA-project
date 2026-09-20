@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.8.6 - Structural Lifetime Authority Repair       |
+//| Version 4.8.7 - D1TPW Checkpoint Atomicity               |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.86"
+#property version   "4.87"
 #property strict
 
-#define BBMA_BUILD_TAG      "V486_STRUCTURAL_LIFETIME_20260917"
-#define BBMA_SOURCE_REV_TAG "Q5_STRUCTURAL_LIFETIME_173_20260917"
+#define BBMA_BUILD_TAG      "V487_D1TPW_CHECKPOINT_ATOMICITY_20260920"
+#define BBMA_SOURCE_REV_TAG "D1TPW_CHECKPOINT_ATOMICITY_210_20260920"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -8374,7 +8374,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=4.86 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=4.87 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -8749,24 +8749,59 @@ string D1TPWCheckpointBase(TradeInfo &info)
           IntegerToString(InstanceID) + "|T" + IntegerToString(info.ticket) + "|";
 }
 
-bool D1TPWCheckpointExists(TradeInfo &info)
+bool DeleteTerminalGlobalExact(string key)
 {
-   if(info.ticket <= 0) return false;
+   if(!GlobalVariableCheck(key)) return true;
+   ResetLastError();
+   if(!GlobalVariableDel(key)) return false;
+   return !GlobalVariableCheck(key);
+}
+
+bool SetTerminalGlobalExact(string key, double value)
+{
+   ResetLastError();
+   if(GlobalVariableSet(key, value) == 0) return false;
+   if(!GlobalVariableCheck(key)) return false;
+   return (GlobalVariableGet(key) == value);
+}
+
+bool D1TPWGenerationPayloadExists(TradeInfo &info, double generation)
+{
+   if(info.ticket <= 0 || generation <= 0.0) return false;
    string base = D1TPWCheckpointBase(info);
+   if(!GlobalVariableCheck(base + "G") ||
+      GlobalVariableGet(base + "G") != generation)
+      return false;
    string keys[8] = {"D","X","LP","L","XL","F","OT","MG"};
    for(int i = 0; i < 8; i++)
       if(!GlobalVariableCheck(base + keys[i])) return false;
    return true;
 }
 
+bool D1TPWCheckpointExists(TradeInfo &info)
+{
+   if(info.ticket <= 0) return false;
+   string base = D1TPWCheckpointBase(info);
+   if(!GlobalVariableCheck(base + "CM")) return false;
+   double committed = GlobalVariableGet(base + "CM");
+   if(committed <= 0.0) return false;
+   return D1TPWGenerationPayloadExists(info, committed);
+}
+
 void ClearD1TPWCheckpoint(TradeInfo &info)
 {
    if(info.ticket <= 0) return;
    string base = D1TPWCheckpointBase(info);
-   string keys[8] = {"D","X","LP","L","XL","F","OT","MG"};
-   for(int i = 0; i < 8; i++)
-      if(GlobalVariableCheck(base + keys[i])) GlobalVariableDel(base + keys[i]);
+   bool cleared = DeleteTerminalGlobalExact(base + "CM");
    GlobalVariablesFlush();
+
+   string keys[10] = {"D","X","LP","L","XL","F","OT","MG","G","GN"};
+   for(int i = 0; i < 10; i++)
+      if(!DeleteTerminalGlobalExact(base + keys[i])) cleared = false;
+   GlobalVariablesFlush();
+   if(!cleared)
+      Log(DBG_ERROR, "D1TPW checkpoint clear incomplete ticket=" +
+          IntegerToString(info.ticket));
 }
 
 bool SaveD1TPWCheckpoint(TradeInfo &info)
@@ -8779,16 +8814,43 @@ bool SaveD1TPWCheckpoint(TradeInfo &info)
       return false;
 
    string base = D1TPWCheckpointBase(info);
-   GlobalVariableSet(base + "D", (double)info.direction);
-   GlobalVariableSet(base + "X", (double)info.d1_tpw_extreme_candle);
-   GlobalVariableSet(base + "LP", (double)info.d1_tpw_last_processed_d1_candle);
-   GlobalVariableSet(base + "L", info.d1_tpw_exit_latched ? 1.0 : 0.0);
-   GlobalVariableSet(base + "XL", (double)info.d1_tpw_exit_latched_candle);
-   GlobalVariableSet(base + "F", info.d1_tpw_frozen ? 1.0 : 0.0);
-   GlobalVariableSet(base + "OT", (double)info.open_time);
-   GlobalVariableSet(base + "MG", (double)info.magic_number);
+
+   // Generation-atomic checkpoint replacement: invalidate the old commit marker
+   // before mutating payload and publish the new commit marker last.
+   if(!DeleteTerminalGlobalExact(base + "CM")) return false;
    GlobalVariablesFlush();
-   return D1TPWCheckpointExists(info);
+   if(GlobalVariableCheck(base + "CM")) return false;
+
+   double priorGeneration =
+      GlobalVariableCheck(base + "GN") ? GlobalVariableGet(base + "GN") : 0.0;
+   if(priorGeneration < 0.0 || priorGeneration > 9000000000000000.0)
+      priorGeneration = 0.0;
+   double generation = MathFloor(priorGeneration) + 1.0;
+
+   if(!SetTerminalGlobalExact(base + "GN", generation)) return false;
+   if(!SetTerminalGlobalExact(base + "D", (double)info.direction)) return false;
+   if(!SetTerminalGlobalExact(base + "X", (double)info.d1_tpw_extreme_candle)) return false;
+   if(!SetTerminalGlobalExact(base + "LP",
+                              (double)info.d1_tpw_last_processed_d1_candle)) return false;
+   if(!SetTerminalGlobalExact(base + "L",
+                              info.d1_tpw_exit_latched ? 1.0 : 0.0)) return false;
+   if(!SetTerminalGlobalExact(base + "XL",
+                              (double)info.d1_tpw_exit_latched_candle)) return false;
+   if(!SetTerminalGlobalExact(base + "F",
+                              info.d1_tpw_frozen ? 1.0 : 0.0)) return false;
+   if(!SetTerminalGlobalExact(base + "OT", (double)info.open_time)) return false;
+   if(!SetTerminalGlobalExact(base + "MG", (double)info.magic_number)) return false;
+   if(!SetTerminalGlobalExact(base + "G", generation)) return false;
+   GlobalVariablesFlush();
+
+   if(!D1TPWGenerationPayloadExists(info, generation))
+      return false;
+
+   if(!SetTerminalGlobalExact(base + "CM", generation)) return false;
+   GlobalVariablesFlush();
+   return (D1TPWCheckpointExists(info) &&
+           GlobalVariableGet(base + "CM") == generation &&
+           GlobalVariableGet(base + "G") == generation);
 }
 
 bool LoadD1TPWCheckpoint(TradeInfo &info)
@@ -8797,6 +8859,7 @@ bool LoadD1TPWCheckpoint(TradeInfo &info)
    if(!D1TPWCheckpointExists(info)) return false;
 
    string base = D1TPWCheckpointBase(info);
+   double committedGeneration = GlobalVariableGet(base + "CM");
    ENUM_DIRECTION direction = (ENUM_DIRECTION)((int)GlobalVariableGet(base + "D"));
    datetime extremeCandle = (datetime)((int)GlobalVariableGet(base + "X"));
    datetime lastProcessed = (datetime)((int)GlobalVariableGet(base + "LP"));
@@ -8812,11 +8875,21 @@ bool LoadD1TPWCheckpoint(TradeInfo &info)
       (!latched && exitCandle != 0))
       return false;
 
+   if(!GlobalVariableCheck(base + "CM") || !GlobalVariableCheck(base + "G") ||
+      GlobalVariableGet(base + "CM") != committedGeneration ||
+      GlobalVariableGet(base + "G") != committedGeneration)
+      return false;
+
    int extremeShift = iBarShift(info.pair, PERIOD_D1, extremeCandle, true);
    int cursorShift = iBarShift(info.pair, PERIOD_D1, lastProcessed, true);
    if(extremeShift < 1 || cursorShift < 1 ||
       iTime(info.pair, PERIOD_D1, extremeShift) != extremeCandle ||
       iTime(info.pair, PERIOD_D1, cursorShift) != lastProcessed)
+      return false;
+
+   if(!GlobalVariableCheck(base + "CM") || !GlobalVariableCheck(base + "G") ||
+      GlobalVariableGet(base + "CM") != committedGeneration ||
+      GlobalVariableGet(base + "G") != committedGeneration)
       return false;
 
    ResetD1TPWTradeState(info);
@@ -8999,18 +9072,12 @@ string C044ReplayGVKey(string base, string group, int index)
 
 bool C044DeleteGVExact(string key)
 {
-   if(!GlobalVariableCheck(key)) return true;
-   ResetLastError();
-   if(!GlobalVariableDel(key)) return false;
-   return !GlobalVariableCheck(key);
+   return DeleteTerminalGlobalExact(key);
 }
 
 bool C044SetGVExact(string key, double value)
 {
-   ResetLastError();
-   if(GlobalVariableSet(key, value) == 0) return false;
-   if(!GlobalVariableCheck(key)) return false;
-   return (GlobalVariableGet(key) == value);
+   return SetTerminalGlobalExact(key, value);
 }
 
 bool C044ReplayPayloadAbsent(string base)

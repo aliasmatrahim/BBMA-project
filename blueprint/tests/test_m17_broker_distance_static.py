@@ -60,6 +60,11 @@ def main():
     assert "decision.StopLoss =" not in helper
     assert "decision.TakeProfit =" not in helper
 
+    # Legacy live-price helpers had no callers and must not coexist with
+    # the frozen-snapshot authority introduced by #216.
+    assert "bool ValidateStopLevel(" not in SRC
+    assert "bool ValidateFreezeLevel(" not in SRC
+
     # Single broker execution authority remains unchanged.
     assert SRC.count("OrderSend(") == 1
     print("M17_BROKER_DISTANCE_STATIC=PASS")

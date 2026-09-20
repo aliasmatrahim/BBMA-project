@@ -38,6 +38,12 @@ Persistence:
 - legacy Build 4.95 durable CONTINUATION loads fail-closed as UNRESOLVED;
 - FIRST / NEW_JOURNEY durable attribution remains research-only and does not alter trade recovery.
 
+Environment restoration:
+- OfflineDiag pre-P11 GlobalVariables backup SHA-256 = `DD8320C5529D41EB90F55290CBF3D5AAFE74F7A30964A647AF075DDFD7BA91A6`;
+- post-test `profiles/gvariables.dat` was explicitly restored from that backup;
+- fresh post-restore SHA-256 = `DD8320C5529D41EB90F55290CBF3D5AAFE74F7A30964A647AF075DDFD7BA91A6`;
+- no Q9 terminal/process remained active after restoration; Q3 isolated C10 PID 13064 remained untouched.
+
 No merge.
 No production activation.
 No P2 activation.

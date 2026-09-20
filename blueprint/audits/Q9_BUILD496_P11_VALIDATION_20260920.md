@@ -95,9 +95,18 @@ Persistence hardening:
 
 Build 4.95 P11 evidence is historical/superseded for lineage classification semantics. It remains useful as provenance for the discovered cross-contract mismatch but must not be used as accepted P11 classification evidence.
 
+## Environment restoration
+
+OfflineDiag GlobalVariables were restored after the final tester runs:
+- pre-P11 backup SHA-256: `DD8320C5529D41EB90F55290CBF3D5AAFE74F7A30964A647AF075DDFD7BA91A6`;
+- fresh post-restore `profiles/gvariables.dat` SHA-256: `DD8320C5529D41EB90F55290CBF3D5AAFE74F7A30964A647AF075DDFD7BA91A6`;
+- byte identity: PASS.
+
+No Q9 Strategy Tester process remained active after restoration.
+
 ## Runtime boundary
 
-No live-terminal/OnTimer verification is claimed from Strategy Tester evidence. The existing Q3 isolated C10 terminal was not restarted or modified.
+No live-terminal/OnTimer verification is claimed from Strategy Tester evidence. The existing Q3 isolated C10 terminal PID 13064 was not restarted or modified.
 
 ## Result
 

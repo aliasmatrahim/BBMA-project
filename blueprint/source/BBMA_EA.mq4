@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.8.6 - Structural Lifetime Authority Repair       |
+//| Version 4.9.8 - D1O EXTREME_TPW Identity Enrichment        |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.86"
+#property version   "4.98"
 #property strict
 
-#define BBMA_BUILD_TAG      "V486_STRUCTURAL_LIFETIME_20260917"
-#define BBMA_SOURCE_REV_TAG "Q5_STRUCTURAL_LIFETIME_173_20260917"
+#define BBMA_BUILD_TAG      "V498_D1O_EXTREME_TPW_IDENTITY_ENRICHMENT_20260920"
+#define BBMA_SOURCE_REV_TAG "D1O_EXTREME_TPW_IDENTITY_ENRICHMENT_214_20260920"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -5781,6 +5781,54 @@ bool ResolveSelectedSLTPSourceComponent(ValidatedSequenceCandidate &selected,
    return false;
 }
 
+bool IsExactExtremeTPWIdentityEnrichmentPair(ValidatedSequenceCandidate &a,
+                                             ValidatedSequenceCandidate &b)
+{
+   if(a.SequenceType != SIGNAL_RE_ENTRY || b.SequenceType != SIGNAL_RE_ENTRY)
+      return false;
+   if(a.Direction != b.Direction ||
+      (a.Direction != DIR_BUY && a.Direction != DIR_SELL))
+      return false;
+   if(a.SequenceHash == "" || a.SequenceHash != b.SequenceHash)
+      return false;
+
+   datetime aAnchor = GetCandidateAnchorTime(a);
+   datetime bAnchor = GetCandidateAnchorTime(b);
+   if(aAnchor <= 0 || aAnchor != bAnchor) return false;
+   if(a.SequenceStartTime <= 0 || a.SequenceStartTime != b.SequenceStartTime)
+      return false;
+
+   bool aHasH1Identity = false;
+   bool bHasH1Identity = false;
+   for(int i = 0; i < a.ComponentCount && i < 3; i++)
+   {
+      if(a.Components[i].ComponentType == SIGNAL_RE_ENTRY &&
+         a.Components[i].Direction == a.Direction &&
+         a.Components[i].Timeframe == PERIOD_H1 &&
+         a.Components[i].CandleTime == aAnchor)
+         aHasH1Identity = true;
+   }
+   for(int j = 0; j < b.ComponentCount && j < 3; j++)
+   {
+      if(b.Components[j].ComponentType == SIGNAL_RE_ENTRY &&
+         b.Components[j].Direction == b.Direction &&
+         b.Components[j].Timeframe == PERIOD_H1 &&
+         b.Components[j].CandleTime == bAnchor)
+         bHasH1Identity = true;
+   }
+   if(!aHasH1Identity || !bHasH1Identity) return false;
+
+   bool aExtremeTPW = (a.UsesD1Opportunity &&
+                       a.D1OpportunityFamily == D1_OPP_EXTREME_TPW);
+   bool bExtremeTPW = (b.UsesD1Opportunity &&
+                       b.D1OpportunityFamily == D1_OPP_EXTREME_TPW);
+   bool aStandalone = !a.UsesD1Opportunity;
+   bool bStandalone = !b.UsesD1Opportunity;
+
+   return ((aExtremeTPW && bStandalone) ||
+           (bExtremeTPW && aStandalone));
+}
+
 int CompareCanonicalCandidates(ValidatedSequenceCandidate &a,
                                ValidatedSequenceCandidate &b)
 {
@@ -5794,6 +5842,21 @@ int CompareCanonicalCandidates(ValidatedSequenceCandidate &a,
 
    if(a.SequenceHash > b.SequenceHash) return 1;
    if(a.SequenceHash < b.SequenceHash) return -1;
+
+   // #214: exact same H1 Re-Entry identity is one executable identity.
+   // Only the specific EXTREME_TPW overlap enriches that identity with
+   // D1 TP-Wajib attribution/lifecycle semantics. This is not generic
+   // D1 Opportunity precedence.
+   if(IsExactExtremeTPWIdentityEnrichmentPair(a, b))
+   {
+      bool aExtremeTPW = (a.UsesD1Opportunity &&
+                          a.D1OpportunityFamily == D1_OPP_EXTREME_TPW);
+      bool bExtremeTPW = (b.UsesD1Opportunity &&
+                          b.D1OpportunityFamily == D1_OPP_EXTREME_TPW);
+      if(aExtremeTPW && !bExtremeTPW) return 1;
+      if(bExtremeTPW && !aExtremeTPW) return -1;
+   }
+
    return 0;
 }
 
@@ -8374,7 +8437,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=4.86 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=4.98 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);

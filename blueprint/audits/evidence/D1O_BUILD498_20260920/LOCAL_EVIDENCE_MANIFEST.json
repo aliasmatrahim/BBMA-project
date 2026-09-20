@@ -1,0 +1,35 @@
+{
+  "issue": 214,
+  "branch": "fix/d1o-extreme-tpw-same-identity-precedence-214",
+  "base_owner": "8da9dae0801f414f8d4c659a226ff58451cca7e6",
+  "build": "4.98",
+  "build_tag": "V498_D1O_EXTREME_TPW_IDENTITY_ENRICHMENT_20260920",
+  "source_rev": "D1O_EXTREME_TPW_IDENTITY_ENRICHMENT_214_20260920",
+  "classification": "SCOPED_STRATEGY_SEMANTIC_FIX_OFFLINE_VALIDATED_NOT_LIVE_OVERLAP_RUNTIME_PROOF",
+  "source_mq4": {
+    "bytes": 429868,
+    "sha256": "67B1D8861E013C7DFDD2579C3CFD5AD1431439027B6DCC8CC3A49651FD883ADF"
+  },
+  "compile_ex4": {
+    "bytes": 553612,
+    "sha256": "5F157D9BE81430238818BAAF13C978EF6F80D17B8BFC88A39F1C790879862413"
+  },
+  "tester_mq4": {
+    "bytes": 419310,
+    "sha256": "CDA6E020637BE49B14CD3A8C50493C4A64593BC2F498624FE627E047DF2D454A"
+  },
+  "tester_ex4": {
+    "bytes": 555028,
+    "sha256": "2896F482F3D6443E6CE4999E8213F3AE7B27C8F61F3AEDB778E433DE08E5CCCE"
+  },  "smoke_log": {
+    "bytes": 4241998,
+    "sha256": "3F46A62DC33D7187E5039528038692B07DE3D7D7905D3E4A6C39394849D3C212"
+  },
+  "gvariables_pre_and_restored": {
+    "bytes": 240,
+    "sha256": "DD8320C5529D41EB90F55290CBF3D5AAFE74F7A30964A647AF075DDFD7BA91A6"
+  },
+  "q9_compare_canonical_candidates_prepatch_equal_to_owner": true,
+  "source_equals_compile_input": true,
+  "gvariables_restored_exact": true
+}

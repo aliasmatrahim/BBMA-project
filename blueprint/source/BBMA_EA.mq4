@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.8.6 - Structural Lifetime Authority Repair       |
+//| Version 4.9.7 - C044 Fail-Frozen Recovery                 |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.86"
+#property version   "4.97"
 #property strict
 
-#define BBMA_BUILD_TAG      "V486_STRUCTURAL_LIFETIME_20260917"
-#define BBMA_SOURCE_REV_TAG "Q5_STRUCTURAL_LIFETIME_173_20260917"
+#define BBMA_BUILD_TAG      "V497_C044_FAIL_FROZEN_RECOVERY_20260920"
+#define BBMA_SOURCE_REV_TAG "C044_FAIL_FROZEN_RECOVERY_212_20260920"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -8374,7 +8374,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=4.86 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=4.97 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -9380,11 +9380,18 @@ bool LoadC044Checkpoint(TradeInfo &info)
       info.c044_replay_seed_valid = false;
       return true;
    }
-   if(!LoadC044ReplaySeed(info, committedGeneration)) return false;
+   if(!LoadC044ReplaySeed(info, committedGeneration))
+   {
+      ResetC044TradeState(info);
+      return false;
+   }
    if(!GlobalVariableCheck(base + "CM") || !GlobalVariableCheck(base + "G") ||
       GlobalVariableGet(base + "CM") != committedGeneration ||
       GlobalVariableGet(base + "G") != committedGeneration)
+   {
+      ResetC044TradeState(info);
       return false;
+   }
    return true;
 }
 

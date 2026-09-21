@@ -1,0 +1,31 @@
+﻿> py -3.12 blueprint\tests\test_d1tpw_generation_atomicity.py
+D1TPW_GENERATION_MODEL=PASS failure_points=12
+> py -3.12 blueprint\tests\test_d1tpw_checkpoint_atomicity_static.py
+D1TPW_CHECKPOINT_ATOMICITY_STATIC=PASS
+> py -3.12 blueprint\tests\compare_d1tpw_486_487_protected.py D:\BBMA\Temp\owner486.mq4 blueprint\source\BBMA_EA.mq4
+bool IsD1TPWCompletionAtShift 93a561b96110c15c
+bool D1OpportunityTPWCompletedSince 889375017d04c056
+void UpdateD1OpportunityJourney 19a1ad5ef7beb0a4
+void BuildD1OpportunityCandidate 58b3c5a6a214b8e4
+bool IsD1TPWLifecycleIdentity 847e60c1b996035a
+bool ResolveApprovedInitialSLTP 5c093b38174653e5
+bool ValidateDecisionD1OpportunitySnapshot bc23d5f95506914b
+void InvalidationEngine_Atomic 72aa5de85fb747e7
+bool ProcessD1TPWClosedCandle f17a3fb4d740738f
+bool AdvanceD1TPWLifecycleForTrade 4709b284ac5d099d
+void AdvanceD1TPWLifecycleForPair f6bfb2fbf6822293
+bool ExecuteLatchedD1TPWClose 913ae4529103007a
+void ManagePositions c2bed365ef309305
+bool InitializeD1TPWTradeStateFromDecision 4a57666a1d7d2dca
+bool C044CheckpointExists 9af61925141092cf
+bool SaveC044ReplaySeed eac2d727c3a66a2e
+bool LoadC044ReplaySeed 1de2b00d1adc57c0
+bool SaveC044Checkpoint 5be128283051a77f
+bool LoadC044Checkpoint 54610f6a46086973
+RiskStatus CheckRiskBeforeTrade 5806b1e22ae89609
+bool RunEntryPreflightAndExecute ae7eae85403777fc
+int SendOrderWithRetry 9c10592790d30497
+D1TPW_486_487_PROTECTED=PASS
+> py -3.12 blueprint\tests\test_c044_generation_atomicity.py
+C044_GENERATION_MODEL=PASS normal_ops=145 frozen_ops=85 normal_failure_points=145 frozen_failure_points=85
+> py -3.12 blueprint\tests\test_v482_f7_source_guards.py

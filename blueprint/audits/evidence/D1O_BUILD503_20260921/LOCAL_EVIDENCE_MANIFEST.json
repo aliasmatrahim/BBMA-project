@@ -1,0 +1,51 @@
+{
+  "issue": 214,
+  "recovery_source_pr": 215,
+  "recovery_source_head": "7e8f819566f972a99a207cdd9849fbe770d26a3e",
+  "branch": "fix/d1o-extreme-tpw-current-owner-214",
+  "base_owner": "e6ff0beff00af239964494d65ae19c831376d9a7",
+  "build": "5.03",
+  "build_tag": "V503_D1O_EXTREME_TPW_IDENTITY_ENRICHMENT_20260921",
+  "source_rev": "D1O_EXTREME_TPW_IDENTITY_ENRICHMENT_214_20260921",
+  "classification": "SCOPED_STRATEGY_SEMANTIC_FIX_CURRENT_OWNER_OFFLINE_VALIDATED_NOT_LIVE_OVERLAP_RUNTIME_PROOF",
+  "source_mq4": {
+    "bytes": 433270,
+    "sha256": "FABBB87A8D1AC0F8A3E924A15D98E078D8BDED12C55809AE9F1A062EC70A33F5"
+  },
+  "compile_input_matches_source": true,
+  "compile_ex4": {
+    "bytes": 559330,
+    "sha256": "2FB71DD42CDC6023AC6C828B91962D66FCBBE7B93E668F14F23BD70CC36EF1A4"
+  },
+  "tester_mq4": {
+    "bytes": 422617,
+    "sha256": "A0737B3DE56A88FCC581FBED3D7EAA4DE44163BA2A9ECC10845739EBE7A7B504"
+  },
+  "tester_ex4": {
+    "bytes": 560392,
+    "sha256": "A679029434EBCB0734A6C313550D1BA724A79B81355A6590B68DD64A82F2E002"
+  },
+  "smoke_log": {
+    "bytes": 4241796,
+    "sha256": "083C64917A0F7D059916B63F1934FDA2E39401F51FBD120A0EA668067DA26178"
+  },
+  "current_owner_smoke_baseline": {
+    "build": "5.02",
+    "bytes": 4260361,
+    "sha256": "E277F351D437083392EF76548284B45EC7D95437A0021796E246692731F1678B"
+  },
+  "gvariables_pre_and_restored": {
+    "bytes": 240,
+    "sha256": "DD8320C5529D41EB90F55290CBF3D5AAFE74F7A30964A647AF075DDFD7BA91A6"
+  },
+  "targeted_regression": "PASS",
+  "full_pytest": "22 passed",
+  "native_compile": "0 errors, 0 warnings",
+  "tester_compile": "0 errors, 0 warnings",
+  "tester_adapter_exact": true,
+  "protected_current_owner_bodies_exact": true,
+  "offline_smoke_matches_current_owner": true,
+  "gvariables_restored_exact": true,
+  "broker_live_demo_runtime_run": false,
+  "primary_mt4_restarted_or_modified": false
+}

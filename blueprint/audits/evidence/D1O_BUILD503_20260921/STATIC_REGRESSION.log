@@ -1,0 +1,59 @@
+> py -3.12 blueprint\tests\test_d1o_extreme_tpw_same_identity_precedence_model.py
+D1O_EXTREME_TPW_PRECEDENCE_MODEL=PASS
+> py -3.12 blueprint\tests\test_d1o_extreme_tpw_same_identity_precedence_static.py
+D1O_EXTREME_TPW_PRECEDENCE_STATIC=PASS
+> py -3.12 blueprint\tests\test_d1o_execution_identity_contract.py
+D1O execution identity contract drift guard: PASS
+> py -3.12 blueprint\tests\test_d1o_canonical_dedup_log_analyzer.py
+D1O-09 canonical dedup analyzer synthetic self-test: PASS
+> py -3.12 blueprint\tests\test_m19_owned_risk_aggregation_model.py
+M19_OWNED_RISK_AGGREGATION_MODEL=PASS
+> py -3.12 blueprint\tests\test_m19_owned_risk_aggregation_static.py
+M19_OWNED_RISK_AGGREGATION_STATIC=PASS
+> py -3.12 blueprint\tests\test_d1tpw_generation_atomicity.py
+D1TPW_GENERATION_MODEL=PASS failure_points=12
+> py -3.12 blueprint\tests\test_d1tpw_checkpoint_atomicity_static.py
+D1TPW_CHECKPOINT_ATOMICITY_STATIC=PASS
+> py -3.12 blueprint\tests\test_c044_generation_atomicity.py
+C044_GENERATION_MODEL=PASS normal_ops=145 frozen_ops=85 normal_failure_points=145 frozen_failure_points=85
+> py -3.12 blueprint\tests\test_c044_recovery_transaction_model.py
+C044_RECOVERY_TRANSACTION_MODEL=PASS
+> py -3.12 blueprint\tests\test_c044_fail_frozen_recovery_static.py
+C044_FAIL_FROZEN_RECOVERY_STATIC=PASS
+> py -3.12 blueprint\tests\test_v482_f7_source_guards.py
+> py -3.12 blueprint\tests\compare_d1o_current_owner_503_protected.py D:\BBMA\Temp\owner502_for_d1o503.mq4 blueprint\source\BBMA_EA.mq4
+string GenerateDecisionID 6379623d4045971a
+bool IsDecisionExecuted 31a178add946fd42
+void BuildConfirmedReEntryCandidate f83d269f2624692b
+void BuildD1OpportunityCandidate 58b3c5a6a214b8e4
+datetime GetCandidateAnchorTime 4bcabd5e9994aa98
+bool ResolveSelectedSLTPSourceComponent c1cead173c4db5de
+bool IsD1OpportunityCandidateAuthorityReady 1554539ecc4c6f9f
+bool FreezeD1OpportunitySnapshot eb18b2750431808c
+void PriorityEngine_Atomic 980b71b42301bbf9
+bool ValidateDecisionD1OpportunitySnapshot bc23d5f95506914b
+void BuildRiskValidationSnapshot 85ef50289190747a
+bool ValidateFrozenBrokerDistanceGeometry c2be4c0f4165afdf
+bool ValidateSLTP fb16feabf89f3c53
+double CalculateBasketLossPercent_EA a296e90226e84cb5
+double CalculateTotalRisk dc69e35bb2bff22b
+bool IsD1TPWLifecycleIdentity 847e60c1b996035a
+bool DeleteTerminalGlobalExact a616992daf6217c5
+bool SetTerminalGlobalExact 39c164a56cf503ed
+bool D1TPWGenerationPayloadExists 31e266bf2e1c7bc0
+bool D1TPWCheckpointExists b68c89b8ae585bd7
+void ClearD1TPWCheckpoint 575c78402ca5885b
+bool SaveD1TPWCheckpoint cca130487e7826d1
+bool LoadD1TPWCheckpoint ef79558f6278947c
+bool IsF7LifecycleIdentity 97e5dc69faaa8c51
+bool C044DeleteGVExact 3b65aa7ed6c1e553
+bool C044SetGVExact b31b3a571c51bbfd
+bool LoadC044Checkpoint 524521de7c6c7f26
+bool ResolveApprovedInitialSLTP 5c093b38174653e5
+RiskStatus CheckRiskBeforeTrade 5806b1e22ae89609
+int FindExistingExecutionTicket c06c2d353372722f
+int SendOrderWithRetry 9c10592790d30497
+void RecoverExistingOrders 339004bed63059cb
+D1O_CURRENT_OWNER_503_PROTECTED=PASS
+> git diff --check
+D1O503_TARGETED_REGRESSION=PASS

@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 4.9.9 - M17 Broker Distance Guards                 |
+//| Version 5.0.0 - M19 Owned Risk Aggregation                 |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "4.99"
+#property version   "5.00"
 #property strict
 
-#define BBMA_BUILD_TAG      "V499_M17_BROKER_DISTANCE_GUARDS_20260921"
-#define BBMA_SOURCE_REV_TAG "M17_BROKER_DISTANCE_GUARDS_216_20260921"
+#define BBMA_BUILD_TAG      "V500_M19_OWNED_RISK_AGGREGATION_20260921"
+#define BBMA_SOURCE_REV_TAG "M19_OWNED_RISK_AGGREGATION_218_20260921"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -6945,6 +6945,7 @@ double CalculateBasketLossPercent_EA()
    
    for(int i = 0; i < g_monitored_count; i++)
    {
+      if(!IsLiveEAOwnedPortfolioTrade(i)) continue;
       if(OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))
       {
          if(OrderCloseTime() != 0) continue;
@@ -6966,6 +6967,7 @@ double CalculateTotalRisk(string pair, double newLot, double newEntry, double ne
 
    for(int i = 0; i < g_monitored_count; i++)
    {
+      if(!IsLiveEAOwnedPortfolioTrade(i)) continue;
       ResetLastError();
       if(!OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))
       {

@@ -19,11 +19,8 @@ def body(signature):
 
 
 def main():
+    # C044 must survive later EA build-identity changes unchanged.
     for marker in (
-        "Version 5.0.2 - C044 Fail-Frozen Recovery",
-        '#property version   "5.02"',
-        "V502_C044_FAIL_FROZEN_RECOVERY_20260921",
-        "C044_FAIL_FROZEN_RECOVERY_221_20260921",
         "EnableC044Lifecycle                = true;",
     ):
         assert marker in SRC, marker

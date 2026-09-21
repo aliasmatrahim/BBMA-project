@@ -35,8 +35,7 @@ def main():
 
     helper = body("bool ValidateFrozenBrokerDistanceGeometry(")
     for marker in (
-        "snapshot.Bid",
-        "snapshot.Ask",
+        "GetDirectionalClosePrice(snapshot, decision.Direction)",
         "snapshot.StopLevel",
         "snapshot.FreezeLevel",
         "MathMax(stopDistance, freezeDistance)",
@@ -47,6 +46,11 @@ def main():
     ):
         assert marker in helper, marker
     assert "MarketInfo(" not in helper
+
+    close_price = body("double GetDirectionalClosePrice(")
+    assert "if(direction == DIR_BUY) return snapshot.Bid;" in close_price
+    assert "if(direction == DIR_SELL) return snapshot.Ask;" in close_price
+    assert "MarketInfo(" not in close_price
 
     validate = body("bool ValidateSLTP(")
     assert "if(MinRRRatio > 0.0)" in validate

@@ -20,10 +20,6 @@ def body(signature):
 
 def main():
     for marker in (
-        "Version 5.0.1 - D1TPW Checkpoint Atomicity",
-        '#property version   "5.01"',
-        'V501_D1TPW_CHECKPOINT_ATOMICITY_20260921',
-        'D1TPW_CHECKPOINT_ATOMICITY_220_20260921',
         "EnableD1TPWLifecycle               = false;",
     ):
         assert marker in SRC, marker

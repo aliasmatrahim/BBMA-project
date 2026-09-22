@@ -1,0 +1,21 @@
+﻿{
+    "normal_log_sha256":  "2D11F781C8F4848C2BD778BEE14FBA33615436A299CE7D32E2E43C11237135A0",
+    "normal_log_bytes":  4353292,
+    "normal_report_sha256":  "65E4B759495D63DF9EFD52B40A8EE6384463AD8F692ED1FCE82414B5EB1E60B6",
+    "normal_report_bytes":  14206,
+    "normal_gv_pre_sha256":  "DD8320C5529D41EB90F55290CBF3D5AAFE74F7A30964A647AF075DDFD7BA91A6",
+    "closed_log_sha256":  "F8109BFD5BB29DC2C326704C1689CA46CE97FB2D575C035C2D862A6B722559FF",
+    "closed_log_bytes":  4350142,
+    "closed_report_sha256":  "14A0DEF8F8D16D585B6A066B9283768BA1C8CCB892C88934CCE81DE885C548F2",
+    "closed_report_bytes":  14205,
+    "closed_gv_pre_sha256":  "DD8320C5529D41EB90F55290CBF3D5AAFE74F7A30964A647AF075DDFD7BA91A6",
+    "current_gv_sha256":  "DD8320C5529D41EB90F55290CBF3D5AAFE74F7A30964A647AF075DDFD7BA91A6",
+    "current_gv_bytes":  240,
+    "baseline_506_log_sha256":  "6E7AE588C66B66C193AC347B2A86DF898E01D929A6360B8539C78B91548C7B78",
+    "baseline_506_report_present":  false,
+    "terminal_process_count":  1,
+    "terminal_pids":  [
+                          13064
+                      ],
+    "primary_13064_present":  true
+}

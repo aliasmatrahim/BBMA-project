@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.0.6 - Selection Uncertainty Fail-Closed            |
+//| Version 5.0.7 - N2 F07 Closed-Outcome Provenance Bridge      |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.06"
+#property version   "5.07"
 #property strict
 
-#define BBMA_BUILD_TAG      "V506_F05_SELECTION_UNCERTAINTY_FAIL_CLOSED_20260922"
-#define BBMA_SOURCE_REV_TAG "F05_SELECTION_UNCERTAINTY_FAIL_CLOSED_226_20260922"
+#define BBMA_BUILD_TAG      "V507_N2_F07_CLOSED_OUTCOME_BRIDGE_20260922"
+#define BBMA_SOURCE_REV_TAG "N2_F07_CLOSED_OUTCOME_BRIDGE_229_20260922"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -8189,10 +8189,28 @@ bool ReconcileExecutionAmbiguityHold()
 
    string pair = g_execution_ambiguity.Pair;
    string executionHash = g_execution_ambiguity.ExecutionHash;
+   string decisionID = g_execution_ambiguity.DecisionID;
+   int magicNumber = g_execution_ambiguity.MagicNumber;
    if(!ClearExecutionAmbiguityHold())
    {
       Log(DBG_ERROR, "F07 ambiguity resolved but HOLD persistence cleanup failed");
       return false;
+   }
+
+   if(!isOpen)
+   {
+      // AdoptAmbiguousExecutionTicket() already selected and identity-validated
+      // this exact closed ticket. ClearExecutionAmbiguityHold() performs only
+      // terminal-GV cleanup, so the selected closed order remains authoritative.
+      TradeInfo outcomeInfo;
+      ZeroMemory(outcomeInfo);
+      outcomeInfo.ticket = ticket;
+      outcomeInfo.magic_number = magicNumber;
+      outcomeInfo.pair = pair;
+      outcomeInfo.decision_id = decisionID;
+      outcomeInfo.execution_hash = executionHash;
+      outcomeInfo.recovery_state = REC_AMBIGUOUS_EXECUTION_FROZEN;
+      NMJE_PrintClosedOutcomeShadow(outcomeInfo);
    }
 
    Print("[F07][AMBIGUITY_HOLD_CLEARED] Pair=", pair,
@@ -8886,7 +8904,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.06 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.07 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);

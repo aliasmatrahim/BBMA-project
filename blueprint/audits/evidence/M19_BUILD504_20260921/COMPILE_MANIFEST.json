@@ -1,0 +1,22 @@
+{
+  "D:\\BBMA\\Workspace\\m19-selection-failclosed-101\\blueprint\\source\\BBMA_EA.mq4": {
+    "sha256": "7d1e8d270729bd90ae737a314741d100df5de6f69a5cc10566255a793f21ea9d",
+    "bytes": 433678
+  },
+  "D:\\BBMA\\Compile\\M19_504_101\\BBMA_EA.mq4": {
+    "sha256": "7d1e8d270729bd90ae737a314741d100df5de6f69a5cc10566255a793f21ea9d",
+    "bytes": 433678
+  },
+  "D:\\BBMA\\Compile\\M19_504_101\\BBMA_EA.ex4": {
+    "sha256": "a3884751d1afd5b04cbdd7906968a642aba5783a203988a2c4e752f041b52de9",
+    "bytes": 559890
+  },
+  "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\MQL4\\Experts\\BBMA_EA_M19_504_GBPUSD_HARNESS.mq4": {
+    "sha256": "895c4407d8cee7ea2a2b92537bf2f353854ba85d21ac00b4b3f094e35bd87a57",
+    "bytes": 423016
+  },
+  "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\MQL4\\Experts\\BBMA_EA_M19_504_GBPUSD_HARNESS.ex4": {
+    "sha256": "92e92252cd20c2d91b7737a9f2d7e7dc745efa814437fe4f180f0590c046d45b",
+    "bytes": 563728
+  }
+}

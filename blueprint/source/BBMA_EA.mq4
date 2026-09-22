@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.0.3 - D1O EXTREME_TPW Identity Enrichment      |
+//| Version 5.0.4 - M19 Selection Failure Fail-Closed      |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.03"
+#property version   "5.04"
 #property strict
 
-#define BBMA_BUILD_TAG      "V503_D1O_EXTREME_TPW_IDENTITY_ENRICHMENT_20260921"
-#define BBMA_SOURCE_REV_TAG "D1O_EXTREME_TPW_IDENTITY_ENRICHMENT_214_20260921"
+#define BBMA_BUILD_TAG      "V504_M19_SELECTION_FAIL_CLOSED_20260921"
+#define BBMA_SOURCE_REV_TAG "M19_SELECTION_FAIL_CLOSED_101_20260921"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -7030,7 +7030,6 @@ double CalculateTotalRisk(string pair, double newLot, double newEntry, double ne
 
    for(int i = 0; i < g_monitored_count; i++)
    {
-      if(!IsLiveEAOwnedPortfolioTrade(i)) continue;
       ResetLastError();
       if(!OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))
       {
@@ -7038,6 +7037,16 @@ double CalculateTotalRisk(string pair, double newLot, double newEntry, double ne
          return 0;
       }
       if(OrderCloseTime() != 0)
+         continue;
+
+      // Apply the existing ownership predicate to this selected order.
+      // The boolean portfolio helper reselects and hides selection failure.
+      int pairIdx = FindPairStateIndex(g_monitored_trades[i].pair);
+      if(pairIdx < 0) continue;
+      int expectedMagic = g_pair_states[pairIdx].magic_number;
+      if(expectedMagic <= 0 ||
+         g_monitored_trades[i].magic_number != expectedMagic ||
+         OrderMagicNumber() != expectedMagic)
          continue;
 
       if(g_monitored_trades[i].remaining_lot <= 0)
@@ -8458,7 +8467,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.03 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.04 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);

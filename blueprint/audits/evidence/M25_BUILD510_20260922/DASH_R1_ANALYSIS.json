@@ -1,0 +1,16 @@
+{
+  "snapshot_count": 1,
+  "snapshot_lines": [
+    "[M25-DASH-TEST] === BBMA EA V510_M25_DASHBOARD_BUILD_IDENTITY_20260922 === | Time: 2026.08.03 00:00 | Balance: 10000.00 | Equity: 10000.00 | Trades: 0 | Protection Ref: 10000.00 |  | --- SIGNALS --- | GBPUSD: No Signal | "
+  ],
+  "current_build_tag_count": 1,
+  "stale_literal_count": 0,
+  "fatal": {
+    "zero divide": 0,
+    "array out of range": 0,
+    "critical error": 0,
+    "access violation": 0
+  },
+  "mismatched_chart_errors": 0,
+  "acceptance": "PASS"
+}

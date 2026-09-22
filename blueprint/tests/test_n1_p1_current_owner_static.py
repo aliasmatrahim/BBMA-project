@@ -24,10 +24,10 @@ def require(text: str, *markers: str) -> None:
 def main() -> None:
     require(
         SRC,
-        "Version 5.0.9 - N2 F07 Open DecisionID Provenance",
-        '#property version   "5.09"',
-        '#define BBMA_BUILD_TAG      "V509_N2_F07_OPEN_DECISIONID_20260922"',
-        '#define BBMA_SOURCE_REV_TAG "N2_F07_OPEN_DECISIONID_233_20260922"',
+        "Version 5.1.0 - M25 Dashboard Build Identity",
+        '#property version   "5.10"',
+        '#define BBMA_BUILD_TAG      "V510_M25_DASHBOARD_BUILD_IDENTITY_20260922"',
+        '#define BBMA_SOURCE_REV_TAG "M25_DASHBOARD_BUILD_IDENTITY_235_20260922"',
         "datetime             EpochStartCandleTime;",
         "string               CanonicalEventID;",
         "string                  ParentEventID;",

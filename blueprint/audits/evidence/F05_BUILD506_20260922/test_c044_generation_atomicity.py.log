@@ -1,0 +1,1 @@
+C044_GENERATION_MODEL=PASS normal_ops=145 frozen_ops=85 normal_failure_points=145 frozen_failure_points=85

@@ -1,0 +1,28 @@
+{
+  "markers": {
+    "seeded_unknown": 1,
+    "build_marker": 1,
+    "uncertain_observation": 1,
+    "unexpected_emergency_latch": 0,
+    "m15_counts": 523,
+    "decision_final": 523,
+    "preflight_start": 523,
+    "preflight_pass": 0,
+    "exec": 0,
+    "basket_reject": 774,
+    "f07_hold": 0,
+    "init_pass": 1,
+    "deinit0": 1
+  },
+  "total_trades": "0",
+  "mismatched_chart_errors": "0",
+  "every_tick": true,
+  "fatal_runtime": {
+    "zero divide": 0,
+    "array out of range": 0,
+    "critical error": 0,
+    "unresolved stack function": 0,
+    "access violation": 0
+  },
+  "acceptance": "PASS"
+}

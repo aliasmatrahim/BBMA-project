@@ -31,7 +31,9 @@ Failure maps to `REJ_DD_LIMIT`.
 ## Basket loss
 Basket loss remains the sum of negative floating P/L (profit + swap + commission) for EA-monitored open orders divided by `g_protection_reference_equity`.
 
-Failure maps to `REJ_BASKET_LOSS`.
+A monitored-row broker selection failure is an **UNKNOWN** observation, not zero exposure and not proof that the row is closed/missing/foreign. If basket state cannot be resolved safely during pre-trade validation, M19 fails closed instead of understating floating loss.
+
+Failure, including unresolved basket observation, maps to `REJ_BASKET_LOSS`.
 
 ## Total risk
 `MaxTotalRiskPercent` is an **EA-wide prospective exposure cap**, not a same-pair cap.

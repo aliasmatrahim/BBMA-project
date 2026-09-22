@@ -33,6 +33,10 @@ def main():
          '#property version   "5.05"',
          "V505_F07_EXECUTION_AMBIGUITY_HOLD_20260922",
          "F07_EXECUTION_AMBIGUITY_HOLD_224_20260922"),
+        ("Version 5.0.6 - Selection Uncertainty Fail-Closed",
+         '#property version   "5.06"',
+         "V506_F05_SELECTION_UNCERTAINTY_FAIL_CLOSED_20260922",
+         "F05_SELECTION_UNCERTAINTY_FAIL_CLOSED_226_20260922"),
     )
     assert any(all(marker in SRC for marker in markers) for markers in identities)
 

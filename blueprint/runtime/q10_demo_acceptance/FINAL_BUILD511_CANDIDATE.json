@@ -1,0 +1,36 @@
+{
+  "schema": "BBMA_Q10_FINAL_CANDIDATE_V1",
+  "issue": 109,
+  "candidate_freeze_commit": "78ddbd771853681de6628032701eea7231e05d61",
+  "source_bearing_commit": "c1da06ea15e6cc31d097765043fba26899090b7e",
+  "build": "5.11",
+  "property_version": "5.11",
+  "build_tag": "V511_EVENT_DRIVEN_OBSERVER_20260922",
+  "source_rev_tag": "OBSERVER_EVENT_DRIVEN_237_20260922",
+  "source_path": "blueprint/source/BBMA_EA.mq4",
+  "source_sha256": "50E4A01A5768B5B5E9A80CABAE21B7260A2912AA058E67E5273386177970D038",
+  "native_ex4_sha256": "CFF8DA584C91AE177CA26E1C47518AA585A67F0E16C99295F932670E8CDEC6E1",
+  "settings_sha256": "37BC585EB3AB5A73914FEC3C532023636D4FACCD7D3AAAF20B774269CF92DA70",
+  "stage_order": [
+    "R3",
+    "R4",
+    "R5",
+    "R6"
+  ],
+  "account_policy": "DEMO_ONLY",
+  "broker_tokens": [
+    "hfm",
+    "hfmarkets",
+    "hotforex"
+  ],
+  "status_vocabulary": [
+    "PASS",
+    "FAIL",
+    "INCOMPLETE",
+    "BLOCKED"
+  ],
+  "primary_pair": "GBPUSD",
+  "primary_period": "M15",
+  "demo_probe_mq4_sha256": "97DA0293B048D6D1CADACDB0659A9A54CD61D4BA3062E7C0F4ADEDF116EB1DE6",
+  "demo_probe_ex4_sha256": "C69F5AF156AE5A3E31379F6413123B38ECF6124B56E140FCEC0422403304F8CD"
+}

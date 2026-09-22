@@ -1,0 +1,45 @@
+{
+  "candidate": {
+    "build": "5.11",
+    "build_tag": "V511_EVENT_DRIVEN_OBSERVER_20260922",
+    "freeze_commit": "78ddbd771853681de6628032701eea7231e05d61",
+    "head": "78ddbd771853681de6628032701eea7231e05d61",
+    "source_neutral_after_freeze": true,
+    "source_sha256": "50E4A01A5768B5B5E9A80CABAE21B7260A2912AA058E67E5273386177970D038",
+    "status": "PASS"
+  },
+  "candidate_manifest_sha256": "1715C8C0E914DA6FDBE99375D0905A1E0445D83494AD3F1426AE10CA8616CC7A",
+  "demo_auth": {
+    "log_path": "D:\\BBMA\\Q10_HFM_DEMO\\identity_probe.log",
+    "reason": "DEMO_LOG_MISSING",
+    "status": "BLOCKED"
+  },
+  "issue": 109,
+  "matrix_sha256": "A01BAAA524B75D73469F876B0FBA8E9933A1050AE60E662537874BD0612EFAC7",
+  "runtime_artifacts": null,
+  "schema": "BBMA_Q10_STATE_V1",
+  "stage_order": [
+    "R3",
+    "R4",
+    "R5",
+    "R6"
+  ],
+  "stages": {
+    "R3": {
+      "evidence": [],
+      "status": "INCOMPLETE"
+    },
+    "R4": {
+      "evidence": [],
+      "status": "INCOMPLETE"
+    },
+    "R5": {
+      "evidence": [],
+      "status": "INCOMPLETE"
+    },
+    "R6": {
+      "evidence": [],
+      "status": "INCOMPLETE"
+    }
+  }
+}

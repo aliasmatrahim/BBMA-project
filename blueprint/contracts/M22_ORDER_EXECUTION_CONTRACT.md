@@ -46,7 +46,22 @@ Before every send, and once immediately after an ambiguous result, M22 must reco
 
 The prefix is used because brokers/MT4 may truncate comments. Matching the entire long generated comment is unsafe.
 
-If a matching live order is found, its ticket is treated as the confirmed execution result. If no matching order is observable after an ambiguous result, M22 returns `REJ_AMBIGUOUS_RESULT` and **must not send again**. M24/recovery may reconcile an order that becomes visible later.
+If a matching live order is found, its ticket is treated as the confirmed execution result. If no matching order is observable after an ambiguous result, M22 returns `REJ_AMBIGUOUS_RESULT` and **must not send again**.
+
+### F07 persistent ambiguity hold
+
+An unresolved ambiguous result is also a cross-decision exposure uncertainty. M22 must latch the instance-scoped F07 execution-ambiguity HOLD before returning the unresolved result. A positive ticket whose immediate post-send `OrderSelect(ticket)` fails is treated the same way because confirmed broker-state materialization did not complete.
+
+The HOLD:
+- blocks all later new entries across the EA instance until exact reconciliation succeeds;
+- persists across restart;
+- does not block M20/M23 protection;
+- has no timeout or automatic no-fill assumption;
+- never authorizes an automatic resend.
+
+Normal-session reconciliation may clear the HOLD only after exact pair + magic + direction/type + `BBMA|H:<SHORT_HASH(DecisionID)>` evidence identifies the broker execution and durable idempotency/monitoring state is established. A late-visible live order is safety-frozen rather than having missing strategy/lifecycle identity fabricated. A matching closed historical order is tombstoned only.
+
+M24/restart recovery may independently discover the broker order, but restart must not silently erase or assumption-clear an unresolved F07 HOLD.
 
 ## Trade lock
 Trade-lock checks must consider only live EA-owned positions. Stale monitored entries or foreign/manual orders cannot create an M22 trade-lock rejection.

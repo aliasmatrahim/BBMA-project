@@ -1,0 +1,21 @@
+{
+  "before_sha256": "dd8320c5529d41eb90f55290cbf3d5aafe74f7a30964a647af075ddfd7ba91a6",
+  "before_bytes": 240,
+  "existed": true,
+  "primary_before": [
+    {
+      "Id": 13064,
+      "Path": "C:\\Users\\Afiq Mat Rahim\\Documents\\Codex\\2026-08-29\\teruskan-kerja-ea-yang-tertangguh-tadi\\work\\c3-mt4-portable-1476-build472\\terminal.exe"
+    }
+  ],
+  "after_sha256": "dd8320c5529d41eb90f55290cbf3d5aafe74f7a30964a647af075ddfd7ba91a6",
+  "after_bytes": 240,
+  "bytes_equal": true,
+  "existence_equal": true,
+  "primary_after": [
+    {
+      "Id": 13064,
+      "Path": "C:\\Users\\Afiq Mat Rahim\\Documents\\Codex\\2026-08-29\\teruskan-kerja-ea-yang-tertangguh-tadi\\work\\c3-mt4-portable-1476-build472\\terminal.exe"
+    }
+  ]
+}

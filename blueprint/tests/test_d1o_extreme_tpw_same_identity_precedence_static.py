@@ -29,6 +29,10 @@ def main():
          '#property version   "5.04"',
          "V504_M19_SELECTION_FAIL_CLOSED_20260921",
          "M19_SELECTION_FAIL_CLOSED_101_20260921"),
+        ("Version 5.0.5 - Persistent Execution Ambiguity Hold",
+         '#property version   "5.05"',
+         "V505_F07_EXECUTION_AMBIGUITY_HOLD_20260922",
+         "F07_EXECUTION_AMBIGUITY_HOLD_224_20260922"),
     )
     assert any(all(marker in SRC for marker in markers) for markers in identities)
 

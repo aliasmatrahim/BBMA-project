@@ -1,0 +1,24 @@
+{
+  "markers": {
+    "seeded_hold": 1,
+    "build_marker": 1,
+    "m15_counts": 0,
+    "decision_final": 0,
+    "preflight": 0,
+    "exec": 0,
+    "hold_cleared": 0,
+    "init_pass": 1,
+    "deinit0": 1
+  },
+  "total_trades": "0",
+  "mismatched_chart_errors": "0",
+  "every_tick": true,
+  "fatal_runtime": {
+    "zero divide": 0,
+    "array out of range": 0,
+    "critical error": 0,
+    "unresolved stack function": 0,
+    "access violation": 0
+  },
+  "acceptance": "PASS"
+}

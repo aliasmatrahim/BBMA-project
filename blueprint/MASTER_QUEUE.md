@@ -194,7 +194,7 @@ Current state:
    - Observer finalization;
    - M01-M27 + M12N cross-module audit;
    - final integration candidate/tests/backtest;
-   - final HFM demo acceptance last.
+   - final MetaQuotes-Demo runtime acceptance last (Issue #109; user-selected demo provider, 2026-09-23).
 8. Old PR #102/#126 lineage remains historical/staging evidence only; do not merge it directly.
 
 ### Q11 — Dashboard / observer future materialization

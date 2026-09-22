@@ -18,10 +18,9 @@
     "R6"
   ],
   "account_policy": "DEMO_ONLY",
+  "demo_provider_policy": "METAQUOTES_DEMO",
   "broker_tokens": [
-    "hfm",
-    "hfmarkets",
-    "hotforex"
+    "metaquotes"
   ],
   "status_vocabulary": [
     "PASS",

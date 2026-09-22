@@ -1,4 +1,4 @@
-# Q10 HFM Demo Acceptance — Build 5.11
+# Q10 MetaQuotes-Demo Acceptance — Build 5.11
 
 Issue: #109
 Frozen candidate: Build 5.11 / `V511_EVENT_DRIVEN_OBSERVER_20260922`
@@ -18,7 +18,7 @@ The runner also proves the current worktree has no EA-source diff after the froz
 ## Safety sequence
 
 1. Use a **dedicated MT4 installation/profile**, never the primary terminal path.
-2. Authenticate that terminal manually to an HFM demo account. The runner never handles login/password data.
+2. Authenticate that terminal manually to the approved MetaQuotes-Demo account. The runner never handles login/password data.
 3. Place the exact compiled `Q10_DEMO_IDENTITY_PROBE.ex4` under the dedicated terminal's `MQL4/Experts`.
 4. Generate the read-only probe startup configuration:
    `python blueprint/tools/q10_demo_acceptance.py generate-probe-launch ...`
@@ -28,7 +28,7 @@ The runner also proves the current worktree has no EA-source diff after the froz
 6. Run `inspect-demo`. Formal Q10 remains `BLOCKED` unless:
    - `Demo=Y`;
    - `Connected=Y`;
-   - server/company identifies HFM / HF Markets / HotForex.
+   - server/company identifies the approved MetaQuotes demo provider.
 7. Initialize resumable state with `init-state`. A PASS demo identity must come from a log under the same dedicated terminal root whose exact EX4/settings are bound into state; the primary-terminal guard is mandatory.
 8. AUTO/formal stage order is locked:
    `R3 -> R4 -> R5 -> R6`.
@@ -151,7 +151,7 @@ The case matrix is stored in `FINAL_BUILD511_STAGE_MATRIX.json`.
 
 ## Current environment
 
-As of the tooling-preparation checkpoint, G40 has no attributable HFM demo terminal/account evidence. Q10 must therefore remain `BLOCKED / AUTH` until a dedicated HFM demo terminal is authenticated and the read-only probe proves it.
+Per the explicit user decision on 2026-09-23, Q10 final demo-runtime acceptance uses MetaQuotes-Demo rather than requiring HFM. The original Issue #109 only requires attributable demo-account evidence; broker-specific HFM validation is not required to close this generic runtime gate. Q10 remains `BLOCKED / AUTH` until a dedicated MetaQuotes-Demo terminal is freshly authenticated and the read-only probe proves it.
 
 ## Clean restart helper
 

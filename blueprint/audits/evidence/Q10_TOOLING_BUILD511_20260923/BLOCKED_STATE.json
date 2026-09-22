@@ -3,7 +3,7 @@
     "build": "5.11",
     "build_tag": "V511_EVENT_DRIVEN_OBSERVER_20260922",
     "freeze_commit": "78ddbd771853681de6628032701eea7231e05d61",
-    "head": "78ddbd771853681de6628032701eea7231e05d61",
+    "head": "43b7668184fc7b2edfe81a5eaf448885d4536d21",
     "source_neutral_after_freeze": true,
     "source_sha256": "50E4A01A5768B5B5E9A80CABAE21B7260A2912AA058E67E5273386177970D038",
     "status": "PASS"
@@ -15,7 +15,7 @@
     "status": "BLOCKED"
   },
   "issue": 109,
-  "matrix_sha256": "A01BAAA524B75D73469F876B0FBA8E9933A1050AE60E662537874BD0612EFAC7",
+  "matrix_sha256": "C2B17D9B47F1370C638C63C9253C66A16441F4B13B954AE3EC0B81C9E6F1665E",
   "runtime_artifacts": null,
   "schema": "BBMA_Q10_STATE_V1",
   "stage_order": [

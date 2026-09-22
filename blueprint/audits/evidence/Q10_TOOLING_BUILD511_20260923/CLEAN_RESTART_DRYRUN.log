@@ -1,8 +1,18 @@
 {
-  "schema": "BBMA_Q10_CLEAN_RESTART_V1",
-  "status": "READY",
-  "close_method": "CloseMainWindow",
-  "force_kill": false,
-  "credentials_in_config": false,
-  "dry_run": true
+    "schema":  "BBMA_Q10_CLEAN_RESTART_V1",
+    "status":  "READY",
+    "terminal":  "D:\\BBMA\\Audit\\Q10_RESTART_DRYRUN_FIXTURE\\terminal.exe",
+    "config":  "D:\\BBMA\\Audit\\Q10_RESTART_DRYRUN_FIXTURE\\q10_r3.ini",
+    "config_sha256":  "54D09F3D747CE3788CFD500A295A6710514F468AF078370863DBD4474FD3907B",
+    "evidence_dir":  "D:\\BBMA\\Audit\\Q10_RESTART_DRYRUN_FIXTURE\\evidence",
+    "state_path":  "D:\\BBMA\\Audit\\Q10_RESTART_DRYRUN_FIXTURE\\state.json",
+    "state_sha256":  "72E879E1AF3560B58550CCD5C16B17DD58F102265B52F171D55ED93D28CCEF38",
+    "grace_seconds":  30,
+    "existing_pids":  [
+
+                      ],
+    "close_method":  "CloseMainWindow",
+    "force_kill":  false,
+    "credentials_in_config":  false,
+    "dry_run":  true
 }

@@ -71,6 +71,8 @@ Mode semantics are explicit:
 - `LOCK_SAME_DIRECTION` / `TradeLockMode=1`: if this EA already has a live position on the pair, a new position is allowed only in the **same direction**; an opposite BUY/SELL coexistence on that pair is rejected with `REJ_TRADE_LOCK`. Multiple same-direction positions remain subject to `MaxTradePerPair` and other portfolio limits.
 - `LOCK_ONE_POSITION` / `TradeLockMode=2`: any existing live EA-owned position on the pair blocks another position on that pair.
 
+For modes 1 and 2, inability to resolve a monitored row's live ownership because broker selection failed is fail-closed for the proposed entry. This does not change mode 0 semantics, create a universal opposite-direction guard, or classify the unknown row as a confirmed live position.
+
 This is an EA execution-policy lock. It does not rewrite BBMA cycle direction. A later source-valid opposite cycle may become the strategy owner, but under mode 1 its new opposite order must wait until the old opposite live position is no longer open.
 
 ## Result mapping

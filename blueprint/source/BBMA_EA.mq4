@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.0.5 - Persistent Execution Ambiguity Hold    |
+//| Version 5.0.6 - Selection Uncertainty Fail-Closed            |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.05"
+#property version   "5.06"
 #property strict
 
-#define BBMA_BUILD_TAG      "V505_F07_EXECUTION_AMBIGUITY_HOLD_20260922"
-#define BBMA_SOURCE_REV_TAG "F07_EXECUTION_AMBIGUITY_HOLD_224_20260922"
+#define BBMA_BUILD_TAG      "V506_F05_SELECTION_UNCERTAINTY_FAIL_CLOSED_20260922"
+#define BBMA_SOURCE_REV_TAG "F05_SELECTION_UNCERTAINTY_FAIL_CLOSED_226_20260922"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -337,6 +337,13 @@ enum ENUM_OPPOSITE_CONFLICT_TYPE
 enum ENUM_RECOVERY_STATE { REC_NORMAL, REC_CORRUPTED, REC_RECOVERY_INVALID, REC_PARTIAL_INFERRED,
                            REC_IDENTITY_HASH_ONLY, REC_IDENTITY_MISSING_FROZEN,
                            REC_AMBIGUOUS_EXECUTION_FROZEN };
+
+enum ENUM_PORTFOLIO_OWNERSHIP_STATE
+{
+   PORT_OWNERSHIP_UNKNOWN = -1,
+   PORT_OWNERSHIP_EXCLUDED = 0,
+   PORT_OWNERSHIP_LIVE_OWNED = 1
+};
 
 // C044 staged targetless lifecycle state. Execution remains gated OFF until
 // owner-event evaluation and recovery activation pass their final gate.
@@ -7016,20 +7023,25 @@ double CalculateDrawdownPercent_EA()
    return drawdownMoney / g_protection_reference_equity * 100.0;
 }
 
-double CalculateBasketLossPercent_EA()
+double CalculateBasketLossPercent_EA(bool &valid)
 {
+   valid = true;
    double floatingLoss = 0;
    
    for(int i = 0; i < g_monitored_count; i++)
    {
-      if(!IsLiveEAOwnedPortfolioTrade(i)) continue;
-      if(OrderSelect(g_monitored_trades[i].ticket, SELECT_BY_TICKET))
+      ENUM_PORTFOLIO_OWNERSHIP_STATE ownership =
+         GetLiveEAOwnedPortfolioTradeState(i);
+      if(ownership == PORT_OWNERSHIP_UNKNOWN)
       {
-         if(OrderCloseTime() != 0) continue;
-         double profit = OrderProfit() + OrderSwap() + OrderCommission();
-         if(profit < 0)
-            floatingLoss += MathAbs(profit);
+         valid = false;
+         return 0;
       }
+      if(ownership != PORT_OWNERSHIP_LIVE_OWNED) continue;
+
+      double profit = OrderProfit() + OrderSwap() + OrderCommission();
+      if(profit < 0)
+         floatingLoss += MathAbs(profit);
    }
    
    if(g_protection_reference_equity <= 0) return 0;
@@ -7135,7 +7147,15 @@ RiskStatus CheckRiskBeforeTrade(BBMA_Decision &decision, RiskValidationSnapshot 
       return status;
    }
 
-   double basketLoss = CalculateBasketLossPercent_EA();
+   bool basketValid = true;
+   double basketLoss = CalculateBasketLossPercent_EA(basketValid);
+   if(!basketValid)
+   {
+      status.allowed = false;
+      status.reason = "Unable to calculate basket loss safely";
+      status.rejection_reason = REJ_BASKET_LOSS;
+      return status;
+   }
    if(basketLoss >= BasketLossPercent)
    {
       status.allowed = false;
@@ -7181,20 +7201,29 @@ RiskStatus CheckRiskBeforeTrade(BBMA_Decision &decision, RiskValidationSnapshot 
 //| LEVEL: EXPERT-RESTRICTED                                         |
 //+------------------------------------------------------------------+
 
-bool IsLiveEAOwnedPortfolioTrade(int monitoredIndex)
+ENUM_PORTFOLIO_OWNERSHIP_STATE GetLiveEAOwnedPortfolioTradeState(int monitoredIndex)
 {
-   if(monitoredIndex < 0 || monitoredIndex >= g_monitored_count) return false;
-   if(!OrderSelect(g_monitored_trades[monitoredIndex].ticket, SELECT_BY_TICKET)) return false;
-   if(OrderCloseTime() != 0) return false;
+   if(monitoredIndex < 0 || monitoredIndex >= g_monitored_count)
+      return PORT_OWNERSHIP_EXCLUDED;
+
+   ResetLastError();
+   if(!OrderSelect(g_monitored_trades[monitoredIndex].ticket, SELECT_BY_TICKET))
+      return PORT_OWNERSHIP_UNKNOWN;
+   if(OrderCloseTime() != 0)
+      return PORT_OWNERSHIP_EXCLUDED;
 
    int pairIdx = FindPairStateIndex(g_monitored_trades[monitoredIndex].pair);
-   if(pairIdx < 0) return false;
+   if(pairIdx < 0)
+      return PORT_OWNERSHIP_EXCLUDED;
 
    int expectedMagic = g_pair_states[pairIdx].magic_number;
-   if(expectedMagic <= 0) return false;
-   if(g_monitored_trades[monitoredIndex].magic_number != expectedMagic) return false;
-   if(OrderMagicNumber() != expectedMagic) return false;
-   return true;
+   if(expectedMagic <= 0)
+      return PORT_OWNERSHIP_EXCLUDED;
+   if(g_monitored_trades[monitoredIndex].magic_number != expectedMagic)
+      return PORT_OWNERSHIP_EXCLUDED;
+   if(OrderMagicNumber() != expectedMagic)
+      return PORT_OWNERSHIP_EXCLUDED;
+   return PORT_OWNERSHIP_LIVE_OWNED;
 }
 
 PortfolioStatus CheckPortfolioLimits()
@@ -7208,7 +7237,15 @@ PortfolioStatus CheckPortfolioLimits()
    
    for(int i = 0; i < g_monitored_count; i++)
    {
-      if(!IsLiveEAOwnedPortfolioTrade(i)) continue;
+      ENUM_PORTFOLIO_OWNERSHIP_STATE ownership =
+         GetLiveEAOwnedPortfolioTradeState(i);
+      if(ownership == PORT_OWNERSHIP_UNKNOWN)
+      {
+         status.allowed = false;
+         status.reason = "Unable to resolve monitored portfolio ownership";
+         return status;
+      }
+      if(ownership != PORT_OWNERSHIP_LIVE_OWNED) continue;
 
       int idx = FindPairStateIndex(g_monitored_trades[i].pair);
       if(idx < 0) continue;
@@ -7299,7 +7336,12 @@ int CountLiveEAOwnedPortfolioTrades()
 {
    int count = 0;
    for(int i = 0; i < g_monitored_count; i++)
-      if(IsLiveEAOwnedPortfolioTrade(i)) count++;
+   {
+      ENUM_PORTFOLIO_OWNERSHIP_STATE ownership =
+         GetLiveEAOwnedPortfolioTradeState(i);
+      if(ownership == PORT_OWNERSHIP_UNKNOWN) return -1;
+      if(ownership == PORT_OWNERSHIP_LIVE_OWNED) count++;
+   }
    return count;
 }
 
@@ -7326,6 +7368,8 @@ bool BrokerConfirmsNoLiveEAOwnedOrders()
 
 void ManagePortfolio()
 {
+   static bool basketObservationUncertainLogged = false;
+
    if(g_portfolio_emergency_close_requested)
    {
       if(BrokerConfirmsNoLiveEAOwnedOrders())
@@ -7333,7 +7377,20 @@ void ManagePortfolio()
       return;
    }
 
-   if(BasketLossPercent > 0 && CalculateBasketLossPercent_EA() >= BasketLossPercent)
+   bool basketValid = true;
+   double basketLoss = CalculateBasketLossPercent_EA(basketValid);
+   if(!basketValid)
+   {
+      if(!basketObservationUncertainLogged)
+      {
+         Log(DBG_ERROR, "Portfolio basket observation uncertain; threshold evaluation deferred");
+         basketObservationUncertainLogged = true;
+      }
+      return;
+   }
+
+   basketObservationUncertainLogged = false;
+   if(BasketLossPercent > 0 && basketLoss >= BasketLossPercent)
       g_portfolio_emergency_close_requested = true;
 }
 
@@ -7638,7 +7695,11 @@ bool IsSignalAllowed(BBMA_Decision &decision, string pair, int magicNumber)
    {
       for(int i = 0; i < g_monitored_count; i++)
       {
-         if(!IsLiveEAOwnedPortfolioTrade(i)) continue;
+         ENUM_PORTFOLIO_OWNERSHIP_STATE ownership =
+            GetLiveEAOwnedPortfolioTradeState(i);
+         if(ownership == PORT_OWNERSHIP_UNKNOWN)
+            return false;
+         if(ownership != PORT_OWNERSHIP_LIVE_OWNED) continue;
          if(g_monitored_trades[i].pair == pair)
             return false;
       }
@@ -7651,7 +7712,11 @@ bool IsSignalAllowed(BBMA_Decision &decision, string pair, int magicNumber)
       // and allowed BUY+SELL coexistence, contradicting SAME_DIRECTION mode.
       for(int i = 0; i < g_monitored_count; i++)
       {
-         if(!IsLiveEAOwnedPortfolioTrade(i)) continue;
+         ENUM_PORTFOLIO_OWNERSHIP_STATE ownership =
+            GetLiveEAOwnedPortfolioTradeState(i);
+         if(ownership == PORT_OWNERSHIP_UNKNOWN)
+            return false;
+         if(ownership != PORT_OWNERSHIP_LIVE_OWNED) continue;
          if(g_monitored_trades[i].pair == pair &&
             g_monitored_trades[i].direction != decision.Direction)
             return false;
@@ -8821,7 +8886,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.05 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.06 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);

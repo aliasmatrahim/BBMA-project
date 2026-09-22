@@ -23,7 +23,10 @@ def main():
     assert "g_monitored_trades[i].magic_number != expectedMagic" in total
     assert "OrderMagicNumber() != expectedMagic" in total
     assert "expectedMagic <= 0" in total and "if(pairIdx < 0) continue;" in total
-    assert "if(!IsLiveEAOwnedPortfolioTrade(i)) continue;" in basket
+    assert "GetLiveEAOwnedPortfolioTradeState(i)" in basket
+    assert "PORT_OWNERSHIP_UNKNOWN" in basket and "valid = false;" in basket
+    assert "OrderSelect(" not in basket, "basket must not reselect after canonical tri-state ownership resolution"
+    assert "GetLiveEAOwnedPortfolioTradeState(" not in total, "M19 total-risk F01 must remain direct fail-closed selection"
     print("M19_OWNED_RISK_AGGREGATION_STATIC=PASS")
 if __name__ == "__main__":
     main()

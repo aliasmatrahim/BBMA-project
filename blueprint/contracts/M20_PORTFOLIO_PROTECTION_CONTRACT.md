@@ -27,6 +27,10 @@ If the current live portfolio is already above a hard portfolio limit, no additi
 ## EA ownership
 Portfolio counts and protection actions are limited to live orders represented by the EA monitored registry whose live order magic matches the configured magic for that pair. Closed, missing, mismatched or foreign orders are excluded from M20 counts/actions.
 
+A failed `OrderSelect(ticket)` on a monitored row is **UNKNOWN**, not an ordinary exclusion result. UNKNOWN ownership fails closed for prospective new-entry admission and must not be counted as zero current exposure.
+
+UNKNOWN basket/ownership observation alone does not prove that `BasketLossPercent` has been breached and therefore must not fabricate an emergency-liquidation request. M20 defers that threshold evaluation for the tick and keeps any already-latched emergency request subject to the existing fail-closed broker-confirmed release rule.
+
 ## Basket-loss protection
 `BasketLossPercent` is EA-safety protection, not a BBMA strategy signal.
 

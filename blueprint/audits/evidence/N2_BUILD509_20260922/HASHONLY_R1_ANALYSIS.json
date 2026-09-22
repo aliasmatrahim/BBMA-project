@@ -1,0 +1,23 @@
+{
+  "seed_count": 1,
+  "did_cleared_count": 1,
+  "reconcile_pass_count": 1,
+  "hold_cleared_open_count": 1,
+  "didh": "9837A0C7AF77EECA",
+  "outcome_count": 14,
+  "matching_outcome_count": 1,
+  "matching_outcomes": [
+    "[N2-NMJE-OUT] PAIR=GBPUSD TICKET=1 DID=- DIDH=9837A0C7AF77EECA NET=-0.78000000 CLOSE=1786375801 REC=REC_AMBIGUOUS_EXECUTION_FROZEN"
+  ],
+  "matching_outcome_did_dash": 1,
+  "matching_outcome_ambiguous_recovery": 1,
+  "fatal": {
+    "zero divide": 0,
+    "array out of range": 0,
+    "critical error": 0,
+    "access violation": 0
+  },
+  "mismatched_chart_errors": 0,
+  "build_marker": 2,
+  "acceptance": "PASS"
+}

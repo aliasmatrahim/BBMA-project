@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.0.8 - N1 P1 Lineage Provenance                    |
+//| Version 5.0.9 - N2 F07 Open DecisionID Provenance           |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.08"
+#property version   "5.09"
 #property strict
 
-#define BBMA_BUILD_TAG      "V508_N1_P1_LINEAGE_PROVENANCE_20260922"
-#define BBMA_SOURCE_REV_TAG "N1_P1_LINEAGE_PROVENANCE_231_20260922"
+#define BBMA_BUILD_TAG      "V509_N2_F07_OPEN_DECISIONID_20260922"
+#define BBMA_SOURCE_REV_TAG "N2_F07_OPEN_DECISIONID_233_20260922"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -8341,7 +8341,9 @@ bool AdoptAmbiguousExecutionTicket(int ticket, bool isOpen)
    info.digits = GetDigits(info.pair);
    info.stop_level = GetStopLevel(info.pair);
    info.freeze_level = GetFreezeLevel(info.pair);
-   info.decision_id = "";
+   // N2/#233: preserve exact same-session identity when F07 still owns it.
+   // Restart recovery leaves DecisionID empty; no identity is reconstructed.
+   info.decision_id = g_execution_ambiguity.DecisionID;
    info.execution_hash = g_execution_ambiguity.ExecutionHash;
    info.sequence_hash_short = "";
    ResetC044TradeState(info);
@@ -9103,7 +9105,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.08 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.09 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);

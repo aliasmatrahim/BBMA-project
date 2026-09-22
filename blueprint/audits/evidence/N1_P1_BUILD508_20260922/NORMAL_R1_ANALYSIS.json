@@ -1,0 +1,178 @@
+{
+  "protected": {
+    "[P3M2][M15_COUNTS]": {
+      "baseline_count": 523,
+      "candidate_count": 523,
+      "exact_equal": true,
+      "baseline_sha256": "2323f5d0bf064a3e437807daf2426c843e70382b393900c503e87929457bf02f",
+      "candidate_sha256": "2323f5d0bf064a3e437807daf2426c843e70382b393900c503e87929457bf02f"
+    },
+    "[P3M2][M15_SELECT]": {
+      "baseline_count": 523,
+      "candidate_count": 523,
+      "exact_equal": true,
+      "baseline_sha256": "7cc31e3a9e55c1a91a5e37c975d6451ada99390e9946dc382b17b56bda9bcdc1",
+      "candidate_sha256": "7cc31e3a9e55c1a91a5e37c975d6451ada99390e9946dc382b17b56bda9bcdc1"
+    },
+    "[P3M2][M16_PASS]": {
+      "baseline_count": 523,
+      "candidate_count": 523,
+      "exact_equal": true,
+      "baseline_sha256": "9b016d2a8da87903541c2490f8064a0424e0409526f9e3980db4294d8443c62f",
+      "candidate_sha256": "9b016d2a8da87903541c2490f8064a0424e0409526f9e3980db4294d8443c62f"
+    },
+    "[P3M2][DECISION_FINAL]": {
+      "baseline_count": 523,
+      "candidate_count": 523,
+      "exact_equal": true,
+      "baseline_sha256": "1f0cfcfd94138c888c96803a5207af7184bc766c88ddac75eab68a3fdcf9b16a",
+      "candidate_sha256": "1f0cfcfd94138c888c96803a5207af7184bc766c88ddac75eab68a3fdcf9b16a"
+    },
+    "[P3M2][PREFLIGHT_PASS]": {
+      "baseline_count": 325,
+      "candidate_count": 325,
+      "exact_equal": true,
+      "baseline_sha256": "e4e33f13b64f4599323a9035ccc3118d75f4fd9b1d151a322abdbdfb108bf5e6",
+      "candidate_sha256": "e4e33f13b64f4599323a9035ccc3118d75f4fd9b1d151a322abdbdfb108bf5e6"
+    },
+    "[P3M2][EXEC]": {
+      "baseline_count": 14,
+      "candidate_count": 14,
+      "exact_equal": true,
+      "baseline_sha256": "c38e5714422b2c678ea8c390022631094415f612118e44edb9229cd2906e9bbb",
+      "candidate_sha256": "c38e5714422b2c678ea8c390022631094415f612118e44edb9229cd2906e9bbb"
+    },
+    "[F7-TELEM] Event=MOMENTUM_HOLD": {
+      "baseline_count": 3,
+      "candidate_count": 3,
+      "exact_equal": true,
+      "baseline_sha256": "0961b8e7e49b6a98452d68af70eca23bd2af55ab081d1509070b904eff0e91ec",
+      "candidate_sha256": "0961b8e7e49b6a98452d68af70eca23bd2af55ab081d1509070b904eff0e91ec"
+    },
+    "[F7-TELEM] Event=EXIT_LATCHED": {
+      "baseline_count": 10,
+      "candidate_count": 10,
+      "exact_equal": true,
+      "baseline_sha256": "43f6d14c54111f0f08218bd8bd6671f7ff35cc601c353934ecf7eefc405ab64d",
+      "candidate_sha256": "43f6d14c54111f0f08218bd8bd6671f7ff35cc601c353934ecf7eefc405ab64d"
+    },
+    "[F7-TELEM] Event=CLOSE_SUCCESS": {
+      "baseline_count": 10,
+      "candidate_count": 10,
+      "exact_equal": true,
+      "baseline_sha256": "408e883677a24a23fa71b809a42d0ed1e8a52c58d7297887a380e3d2f68561ca",
+      "candidate_sha256": "408e883677a24a23fa71b809a42d0ed1e8a52c58d7297887a380e3d2f68561ca"
+    }
+  },
+  "n2_decisions": {
+    "baseline_count": 523,
+    "candidate_count": 523,
+    "raw_exact_equal": false,
+    "normalized_exact_equal": true
+  },
+  "n2_outcomes": {
+    "baseline_count": 14,
+    "candidate_count": 14,
+    "exact_equal": true
+  },
+  "p1_runtime": {
+    "owner_observations": 2016,
+    "stable_same_owner_refresh_examples": [
+      [
+        {
+          "pair": "GBPUSD",
+          "candle": "2026.07.31 00:00",
+          "epoch": "2026.07.30 00:00",
+          "state": "D1_OWNER_BUY_CONFIRMED",
+          "dir": "DIR_BUY"
+        },
+        {
+          "pair": "GBPUSD",
+          "candle": "2026.08.03 00:00",
+          "epoch": "2026.07.30 00:00",
+          "state": "D1_OWNER_BUY_CONFIRMED",
+          "dir": "DIR_BUY"
+        }
+      ],
+      [
+        {
+          "pair": "GBPUSD",
+          "candle": "2026.08.03 00:00",
+          "epoch": "2026.07.30 00:00",
+          "state": "D1_OWNER_BUY_CONFIRMED",
+          "dir": "DIR_BUY"
+        },
+        {
+          "pair": "GBPUSD",
+          "candle": "2026.08.04 00:00",
+          "epoch": "2026.07.30 00:00",
+          "state": "D1_OWNER_BUY_CONFIRMED",
+          "dir": "DIR_BUY"
+        }
+      ],
+      [
+        {
+          "pair": "GBPUSD",
+          "candle": "2026.08.04 00:00",
+          "epoch": "2026.07.30 00:00",
+          "state": "D1_OWNER_BUY_CONFIRMED",
+          "dir": "DIR_BUY"
+        },
+        {
+          "pair": "GBPUSD",
+          "candle": "2026.08.05 00:00",
+          "epoch": "2026.07.30 00:00",
+          "state": "D1_OWNER_BUY_CONFIRMED",
+          "dir": "DIR_BUY"
+        }
+      ],
+      [
+        {
+          "pair": "GBPUSD",
+          "candle": "2026.08.05 00:00",
+          "epoch": "2026.07.30 00:00",
+          "state": "D1_OWNER_BUY_CONFIRMED",
+          "dir": "DIR_BUY"
+        },
+        {
+          "pair": "GBPUSD",
+          "candle": "2026.08.06 00:00",
+          "epoch": "2026.07.30 00:00",
+          "state": "D1_OWNER_BUY_CONFIRMED",
+          "dir": "DIR_BUY"
+        }
+      ],
+      [
+        {
+          "pair": "GBPUSD",
+          "candle": "2026.08.06 00:00",
+          "epoch": "2026.07.30 00:00",
+          "state": "D1_OWNER_BUY_CONFIRMED",
+          "dir": "DIR_BUY"
+        },
+        {
+          "pair": "GBPUSD",
+          "candle": "2026.08.07 00:00",
+          "epoch": "2026.07.30 00:00",
+          "state": "D1_OWNER_BUY_CONFIRMED",
+          "dir": "DIR_BUY"
+        }
+      ]
+    ],
+    "stable_same_owner_refresh_count": 20,
+    "owner_transition_epoch_change_examples": [],
+    "owner_transition_epoch_change_count": 0,
+    "journey_lines": 2016,
+    "j2_parent_event_lines": 2016
+  },
+  "fatal_runtime": {
+    "zero divide": 0,
+    "array out of range": 0,
+    "critical error": 0,
+    "unresolved stack function": 0,
+    "access violation": 0
+  },
+  "mismatched_chart_errors": 0,
+  "build_marker": 2,
+  "acceptance": "PASS"
+}

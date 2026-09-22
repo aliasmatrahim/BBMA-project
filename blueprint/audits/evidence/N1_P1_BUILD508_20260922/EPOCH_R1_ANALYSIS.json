@@ -1,0 +1,99 @@
+{
+  "owner_observations": 1440,
+  "stable_refresh_count": 12,
+  "stable_examples": [
+    [
+      {
+        "pair": "GBPUSD",
+        "candle": "2026.07.17 00:00",
+        "epoch": "2026.07.14 00:00",
+        "state": "D1_OWNER_BUY_CONFIRMED",
+        "dir": "DIR_BUY"
+      },
+      {
+        "pair": "GBPUSD",
+        "candle": "2026.07.20 00:00",
+        "epoch": "2026.07.14 00:00",
+        "state": "D1_OWNER_BUY_CONFIRMED",
+        "dir": "DIR_BUY"
+      }
+    ],
+    [
+      {
+        "pair": "GBPUSD",
+        "candle": "2026.07.21 00:00",
+        "epoch": "2026.07.21 00:00",
+        "state": "D1_OWNER_SELL_CONFIRMED",
+        "dir": "DIR_SELL"
+      },
+      {
+        "pair": "GBPUSD",
+        "candle": "2026.07.22 00:00",
+        "epoch": "2026.07.21 00:00",
+        "state": "D1_OWNER_SELL_CONFIRMED",
+        "dir": "DIR_SELL"
+      }
+    ],
+    [
+      {
+        "pair": "GBPUSD",
+        "candle": "2026.07.22 00:00",
+        "epoch": "2026.07.21 00:00",
+        "state": "D1_OWNER_SELL_CONFIRMED",
+        "dir": "DIR_SELL"
+      },
+      {
+        "pair": "GBPUSD",
+        "candle": "2026.07.23 00:00",
+        "epoch": "2026.07.21 00:00",
+        "state": "D1_OWNER_SELL_CONFIRMED",
+        "dir": "DIR_SELL"
+      }
+    ]
+  ],
+  "transition_epoch_change_count": 2,
+  "transition_examples": [
+    [
+      {
+        "pair": "GBPUSD",
+        "candle": "2026.07.20 00:00",
+        "epoch": "2026.07.14 00:00",
+        "state": "D1_OWNER_BUY_CONFIRMED",
+        "dir": "DIR_BUY"
+      },
+      {
+        "pair": "GBPUSD",
+        "candle": "2026.07.21 00:00",
+        "epoch": "2026.07.21 00:00",
+        "state": "D1_OWNER_SELL_CONFIRMED",
+        "dir": "DIR_SELL"
+      }
+    ],
+    [
+      {
+        "pair": "GBPUSD",
+        "candle": "2026.07.29 00:00",
+        "epoch": "2026.07.21 00:00",
+        "state": "D1_OWNER_SELL_CONFIRMED",
+        "dir": "DIR_SELL"
+      },
+      {
+        "pair": "GBPUSD",
+        "candle": "2026.07.30 00:00",
+        "epoch": "2026.07.30 00:00",
+        "state": "D1_OWNER_BUY_CONFIRMED",
+        "dir": "DIR_BUY"
+      }
+    ]
+  ],
+  "journey_lines": 1440,
+  "j2_pe_lines": 1440,
+  "fatal": {
+    "zero divide": 0,
+    "array out of range": 0,
+    "critical error": 0,
+    "access violation": 0
+  },
+  "build_marker": 2,
+  "acceptance": "PASS"
+}

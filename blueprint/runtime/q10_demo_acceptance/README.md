@@ -139,3 +139,7 @@ The case matrix is stored in `FINAL_BUILD511_STAGE_MATRIX.json`.
 ## Current environment
 
 As of the tooling-preparation checkpoint, G40 has no attributable HFM demo terminal/account evidence. Q10 must therefore remain `BLOCKED / AUTH` until a dedicated HFM demo terminal is authenticated and the read-only probe proves it.
+
+## Clean restart helper
+
+`q10_demo_clean_restart.ps1` validates dedicated paths and the generated config, requests `CloseMainWindow()`, waits for full exit/log flush, refuses forced termination by default, snapshots logs before/after close, then restarts only the dedicated terminal. Use `-DryRun` to validate the plan without touching MT4.

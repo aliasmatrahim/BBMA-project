@@ -122,11 +122,12 @@ Analyzer:
 ## Offline validation
 
 - `py_compile`: PASS;
-- Q10 targeted pytest: **11/11 PASS**;
-- full repository pytest: **33/33 PASS**;
+- Q10 targeted pytest: **13/13 PASS**;
+- full repository pytest: **35/35 PASS**;
 - `git diff --check`: PASS;
 - EA source diff from frozen Build 5.11 candidate: **0**;
 - probe native compile: **0E0W**.
+- clean-restart Windows dry-run: **READY**; graceful `CloseMainWindow`, no forced termination, credential-free config guard.
 
 Actual fail-closed rehearsal:
 

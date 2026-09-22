@@ -465,6 +465,87 @@ def collect_stage_log(
     return bundle
 
 
+def _resolved_evidence_path(value: str, base_dir: Path) -> Path:
+    path = Path(value)
+    if not path.is_absolute():
+        path = base_dir / path
+    return path.resolve()
+
+
+def validate_bundle_integrity(stage: str, bundle: dict[str, Any]) -> dict[str, Any]:
+    if bundle.get("schema") != "BBMA_Q10_STAGE_BUNDLE_V1":
+        raise Q10Error("invalid stage bundle schema")
+    if bundle.get("stage") != stage:
+        raise Q10Error(
+            f"stage bundle mismatch: expected={stage} actual={bundle.get('stage')}"
+        )
+    if not bundle.get("candidate_source_sha256") or not bundle.get("candidate_build_tag"):
+        raise Q10Error("stage bundle missing candidate identity")
+    if not bundle.get("demo_evidence_sha256"):
+        raise Q10Error("stage bundle missing demo identity hash")
+
+    for path_key, hash_key in (
+        ("raw_log_path", "raw_log_sha256"),
+        ("matched_excerpt", "matched_excerpt_sha256"),
+    ):
+        path = Path(str(bundle.get(path_key, ""))).resolve()
+        expected = str(bundle.get(hash_key, "")).upper()
+        if not path.is_file():
+            raise Q10Error(f"bundle evidence missing: {path_key}={path}")
+        actual = sha256_file(path)
+        if not expected or actual != expected:
+            raise Q10Error(
+                f"bundle evidence hash mismatch: {path_key} expected={expected} actual={actual}"
+            )
+    return bundle
+
+
+def validate_case_evidence(
+    evidence: Any,
+    assertions_dir: Path,
+    bundle: dict[str, Any],
+    case_id: str,
+) -> list[dict[str, str]]:
+    if not isinstance(evidence, list) or not evidence:
+        raise Q10Error(f"{case_id} PASS/FAIL requires attributable evidence")
+
+    known = {}
+    for path_key, hash_key in (
+        ("raw_log_path", "raw_log_sha256"),
+        ("matched_excerpt", "matched_excerpt_sha256"),
+    ):
+        known[str(Path(bundle[path_key]).resolve())] = str(bundle[hash_key]).upper()
+
+    validated: list[dict[str, str]] = []
+    for ref in evidence:
+        if isinstance(ref, str):
+            path_text = ref
+            expected = None
+        elif isinstance(ref, dict):
+            path_text = str(ref.get("path", ""))
+            expected = str(ref.get("sha256", "")).upper() or None
+        else:
+            raise Q10Error(f"{case_id} has invalid evidence reference type")
+
+        if not path_text:
+            raise Q10Error(f"{case_id} has empty evidence path")
+        path = _resolved_evidence_path(path_text, assertions_dir)
+        if not path.is_file():
+            raise Q10Error(f"{case_id} evidence missing: {path}")
+        actual = sha256_file(path)
+        if expected is not None and actual != expected:
+            raise Q10Error(
+                f"{case_id} evidence SHA mismatch: expected={expected} actual={actual}"
+            )
+        known_expected = known.get(str(path))
+        if known_expected is not None and actual != known_expected:
+            raise Q10Error(
+                f"{case_id} evidence no longer matches the collected bundle: {path}"
+            )
+        validated.append({"path": str(path), "sha256": actual})
+    return validated
+
+
 def analyze_assertions(
     stage: str,
     assertions_path: Path,
@@ -473,8 +554,11 @@ def analyze_assertions(
 ) -> dict[str, Any]:
     if stage not in matrix["stages"]:
         raise Q10Error(f"unknown stage: {stage}")
+    validate_bundle_integrity(stage, bundle)
     assertions = load_json(assertions_path)
     rows = assertions.get("cases", {})
+    if not isinstance(rows, dict):
+        raise Q10Error("assertions cases must be an object")
     defined = {x["id"]: x for x in matrix["stages"][stage]["cases"]}
     unknown = sorted(set(rows) - set(defined))
     if unknown:
@@ -488,6 +572,15 @@ def analyze_assertions(
         status = row.get("status", "INCOMPLETE")
         if status not in STATUS_VALUES:
             raise Q10Error(f"invalid status for {case_id}: {status}")
+        evidence = row.get("evidence", [])
+        if status in {"PASS", "FAIL"}:
+            evidence = validate_case_evidence(
+                evidence, assertions_path.resolve().parent, bundle, case_id
+            )
+        elif evidence:
+            evidence = validate_case_evidence(
+                evidence, assertions_path.resolve().parent, bundle, case_id
+            )
         if status == "FAIL":
             any_fail = True
         if case_def.get("required", False) and status != "PASS":
@@ -495,7 +588,7 @@ def analyze_assertions(
         results[case_id] = {
             "status": status,
             "required": bool(case_def.get("required", False)),
-            "evidence": row.get("evidence", []),
+            "evidence": evidence,
         }
 
     if any_fail:
@@ -509,6 +602,8 @@ def analyze_assertions(
         "schema": "BBMA_Q10_STAGE_ANALYSIS_V1",
         "stage": stage,
         "status": overall,
+        "candidate_source_sha256": bundle["candidate_source_sha256"],
+        "candidate_build_tag": bundle["candidate_build_tag"],
         "bundle_sha256": sha256_bytes(
             json.dumps(bundle, sort_keys=True).encode("utf-8")
         ),
@@ -523,9 +618,28 @@ def record_stage(
         raise Q10Error(f"invalid status: {status}")
     if stage not in state["stages"]:
         raise Q10Error(f"unknown stage: {stage}")
+    if not evidence:
+        raise Q10Error("stage recording requires an attributable analysis artifact")
+
+    evidence_path = Path(evidence).resolve()
+    if not evidence_path.is_file():
+        raise Q10Error(f"stage analysis missing: {evidence_path}")
+    analysis = load_json(evidence_path)
+    if analysis.get("schema") != "BBMA_Q10_STAGE_ANALYSIS_V1":
+        raise Q10Error("invalid stage analysis schema")
+    if analysis.get("stage") != stage:
+        raise Q10Error("stage analysis stage mismatch")
+    if analysis.get("status") != status:
+        raise Q10Error("stage status does not match analysis artifact")
+    if analysis.get("candidate_source_sha256") != state["candidate"]["source_sha256"]:
+        raise Q10Error("stage analysis candidate source mismatch")
+    if analysis.get("candidate_build_tag") != state["candidate"]["build_tag"]:
+        raise Q10Error("stage analysis candidate build mismatch")
+
     state["stages"][stage]["status"] = status
-    if evidence:
-        state["stages"][stage].setdefault("evidence", []).append(evidence)
+    state["stages"][stage].setdefault("evidence", []).append(
+        {"path": str(evidence_path), "sha256": sha256_file(evidence_path)}
+    )
     return state
 
 
@@ -539,6 +653,7 @@ def generate_launch_config(
     symbol: str,
     period: str,
     manifest: dict[str, Any],
+    primary_terminal: Path | None = None,
 ) -> dict[str, Any]:
     if state.get("demo_auth", {}).get("status") != "PASS":
         raise Q10Error("refusing launch config: demo authentication is not PASS")
@@ -558,6 +673,7 @@ def generate_launch_config(
         native_ex4=native_ex4,
         settings_file=settings_file,
         manifest=manifest,
+        primary_terminal=primary_terminal,
     )
     expert_name = native_ex4.stem
     config = "\n".join(
@@ -679,6 +795,7 @@ def cmd_generate(args: argparse.Namespace) -> int:
         args.symbol,
         args.period,
         manifest,
+        Path(args.primary_terminal) if args.primary_terminal else None,
     )
     if args.output_plan:
         write_json(Path(args.output_plan), result)
@@ -761,6 +878,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--settings", required=True)
     s.add_argument("--output-ini", required=True)
     s.add_argument("--output-plan")
+    s.add_argument("--primary-terminal")
     s.add_argument("--symbol", default="GBPUSD")
     s.add_argument("--period", default="M15")
     s.set_defaults(func=cmd_generate)

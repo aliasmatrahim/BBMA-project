@@ -1,0 +1,8 @@
+{
+  "schema": "BBMA_Q10_CLEAN_RESTART_V1",
+  "status": "READY",
+  "close_method": "CloseMainWindow",
+  "force_kill": false,
+  "credentials_in_config": false,
+  "dry_run": true
+}

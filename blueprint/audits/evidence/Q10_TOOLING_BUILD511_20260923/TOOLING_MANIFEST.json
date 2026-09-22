@@ -7,15 +7,15 @@
   "canonical_mq4_sha256": "50E4A01A5768B5B5E9A80CABAE21B7260A2912AA058E67E5273386177970D038",
   "native_ex4_sha256": "CFF8DA584C91AE177CA26E1C47518AA585A67F0E16C99295F932670E8CDEC6E1",
   "settings_sha256": "37BC585EB3AB5A73914FEC3C532023636D4FACCD7D3AAAF20B774269CF92DA70",
-  "tool_sha256": "BF22BCEEDADDA5D63C666ADACFB1E91911EAF2A3C0FF5F69799D78B46C8D37D3",
-  "test_sha256": "6D04E6E310A7835724EAE80C8D9996DB3C719DA7F14CD051AEA6F160A99F278F",
+  "tool_sha256": "337E30CA932BCC0F632EAB3C8EF09D224598EB49760D44822561166E24B3A80C",
+  "test_sha256": "09BEE69E12518D0215AAA5E8A05E144BAE487C4467310862CF5E583EDDF8EE93",
   "candidate_manifest_sha256": "1715C8C0E914DA6FDBE99375D0905A1E0445D83494AD3F1426AE10CA8616CC7A",
   "stage_matrix_sha256": "C2B17D9B47F1370C638C63C9253C66A16441F4B13B954AE3EC0B81C9E6F1665E",
   "probe_mq4_sha256": "97DA0293B048D6D1CADACDB0659A9A54CD61D4BA3062E7C0F4ADEDF116EB1DE6",
   "probe_compiled_ex4_sha256": "C69F5AF156AE5A3E31379F6413123B38ECF6124B56E140FCEC0422403304F8CD",
   "probe_compile": "0 errors / 0 warnings",
-  "q10_targeted_tests": "11 passed",
-  "full_pytest": "33 passed",
+  "q10_targeted_tests": "13 passed",
+  "full_pytest": "35 passed",
   "ea_source_diff_from_frozen_candidate": 0,
   "failclosed_rehearsal": {
     "candidate_identity": "PASS",
@@ -30,5 +30,13 @@
   },
   "runtime_acceptance": "BLOCKED",
   "runtime_blocker": "Dedicated authenticated HFM demo terminal/evidence unavailable",
-  "ea_source_changed": false
+  "ea_source_changed": false,
+  "restart_helper_sha256": "7FDC0C5EF620ACDD2427329392EF7A9739E8B1C3ABDC25CBE5ED8409E24AC40A",
+  "clean_restart_dryrun": {
+    "status": "READY",
+    "close_method": "CloseMainWindow",
+    "force_kill": false,
+    "credentials_in_config": false
+  },
+  "evidence_integrity": "PASS: bundle files/hash + case evidence + stage analysis/candidate binding"
 }

@@ -24,10 +24,10 @@ def require(text: str, *markers: str) -> None:
 def main() -> None:
     require(
         SRC,
-        "Version 5.1.0 - M25 Dashboard Build Identity",
-        '#property version   "5.10"',
-        '#define BBMA_BUILD_TAG      "V510_M25_DASHBOARD_BUILD_IDENTITY_20260922"',
-        '#define BBMA_SOURCE_REV_TAG "M25_DASHBOARD_BUILD_IDENTITY_235_20260922"',
+        "Version 5.1.1 - Event-Driven Observer",
+        '#property version   "5.11"',
+        '#define BBMA_BUILD_TAG      "V511_EVENT_DRIVEN_OBSERVER_20260922"',
+        '#define BBMA_SOURCE_REV_TAG "OBSERVER_EVENT_DRIVEN_237_20260922"',
         "datetime             EpochStartCandleTime;",
         "string               CanonicalEventID;",
         "string                  ParentEventID;",

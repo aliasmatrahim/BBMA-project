@@ -1,8 +1,8 @@
 # Final Build 5.11 Integration Candidate Freeze — 2026-09-23
 
-Issue: #241 / downstream #101  
-Candidate owner baseline: `d1-owner-dev@e7752f30d046189aff4e003494f47fb59086de87`  
-EA: Build 5.11 / `V511_EVENT_DRIVEN_OBSERVER_20260922`  
+Issue: #241 / downstream #101
+Candidate owner baseline: `d1-owner-dev@e7752f30d046189aff4e003494f47fb59086de87`
+EA: Build 5.11 / `V511_EVENT_DRIVEN_OBSERVER_20260922`
 Canonical source: `blueprint/source/BBMA_EA.mq4`
 
 ## Result
@@ -47,10 +47,10 @@ Fresh current-branch pytest during this freeze: **22/22 PASS**.
 
 ## Historical data / tester boundary
 
-Pair: **GBPUSD only**.  
-Timeframe: **M15**.  
-Model: **Every tick**.  
-Spread: **20 points**.  
+Pair: **GBPUSD only**.
+Timeframe: **M15**.
+Model: **Every tick**.
+Spread: **20 points**.
 Optimization: **off**.
 
 The six installed GBPUSD HST files (`M1/M5/M15/H1/H4/D1`) were hash-gated to the same verified engineering historical profile previously used by Q8. No native archive acquisition was restarted.
@@ -70,7 +70,7 @@ The tester adapter is test-only and not a deployable replacement for the canonic
 | 2025 H2 | 173 | +1.77 | 1.02 | 31.69 (0.32%) | PASS |
 | 2026 YTD through 2026-09-01 exclusive | 270 | -50.81 | 0.70 | 62.88 (0.63%) | PASS |
 
-Aggregate executions: **1,044**.  
+Aggregate executions: **1,044**.
 Aggregate M15-owner clock samples: **66,408**.
 
 Performance figures are descriptive observations only. The four windows are independent test periods and must not be converted into a continuous-equity or profitability claim.
@@ -146,16 +146,16 @@ Matrix canonical JSON self-hash field:
 
 ## Classification
 
-**NO FIX — Strategy Core / architecture / runtime.**  
+**NO FIX — Strategy Core / architecture / runtime.**
 No final-integration evidence justifies an EA source change.
 
-**PASS — final integration candidate freeze.**  
+**PASS — final integration candidate freeze.**
 Build 5.11 is the exact offline/engineering final candidate for the next acceptance stage.
 
-**VERIFICATION REQUIRED — profitability.**  
+**VERIFICATION REQUIRED — profitability.**
 The historical windows do not establish profitable expectancy; three of four descriptive windows are net negative. No strategy change or optimization is authorized by this freeze.
 
-**VERIFICATION REQUIRED — HFM demo/live broker acceptance.**  
+**VERIFICATION REQUIRED — HFM demo/live broker acceptance.**
 Issue #109 remains the final separate stage and must bind to this exact frozen candidate. Demo-account evidence/authentication is required before that programme can run; no live-account execution is authorized.
 
 ## Exit

@@ -2,7 +2,7 @@
 
 Updated: **2026-09-20**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`f69492c85792f1e42624f7c796b4265335a38886`**
+Owner head at reconciliation: **`8da9dae0801f414f8d4c659a226ff58451cca7e6`**
 
 This file is the active current-state record. The pre-2026-09-09 historical `CURRENT.md` is preserved byte-for-byte at `blueprint/archive/CURRENT_pre_20260909.md`.
 
@@ -105,11 +105,12 @@ Authorized G40 Remote Desktop Commander is reachable. Active live process state 
 Status: **P1-P11 VERIFIED IN SCOPED DRAFT RESEARCH / CONTRACT STABILIZED / NO ACTIVATION**.
 - Q9 remains outside canonical owner Build 4.86. Draft/scoped lineage #192-#205 contains the verified P1-P11 research implementation; NMJE remains observation-only and M5 remains closed-candle context/shadow only.
 - User decision A locks strict canonical JourneyID semantics for P11.
-- Accepted P11 head: PR #205 commit `0f80addc9080e726b8e6bb26a34094ae41ac3256`, Build `4.96` / `V496_Q9_P11_STRICT_JOURNEY_LINEAGE_20260920`, MQ4 SHA-256 `B08CBDEFED1B1A6B6F0B9CADC3CA53B25BD3F98334E7E797A51D765F53E0C148`.
+- Accepted P11 implementation commit: `0f80addc9080e726b8e6bb26a34094ae41ac3256`; latest scoped evidence head: `ddaf4d5855a9f1ddadffd5effff8edab5e71848f`; Build `4.96` / `V496_Q9_P11_STRICT_JOURNEY_LINEAGE_20260920`, MQ4 SHA-256 `B08CBDEFED1B1A6B6F0B9CADC3CA53B25BD3F98334E7E797A51D765F53E0C148`.
 - ParentEventID/JourneyID transition is NEW_JOURNEY; unchanged canonical root is FIRST; CONTINUATION is not inferred without a distinct source-owned continuation-event identity.
 - Legacy Build 4.95 higher-owner-root semantics are superseded; durable 4.95 CONTINUATION loads fail-closed as UNRESOLVED under 4.96.
 - Exact P10/P11 authority trace remains 2,092/2,092 equal; final tester lineage per run: FIRST=1988, NEW_JOURNEY=28, CONTINUATION=0; broker actions=0.
 - Canonical/runtime/tester native MetaEditor compile = 0 errors / 0 warnings.
+- OfflineDiag GlobalVariables were restored byte-identically after tester work; pre/post SHA-256 `DD8320C5529D41EB90F55290CBF3D5AAFE74F7A30964A647AF075DDFD7BA91A6`. No Q9 tester process remains active; Q3 PID 13064 was untouched.
 - PR #205 remains Draft: **NO MERGE / NO PRODUCTION ACTIVATION / NO P2 ACTIVATION / NO M5 EXECUTION AUTHORITY**.
 - Issue #101 downstream sequence is now eligible for read-only re-audit, starting with D1TPW lifecycle.
 

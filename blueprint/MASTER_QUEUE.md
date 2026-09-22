@@ -2,7 +2,7 @@
 
 Reconciled: **2026-09-20**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`f69492c85792f1e42624f7c796b4265335a38886`**
+Owner head at reconciliation: **`8da9dae0801f414f8d4c659a226ff58451cca7e6`**
 
 This file is the active queue. The pre-2026-09-09 historical queue is preserved byte-for-byte at `blueprint/archive/MASTER_QUEUE_pre_20260909.md`.
 
@@ -179,9 +179,9 @@ Status: **P1-P11 VERIFIED / CONTRACT STABILIZED / NO ACTIVATION**
 Current state:
 1. Do not rerun P1-P10; their exact scoped evidence remains reusable.
 2. P11 decision A is locked as strict canonical JourneyID semantics.
-3. Accepted P11: PR #205 head `0f80addc9080e726b8e6bb26a34094ae41ac3256`, Build `4.96`, source SHA-256 `B08CBDEFED1B1A6B6F0B9CADC3CA53B25BD3F98334E7E797A51D765F53E0C148`.
+3. Accepted P11 implementation commit is `0f80addc9080e726b8e6bb26a34094ae41ac3256`; latest scoped evidence head is `ddaf4d5855a9f1ddadffd5effff8edab5e71848f`, Build `4.96`, source SHA-256 `B08CBDEFED1B1A6B6F0B9CADC3CA53B25BD3F98334E7E797A51D765F53E0C148`.
 4. Build 4.95 lineage semantics are superseded; ParentEventID/JourneyID transition = NEW_JOURNEY, unchanged canonical root = FIRST, and CONTINUATION remains unproven without a separate source-owned continuation-event identity.
-5. Static/model/persistence + native compile + deterministic GBPUSD tester authority regression PASS; broker actions=0.
+5. Static/model/persistence + native compile + deterministic GBPUSD tester authority regression PASS; broker actions=0; OfflineDiag GlobalVariables restored byte-identically to pre-P11 SHA-256 `DD8320C5529D41EB90F55290CBF3D5AAFE74F7A30964A647AF075DDFD7BA91A6`.
 6. Preserve canonical owner Build 4.86 unchanged. PR #205 stays Draft: no merge, no production activation, no P2 ordering activation, no M5 execution authority.
 7. Next downstream sequence from Issue #101 is now eligible, in order:
    - D1TPW lifecycle re-audit;

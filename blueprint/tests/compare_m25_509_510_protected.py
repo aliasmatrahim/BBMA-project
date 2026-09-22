@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+from pathlib import Path
+import subprocess
+
+BASE="419af6f9a9fcedcef3aee0852f651aed46ba71dd"
+base=subprocess.check_output(["git","show",BASE+":blueprint/source/BBMA_EA.mq4"]).decode("utf-8").replace("\r\n","\n")
+cand=Path("blueprint/source/BBMA_EA.mq4").read_text(encoding="utf-8").replace("\r\n","\n")
+
+def body(src,signature):
+    start=src.index(signature); brace=src.index("{",start); depth=0
+    for i in range(brace,len(src)):
+        depth+=(src[i]=="{")-(src[i]=="}")
+        if depth==0:return src[start:i+1]
+    raise AssertionError(signature)
+
+protected=[
+ "void CollectSignalSnapshots(",
+ "void PriorityEngine_Atomic(",
+ "void InvalidationEngine_Atomic(",
+ "bool ResolveExecutionReferencePrice(",
+ "bool ResolveApprovedInitialSLTP(",
+ "bool ValidateSLTP(",
+ "double CalculateTotalRisk(",
+ "double CalculateLotSize(",
+ "void FinalPortfolioGuard(",
+ "int FindExistingExecutionTicket(",
+ "int SendOrderWithRetry(",
+ "bool SaveExecutionAmbiguityHold(",
+ "bool LatchExecutionAmbiguity(",
+ "int FindExecutionAmbiguityTicket(",
+ "bool AdoptAmbiguousExecutionTicket(",
+ "bool ReconcileExecutionAmbiguityHold(",
+ "void NMJE_PrintClosedOutcomeShadow(",
+ "void CompactMonitoredTrades(",
+ "void ProcessEntry(",
+ "bool RunEntryPreflightAndExecute(",
+ "void ManagePositions(",
+ "void RebuildExecutionHistory(",
+ "void RecoverExistingOrders(",
+ "void UpdateNestedJourneyObservation(",
+ "void NMJE_PrintValidatedDecisionShadow(",
+ "int CountDashboardLiveEAOwnedTrades(",
+ "void UpdateDashboard(",
+ "void RefreshDashboardLiveTradeCount(",
+ "int InitializeEA(",
+ "void OnDeinit("
+]
+for sig in protected:
+    assert body(base,sig)==body(cand,sig), "protected body changed: "+sig
+
+dash_base=body(base,"void BuildDashboardSnapshot(")
+dash_cand=body(cand,"void BuildDashboardSnapshot(")
+expected=dash_base.replace(
+    '   g_dashboard_snapshot += "=== BBMA EA V4.5.9 P0 EXEC_ID Persistence Fix ===\\n";',
+    '   g_dashboard_snapshot += "=== BBMA EA " + string(BBMA_BUILD_TAG) + " ===\\n";'
+)
+assert dash_cand==expected, "BuildDashboardSnapshot changed beyond canonical build-tag rendering"
+
+assert base.count("OrderSend(")==cand.count("OrderSend(")==1
+assert '#property version   "5.10"' in cand
+assert "V510_M25_DASHBOARD_BUILD_IDENTITY_20260922" in cand
+assert "M25_DASHBOARD_BUILD_IDENTITY_235_20260922" in cand
+assert '[F7-BUILD] EA=BBMA_EA Build=5.10 BuildTag=' in cand
+for forbidden in ("NMJE_PassExecutionGate","REJ_NMJE_RELATION","N3_POLICY_ACTIVE","PERIOD_M5"):
+    assert forbidden not in cand
+print("M25_510_PROTECTED_BODIES=PASS count="+str(len(protected)))

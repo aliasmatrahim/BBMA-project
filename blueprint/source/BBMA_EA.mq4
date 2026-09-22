@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.0.9 - N2 F07 Open DecisionID Provenance           |
+//| Version 5.1.0 - M25 Dashboard Build Identity               |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.09"
+#property version   "5.10"
 #property strict
 
-#define BBMA_BUILD_TAG      "V509_N2_F07_OPEN_DECISIONID_20260922"
-#define BBMA_SOURCE_REV_TAG "N2_F07_OPEN_DECISIONID_233_20260922"
+#define BBMA_BUILD_TAG      "V510_M25_DASHBOARD_BUILD_IDENTITY_20260922"
+#define BBMA_SOURCE_REV_TAG "M25_DASHBOARD_BUILD_IDENTITY_235_20260922"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -9105,7 +9105,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.09 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.10 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -10772,7 +10772,7 @@ void BuildDashboardSnapshot()
    int liveTradeCount = CountDashboardLiveEAOwnedTrades();
 
    g_dashboard_snapshot = "";
-   g_dashboard_snapshot += "=== BBMA EA V4.5.9 P0 EXEC_ID Persistence Fix ===\n";
+   g_dashboard_snapshot += "=== BBMA EA " + string(BBMA_BUILD_TAG) + " ===\n";
    g_dashboard_snapshot += "Time: " + TimeToString(TimeCurrent()) + "\n";
    g_dashboard_snapshot += "Balance: " + DoubleToString(AccountBalance(), 2) + "\n";
    g_dashboard_snapshot += "Equity: " + DoubleToString(AccountEquity(), 2) + "\n";

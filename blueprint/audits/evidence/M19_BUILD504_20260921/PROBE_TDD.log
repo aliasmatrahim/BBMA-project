@@ -1,0 +1,29 @@
+Recovered TDD transcript from implementation turn before interruption; no rerun.
+Command: python bbma_audit_readonly/run_m19_selection_probe.py <source>
+Host C++ extraction exercises actual CalculateTotalRisk with broker stubs.
+RED source: exact f48a74e Build5.03, LF SHA642c0c51c40a71ecb5ad6585a5c6d45f80fc5be702edbb6e18a75909dbb6c812.
+owned risk=25 valid=1 expected=25/1
+closed risk=5 valid=1 expected=5/1
+foreign risk=5 valid=1 expected=5/1
+registry_foreign risk=5 valid=1 expected=5/1
+breakeven risk=5 valid=1 expected=5/1
+empty risk=5 valid=1 expected=5/1
+unknown_sl risk=0 valid=0 expected=0/0
+transient_first_selection_failure risk=5 valid=1 expected=0/0
+persistent_selection_failure risk=5 valid=1 expected=0/0
+single_selection calls=2 expected=1
+SAFETY_ASSERTION_FAILURES=3
+RED exit=1.
+GREEN source: Build5.04 LF SHAc8e0987393fdb3d1063a1072fb767bd8509c3e7db48ce30ba31b5595ed587f9f.
+owned risk=25 valid=1 expected=25/1
+closed risk=5 valid=1 expected=5/1
+foreign risk=5 valid=1 expected=5/1
+registry_foreign risk=5 valid=1 expected=5/1
+breakeven risk=5 valid=1 expected=5/1
+empty risk=5 valid=1 expected=5/1
+unknown_sl risk=0 valid=0 expected=0/0
+transient_first_selection_failure risk=0 valid=0 expected=0/0
+persistent_selection_failure risk=0 valid=0 expected=0/0
+single_selection calls=1 expected=1
+SAFETY_ASSERTION_FAILURES=0
+GREEN exit=0. Native compile and historical smoke are separate evidence.

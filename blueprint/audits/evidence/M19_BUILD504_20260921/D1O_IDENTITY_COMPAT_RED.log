@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "D:\BBMA\Workspace\m19-selection-failclosed-101\blueprint\tests\test_d1o_extreme_tpw_same_identity_precedence_static.py", line 57, in <module>
+    main()
+  File "D:\BBMA\Workspace\m19-selection-failclosed-101\blueprint\tests\test_d1o_extreme_tpw_same_identity_precedence_static.py", line 28, in main
+    assert marker in SRC, marker
+           ^^^^^^^^^^^^^
+AssertionError: Version 5.0.3 - D1O EXTREME_TPW Identity Enrichment

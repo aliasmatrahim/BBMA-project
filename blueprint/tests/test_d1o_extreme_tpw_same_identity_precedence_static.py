@@ -19,13 +19,18 @@ def body(signature):
 
 
 def main():
-    for marker in (
-        "Version 5.0.3 - D1O EXTREME_TPW Identity Enrichment",
-        '#property version   "5.03"',
-        "V503_D1O_EXTREME_TPW_IDENTITY_ENRICHMENT_20260921",
-        "D1O_EXTREME_TPW_IDENTITY_ENRICHMENT_214_20260921",
-    ):
-        assert marker in SRC, marker
+    # Accept the verified owner and its scoped M19-only successor.
+    identities = (
+        ("Version 5.0.3 - D1O EXTREME_TPW Identity Enrichment",
+         '#property version   "5.03"',
+         "V503_D1O_EXTREME_TPW_IDENTITY_ENRICHMENT_20260921",
+         "D1O_EXTREME_TPW_IDENTITY_ENRICHMENT_214_20260921"),
+        ("Version 5.0.4 - M19 Selection Failure Fail-Closed",
+         '#property version   "5.04"',
+         "V504_M19_SELECTION_FAIL_CLOSED_20260921",
+         "M19_SELECTION_FAIL_CLOSED_101_20260921"),
+    )
+    assert any(all(marker in SRC for marker in markers) for markers in identities)
 
     helper = body("bool IsExactExtremeTPWIdentityEnrichmentPair(")
     for marker in (

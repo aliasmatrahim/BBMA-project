@@ -1,0 +1,13 @@
+{
+  "issue": 109,
+  "classification": "READ_ONLY_DEMO_IDENTITY_PROBE",
+  "mq4_normalized_sha256": "4061E473B7CDDC2D3019D1AD0A0B45807E64231F819EE773FF7BA0FD6761F79D",
+  "ex4_sha256": "AD47BA707F35862239C4A29ACFC257220DC6CE9252C2F70C67AAC8B04FC888D8",
+  "ex4_bytes": 8058,
+  "native_compile": "0 errors / 0 warnings",
+  "behavior": "Emit once on init, then emit once after connection if init preceded login",
+  "trading_calls": 0,
+  "targeted_pytest": "13 passed",
+  "full_pytest": "35 passed",
+  "ea_source_diff": 0
+}

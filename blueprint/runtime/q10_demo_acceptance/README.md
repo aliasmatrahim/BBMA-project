@@ -29,7 +29,7 @@ The runner also proves the current worktree has no EA-source diff after the froz
    - `Demo=Y`;
    - `Connected=Y`;
    - server/company identifies HFM / HF Markets / HotForex.
-7. Initialize resumable state with `init-state`.
+7. Initialize resumable state with `init-state`. A PASS demo identity must come from a log under the same dedicated terminal root whose exact EX4/settings are bound into state; the primary-terminal guard is mandatory.
 8. AUTO/formal stage order is locked:
    `R3 -> R4 -> R5 -> R6`.
 9. A stage cannot be formally skipped. A `FAIL` blocks later formal promotion.
@@ -89,6 +89,7 @@ python blueprint/tools/q10_demo_acceptance.py generate-launch \
   --terminal-root <dedicated-mt4-root> \
   --native-ex4 <dedicated-mt4-root>/MQL4/Experts/<exact-build511>.ex4 \
   --settings <dedicated-mt4-root>/<approved-settings>.set \
+  --primary-terminal <primary-terminal.exe> \
   --output-ini <dedicated-mt4-root>/q10_r3.ini
 ```
 
@@ -102,7 +103,7 @@ python blueprint/tools/q10_demo_acceptance.py collect-log \
   --output-dir <evidence>/R3
 ```
 
-Formal case analysis requires explicit case assertions. Marker presence alone cannot create PASS:
+Formal case analysis requires explicit case assertions. Marker presence alone cannot create PASS. PASS/FAIL evidence references must resolve to files registered in the collected stage bundle and must still match their recorded SHA-256:
 
 ```
 python blueprint/tools/q10_demo_acceptance.py analyze-bundle \
@@ -111,6 +112,18 @@ python blueprint/tools/q10_demo_acceptance.py analyze-bundle \
   --assertions <evidence>/R3/assertions.json \
   --output <evidence>/R3/analysis.json
 ```
+
+Promote the formal stage only from that validated analysis artifact:
+
+```
+python blueprint/tools/q10_demo_acceptance.py record-stage \
+  --state <evidence>/state.json \
+  --stage R3 \
+  --status PASS \
+  --evidence <evidence>/R3/analysis.json
+```
+
+`record-stage` rejects missing/mismatched analysis schema, stage, status, candidate source or build identity.
 
 ## Status vocabulary
 
@@ -142,4 +155,19 @@ As of the tooling-preparation checkpoint, G40 has no attributable HFM demo termi
 
 ## Clean restart helper
 
-`q10_demo_clean_restart.ps1` validates dedicated paths and the generated config, requests `CloseMainWindow()`, waits for full exit/log flush, refuses forced termination by default, snapshots logs before/after close, then restarts only the dedicated terminal. Use `-DryRun` to validate the plan without touching MT4.
+`q10_demo_clean_restart.ps1` validates the dedicated terminal/config plus the persisted Q10 state, requires `demo_auth.status=PASS` and a PASS candidate identity, requests `CloseMainWindow()`, waits for full exit/log flush, refuses forced termination by default, snapshots logs before/after close, then restarts only the dedicated terminal.
+
+Dry-run validation without touching MT4:
+
+```
+powershell -NoProfile -ExecutionPolicy Bypass -File \
+  blueprint/runtime/q10_demo_acceptance/q10_demo_clean_restart.ps1 \
+  -TerminalPath <dedicated-mt4-root>/terminal.exe \
+  -ConfigPath <dedicated-mt4-root>/q10_r3.ini \
+  -EvidenceDir <evidence>/restart \
+  -StatePath <evidence>/state.json \
+  -PrimaryTerminalPath <primary-terminal.exe> \
+  -DryRun
+```
+
+The helper never force-kills the terminal. If graceful close is not accepted or does not complete within the configured grace period, it returns `BLOCKED` and does not restart.

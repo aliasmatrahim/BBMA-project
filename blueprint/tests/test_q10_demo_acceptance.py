@@ -216,6 +216,9 @@ def test_launch_config_is_credential_free_and_ordered(tmp_path: Path):
     out = tmp_path / "r3.ini"
 
     primary = tmp_path / "primary" / "terminal.exe"
+    state["runtime_artifacts"] = q10.verify_runtime_artifacts(
+        root, ex4, settings, manifest, primary_terminal=primary
+    )
     result = q10.generate_launch_config(
         "R3", state, root, ex4, settings, out, "GBPUSD", "M15", manifest,
         primary_terminal=primary,
@@ -234,6 +237,21 @@ def test_launch_config_is_credential_free_and_ordered(tmp_path: Path):
             "GBPUSD", "M15", manifest, primary_terminal=root / "terminal.exe"
         )
 
+    other_root = tmp_path / "other-dedicated"
+    (other_root / "MQL4" / "Experts").mkdir(parents=True)
+    (other_root / "presets").mkdir()
+    (other_root / "terminal.exe").write_bytes(b"terminal")
+    other_ex4 = other_root / "MQL4" / "Experts" / "BBMA_EA_BUILD511.ex4"
+    other_ex4.write_bytes(b"candidate")
+    other_settings = other_root / "presets" / "final.set"
+    other_settings.write_bytes(b"settings")
+    with pytest.raises(q10.Q10Error, match="runtime terminal differs"):
+        q10.generate_launch_config(
+            "R3", state, other_root, other_ex4, other_settings,
+            tmp_path / "other.ini", "GBPUSD", "M15", manifest,
+            primary_terminal=primary
+        )
+
     with pytest.raises(q10.Q10Error, match="stage ordering"):
         q10.generate_launch_config(
             "R4", state, root, ex4, settings, tmp_path / "r4.ini",
@@ -243,7 +261,16 @@ def test_launch_config_is_credential_free_and_ordered(tmp_path: Path):
 
 def test_collector_redacts_account_login_and_counts_markers(tmp_path: Path):
     state = make_state()
-    log = tmp_path / "runtime.log"
+    root = tmp_path / "dedicated"
+    log_dir = root / "MQL4" / "Logs"
+    log_dir.mkdir(parents=True)
+    state["runtime_artifacts"] = {
+        "status": "PASS",
+        "terminal_root": str(root),
+        "native_ex4_sha256": "EX4",
+        "settings_sha256": "SET",
+    }
+    log = log_dir / "runtime.log"
     log.write_text(
         "Account=123456 [D1-03][OWNER] BUY\n"
         "Login: 987654 [P3M2][DECISION_FINAL] State=DEC_EXECUTED\n"
@@ -258,6 +285,11 @@ def test_collector_redacts_account_login_and_counts_markers(tmp_path: Path):
     assert "Login=<redacted>" in excerpt
     assert bundle["marker_counts"]["[D1-03][OWNER]"] == 1
     assert bundle["marker_counts"]["[P3M2][DECISION_FINAL]"] == 1
+
+    outside = tmp_path / "outside.log"
+    outside.write_text("[D1-03][OWNER] SELL\n", encoding="utf-8")
+    with pytest.raises(q10.Q10Error, match="runtime log must reside"):
+        q10.collect_stage_log("R3", outside, tmp_path / "outside-bundle", state)
 
 
 def test_assertion_analyzer_never_promotes_incomplete_to_pass(tmp_path: Path):
@@ -369,3 +401,10 @@ def test_clean_restart_helper_is_graceful_fail_closed():
     assert "taskkill" not in script.lower()
     assert "CREDENTIAL_FIELD_PRESENT" in script
     assert "DEDICATED_EQUALS_PRIMARY" in script
+    assert "StatePath" in script
+    assert "DEMO_AUTH_NOT_PASS" in script
+    assert "CANDIDATE_NOT_PASS" in script
+    assert "RUNTIME_ARTIFACTS_NOT_PASS" in script
+    assert "STATE_TERMINAL_MISMATCH" in script
+    assert "demo_auth.status" in script
+    assert "runtime_artifacts.terminal" in script

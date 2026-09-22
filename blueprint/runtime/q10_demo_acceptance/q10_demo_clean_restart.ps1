@@ -3,7 +3,7 @@ param(
     [Parameter(Mandatory=$true)][string]$ConfigPath,
     [Parameter(Mandatory=$true)][string]$EvidenceDir,
     [Parameter(Mandatory=$true)][string]$StatePath,
-    [string]$PrimaryTerminalPath = "",
+    [Parameter(Mandatory=$true)][string]$PrimaryTerminalPath,
     [int]$GraceSeconds = 30,
     [switch]$DryRun
 )
@@ -76,7 +76,10 @@ if(!$state.demo_auth -or $state.demo_auth.status -ne "PASS") {
 if(!$state.candidate -or $state.candidate.status -ne "PASS") {
     Fail-Closed "CANDIDATE_NOT_PASS"
 }
-if($state.runtime_artifacts -and $state.runtime_artifacts.terminal) {
+if(!$state.runtime_artifacts -or $state.runtime_artifacts.status -ne "PASS") {
+    Fail-Closed "RUNTIME_ARTIFACTS_NOT_PASS"
+}
+if($state.runtime_artifacts.terminal) {
     $stateTerminal = [IO.Path]::GetFullPath([string]$state.runtime_artifacts.terminal)
     if(![string]::Equals($terminal, $stateTerminal, [StringComparison]::OrdinalIgnoreCase)) {
         Fail-Closed "STATE_TERMINAL_MISMATCH"
@@ -85,11 +88,9 @@ if($state.runtime_artifacts -and $state.runtime_artifacts.terminal) {
 if($GraceSeconds -lt 5 -or $GraceSeconds -gt 300) {
     Fail-Closed "GRACE_SECONDS_OUT_OF_RANGE"
 }
-if($PrimaryTerminalPath) {
-    $primary = [IO.Path]::GetFullPath($PrimaryTerminalPath)
-    if([string]::Equals($terminal, $primary, [StringComparison]::OrdinalIgnoreCase)) {
-        Fail-Closed "DEDICATED_EQUALS_PRIMARY"
-    }
+$primary = [IO.Path]::GetFullPath($PrimaryTerminalPath)
+if([string]::Equals($terminal, $primary, [StringComparison]::OrdinalIgnoreCase)) {
+    Fail-Closed "DEDICATED_EQUALS_PRIMARY"
 }
 
 $configText = Get-Content -LiteralPath $config -Raw

@@ -1,5 +1,5 @@
 {
-  "schema": "BBMA_Q10_TOOLING_PREP_V1",
+  "schema": "BBMA_Q10_TOOLING_PREP_V2",
   "issue": 109,
   "candidate_freeze_commit": "78ddbd771853681de6628032701eea7231e05d61",
   "build": "5.11",
@@ -7,8 +7,8 @@
   "canonical_mq4_sha256": "50E4A01A5768B5B5E9A80CABAE21B7260A2912AA058E67E5273386177970D038",
   "native_ex4_sha256": "CFF8DA584C91AE177CA26E1C47518AA585A67F0E16C99295F932670E8CDEC6E1",
   "settings_sha256": "37BC585EB3AB5A73914FEC3C532023636D4FACCD7D3AAAF20B774269CF92DA70",
-  "tool_sha256": "337E30CA932BCC0F632EAB3C8EF09D224598EB49760D44822561166E24B3A80C",
-  "test_sha256": "09BEE69E12518D0215AAA5E8A05E144BAE487C4467310862CF5E583EDDF8EE93",
+  "tool_sha256": "B8112E744E282927E0A53790CE5D49E19F283AEE59D09E4ACA11E71E79A3E707",
+  "test_sha256": "6B48DA5EA2A14A45E318DBC3EE08AA8E6789DCF884A591BE6506AE8ADDFE48CA",
   "candidate_manifest_sha256": "1715C8C0E914DA6FDBE99375D0905A1E0445D83494AD3F1426AE10CA8616CC7A",
   "stage_matrix_sha256": "C2B17D9B47F1370C638C63C9253C66A16441F4B13B954AE3EC0B81C9E6F1665E",
   "probe_mq4_sha256": "97DA0293B048D6D1CADACDB0659A9A54CD61D4BA3062E7C0F4ADEDF116EB1DE6",
@@ -19,6 +19,7 @@
   "ea_source_diff_from_frozen_candidate": 0,
   "failclosed_rehearsal": {
     "candidate_identity": "PASS",
+    "validated_head": "43b7668184fc7b2edfe81a5eaf448885d4536d21",
     "demo_auth": "BLOCKED",
     "reason": "DEMO_LOG_MISSING",
     "next": "AUTH"
@@ -31,12 +32,20 @@
   "runtime_acceptance": "BLOCKED",
   "runtime_blocker": "Dedicated authenticated HFM demo terminal/evidence unavailable",
   "ea_source_changed": false,
-  "restart_helper_sha256": "7FDC0C5EF620ACDD2427329392EF7A9739E8B1C3ABDC25CBE5ED8409E24AC40A",
+  "restart_helper_sha256": "4275CD27C556A380B78BE47CAB0214CA708A009C271050B4DE61FBD534DB0D1B",
   "clean_restart_dryrun": {
     "status": "READY",
+    "state_bound": true,
+    "demo_auth_required": true,
+    "runtime_artifacts_required": true,
+    "primary_terminal_guard_required": true,
     "close_method": "CloseMainWindow",
     "force_kill": false,
     "credentials_in_config": false
   },
-  "evidence_integrity": "PASS: bundle files/hash + case evidence + stage analysis/candidate binding"
+  "evidence_integrity": "PASS: bundle raw/excerpt files and hashes; PASS/FAIL evidence must be bundle-registered; stage promotion requires bound analysis artifact",
+  "owner_baseline_before_followup": "db4db187c565e17e02a9a2e2a24d495a1ff87052",
+  "validated_tooling_head": "43b7668184fc7b2edfe81a5eaf448885d4536d21",
+  "runbook_sha256": "1CBA0502F0AE1B2FCB6B5DBF61C0E7EF77A2ABBD04F2F602A30866D98B6B0F78",
+  "powershell_restart_parse_errors": 0
 }

@@ -375,6 +375,15 @@ def inspect_demo_log(log_path: Path, manifest: dict[str, Any]) -> dict[str, Any]
     }
 
 
+def require_path_under(path: Path, root: Path, label: str) -> Path:
+    resolved = path.resolve()
+    try:
+        resolved.relative_to(root.resolve())
+    except ValueError as exc:
+        raise Q10Error(f"{label} must reside under the dedicated terminal root") from exc
+    return resolved
+
+
 def initial_state(
     manifest: dict[str, Any],
     matrix: dict[str, Any],
@@ -427,8 +436,14 @@ def collect_stage_log(
 ) -> dict[str, Any]:
     if state.get("demo_auth", {}).get("status") != "PASS":
         raise Q10Error("demo authentication gate is not PASS")
+    runtime = state.get("runtime_artifacts")
+    if not runtime or runtime.get("status") != "PASS":
+        raise Q10Error("runtime artifacts are not bound to the authenticated demo terminal")
     if stage not in STAGE_MARKERS:
         raise Q10Error(f"unsupported stage: {stage}")
+    log_path = require_path_under(
+        log_path, Path(runtime["terminal_root"]), "runtime log"
+    )
     if not log_path.is_file():
         raise Q10Error(f"runtime log missing: {log_path}")
 
@@ -538,7 +553,11 @@ def validate_case_evidence(
                 f"{case_id} evidence SHA mismatch: expected={expected} actual={actual}"
             )
         known_expected = known.get(str(path))
-        if known_expected is not None and actual != known_expected:
+        if known_expected is None:
+            raise Q10Error(
+                f"{case_id} evidence is not registered in the collected stage bundle: {path}"
+            )
+        if actual != known_expected:
             raise Q10Error(
                 f"{case_id} evidence no longer matches the collected bundle: {path}"
             )
@@ -668,6 +687,10 @@ def generate_launch_config(
             f"stage ordering violation: next formal stage is {expected['next']}, requested {stage}"
         )
 
+    bound = state.get("runtime_artifacts")
+    if not bound or bound.get("status") != "PASS":
+        raise Q10Error("runtime artifacts are not bound to the authenticated demo terminal")
+
     runtime = verify_runtime_artifacts(
         terminal_root=terminal_root,
         native_ex4=native_ex4,
@@ -675,6 +698,12 @@ def generate_launch_config(
         manifest=manifest,
         primary_terminal=primary_terminal,
     )
+    if Path(bound["terminal_root"]).resolve() != Path(runtime["terminal_root"]).resolve():
+        raise Q10Error("runtime terminal differs from authenticated demo terminal")
+    if str(bound.get("native_ex4_sha256", "")).upper() != runtime["native_ex4_sha256"]:
+        raise Q10Error("runtime EX4 differs from authenticated demo state")
+    if str(bound.get("settings_sha256", "")).upper() != runtime["settings_sha256"]:
+        raise Q10Error("runtime settings differ from authenticated demo state")
     expert_name = native_ex4.stem
     config = "\n".join(
         [
@@ -750,7 +779,10 @@ def cmd_init_state(args: argparse.Namespace) -> int:
     candidate = verify_candidate(Path(args.repo_root).resolve(), manifest)
     demo = inspect_demo_log(Path(args.demo_log), manifest)
     runtime = None
-    if args.terminal_root and args.native_ex4 and args.settings:
+    supplied_runtime = [args.terminal_root, args.native_ex4, args.settings]
+    if any(supplied_runtime) and not all(supplied_runtime):
+        raise Q10Error("terminal-root, native-ex4 and settings must be supplied together")
+    if all(supplied_runtime):
         runtime = verify_runtime_artifacts(
             Path(args.terminal_root),
             Path(args.native_ex4),
@@ -758,6 +790,14 @@ def cmd_init_state(args: argparse.Namespace) -> int:
             manifest,
             Path(args.primary_terminal) if args.primary_terminal else None,
         )
+    if demo["status"] == "PASS":
+        if runtime is None:
+            raise Q10Error("authenticated demo state requires bound runtime artifacts")
+        require_path_under(
+            Path(args.demo_log), Path(runtime["terminal_root"]), "demo identity log"
+        )
+        if not args.primary_terminal:
+            raise Q10Error("authenticated demo state requires primary-terminal guard")
     state = initial_state(manifest, matrix, candidate, demo, runtime)
     state["candidate_manifest_sha256"] = sha256_file(manifest_path)
     state["matrix_sha256"] = sha256_file(matrix_path)
@@ -839,7 +879,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--probe-ex4", required=True)
     s.add_argument("--output-ini", required=True)
     s.add_argument("--output-plan")
-    s.add_argument("--primary-terminal")
+    s.add_argument("--primary-terminal", required=True)
     s.add_argument("--symbol", default="GBPUSD")
     s.add_argument("--period", default="M15")
     s.set_defaults(func=cmd_probe_launch)
@@ -867,7 +907,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--state", required=True)
     s.add_argument("--stage", required=True)
     s.add_argument("--status", required=True, choices=sorted(STATUS_VALUES))
-    s.add_argument("--evidence")
+    s.add_argument("--evidence", required=True)
     s.set_defaults(func=cmd_record)
 
     s = sub.add_parser("generate-launch")
@@ -878,7 +918,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--settings", required=True)
     s.add_argument("--output-ini", required=True)
     s.add_argument("--output-plan")
-    s.add_argument("--primary-terminal")
+    s.add_argument("--primary-terminal", required=True)
     s.add_argument("--symbol", default="GBPUSD")
     s.add_argument("--period", default="M15")
     s.set_defaults(func=cmd_generate)

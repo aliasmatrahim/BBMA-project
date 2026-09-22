@@ -1,0 +1,8 @@
+﻿2026-09-22 N2 #229 runtime helper contamination notice
+The original F05 Build 5.06 NORMAL_R3 HTML report at F05506_NORMAL_R3_202608.html was overwritten by a Build 5.07 tester run because a TestReport string replacement did not match.
+The Build 5.07 report was preserved at evidence\N2_507_229_NORMAL_R1_20260922\N2507_NORMAL_R1_202608.html.
+The mislabeled overwritten file is intentionally removed so future tooling cannot consume it as Build 5.06 evidence.
+Authoritative Build 5.06 baseline remains:
+- F05506_NORMAL_R3_tester_newlog.bin SHA256=6E7AE588C66B66C193AC347B2A86DF898E01D929A6360B8539C78B91548C7B78
+- repository evidence NORMAL_R3_ANALYSIS.json under F05_BUILD506_20260922
+No Build 5.06 source, tester log, analysis JSON, GV evidence, or product binary was modified.

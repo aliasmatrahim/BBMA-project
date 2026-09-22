@@ -1,0 +1,23 @@
+{
+  "seeded_closed_count": 1,
+  "hold_cleared_closed_count": 1,
+  "ambiguous_frozen_outcome_count": 1,
+  "seed_fail_count": 0,
+  "special_outcome": [
+    "0\t19:00:25.817\t2026.08.12 08:15:01  BBMA_EA_N2_507_229_CLOSED_R1_HARNESS GBPUSD,M15: [N2-NMJE-OUT] PAIR=GBPUSD TICKET=3 DID=- DIDH=95E38D92BD864424 NET=-0.03750000 CLOSE=1786522501 REC=REC_AMBIGUOUS_EXECUTION_FROZEN"
+  ],
+  "build_marker": 1,
+  "init_pass": 1,
+  "deinit_reason0": 1,
+  "mismatched_chart_errors": "0",
+  "every_tick": true,
+  "total_trades": "14",
+  "fatal_runtime": {
+    "zero divide": 0,
+    "array out of range": 0,
+    "critical error": 0,
+    "unresolved stack function": 0,
+    "access violation": 0
+  },
+  "acceptance": "PASS"
+}

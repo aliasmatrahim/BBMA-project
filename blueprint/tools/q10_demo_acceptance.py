@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Q10 HFM demo acceptance orchestrator for the frozen BBMA Build 5.11 candidate.
+"""Q10 demo acceptance orchestrator for the frozen BBMA Build 5.11 candidate.
 
 Safety properties:
 - binds runtime preparation to an exact frozen source/native EX4/settings identity;
@@ -350,15 +350,17 @@ def inspect_demo_log(log_path: Path, manifest: dict[str, Any]) -> dict[str, Any]
     server = last.get("Server", "")
     company = last.get("Company", "")
     haystack = f"{server} {company}".lower()
-    hfm = any(token.lower() in haystack for token in manifest["broker_tokens"])
+    provider_allowed = any(
+        token.lower() in haystack for token in manifest["broker_tokens"]
+    )
 
     reasons = []
     if not demo:
         reasons.append("ACCOUNT_NOT_DEMO")
     if not connected:
         reasons.append("NOT_CONNECTED")
-    if not hfm:
-        reasons.append("BROKER_NOT_HFM")
+    if not provider_allowed:
+        reasons.append("DEMO_PROVIDER_NOT_ALLOWED")
 
     return {
         "status": "PASS" if not reasons else "BLOCKED",

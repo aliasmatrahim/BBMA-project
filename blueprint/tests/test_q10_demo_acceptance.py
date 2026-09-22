@@ -29,12 +29,12 @@ def test_frozen_candidate_identity_is_exact():
     assert result["source_neutral_after_freeze"] is True
 
 
-def test_demo_probe_accepts_hfm_demo_and_blocks_live(tmp_path: Path):
+def test_demo_probe_accepts_metaquotes_demo_and_blocks_live(tmp_path: Path):
     manifest = load(MANIFEST_PATH)
     demo_log = tmp_path / "demo.log"
     demo_log.write_text(
         "x [Q10-DEMO-ID]|Demo=Y|Connected=Y|TradeAllowed=N|"
-        "Server=HFM-Demo|Company=HF Markets|TerminalBuild=1479\n",
+        "Server=MetaQuotes-Demo|Company=MetaQuotes Software Corp.|TerminalBuild=1479\n",
         encoding="utf-8",
     )
     good = q10.inspect_demo_log(demo_log, manifest)
@@ -45,7 +45,7 @@ def test_demo_probe_accepts_hfm_demo_and_blocks_live(tmp_path: Path):
     live_log = tmp_path / "live.log"
     live_log.write_text(
         "[Q10-DEMO-ID]|Demo=N|Connected=Y|TradeAllowed=Y|"
-        "Server=HFM-Live|Company=HF Markets|TerminalBuild=1479\n",
+        "Server=MetaQuotes-Live|Company=MetaQuotes Software Corp.|TerminalBuild=1479\n",
         encoding="utf-8",
     )
     blocked = q10.inspect_demo_log(live_log, manifest)
@@ -53,7 +53,7 @@ def test_demo_probe_accepts_hfm_demo_and_blocks_live(tmp_path: Path):
     assert "ACCOUNT_NOT_DEMO" in blocked["reason"]
 
 
-def test_demo_gate_blocks_missing_or_non_hfm_evidence(tmp_path: Path):
+def test_demo_gate_blocks_missing_or_non_allowed_provider_evidence(tmp_path: Path):
     manifest = load(MANIFEST_PATH)
     missing = q10.inspect_demo_log(tmp_path / "missing.log", manifest)
     assert missing["status"] == "BLOCKED"
@@ -66,7 +66,7 @@ def test_demo_gate_blocks_missing_or_non_hfm_evidence(tmp_path: Path):
     )
     result = q10.inspect_demo_log(other, manifest)
     assert result["status"] == "BLOCKED"
-    assert "BROKER_NOT_HFM" in result["reason"]
+    assert "DEMO_PROVIDER_NOT_ALLOWED" in result["reason"]
 
 
 def test_probe_launch_is_read_only_and_credential_free(tmp_path: Path):
@@ -369,7 +369,7 @@ def test_identity_probe_is_read_only_and_hash_bound():
         assert forbidden not in probe
     assert "AccountNumber(" not in probe
     assert "[Q10-DEMO-ID]" in probe
-    assert q10.sha256_file(probe_path) == manifest["demo_probe_mq4_sha256"]
+    assert q10.normalized_source_sha256(probe_path) == manifest["demo_probe_mq4_sha256"]
 
 
 def test_stage_matrix_is_bound_to_current_build_semantics():

@@ -1,0 +1,8 @@
+......................                                                   [100%]
+============================== warnings summary ===============================
+..\..\..\BBMA_SOURCE_AUDIT_VIDEOS\tools\python312\runtime\Lib\site-packages\_pytest\cacheprovider.py:469
+  D:\BBMA_SOURCE_AUDIT_VIDEOS\tools\python312\runtime\Lib\site-packages\_pytest\cacheprovider.py:469: PytestCacheWarning: could not create cache path D:\BBMA\Workspace\n1-p1-lineage-provenance-231\.pytest_cache\v\cache\nodeids: [WinError 5] Access is denied: 'D:\\BBMA\\Workspace\\n1-p1-lineage-provenance-231\\pytest-cache-files-_dlys0tr' -> 'D:\\BBMA\\Workspace\\n1-p1-lineage-provenance-231\\.pytest_cache'
+    config.cache.set("cache/nodeids", sorted(self.cached_nodeids))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+22 passed, 1 warning in 1.91s

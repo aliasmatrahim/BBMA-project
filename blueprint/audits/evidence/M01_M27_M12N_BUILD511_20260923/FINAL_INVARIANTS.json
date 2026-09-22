@@ -1,0 +1,285 @@
+{
+  "baseline": "97b6fd8871f458787de964ba655c27feebb63f88",
+  "build": "5.11",
+  "check_count": 68,
+  "all_pass": true,
+  "checks": {
+    "build_511": {
+      "pass": true,
+      "detail": ""
+    },
+    "modules_01_27_exact": {
+      "pass": true,
+      "detail": "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27]"
+    },
+    "no_shift0_strategy_indicator": {
+      "pass": true,
+      "detail": "[]"
+    },
+    "order_send_single": {
+      "pass": true,
+      "detail": "1"
+    },
+    "order_close_three": {
+      "pass": true,
+      "detail": "3"
+    },
+    "no_order_modify_delete": {
+      "pass": true,
+      "detail": ""
+    },
+    "processpair_has_UpdateNestedJourneyObservation_pairIndex_": {
+      "pass": true,
+      "detail": ""
+    },
+    "processpair_has_BuildPossibleCombinations_": {
+      "pass": true,
+      "detail": ""
+    },
+    "processpair_has_PriorityEngine_Atomic_": {
+      "pass": true,
+      "detail": ""
+    },
+    "processpair_has_InvalidationEngine_Atomic_": {
+      "pass": true,
+      "detail": ""
+    },
+    "processpair_has_NMJE_PrintValidatedDecisionShadow_": {
+      "pass": true,
+      "detail": ""
+    },
+    "processpair_has_RunEntryPreflightAndExecute_": {
+      "pass": true,
+      "detail": ""
+    },
+    "processpair_has_g_pair_states_pairIndex_last_decision_decisio": {
+      "pass": true,
+      "detail": ""
+    },
+    "processpair_has_g_processed_candle_time_pairIndex_m15Closed_": {
+      "pass": true,
+      "detail": ""
+    },
+    "processpair_authority_order": {
+      "pass": true,
+      "detail": "[13780, 16689, 19006, 19415, 19608, 19670, 20166, 20316]"
+    },
+    "m12n_once_in_processpair": {
+      "pass": true,
+      "detail": ""
+    },
+    "m12n_no_OrderSend_": {
+      "pass": true,
+      "detail": ""
+    },
+    "m12n_no_OrderClose_": {
+      "pass": true,
+      "detail": ""
+    },
+    "m12n_no_RunEntryPreflightAndExecute_": {
+      "pass": true,
+      "detail": ""
+    },
+    "m12n_no_ProcessEntry_": {
+      "pass": true,
+      "detail": ""
+    },
+    "m12n_no_DecisionState_": {
+      "pass": true,
+      "detail": ""
+    },
+    "m12n_no_RejectionReason_": {
+      "pass": true,
+      "detail": ""
+    },
+    "forbidden_absent_NMJE_PassExecutionGate": {
+      "pass": true,
+      "detail": ""
+    },
+    "forbidden_absent_REJ_NMJE_RELATION": {
+      "pass": true,
+      "detail": ""
+    },
+    "forbidden_absent_N3_POLICY_ACTIVE": {
+      "pass": true,
+      "detail": ""
+    },
+    "forbidden_absent_N3_EXECUTION_POLICY": {
+      "pass": true,
+      "detail": ""
+    },
+    "forbidden_absent_PERIOD_M5": {
+      "pass": true,
+      "detail": ""
+    },
+    "snapshot_PERIOD_D1": {
+      "pass": true,
+      "detail": ""
+    },
+    "snapshot_PERIOD_H4": {
+      "pass": true,
+      "detail": ""
+    },
+    "snapshot_PERIOD_H1": {
+      "pass": true,
+      "detail": ""
+    },
+    "snapshot_PERIOD_M15": {
+      "pass": true,
+      "detail": ""
+    },
+    "timeframe_data_closed_check": {
+      "pass": true,
+      "detail": ""
+    },
+    "comb_SIGNAL_RE_ENTRY_h4_reEntry_Direction": {
+      "pass": true,
+      "detail": ""
+    },
+    "comb_SIGNAL_EXTREME_h1_extreme_Direction": {
+      "pass": true,
+      "detail": ""
+    },
+    "comb_SIGNAL_MLV_m15_mlv_Direction": {
+      "pass": true,
+      "detail": ""
+    },
+    "comb_SIGNAL_RE_ENTRY_d1_reEntry_Direction": {
+      "pass": true,
+      "detail": ""
+    },
+    "comb_SIGNAL_EXTREME_h4_extreme_Direction": {
+      "pass": true,
+      "detail": ""
+    },
+    "standalone_extreme_mode2": {
+      "pass": true,
+      "detail": ""
+    },
+    "standalone_extreme_retest_ready": {
+      "pass": true,
+      "detail": ""
+    },
+    "standalone_extreme_h1": {
+      "pass": true,
+      "detail": ""
+    },
+    "standalone_extreme_h4_owner": {
+      "pass": true,
+      "detail": ""
+    },
+    "m18_score_neutral": {
+      "pass": true,
+      "detail": ""
+    },
+    "m18_calculator_not_called": {
+      "pass": true,
+      "detail": "1"
+    },
+    "m19_m21_no_broker_write": {
+      "pass": true,
+      "detail": ""
+    },
+    "m19_m21_no_candidate_builder": {
+      "pass": true,
+      "detail": ""
+    },
+    "recovery_no_broker_write": {
+      "pass": true,
+      "detail": ""
+    },
+    "recovery_no_full_decision_fabrication": {
+      "pass": true,
+      "detail": ""
+    },
+    "h4_recovery_closed_replay": {
+      "pass": true,
+      "detail": ""
+    },
+    "h4_recovery_fail_closed": {
+      "pass": true,
+      "detail": ""
+    },
+    "c044_reuses_m08": {
+      "pass": true,
+      "detail": ""
+    },
+    "c044_reuses_m12": {
+      "pass": true,
+      "detail": ""
+    },
+    "last_decision_single_writer": {
+      "pass": true,
+      "detail": "1"
+    },
+    "init_recovery_order": {
+      "pass": true,
+      "detail": "[611, 1931, 1965, 1995, 2241]"
+    },
+    "ui_no_broker_write_int_CountDashboardLiveEAOwnedTrades_": {
+      "pass": true,
+      "detail": ""
+    },
+    "ui_no_broker_write_void_BuildDashboardSnapshot_": {
+      "pass": true,
+      "detail": ""
+    },
+    "ui_no_broker_write_void_UpdateDashboard_": {
+      "pass": true,
+      "detail": ""
+    },
+    "ui_no_broker_write_void_RefreshDashboardLiveTradeCount_": {
+      "pass": true,
+      "detail": ""
+    },
+    "state_EXT_MAT_VOID": {
+      "pass": true,
+      "detail": ""
+    },
+    "state_EXT_MAT_SUPERSEDED": {
+      "pass": true,
+      "detail": ""
+    },
+    "state_MLV_VOID": {
+      "pass": true,
+      "detail": ""
+    },
+    "state_MLV_SUPERSEDED": {
+      "pass": true,
+      "detail": ""
+    },
+    "state_RE_STATE_CANDIDATE": {
+      "pass": true,
+      "detail": ""
+    },
+    "state_RE_STATE_CONFIRMED": {
+      "pass": true,
+      "detail": ""
+    },
+    "state_DEC_CREATED": {
+      "pass": true,
+      "detail": ""
+    },
+    "state_DEC_VALIDATED": {
+      "pass": true,
+      "detail": ""
+    },
+    "state_DEC_EXECUTED": {
+      "pass": true,
+      "detail": ""
+    },
+    "state_DEC_EXPIRED": {
+      "pass": true,
+      "detail": ""
+    },
+    "state_DEC_REJECTED": {
+      "pass": true,
+      "detail": ""
+    }
+  },
+  "worktree_raw_sha256": "D195C619F086646B9309B6A9A25AD3662D206460D1B5CDA7BC4CE6F62D3465A4",
+  "canonical_git_blob_sha256": "50E4A01A5768B5B5E9A80CABAE21B7260A2912AA058E67E5273386177970D038",
+  "worktree_crlf_normalized_sha256": "50E4A01A5768B5B5E9A80CABAE21B7260A2912AA058E67E5273386177970D038",
+  "source_bearing_commit": "c1da06ea15e6cc31d097765043fba26899090b7e",
+  "source_content_equal_to_owner": true
+}

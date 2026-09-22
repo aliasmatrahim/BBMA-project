@@ -104,6 +104,19 @@ Required behavior:
 - expose a one-time structured recovery diagnostic with cause `MISSING_EXECUTION_HASH`;
 - do not label the position `REC_RECOVERY_INVALID` solely because `H:` is missing.
 
+### `REC_AMBIGUOUS_EXECUTION_FROZEN`
+F07 normal-session reconciliation found an exact late-visible broker execution after the original M22 send outcome was ambiguous, but the original strategy/lifecycle materialization was not completed atomically.
+
+Required behavior:
+- preserve broker Entry/SL/TP/lot exactly;
+- preserve the stable execution hash and durable idempotency identity;
+- include the position in M19/M20 safety accounting;
+- keep M20/M23 emergency liquidation available;
+- freeze ordinary strategy/lifecycle actions;
+- do not fabricate full `DecisionID`, signal type, sequence, C044 owner, D1TPW owner or checkpoint state.
+
+M24 does not create this state as a substitute for its restart classifications. It merely preserves the rule that restart recovery and F07 reconciliation may not invent missing strategy identity.
+
 ### `REC_RECOVERY_INVALID`
 Reserved for genuinely invalid recoverable broker state, including invalid directional Entry/SL/TP geometry, non-positive live lot, invalid live lot step, or another hard state inconsistency that cannot be safely preserved as a normal position.
 

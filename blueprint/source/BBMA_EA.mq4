@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.0.4 - M19 Selection Failure Fail-Closed      |
+//| Version 5.0.5 - Persistent Execution Ambiguity Hold    |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.04"
+#property version   "5.05"
 #property strict
 
-#define BBMA_BUILD_TAG      "V504_M19_SELECTION_FAIL_CLOSED_20260921"
-#define BBMA_SOURCE_REV_TAG "M19_SELECTION_FAIL_CLOSED_101_20260921"
+#define BBMA_BUILD_TAG      "V505_F07_EXECUTION_AMBIGUITY_HOLD_20260922"
+#define BBMA_SOURCE_REV_TAG "F07_EXECUTION_AMBIGUITY_HOLD_224_20260922"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -335,7 +335,8 @@ enum ENUM_OPPOSITE_CONFLICT_TYPE
 
 
 enum ENUM_RECOVERY_STATE { REC_NORMAL, REC_CORRUPTED, REC_RECOVERY_INVALID, REC_PARTIAL_INFERRED,
-                           REC_IDENTITY_HASH_ONLY, REC_IDENTITY_MISSING_FROZEN };
+                           REC_IDENTITY_HASH_ONLY, REC_IDENTITY_MISSING_FROZEN,
+                           REC_AMBIGUOUS_EXECUTION_FROZEN };
 
 // C044 staged targetless lifecycle state. Execution remains gated OFF until
 // owner-event evaluation and recovery activation pass their final gate.
@@ -940,6 +941,18 @@ struct TradeInfo
    ENUM_RECOVERY_STATE  recovery_state;
 };
 
+struct PendingExecutionAmbiguity
+{
+   bool                 Active;
+   bool                 PersistenceValid;
+   string               DecisionID;
+   string               ExecutionHash;
+   string               Pair;
+   ENUM_DIRECTION       Direction;
+   int                  MagicNumber;
+   datetime             LatchedTime;
+};
+
 struct RiskStatus
 {
    bool                 allowed;
@@ -1017,6 +1030,7 @@ bool                 g_broker_initialized;
 //--- Trade monitoring
 TradeInfo            g_monitored_trades[MAX_MONITORED];
 int                  g_monitored_count;
+PendingExecutionAmbiguity g_execution_ambiguity;
 
 //--- Signal history
 SignalHistoryEntry   g_global_signal_history[];
@@ -7793,6 +7807,336 @@ void AddToMonitoredTrades(TradeInfo &info)
    Log(DBG_ERROR, "Monitored registry full; unable to register ticket=" + IntegerToString(info.ticket));
 }
 
+// F07: execution ambiguity is an EA-wide admission safety state, not Strategy Core.
+// The minimal identity is persisted so restart cannot silently erase an unknown
+// broker-acceptance outcome. There is no timeout or automatic resend.
+string ExecutionAmbiguityGVBase()
+{
+   return "BBXA|S" + IntegerToString(StrategyID) + "|I" +
+          IntegerToString(InstanceID) + "|";
+}
+
+bool SaveExecutionAmbiguityHold()
+{
+   if(!g_execution_ambiguity.Active ||
+      StringLen(g_execution_ambiguity.ExecutionHash) != 16 ||
+      g_execution_ambiguity.MagicNumber <= 0 ||
+      (g_execution_ambiguity.Direction != DIR_BUY &&
+       g_execution_ambiguity.Direction != DIR_SELL))
+      return false;
+
+   double h0 = Hex4ToNumber(StringSubstr(g_execution_ambiguity.ExecutionHash, 0, 4));
+   double h1 = Hex4ToNumber(StringSubstr(g_execution_ambiguity.ExecutionHash, 4, 4));
+   double h2 = Hex4ToNumber(StringSubstr(g_execution_ambiguity.ExecutionHash, 8, 4));
+   double h3 = Hex4ToNumber(StringSubstr(g_execution_ambiguity.ExecutionHash, 12, 4));
+   if(h0 < 0 || h1 < 0 || h2 < 0 || h3 < 0) return false;
+
+   string base = ExecutionAmbiguityGVBase();
+
+   // Active marker is committed first. A crash during the remaining writes
+   // therefore reloads as an unresolved/corrupt HOLD rather than fail-open.
+   if(GlobalVariableSet(base + "A", 1.0) == 0) return false;
+
+   bool ok = true;
+   if(GlobalVariableSet(base + "H0", h0) == 0) ok = false;
+   if(GlobalVariableSet(base + "H1", h1) == 0) ok = false;
+   if(GlobalVariableSet(base + "H2", h2) == 0) ok = false;
+   if(GlobalVariableSet(base + "H3", h3) == 0) ok = false;
+   if(GlobalVariableSet(base + "M", (double)g_execution_ambiguity.MagicNumber) == 0) ok = false;
+   if(GlobalVariableSet(base + "D", (double)g_execution_ambiguity.Direction) == 0) ok = false;
+   if(GlobalVariableSet(base + "T", (double)g_execution_ambiguity.LatchedTime) == 0) ok = false;
+   GlobalVariablesFlush();
+   if(!ok) return false;
+
+   string keys[7] = {"H0","H1","H2","H3","M","D","T"};
+   for(int i = 0; i < 7; i++)
+      if(!GlobalVariableCheck(base + keys[i])) return false;
+
+   string verifyHash =
+      NumberToHex4(GlobalVariableGet(base + "H0")) +
+      NumberToHex4(GlobalVariableGet(base + "H1")) +
+      NumberToHex4(GlobalVariableGet(base + "H2")) +
+      NumberToHex4(GlobalVariableGet(base + "H3"));
+
+   return GlobalVariableCheck(base + "A") &&
+          GlobalVariableGet(base + "A") == 1.0 &&
+          verifyHash == g_execution_ambiguity.ExecutionHash &&
+          (int)GlobalVariableGet(base + "M") == g_execution_ambiguity.MagicNumber &&
+          (ENUM_DIRECTION)((int)GlobalVariableGet(base + "D")) == g_execution_ambiguity.Direction;
+}
+
+bool LoadExecutionAmbiguityHold()
+{
+   ZeroMemory(g_execution_ambiguity);
+   string base = ExecutionAmbiguityGVBase();
+   if(!GlobalVariableCheck(base + "A") || GlobalVariableGet(base + "A") != 1.0)
+      return true;
+
+   // Once the active marker exists, any incomplete payload remains a HOLD.
+   g_execution_ambiguity.Active = true;
+   g_execution_ambiguity.PersistenceValid = false;
+
+   string keys[7] = {"H0","H1","H2","H3","M","D","T"};
+   for(int i = 0; i < 7; i++)
+      if(!GlobalVariableCheck(base + keys[i])) return false;
+
+   string executionHash =
+      NumberToHex4(GlobalVariableGet(base + "H0")) +
+      NumberToHex4(GlobalVariableGet(base + "H1")) +
+      NumberToHex4(GlobalVariableGet(base + "H2")) +
+      NumberToHex4(GlobalVariableGet(base + "H3"));
+   int magic = (int)GlobalVariableGet(base + "M");
+   ENUM_DIRECTION direction =
+      (ENUM_DIRECTION)((int)GlobalVariableGet(base + "D"));
+   datetime latchedTime = (datetime)((int)GlobalVariableGet(base + "T"));
+
+   if(StringLen(executionHash) != 16 || magic <= 0 || latchedTime <= 0 ||
+      (direction != DIR_BUY && direction != DIR_SELL))
+      return false;
+
+   g_execution_ambiguity.ExecutionHash = executionHash;
+   g_execution_ambiguity.MagicNumber = magic;
+   g_execution_ambiguity.Direction = direction;
+   g_execution_ambiguity.LatchedTime = latchedTime;
+
+   for(int p = 0; p < g_pair_count; p++)
+   {
+      if(g_pair_states[p].magic_number != magic) continue;
+      g_execution_ambiguity.Pair = g_pair_states[p].actual_symbol;
+      break;
+   }
+
+   if(g_execution_ambiguity.Pair == "")
+      return false;
+
+   g_execution_ambiguity.PersistenceValid = true;
+   Print("[F07][AMBIGUITY_HOLD_RECOVERED] Pair=", g_execution_ambiguity.Pair,
+         " Dir=", EnumToString(g_execution_ambiguity.Direction),
+         " Hash=", g_execution_ambiguity.ExecutionHash);
+   return true;
+}
+
+bool ClearExecutionAmbiguityHold()
+{
+   string base = ExecutionAmbiguityGVBase();
+   string keys[7] = {"H0","H1","H2","H3","M","D","T"};
+
+   // Remove payload first and active marker last. Until A is deleted, restart
+   // remains fail-closed even if cleanup is interrupted.
+   for(int i = 0; i < 7; i++)
+      if(!DeleteTerminalGlobalExact(base + keys[i])) return false;
+   if(!DeleteTerminalGlobalExact(base + "A")) return false;
+   GlobalVariablesFlush();
+
+   ZeroMemory(g_execution_ambiguity);
+   return true;
+}
+
+bool LatchExecutionAmbiguity(BBMA_Decision &decision, string pair, int magicNumber)
+{
+   if(decision.DecisionID == "" || pair == "" || magicNumber <= 0 ||
+      (decision.Direction != DIR_BUY && decision.Direction != DIR_SELL))
+      return false;
+
+   string executionHash = SHORT_HASH(decision.DecisionID);
+   if(StringLen(executionHash) != 16) return false;
+
+   if(g_execution_ambiguity.Active)
+   {
+      bool same = (g_execution_ambiguity.ExecutionHash == executionHash &&
+                   g_execution_ambiguity.Pair == pair &&
+                   g_execution_ambiguity.Direction == decision.Direction &&
+                   g_execution_ambiguity.MagicNumber == magicNumber);
+      if(!same)
+         Log(DBG_ERROR, "F07 ambiguity collision; existing HOLD preserved");
+      return same && g_execution_ambiguity.PersistenceValid;
+   }
+
+   ZeroMemory(g_execution_ambiguity);
+   g_execution_ambiguity.Active = true;
+   g_execution_ambiguity.DecisionID = decision.DecisionID; // same-session aid only
+   g_execution_ambiguity.ExecutionHash = executionHash;
+   g_execution_ambiguity.Pair = pair;
+   g_execution_ambiguity.Direction = decision.Direction;
+   g_execution_ambiguity.MagicNumber = magicNumber;
+   g_execution_ambiguity.LatchedTime = TimeCurrent();
+   g_execution_ambiguity.PersistenceValid = SaveExecutionAmbiguityHold();
+
+   Print("[F07][AMBIGUITY_HOLD_LATCHED] Pair=", pair,
+         " Dir=", EnumToString(decision.Direction),
+         " Hash=", executionHash,
+         " Persist=", g_execution_ambiguity.PersistenceValid ? "PASS" : "FAIL");
+   return g_execution_ambiguity.PersistenceValid;
+}
+
+int FindExecutionAmbiguityTicket(bool &isOpen)
+{
+   isOpen = false;
+   if(!g_execution_ambiguity.Active || !g_execution_ambiguity.PersistenceValid ||
+      g_execution_ambiguity.Pair == "" ||
+      StringLen(g_execution_ambiguity.ExecutionHash) != 16)
+      return -1;
+
+   int orderType = (g_execution_ambiguity.Direction == DIR_BUY) ? OP_BUY : OP_SELL;
+
+   if(g_execution_ambiguity.DecisionID != "")
+   {
+      int currentTicket = FindExistingExecutionTicket(
+         g_execution_ambiguity.Pair, orderType,
+         g_execution_ambiguity.MagicNumber, g_execution_ambiguity.DecisionID);
+      if(currentTicket > 0)
+      {
+         isOpen = true;
+         return currentTicket;
+      }
+   }
+
+   string executionTag = "BBMA|H:" + g_execution_ambiguity.ExecutionHash;
+   for(int pass = 0; pass < 2; pass++)
+   {
+      int total = (pass == 0) ? OrdersTotal() : OrdersHistoryTotal();
+      int pool = (pass == 0) ? MODE_TRADES : MODE_HISTORY;
+      for(int i = 0; i < total; i++)
+      {
+         if(!OrderSelect(i, SELECT_BY_POS, pool))
+            return -1;
+         if(OrderSymbol() != g_execution_ambiguity.Pair) continue;
+         if(OrderMagicNumber() != g_execution_ambiguity.MagicNumber) continue;
+         if(OrderType() != orderType) continue;
+         if(StringFind(OrderComment(), executionTag) != 0) continue;
+
+         bool open = (OrderCloseTime() == 0);
+         if(pass == 0 && !open) continue;
+         if(pass == 1 && open) continue;
+         isOpen = open;
+         return OrderTicket();
+      }
+   }
+   return -1;
+}
+
+bool AdoptAmbiguousExecutionTicket(int ticket, bool isOpen)
+{
+   if(ticket <= 0 || !g_execution_ambiguity.Active ||
+      !g_execution_ambiguity.PersistenceValid)
+      return false;
+   if(!OrderSelect(ticket, SELECT_BY_TICKET)) return false;
+
+   int expectedType =
+      (g_execution_ambiguity.Direction == DIR_BUY) ? OP_BUY : OP_SELL;
+   if(OrderSymbol() != g_execution_ambiguity.Pair ||
+      OrderMagicNumber() != g_execution_ambiguity.MagicNumber ||
+      OrderType() != expectedType)
+      return false;
+
+   string brokerHash = "";
+   if(!ExtractExecutionHash(OrderComment(), brokerHash) ||
+      brokerHash != g_execution_ambiguity.ExecutionHash)
+      return false;
+
+   datetime openTime = OrderOpenTime();
+   if(openTime <= 0) return false;
+
+   if(!isOpen)
+   {
+      if(OrderCloseTime() == 0) return false;
+      if(!SaveExecutionIdentityHash(g_execution_ambiguity.ExecutionHash, ticket,
+                                    g_execution_ambiguity.Pair,
+                                    g_execution_ambiguity.Direction,
+                                    g_execution_ambiguity.MagicNumber, openTime))
+         return false;
+      UpsertExecutionHashTombstone(g_execution_ambiguity.ExecutionHash, ticket,
+                                   g_execution_ambiguity.Pair,
+                                   g_execution_ambiguity.Direction, openTime);
+      return true;
+   }
+
+   if(OrderCloseTime() != 0) return false;
+   if(!EnsureMonitoredRegistryCapacity()) return false;
+
+   TradeInfo info;
+   ZeroMemory(info);
+   info.ticket = ticket;
+   info.magic_number = g_execution_ambiguity.MagicNumber;
+   info.pair = g_execution_ambiguity.Pair;
+   info.direction = g_execution_ambiguity.Direction;
+   info.signal_type = SIGNAL_NONE;
+   info.initial_entry_price = OrderOpenPrice();
+   info.initial_stop_loss = OrderStopLoss();
+   info.initial_take_profit = OrderTakeProfit();
+   info.initial_lot = OrderLots();
+   info.initial_risk_price_distance =
+      MathAbs(info.initial_entry_price - info.initial_stop_loss);
+   info.entry_price = info.initial_entry_price;
+   info.current_sl = info.initial_stop_loss;
+   info.current_tp = info.initial_take_profit;
+   info.lot = OrderLots();
+   info.remaining_lot = OrderLots();
+   info.open_time = openTime;
+   info.point = GetPointSize(info.pair);
+   info.digits = GetDigits(info.pair);
+   info.stop_level = GetStopLevel(info.pair);
+   info.freeze_level = GetFreezeLevel(info.pair);
+   info.decision_id = "";
+   info.execution_hash = g_execution_ambiguity.ExecutionHash;
+   info.sequence_hash_short = "";
+   ResetC044TradeState(info);
+   ResetD1TPWTradeState(info);
+   info.recovery_state = REC_AMBIGUOUS_EXECUTION_FROZEN;
+
+   AddToMonitoredTrades(info);
+
+   bool registered = false;
+   for(int i = 0; i < g_monitored_count; i++)
+      if(g_monitored_trades[i].ticket == ticket)
+      {
+         registered = true;
+         break;
+      }
+   if(!registered) return false;
+
+   if(!SaveExecutionIdentityHash(g_execution_ambiguity.ExecutionHash, ticket,
+                                 g_execution_ambiguity.Pair,
+                                 g_execution_ambiguity.Direction,
+                                 g_execution_ambiguity.MagicNumber, openTime))
+      return false;
+
+   UpsertExecutionHashTombstone(g_execution_ambiguity.ExecutionHash, ticket,
+                                g_execution_ambiguity.Pair,
+                                g_execution_ambiguity.Direction, openTime);
+   Print("[F07][AMBIGUITY_ORDER_ADOPTED] Ticket=", IntegerToString(ticket),
+         " Pair=", info.pair,
+         " State=", EnumToString(info.recovery_state));
+   return true;
+}
+
+bool ReconcileExecutionAmbiguityHold()
+{
+   if(!g_execution_ambiguity.Active) return true;
+   if(!g_execution_ambiguity.PersistenceValid) return false;
+
+   bool isOpen = false;
+   int ticket = FindExecutionAmbiguityTicket(isOpen);
+   if(ticket <= 0) return false;
+
+   if(!AdoptAmbiguousExecutionTicket(ticket, isOpen))
+      return false;
+
+   string pair = g_execution_ambiguity.Pair;
+   string executionHash = g_execution_ambiguity.ExecutionHash;
+   if(!ClearExecutionAmbiguityHold())
+   {
+      Log(DBG_ERROR, "F07 ambiguity resolved but HOLD persistence cleanup failed");
+      return false;
+   }
+
+   Print("[F07][AMBIGUITY_HOLD_CLEARED] Pair=", pair,
+         " Hash=", executionHash,
+         " Ticket=", IntegerToString(ticket),
+         " Open=", isOpen ? "Y" : "N");
+   return true;
+}
+
 void ProcessEntry(BBMA_Decision &decision, string pair,
                   RiskValidationSnapshot &snapshot, double frozenLot)
 {
@@ -8016,6 +8360,7 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
          return;
       }
 
+      LatchExecutionAmbiguity(decision, pair, magic);
       decision.DecisionState = DEC_REJECTED;
       decision.RejectionReason = REJ_AMBIGUOUS_RESULT;
       return;
@@ -8023,7 +8368,10 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
 
    decision.DecisionState = DEC_REJECTED;
    if(ticket == -2)
+   {
+      LatchExecutionAmbiguity(decision, pair, magic);
       decision.RejectionReason = REJ_AMBIGUOUS_RESULT;
+   }
    else if(ticket == -3)
       decision.RejectionReason = REJ_EXECUTION_DEVIATION_EXCEEDED;
    else
@@ -8036,6 +8384,12 @@ bool RunEntryPreflightAndExecute(BBMA_Decision &decision, string pair)
 {
    if(decision.DecisionState != DEC_VALIDATED) return false;
    if(pair == "" || decision.Pair != pair) return false;
+   if(g_execution_ambiguity.Active)
+   {
+      decision.DecisionState = DEC_REJECTED;
+      decision.RejectionReason = REJ_AMBIGUOUS_RESULT;
+      return false;
+   }
    if(EntryMode == 1)
       Print("[P3M1][PREFLIGHT_START] Pair=", pair,
             " DecisionID=", decision.DecisionID,
@@ -8467,7 +8821,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.04 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.05 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -8794,7 +9148,8 @@ void ManagePositions()
 
       if(g_monitored_trades[i].recovery_state == REC_CORRUPTED ||
          g_monitored_trades[i].recovery_state == REC_RECOVERY_INVALID ||
-         g_monitored_trades[i].recovery_state == REC_IDENTITY_MISSING_FROZEN)
+         g_monitored_trades[i].recovery_state == REC_IDENTITY_MISSING_FROZEN ||
+         g_monitored_trades[i].recovery_state == REC_AMBIGUOUS_EXECUTION_FROZEN)
       {
          continue;
       }
@@ -10444,6 +10799,9 @@ int InitializeEA()
    RebuildExecutionHistory();
    RecoverExistingOrders();
 
+   if(!LoadExecutionAmbiguityHold() && g_execution_ambiguity.Active)
+      Log(DBG_ERROR, "F07 persisted ambiguity HOLD is incomplete; new entries remain blocked");
+
    g_portfolio_emergency_close_requested = false;
 
    g_is_initialized = true;
@@ -10977,6 +11335,17 @@ void OnTickMain()
    // M23 lifecycle housekeeping owns registry compaction; telemetry remains read-only.
    CompactMonitoredTrades();
 
+   // F07: protection/lifecycle always runs before reconciliation. A tick that
+   // begins with an ambiguity HOLD never admits new exposure, even when exact
+   // reconciliation succeeds on that tick. The newly materialized broker order
+   // must pass the protection/lifecycle phase on the next operational tick first.
+   bool hadExecutionAmbiguityHold = g_execution_ambiguity.Active;
+   if(hadExecutionAmbiguityHold)
+   {
+      ReconcileExecutionAmbiguityHold();
+      return;
+   }
+
    if(g_portfolio_emergency_close_requested) return;
    
    if(g_is_scanning) return;
@@ -10986,6 +11355,7 @@ void OnTickMain()
    
    for(int i = 0; i < g_pair_count; i++)
    {
+      if(g_execution_ambiguity.Active) break;
       if(!g_pair_states[i].pair_enabled) continue;
       if(g_pair_states[i].is_processing) continue;
       if(IsNewCandle(g_pair_states[i].actual_symbol, i))

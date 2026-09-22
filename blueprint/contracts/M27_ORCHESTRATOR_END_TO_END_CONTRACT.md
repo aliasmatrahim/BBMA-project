@@ -51,11 +51,13 @@ M22 may use live Bid/Ask only to obtain the actual send price within the allowed
 ## Protection/lifecycle tick ordering
 Every operational tick runs live protection/lifecycle before any new scan:
 
-`M20 ManagePortfolio() -> M23 ManagePositions()`
+`M20 ManagePortfolio() -> M23 ManagePositions() -> F07 ambiguity reconciliation`
 
 If `g_portfolio_emergency_close_requested` is latched after this sequence, M27 must not begin a new strategy scan or admit a new order on that tick. Emergency liquidation is an exclusive portfolio state until M20 clears the latch after no live EA-owned monitored positions remain.
 
-This prevents a race where basket loss falls below the original trigger after some emergency closes, but the liquidation latch is still active and a new trade would otherwise be admitted.
+If an F07 execution-ambiguity HOLD is active at the start of the post-protection reconciliation phase, M27 must stop the tick after that reconciliation attempt regardless of whether the HOLD remains active or is successfully cleared. A late-visible broker order materialized by reconciliation must therefore pass M20/M23 protection/lifecycle on the next operational tick before any new strategy scan may resume. The HOLD applies across pairs and across restart, contains no timeout release, and does not suppress the protection/lifecycle steps that precede it. If an ambiguity is latched during one pair's execution attempt, the remaining pair loop must stop on that same scan cycle.
+
+This prevents both (a) the existing emergency-liquidation race and (b) admission of new exposure while a prior broker acceptance outcome is unresolved or has only just been materialized.
 
 ## M18 / dashboard boundary
 M18 and M25 are observability-only. Score, level, PriorityTier, dashboard rendering or display compatibility inputs may never gate or reorder M27 execution.

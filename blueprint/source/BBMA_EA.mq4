@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.1.0 - M25 Dashboard Build Identity               |
+//| Version 5.1.1 - Event-Driven Observer                      |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.10"
+#property version   "5.11"
 #property strict
 
-#define BBMA_BUILD_TAG      "V510_M25_DASHBOARD_BUILD_IDENTITY_20260922"
-#define BBMA_SOURCE_REV_TAG "M25_DASHBOARD_BUILD_IDENTITY_235_20260922"
+#define BBMA_BUILD_TAG      "V511_EVENT_DRIVEN_OBSERVER_20260922"
+#define BBMA_SOURCE_REV_TAG "OBSERVER_EVENT_DRIVEN_237_20260922"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -1071,6 +1071,11 @@ ENUM_PRIORITY_TIER   g_manual_priority_tiers[];
 string               g_dashboard_snapshot;
 bool                 g_dashboard_needs_update;
 
+//--- Observer diagnostics (presentation/telemetry only; never trading authority)
+string               g_observer_keys[];
+string               g_observer_last_messages[];
+int                  g_observer_record_count;
+
 //--- Protection
 double               g_protection_reference_equity;
 bool                 g_portfolio_emergency_close_requested;
@@ -1666,6 +1671,43 @@ void Log(int level, string message)
    {
       Print(TimeToString(TimeCurrent()), " [", level, "] ", message);
    }
+}
+
+bool ObserverShouldEmit(string key, string message)
+{
+   if(key == "" || message == "") return false;
+
+   for(int i = 0; i < g_observer_record_count; i++)
+   {
+      if(g_observer_keys[i] != key) continue;
+
+      if(DebugLevel >= DBG_FULL || g_observer_last_messages[i] != message)
+      {
+         g_observer_last_messages[i] = message;
+         return true;
+      }
+      return false;
+   }
+
+   int newCount = g_observer_record_count + 1;
+   if(ArrayResize(g_observer_keys, newCount) != newCount ||
+      ArrayResize(g_observer_last_messages, newCount) != newCount)
+   {
+      // Observability must fail open: never hide a diagnostic because its cache
+      // could not grow. This path has no strategy/risk/execution authority.
+      return true;
+   }
+
+   g_observer_keys[g_observer_record_count] = key;
+   g_observer_last_messages[g_observer_record_count] = message;
+   g_observer_record_count = newCount;
+   return true;
+}
+
+void ObserverPrintChanged(string key, string message)
+{
+   if(ObserverShouldEmit(key, message))
+      Print(message);
 }
 
 void MarkDecisionExecuted(string decisionID, int ticketNumber)
@@ -5152,9 +5194,13 @@ void UpdateNestedJourneyObservation(int pairIndex)
       journey.Reason = "D1_OWNER_UNRESOLVED";
       g_nested_journeys[pairIndex] = journey;
       NMJE_PrintCoverageOverlay(journey);
-      Print("[N1-NMJE] ", journey.Pair, " REL=UNRESOLVED P=NONE J=- D1=", journey.D1Node.Label,
-            " H4=", journey.H4Node.Label, " H1=", journey.H1Node.Label,
-            " M15=", journey.M15Node.Label, " R=", journey.Reason);
+      string n1Message = "[N1-NMJE] " + journey.Pair +
+                         " REL=UNRESOLVED P=NONE J=- D1=" + journey.D1Node.Label +
+                         " H4=" + journey.H4Node.Label +
+                         " H1=" + journey.H1Node.Label +
+                         " M15=" + journey.M15Node.Label +
+                         " R=" + journey.Reason;
+      ObserverPrintChanged("N1|" + journey.Pair, n1Message);
       return;
    }
 
@@ -5190,10 +5236,14 @@ void UpdateNestedJourneyObservation(int pairIndex)
       }
       g_nested_journeys[pairIndex] = journey;
       NMJE_PrintCoverageOverlay(journey);
-      Print("[N1-NMJE] ", journey.Pair, " REL=", NMJE_RelationText(journey.Relation),
-            " P=NONE J=- D1=", journey.D1Node.Label, " H4=", journey.H4Node.Label,
-            " H1=", journey.H1Node.Label, " M15=", journey.M15Node.Label,
-            " R=", journey.Reason);
+      string n1Message = "[N1-NMJE] " + journey.Pair +
+                         " REL=" + NMJE_RelationText(journey.Relation) +
+                         " P=NONE J=- D1=" + journey.D1Node.Label +
+                         " H4=" + journey.H4Node.Label +
+                         " H1=" + journey.H1Node.Label +
+                         " M15=" + journey.M15Node.Label +
+                         " R=" + journey.Reason;
+      ObserverPrintChanged("N1|" + journey.Pair, n1Message);
       return;
    }
 
@@ -5290,16 +5340,17 @@ void UpdateNestedJourneyObservation(int pairIndex)
 
    g_nested_journeys[pairIndex] = journey;
    NMJE_PrintCoverageOverlay(journey);
-   Print("[N1-NMJE] ", journey.Pair,
-         " REL=", NMJE_RelationText(journey.Relation),
-         " P=", NMJE_ParentText(journey.ParentKind), "/", NMJE_DirText(journey.ParentDirection),
-         " J=", journey.JourneyID,
-         " PE=", journey.ParentEventID,
-         " D1=", journey.D1Node.Label,
-         " H4=", journey.H4Node.Label,
-         " H1=", journey.H1Node.Label,
-         " M15=", journey.M15Node.Label,
-         " R=", journey.Reason);
+   string n1Message = "[N1-NMJE] " + journey.Pair +
+                      " REL=" + NMJE_RelationText(journey.Relation) +
+                      " P=" + NMJE_ParentText(journey.ParentKind) + "/" + NMJE_DirText(journey.ParentDirection) +
+                      " J=" + journey.JourneyID +
+                      " PE=" + journey.ParentEventID +
+                      " D1=" + journey.D1Node.Label +
+                      " H4=" + journey.H4Node.Label +
+                      " H1=" + journey.H1Node.Label +
+                      " M15=" + journey.M15Node.Label +
+                      " R=" + journey.Reason;
+   ObserverPrintChanged("N1|" + journey.Pair, n1Message);
 }
 
 // N2-01: post-M16 shadow tag for validated decisions only.
@@ -6104,10 +6155,10 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
       else if(candidates[i].Direction == DIR_SELL) sellCount++;
    }
 
-   if(EntryMode == 1 && (buyCount > 0 || sellCount > 0))
+   if(DebugLevel >= DBG_SIGNAL && EntryMode == 1 && (buyCount > 0 || sellCount > 0))
       Print("[P3M1][M15_COUNTS] Buy=", buyCount, " Sell=", sellCount,
             " Pool=", count, " Time=", TimeToString(g_processing_time));
-   if(EntryMode == 2 && (buyCount > 0 || sellCount > 0))
+   if(DebugLevel >= DBG_SIGNAL && EntryMode == 2 && (buyCount > 0 || sellCount > 0))
       Print("[P3M2][M15_COUNTS] Buy=", buyCount, " Sell=", sellCount,
             " Pool=", count, " Time=", TimeToString(g_processing_time));
 
@@ -6180,22 +6231,28 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
                                              decision.SignalType,
                                              decision.SequenceHash);
    if(EntryMode == 1)
-      Print("[P3M1][M15_SELECT] Pair=", decision.Pair,
-            " Signal=", EnumToString(decision.SignalType),
-            " Dir=", EnumToString(decision.Direction),
-            " D1State=", EnumToString(decision.D1OwnerState),
-            " D1Candle=", TimeToString(decision.D1OwnerCandleTime),
-            " Candle=", TimeToString(decision.CandleTime),
-            " DecisionID=", decision.DecisionID);
+   {
+      string selectMessageM1 = "[P3M1][M15_SELECT] Pair=" + decision.Pair +
+                             " Signal=" + EnumToString(decision.SignalType) +
+                             " Dir=" + EnumToString(decision.Direction) +
+                             " D1State=" + EnumToString(decision.D1OwnerState) +
+                             " D1Candle=" + TimeToString(decision.D1OwnerCandleTime) +
+                             " Candle=" + TimeToString(decision.CandleTime) +
+                             " DecisionID=" + decision.DecisionID;
+      ObserverPrintChanged("M15_SELECT_M1|" + decision.Pair, selectMessageM1);
+   }
    if(EntryMode == 2)
-      Print("[P3M2][M15_SELECT] Pair=", decision.Pair,
-            " Signal=", EnumToString(decision.SignalType),
-            " Dir=", EnumToString(decision.Direction),
-            " D1State=", EnumToString(decision.D1OwnerState),
-            " D1Candle=", TimeToString(decision.D1OwnerCandleTime),
-            " Candle=", TimeToString(decision.CandleTime),
-            " Components=", decision.ComponentCount,
-            " DecisionID=", decision.DecisionID);
+   {
+      string selectMessageM2 = "[P3M2][M15_SELECT] Pair=" + decision.Pair +
+                             " Signal=" + EnumToString(decision.SignalType) +
+                             " Dir=" + EnumToString(decision.Direction) +
+                             " D1State=" + EnumToString(decision.D1OwnerState) +
+                             " D1Candle=" + TimeToString(decision.D1OwnerCandleTime) +
+                             " Candle=" + TimeToString(decision.CandleTime) +
+                             " Components=" + IntegerToString(decision.ComponentCount) +
+                             " DecisionID=" + decision.DecisionID;
+      ObserverPrintChanged("M15_SELECT_M2|" + decision.Pair, selectMessageM2);
+   }
 }
 
 //+------------------------------------------------------------------+
@@ -6486,13 +6543,19 @@ void InvalidationEngine_Atomic(int pairIndex, BBMA_Decision &decision,
    decision.DecisionState = DEC_VALIDATED;
    decision.RejectionReason = REJ_NONE;
    if(EntryMode == 1)
-      Print("[P3M1][M16_PASS] DecisionID=", decision.DecisionID,
-            " Signal=", EnumToString(decision.SignalType),
-            " Candle=", TimeToString(decision.CandleTime));
+   {
+      string passMessageM1 = "[P3M1][M16_PASS] DecisionID=" + decision.DecisionID +
+                           " Signal=" + EnumToString(decision.SignalType) +
+                           " Candle=" + TimeToString(decision.CandleTime);
+      ObserverPrintChanged("M16_PASS_M1|" + decision.Pair, passMessageM1);
+   }
    if(EntryMode == 2)
-      Print("[P3M2][M16_PASS] DecisionID=", decision.DecisionID,
-            " Signal=", EnumToString(decision.SignalType),
-            " Candle=", TimeToString(decision.CandleTime));
+   {
+      string passMessageM2 = "[P3M2][M16_PASS] DecisionID=" + decision.DecisionID +
+                           " Signal=" + EnumToString(decision.SignalType) +
+                           " Candle=" + TimeToString(decision.CandleTime);
+      ObserverPrintChanged("M16_PASS_M2|" + decision.Pair, passMessageM2);
+   }
 }
 
 //+------------------------------------------------------------------+
@@ -9105,7 +9168,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.10 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.11 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -11182,32 +11245,35 @@ void PrintSignalBottleneckDiagnostic(int pairIndex, BBMA_Decision &decision)
          finalCandidate += "/" + EnumToString(decision.RejectionReason);
    }
 
-   Print("[D1-10A] ", pair,
-         " D1=", D10D1(g_pair_states[pairIndex].d1_major_trend_owner.State),
-         " H4=", D10H4(g_pair_states[pairIndex].h4_direction_owner.State,
-                       g_pair_states[pairIndex].h4_direction_owner.Direction),
-         " F=", finalCandidate);
+   string d10a = "[D1-10A] " + pair +
+                   " D1=" + D10D1(g_pair_states[pairIndex].d1_major_trend_owner.State) +
+                   " H4=" + D10H4(g_pair_states[pairIndex].h4_direction_owner.State,
+                                  g_pair_states[pairIndex].h4_direction_owner.Direction) +
+                   " F=" + finalCandidate;
+   ObserverPrintChanged("D10A|" + pair, d10a);
 
-   Print("[D1-10B] ", pair,
-         " RE H1=", D10RE(g_pair_states[pairIndex].re_h1_buy_state.State), "/",
-                     D10RE(g_pair_states[pairIndex].re_h1_sell_state.State),
-         " H4=", D10RE(g_pair_states[pairIndex].re_h4_buy_state.State), "/",
-                     D10RE(g_pair_states[pairIndex].re_h4_sell_state.State),
-         " D1=", D10RE(g_pair_states[pairIndex].re_d1_buy_state.State), "/",
-                     D10RE(g_pair_states[pairIndex].re_d1_sell_state.State),
-         " M15=", D10RE(g_pair_states[pairIndex].re_m15_buy_state.State), "/",
-                      D10RE(g_pair_states[pairIndex].re_m15_sell_state.State),
-         " OPP=", D1OpportunityFamilyText(g_pair_states[pairIndex].d1_opportunity.Family), "/",
-                    D10Dir(g_pair_states[pairIndex].d1_opportunity.Direction), "/",
-                    (g_pair_states[pairIndex].d1_opportunity.Active ? "Y" : "N"));
+   string d10b = "[D1-10B] " + pair +
+                   " RE H1=" + D10RE(g_pair_states[pairIndex].re_h1_buy_state.State) + "/" +
+                                D10RE(g_pair_states[pairIndex].re_h1_sell_state.State) +
+                   " H4=" + D10RE(g_pair_states[pairIndex].re_h4_buy_state.State) + "/" +
+                             D10RE(g_pair_states[pairIndex].re_h4_sell_state.State) +
+                   " D1=" + D10RE(g_pair_states[pairIndex].re_d1_buy_state.State) + "/" +
+                             D10RE(g_pair_states[pairIndex].re_d1_sell_state.State) +
+                   " M15=" + D10RE(g_pair_states[pairIndex].re_m15_buy_state.State) + "/" +
+                              D10RE(g_pair_states[pairIndex].re_m15_sell_state.State) +
+                   " OPP=" + D1OpportunityFamilyText(g_pair_states[pairIndex].d1_opportunity.Family) + "/" +
+                             D10Dir(g_pair_states[pairIndex].d1_opportunity.Direction) + "/" +
+                             (g_pair_states[pairIndex].d1_opportunity.Active ? "Y" : "N");
+   ObserverPrintChanged("D10B|" + pair, d10b);
 
-   Print("[D1-10C] ", pair,
-         " X H1=", D10EXT(g_pair_states[pairIndex].extreme_h1_buy_lifecycle.Maturity), "/",
-                    D10EXT(g_pair_states[pairIndex].extreme_h1_sell_lifecycle.Maturity),
-         " H4=", D10EXT(g_pair_states[pairIndex].extreme_h4_buy_lifecycle.Maturity), "/",
-                    D10EXT(g_pair_states[pairIndex].extreme_h4_sell_lifecycle.Maturity),
-         " M15=", D10MLV(g_pair_states[pairIndex].mlv_buy_state.State), "/",
-                     D10MLV(g_pair_states[pairIndex].mlv_sell_state.State));
+   string d10c = "[D1-10C] " + pair +
+                   " X H1=" + D10EXT(g_pair_states[pairIndex].extreme_h1_buy_lifecycle.Maturity) + "/" +
+                               D10EXT(g_pair_states[pairIndex].extreme_h1_sell_lifecycle.Maturity) +
+                   " H4=" + D10EXT(g_pair_states[pairIndex].extreme_h4_buy_lifecycle.Maturity) + "/" +
+                            D10EXT(g_pair_states[pairIndex].extreme_h4_sell_lifecycle.Maturity) +
+                   " M15=" + D10MLV(g_pair_states[pairIndex].mlv_buy_state.State) + "/" +
+                              D10MLV(g_pair_states[pairIndex].mlv_sell_state.State);
+   ObserverPrintChanged("D10C|" + pair, d10c);
 }
 
 void ProcessPair(int pairIndex)

@@ -3,8 +3,9 @@ from pathlib import Path
 import subprocess
 
 BASE="419af6f9a9fcedcef3aee0852f651aed46ba71dd"
+CAND="0cb24d250ce77c7629ef83d11b6c9db9c0773b1c"
 base=subprocess.check_output(["git","show",BASE+":blueprint/source/BBMA_EA.mq4"]).decode("utf-8").replace("\r\n","\n")
-cand=Path("blueprint/source/BBMA_EA.mq4").read_text(encoding="utf-8").replace("\r\n","\n")
+cand=subprocess.check_output(["git","show",CAND+":blueprint/source/BBMA_EA.mq4"]).decode("utf-8").replace("\r\n","\n")
 
 def body(src,signature):
     start=src.index(signature); brace=src.index("{",start); depth=0

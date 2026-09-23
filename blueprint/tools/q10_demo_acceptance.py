@@ -486,11 +486,13 @@ def collect_stage_log(
     excerpt = out_dir / f"{stage}_matched.log"
     excerpt.write_text("\n".join(matched) + ("\n" if matched else ""), encoding="utf-8")
     bundle = {
-        "schema": "BBMA_Q10_STAGE_BUNDLE_V1",
+        "schema": "BBMA_Q10_STAGE_BUNDLE_V2",
         "stage": stage,
         "candidate_source_sha256": state["candidate"]["source_sha256"],
         "candidate_build_tag": state["candidate"]["build_tag"],
         "demo_evidence_sha256": state["demo_auth"].get("log_sha256"),
+        "runtime_native_ex4_sha256": runtime.get("native_ex4_sha256"),
+        "runtime_settings_sha256": runtime.get("settings_sha256"),
         "source_log_path": str(log_path),
         "source_log_sha256_at_collection": source_sha256_at_collection,
         "run_start_marker": start_marker,
@@ -515,7 +517,8 @@ def _resolved_evidence_path(value: str, base_dir: Path) -> Path:
 
 
 def _validate_single_bundle(stage: str, bundle: dict[str, Any]) -> dict[str, Any]:
-    if bundle.get("schema") != "BBMA_Q10_STAGE_BUNDLE_V1":
+    schema = bundle.get("schema")
+    if schema not in {"BBMA_Q10_STAGE_BUNDLE_V1", "BBMA_Q10_STAGE_BUNDLE_V2"}:
         raise Q10Error("invalid single stage bundle schema")
     if bundle.get("stage") != stage:
         raise Q10Error(
@@ -525,6 +528,11 @@ def _validate_single_bundle(stage: str, bundle: dict[str, Any]) -> dict[str, Any
         raise Q10Error("stage bundle missing candidate identity")
     if not bundle.get("demo_evidence_sha256"):
         raise Q10Error("stage bundle missing demo identity hash")
+    if schema == "BBMA_Q10_STAGE_BUNDLE_V2":
+        if not bundle.get("runtime_native_ex4_sha256"):
+            raise Q10Error("stage bundle missing runtime EX4 identity")
+        if not bundle.get("runtime_settings_sha256"):
+            raise Q10Error("stage bundle missing runtime settings identity")
 
     for path_key, hash_key in (
         ("raw_log_path", "raw_log_sha256"),
@@ -544,9 +552,9 @@ def _validate_single_bundle(stage: str, bundle: dict[str, Any]) -> dict[str, Any
 
 def validate_bundle_integrity(stage: str, bundle: dict[str, Any]) -> dict[str, Any]:
     schema = bundle.get("schema")
-    if schema == "BBMA_Q10_STAGE_BUNDLE_V1":
+    if schema in {"BBMA_Q10_STAGE_BUNDLE_V1", "BBMA_Q10_STAGE_BUNDLE_V2"}:
         return _validate_single_bundle(stage, bundle)
-    if schema != "BBMA_Q10_STAGE_BUNDLE_SET_V1":
+    if schema not in {"BBMA_Q10_STAGE_BUNDLE_SET_V1", "BBMA_Q10_STAGE_BUNDLE_SET_V2"}:
         raise Q10Error("invalid stage bundle schema")
     if bundle.get("stage") != stage:
         raise Q10Error(
@@ -555,8 +563,14 @@ def validate_bundle_integrity(stage: str, bundle: dict[str, Any]) -> dict[str, A
     expected_source = str(bundle.get("candidate_source_sha256", "")).upper()
     expected_tag = str(bundle.get("candidate_build_tag", ""))
     expected_demo = str(bundle.get("demo_evidence_sha256", "")).upper()
+    expected_ex4 = str(bundle.get("runtime_native_ex4_sha256", "")).upper()
+    expected_settings = str(bundle.get("runtime_settings_sha256", "")).upper()
     if not expected_source or not expected_tag or not expected_demo:
         raise Q10Error("stage bundle set missing candidate/demo identity")
+    if schema == "BBMA_Q10_STAGE_BUNDLE_SET_V2" and (
+        not expected_ex4 or not expected_settings
+    ):
+        raise Q10Error("stage bundle set missing runtime settings/EX4 identity")
 
     refs = bundle.get("bundles")
     if not isinstance(refs, list) or not refs:
@@ -581,14 +595,21 @@ def validate_bundle_integrity(stage: str, bundle: dict[str, Any]) -> dict[str, A
             raise Q10Error("component bundle candidate build mismatch")
         if str(component["demo_evidence_sha256"]).upper() != expected_demo:
             raise Q10Error("component bundle demo identity mismatch")
+        if schema == "BBMA_Q10_STAGE_BUNDLE_SET_V2":
+            if component.get("schema") != "BBMA_Q10_STAGE_BUNDLE_V2":
+                raise Q10Error("cannot mix legacy bundle into runtime-bound bundle set")
+            if str(component.get("runtime_native_ex4_sha256", "")).upper() != expected_ex4:
+                raise Q10Error("component bundle runtime EX4 mismatch")
+            if str(component.get("runtime_settings_sha256", "")).upper() != expected_settings:
+                raise Q10Error("component bundle runtime settings mismatch")
     return bundle
 
 
 def registered_bundle_evidence(bundle: dict[str, Any]) -> dict[str, str]:
     known: dict[str, str] = {}
-    if bundle.get("schema") == "BBMA_Q10_STAGE_BUNDLE_V1":
+    if bundle.get("schema") in {"BBMA_Q10_STAGE_BUNDLE_V1", "BBMA_Q10_STAGE_BUNDLE_V2"}:
         components = [bundle]
-    elif bundle.get("schema") == "BBMA_Q10_STAGE_BUNDLE_SET_V1":
+    elif bundle.get("schema") in {"BBMA_Q10_STAGE_BUNDLE_SET_V1", "BBMA_Q10_STAGE_BUNDLE_SET_V2"}:
         components = [
             load_json(Path(str(ref["path"])).resolve())
             for ref in bundle.get("bundles", [])
@@ -624,6 +645,8 @@ def combine_stage_bundles(
             raise Q10Error(f"component bundle missing: {path}")
         component = load_json(path)
         _validate_single_bundle(stage, component)
+        if component.get("schema") != "BBMA_Q10_STAGE_BUNDLE_V2":
+            raise Q10Error("combine-bundles requires runtime-bound V2 component bundles")
         if first is None:
             first = component
         else:
@@ -633,15 +656,21 @@ def combine_stage_bundles(
                 raise Q10Error("component bundle candidate build mismatch")
             if component["demo_evidence_sha256"] != first["demo_evidence_sha256"]:
                 raise Q10Error("component bundle demo identity mismatch")
+            if component["runtime_native_ex4_sha256"] != first["runtime_native_ex4_sha256"]:
+                raise Q10Error("component bundle runtime EX4 mismatch")
+            if component["runtime_settings_sha256"] != first["runtime_settings_sha256"]:
+                raise Q10Error("component bundle runtime settings mismatch")
         refs.append({"path": str(path), "sha256": sha256_file(path)})
 
     assert first is not None
     combined = {
-        "schema": "BBMA_Q10_STAGE_BUNDLE_SET_V1",
+        "schema": "BBMA_Q10_STAGE_BUNDLE_SET_V2",
         "stage": stage,
         "candidate_source_sha256": first["candidate_source_sha256"],
         "candidate_build_tag": first["candidate_build_tag"],
         "demo_evidence_sha256": first["demo_evidence_sha256"],
+        "runtime_native_ex4_sha256": first["runtime_native_ex4_sha256"],
+        "runtime_settings_sha256": first["runtime_settings_sha256"],
         "bundles": refs,
     }
     write_json(output_path, combined)
@@ -902,6 +931,8 @@ def analyze_assertions(
         "required_case_ids": sorted(required_ids),
         "candidate_source_sha256": bundle["candidate_source_sha256"],
         "candidate_build_tag": bundle["candidate_build_tag"],
+        "runtime_native_ex4_sha256": bundle.get("runtime_native_ex4_sha256"),
+        "runtime_settings_sha256": bundle.get("runtime_settings_sha256"),
         "bundle_sha256": sha256_bytes(
             json.dumps(bundle, sort_keys=True).encode("utf-8")
         ),
@@ -933,8 +964,18 @@ def record_stage(
         raise Q10Error("stage analysis candidate source mismatch")
     if analysis.get("candidate_build_tag") != state["candidate"]["build_tag"]:
         raise Q10Error("stage analysis candidate build mismatch")
-    if state.get("phase") == "LIVE_RECONFIRM" and analysis.get("evidence_mode") != "LIVE_RECONFIRM":
-        raise Q10Error("live state requires LIVE_RECONFIRM analysis")
+    if state.get("phase") == "LIVE_RECONFIRM":
+        if analysis.get("evidence_mode") != "LIVE_RECONFIRM":
+            raise Q10Error("live state requires LIVE_RECONFIRM analysis")
+        runtime = state.get("runtime_artifacts", {})
+        if str(analysis.get("runtime_native_ex4_sha256", "")).upper() != str(
+            runtime.get("native_ex4_sha256", "")
+        ).upper():
+            raise Q10Error("stage analysis runtime EX4 mismatch")
+        if str(analysis.get("runtime_settings_sha256", "")).upper() != str(
+            runtime.get("settings_sha256", "")
+        ).upper():
+            raise Q10Error("stage analysis runtime settings mismatch")
 
     state["stages"][stage]["status"] = status
     state["stages"][stage].setdefault("evidence", []).append(

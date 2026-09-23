@@ -9,11 +9,13 @@
   },
   "cases": {
     "R3-03": {
-      "status": "PASS",
+      "status": "INCOMPLETE",
+      "classification": "HOLD_UNRESOLVED",
       "basis": [
+        "issue_248_transition_reachability",
         "test_r3_transition_unresolved_and_h4_no_owner_are_fail_closed"
       ],
-      "reason": "Current classifier sets D1_TRANSITION with DIR_NONE; execution readiness accepts only confirmed BUY/SELL."
+      "reason": "Static source proves fail-closed behavior if D1_TRANSITION is presented, but current immediate-EMA mapping has no positively observed/reachable non-equality transition scenario. Acceptance prep requires a valid otherwise-observable transition state, so scenario coverage remains INCOMPLETE/HOLD."
     },
     "R3-04": {
       "status": "PASS",

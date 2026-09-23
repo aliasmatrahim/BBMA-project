@@ -1,0 +1,44 @@
+{
+  "schema": "BBMA_Q10_PHASE_H_GAP3_SUPPLEMENT_V1",
+  "issue": 109,
+  "candidate": "Build 5.11 / V511_EVENT_DRIVEN_OBSERVER_20260922",
+  "canonical_mq4_sha256": "50E4A01A5768B5B5E9A80CABAE21B7260A2912AA058E67E5273386177970D038",
+  "historical_v5_sha256": "0E905036033446E8E0529075A94B2575F6741D5F168534095B88EE6A3E7E3110",
+  "validation": {
+    "targeted": "16/16 PASS",
+    "full_blueprint": "53/53 PASS",
+    "ea_source_diff": 0
+  },
+  "cases": {
+    "R3-14": {
+      "status": "PASS",
+      "basis": [
+        "Q10_HYBRID_HISTORICAL_ANALYSIS_V5.json"
+      ],
+      "reason": "195 exact Build 5.11 execution lifetimes span a canonical D1 owner update; 24 span an actual owner direction flip. Each ticket remained open until a later N2 closed outcome, proving the D1 owner update alone did not directly close the position."
+    },
+    "R4-16": {
+      "status": "PASS",
+      "basis": [
+        "test_r4_source_owner_mismatch_is_fail_closed_without_window_substitution"
+      ],
+      "reason": "Exact source lifecycle identity/timeframe/direction/confirmation is required; both Re-Entry and standalone-Extreme structural resolvers fail closed; unresolved structural ownership becomes REJ_SLTP_UNRESOLVED before sizing/execution and no alternate timeframe/window is substituted."
+    },
+    "R5-08": {
+      "status": "PASS",
+      "basis": [
+        "test_risk_unknown_observation_fails_closed",
+        "test_r5_unknown_existing_risk_never_becomes_zero_budget",
+        "test_m19_owned_risk_aggregation_static"
+      ],
+      "reason": "OrderSelect failure, missing SL, invalid existing risk or invalid new risk set risk validity false; CheckRiskBeforeTrade rejects with REJ_TOTAL_RISK. Unknown existing risk cannot be treated as zero."
+    },
+    "R6-08": {
+      "status": "PASS",
+      "basis": [
+        "test_identity_ambiguity_detector_fails_closed_on_conflicting_fixture"
+      ],
+      "reason": "Deterministic malformed fixture injects same-hash contradictory directions and one-ticket conflicting identities; the analyzer detects HASH_CONFLICT and TICKET_CONFLICT instead of silently assigning an identity."
+    }
+  }
+}

@@ -34,6 +34,7 @@ def write_fixture(tmp_path: Path):
         "0\t00:00:00.008\t2024.01.02 00:00:01  EA: [P3M2][EXEC] Ticket=1 Pair=GBPUSD DecisionID=GBPUSD|2024.01.01 23:00|1|7|ABC Signal=SIGNAL_RE_ENTRY Dir=DIR_BUY ValidateCandle=2024.01.01 23:00 OrderOpen=2024.01.02 00:00",
         "0\t00:00:00.009\t2024.01.02 00:15:01  EA: [N2-NMJE-DEC] GBPUSD SIG=SIGNAL_RE_ENTRY DIR=B DID=GBPUSD|2024.01.01~23:00|1|7|ABC DIDH=HASH1 AUTH=STRAT OFAM=NONE",
         "0\t00:00:00.010\t2024.01.02 00:30:01  EA: [N2-NMJE-DEC] GBPUSD SIG=SIGNAL_RE_ENTRY DIR=B DID=GBPUSD|2024.01.01~23:00|1|7|ABC DIDH=HASH1 AUTH=STRAT OFAM=NONE",
+        "0\t00:00:00.010\t2024.01.02 00:45:01  EA: [D1-03][OWNER] Pair=GBPUSD Candle=2024.01.01 00:00 Epoch=2024.01.01 00:00 State=D1_OWNER_SELL_CONFIRMED Dir=DIR_SELL Close=1.1 MA50=1.2 PrevMA50=1.3",
         "0\t00:00:00.011\t2024.01.02 01:00:01  EA: [N2-NMJE-OUT] PAIR=GBPUSD TICKET=1 DID=GBPUSD|2024.01.01~23:00|1|7|ABC DIDH=HASH1 NET=1.0 REC=REC_NORMAL",
     ]
     log = tmp_path / f"{stem}_tester_newlog.bin"
@@ -116,6 +117,9 @@ def test_analyzer_is_hash_bound_and_fail_closed(tmp_path: Path):
     assert result["historical_cases"]["R4-04"]["status"] == "PASS"
     assert result["historical_cases"]["R4-07"]["status"] == "PASS"
     assert result["historical_cases"]["R6-04"]["status"] == "PASS"
+    assert result["historical_cases"]["R3-14"]["status"] == "PASS"
+    assert result["facts"]["owner_update_open_position_spans"] == 1
+    assert result["facts"]["owner_direction_flip_open_position_spans"] == 1
     assert result["historical_cases"]["R5-02"]["status"] == "INCOMPLETE"
 
     log.write_text(log.read_text(encoding="cp1252") + "tamper\n", encoding="cp1252")
@@ -129,3 +133,43 @@ def test_no_live_only_case_is_emitted_as_historical_case(tmp_path: Path):
     policy = json.loads(POLICY.read_text(encoding="utf-8"))
     live_only = {x for s in policy["stages"].values() for x in s["live_only_cases"]}
     assert live_only.isdisjoint(result["historical_cases"])
+
+
+def test_identity_ambiguity_detector_fails_closed_on_conflicting_fixture():
+    clean = [
+        {
+            "stem": "RUN",
+            "ticket": "1",
+            "did": "GBPUSD|2024.01.01~00:00|1|7|AAA",
+            "hash": "HASH1",
+            "dir": "B",
+        },
+        {
+            "stem": "RUN",
+            "ticket": "1",
+            "did": "GBPUSD|2024.01.01~00:00|1|7|AAA",
+            "hash": "HASH1",
+            "dir": "B",
+        },
+    ]
+    assert q10h.find_identity_ambiguities(clean) == []
+
+    conflicting = clean + [
+        {
+            "stem": "RUN",
+            "ticket": "2",
+            "did": "GBPUSD|2024.01.01~00:00|1|7|AAA",
+            "hash": "HASH1",
+            "dir": "S",
+        },
+        {
+            "stem": "RUN",
+            "ticket": "1",
+            "did": "GBPUSD|2024.01.01~00:15|1|7|BBB",
+            "hash": "HASH2",
+            "dir": "B",
+        },
+    ]
+    conflicts = q10h.find_identity_ambiguities(conflicting)
+    assert any(x["type"] == "HASH_CONFLICT" for x in conflicts)
+    assert any(x["type"] == "TICKET_CONFLICT" for x in conflicts)

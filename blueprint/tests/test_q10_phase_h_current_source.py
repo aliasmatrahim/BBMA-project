@@ -166,3 +166,54 @@ def test_r4_targetless_sell_sl_can_change_without_rr_tp_manufacture():
     # Validation may reject bad RR, but it has no authority to move TakeProfit.
     minrr = validate.split("if(MinRRRatio > 0.0)", 1)[1]
     assert "decision.TakeProfit =" not in minrr
+
+
+def test_r4_source_owner_mismatch_is_fail_closed_without_window_substitution():
+    match = body("bool ResolveMatchingReEntryLifecycle(")
+    anchor = body("bool ResolveSourceOwnedStructuralAnchor(")
+    resolve = body("bool ResolveApprovedInitialSLTP(")
+    preflight = body("bool RunEntryPreflightAndExecute(")
+
+    # Exact canonical owner identity is mandatory.
+    assert "reEntry.Direction != source.Direction" in match
+    assert "reEntry.Timeframe != source.Timeframe" in match
+    assert "reEntry.ConfirmationCandle != source.CandleTime" in match
+    assert "return false;" in match
+
+    # M17 resolves only that source-owned lifecycle/window and fails closed.
+    assert "if(!ResolveMatchingReEntryLifecycle(pair, source, reEntry)) return false;" in anchor
+    assert "iBarShift(pair, source.Timeframe, startTime, true)" in anchor
+    assert "iBarShift(pair, source.Timeframe," in anchor
+    assert "if(iTime(pair, source.Timeframe, startShift) != startTime) return false;" in anchor
+    assert "if(!IsCandleClosed(barTime, tfSeconds)) return false;" in anchor
+
+    assert "bool structuralResolved = standaloneExtreme" in resolve
+    assert "? ResolveStandaloneExtremeStructuralAnchor(" in resolve
+    assert ": ResolveSourceOwnedStructuralAnchor(" in resolve
+    assert "if(!structuralResolved) return false;" in resolve
+
+    # Preflight converts unresolved source-owned SL/TP into an attributable reject;
+    # it does not try another timeframe/window.
+    assert "if(!ResolveApprovedInitialSLTP(decision, snapshot))" in preflight
+    reject = preflight.split("if(!ResolveApprovedInitialSLTP(decision, snapshot))", 1)[1].split("snapshot.StopLoss", 1)[0]
+    assert "DEC_REJECTED" in reject
+    assert "REJ_SLTP_UNRESOLVED" in reject
+
+
+def test_r5_unknown_existing_risk_never_becomes_zero_budget():
+    calc = body("double CalculateTotalRisk(")
+    risk = body("RiskStatus CheckRiskBeforeTrade(")
+
+    for fail_closed in (
+        "if(!OrderSelect(",
+        "if(g_monitored_trades[i].current_sl <= 0)",
+        "if(existingRisk <= 0)",
+        "if(newRisk <= 0)",
+    ):
+        assert fail_closed in calc
+
+    assert calc.count("valid = false;") >= 4
+    assert "if(!riskValid)" in risk
+    unresolved = risk.split("if(!riskValid)", 1)[1].split("double equity", 1)[0]
+    assert "status.allowed = false;" in unresolved
+    assert "REJ_TOTAL_RISK" in unresolved

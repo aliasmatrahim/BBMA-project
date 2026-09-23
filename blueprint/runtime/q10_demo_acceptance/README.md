@@ -154,7 +154,7 @@ Evidence authority is stored separately in `FINAL_BUILD511_HYBRID_EVIDENCE_POLIC
 
 ## Current environment
 
-Per explicit user decisions on 2026-09-23, Q10 uses MetaQuotes-Demo and a hybrid **historical tester -> final live reconfirmation** sequence. MetaQuotes-Demo AUTH is already PASS for the dedicated Q10 terminal. The first live R3 sample is INCOMPLETE but valid. Phase H historical/deterministic coverage is active at **41 PASS / 16 INCOMPLETE / 0 FAIL**. R3-03 remains HOLD-UNRESOLVED under Issue #248: fail-closed source behavior is proven, but the acceptance-required observable transition scenario is not. Broker-only R5-14 and R5-16 are reserved for Phase L. Phase L live remains last and mandatory for broker/runtime-dependent cases and final acceptance.
+Per explicit user decisions on 2026-09-23, Q10 uses MetaQuotes-Demo and a hybrid **historical tester -> final live reconfirmation** sequence. MetaQuotes-Demo AUTH is already PASS for the dedicated Q10 terminal. The first live R3 sample is INCOMPLETE but valid. Phase H historical/deterministic coverage is active at **45 PASS / 12 INCOMPLETE / 0 FAIL**. R3-03 remains HOLD-UNRESOLVED under Issue #248: fail-closed source behavior is proven, but the acceptance-required observable transition scenario is not. Conditional R4-11/R5-19 remain safe-only/where-practical. Mandatory remaining Phase-H coverage is R4-09, R5-02/R5-03, R5-04..R5-07, R5-10 and R5-20. Broker-only R5-14 and R5-16 are reserved for Phase L. Phase L live remains last and mandatory for broker/runtime-dependent cases and final acceptance.
 
 ## Clean restart helper
 

@@ -165,6 +165,47 @@ def parse_m17(line: str) -> dict[str, Any] | None:
     except ValueError:
         return None
 
+def find_identity_ambiguities(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Fail-closed identity conflict detector used by deterministic R6-08 tests."""
+    by_hash: dict[tuple[str, str], dict[str, set[str]]] = defaultdict(
+        lambda: {"directions": set(), "decision_ids": set()}
+    )
+    by_ticket: dict[tuple[str, str], set[tuple[str, str]]] = defaultdict(set)
+    for row in rows:
+        stem = str(row.get("stem") or "")
+        identity_hash = str(row.get("hash") or row.get("expected_hash") or "")
+        direction = str(row.get("dir") or "")
+        decision_id = normalize_did(row.get("did") or row.get("decision_id"))
+        ticket = str(row.get("ticket") or "")
+        if identity_hash:
+            if direction:
+                by_hash[(stem, identity_hash)]["directions"].add(direction)
+            if decision_id:
+                by_hash[(stem, identity_hash)]["decision_ids"].add(decision_id)
+        if ticket and (decision_id or identity_hash):
+            by_ticket[(stem, ticket)].add((decision_id, identity_hash))
+
+    conflicts: list[dict[str, Any]] = []
+    for (stem, identity_hash), values in by_hash.items():
+        if len(values["directions"]) > 1 or len(values["decision_ids"]) > 1:
+            conflicts.append({
+                "type": "HASH_CONFLICT",
+                "stem": stem,
+                "hash": identity_hash,
+                "directions": sorted(values["directions"]),
+                "decision_ids": sorted(values["decision_ids"]),
+            })
+    for (stem, ticket), identities in by_ticket.items():
+        if len(identities) > 1:
+            conflicts.append({
+                "type": "TICKET_CONFLICT",
+                "stem": stem,
+                "ticket": ticket,
+                "identities": sorted([list(x) for x in identities]),
+            })
+    return conflicts
+
+
 def case(status: str, reason: str, evidence: dict[str, Any] | None = None) -> dict[str, Any]:
     out = {"status": status, "reason": reason}
     if evidence:
@@ -332,6 +373,7 @@ def analyse(root: Path, matrix_path: Path, policy_path: Path, hst60_path: Path, 
                         "did": f.get("DID"),
                         "hash": f.get("DIDH"),
                         "rec": f.get("REC"),
+                        "sim": sim_time(line),
                         "line": line.rstrip(),
                     })
 
@@ -530,6 +572,67 @@ def analyse(root: Path, matrix_path: Path, policy_path: Path, hst60_path: Path, 
         and len(d1o_ticket_keys) == len(set(d1o_ticket_keys))
     )
 
+    # R3-14: reconstruct exact-open-position lifetime across a canonical D1 owner
+    # update. An execution that opened before the owner update and only emitted
+    # its closed outcome afterwards is positive proof that the D1 update itself
+    # did not directly close that position.
+    outcomes_by_ticket = {
+        (x["stem"], x["ticket"]): x
+        for x in n2_out
+        if x.get("ticket") and x.get("sim")
+    }
+    owner_updates: list[dict[str, Any]] = []
+    by_stem_owner: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for ev in owner_events:
+        if ev.get("sim"):
+            by_stem_owner[ev["stem"]].append(ev)
+    for stem, rows in by_stem_owner.items():
+        rows.sort(key=lambda x: x["sim"])
+        previous_key = None
+        previous_ev = None
+        for ev in rows:
+            key = (ev.get("state"), ev.get("dir"), ev.get("candle"))
+            if previous_key is not None and key != previous_key:
+                owner_updates.append({
+                    "stem": stem,
+                    "time": ev["sim"],
+                    "before": previous_key,
+                    "after": key,
+                    "direction_flip": (
+                        previous_ev is not None
+                        and previous_ev.get("dir") != ev.get("dir")
+                    ),
+                })
+            previous_key = key
+            previous_ev = ev
+
+    owner_update_spans = 0
+    owner_flip_spans = 0
+    owner_update_samples: list[dict[str, Any]] = []
+    for ex in execs:
+        outcome = outcomes_by_ticket.get((ex["stem"], ex["ticket"]))
+        if outcome is None or outcome.get("sim") is None:
+            continue
+        for update in owner_updates:
+            if update["stem"] != ex["stem"]:
+                continue
+            if ex["open"] < update["time"] < outcome["sim"]:
+                owner_update_spans += 1
+                if update["direction_flip"]:
+                    owner_flip_spans += 1
+                if len(owner_update_samples) < 12:
+                    owner_update_samples.append({
+                        "stem": ex["stem"],
+                        "ticket": ex["ticket"],
+                        "open": ex["open"].isoformat(" "),
+                        "owner_update": update["time"].isoformat(" "),
+                        "before": list(update["before"]),
+                        "after": list(update["after"]),
+                        "direction_flip": update["direction_flip"],
+                        "outcome_observed": outcome["sim"].isoformat(" "),
+                        "recovery": outcome.get("rec"),
+                    })
+
     cases: dict[str, dict[str, Any]] = {}
     def setc(cid: str, ok: bool, yes: str, no: str, ev: dict[str, Any] | None = None):
         cases[cid] = case("PASS" if ok else "INCOMPLETE", yes if ok else no, ev)
@@ -548,7 +651,17 @@ def analyse(root: Path, matrix_path: Path, policy_path: Path, hst60_path: Path, 
     setc("R3-11", d1o_dedup_ok, "Observed D1O execution identities map one-to-one to run-scoped tester tickets.", "No sufficient D1O execution/dedup evidence.")
     ext_tpw = d1opp_families["EXT_TPW"] + d1opp_families["D1_OPP_EXTREME_TPW"]
     setc("R3-13", ext_tpw > 0 and d1opp_ext_tpw_tactical > 0, "EXT_TPW family positively observed with tactical attribution separated in D1 opportunity telemetry.", "No tactical EXT_TPW family observation.")
-    cases["R3-14"] = case("INCOMPLETE", "Requires explicit open-position-across-owner-update reconstruction; not auto-promoted by marker scan.")
+    setc(
+        "R3-14",
+        owner_update_spans > 0,
+        "Exact historical executions remained open across canonical D1 owner updates and only produced closed outcomes later; D1 owner update alone did not directly close the position.",
+        "No exact open-position-across-owner-update lifetime could be reconstructed.",
+        {
+            "spanning_owner_update_count": owner_update_spans,
+            "spanning_direction_flip_count": owner_flip_spans,
+            "samples": owner_update_samples,
+        },
+    )
     setc("R3-15", closed_d1_samples > 0 and closed_d1_ok, "All attributable owner events use an earlier fully closed D1 candle.", "Closed-D1 proof incomplete or violated.")
 
     setc("R4-00", bool(execs), "Executions carry exact DecisionID and validation provenance.", "No executable validation provenance.")
@@ -669,6 +782,8 @@ def analyse(root: Path, matrix_path: Path, policy_path: Path, hst60_path: Path, 
             "fixed_lot_inputs": dict(fixed_lots),
             "d1o_decision_observations": len(d1o_dec),
             "d1o_exec_count": len(d1o_execs),
+            "owner_update_open_position_spans": owner_update_spans,
+            "owner_direction_flip_open_position_spans": owner_flip_spans,
             "closed_d1_samples": closed_d1_samples,
             "closed_d1_only_ok": closed_d1_ok,
         },

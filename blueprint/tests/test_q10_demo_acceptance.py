@@ -452,3 +452,25 @@ def test_hybrid_evidence_policy_is_complete_and_fail_closed():
     assert set(policy["stages"]["R4"]["live_reconfirm_cases"])
     assert set(policy["stages"]["R5"]["live_reconfirm_cases"])
     assert set(policy["stages"]["R6"]["live_reconfirm_cases"])
+
+
+def test_r3_transition_reachability_hold_is_not_promoted():
+    ev = (
+        ROOT
+        / "blueprint"
+        / "audits"
+        / "evidence"
+        / "Q10_PHASE_H_DETERMINISTIC_20260923"
+    )
+    supplement = load(ev / "DETERMINISTIC_SUPPLEMENT.json")
+    combined = load(ev / "COMBINED_STATUS.json")
+
+    r303 = supplement["cases"]["R3-03"]
+    assert r303["status"] == "INCOMPLETE"
+    assert r303["classification"] == "HOLD_UNRESOLVED"
+    assert "R3-03" not in combined["pass_cases"]
+    assert "R3-03" in combined["incomplete_cases"]
+    assert "R3-03" in combined["hold_cases"]
+    assert combined["pass_count"] == 41
+    assert combined["incomplete_count"] == 16
+    assert combined["fail_count"] == 0

@@ -3,11 +3,10 @@
   "issue": 109,
   "candidate": "Build 5.11 / V511_EVENT_DRIVEN_OBSERVER_20260922",
   "historical_analysis_sha256": "2910DE5FC11D98775B4A6B2D686DC1184AA15F35AAE5336D5930CACCACA90DA9",
-  "supplement_sha256": "05B34DD106371CE5719118DB323B8527BD624B6460F21EDAE256A9504775F347",
+  "supplement_sha256": "2AAE2CF6F468238CD8C30F36E547330EAE2ABB92D52BBD0238AD45C7D9201B8F",
   "pass_cases": [
     "R3-01",
     "R3-02",
-    "R3-03",
     "R3-04",
     "R3-05",
     "R3-06",
@@ -49,6 +48,7 @@
     "R6-16"
   ],
   "incomplete_cases": [
+    "R3-03",
     "R3-14",
     "R4-09",
     "R4-11",
@@ -66,8 +66,8 @@
     "R6-08"
   ],
   "fail_cases": [],
-  "pass_count": 42,
-  "incomplete_count": 15,
+  "pass_count": 41,
+  "incomplete_count": 16,
   "fail_count": 0,
   "phase_h_status": "INCOMPLETE",
   "live_only_cases": [
@@ -85,5 +85,8 @@
     "R6-06",
     "R6-07",
     "R6-09"
+  ],
+  "hold_cases": [
+    "R3-03"
   ]
 }

@@ -93,7 +93,7 @@ The current runtime runbook requires attributable D1 BUY, SELL and UNRESOLVED ev
 
 ## R3 closure rule
 
-R3 is `CLOSED / PASS` only after authenticated evidence covers all four D1 owner classes and proves DecisionID/hash/direction stability plus D1O dedup. If one owner class has not naturally appeared, R3 remains `INCOMPLETE`.
+R3 is `CLOSED / PASS` only after authenticated evidence covers the required D1 owner behavior and proves DecisionID/hash/direction stability plus D1O dedup. BUY, SELL and UNRESOLVED retain their positive-evidence requirements. R3-03 TRANSITION may instead pass through the deterministic-by-construction proof defined by `R3_03_D1_TRANSITION_REACHABILITY_RECONCILIATION_20260923.md`; natural occurrence of an immediate-EMA non-equality transition is not required. A contradiction to that proof remains a blocking verification failure.
 
 ---
 

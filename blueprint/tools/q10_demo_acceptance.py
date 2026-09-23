@@ -407,6 +407,7 @@ def initial_state(
         "schema": "BBMA_Q10_STATE_V1",
         "issue": manifest["issue"],
         "candidate": candidate,
+        "acceptance_config_revision": manifest.get("acceptance_config_revision"),
         "candidate_manifest_sha256": sha256_file(DEFAULT_MANIFEST)
         if DEFAULT_MANIFEST.is_file()
         else None,
@@ -824,6 +825,10 @@ def prepare_live_state(
     policy = load_json(policy_path)
     phase_h = load_json(phase_h_path)
     validate_phase_h_for_live(phase_h, policy, matrix)
+    active_settings = str(policy.get("active_settings_sha256", "")).upper()
+    manifest_settings = str(manifest.get("settings_sha256", "")).upper()
+    if not active_settings or active_settings != manifest_settings:
+        raise Q10Error("hybrid policy active settings mismatch")
 
     candidate = verify_candidate(repo_root.resolve(), manifest)
     previous_candidate = prior_state.get("candidate", {})

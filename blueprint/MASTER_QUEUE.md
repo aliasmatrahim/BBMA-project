@@ -21,7 +21,7 @@ Stable Q IDs are preserved. The active dependency order is:
 - **Integration / final acceptance:** Q7 -> Q8 -> Q10
 - **Deferred / future:** Q11
 
-Q3 remains a separate isolated runtime-validation workstream and is environment-blocked at `SEEN=58 / ACTIVE=0`; do not disturb its primary PID 13064. Q9 P1-P11 remains verified scoped Draft research with no activation, while the subsequent Issue #101 downstream sequence (D1TPW -> C044 -> D1/D1O -> M17 -> TradeLock/risk/execution -> N1/N2/N3 -> M25 -> Observer -> cross-module -> final integration) is already completed and must not be requeued. Q6 remains stopped/closed. Q7/Q8 historical gates are complete. **Q10 Phase L R3 is the highest-priority active final-acceptance task.**
+Q3 remains a separate isolated runtime-validation workstream and is environment-blocked at `SEEN=91 / ACTIVE=0` on the exact InstanceID 81 ledger; do not disturb its primary PID 13064. Q9 P1-P11 remains verified scoped Draft research with no activation, while the subsequent Issue #101 downstream sequence (D1TPW -> C044 -> D1/D1O -> M17 -> TradeLock/risk/execution -> N1/N2/N3 -> M25 -> Observer -> cross-module -> final integration) is already completed and must not be requeued. Q6 remains stopped/closed. Q7/Q8 historical gates are complete. **Q10 Phase L R3 is the highest-priority active final-acceptance task.**
 
 ## Stage A - Source evidence / reconciliation
 
@@ -98,6 +98,8 @@ PR: **#131** (with #125/#129/#130 retained as provenance/base lineage)
 Priority: **HIGH / ISOLATED RUNTIME EVIDENCE**
 Status: **SOURCE+STATIC+NATIVE PASS / FINAL RUNTIME GATE PENDING**
 
+Fresh 2026-09-23 read-only ledger checkpoint: `SEEN=91 / ACTIVE=0`; ledger SHA-256 `35262817B7271519F0CD8FAA9BF4DF56FE4BF7819012C635C1207984B576A909`. The higher `SEEN` count does not satisfy the restart gate; `ACTIVE=0` still forbids progression to stop/restart recovery validation.
+
 Required next steps after G40 reconnect:
 1. Verify exact deployed MQ4/EX4/build/config/InstanceID=81 before accepting new evidence.
 2. Keep `Authority=NONE`, `ExpertsTrades=false`, `MaxTradePerPair=0`, `MaxTotalTrade=0`.
@@ -166,7 +168,7 @@ Status: **VERIFIED / COMPLETE — GBPUSD ENGINEERING HISTORICAL EVIDENCE**
 Issue: **#109**
 Status: **ACTIVE / PHASE L LIVE RECONFIRMATION / R3 NATURAL D1O RESTART GATE**
 
-The exact Build 5.11 source/EX4 candidate is frozen. Phase H remains **56 PASS / 1 conditional INCOMPLETE / 0 FAIL**; R5-19 is the approved safe-only conditional case and must not be manufactured. PR #265 merged the final-live acceptance revision `Q10_20PAIR_R2_20260923`: the only functional settings delta is PairList expansion from GBPUSD to 20 MetaQuotes-Demo-supported fixed-ID FX pairs, with `MaxActivePair=1` and all other approved settings unchanged. Read-only runtime smoke passed 20/20 resolution/specification plus PairID/Magic isolation. New V2 stage evidence binds exact EX4 + settings SHA, so legacy GBPUSD-only Phase-L bundles cannot be combined into R2 evidence. Formal R3 required set remains `R3-00/R3-02/R3-04/R3-05/R3-12/R3-15` and starts fresh under R2. The existing dedicated terminal is trade-enabled and collecting R2 evidence across all 20 pairs; `R3-12` remains the rare natural D1O-origin restart-continuity event and must not be synthesized. R4 cannot be promoted until all mandatory R3 R2 evidence passes. Current audit: `blueprint/audits/Q10_20PAIR_ACCEPTANCE_CONFIG_R2_20260923.md`.
+The exact Build 5.11 source/EX4 candidate is frozen. Phase H remains **56 PASS / 1 conditional INCOMPLETE / 0 FAIL**; R5-19 is the approved safe-only conditional case and must not be manufactured. PR #265 merged the final-live acceptance revision `Q10_20PAIR_R2_20260923`: the only functional settings delta is PairList expansion from GBPUSD to 20 MetaQuotes-Demo-supported fixed-ID FX pairs, with `MaxActivePair=1` and all other approved settings unchanged. Read-only runtime smoke passed 20/20 resolution/specification plus PairID/Magic isolation. V2 stage evidence binds exact EX4 + settings SHA, so legacy GBPUSD-only Phase-L bundles cannot be combined into R2 evidence. Fresh exact-R2 combined analysis now has `R3-00/R3-02/R3-04/R3-05/R3-15 = PASS`, `R3-12 = INCOMPLETE`, and no required R3 FAIL. `R3-12` remains the sole mandatory rare natural D1O-origin restart-continuity event and must not be synthesized. The dedicated exact-R2 terminal is running to await that event; R4 cannot be promoted until R3-12 passes. Current runtime continuation audit: `blueprint/audits/Q10_R3_R2_Q3_RUNTIME_CONTINUATION_20260923.md`.
 
 ## Stage E - Deferred / future
 

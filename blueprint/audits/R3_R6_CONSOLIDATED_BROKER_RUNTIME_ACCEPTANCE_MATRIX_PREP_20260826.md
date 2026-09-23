@@ -68,7 +68,7 @@ Never convert `INCOMPLETE` or `BLOCKED` into PASS.
 
 Prove the live D1 owner states and ensure D1 Opportunity attribution cannot mutate the executable identity or direction of the underlying fresh lower-timeframe decision.
 
-The current runtime runbook requires observation of D1 BUY, SELL, TRANSITION and UNRESOLVED plus D1O identity/dedup telemetry. Tactical `EXT_TPW` must remain distinct from ordinary strategic-owner-aligned families.
+The current runtime runbook requires attributable D1 BUY, SELL and UNRESOLVED evidence plus D1O identity/dedup telemetry. **R3-03 TRANSITION is the exception to natural-occurrence coverage:** after the 2026-09-23 #248 reconciliation, the immediate EMA(Close) transition safety may be proven deterministically by construction because the old non-equality transition examples are mathematically unreachable under the canonical adjacent-bar mapping. Tactical `EXT_TPW` must remain distinct from ordinary strategic-owner-aligned families.
 
 ## R3 matrix
 

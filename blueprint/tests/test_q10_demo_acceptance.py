@@ -49,7 +49,7 @@ def test_active_acceptance_settings_profile_is_exact_20_pair():
     assert rows["MaxTradePerPair"] == "2"
     assert rows["MaxTotalTrade"] == "10"
     assert rows["FixedLot"] == "0.01"
-    assert manifest["acceptance_config_revision"] == "Q10_20PAIR_R1_20260923"
+    assert manifest["acceptance_config_revision"] == "Q10_20PAIR_R2_20260923"
     assert manifest["pair_universe"] == pairs
 
 

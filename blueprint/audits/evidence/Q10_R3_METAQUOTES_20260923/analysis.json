@@ -1,0 +1,115 @@
+{
+  "bundle_sha256": "FFB90C318AF6770ADFBC56790FAF3AF0C3B59D0B6D89C12B37E518500475F494",
+  "candidate_build_tag": "V511_EVENT_DRIVEN_OBSERVER_20260922",
+  "candidate_source_sha256": "50E4A01A5768B5B5E9A80CABAE21B7260A2912AA058E67E5273386177970D038",
+  "cases": {
+    "R3-00": {
+      "evidence": [
+        {
+          "path": "D:\\BBMA\\MT4_NMJE_141_Demo\\evidence\\Q10_109\\R3\\R3_runtime.log",
+          "sha256": "7811065AAB2A5C63F0CE764670E568C4D45C9D05D0F26AE676DDCED65237A835"
+        }
+      ],
+      "required": true,
+      "status": "PASS"
+    },
+    "R3-01": {
+      "evidence": [],
+      "required": true,
+      "status": "INCOMPLETE"
+    },
+    "R3-02": {
+      "evidence": [
+        {
+          "path": "D:\\BBMA\\MT4_NMJE_141_Demo\\evidence\\Q10_109\\R3\\R3_matched.log",
+          "sha256": "24292F37A8BEC3D1ABF6B740685AB624143B6E063C5C06E2951E76BB72A48BBE"
+        }
+      ],
+      "required": true,
+      "status": "PASS"
+    },
+    "R3-03": {
+      "evidence": [],
+      "required": true,
+      "status": "INCOMPLETE"
+    },
+    "R3-04": {
+      "evidence": [
+        {
+          "path": "D:\\BBMA\\MT4_NMJE_141_Demo\\evidence\\Q10_109\\R3\\R3_runtime.log",
+          "sha256": "7811065AAB2A5C63F0CE764670E568C4D45C9D05D0F26AE676DDCED65237A835"
+        }
+      ],
+      "required": true,
+      "status": "PASS"
+    },
+    "R3-05": {
+      "evidence": [
+        {
+          "path": "D:\\BBMA\\MT4_NMJE_141_Demo\\evidence\\Q10_109\\R3\\R3_runtime.log",
+          "sha256": "7811065AAB2A5C63F0CE764670E568C4D45C9D05D0F26AE676DDCED65237A835"
+        }
+      ],
+      "required": true,
+      "status": "PASS"
+    },
+    "R3-06": {
+      "evidence": [],
+      "required": true,
+      "status": "INCOMPLETE"
+    },
+    "R3-07": {
+      "evidence": [],
+      "required": true,
+      "status": "INCOMPLETE"
+    },
+    "R3-08": {
+      "evidence": [],
+      "required": true,
+      "status": "INCOMPLETE"
+    },
+    "R3-09": {
+      "evidence": [],
+      "required": true,
+      "status": "INCOMPLETE"
+    },
+    "R3-10": {
+      "evidence": [],
+      "required": true,
+      "status": "INCOMPLETE"
+    },
+    "R3-11": {
+      "evidence": [],
+      "required": true,
+      "status": "INCOMPLETE"
+    },
+    "R3-12": {
+      "evidence": [],
+      "required": true,
+      "status": "INCOMPLETE"
+    },
+    "R3-13": {
+      "evidence": [],
+      "required": true,
+      "status": "INCOMPLETE"
+    },
+    "R3-14": {
+      "evidence": [],
+      "required": true,
+      "status": "INCOMPLETE"
+    },
+    "R3-15": {
+      "evidence": [
+        {
+          "path": "D:\\BBMA\\MT4_NMJE_141_Demo\\evidence\\Q10_109\\R3\\R3_matched.log",
+          "sha256": "24292F37A8BEC3D1ABF6B740685AB624143B6E063C5C06E2951E76BB72A48BBE"
+        }
+      ],
+      "required": true,
+      "status": "PASS"
+    }
+  },
+  "schema": "BBMA_Q10_STAGE_ANALYSIS_V1",
+  "stage": "R3",
+  "status": "INCOMPLETE"
+}

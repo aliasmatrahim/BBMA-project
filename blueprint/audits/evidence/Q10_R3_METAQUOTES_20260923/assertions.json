@@ -1,0 +1,96 @@
+{
+  "schema": "BBMA_Q10_R3_ASSERTIONS_V1",
+  "run": "2026-09-23 MetaQuotes-Demo",
+  "cases": {
+    "R3-00": {
+      "status": "PASS",
+      "evidence": [
+        "D:\\BBMA\\MT4_NMJE_141_Demo\\evidence\\Q10_109\\R3\\R3_runtime.log"
+      ],
+      "note": "Build 5.11 exact build/source markers and successful EA init present; bundle is bound to PASS MetaQuotes-Demo AUTH state."
+    },
+    "R3-01": {
+      "status": "INCOMPLETE",
+      "evidence": [],
+      "note": "No D1 BUY confirmed state observed."
+    },
+    "R3-02": {
+      "status": "PASS",
+      "evidence": [
+        "D:\\BBMA\\MT4_NMJE_141_Demo\\evidence\\Q10_109\\R3\\R3_matched.log"
+      ],
+      "note": "D1_OWNER_SELL_CONFIRMED observed repeatedly for fully closed 2026-09-22 D1 candle during 2026-09-23 session."
+    },
+    "R3-03": {
+      "status": "INCOMPLETE",
+      "evidence": [],
+      "note": "No D1 TRANSITION state observed."
+    },
+    "R3-04": {
+      "status": "PASS",
+      "evidence": [
+        "D:\\BBMA\\MT4_NMJE_141_Demo\\evidence\\Q10_109\\R3\\R3_runtime.log"
+      ],
+      "note": "Initial missing-history state explicitly reported D1_OWNER_UNRESOLVED / DIR_NONE; no executable decision/order was produced before owner resolved."
+    },
+    "R3-05": {
+      "status": "PASS",
+      "evidence": [
+        "D:\\BBMA\\MT4_NMJE_141_Demo\\evidence\\Q10_109\\R3\\R3_runtime.log"
+      ],
+      "note": "Confirmed D1 SELL with H4 OWNER/S was recognized in N1 and D1-10A; H4 owner was not ignored."
+    },
+    "R3-06": {
+      "status": "INCOMPLETE",
+      "evidence": [],
+      "note": "No otherwise-valid H4 direction opposite to D1 owner observed."
+    },
+    "R3-07": {
+      "status": "INCOMPLETE",
+      "evidence": [],
+      "note": "No confirmed-D1 / required-H4-no-owner scenario observed."
+    },
+    "R3-08": {
+      "status": "INCOMPLETE",
+      "evidence": [],
+      "note": "No valid D1 Opportunity execution candidate / DecisionID observed."
+    },
+    "R3-09": {
+      "status": "INCOMPLETE",
+      "evidence": [],
+      "note": "No executable D1O identity available for stable-hash comparison."
+    },
+    "R3-10": {
+      "status": "INCOMPLETE",
+      "evidence": [],
+      "note": "No D1O DecisionID/hash chain available for direction-invariance proof."
+    },
+    "R3-11": {
+      "status": "INCOMPLETE",
+      "evidence": [],
+      "note": "No D1O executable identity/ticket occurred; dedup cannot be positively demonstrated."
+    },
+    "R3-12": {
+      "status": "INCOMPLETE",
+      "evidence": [],
+      "note": "No relevant live D1O-origin identity/ticket existed for restart continuity."
+    },
+    "R3-13": {
+      "status": "INCOMPLETE",
+      "evidence": [],
+      "note": "No D1_OPP_EXTREME_TPW family event observed."
+    },
+    "R3-14": {
+      "status": "INCOMPLETE",
+      "evidence": [],
+      "note": "No existing live exact-owned trade during D1 owner update; close-side-effect case unavailable."
+    },
+    "R3-15": {
+      "status": "PASS",
+      "evidence": [
+        "D:\\BBMA\\MT4_NMJE_141_Demo\\evidence\\Q10_109\\R3\\R3_matched.log"
+      ],
+      "note": "07:30, 07:45 and 08:00 M15 processing all retained D1 owner candle=2026-09-22 while current 2026-09-23 D1 remained forming."
+    }
+  }
+}

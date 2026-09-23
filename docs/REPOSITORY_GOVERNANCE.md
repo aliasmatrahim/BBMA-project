@@ -97,6 +97,23 @@ Review outcome should be explicit: MERGE, HOLD, or DO NOT MERGE.
 ### 7. Merge and close
 Merge only after required evidence is green and unresolved material review findings are closed. Link the PR to its Issue so the reason, implementation, evidence, and result remain traceable.
 
+#### Standing ordinary-PR merge authorization
+The project owner has granted standing authorization, recorded in Issue #256, for ChatGPT/orchestrator to merge **ordinary scoped PRs** without a fresh per-PR confirmation after all required scope gates pass.
+
+For such a PR, the required sequence is:
+1. verify exact head SHA and intended target/owner branch;
+2. complete applicable compile/static/regression/runtime/CI evidence;
+3. resolve material review findings and confirm no required HOLD/UNRESOLVED/source conflict remains;
+4. mark the PR ready if still Draft;
+5. merge immediately;
+6. verify the target branch contains the exact merged change;
+7. update/close linked Issue/status/queue records as applicable;
+8. continue to the next eligible task.
+
+The standing authorization itself is the explicit user instruction for these normal validated merges. Do not stop merely to ask for merge permission again.
+
+A fresh user gate remains required for force-push/history rewrite, branch deletion, destructive reset/overwrite, bypassing failed or missing required validation, unresolved Strategy-Core/source adjudication, production deployment/trading activation, primary MT4 restart, credentials/physical action, or another action that an active contract/decision explicitly reserves for a new user decision.
+
 ## Architecture gates
 
 A normal bug fix must not silently:

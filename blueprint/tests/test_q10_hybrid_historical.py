@@ -107,12 +107,19 @@ def test_hybrid_policy_partitions_every_case_once():
         assert reconfirm <= hist
         assert all_cases == matrix_cases
 
+    assert policy["stages"]["R3"]["deterministic_by_construction_cases"] == ["R3-03"]
+    assert "R3-03" in policy["stages"]["R3"]["historical_required_cases"]
+
 
 def test_analyzer_is_hash_bound_and_fail_closed(tmp_path: Path):
     log, hst, invariants = write_fixture(tmp_path)
     result = q10h.analyse(tmp_path, MATRIX, POLICY, hst, invariants)
     assert result["summary"]["fail_count"] == 0
     assert result["historical_cases"]["R3-01"]["status"] == "PASS"
+    assert result["historical_cases"]["R3-03"]["status"] == "PASS"
+    assert result["historical_cases"]["R3-03"]["evidence"]["mode"] == "DETERMINISTIC_BY_CONSTRUCTION"
+    assert result["historical_cases"]["R3-03"]["evidence"]["natural_transition_observations"] == 0
+    assert result["historical_cases"]["R3-03"]["evidence"]["source_reachability"]["pass"] is True
     assert result["historical_cases"]["R3-06"]["status"] == "PASS"
     assert result["historical_cases"]["R4-04"]["status"] == "PASS"
     assert result["historical_cases"]["R4-07"]["status"] == "PASS"

@@ -39,10 +39,12 @@ def write_fixture(tmp_path: Path):
     ]
     log = tmp_path / f"{stem}_tester_newlog.bin"
     log.write_text("\n".join(lines) + "\n", encoding="cp1252")
+    canonical_source = (ROOT / "blueprint" / "source" / "BBMA_EA.mq4").read_text(encoding="utf-8")
+    canonical_source_sha256 = q10h.hashlib.sha256(canonical_source.encode("utf-8")).hexdigest().upper()
     matrix = {
         "label": "ENGINEERING HISTORICAL EVIDENCE / NOT FINAL TICK-ACCURATE",
         "candidate": "Build 5.11 / V511_EVENT_DRIVEN_OBSERVER_20260922",
-        "canonical_mq4_sha256": "SRC",
+        "canonical_mq4_sha256": canonical_source_sha256,
         "tester_adapter_mq4_sha256": "ADAPTER_SRC",
         "tester_adapter_ex4_sha256": "ADAPTER_EX4",
         "settings_sha256": "SET",
@@ -84,7 +86,7 @@ def write_fixture(tmp_path: Path):
             {
                 "build": "5.11",
                 "all_pass": True,
-                "canonical_git_blob_sha256": "SRC",
+                "canonical_git_blob_sha256": canonical_source_sha256,
                 "checks": checks,
             }
         ),
@@ -120,6 +122,7 @@ def test_analyzer_is_hash_bound_and_fail_closed(tmp_path: Path):
     assert result["historical_cases"]["R3-03"]["evidence"]["mode"] == "DETERMINISTIC_BY_CONSTRUCTION"
     assert result["historical_cases"]["R3-03"]["evidence"]["natural_transition_observations"] == 0
     assert result["historical_cases"]["R3-03"]["evidence"]["source_reachability"]["pass"] is True
+    assert result["historical_cases"]["R3-03"]["evidence"]["source_reachability"]["normalized_source_sha256"] == canonical_source_sha256
     assert result["historical_cases"]["R3-06"]["status"] == "PASS"
     assert result["historical_cases"]["R4-04"]["status"] == "PASS"
     assert result["historical_cases"]["R4-07"]["status"] == "PASS"

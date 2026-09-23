@@ -411,35 +411,36 @@ Where:
 
 Evidence classification:
 - D1/MA50 major-trend authority = **DIRECT SOURCE / STRONGLY CORROBORATED**;
-- price-side + MA50-slope agreement = **DIRECT PRIMARY-PDF RULE**.
+- the source wording “price above + MA50 ascending” / “price below + MA50 descending” = **DIRECT PRIMARY-PDF DESCRIPTIVE TREND RULE**;
+- the immediate adjacent-bar slope comparison `MA50_1` versus `MA50_2` = **PROJECT ENGINEERING MAPPING**.
+
+For the accepted EMA50 applied to Close, the immediate slope comparison is algebraically coupled to the same-bar price side for every non-equality observation. Therefore the two conjuncts above are not independent market conditions. The existing M11 conjunction may remain as a source-facing deterministic expression, but it must not be interpreted as creating an independently observable non-equality transition zone.
 
 Decision provenance:
 - `blueprint/decisions/HOME_COURSE_D1_MAJOR_TREND_VS_H4_IMMEDIATE_PARENT_RECONCILIATION.md`;
 - `blueprint/decisions/HOME_COURSE_D1_TRANSITION_MAJOR_TREND_OWNER_DECISION.md`;
+- `blueprint/decisions/R3_03_D1_TRANSITION_REACHABILITY_RECONCILIATION_20260923.md`;
 - `blueprint/contracts/M11_D1_MAJOR_TREND_OWNER_CONTRACT.md`.
 
 ### 9.2 D1 transition / unresolved state
-When valid closed-D1 data does not satisfy either confirmed BUY or confirmed SELL, the project classifies the strategic state as `D1_TRANSITION`.
+The software state `D1_TRANSITION` remains a fail-closed project state for otherwise-valid closed-D1 inputs that are neither confirmed BUY nor confirmed SELL.
 
-This includes:
-- close above MA50 while MA50 is flat/falling;
-- close below MA50 while MA50 is flat/rising;
-- close at MA50;
-- flat MA50;
-- first opposite-side cross while MA50 slope still points in the previous direction.
+Under the current **EMA50 / PRICE_CLOSE / immediate adjacent-bar** mapping:
+- `Close1 > MA50_1` implies `MA50_1 > MA50_2`;
+- `Close1 < MA50_1` implies `MA50_1 < MA50_2`;
+- therefore “close above MA50 while immediate EMA50 falls” and “close below MA50 while immediate EMA50 rises” are not reachable non-equality states;
+- a naturally reachable valid `D1_TRANSITION` is limited to equality/flat degeneracy permitted by exact input arithmetic and may be absent in finite broker history.
 
 If the required closed-D1/MA50 history is missing or invalid, state = `D1_OWNER_UNRESOLVED`.
 
-Execution meaning:
+Execution meaning is unchanged:
 - `D1_TRANSITION` -> **block all new strategy entries**;
 - `D1_OWNER_UNRESOLVED` -> **block all new strategy entries**;
 - the last confirmed D1 direction may remain historical/diagnostic only and does not stay active as new-entry authority.
 
-No fixed two-/three-day confirmation, ATR/pip buffer, score, RSI/ADX, session, news or timer is introduced.
+No fixed two-/three-day confirmation, alternate MA type, longer slope lookback, ATR/pip buffer, score, RSI/ADX, session, news or timer is introduced merely to manufacture a wider transition state.
 
-The first later fully closed D1 candle satisfying confirmed BUY or SELL restores strategic authority; if direction changes, that closed-D1 state is the atomic major-trend handover.
-
-The explicit transition/unresolved software state and fail-closed blocking are **MINIMAL DETERMINISTIC PROJECT MAPPINGS**, not claimed as verbatim Oma Ally software instructions.
+The explicit transition/unresolved software state and fail-closed blocking are **MINIMAL DETERMINISTIC PROJECT MAPPINGS**, not claimed as verbatim Oma Ally software instructions. R3-03 validation may prove transition safety **deterministically by construction**; natural observation of a mathematically unreachable non-equality transition is not required.
 
 `D1_TRANSITION` is not by itself a live-position broker-close rule.
 

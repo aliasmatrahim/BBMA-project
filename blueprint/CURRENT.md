@@ -92,14 +92,14 @@ Status: **VERIFIED / COMPLETE — ENGINEERING HISTORICAL EVIDENCE ONLY**.
 - This remains engineering historical evidence and is not a profitability or production-readiness claim. The former Issue #128 native final-authority programme was later stopped by user decision and closed not planned on 2026-09-20.
 
 ## Current infrastructure blocker
-Authorized G40 Remote Desktop Commander is reachable. Q3 isolated Build 4.81 runtime remains separate/environment-blocked on primary PID 13064. Q10 Phase-L uses a dedicated MetaQuotes-Demo terminal and is currently running R3 natural-evidence monitoring; do not conflate or restart the Q3 terminal. Q9 P11 remains a verified scoped Draft research branch with no production activation. Q6 native acquisition was stopped by explicit user decision on 2026-09-20 and must not auto-resume.
+Authorized G40 Remote Desktop Commander is reachable. Q3 isolated Build 4.81 runtime remains separate/environment-blocked on primary PID 13064. Q10 Phase-L now uses the merged `Q10_20PAIR_R2_20260923` MetaQuotes-Demo profile on one dedicated terminal: 20 broker-supported fixed-ID pairs are monitored, `MaxActivePair=1`, and all other approved risk/MM/execution settings remain unchanged. Do not conflate or restart the Q3 terminal. Q9 P11 remains a verified scoped Draft research branch with no production activation. Q6 native acquisition was stopped by explicit user decision on 2026-09-20 and must not auto-resume.
 
 ## Recently closed tracking/governance work
 - stale v4.58 CI PR-gate bug #136 closed; workflow-only fix merged.
 - D1 Package-B re-audit merged: current M11 -> M15 -> M16 is already integrated; old queue text describing it as unimplemented is historical/stale.
 - project-governance drift #111 and live-status resolution #113 closed by documentation-only governance merge `262ff66...`.
 - historical one-shot trigger issues/PRs and validation-only PRs that explicitly said `do not merge` were closed without deleting their branches/evidence.
-- Issue #109 is active on exact Build 5.11 under hybrid tester-first / MetaQuotes-Demo-last acceptance. Phase H is **56 PASS / 1 conditional INCOMPLETE / 0 FAIL**, with R5-19 the approved safe-only conditional case. Phase L is now **ACTIVE at R3** on the dedicated MetaQuotes-Demo terminal. Mandatory Phase-L R3 cases currently PASS: `R3-00`, `R3-02`, `R3-04`, `R3-05`, `R3-15`; the sole mandatory R3 blocker is `R3-12` D1O restart continuity, which requires a naturally valid live D1O-origin identity/trade and must not be fabricated. Q10 tooling corrections PR #260/#261/#262 are merged; multi-run evidence is hash-bound and R3 remains formal `INCOMPLETE`, not FAIL. Evidence: `blueprint/audits/Q10_PHASE_L_HYBRID_RUNNER_CORRECTION_20260923.md`.
+- Issue #109 is active on exact Build 5.11 under hybrid tester-first / MetaQuotes-Demo-last acceptance. Phase H remains **56 PASS / 1 conditional INCOMPLETE / 0 FAIL**. PR #265 merged the final-live `Q10_20PAIR_R2_20260923` settings revision: 20 MetaQuotes-Demo-supported fixed-ID pairs, settings SHA `F114C1DE07ABED434B2754F210E43993E9E3D81599CA5900536E5E2F65F2E700`, `MaxActivePair=1`, Build 5.11 source/EX4 unchanged. Read-only broker smoke passed 20/20 symbol resolution, broker specification, PairID and Magic validation. Formal R2 Phase-L R3 evidence is **fresh**: legacy GBPUSD-only live bundles are intentionally non-combinable because V2 evidence binds exact runtime settings. R3 therefore remains `INCOMPLETE`; `R3-12` is still the natural D1O restart-continuity event that drives the wait, while R3-00/02/04/05/15 must also be reconfirmed under R2 before formal R3 PASS. Evidence: `blueprint/audits/Q10_20PAIR_ACCEPTANCE_CONFIG_R2_20260923.md`.
 
 ### 8. Q9 NMJE v2 / M5 accuracy hardening — Issue #101
 Status: **P1-P11 VERIFIED IN SCOPED DRAFT RESEARCH / CONTRACT STABILIZED / NO ACTIVATION**.
@@ -114,7 +114,7 @@ Status: **P1-P11 VERIFIED IN SCOPED DRAFT RESEARCH / CONTRACT STABILIZED / NO AC
 - Issue #101 downstream production-owner sequence is completed through final integration; do not requeue D1TPW/C044/D1O/M17/TradeLock-risk/N1-N2-N3/M25/Observer/cross-module work without new evidence.
 
 ## Deferred / future work
-- final automated broker/demo user-test programme (#109): **ACTIVE** on exact frozen Build 5.11; Phase L R3 is waiting only on natural D1O restart-continuity evidence (`R3-12`).
+- final automated broker/demo user-test programme (#109): **ACTIVE** on exact frozen Build 5.11 with merged 20-pair R2 profile. The dedicated terminal is collecting fresh R2 R3 evidence; the rare gating event remains natural D1O restart continuity (`R3-12`).
 - older dashboard/observer preparation branches are historical staging. Re-audit against the then-current owner before any future materialization; do not merge an old frozen-candidate patch directly.
 
 ## Safety boundary

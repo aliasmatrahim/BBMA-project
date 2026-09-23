@@ -1,0 +1,115 @@
+{
+  "schema": "BBMA_Q10_HYBRID_PHASE_H_REUSE_V1",
+  "issue": 109,
+  "baseline_owner": "5aebad7c744d32c9e5de5c5b7b3d484b40e43846",
+  "branch_head_before_evidence_commit": "fad8a6ee0b8b5ff9e7d23b9fca08f3be4e47a4e3",
+  "candidate": "Build 5.11 / V511_EVENT_DRIVEN_OBSERVER_20260922",
+  "canonical_mq4_sha256": "50E4A01A5768B5B5E9A80CABAE21B7260A2912AA058E67E5273386177970D038",
+  "tester_adapter_mq4_sha256": "D3ADEAA06888B1CEC03A10852EEF8491743336A95084D84DD2EFE8B703046832",
+  "tester_adapter_ex4_sha256": "8F6B1D8F6665E6DC72CF5A463A99D1A67F0CBB5E8CA73C4E133A4CFFF4FE387F",
+  "settings_sha256": "37BC585EB3AB5A73914FEC3C532023636D4FACCD7D3AAAF20B774269CF92DA70",
+  "analysis_sha256": "61BD9488FA4884728C574FEE61256315532A6CFAF2AE22BCC72C995D3C3E8AEC",
+  "phase_h_summary": {
+    "pass_count": 32,
+    "incomplete_count": 27,
+    "fail_count": 0,
+    "pass_cases": [
+      "R3-01",
+      "R3-02",
+      "R3-05",
+      "R3-06",
+      "R3-08",
+      "R3-09",
+      "R3-10",
+      "R3-11",
+      "R3-13",
+      "R3-15",
+      "R4-00",
+      "R4-02",
+      "R4-03",
+      "R4-04",
+      "R4-05",
+      "R4-06",
+      "R4-07",
+      "R4-10",
+      "R4-12",
+      "R4-14",
+      "R5-00",
+      "R5-01",
+      "R5-09",
+      "R6-00",
+      "R6-01",
+      "R6-04",
+      "R6-05",
+      "R6-10",
+      "R6-11",
+      "R6-12",
+      "R6-13",
+      "R6-14"
+    ],
+    "incomplete_cases": [
+      "R3-03",
+      "R3-04",
+      "R3-07",
+      "R3-14",
+      "R4-08",
+      "R4-09",
+      "R4-11",
+      "R4-15",
+      "R4-16",
+      "R5-02",
+      "R5-03",
+      "R5-04",
+      "R5-05",
+      "R5-06",
+      "R5-07",
+      "R5-08",
+      "R5-10",
+      "R5-14",
+      "R5-15",
+      "R5-16",
+      "R5-17",
+      "R5-18",
+      "R5-19",
+      "R5-20",
+      "R6-08",
+      "R6-15",
+      "R6-16"
+    ],
+    "fail_cases": [],
+    "phase_h_status": "INCOMPLETE"
+  },
+  "source_logs": {
+    "FINAL511_2024": {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\FINAL_BUILD511_GBPUSD_20260923\\FINAL511_2024_tester_newlog.bin",
+      "sha256": "939DE00D6DCD53CDF45A3266B34B186B2C7A4F4E77DB7110D4254568C6FBC8C0"
+    },
+    "FINAL511_2025H1": {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\FINAL_BUILD511_GBPUSD_20260923\\FINAL511_2025H1_tester_newlog.bin",
+      "sha256": "43B4909FAE7EDBE36D776BC0ECE8212F08CA6CC2F3BACFA9EED763FD4FB565EB"
+    },
+    "FINAL511_2025H2": {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\FINAL_BUILD511_GBPUSD_20260923\\FINAL511_2025H2_tester_newlog.bin",
+      "sha256": "088917FBFA2973E3E9182D9F8E83BE1E58BE53A5FF48D92696A247CE2FEAE062"
+    },
+    "FINAL511_2026YTD": {
+      "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\FINAL_BUILD511_GBPUSD_20260923\\FINAL511_2026YTD_tester_newlog.bin",
+      "sha256": "21E8E6D20BDDAAD2D1E94D47CE6DCBD306963BE1CF2A4939424CA8FC279F8B0E"
+    }
+  },
+  "hst_sha256": {
+    "GBPUSD15.hst": "74DB0196F4D77FC66548CD41614ADFDDE9CA96F9E2DA91DAEBCD17E304C5E7B5",
+    "GBPUSD60.hst": "566762B35FCE7EF2DCB5985A57DAC6BC5D0476A6A76DDEF2D680EF0905632389",
+    "GBPUSD240.hst": "AA58B7E1114D20B135573168FD414DB7F210AB260427C8596CADFB8052E5015F",
+    "GBPUSD1440.hst": "6EE8DED5B0027A2340D15196F34DA603899D648A772919AF6FACD156F81800AC"
+  },
+  "source_invariants": "blueprint/audits/evidence/M01_M27_M12N_BUILD511_20260923/FINAL_INVARIANTS.json",
+  "source_invariants_result": "68/68 PASS",
+  "tests": {
+    "hybrid_plus_current_source": "10/10 PASS",
+    "full_blueprint_pytest": "46/46 PASS"
+  },
+  "raw_evidence_storage": "G40_ONLY_HASH_ADDRESSED",
+  "classification": "ENGINEERING HISTORICAL EVIDENCE / NOT FINAL TICK-ACCURATE",
+  "ea_source_changed": false
+}

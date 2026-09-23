@@ -213,7 +213,9 @@ def case(status: str, reason: str, evidence: dict[str, Any] | None = None) -> di
     return out
 
 
-def verify_r303_d1_transition_reachability(policy_path: Path) -> dict[str, Any]:
+def verify_r303_d1_transition_reachability(
+    policy_path: Path, expected_source_sha256: str
+) -> dict[str, Any]:
     """Verify the canonical immediate EMA50(Close) mapping used by R3-03.
 
     For EMA_t = alpha*Close_t + (1-alpha)*EMA_(t-1), 0<alpha<1,
@@ -230,7 +232,9 @@ def verify_r303_d1_transition_reachability(policy_path: Path) -> dict[str, Any]:
         }
 
     source = source_path.read_text(encoding="utf-8", errors="strict")
+    normalized_source_sha256 = hashlib.sha256(source.encode("utf-8")).hexdigest().upper()
     checks = {
+        "exact_canonical_source": normalized_source_sha256 == expected_source_sha256.upper(),
         "ema50_period_50": bool(re.search(r"#define\s+EMA50_PERIOD\s+50\b", source)),
         "ema_close_mapping": (
             "return iMA(pair, timeframe, period, 0, MODE_EMA, PRICE_CLOSE, shift);"
@@ -272,7 +276,8 @@ def verify_r303_d1_transition_reachability(policy_path: Path) -> dict[str, Any]:
         "pass": all(checks.values()),
         "classification": "DETERMINISTIC_BY_CONSTRUCTION",
         "source_path": str(source_path),
-        "source_sha256": sha256_file(source_path),
+        "normalized_source_sha256": normalized_source_sha256,
+        "expected_source_sha256": expected_source_sha256.upper(),
         "checks": checks,
         "proof": (
             "For canonical EMA50 applied Close with immediate adjacent-bar slope, "
@@ -298,7 +303,9 @@ def analyse(root: Path, matrix_path: Path, policy_path: Path, hst60_path: Path, 
     ):
         raise RuntimeError("cross-module invariant evidence is not attributable to exact Build 5.11")
     inv = invariants["checks"]
-    r303_reachability = verify_r303_d1_transition_reachability(policy_path)
+    r303_reachability = verify_r303_d1_transition_reachability(
+        policy_path, aggregate["canonical_mq4_sha256"]
+    )
     expected_hashes = {
         row["stem"]: row["log_sha256"].upper()
         for row in aggregate["periods"]

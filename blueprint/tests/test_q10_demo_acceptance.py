@@ -391,7 +391,7 @@ def test_multi_run_bundle_set_registers_attributable_evidence(tmp_path: Path):
     combined = q10.combine_stage_bundles(
         "R3", [bundle1_path, bundle2_path], set_path
     )
-    assert combined["schema"] == "BBMA_Q10_STAGE_BUNDLE_SET_V1"
+    assert combined["schema"] == "BBMA_Q10_STAGE_BUNDLE_SET_V2"
     assert len(combined["bundles"]) == 2
 
     required = sorted(

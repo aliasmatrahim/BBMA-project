@@ -17,6 +17,7 @@
     "live_only_cases are broker/runtime dependent and cannot be closed by Strategy Tester evidence.",
     "The final live phase begins only after Phase H reaches its allowed completion state.",
     "A tester PASS cannot overwrite a contradictory live FAIL.",
+    "R3-03 remains historical-required but may PASS by deterministic-by-construction verification of the canonical immediate EMA50(Close) mapping plus fail-closed transition behavior; natural non-equality transition occurrence is not required.",
     "Any contradiction between historical and live evidence is FAIL/VERIFICATION REQUIRED, never silently reconciled.",
     "No historical optimization or rule tuning is authorized by this policy.",
     "Exact Build 5.11 source/EX4/settings identity remains mandatory.",
@@ -67,6 +68,9 @@
         "R3-13",
         "R3-14",
         "R3-15"
+      ],
+      "deterministic_by_construction_cases": [
+        "R3-03"
       ]
     },
     "R4": {

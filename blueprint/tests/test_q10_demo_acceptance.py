@@ -301,6 +301,68 @@ def test_collector_redacts_account_login_and_counts_markers(tmp_path: Path):
         q10.collect_stage_log("R3", outside, tmp_path / "outside-bundle", state)
 
 
+def test_collector_can_bound_same_day_run_to_last_start_marker(tmp_path: Path):
+    state = make_state()
+    root = tmp_path / "dedicated"
+    log_dir = root / "MQL4" / "Logs"
+    log_dir.mkdir(parents=True)
+    state["runtime_artifacts"] = {
+        "status": "PASS",
+        "terminal_root": str(root),
+        "native_ex4_sha256": "EX4",
+        "settings_sha256": "SET",
+    }
+    log = log_dir / "runtime.log"
+    launch = "Expert BBMA_EA_BUILD511_Q10 GBPUSD,M15: loaded successfully"
+    log.write_text(
+        launch + "\n"
+        "[D1-03][OWNER] OLD\n"
+        "noise\n"
+        + launch + "\n"
+        "[D1-03][OWNER] NEW\n"
+        "[P3M2][DECISION_FINAL] State=DEC_EXECUTED\n",
+        encoding="utf-8",
+    )
+
+    out = tmp_path / "bounded"
+    bundle = q10.collect_stage_log(
+        "R3", log, out, state, start_marker=launch
+    )
+    snapshot = Path(bundle["raw_log_path"]).read_text(encoding="utf-8")
+    excerpt = Path(bundle["matched_excerpt"]).read_text(encoding="utf-8")
+
+    assert bundle["source_log_path"] == str(log.resolve())
+    assert bundle["run_start_marker"] == launch
+    assert bundle["run_start_line"] == 4
+    assert "OLD" not in snapshot
+    assert "NEW" in snapshot
+    assert "OLD" not in excerpt
+    assert "NEW" in excerpt
+    assert bundle["marker_counts"]["[D1-03][OWNER]"] == 1
+    assert bundle["marker_counts"]["[P3M2][DECISION_FINAL]"] == 1
+    assert bundle["raw_log_path"] != str(log.resolve())
+    assert q10.sha256_file(Path(bundle["raw_log_path"])) == bundle["raw_log_sha256"]
+
+
+def test_collector_start_marker_missing_fails_closed(tmp_path: Path):
+    state = make_state()
+    root = tmp_path / "dedicated"
+    log_dir = root / "MQL4" / "Logs"
+    log_dir.mkdir(parents=True)
+    state["runtime_artifacts"] = {
+        "status": "PASS",
+        "terminal_root": str(root),
+        "native_ex4_sha256": "EX4",
+        "settings_sha256": "SET",
+    }
+    log = log_dir / "runtime.log"
+    log.write_text("[D1-03][OWNER] only\n", encoding="utf-8")
+    with pytest.raises(q10.Q10Error, match="run start marker not found"):
+        q10.collect_stage_log(
+            "R3", log, tmp_path / "bounded", state, start_marker="fresh-launch"
+        )
+
+
 def test_assertion_analyzer_never_promotes_incomplete_to_pass(tmp_path: Path):
     matrix = load(MATRIX_PATH)
     bundle = make_bundle(tmp_path)

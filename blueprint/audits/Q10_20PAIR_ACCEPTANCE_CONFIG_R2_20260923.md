@@ -1,7 +1,7 @@
 # Q10 20-Pair Acceptance Config R2 — Build 5.11 — 2026-09-23
 
-Issue: #109  
-Scope: final MetaQuotes-Demo Phase-L acceleration only  
+Issue: #109
+Scope: final MetaQuotes-Demo Phase-L acceleration only
 EA source: unchanged Build 5.11 / `V511_EVENT_DRIVEN_OBSERVER_20260922`
 
 ## User decision

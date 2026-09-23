@@ -3,7 +3,7 @@
   "issue": 109,
   "candidate": "Build 5.11 / V511_EVENT_DRIVEN_OBSERVER_20260922",
   "decision_date": "2026-09-23",
-  "user_decision": "Use both historical Strategy Tester and MetaQuotes-Demo; historical first, live last for reconfirmation. For final live acceptance, expand PairList from GBPUSD to the canonical 20-pair FX universe while keeping MaxActivePair=1 and all other approved settings unchanged.",
+  "user_decision": "Use both historical Strategy Tester and MetaQuotes-Demo; historical first, live last for reconfirmation. For final live acceptance, expand PairList from GBPUSD to 20 MetaQuotes-Demo-supported fixed-ID FX pairs while keeping MaxActivePair=1 and all other approved settings unchanged.",
   "phase_order": [
     "HISTORICAL_COVERAGE",
     "LIVE_RECONFIRM"
@@ -227,13 +227,14 @@
       ]
     }
   },
-  "active_acceptance_config_revision": "Q10_20PAIR_R1_20260923",
-  "active_settings_sha256": "E3402E44F4DC3153A3F0EAEE1759B878730D7EA7AA4D87EE5B28322002308AC1",
+  "active_acceptance_config_revision": "Q10_20PAIR_R2_20260923",
+  "active_settings_sha256": "F114C1DE07ABED434B2754F210E43993E9E3D81599CA5900536E5E2F65F2E700",
   "config_delta_policy": {
     "allowed": true,
-    "scope": "PairList expansion only: GBPUSD -> 20-pair FX universe; MaxActivePair remains 1; all other approved settings unchanged.",
+    "scope": "PairList expansion only: GBPUSD -> 20 MetaQuotes-Demo-supported fixed-ID FX pairs; MaxActivePair remains 1; all other approved settings unchanged.",
     "phase_h_reuse": "Allowed for existing deterministic/historical case evidence because source/EX4 and all per-pair/risk/execution settings are unchanged. Before Phase-L evidence under the widened universe, exact 20-pair symbol resolution, PairID/magic isolation, runtime settings hash binding and no-duplicate-owner initialization must PASS.",
     "live_evidence_rule": "All new Phase-L evidence must be collected with the active settings SHA and cannot be combined with legacy single-pair bundles.",
-    "regression_rule": "Any contradiction or multi-pair isolation defect invalidates reuse and reopens the affected historical/config-sensitive cases."
+    "regression_rule": "Any contradiction or multi-pair isolation defect invalidates reuse and reopens the affected historical/config-sensitive cases.",
+    "broker_resolution": "Original default-universe GBPAUD and GBPCAD are unavailable on MetaQuotes-Demo; R2 replaces them with AUDCHF and AUDNZD after read-only broker-spec PASS and fixed PairID validation."
   }
 }

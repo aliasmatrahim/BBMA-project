@@ -11,7 +11,7 @@ Build a quota-efficient, interruption-safe engineering control plane that makes 
 - GitHub live state remains authoritative.
 - Strategy work still follows `SOURCE_INDEX -> routed evidence -> accepted Core -> contracts/Blueprint -> code -> validation`.
 - Existing specialized repository/MT4 checks keep ownership of their invariants; this layer selects/coordinates them instead of duplicating them.
-- No automatic merge, deployment, production trading, destructive reset or Strategy-Core invention.
+- Ordinary scoped PRs may be merged automatically only after the standing user authorization and all repository/validation/review gates are satisfied. No force-merge/bypass of failed or missing gates, deployment, production trading, destructive reset or Strategy-Core invention.
 - Native compile/runtime claims require G40/MetaEditor/MT4 evidence. Cloud-only execution must report `NOT NATIVE VERIFIED`.
 - Semantic dependency/ownership maps are populated only from verified contracts/audits; unknown edges remain unknown rather than guessed.
 

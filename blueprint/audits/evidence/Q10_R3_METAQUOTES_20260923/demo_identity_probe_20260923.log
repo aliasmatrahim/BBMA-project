@@ -1,0 +1,3 @@
+0	07:11:31.385	Q10_DEMO_IDENTITY_PROBE GBPUSD,M15: [Q10-DEMO-ID]|Demo=N|Connected=N|TradeAllowed=N|Server=|Company=|TerminalBuild=1479
+0	07:11:38.642	Q10_DEMO_IDENTITY_PROBE GBPUSD,M15: [Q10-DEMO-ID]|Demo=Y|Connected=Y|TradeAllowed=N|Server=MetaQuotes-Demo|Company=MetaQuotes Software Corp.|TerminalBuild=1479
+0	07:13:32.142	Q10_DEMO_IDENTITY_PROBE GBPUSD,M15: [Q10-DEMO-ID]|DeinitReason=9

@@ -1,0 +1,66 @@
+{
+  "candidate": {
+    "build": "5.11",
+    "build_tag": "V511_EVENT_DRIVEN_OBSERVER_20260922",
+    "freeze_commit": "78ddbd771853681de6628032701eea7231e05d61",
+    "head": "52c01ec7f39a1c1a9473c3f6040f7b6e21a8ea53",
+    "source_neutral_after_freeze": true,
+    "source_sha256": "50E4A01A5768B5B5E9A80CABAE21B7260A2912AA058E67E5273386177970D038",
+    "status": "PASS"
+  },
+  "candidate_manifest_sha256": "415CF8447307E8485FA285FFF77EE6E4B1FCEB8C894F166419285D92784565C0",
+  "demo_auth": {
+    "company": "MetaQuotes Software Corp.",
+    "connected": true,
+    "demo": true,
+    "log_path": "D:\\BBMA\\MT4_NMJE_141_Demo\\evidence\\Q10_109\\demo_identity_probe_20260923.log",
+    "log_sha256": "6E4B1D8596AFCC118D98047A905AD46BDDFBE0CC78DBC1C2785B617C18F83FCF",
+    "marker_count": 2,
+    "reason": "OK",
+    "server": "MetaQuotes-Demo",
+    "status": "PASS",
+    "terminal_build": "1479",
+    "trade_allowed_observed": false
+  },
+  "issue": 109,
+  "matrix_sha256": "C2B17D9B47F1370C638C63C9253C66A16441F4B13B954AE3EC0B81C9E6F1665E",
+  "runtime_artifacts": {
+    "native_ex4": "D:\\BBMA\\MT4_NMJE_141_Demo\\MQL4\\Experts\\BBMA_EA_BUILD511_Q10.ex4",
+    "native_ex4_sha256": "CFF8DA584C91AE177CA26E1C47518AA585A67F0E16C99295F932670E8CDEC6E1",
+    "settings_file": "D:\\BBMA\\MT4_NMJE_141_Demo\\MQL4\\Presets\\Q10_BUILD511_GBPUSD.set",
+    "settings_sha256": "37BC585EB3AB5A73914FEC3C532023636D4FACCD7D3AAAF20B774269CF92DA70",
+    "status": "PASS",
+    "terminal": "D:\\BBMA\\MT4_NMJE_141_Demo\\terminal.exe",
+    "terminal_root": "D:\\BBMA\\MT4_NMJE_141_Demo"
+  },
+  "schema": "BBMA_Q10_STATE_V1",
+  "stage_order": [
+    "R3",
+    "R4",
+    "R5",
+    "R6"
+  ],
+  "stages": {
+    "R3": {
+      "evidence": [
+        {
+          "path": "D:\\BBMA\\MT4_NMJE_141_Demo\\evidence\\Q10_109\\R3\\analysis.json",
+          "sha256": "50D3E339835EB4CAC8C2E603E6A4AD34D9769F9157DB1FC5F8F590B020372550"
+        }
+      ],
+      "status": "INCOMPLETE"
+    },
+    "R4": {
+      "evidence": [],
+      "status": "INCOMPLETE"
+    },
+    "R5": {
+      "evidence": [],
+      "status": "INCOMPLETE"
+    },
+    "R6": {
+      "evidence": [],
+      "status": "INCOMPLETE"
+    }
+  }
+}

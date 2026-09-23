@@ -1,0 +1,13 @@
+{
+  "company": "MetaQuotes Software Corp.",
+  "connected": true,
+  "demo": true,
+  "log_path": "D:\\BBMA\\MT4_NMJE_141_Demo\\evidence\\Q10_109\\demo_identity_probe_20260923.log",
+  "log_sha256": "6E4B1D8596AFCC118D98047A905AD46BDDFBE0CC78DBC1C2785B617C18F83FCF",
+  "marker_count": 2,
+  "reason": "OK",
+  "server": "MetaQuotes-Demo",
+  "status": "PASS",
+  "terminal_build": "1479",
+  "trade_allowed_observed": false
+}

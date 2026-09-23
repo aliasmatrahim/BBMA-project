@@ -1,0 +1,18 @@
+{
+  "candidate_build_tag": "V511_EVENT_DRIVEN_OBSERVER_20260922",
+  "candidate_source_sha256": "50E4A01A5768B5B5E9A80CABAE21B7260A2912AA058E67E5273386177970D038",
+  "demo_evidence_sha256": "6E4B1D8596AFCC118D98047A905AD46BDDFBE0CC78DBC1C2785B617C18F83FCF",
+  "marker_counts": {
+    "D1_OPP_EXTREME_TPW": 0,
+    "[D1-03][OWNER]": 4,
+    "[D1O": 0,
+    "[P3M2][DECISION_FINAL]": 0
+  },
+  "marker_lines": 4,
+  "matched_excerpt": "D:\\BBMA\\MT4_NMJE_141_Demo\\evidence\\Q10_109\\R3\\R3_matched.log",
+  "matched_excerpt_sha256": "24292F37A8BEC3D1ABF6B740685AB624143B6E063C5C06E2951E76BB72A48BBE",
+  "raw_log_path": "D:\\BBMA\\MT4_NMJE_141_Demo\\evidence\\Q10_109\\R3\\R3_runtime.log",
+  "raw_log_sha256": "7811065AAB2A5C63F0CE764670E568C4D45C9D05D0F26AE676DDCED65237A835",
+  "schema": "BBMA_Q10_STAGE_BUNDLE_V1",
+  "stage": "R3"
+}

@@ -33,6 +33,12 @@ DEFAULT_MATRIX = (
     / "q10_demo_acceptance"
     / "FINAL_BUILD511_STAGE_MATRIX.json"
 )
+DEFAULT_HYBRID_POLICY = (
+    Path(__file__).resolve().parents[1]
+    / "runtime"
+    / "q10_demo_acceptance"
+    / "FINAL_BUILD511_HYBRID_EVIDENCE_POLICY.json"
+)
 DEMO_MARKER = "[Q10-DEMO-ID]"
 ACCOUNT_REDACTIONS = (
     re.compile(r"(?i)\b(account|login)\s*[:=]\s*\d+"),
@@ -567,11 +573,157 @@ def validate_case_evidence(
     return validated
 
 
+def validate_hybrid_policy(
+    policy: dict[str, Any], matrix: dict[str, Any]
+) -> None:
+    if policy.get("schema") != "BBMA_Q10_HYBRID_EVIDENCE_POLICY_V2":
+        raise Q10Error("invalid hybrid evidence policy schema")
+    if policy.get("candidate") != matrix.get("candidate"):
+        raise Q10Error("hybrid policy candidate mismatch")
+    for stage in matrix["stage_order"]:
+        if stage not in policy.get("stages", {}):
+            raise Q10Error(f"hybrid policy missing stage: {stage}")
+        matrix_ids = {row["id"] for row in matrix["stages"][stage]["cases"]}
+        spec = policy["stages"][stage]
+        historical = set(spec.get("historical_required_cases", []))
+        live_only = set(spec.get("live_only_cases", []))
+        live_reconfirm = set(spec.get("live_reconfirm_cases", []))
+        if historical & live_only:
+            raise Q10Error(f"hybrid policy overlap in {stage}")
+        if historical | live_only != matrix_ids:
+            raise Q10Error(f"hybrid policy case partition mismatch in {stage}")
+        if not live_reconfirm <= historical:
+            raise Q10Error(f"hybrid policy live reconfirm mismatch in {stage}")
+
+
+def required_case_ids(
+    stage: str,
+    matrix: dict[str, Any],
+    policy: dict[str, Any] | None = None,
+    evidence_mode: str = "FULL",
+) -> set[str]:
+    if stage not in matrix["stages"]:
+        raise Q10Error(f"unknown stage: {stage}")
+    if evidence_mode == "FULL":
+        return {
+            row["id"]
+            for row in matrix["stages"][stage]["cases"]
+            if row.get("required", False)
+        }
+    if evidence_mode != "LIVE_RECONFIRM":
+        raise Q10Error(f"unsupported evidence mode: {evidence_mode}")
+    if policy is None:
+        raise Q10Error("LIVE_RECONFIRM requires hybrid evidence policy")
+    validate_hybrid_policy(policy, matrix)
+    spec = policy["stages"][stage]
+    live_cases = set(spec["live_only_cases"]) | set(spec["live_reconfirm_cases"])
+    mandatory = {
+        row["id"]
+        for row in matrix["stages"][stage]["cases"]
+        if row.get("required", False)
+    }
+    return live_cases & mandatory
+
+
+def validate_phase_h_for_live(
+    phase_h: dict[str, Any], policy: dict[str, Any], matrix: dict[str, Any]
+) -> None:
+    validate_hybrid_policy(policy, matrix)
+    if phase_h.get("candidate") != policy.get("candidate"):
+        raise Q10Error("Phase H candidate mismatch")
+    if phase_h.get("fail_count") != 0 or phase_h.get("fail_cases"):
+        raise Q10Error("Phase H contains FAIL")
+    if phase_h.get("hold_cases"):
+        raise Q10Error("Phase H contains unresolved HOLD")
+    if phase_h.get("mandatory_safe_work_remaining"):
+        raise Q10Error("Phase H mandatory safe work remains")
+    incomplete = set(phase_h.get("incomplete_cases", []))
+    conditional = set(phase_h.get("conditional_incomplete_cases", []))
+    if incomplete - conditional:
+        raise Q10Error("Phase H has non-conditional INCOMPLETE cases")
+    matrix_defs = {
+        row["id"]: row
+        for stage in matrix["stage_order"]
+        for row in matrix["stages"][stage]["cases"]
+    }
+    for case_id in conditional:
+        if case_id not in matrix_defs:
+            raise Q10Error(f"Phase H conditional case unknown: {case_id}")
+        if matrix_defs[case_id].get("required", False):
+            raise Q10Error(f"Phase H conditional case is mandatory: {case_id}")
+    if phase_h.get("phase_l_allowed") is not True:
+        raise Q10Error("Phase H does not allow Phase L")
+    if phase_h.get("phase_l_blocker") not in (None, ""):
+        raise Q10Error("Phase H has a Phase L blocker")
+
+
+def prepare_live_state(
+    prior_state: dict[str, Any],
+    phase_h_path: Path,
+    policy_path: Path,
+    matrix: dict[str, Any],
+    manifest: dict[str, Any],
+    repo_root: Path,
+    primary_terminal: Path,
+) -> dict[str, Any]:
+    if prior_state.get("demo_auth", {}).get("status") != "PASS":
+        raise Q10Error("prior demo authentication is not PASS")
+    if prior_state.get("runtime_artifacts", {}).get("status") != "PASS":
+        raise Q10Error("prior runtime artifacts are not PASS")
+
+    policy = load_json(policy_path)
+    phase_h = load_json(phase_h_path)
+    validate_phase_h_for_live(phase_h, policy, matrix)
+
+    candidate = verify_candidate(repo_root.resolve(), manifest)
+    previous_candidate = prior_state.get("candidate", {})
+    if previous_candidate.get("source_sha256") != candidate.get("source_sha256"):
+        raise Q10Error("prior state candidate source mismatch")
+    if previous_candidate.get("build_tag") != candidate.get("build_tag"):
+        raise Q10Error("prior state candidate build mismatch")
+
+    runtime_before = prior_state["runtime_artifacts"]
+    runtime = verify_runtime_artifacts(
+        Path(runtime_before["terminal_root"]),
+        Path(runtime_before["native_ex4"]),
+        Path(runtime_before["settings_file"]),
+        manifest,
+        primary_terminal=primary_terminal,
+    )
+
+    demo_log = require_path_under(
+        Path(prior_state["demo_auth"]["log_path"]),
+        Path(runtime["terminal_root"]),
+        "demo identity log",
+    )
+    if sha256_file(demo_log) != str(prior_state["demo_auth"]["log_sha256"]).upper():
+        raise Q10Error("prior demo identity log hash changed")
+    demo = inspect_demo_log(demo_log, manifest)
+    if demo.get("status") != "PASS":
+        raise Q10Error("demo authentication no longer PASS")
+
+    state = initial_state(manifest, matrix, candidate, demo, runtime)
+    state["schema"] = "BBMA_Q10_STATE_V2"
+    state["phase"] = "LIVE_RECONFIRM"
+    state["hybrid_policy_sha256"] = sha256_file(policy_path)
+    state["phase_h"] = {
+        "path": str(phase_h_path.resolve()),
+        "sha256": sha256_file(phase_h_path),
+        "status": phase_h.get("phase_h_status"),
+        "pass_count": phase_h.get("pass_count"),
+        "incomplete_count": phase_h.get("incomplete_count"),
+        "fail_count": phase_h.get("fail_count"),
+    }
+    return state
+
+
 def analyze_assertions(
     stage: str,
     assertions_path: Path,
     matrix: dict[str, Any],
     bundle: dict[str, Any],
+    policy: dict[str, Any] | None = None,
+    evidence_mode: str = "FULL",
 ) -> dict[str, Any]:
     if stage not in matrix["stages"]:
         raise Q10Error(f"unknown stage: {stage}")
@@ -585,6 +737,7 @@ def analyze_assertions(
     if unknown:
         raise Q10Error("unknown case IDs: " + ", ".join(unknown))
 
+    required_ids = required_case_ids(stage, matrix, policy, evidence_mode)
     results: dict[str, Any] = {}
     any_fail = False
     missing_required = False
@@ -604,11 +757,12 @@ def analyze_assertions(
             )
         if status == "FAIL":
             any_fail = True
-        if case_def.get("required", False) and status != "PASS":
+        case_required = case_id in required_ids
+        if case_required and status != "PASS":
             missing_required = True
         results[case_id] = {
             "status": status,
-            "required": bool(case_def.get("required", False)),
+            "required": case_required,
             "evidence": evidence,
         }
 
@@ -623,6 +777,8 @@ def analyze_assertions(
         "schema": "BBMA_Q10_STAGE_ANALYSIS_V1",
         "stage": stage,
         "status": overall,
+        "evidence_mode": evidence_mode,
+        "required_case_ids": sorted(required_ids),
         "candidate_source_sha256": bundle["candidate_source_sha256"],
         "candidate_build_tag": bundle["candidate_build_tag"],
         "bundle_sha256": sha256_bytes(
@@ -656,6 +812,8 @@ def record_stage(
         raise Q10Error("stage analysis candidate source mismatch")
     if analysis.get("candidate_build_tag") != state["candidate"]["build_tag"]:
         raise Q10Error("stage analysis candidate build mismatch")
+    if state.get("phase") == "LIVE_RECONFIRM" and analysis.get("evidence_mode") != "LIVE_RECONFIRM":
+        raise Q10Error("live state requires LIVE_RECONFIRM analysis")
 
     state["stages"][stage]["status"] = status
     state["stages"][stage].setdefault("evidence", []).append(
@@ -808,6 +966,29 @@ def cmd_init_state(args: argparse.Namespace) -> int:
     return 0 if demo["status"] == "PASS" else 2
 
 
+def cmd_init_live(args: argparse.Namespace) -> int:
+    manifest_path = Path(args.manifest)
+    matrix_path = Path(args.matrix)
+    policy_path = Path(args.hybrid_policy)
+    prior_state = load_json(Path(args.prior_state))
+    manifest = load_json(manifest_path)
+    matrix = load_json(matrix_path)
+    state = prepare_live_state(
+        prior_state=prior_state,
+        phase_h_path=Path(args.phase_h),
+        policy_path=policy_path,
+        matrix=matrix,
+        manifest=manifest,
+        repo_root=Path(args.repo_root),
+        primary_terminal=Path(args.primary_terminal),
+    )
+    state["candidate_manifest_sha256"] = sha256_file(manifest_path)
+    state["matrix_sha256"] = sha256_file(matrix_path)
+    write_json(Path(args.output), state)
+    print(json.dumps(next_stage(state), indent=2))
+    return 0
+
+
 def cmd_next(args: argparse.Namespace) -> int:
     state = load_json(Path(args.state))
     result = next_stage(state)
@@ -857,8 +1038,16 @@ def cmd_collect(args: argparse.Namespace) -> int:
 def cmd_analyze(args: argparse.Namespace) -> int:
     matrix = load_json(Path(args.matrix))
     bundle = load_json(Path(args.bundle))
+    policy = None
+    if args.evidence_mode == "LIVE_RECONFIRM":
+        policy = load_json(Path(args.hybrid_policy))
     result = analyze_assertions(
-        args.stage, Path(args.assertions), matrix, bundle
+        args.stage,
+        Path(args.assertions),
+        matrix,
+        bundle,
+        policy=policy,
+        evidence_mode=args.evidence_mode,
     )
     if args.output:
         write_json(Path(args.output), result)
@@ -870,6 +1059,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser()
     p.add_argument("--manifest", default=str(DEFAULT_MANIFEST))
     p.add_argument("--matrix", default=str(DEFAULT_MATRIX))
+    p.add_argument("--hybrid-policy", default=str(DEFAULT_HYBRID_POLICY))
     sub = p.add_subparsers(dest="cmd", required=True)
 
     s = sub.add_parser("verify-candidate")
@@ -900,6 +1090,14 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--settings")
     s.add_argument("--primary-terminal")
     s.set_defaults(func=cmd_init_state)
+
+    s = sub.add_parser("init-live-state")
+    s.add_argument("--repo-root", required=True)
+    s.add_argument("--prior-state", required=True)
+    s.add_argument("--phase-h", required=True)
+    s.add_argument("--primary-terminal", required=True)
+    s.add_argument("--output", required=True)
+    s.set_defaults(func=cmd_init_live)
 
     s = sub.add_parser("next-stage")
     s.add_argument("--state", required=True)
@@ -936,6 +1134,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--stage", required=True)
     s.add_argument("--bundle", required=True)
     s.add_argument("--assertions", required=True)
+    s.add_argument("--evidence-mode", choices=("FULL", "LIVE_RECONFIRM"), default="FULL")
     s.add_argument("--output")
     s.set_defaults(func=cmd_analyze)
     return p

@@ -578,7 +578,7 @@ def validate_hybrid_policy(
 ) -> None:
     if policy.get("schema") != "BBMA_Q10_HYBRID_EVIDENCE_POLICY_V2":
         raise Q10Error("invalid hybrid evidence policy schema")
-    if policy.get("candidate") != "Build 5.11 / V511_EVENT_DRIVEN_OBSERVER_20260922":
+    if policy.get("candidate") != matrix.get("candidate"):
         raise Q10Error("hybrid policy candidate mismatch")
     for stage in matrix["stage_order"]:
         if stage not in policy.get("stages", {}):
@@ -616,7 +616,13 @@ def required_case_ids(
         raise Q10Error("LIVE_RECONFIRM requires hybrid evidence policy")
     validate_hybrid_policy(policy, matrix)
     spec = policy["stages"][stage]
-    return set(spec["live_only_cases"]) | set(spec["live_reconfirm_cases"])
+    live_cases = set(spec["live_only_cases"]) | set(spec["live_reconfirm_cases"])
+    mandatory = {
+        row["id"]
+        for row in matrix["stages"][stage]["cases"]
+        if row.get("required", False)
+    }
+    return live_cases & mandatory
 
 
 def validate_phase_h_for_live(
@@ -631,6 +637,20 @@ def validate_phase_h_for_live(
         raise Q10Error("Phase H contains unresolved HOLD")
     if phase_h.get("mandatory_safe_work_remaining"):
         raise Q10Error("Phase H mandatory safe work remains")
+    incomplete = set(phase_h.get("incomplete_cases", []))
+    conditional = set(phase_h.get("conditional_incomplete_cases", []))
+    if incomplete - conditional:
+        raise Q10Error("Phase H has non-conditional INCOMPLETE cases")
+    matrix_defs = {
+        row["id"]: row
+        for stage in matrix["stage_order"]
+        for row in matrix["stages"][stage]["cases"]
+    }
+    for case_id in conditional:
+        if case_id not in matrix_defs:
+            raise Q10Error(f"Phase H conditional case unknown: {case_id}")
+        if matrix_defs[case_id].get("required", False):
+            raise Q10Error(f"Phase H conditional case is mandatory: {case_id}")
     if phase_h.get("phase_l_allowed") is not True:
         raise Q10Error("Phase H does not allow Phase L")
     if phase_h.get("phase_l_blocker") not in (None, ""):

@@ -76,3 +76,19 @@ Primary/Q3 MT4 remains separate and must not be touched.
 **TOOLING FIX VERIFIED.**
 
 Phase L can proceed against the accepted hybrid evidence contract without recreating historical-only scenarios live.
+
+## Same-day run-boundary hardening
+
+A fresh Phase-L launch exposed a second acceptance-tooling provenance gap: the legacy collector could read an entire daily MQL4 log. On a day containing an earlier R3 run, this could mix old and fresh stage markers or leave bundle hashes dependent on a live file that continued to grow.
+
+The collector is now run-bounded when `--start-marker` is supplied:
+- the last matching launch marker is authoritative for the new run boundary;
+- lines before that marker are excluded;
+- the selected run is copied to an immutable `<stage>_runtime.log` snapshot under the evidence bundle;
+- bundle SHA validation uses that snapshot, not the still-growing terminal daily log;
+- source daily-log path/hash-at-collection and start-line provenance are retained;
+- a missing requested marker fails closed.
+
+Targeted regression after this hardening: **21 passed** before final full-suite validation.
+
+This remains Q10 acceptance-tooling only. EA source/runtime semantics are unchanged.

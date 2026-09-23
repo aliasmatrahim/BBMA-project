@@ -739,6 +739,11 @@ def test_clean_restart_helper_is_graceful_fail_closed():
     assert "STATE_TERMINAL_MISMATCH" in script
     assert "demo_auth.status" in script
     assert "runtime_artifacts.terminal" in script
+    assert 'Snapshot-Logs $root $evidence "pre_restart" $false' in script
+    assert 'Snapshot-Logs $root $evidence "post_close" $true' in script
+    assert "hash_error = $hashError" in script
+    assert "if($RequireHash)" in script
+    assert "LOG_HASH_FAILED_" in script
 
 
 def test_hybrid_evidence_policy_is_complete_and_fail_closed():

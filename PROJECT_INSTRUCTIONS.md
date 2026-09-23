@@ -198,6 +198,8 @@ A genuine user gate still requires consultation before proceeding when any of th
 
 The standing authorization removes the repeated **merge-confirmation** gate; it does **not** remove Strategy-Core adjudication, validation, runtime, safety or provenance gates. After every autonomous merge, verify that the intended owner branch contains the exact merged change and record the PR/commit result.
 
+**Interpretation hardening (Issue #256):** this standing authorization is itself the explicit user instruction required by any older generic wording such as “do not merge without explicit user instruction”. For an ordinary scoped PR that satisfies the gates above, do **not** ask the user for merge permission again. If another governance artifact still appears to prohibit all automatic merges, treat that as stale/inconsistent governance to be reconciled rather than as a reason to stop a validated normal merge.
+
 
 ---
 

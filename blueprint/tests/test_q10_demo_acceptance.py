@@ -408,3 +408,45 @@ def test_clean_restart_helper_is_graceful_fail_closed():
     assert "STATE_TERMINAL_MISMATCH" in script
     assert "demo_auth.status" in script
     assert "runtime_artifacts.terminal" in script
+
+
+def test_hybrid_evidence_policy_is_complete_and_fail_closed():
+    policy_path = (
+        ROOT
+        / "blueprint"
+        / "runtime"
+        / "q10_demo_acceptance"
+        / "FINAL_BUILD511_HYBRID_EVIDENCE_POLICY.json"
+    )
+    policy = load(policy_path)
+    matrix = load(MATRIX_PATH)
+
+    assert policy["schema"] == "BBMA_Q10_HYBRID_EVIDENCE_POLICY_V2"
+    assert policy["phase_order"] == ["HISTORICAL_COVERAGE", "LIVE_RECONFIRM"]
+
+    for stage in matrix["stage_order"]:
+        all_cases = {row["id"] for row in matrix["stages"][stage]["cases"]}
+        entry = policy["stages"][stage]
+        historical = set(entry["historical_required_cases"])
+        live_only = set(entry["live_only_cases"])
+        live_reconfirm = set(entry["live_reconfirm_cases"])
+
+        assert historical.isdisjoint(live_only)
+        assert historical | live_only == all_cases
+        assert live_reconfirm <= historical
+
+    # Broker/runtime-dependent restart cases must never be closable by tester-only evidence.
+    assert "R3-12" in policy["stages"]["R3"]["live_only_cases"]
+    assert "R4-01" in policy["stages"]["R4"]["live_only_cases"]
+    assert "R4-13" in policy["stages"]["R4"]["live_only_cases"]
+    assert "R5-12" in policy["stages"]["R5"]["live_only_cases"]
+    assert "R6-02" in policy["stages"]["R6"]["live_only_cases"]
+    assert "R6-03" in policy["stages"]["R6"]["live_only_cases"]
+    assert "R6-06" in policy["stages"]["R6"]["live_only_cases"]
+    assert "R6-07" in policy["stages"]["R6"]["live_only_cases"]
+
+    # Final live phase must repeat representative historical behavior rather than be broker-only.
+    assert set(policy["stages"]["R3"]["live_reconfirm_cases"])
+    assert set(policy["stages"]["R4"]["live_reconfirm_cases"])
+    assert set(policy["stages"]["R5"]["live_reconfirm_cases"])
+    assert set(policy["stages"]["R6"]["live_reconfirm_cases"])

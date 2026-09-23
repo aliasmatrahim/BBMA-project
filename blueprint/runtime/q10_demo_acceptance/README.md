@@ -30,10 +30,11 @@ The runner also proves the current worktree has no EA-source diff after the froz
    - `Connected=Y`;
    - server/company identifies the approved MetaQuotes demo provider.
 7. Initialize resumable state with `init-state`. A PASS demo identity must come from a log under the same dedicated terminal root whose exact EX4/settings are bound into state; the primary-terminal guard is mandatory.
-8. AUTO/formal stage order is locked:
+8. Historical coverage follows the explicit hybrid policy in `FINAL_BUILD511_HYBRID_EVIDENCE_POLICY.json`. Phase H may collect/close deterministic historical case coverage across R3-R6 without mutating live state.
+9. AUTO/formal **live reconfirmation** stage order remains locked:
    `R3 -> R4 -> R5 -> R6`.
-9. A stage cannot be formally skipped. A `FAIL` blocks later formal promotion.
-10. Runtime candidate launch generation requires the exact native EX4/settings hashes and an already-PASS demo-auth gate.
+10. A live stage cannot be formally skipped. A `FAIL` in either historical or live evidence blocks final acceptance.
+11. Runtime candidate launch generation requires the exact native EX4/settings hashes and an already-PASS demo-auth gate.
 
 ## Commands
 
@@ -149,9 +150,11 @@ No `BLOCKED` or `INCOMPLETE` result may be promoted to PASS.
 
 The case matrix is stored in `FINAL_BUILD511_STAGE_MATRIX.json`.
 
+Evidence authority is stored separately in `FINAL_BUILD511_HYBRID_EVIDENCE_POLICY.json`: historical tester first for deterministic coverage, MetaQuotes-Demo last for broker/runtime reconfirmation. The hybrid policy changes evidence sequencing only; it does not change case semantics or EA behavior.
+
 ## Current environment
 
-Per the explicit user decision on 2026-09-23, Q10 final demo-runtime acceptance uses MetaQuotes-Demo rather than requiring HFM. The original Issue #109 only requires attributable demo-account evidence; broker-specific HFM validation is not required to close this generic runtime gate. Q10 remains `BLOCKED / AUTH` until a dedicated MetaQuotes-Demo terminal is freshly authenticated and the read-only probe proves it.
+Per explicit user decisions on 2026-09-23, Q10 uses MetaQuotes-Demo and a hybrid **historical tester -> final live reconfirmation** sequence. MetaQuotes-Demo AUTH is already PASS for the dedicated Q10 terminal. The first live R3 sample is INCOMPLETE but valid. Phase H historical coverage is now active; Phase L live remains last and mandatory for broker/runtime-dependent cases and final acceptance.
 
 ## Clean restart helper
 

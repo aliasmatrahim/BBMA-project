@@ -22,7 +22,8 @@ Accepted source interpretation:
 
 Decision provenance:
 - `blueprint/decisions/HOME_COURSE_D1_MAJOR_TREND_VS_H4_IMMEDIATE_PARENT_RECONCILIATION.md`;
-- `blueprint/decisions/HOME_COURSE_D1_TRANSITION_MAJOR_TREND_OWNER_DECISION.md`.
+- `blueprint/decisions/HOME_COURSE_D1_TRANSITION_MAJOR_TREND_OWNER_DECISION.md`;
+- `blueprint/decisions/R3_03_D1_TRANSITION_REACHABILITY_RECONCILIATION_20260923.md`.
 
 ## Closed-D1 input contract
 Only fully closed D1 data may classify the owner.

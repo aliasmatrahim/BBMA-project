@@ -162,11 +162,11 @@ Status: **VERIFIED / COMPLETE — GBPUSD ENGINEERING HISTORICAL EVIDENCE**
 - Audit: `blueprint/audits/Q8_BUILD486_GBPUSD_ENGINEERING_HISTORICAL_REGRESSION_20260918.md`.
 - Q6 native archive work was later stopped/closed on 2026-09-20; Q10 final broker/demo acceptance remains separately gated.
 
-### Q10 — Final automated broker/demo acceptance
+### Q10 — Hybrid historical coverage + final MetaQuotes-Demo acceptance
 Issue: **#109**
-Status: **DEFERRED UNTIL FINAL INTEGRATION CANDIDATE**
+Status: **ACTIVE / PHASE H HISTORICAL COVERAGE; PHASE L LIVE RECONFIRMATION LAST**
 
-Do not run the historical v4.59 R1–R6 runner as if it were the final programme. Resolve and freeze the exact final candidate, then generate/run the candidate-specific demo acceptance matrix with fail-closed demo identity and evidence packaging.
+The exact Build 5.11 candidate is frozen. Per explicit user decision on 2026-09-23, use both exact-candidate historical Strategy Tester evidence and MetaQuotes-Demo runtime evidence: historical tester first for deterministic/rare-scenario coverage, then live demo last for broker/runtime reconfirmation. Do not use the historical v4.59 runner or relabel engineering historical evidence as broker evidence. Evidence authority is defined by `blueprint/runtime/q10_demo_acceptance/FINAL_BUILD511_HYBRID_EVIDENCE_POLICY.json`.
 
 ## Stage E - Deferred / future
 

@@ -50,12 +50,15 @@ Conceptual states:
 `Close1 < MA50_1` AND `MA50_1 < MA50_2`.
 
 ### D1_TRANSITION
-With otherwise valid closed-D1 data, any state that is neither confirmed BUY nor confirmed SELL is transition, including:
-- close above MA50 while MA50 is flat/falling;
-- close below MA50 while MA50 is flat/rising;
-- close equal to MA50;
-- flat MA50;
-- first opposite-side MA50 cross while slope still points in the previous direction.
+With otherwise valid closed-D1 data, any state that is neither confirmed BUY nor confirmed SELL is transition.
+
+**Reachability clarification:** the accepted MA50 is EMA50 applied to Close, and M11 compares the latest closed EMA50 with the immediately previous closed EMA50. For this exact mapping, same-bar price side and immediate EMA slope have the same sign for every non-equality input:
+- `Close1 > MA50_1` implies `MA50_1 > MA50_2`;
+- `Close1 < MA50_1` implies `MA50_1 < MA50_2`.
+
+Therefore the former examples “close above MA50 while MA50 is flat/falling”, “close below MA50 while MA50 is flat/rising”, and “first opposite-side cross while immediate slope remains previous-direction” are not reachable non-equality market states under the canonical formula. A naturally reachable valid transition is limited to equality/flat degeneracy permitted by exact input arithmetic and may not occur in finite broker history.
+
+The transition branch is retained as a fail-closed software state. Do not widen it by changing MA type, slope lookback, tolerance, confirmation days, or fallback owner merely to obtain test coverage.
 
 ### D1_OWNER_UNRESOLVED
 Use only when the required closed-D1 price/MA50 history is missing, invalid or cannot be resolved deterministically.

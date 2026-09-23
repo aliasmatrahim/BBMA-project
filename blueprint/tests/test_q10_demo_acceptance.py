@@ -363,6 +363,98 @@ def test_collector_start_marker_missing_fails_closed(tmp_path: Path):
         )
 
 
+def test_multi_run_bundle_set_registers_attributable_evidence(tmp_path: Path):
+    matrix = load(MATRIX_PATH)
+    policy = load(POLICY_PATH)
+
+    run1_dir = tmp_path / "run1"
+    run2_dir = tmp_path / "run2"
+    run1_dir.mkdir()
+    run2_dir.mkdir()
+    bundle1 = make_bundle(run1_dir)
+    bundle2 = make_bundle(run2_dir)
+    bundle1_path = run1_dir / "R3_bundle.json"
+    bundle2_path = run2_dir / "R3_bundle.json"
+    bundle1_path.write_text(json.dumps(bundle1, indent=2), encoding="utf-8")
+    bundle2_path.write_text(json.dumps(bundle2, indent=2), encoding="utf-8")
+
+    set_path = tmp_path / "R3_bundle_set.json"
+    combined = q10.combine_stage_bundles(
+        "R3", [bundle1_path, bundle2_path], set_path
+    )
+    assert combined["schema"] == "BBMA_Q10_STAGE_BUNDLE_SET_V1"
+    assert len(combined["bundles"]) == 2
+
+    required = sorted(
+        q10.required_case_ids(
+            "R3", matrix, policy=policy, evidence_mode="LIVE_RECONFIRM"
+        )
+    )
+    assertions = {
+        "cases": {
+            case_id: {
+                "status": "PASS",
+                "evidence": [
+                    bundle1["raw_log_path"] if i < 3 else bundle2["raw_log_path"]
+                ],
+            }
+            for i, case_id in enumerate(required)
+        }
+    }
+    assertions_path = tmp_path / "assertions.json"
+    assertions_path.write_text(json.dumps(assertions), encoding="utf-8")
+    result = q10.analyze_assertions(
+        "R3",
+        assertions_path,
+        matrix,
+        combined,
+        policy=policy,
+        evidence_mode="LIVE_RECONFIRM",
+    )
+    assert result["status"] == "PASS"
+    assert set(result["required_case_ids"]) == set(required)
+
+
+def test_multi_run_bundle_set_fails_closed_on_component_tamper(tmp_path: Path):
+    run1_dir = tmp_path / "run1"
+    run2_dir = tmp_path / "run2"
+    run1_dir.mkdir()
+    run2_dir.mkdir()
+    bundle1 = make_bundle(run1_dir)
+    bundle2 = make_bundle(run2_dir)
+    bundle1_path = run1_dir / "R3_bundle.json"
+    bundle2_path = run2_dir / "R3_bundle.json"
+    bundle1_path.write_text(json.dumps(bundle1), encoding="utf-8")
+    bundle2_path.write_text(json.dumps(bundle2), encoding="utf-8")
+
+    set_path = tmp_path / "R3_bundle_set.json"
+    combined = q10.combine_stage_bundles(
+        "R3", [bundle1_path, bundle2_path], set_path
+    )
+    bundle2_path.write_text(json.dumps(bundle2, indent=2), encoding="utf-8")
+    with pytest.raises(q10.Q10Error, match="component bundle hash mismatch"):
+        q10.validate_bundle_integrity("R3", combined)
+
+
+def test_multi_run_bundle_set_rejects_identity_mismatch(tmp_path: Path):
+    run1_dir = tmp_path / "run1"
+    run2_dir = tmp_path / "run2"
+    run1_dir.mkdir()
+    run2_dir.mkdir()
+    bundle1 = make_bundle(run1_dir)
+    bundle2 = make_bundle(run2_dir)
+    bundle2["candidate_source_sha256"] = "OTHER"
+    bundle1_path = run1_dir / "R3_bundle.json"
+    bundle2_path = run2_dir / "R3_bundle.json"
+    bundle1_path.write_text(json.dumps(bundle1), encoding="utf-8")
+    bundle2_path.write_text(json.dumps(bundle2), encoding="utf-8")
+
+    with pytest.raises(q10.Q10Error, match="candidate source mismatch"):
+        q10.combine_stage_bundles(
+            "R3", [bundle1_path, bundle2_path], tmp_path / "set.json"
+        )
+
+
 def test_assertion_analyzer_never_promotes_incomplete_to_pass(tmp_path: Path):
     matrix = load(MATRIX_PATH)
     bundle = make_bundle(tmp_path)

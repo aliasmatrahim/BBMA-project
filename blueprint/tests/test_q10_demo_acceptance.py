@@ -138,6 +138,11 @@ def make_state():
             "source_sha256": "SRC",
             "build_tag": "V511_EVENT_DRIVEN_OBSERVER_20260922",
         },
+        "runtime_artifacts": {
+            "status": "PASS",
+            "native_ex4_sha256": "EX4",
+            "settings_sha256": "SET",
+        },
         "stage_order": ["R3", "R4", "R5", "R6"],
         "stages": {
             x: {"status": "INCOMPLETE", "evidence": []}
@@ -162,6 +167,8 @@ def write_analysis(
                 "status": status,
                 "candidate_source_sha256": state["candidate"]["source_sha256"],
                 "candidate_build_tag": state["candidate"]["build_tag"],
+                "runtime_native_ex4_sha256": state.get("runtime_artifacts", {}).get("native_ex4_sha256"),
+                "runtime_settings_sha256": state.get("runtime_artifacts", {}).get("settings_sha256"),
                 "bundle_sha256": "BUNDLE",
                 **({"evidence_mode": evidence_mode} if evidence_mode else {}),
                 "cases": {},
@@ -178,11 +185,13 @@ def make_bundle(tmp_path: Path, stage: str = "R3"):
     excerpt = tmp_path / f"{stage}_matched.log"
     excerpt.write_text("[D1-03][OWNER] BUY\n", encoding="utf-8")
     return {
-        "schema": "BBMA_Q10_STAGE_BUNDLE_V1",
+        "schema": "BBMA_Q10_STAGE_BUNDLE_V2",
         "stage": stage,
         "candidate_source_sha256": "SRC",
         "candidate_build_tag": "V511_EVENT_DRIVEN_OBSERVER_20260922",
         "demo_evidence_sha256": "DEMOHASH",
+        "runtime_native_ex4_sha256": "EX4",
+        "runtime_settings_sha256": "SET",
         "raw_log_path": str(raw),
         "raw_log_sha256": q10.sha256_file(raw),
         "matched_excerpt": str(excerpt),
@@ -453,6 +462,45 @@ def test_multi_run_bundle_set_rejects_identity_mismatch(tmp_path: Path):
         q10.combine_stage_bundles(
             "R3", [bundle1_path, bundle2_path], tmp_path / "set.json"
         )
+
+
+def test_bundle_v2_requires_runtime_settings_identity(tmp_path: Path):
+    bundle = make_bundle(tmp_path)
+    bundle.pop("runtime_settings_sha256")
+    with pytest.raises(q10.Q10Error, match="runtime settings identity"):
+        q10.validate_bundle_integrity("R3", bundle)
+
+
+def test_multi_run_bundle_rejects_settings_mismatch(tmp_path: Path):
+    run1_dir = tmp_path / "run1"
+    run2_dir = tmp_path / "run2"
+    run1_dir.mkdir()
+    run2_dir.mkdir()
+    bundle1 = make_bundle(run1_dir)
+    bundle2 = make_bundle(run2_dir)
+    bundle2["runtime_settings_sha256"] = "OTHERSET"
+    bundle1_path = run1_dir / "R3_bundle.json"
+    bundle2_path = run2_dir / "R3_bundle.json"
+    bundle1_path.write_text(json.dumps(bundle1), encoding="utf-8")
+    bundle2_path.write_text(json.dumps(bundle2), encoding="utf-8")
+
+    with pytest.raises(q10.Q10Error, match="runtime settings mismatch"):
+        q10.combine_stage_bundles(
+            "R3", [bundle1_path, bundle2_path], tmp_path / "set.json"
+        )
+
+
+def test_live_record_rejects_old_settings_analysis(tmp_path: Path):
+    state = make_state()
+    state["phase"] = "LIVE_RECONFIRM"
+    analysis = write_analysis(
+        tmp_path, state, "R3", "PASS", evidence_mode="LIVE_RECONFIRM"
+    )
+    doc = json.loads(analysis.read_text(encoding="utf-8"))
+    doc["runtime_settings_sha256"] = "OLDSET"
+    analysis.write_text(json.dumps(doc), encoding="utf-8")
+    with pytest.raises(q10.Q10Error, match="runtime settings mismatch"):
+        q10.record_stage(state, "R3", "PASS", str(analysis))
 
 
 def test_assertion_analyzer_never_promotes_incomplete_to_pass(tmp_path: Path):

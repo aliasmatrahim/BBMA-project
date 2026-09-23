@@ -62,7 +62,7 @@ python blueprint/tools/q10_demo_acceptance.py inspect-demo \
   --output <evidence>/demo_identity.json
 ```
 
-Initialize state:
+Initialize the original authenticated demo state:
 
 ```
 python blueprint/tools/q10_demo_acceptance.py init-state \
@@ -73,6 +73,17 @@ python blueprint/tools/q10_demo_acceptance.py init-state \
   --settings <dedicated-mt4-root>/<approved-settings>.set \
   --primary-terminal <primary-terminal.exe> \
   --output <evidence>/state.json
+```
+
+After Phase H reaches an allowed completion state, create a fresh Phase-L state from that authenticated state. This re-verifies candidate, runtime artifacts, demo-log hash and Phase-H eligibility; it does not reuse old per-stage completion:
+
+```
+python blueprint/tools/q10_demo_acceptance.py init-live-state \
+  --repo-root . \
+  --prior-state <evidence>/state.json \
+  --phase-h blueprint/audits/evidence/Q10_R3_03_RECONCILIATION_20260923/COMBINED_STATUS_V4.json \
+  --primary-terminal <primary-terminal.exe> \
+  --output <evidence>/phase_l_state.json
 ```
 
 Query next formal stage:
@@ -111,8 +122,11 @@ python blueprint/tools/q10_demo_acceptance.py analyze-bundle \
   --stage R3 \
   --bundle <evidence>/R3/R3_bundle.json \
   --assertions <evidence>/R3/assertions.json \
+  --evidence-mode LIVE_RECONFIRM \
   --output <evidence>/R3/analysis.json
 ```
+
+For Phase L, only mandatory `live_only_cases` plus mandatory `live_reconfirm_cases` from the hybrid policy are required. Historical-only cases are not repeated live. Conditional matrix cases remain optional unless safe attributable evidence exists. Any observed FAIL, including in an optional case, still fails the stage.
 
 Promote the formal stage only from that validated analysis artifact:
 
@@ -154,7 +168,9 @@ Evidence authority is stored separately in `FINAL_BUILD511_HYBRID_EVIDENCE_POLIC
 
 ## Current environment
 
-Per explicit user decisions on 2026-09-23, Q10 uses MetaQuotes-Demo and a hybrid **historical tester -> final live reconfirmation** sequence. MetaQuotes-Demo AUTH is already PASS for the dedicated Q10 terminal. Phase H historical/deterministic coverage is now **55 PASS / 2 INCOMPLETE / 0 FAIL**, and all currently safe non-HOLD Phase-H work is exhausted. R3-03 remains mandatory HOLD-UNRESOLVED under Issue #248: fail-closed source behavior is proven, but the acceptance-required observable transition scenario is not. R5-19 remains conditional safe-only/INCOMPLETE and must not be forced through an artificial emergency loss. Phase L live remains last and mandatory for broker/runtime-dependent cases and final acceptance, but formal Phase L promotion is blocked while R3-03 remains HOLD.
+Per explicit user decisions on 2026-09-23, Q10 uses MetaQuotes-Demo and a hybrid **historical tester -> final live reconfirmation** sequence. MetaQuotes-Demo AUTH is PASS for the dedicated Q10 terminal. R3-03 was reconciled and integrated under Issue #248 / PR #255 as `PASS / DETERMINISTIC_BY_CONSTRUCTION` with no EA source change. Phase H is therefore **56 PASS / 1 conditional INCOMPLETE / 0 FAIL**. The sole incomplete is R5-19, which is explicitly safe-only/conditional and must not be forced through an artificial emergency loss.
+
+Phase L is eligible. Its formal stage order remains `R3 -> R4 -> R5 -> R6`, but live acceptance now correctly requires only each stage's mandatory `live_only_cases` plus mandatory `live_reconfirm_cases`; historical-only cases are already satisfied by Phase H and are not repeated merely to recreate rare scenarios live. Any live contradiction remains FAIL.
 
 ## Clean restart helper
 

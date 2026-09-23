@@ -130,6 +130,31 @@ def test_r4_frozen_snapshot_is_single_and_shared_across_m17_m21_m19():
     assert "CheckRiskBeforeTrade(decision, snapshot, lot)" in preflight
 
 
+def test_r303_immediate_ema_close_slope_is_algebraically_coupled():
+    ema = body("double EMA(")
+    classify = body("bool M11_ClassifyD1OwnerValues(")
+    update = body("void UpdateD1MajorTrendOwner(")
+
+    assert "MODE_EMA, PRICE_CLOSE" in ema
+    assert "#define EMA50_PERIOD            50" in SRC
+    assert "close1 > ma50_1 && ma50_1 > ma50_2" in classify
+    assert "close1 < ma50_1 && ma50_1 < ma50_2" in classify
+    assert "state.d1_data.barIndex + 1" in update
+
+    alpha = 2.0 / 51.0
+    for previous, close in (
+        (1.0, 1.2),
+        (1.2, 1.0),
+        (1.2345, 1.3456),
+        (1.3456, 1.2345),
+        (100.0, 101.0),
+        (101.0, 100.0),
+    ):
+        current = alpha * close + (1.0 - alpha) * previous
+        assert (close > current) == (current > previous)
+        assert (close < current) == (current < previous)
+
+
 def test_r3_transition_unresolved_and_h4_no_owner_are_fail_closed():
     classify = body("bool M11_ClassifyD1OwnerValues(")
     unresolved = body("void SetD1OwnerUnresolved(")

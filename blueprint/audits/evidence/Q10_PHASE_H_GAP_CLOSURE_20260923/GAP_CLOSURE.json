@@ -1,0 +1,299 @@
+{
+  "schema": "BBMA_Q10_PHASE_H_GAP_CLOSURE_V2",
+  "issue": 252,
+  "label": "ENGINEERING HISTORICAL / DETERMINISTIC EVIDENCE; NOT FINAL LIVE ACCEPTANCE",
+  "owner_baseline": "3ab20ed5e90203316facbe7709327dc3a2a001a1",
+  "candidate": "Build 5.11 / V511_EVENT_DRIVEN_OBSERVER_20260922",
+  "canonical_mq4_sha256": "50E4A01A5768B5B5E9A80CABAE21B7260A2912AA058E67E5273386177970D038",
+  "artifact_hashes": {
+    "USDJPY_AUTO_2024_tester_newlog.bin": "816E1136883967E77CB4F37762478DC7D81E519F524C9A3DD93025841641BA85",
+    "USDJPY_AUTO_2024_ANALYSIS.json": "AFD09B43F4EBF53B77476D7E251823B78AA07303F7CA41C5BFCAD19A762AD867",
+    "USDJPY_AUTO_2024_RUN.txt": "2FA2480110816DF6412316544563EF9D9A7E69B9E5EC81A5512761E92E5F0422",
+    "LOCK1_2024_tester_newlog.bin": "B1057DBDE0D4187D33ABBBA1047DD173D18A3C430FEB81CD5DF1229637AD6ECD",
+    "LOCK1_2024_RUN.txt": "718D70350CA3F579BBE83887C235AB3139786B9F058DEB7C4624D6B02D5FC406",
+    "LOCK2_2024_tester_newlog.bin": "753BAEA1B6553AEBC9B5ADB93E66ADC1D23D19EE764C11BEA1D8B6976F4EF19E",
+    "LOCK2_2024_RUN.txt": "D2B0E7F96A6FB0111C381658470DBC3CB765A533F209FEBFB5A1C2EB4E157E0B",
+    "Q10_HYBRID_CORRELATION.json": "6522EE42448FCA16CD4A0133CD64EE66067932CC514E1E49F7AE2BB019B88FE4",
+    "Q10_TRADELOCK_CHRONOLOGY.json": "FD3A57DFF57875F252AC692B495E9B08DBF827201E6540FCBCE00E2BA3808DD5",
+    "tester/Q10_HYBRID_USDJPY_AUTO.set": "0C038F958D1CE49FA101215CFA5938EAD66DA1EE06F9F753DE597D83CF9E71AB",
+    "tester/Q10_HYBRID_LOCK1.set": "AFE018F0B7047679660E2455E6B6329532D73E85E65CFE12382236AA9C8F0704",
+    "tester/Q10_HYBRID_LOCK2.set": "457F96D06D2985391A5242D658E6241F3D76B17C4AD1A55D2BC00E2E8048193B",
+    "config/q10_hybrid_usdjpy_auto_2024.ini": "8C663E2B80AF9F01E720000996A56B4590AB42F3EF86412138BE7F12EA720E5A",
+    "config/q10_hybrid_lock1_2024.ini": "DF54E022ABFACA2C5EA0EAC8230693297B162B7BFB344151FE4139FCAA3BFE1B",
+    "config/q10_hybrid_lock2_2024.ini": "94B9EBD1E78AB5CD10493B49A4B1B503E6ACB9207C6078B5DFD173BDA104FFCF",
+    "FINAL511_2024_tester_newlog.bin": "939DE00D6DCD53CDF45A3266B34B186B2C7A4F4E77DB7110D4254568C6FBC8C0",
+    "FINAL511_2026YTD_tester_newlog.bin": "21E8E6D20BDDAAD2D1E94D47CE6DCBD306963BE1CF2A4939424CA8FC279F8B0E"
+  },
+  "cases": {
+    "R4-09": {
+      "status": "PASS",
+      "basis": [
+        "USDJPY_AUTO_2024_ANALYSIS",
+        "MMMode=1 AutoLot",
+        "test_q10_phase_h_remaining_cases::test_r4_autolot_uses_final_frozen_sl_distance"
+      ],
+      "examples": [
+        {
+          "did": "USDJPY|2024.01.08 21:00|2|7|841C1A1599F26C03",
+          "a": {
+            "distance": 0.26200000000000045,
+            "lot": 0.58,
+            "entry": 144.227,
+            "sl": 144.489
+          },
+          "b": {
+            "distance": 0.2810000000000059,
+            "lot": 0.54,
+            "entry": 144.208,
+            "sl": 144.489
+          }
+        },
+        {
+          "did": "USDJPY|2024.01.08 21:00|2|7|841C1A1599F26C03",
+          "a": {
+            "distance": 0.26900000000000546,
+            "lot": 0.57,
+            "entry": 144.22,
+            "sl": 144.489
+          },
+          "b": {
+            "distance": 0.33199999999999363,
+            "lot": 0.46,
+            "entry": 144.157,
+            "sl": 144.489
+          }
+        },
+        {
+          "did": "USDJPY|2024.01.08 21:00|2|7|841C1A1599F26C03",
+          "a": {
+            "distance": 0.33199999999999363,
+            "lot": 0.46,
+            "entry": 144.157,
+            "sl": 144.489
+          },
+          "b": {
+            "distance": 0.34300000000001774,
+            "lot": 0.45,
+            "entry": 144.146,
+            "sl": 144.489
+          }
+        },
+        {
+          "did": "USDJPY|2024.01.11 13:00|1|7|880FB3DA4DB772D7",
+          "a": {
+            "distance": 0.5859999999999843,
+            "lot": 0.26,
+            "entry": 145.933,
+            "sl": 145.347
+          },
+          "b": {
+            "distance": 0.9189999999999827,
+            "lot": 0.16,
+            "entry": 146.266,
+            "sl": 145.347
+          }
+        },
+        {
+          "did": "USDJPY|2024.01.11 20:00|1|7|811B9B4FCD6B5230",
+          "a": {
+            "distance": 0.5649999999999977,
+            "lot": 0.27,
+            "entry": 145.532,
+            "sl": 144.967
+          },
+          "b": {
+            "distance": 0.6199999999999761,
+            "lot": 0.24,
+            "entry": 145.587,
+            "sl": 144.967
+          }
+        },
+        {
+          "did": "USDJPY|2024.01.12 03:00|2|7|1037F2D61EFEFEB9",
+          "a": {
+            "distance": 0.5769999999999982,
+            "lot": 0.26,
+            "entry": 145.25,
+            "sl": 145.827
+          },
+          "b": {
+            "distance": 0.7669999999999959,
+            "lot": 0.2,
+            "entry": 145.06,
+            "sl": 145.827
+          }
+        }
+      ]
+    },
+    "R4-11": {
+      "status": "PASS",
+      "basis": [
+        "USDJPY_AUTO_2024_ANALYSIS",
+        "exact JPY broker-spec geometry"
+      ],
+      "stats": {
+        "build_marker": 1,
+        "init_pass": 1,
+        "m17_total": 9275,
+        "anchor_pass": 9275,
+        "struct_pass": 9275,
+        "sell_buffer_pass": 1907,
+        "exec": 331,
+        "buy_no_spread_pass": 7368,
+        "deinit0": 1
+      }
+    },
+    "R5-02": {
+      "status": "PASS",
+      "basis": [
+        "LOCK2_2024",
+        "TradeLockMode=2",
+        "test_q10_phase_h_remaining_cases::test_r5_tradelock_predicates_match_locked_modes"
+      ],
+      "stats": {
+        "exec": 323,
+        "out": 323,
+        "lock_reject": 875,
+        "reject_with_active": 875,
+        "same_dir_add_exec": 0,
+        "opposite_reject_with_active": 1,
+        "exec_while_active": 0
+      },
+      "samples": [
+        {
+          "active": {
+            "13": "DIR_BUY"
+          },
+          "line": "0\t09:11:30.824\t2024.01.22 01:00:01  BBMA_EA_OBS_511_237_HARNESS GBPUSD,M15: [P3M2][DECISION_FINAL] Pair=GBPUSD Signal=SIGNAL_RE_ENTRY Dir=DIR_BUY State=DEC_REJECTED Reason=REJ_TRADE_LOCK DecisionID=GBPUSD|2024.01.22 00:00|1|7|A01D318898E39156"
+        },
+        {
+          "active": {
+            "13": "DIR_BUY"
+          },
+          "line": "0\t09:11:30.825\t2024.01.22 01:15:01  BBMA_EA_OBS_511_237_HARNESS GBPUSD,M15: [P3M2][DECISION_FINAL] Pair=GBPUSD Signal=SIGNAL_RE_ENTRY Dir=DIR_BUY State=DEC_REJECTED Reason=REJ_TRADE_LOCK DecisionID=GBPUSD|2024.01.22 00:00|1|7|A01D318898E39156"
+        },
+        {
+          "active": {
+            "13": "DIR_BUY"
+          },
+          "line": "0\t09:11:30.826\t2024.01.22 01:30:01  BBMA_EA_OBS_511_237_HARNESS GBPUSD,M15: [P3M2][DECISION_FINAL] Pair=GBPUSD Signal=SIGNAL_RE_ENTRY Dir=DIR_BUY State=DEC_REJECTED Reason=REJ_TRADE_LOCK DecisionID=GBPUSD|2024.01.22 00:00|1|7|A01D318898E39156"
+        }
+      ]
+    },
+    "R5-03": {
+      "status": "PASS",
+      "basis": [
+        "LOCK1_2024",
+        "TradeLockMode=1",
+        "test_q10_phase_h_remaining_cases::test_r5_tradelock_predicates_match_locked_modes"
+      ],
+      "stats": {
+        "exec": 396,
+        "out": 396,
+        "lock_reject": 1,
+        "reject_with_active": 1,
+        "same_dir_add_exec": 107,
+        "opposite_reject_with_active": 1,
+        "exec_while_active": 107
+      },
+      "samples": {
+        "same_dir_add": [
+          "0\t09:08:04.589\t2024.01.22 01:00:01  BBMA_EA_OBS_511_237_HARNESS GBPUSD,M15: [P3M2][EXEC] Ticket=14 Pair=GBPUSD DecisionID=GBPUSD|2024.01.22 00:00|1|7|A01D318898E39156 Signal=SIGNAL_RE_ENTRY Dir=DIR_BUY ValidateCandle=2024.01.22 00:00 OrderOpen=2024.01.22 01:00",
+          "0\t09:08:04.882\t2024.01.22 17:00:01  BBMA_EA_OBS_511_237_HARNESS GBPUSD,M15: [P3M2][EXEC] Ticket=15 Pair=GBPUSD DecisionID=GBPUSD|2024.01.22 16:00|1|7|D9589BBF19CCC093 Signal=SIGNAL_RE_ENTRY Dir=DIR_BUY ValidateCandle=2024.01.22 16:00 OrderOpen=2024.01.22 17:00",
+          "0\t09:08:05.626\t2024.01.30 04:00:01  BBMA_EA_OBS_511_237_HARNESS GBPUSD,M15: [P3M2][EXEC] Ticket=22 Pair=GBPUSD DecisionID=GBPUSD|2024.01.30 03:00|1|7|4731CBC0EA26B3B8 Signal=SIGNAL_RE_ENTRY Dir=DIR_BUY ValidateCandle=2024.01.30 03:00 OrderOpen=2024.01.30 04:00"
+        ],
+        "opposite_reject": [
+          {
+            "active": {
+              "197": "DIR_SELL"
+            },
+            "line": "0\t09:08:51.439\t2024.07.03 00:00:01  BBMA_EA_OBS_511_237_HARNESS GBPUSD,M15: [P3M2][DECISION_FINAL] Pair=GBPUSD Signal=SIGNAL_RE_ENTRY Dir=DIR_BUY State=DEC_REJECTED Reason=REJ_TRADE_LOCK DecisionID=GBPUSD|2024.07.02 19:00|1|7|A50AB62EEA642EC3"
+          }
+        ]
+      }
+    },
+    "R5-04": {
+      "status": "PASS",
+      "basis": [
+        "test_q10_phase_h_remaining_cases::test_r5_sequential_cumulative_risk_is_source_bound"
+      ],
+      "arithmetic": {
+        "proposed_risk": 30.0,
+        "existing_before": 0.0,
+        "prospective": 30.0,
+        "allowed": true
+      }
+    },
+    "R5-05": {
+      "status": "PASS",
+      "basis": [
+        "test_q10_phase_h_remaining_cases::test_r5_sequential_cumulative_risk_is_source_bound"
+      ],
+      "arithmetic": {
+        "proposed_risk": 30.0,
+        "existing_before": 30.0,
+        "prospective": 60.0,
+        "allowed": false,
+        "reason": "REJ_TOTAL_RISK"
+      }
+    },
+    "R5-06": {
+      "status": "PASS",
+      "basis": [
+        "test_q10_phase_h_remaining_cases::test_r5_sequential_cumulative_risk_is_source_bound"
+      ],
+      "arithmetic": {
+        "proposed_risk": 30.0,
+        "existing_before": 30.0,
+        "prospective": 60.0,
+        "allowed": false,
+        "reason": "REJ_TOTAL_RISK"
+      }
+    },
+    "R5-07": {
+      "status": "PASS",
+      "basis": [
+        "test_q10_phase_h_remaining_cases::test_r5_sequential_cumulative_risk_is_source_bound"
+      ],
+      "arithmetic": {
+        "proposed_risk": 30.0,
+        "existing_before": 0.0,
+        "prospective": 30.0,
+        "allowed": true
+      }
+    },
+    "R5-10": {
+      "status": "PASS",
+      "basis": [
+        "test_q10_phase_h_remaining_cases::test_r5_recovery_diagnostic_is_init_scoped_not_cycle_spam"
+      ]
+    },
+    "R5-20": {
+      "status": "PASS",
+      "basis": [
+        "exact_history_portfolio_open_count_correlation",
+        "test_q10_phase_h_remaining_cases::test_r5_registry_compaction_and_exact_owned_count_are_fail_closed"
+      ],
+      "portfolio_open_counts": {
+        "FINAL511_2024_tester_newlog.bin": {
+          "2": 550
+        },
+        "FINAL511_2025H1_tester_newlog.bin": {
+          "2": 354
+        },
+        "FINAL511_2025H2_tester_newlog.bin": {
+          "2": 126
+        },
+        "FINAL511_2026YTD_tester_newlog.bin": {
+          "2": 261
+        },
+        "USDJPY_AUTO_2024_tester_newlog.bin": {
+          "2": 428
+        },
+        "LOCK1_2024_tester_newlog.bin": {
+          "2": 550
+        }
+      }
+    }
+  }
+}

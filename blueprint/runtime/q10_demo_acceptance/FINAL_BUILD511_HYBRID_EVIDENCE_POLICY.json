@@ -3,7 +3,7 @@
   "issue": 109,
   "candidate": "Build 5.11 / V511_EVENT_DRIVEN_OBSERVER_20260922",
   "decision_date": "2026-09-23",
-  "user_decision": "Use both historical Strategy Tester and MetaQuotes-Demo; historical first, live last for reconfirmation.",
+  "user_decision": "Use both historical Strategy Tester and MetaQuotes-Demo; historical first, live last for reconfirmation. For final live acceptance, expand PairList from GBPUSD to 20 MetaQuotes-Demo-supported fixed-ID FX pairs while keeping MaxActivePair=1 and all other approved settings unchanged.",
   "phase_order": [
     "HISTORICAL_COVERAGE",
     "LIVE_RECONFIRM"
@@ -20,8 +20,9 @@
     "R3-03 remains historical-required but may PASS by deterministic-by-construction verification of the canonical immediate EMA50(Close) mapping plus fail-closed transition behavior; natural non-equality transition occurrence is not required.",
     "Any contradiction between historical and live evidence is FAIL/VERIFICATION REQUIRED, never silently reconciled.",
     "No historical optimization or rule tuning is authorized by this policy.",
-    "Exact Build 5.11 source/EX4/settings identity remains mandatory.",
-    "R5-14 broker-comment stripping/replacement and R5-16 broker retryable-error occurrence are LIVE_ONLY because Strategy Tester/static evidence cannot prove server-side broker behavior."
+    "R5-14 broker-comment stripping/replacement and R5-16 broker retryable-error occurrence are LIVE_ONLY because Strategy Tester/static evidence cannot prove server-side broker behavior.",
+    "Exact Build 5.11 source/EX4 identity and the active acceptance-config settings identity remain mandatory for new Phase-L evidence.",
+    "Legacy GBPUSD-only Phase-L bundles cannot be combined with 20-pair acceptance bundles; runtime settings SHA must match exactly."
   ],
   "stages": {
     "R3": {
@@ -225,5 +226,15 @@
         "R6-16"
       ]
     }
+  },
+  "active_acceptance_config_revision": "Q10_20PAIR_R2_20260923",
+  "active_settings_sha256": "F114C1DE07ABED434B2754F210E43993E9E3D81599CA5900536E5E2F65F2E700",
+  "config_delta_policy": {
+    "allowed": true,
+    "scope": "PairList expansion only: GBPUSD -> 20 MetaQuotes-Demo-supported fixed-ID FX pairs; MaxActivePair remains 1; all other approved settings unchanged.",
+    "phase_h_reuse": "Allowed for existing deterministic/historical case evidence because source/EX4 and all per-pair/risk/execution settings are unchanged. Before Phase-L evidence under the widened universe, exact 20-pair symbol resolution, PairID/magic isolation, runtime settings hash binding and no-duplicate-owner initialization must PASS.",
+    "live_evidence_rule": "All new Phase-L evidence must be collected with the active settings SHA and cannot be combined with legacy single-pair bundles.",
+    "regression_rule": "Any contradiction or multi-pair isolation defect invalidates reuse and reopens the affected historical/config-sensitive cases.",
+    "broker_resolution": "Original default-universe GBPAUD and GBPCAD are unavailable on MetaQuotes-Demo; R2 replaces them with AUDCHF and AUDNZD after read-only broker-spec PASS and fixed PairID validation."
   }
 }

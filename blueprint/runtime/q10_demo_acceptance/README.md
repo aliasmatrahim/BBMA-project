@@ -112,8 +112,11 @@ python blueprint/tools/q10_demo_acceptance.py collect-log \
   --state <evidence>/state.json \
   --stage R3 \
   --log <runtime-log> \
+  --start-marker "Expert BBMA_EA_BUILD511_Q10 GBPUSD,M15: loaded successfully" \
   --output-dir <evidence>/R3
 ```
+
+For repeated same-day runs, `--start-marker` is strongly preferred. The collector selects the **last** matching launch marker, snapshots only that bounded run into the evidence directory, and hashes the immutable snapshot. Earlier same-day stage records cannot satisfy the fresh Phase-L run accidentally. If the marker is absent, collection fails closed.
 
 Formal case analysis requires explicit case assertions. Marker presence alone cannot create PASS. PASS/FAIL evidence references must resolve to files registered in the collected stage bundle and must still match their recorded SHA-256:
 

@@ -1,8 +1,8 @@
 # BBMA Active Master Queue
 
-Reconciled: **2026-09-20**
+Reconciled: **2026-09-23**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`f69492c85792f1e42624f7c796b4265335a38886`**
+Owner head at reconciliation: **`e54bc1f8bacc9882c225aa5ac4b034380161e775`**
 
 This file is the active queue. The pre-2026-09-09 historical queue is preserved byte-for-byte at `blueprint/archive/MASTER_QUEUE_pre_20260909.md`.
 
@@ -21,7 +21,7 @@ Stable Q IDs are preserved. The active dependency order is:
 - **Integration / final acceptance:** Q7 -> Q8 -> Q10
 - **Deferred / future:** Q11
 
-Q3 remains the active isolated runtime-validation workstream but is currently environment-blocked at `SEEN=58 / ACTIVE=0`. Q9 P1-P11 is verified in the scoped Draft research lineage with strict canonical JourneyID semantics; no Q9 activation or merge is authorized. The next eligible downstream re-audit from Issue #101 is D1TPW lifecycle. Q6 was stopped by explicit user decision on 2026-09-20 and Issue #128 is closed as not planned; do not auto-resume native acquisition. Q7 is frozen, GBPUSD Q8 is complete, and Q10 remains separately gated.
+Q3 remains a separate isolated runtime-validation workstream and is environment-blocked at `SEEN=58 / ACTIVE=0`; do not disturb its primary PID 13064. Q9 P1-P11 remains verified scoped Draft research with no activation, while the subsequent Issue #101 downstream sequence (D1TPW -> C044 -> D1/D1O -> M17 -> TradeLock/risk/execution -> N1/N2/N3 -> M25 -> Observer -> cross-module -> final integration) is already completed and must not be requeued. Q6 remains stopped/closed. Q7/Q8 historical gates are complete. **Q10 Phase L R3 is the highest-priority active final-acceptance task.**
 
 ## Stage A - Source evidence / reconciliation
 
@@ -164,9 +164,9 @@ Status: **VERIFIED / COMPLETE — GBPUSD ENGINEERING HISTORICAL EVIDENCE**
 
 ### Q10 — Hybrid historical coverage + final MetaQuotes-Demo acceptance
 Issue: **#109**
-Status: **ACTIVE / PHASE H HISTORICAL COVERAGE; PHASE L LIVE RECONFIRMATION LAST**
+Status: **ACTIVE / PHASE L LIVE RECONFIRMATION / R3 NATURAL D1O RESTART GATE**
 
-The exact Build 5.11 candidate is frozen. Per explicit user decision on 2026-09-23, use both exact-candidate historical Strategy Tester evidence and MetaQuotes-Demo runtime evidence: historical tester first for deterministic/rare-scenario coverage, then live demo last for broker/runtime reconfirmation. Do not use the historical v4.59 runner or relabel engineering historical evidence as broker evidence. Evidence authority is defined by `blueprint/runtime/q10_demo_acceptance/FINAL_BUILD511_HYBRID_EVIDENCE_POLICY.json`. R3-03 was reconciled under Issue #248 as **PASS / DETERMINISTIC_BY_CONSTRUCTION**: for canonical immediate EMA50(Close), same-bar price side and adjacent-bar EMA slope are algebraically coupled for non-equality data, so natural non-equality transition occurrence is not a valid acceptance requirement. No EA source/build change was required. Current reconciled Phase H checkpoint: **56 PASS / 1 INCOMPLETE / 0 FAIL**. R5-19 is the only remaining INCOMPLETE and remains the matrix-approved conditional safe-only emergency-precedence case; do not manufacture an emergency loss merely to force PASS. There is no remaining mandatory Phase-H HOLD. Phase L MetaQuotes-Demo remains last and is now eligible for formal final reconfirmation. R5-14 and R5-16 remain LIVE_ONLY broker-behavior cases. Current audits: `blueprint/audits/Q10_PHASE_H_GAP_CLOSURE_BUILD511_20260923.md` and `blueprint/audits/Q10_R3_03_D1_TRANSITION_REACHABILITY_CLOSURE_BUILD511_20260923.md`.
+The exact Build 5.11 candidate is frozen. Phase H historical/deterministic coverage has reached the allowed completion state **56 PASS / 1 conditional INCOMPLETE / 0 FAIL**; R5-19 is the approved safe-only conditional case and must not be manufactured. Phase L MetaQuotes-Demo is now active under `FINAL_BUILD511_HYBRID_EVIDENCE_POLICY.json`. PR #260 corrected Phase-L case selection, PR #261 added same-day run-boundary snapshots, and PR #262 added hash-bound multi-run stage aggregation; none changed EA source. Formal R3 live-required set is `R3-00/R3-02/R3-04/R3-05/R3-12/R3-15`. Current attributable result: all except **R3-12** PASS. R3-12 requires restart while a genuine live D1O-origin trade/identity remains relevant; current Phase-L runs produced no D1O executable identity, so R3 remains `INCOMPLETE` and R4 cannot be formally promoted. Keep the dedicated MetaQuotes-Demo R3 monitor running for a natural qualifying identity; do not synthesize a trade or substitute tester/static evidence. Current audit: `blueprint/audits/Q10_PHASE_L_HYBRID_RUNNER_CORRECTION_20260923.md`.
 
 ## Stage E - Deferred / future
 
@@ -183,7 +183,7 @@ Current state:
 4. Build 4.95 lineage semantics are superseded; ParentEventID/JourneyID transition = NEW_JOURNEY, unchanged canonical root = FIRST, and CONTINUATION remains unproven without a separate source-owned continuation-event identity.
 5. Static/model/persistence + native compile + deterministic GBPUSD tester authority regression PASS; broker actions=0.
 6. Preserve canonical owner Build 4.86 unchanged. PR #205 stays Draft: no merge, no production activation, no P2 ordering activation, no M5 execution authority.
-7. Next downstream sequence from Issue #101 is now eligible, in order:
+7. Issue #101 downstream sequence is **COMPLETED through final integration**; the following list is retained as completed order and must not be requeued without new evidence:
    - D1TPW lifecycle re-audit;
    - C044 lifecycle;
    - D1/D1O identity & dedup;

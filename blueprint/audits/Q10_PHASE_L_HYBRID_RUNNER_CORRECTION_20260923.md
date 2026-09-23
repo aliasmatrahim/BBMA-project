@@ -92,3 +92,38 @@ The collector is now run-bounded when `--start-marker` is supplied:
 Targeted regression after this hardening: **21 passed** before final full-suite validation.
 
 This remains Q10 acceptance-tooling only. EA source/runtime semantics are unchanged.
+
+## Multi-run stage aggregation hardening
+
+Phase-L R3 demonstrates that one formal stage may require several independently attributable runs: ordinary authenticated runtime for R3-00/R3-02/R3-05/R3-15, a controlled missing-D1-history run for R3-04, and a future natural D1O restart run for R3-12. The prior analyzer accepted only one stage bundle, so a correct final PASS could not combine those independent evidence sources without an unsafe manual log merge.
+
+The runner now supports `BBMA_Q10_STAGE_BUNDLE_SET_V1` and `combine-bundles`:
+- each component bundle must independently pass integrity validation;
+- component bundle JSON is SHA-bound in the set;
+- stage, candidate source/build and demo-auth identity must match across every component;
+- case evidence may reference only raw/excerpt files registered by one of the validated component bundles;
+- component tampering, identity mismatch or conflicting evidence hashes fail closed.
+
+Validation on scoped branch:
+- Q10 targeted pytest: **24 passed**;
+- full repository pytest: **68 passed** before final documentation-only commit;
+- EA source diff: zero.
+
+Actual Phase-L R3 bundle set combines three bounded runs:
+1. fresh ordinary R3 run;
+2. second ordinary run spanning M15 18:15 for R3-15;
+3. controlled missing-D1-history run for R3-04.
+
+Combined LIVE_RECONFIRM result:
+- PASS: R3-00, R3-02, R3-04, R3-05, R3-15;
+- INCOMPLETE: **R3-12 only** among mandatory live cases;
+- no FAIL observed.
+
+R3-04 controlled environment evidence:
+- dedicated `GBPUSD1440.hst` was backed up before removal;
+- missing D1 history produced `D1_OWNER_UNRESOLVED / DIR_NONE` with no execution decision;
+- regenerated broker history was preserved separately;
+- original D1 HST was restored byte-identically to SHA-256 `1FD3090A87940252B2B2175136FDB85FA6769B9F9CBA5F1F7BCC6CBE04284C6F`;
+- primary Q3 terminal remained untouched.
+
+R3-12 remains a genuine live gate: it requires restart while an actual D1O-origin trade/identity remains relevant. No D1O trade/identity has occurred in current Phase-L runs, so it must not be fabricated or promoted from tester/static evidence.

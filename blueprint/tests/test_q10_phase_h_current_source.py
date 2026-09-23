@@ -116,3 +116,53 @@ def test_n3_and_observer_have_no_execution_authority():
     for forbidden in ("OrderSend(", "OrderClose(", "OrderModify(", "OrderDelete("):
         assert forbidden not in shadow
         assert forbidden not in outcome
+
+
+def test_r4_frozen_snapshot_is_single_and_shared_across_m17_m21_m19():
+    preflight = body("bool RunEntryPreflightAndExecute(")
+    assert preflight.count("RiskValidationSnapshot snapshot;") == 1
+    assert preflight.count("BuildRiskValidationSnapshot(pair, decision, snapshot);") == 1
+    assert "ResolveExecutionReferencePrice(decision, snapshot)" in preflight
+    assert "ResolveApprovedInitialSLTP(decision, snapshot)" in preflight
+    assert "snapshot.StopLoss = decision.StopLoss;" in preflight
+    assert "ValidateSLTP(decision, snapshot, sltpRejection)" in preflight
+    assert "CalculateLotSize(decision, snapshot, lotValid)" in preflight
+    assert "CheckRiskBeforeTrade(decision, snapshot, lot)" in preflight
+
+
+def test_r3_transition_unresolved_and_h4_no_owner_are_fail_closed():
+    classify = body("bool M11_ClassifyD1OwnerValues(")
+    unresolved = body("void SetD1OwnerUnresolved(")
+    ready = body("bool IsD1MajorTrendOwnerExecutionReady(")
+    re = body("void BuildConfirmedReEntryCandidate(")
+    ext = body("void BuildStandaloneExtremeCandidate(")
+
+    assert "ownerState = D1_TRANSITION;" in classify
+    transition_block = classify.split("else", 1)[1]
+    assert "direction = DIR_NONE;" in transition_block
+
+    assert "owner.State = D1_OWNER_UNRESOLVED;" in unresolved
+    assert "owner.Direction = DIR_NONE;" in unresolved
+    assert "owner.IsValid = false;" in unresolved
+
+    assert "D1_OWNER_BUY_CONFIRMED" in ready
+    assert "D1_OWNER_SELL_CONFIRMED" in ready
+    assert ready.rstrip().endswith("return false;\n}")
+
+    for candidate_builder in (re, ext):
+        assert "!h4Owner.RecoveryComplete" in candidate_builder
+        assert "!h4Owner.IsValid" in candidate_builder
+        assert "h4Owner.State != H4_OWNER_ACTIVE" in candidate_builder
+
+
+def test_r4_targetless_sell_sl_can_change_without_rr_tp_manufacture():
+    resolve = body("bool ResolveApprovedInitialSLTP(")
+    validate = body("bool ValidateSLTP(")
+
+    assert "decision.TakeProfit = targetlessLifecycle ? 0.0 : normalizedTP;" in resolve
+    assert "brokerSL += roundedSpreadBufferPips * pipValue;" in resolve
+    assert "if(MinRRRatio > 0.0)" in validate
+    assert "REJ_INVALID_RR" in validate
+    # Validation may reject bad RR, but it has no authority to move TakeProfit.
+    minrr = validate.split("if(MinRRRatio > 0.0)", 1)[1]
+    assert "decision.TakeProfit =" not in minrr

@@ -440,6 +440,8 @@ def test_hybrid_evidence_policy_is_complete_and_fail_closed():
     assert "R4-01" in policy["stages"]["R4"]["live_only_cases"]
     assert "R4-13" in policy["stages"]["R4"]["live_only_cases"]
     assert "R5-12" in policy["stages"]["R5"]["live_only_cases"]
+    assert "R5-14" in policy["stages"]["R5"]["live_only_cases"]
+    assert "R5-16" in policy["stages"]["R5"]["live_only_cases"]
     assert "R6-02" in policy["stages"]["R6"]["live_only_cases"]
     assert "R6-03" in policy["stages"]["R6"]["live_only_cases"]
     assert "R6-06" in policy["stages"]["R6"]["live_only_cases"]

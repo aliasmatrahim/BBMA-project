@@ -17,6 +17,7 @@ MANIFEST_PATH = ROOT / "blueprint" / "runtime" / "q10_demo_acceptance" / "FINAL_
 MATRIX_PATH = ROOT / "blueprint" / "runtime" / "q10_demo_acceptance" / "FINAL_BUILD511_STAGE_MATRIX.json"
 POLICY_PATH = ROOT / "blueprint" / "runtime" / "q10_demo_acceptance" / "FINAL_BUILD511_HYBRID_EVIDENCE_POLICY.json"
 PHASE_H_PATH = ROOT / "blueprint" / "audits" / "evidence" / "Q10_R3_03_RECONCILIATION_20260923" / "COMBINED_STATUS_V4.json"
+SETTINGS_PROFILE_PATH = ROOT / "blueprint" / "runtime" / "q10_demo_acceptance" / "FINAL_BUILD511_20PAIR.set"
 
 
 def load(path: Path):
@@ -29,6 +30,27 @@ def test_frozen_candidate_identity_is_exact():
     assert result["status"] == "PASS"
     assert result["source_sha256"] == manifest["source_sha256"]
     assert result["source_neutral_after_freeze"] is True
+
+
+def test_active_acceptance_settings_profile_is_exact_20_pair():
+    manifest = load(MANIFEST_PATH)
+    text = SETTINGS_PROFILE_PATH.read_text(encoding="utf-8")
+    normalized_sha = q10.sha256_bytes(text.encode("utf-8"))
+    assert normalized_sha == manifest["settings_sha256"]
+    rows = dict(
+        line.split("=", 1)
+        for line in text.splitlines()
+        if line and "=" in line
+    )
+    pairs = [x.strip() for x in rows["PairList"].split(",") if x.strip()]
+    assert len(pairs) == 20
+    assert len(set(pairs)) == 20
+    assert rows["MaxActivePair"] == "1"
+    assert rows["MaxTradePerPair"] == "2"
+    assert rows["MaxTotalTrade"] == "10"
+    assert rows["FixedLot"] == "0.01"
+    assert manifest["acceptance_config_revision"] == "Q10_20PAIR_R1_20260923"
+    assert manifest["pair_universe"] == pairs
 
 
 def test_demo_probe_accepts_metaquotes_demo_and_blocks_live(tmp_path: Path):

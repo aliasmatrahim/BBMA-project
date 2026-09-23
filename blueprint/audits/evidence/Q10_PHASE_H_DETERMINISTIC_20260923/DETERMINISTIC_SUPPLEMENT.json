@@ -1,0 +1,90 @@
+{
+  "schema": "BBMA_Q10_PHASE_H_DETERMINISTIC_SUPPLEMENT_V1",
+  "issue": 109,
+  "candidate": "Build 5.11 / V511_EVENT_DRIVEN_OBSERVER_20260922",
+  "canonical_mq4_sha256": "50E4A01A5768B5B5E9A80CABAE21B7260A2912AA058E67E5273386177970D038",
+  "tests": {
+    "q10_targeted": "27/27 PASS",
+    "full_blueprint": "49/49 PASS"
+  },
+  "cases": {
+    "R3-03": {
+      "status": "PASS",
+      "basis": [
+        "test_r3_transition_unresolved_and_h4_no_owner_are_fail_closed"
+      ],
+      "reason": "Current classifier sets D1_TRANSITION with DIR_NONE; execution readiness accepts only confirmed BUY/SELL."
+    },
+    "R3-04": {
+      "status": "PASS",
+      "basis": [
+        "test_r3_transition_unresolved_and_h4_no_owner_are_fail_closed",
+        "Q10_R3_METAQUOTES_RUNTIME_CHECKPOINT_20260923"
+      ],
+      "reason": "Unresolved owner is DIR_NONE/IsValid=false and cannot become execution-ready; live R3 independently observed unresolved fail-closed."
+    },
+    "R3-07": {
+      "status": "PASS",
+      "basis": [
+        "test_r3_transition_unresolved_and_h4_no_owner_are_fail_closed"
+      ],
+      "reason": "Re-Entry and standalone Extreme builders require recovered, valid, active H4 owner; no D1-only fallback."
+    },
+    "R4-08": {
+      "status": "PASS",
+      "basis": [
+        "test_r4_frozen_snapshot_is_single_and_shared_across_m17_m21_m19"
+      ],
+      "reason": "One RiskValidationSnapshot is built once; M17 writes final SL into that snapshot; validation, sizing and risk consume the same snapshot."
+    },
+    "R4-15": {
+      "status": "PASS",
+      "basis": [
+        "test_r4_targetless_sell_sl_can_change_without_rr_tp_manufacture",
+        "historical_targetless_sell_scan"
+      ],
+      "reason": "6,534 targetless SELL M17 records contain 252 distinct final SL values and zero nonzero TP; source RR validation can reject but cannot move TP."
+    },
+    "R5-15": {
+      "status": "PASS",
+      "basis": [
+        "test_execution_error_classes_and_ambiguity_hold_are_fail_closed"
+      ],
+      "reason": "Error 128 is ambiguous, not retryable; exact reconciliation is attempted and unresolved result returns ambiguity without retry increment."
+    },
+    "R5-17": {
+      "status": "PASS",
+      "basis": [
+        "test_execution_error_classes_and_ambiguity_hold_are_fail_closed"
+      ],
+      "reason": "Ambiguous result latches EA-wide hold; reconciliation has no OrderSend authority and preflight rejects while hold remains active."
+    },
+    "R5-18": {
+      "status": "PASS",
+      "basis": [
+        "test_hard_invalid_and_ambiguity_results_remain_distinct"
+      ],
+      "reason": "Fatal/hard invalid returns -1 / REJ_BROKER_ERROR while ambiguous result returns -2 / REJ_AMBIGUOUS_RESULT."
+    },
+    "R6-15": {
+      "status": "PASS",
+      "basis": [
+        "test_assertion_analyzer_never_promotes_incomplete_to_pass"
+      ],
+      "reason": "Assertion evidence must exist and match bundle SHA; missing or tampered evidence raises fail-closed Q10Error."
+    },
+    "R6-16": {
+      "status": "PASS",
+      "basis": [
+        "test_assertion_analyzer_never_promotes_incomplete_to_pass",
+        "test_record_stage_requires_bound_analysis"
+      ],
+      "reason": "Partial assertions remain INCOMPLETE and formal stage promotion requires a candidate-bound analysis artifact."
+    }
+  },
+  "historical_support": {
+    "targetless_sell_records": 6534,
+    "targetless_sell_distinct_final_sl": 252,
+    "targetless_sell_nonzero_tp": 0
+  }
+}

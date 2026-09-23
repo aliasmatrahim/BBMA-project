@@ -19,7 +19,8 @@
     "A tester PASS cannot overwrite a contradictory live FAIL.",
     "Any contradiction between historical and live evidence is FAIL/VERIFICATION REQUIRED, never silently reconciled.",
     "No historical optimization or rule tuning is authorized by this policy.",
-    "Exact Build 5.11 source/EX4/settings identity remains mandatory."
+    "Exact Build 5.11 source/EX4/settings identity remains mandatory.",
+    "R5-14 broker-comment stripping/replacement and R5-16 broker retryable-error occurrence are LIVE_ONLY because Strategy Tester/static evidence cannot prove server-side broker behavior."
   ],
   "stages": {
     "R3": {
@@ -129,9 +130,7 @@
         "R5-08",
         "R5-09",
         "R5-10",
-        "R5-14",
         "R5-15",
-        "R5-16",
         "R5-17",
         "R5-18",
         "R5-19",
@@ -140,7 +139,9 @@
       "live_only_cases": [
         "R5-11",
         "R5-12",
-        "R5-13"
+        "R5-13",
+        "R5-14",
+        "R5-16"
       ],
       "live_reconfirm_cases": [
         "R5-00",

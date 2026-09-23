@@ -166,7 +166,7 @@ Status: **VERIFIED / COMPLETE — GBPUSD ENGINEERING HISTORICAL EVIDENCE**
 Issue: **#109**
 Status: **ACTIVE / PHASE H HISTORICAL COVERAGE; PHASE L LIVE RECONFIRMATION LAST**
 
-The exact Build 5.11 candidate is frozen. Per explicit user decision on 2026-09-23, use both exact-candidate historical Strategy Tester evidence and MetaQuotes-Demo runtime evidence: historical tester first for deterministic/rare-scenario coverage, then live demo last for broker/runtime reconfirmation. Do not use the historical v4.59 runner or relabel engineering historical evidence as broker evidence. Evidence authority is defined by `blueprint/runtime/q10_demo_acceptance/FINAL_BUILD511_HYBRID_EVIDENCE_POLICY.json`.
+The exact Build 5.11 candidate is frozen. Per explicit user decision on 2026-09-23, use both exact-candidate historical Strategy Tester evidence and MetaQuotes-Demo runtime evidence: historical tester first for deterministic/rare-scenario coverage, then live demo last for broker/runtime reconfirmation. Do not use the historical v4.59 runner or relabel engineering historical evidence as broker evidence. Evidence authority is defined by `blueprint/runtime/q10_demo_acceptance/FINAL_BUILD511_HYBRID_EVIDENCE_POLICY.json`. Current Phase H checkpoint: **42 PASS / 15 INCOMPLETE / 0 FAIL**; R5-14 and R5-16 are correctly reserved as LIVE_ONLY broker-behavior cases.
 
 ## Stage E - Deferred / future
 

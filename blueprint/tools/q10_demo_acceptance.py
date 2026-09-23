@@ -441,6 +441,7 @@ def collect_stage_log(
     log_path: Path,
     out_dir: Path,
     state: dict[str, Any],
+    start_marker: str | None = None,
 ) -> dict[str, Any]:
     if state.get("demo_auth", {}).get("status") != "PASS":
         raise Q10Error("demo authentication gate is not PASS")
@@ -455,19 +456,33 @@ def collect_stage_log(
     if not log_path.is_file():
         raise Q10Error(f"runtime log missing: {log_path}")
 
+    source_sha256_at_collection = sha256_file(log_path)
+    source_lines = log_path.read_text(encoding="utf-8", errors="replace").splitlines()
+    start_index = 0
+    if start_marker:
+        matches = [i for i, line in enumerate(source_lines) if start_marker in line]
+        if not matches:
+            raise Q10Error(f"run start marker not found: {start_marker}")
+        start_index = matches[-1]
+
+    run_lines = source_lines[start_index:]
     markers = STAGE_MARKERS[stage]
     counts = {m: 0 for m in markers}
     matched: list[str] = []
-    with log_path.open("r", encoding="utf-8", errors="replace") as fh:
-        for line in fh:
-            if any(marker in line for marker in markers):
-                cleaned = redact_line(line)
-                matched.append(cleaned)
-                for marker in markers:
-                    if marker in line:
-                        counts[marker] += 1
+    for line in run_lines:
+        if any(marker in line for marker in markers):
+            cleaned = redact_line(line)
+            matched.append(cleaned)
+            for marker in markers:
+                if marker in line:
+                    counts[marker] += 1
 
     out_dir.mkdir(parents=True, exist_ok=True)
+    snapshot = out_dir / f"{stage}_runtime.log"
+    snapshot.write_text(
+        "\n".join(run_lines) + ("\n" if run_lines else ""),
+        encoding="utf-8",
+    )
     excerpt = out_dir / f"{stage}_matched.log"
     excerpt.write_text("\n".join(matched) + ("\n" if matched else ""), encoding="utf-8")
     bundle = {
@@ -476,8 +491,12 @@ def collect_stage_log(
         "candidate_source_sha256": state["candidate"]["source_sha256"],
         "candidate_build_tag": state["candidate"]["build_tag"],
         "demo_evidence_sha256": state["demo_auth"].get("log_sha256"),
-        "raw_log_path": str(log_path),
-        "raw_log_sha256": sha256_file(log_path),
+        "source_log_path": str(log_path),
+        "source_log_sha256_at_collection": source_sha256_at_collection,
+        "run_start_marker": start_marker,
+        "run_start_line": start_index + 1,
+        "raw_log_path": str(snapshot),
+        "raw_log_sha256": sha256_file(snapshot),
         "matched_excerpt": str(excerpt),
         "matched_excerpt_sha256": sha256_file(excerpt),
         "marker_counts": counts,
@@ -1029,7 +1048,11 @@ def cmd_generate(args: argparse.Namespace) -> int:
 def cmd_collect(args: argparse.Namespace) -> int:
     state = load_json(Path(args.state))
     bundle = collect_stage_log(
-        args.stage, Path(args.log), Path(args.output_dir), state
+        args.stage,
+        Path(args.log),
+        Path(args.output_dir),
+        state,
+        start_marker=args.start_marker,
     )
     print(json.dumps(bundle, indent=2))
     return 0
@@ -1128,6 +1151,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--stage", required=True)
     s.add_argument("--log", required=True)
     s.add_argument("--output-dir", required=True)
+    s.add_argument("--start-marker")
     s.set_defaults(func=cmd_collect)
 
     s = sub.add_parser("analyze-bundle")

@@ -48,5 +48,19 @@ No restart, broker intervention, source change, settings change, Strategy-Core c
 ## Tooling
 Draft PR #268 is a tooling-only clean-restart helper fix. It remains open/unmerged. Exact targeted validation previously passed 28/28 and EA source delta is zero.
 
+## R6 pre-stage readiness
+
+While R5 remains the formal predecessor blocker, exact-R2 R6 live evidence was prepared read-only without mutating `state.json`.
+
+The LIVE_RECONFIRM pre-stage analyzer returns **PASS** for every mandatory R6 live/reconfirm case:
+`R6-00/R6-01/R6-02/R6-03/R6-04/R6-05/R6-06/R6-07/R6-10`.
+
+`R6-09` remains conditional/optional under the current `MaxActivePair=1` profile.
+
+The combined pre-stage analysis bundle SHA-256 is:
+`708BE2B20F7BC767488405C856AAF8B58A5F97C5C9844366AD24ED95E8283D9C`.
+
+This is readiness evidence only. No `record-stage R6` was performed and formal R6 remains INCOMPLETE/unpromoted until R5 passes.
+
 ## Next safe action
 Keep the dedicated Q10 exact-R2 terminal running. Re-evaluate only when a natural R5-14 or R5-16 broker event appears. R6 must not be formally promoted before R5 PASS.

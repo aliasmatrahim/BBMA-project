@@ -1,0 +1,50 @@
+{
+  "schema": "BBMA_Q10_R3_03_RECONCILIATION_EVIDENCE_V1",
+  "issue": 248,
+  "q10_issue": 109,
+  "baseline_owner": "a162a2b3d8c7337e1347f7d8f8f0b2f469c34618",
+  "validation_branch": "fix/r3-03-d1-transition-reachability",
+  "validation_head": "8d4d19faaf1d92be444b42f5557ee062c74b1dd0",
+  "candidate": "Build 5.11 / V511_EVENT_DRIVEN_OBSERVER_20260922",
+  "ea_source_changed": false,
+  "canonical_mq4_sha256": "50E4A01A5768B5B5E9A80CABAE21B7260A2912AA058E67E5273386177970D038",
+  "classification": "PASS / DETERMINISTIC_BY_CONSTRUCTION",
+  "natural_transition_observations": 0,
+  "historical_selection_contradictions": 0,
+  "source_checks": {
+    "exact_canonical_source": true,
+    "ema50_period_50": true,
+    "ema_close_mapping": true,
+    "immediate_previous_closed_ema": true,
+    "buy_conjunction": true,
+    "sell_conjunction": true,
+    "transition_dir_none": true,
+    "execution_ready_buy_sell_only": true
+  },
+  "mathematical_invariant": "For canonical EMA50 applied Close with immediate adjacent-bar slope, Close_t > EMA_t iff EMA_t > EMA_(t-1), and Close_t < EMA_t iff EMA_t < EMA_(t-1), for non-equality inputs.",
+  "historical_analyzer": {
+    "output": "G40 D:\\BBMA\\Temp\\Q10_R303_RECONCILED_ANALYSIS_V2.json",
+    "sha256": "FF241886F084B141EE5028A91609C30A6003BAD6CF0B593E6CAF292C65023EB3",
+    "summary": {
+      "pass_count": 34,
+      "incomplete_count": 23,
+      "fail_count": 0
+    },
+    "r3_03_status": "PASS",
+    "evidence_mode": "DETERMINISTIC_BY_CONSTRUCTION",
+    "raw_logs": "reused exact Build 5.11 hash-addressed four-period GBPUSD evidence; no tester rerun"
+  },
+  "regression": {
+    "command": "py -3.12 -m pytest -q",
+    "result": "59 passed",
+    "status": "PASS"
+  },
+  "previous_phase_h_combined_status": {
+    "path": "blueprint/audits/evidence/Q10_PHASE_H_GAP_CLOSURE_20260923/COMBINED_STATUS_V3.json",
+    "normalized_sha256": "E173B22995081E76A9BFC0307BA5995F587BC6F1E98716C2DB51973B3760DC14",
+    "pass_count": 55,
+    "incomplete_count": 2,
+    "fail_count": 0
+  },
+  "result": "R3-03 HOLD resolved by source/contract/acceptance reconciliation; no Strategy-Core execution behavior change."
+}

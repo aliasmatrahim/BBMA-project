@@ -15,6 +15,8 @@ SPEC.loader.exec_module(q10)
 
 MANIFEST_PATH = ROOT / "blueprint" / "runtime" / "q10_demo_acceptance" / "FINAL_BUILD511_CANDIDATE.json"
 MATRIX_PATH = ROOT / "blueprint" / "runtime" / "q10_demo_acceptance" / "FINAL_BUILD511_STAGE_MATRIX.json"
+POLICY_PATH = ROOT / "blueprint" / "runtime" / "q10_demo_acceptance" / "FINAL_BUILD511_HYBRID_EVIDENCE_POLICY.json"
+PHASE_H_PATH = ROOT / "blueprint" / "audits" / "evidence" / "Q10_R3_03_RECONCILIATION_20260923" / "COMBINED_STATUS_V4.json"
 
 
 def load(path: Path):
@@ -144,7 +146,13 @@ def make_state():
     }
 
 
-def write_analysis(tmp_path: Path, state, stage: str, status: str) -> Path:
+def write_analysis(
+    tmp_path: Path,
+    state,
+    stage: str,
+    status: str,
+    evidence_mode: str | None = None,
+) -> Path:
     path = tmp_path / f"{stage}_{status}.json"
     path.write_text(
         json.dumps(
@@ -155,6 +163,7 @@ def write_analysis(tmp_path: Path, state, stage: str, status: str) -> Path:
                 "candidate_source_sha256": state["candidate"]["source_sha256"],
                 "candidate_build_tag": state["candidate"]["build_tag"],
                 "bundle_sha256": "BUNDLE",
+                **({"evidence_mode": evidence_mode} if evidence_mode else {}),
                 "cases": {},
             }
         ),
@@ -353,6 +362,104 @@ def test_record_stage_requires_bound_analysis(tmp_path: Path):
     bad.write_text(json.dumps(doc), encoding="utf-8")
     with pytest.raises(q10.Q10Error, match="candidate source mismatch"):
         q10.record_stage(make_state(), "R3", "PASS", str(bad))
+
+
+def test_live_reconfirm_uses_hybrid_policy_subset(tmp_path: Path):
+    matrix = load(MATRIX_PATH)
+    policy = load(POLICY_PATH)
+    bundle = make_bundle(tmp_path)
+    evidence = bundle["raw_log_path"]
+
+    required = q10.required_case_ids(
+        "R3", matrix, policy=policy, evidence_mode="LIVE_RECONFIRM"
+    )
+    assert required == {"R3-00", "R3-02", "R3-04", "R3-05", "R3-12", "R3-15"}
+
+    rows = {
+        case_id: {"status": "PASS", "evidence": [evidence]}
+        for case_id in required
+    }
+    assertions = tmp_path / "live-r3.json"
+    assertions.write_text(json.dumps({"cases": rows}), encoding="utf-8")
+    result = q10.analyze_assertions(
+        "R3",
+        assertions,
+        matrix,
+        bundle,
+        policy=policy,
+        evidence_mode="LIVE_RECONFIRM",
+    )
+    assert result["status"] == "PASS"
+    assert result["evidence_mode"] == "LIVE_RECONFIRM"
+    assert set(result["required_case_ids"]) == required
+    assert result["cases"]["R3-01"]["required"] is False
+    assert result["cases"]["R3-03"]["required"] is False
+
+    rows["R3-12"] = {"status": "INCOMPLETE", "evidence": []}
+    assertions.write_text(json.dumps({"cases": rows}), encoding="utf-8")
+    result = q10.analyze_assertions(
+        "R3",
+        assertions,
+        matrix,
+        bundle,
+        policy=policy,
+        evidence_mode="LIVE_RECONFIRM",
+    )
+    assert result["status"] == "INCOMPLETE"
+
+    rows["R3-01"] = {"status": "FAIL", "evidence": [evidence]}
+    assertions.write_text(json.dumps({"cases": rows}), encoding="utf-8")
+    result = q10.analyze_assertions(
+        "R3",
+        assertions,
+        matrix,
+        bundle,
+        policy=policy,
+        evidence_mode="LIVE_RECONFIRM",
+    )
+    assert result["status"] == "FAIL"
+
+
+def test_live_reconfirm_preserves_conditional_optional_cases():
+    matrix = load(MATRIX_PATH)
+    policy = load(POLICY_PATH)
+    required = q10.required_case_ids(
+        "R6", matrix, policy=policy, evidence_mode="LIVE_RECONFIRM"
+    )
+    assert "R6-09" not in required
+    assert {"R6-02", "R6-03", "R6-06", "R6-07"} <= required
+
+
+def test_phase_h_gate_accepts_only_allowed_conditional_incomplete():
+    matrix = load(MATRIX_PATH)
+    policy = load(POLICY_PATH)
+    phase_h = load(PHASE_H_PATH)
+    q10.validate_phase_h_for_live(phase_h, policy, matrix)
+
+    blocked = dict(phase_h)
+    blocked["hold_cases"] = ["R3-03"]
+    with pytest.raises(q10.Q10Error, match="unresolved HOLD"):
+        q10.validate_phase_h_for_live(blocked, policy, matrix)
+
+    unsafe = dict(phase_h)
+    unsafe["incomplete_cases"] = ["R5-19", "R3-01"]
+    with pytest.raises(q10.Q10Error, match="non-conditional INCOMPLETE"):
+        q10.validate_phase_h_for_live(unsafe, policy, matrix)
+
+
+def test_live_state_requires_live_reconfirm_analysis(tmp_path: Path):
+    state = make_state()
+    state["phase"] = "LIVE_RECONFIRM"
+
+    full = write_analysis(tmp_path, state, "R3", "PASS")
+    with pytest.raises(q10.Q10Error, match="LIVE_RECONFIRM analysis"):
+        q10.record_stage(state, "R3", "PASS", str(full))
+
+    live = write_analysis(
+        tmp_path, state, "R3", "PASS", evidence_mode="LIVE_RECONFIRM"
+    )
+    q10.record_stage(state, "R3", "PASS", str(live))
+    assert state["stages"]["R3"]["status"] == "PASS"
 
 
 def test_identity_probe_is_read_only_and_hash_bound():

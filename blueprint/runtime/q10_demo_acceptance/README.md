@@ -10,10 +10,12 @@ This tooling prepares and controls the final broker/demo acceptance programme. I
 - candidate freeze commit: `78ddbd771853681de6628032701eea7231e05d61`
 - canonical MQ4 SHA-256: `50E4A01A5768B5B5E9A80CABAE21B7260A2912AA058E67E5273386177970D038`
 - native EX4 SHA-256: `CFF8DA584C91AE177CA26E1C47518AA585A67F0E16C99295F932670E8CDEC6E1`
-- approved final-integration settings SHA-256: `37BC585EB3AB5A73914FEC3C532023636D4FACCD7D3AAAF20B774269CF92DA70`
+- active acceptance settings revision: `Q10_20PAIR_R2_20260923`
+- active acceptance settings SHA-256: `F114C1DE07ABED434B2754F210E43993E9E3D81599CA5900536E5E2F65F2E700`
+- active acceptance settings profile: `FINAL_BUILD511_20PAIR.set`
 - demo identity probe EX4 SHA-256: `AD47BA707F35862239C4A29ACFC257220DC6CE9252C2F70C67AAC8B04FC888D8`
 
-The runner also proves the current worktree has no EA-source diff after the frozen candidate commit.
+The runner also proves the current worktree has no EA-source diff after the frozen candidate commit. The Build 5.11 source/EX4 remain frozen; the current Phase-L config revision widens only PairList to 20 MetaQuotes-Demo-supported fixed-ID pairs while keeping `MaxActivePair=1` and all other approved settings unchanged.
 
 ## Safety sequence
 
@@ -118,7 +120,7 @@ python blueprint/tools/q10_demo_acceptance.py collect-log \
 
 For repeated same-day runs, `--start-marker` is strongly preferred. The collector selects the **last** matching launch marker, snapshots only that bounded run into the evidence directory, and hashes the immutable snapshot. Earlier same-day stage records cannot satisfy the fresh Phase-L run accidentally. If the marker is absent, collection fails closed.
 
-If a formal stage requires evidence from more than one attributable live run, combine the immutable per-run bundles first. The set binds every component bundle by SHA-256 and requires identical stage/candidate/demo identities:
+If a formal stage requires evidence from more than one attributable live run, combine the immutable per-run bundles first. The set binds every component bundle by SHA-256 and requires identical stage/candidate/demo/runtime-EX4/runtime-settings identities:
 
 ```
 python blueprint/tools/q10_demo_acceptance.py combine-bundles \
@@ -178,6 +180,19 @@ No `BLOCKED` or `INCOMPLETE` result may be promoted to PASS.
 The case matrix is stored in `FINAL_BUILD511_STAGE_MATRIX.json`.
 
 Evidence authority is stored separately in `FINAL_BUILD511_HYBRID_EVIDENCE_POLICY.json`: historical tester first for deterministic coverage, MetaQuotes-Demo last for broker/runtime reconfirmation. The hybrid policy changes evidence sequencing only; it does not change case semantics or EA behavior.
+
+## Current 20-pair acceptance revision
+
+The active final-live settings revision is `Q10_20PAIR_R2_20260923`.
+
+Universe:
+`EURUSD,GBPUSD,USDJPY,USDCHF,USDCAD,AUDUSD,NZDUSD,EURJPY,GBPJPY,EURGBP,AUDJPY,CADJPY,CHFJPY,NZDJPY,EURAUD,EURCAD,EURCHF,AUDCHF,AUDNZD,AUDCAD`.
+
+`MaxActivePair=1` remains unchanged from the prior GBPUSD-only acceptance profile. The widening is for event coverage, not concurrent portfolio expansion.
+
+MetaQuotes-Demo read-only initialization passed 20/20 symbol resolution and broker specification with PairID/Magic validation PASS and no failures. See `blueprint/audits/Q10_20PAIR_ACCEPTANCE_CONFIG_R2_20260923.md`.
+
+All new Phase-L stage bundles are runtime-bound V2 evidence. Legacy GBPUSD-only live bundles cannot be mixed into R2 multi-run bundle sets.
 
 ## Current environment
 

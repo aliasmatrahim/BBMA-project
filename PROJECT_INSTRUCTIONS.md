@@ -174,6 +174,10 @@ Rules:
 
 The user has granted **standing authorization** for validated BBMA merges. A separate per-PR confirmation is not required when the assistant determines that all scope-required gates have passed and no genuine user gate remains.
 
+**This standing authorization is itself the user's explicit merge instruction for all ordinary BBMA PRs.** It satisfies any generic requirement that a merge must have an explicit user instruction. Do not reinterpret that requirement as needing a fresh `merge`, `proceed` or confirmation message for every PR. Once an ordinary PR reaches its required exit criteria, merge it in the same task and verify the owner branch afterwards.
+
+Creating a Draft PR is an intermediate checkpoint, not an exit criterion. If the PR is otherwise merge-eligible and the only remaining state is `Draft`, mark it ready and merge it without asking again. Stopping only to request merge confirmation when every required gate is already satisfied is an **orchestration defect**.
+
 Autonomous merge is allowed for documentation/governance/tooling/tests/audit/evidence/status work and for EA/source/behaviour-bearing fixes when **all** of the following are true:
 
 - the exact PR head SHA has passed every validation gate required for its scope;
@@ -457,6 +461,7 @@ Before reaching a material conclusion or making a project change:
 9. Re-check affected upstream/downstream modules and perform Strategy-Core purity regression when strategy behaviour is touched.
 10. For EA source changes, apply Section 16 build identification and obtain the required compile/runtime evidence.
 11. Commit the verified change to GitHub and update `CURRENT.md`, `MASTER_QUEUE.md`, audit/gap/decision records, or other tracking artifacts **only when their state actually changed**.
+12. If the resulting PR is an ordinary merge covered by the standing authorization in Section 10 and all required gates pass, **merge it in the same task without another user confirmation**, then verify the exact merged owner commit. Do not stop merely because the PR is Draft or waiting for a redundant merge instruction.
 
 ### 18.3 Freshness rule
 Uploaded/static copies of live project-state files, code, queue records or runtime records must **never** be assumed current merely because they exist in a knowledge library or previous chat.

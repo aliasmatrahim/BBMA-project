@@ -122,7 +122,10 @@ def test_analyzer_is_hash_bound_and_fail_closed(tmp_path: Path):
     assert result["historical_cases"]["R3-03"]["evidence"]["mode"] == "DETERMINISTIC_BY_CONSTRUCTION"
     assert result["historical_cases"]["R3-03"]["evidence"]["natural_transition_observations"] == 0
     assert result["historical_cases"]["R3-03"]["evidence"]["source_reachability"]["pass"] is True
-    assert result["historical_cases"]["R3-03"]["evidence"]["source_reachability"]["normalized_source_sha256"] == canonical_source_sha256
+    expected_source_sha256 = json.loads(
+        (tmp_path / "FINAL_BUILD511_GBPUSD_MATRIX.json").read_text(encoding="utf-8")
+    )["canonical_mq4_sha256"]
+    assert result["historical_cases"]["R3-03"]["evidence"]["source_reachability"]["normalized_source_sha256"] == expected_source_sha256
     assert result["historical_cases"]["R3-06"]["status"] == "PASS"
     assert result["historical_cases"]["R4-04"]["status"] == "PASS"
     assert result["historical_cases"]["R4-07"]["status"] == "PASS"

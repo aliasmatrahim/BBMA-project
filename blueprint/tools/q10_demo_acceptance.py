@@ -514,9 +514,9 @@ def _resolved_evidence_path(value: str, base_dir: Path) -> Path:
     return path.resolve()
 
 
-def validate_bundle_integrity(stage: str, bundle: dict[str, Any]) -> dict[str, Any]:
+def _validate_single_bundle(stage: str, bundle: dict[str, Any]) -> dict[str, Any]:
     if bundle.get("schema") != "BBMA_Q10_STAGE_BUNDLE_V1":
-        raise Q10Error("invalid stage bundle schema")
+        raise Q10Error("invalid single stage bundle schema")
     if bundle.get("stage") != stage:
         raise Q10Error(
             f"stage bundle mismatch: expected={stage} actual={bundle.get('stage')}"
@@ -542,6 +542,113 @@ def validate_bundle_integrity(stage: str, bundle: dict[str, Any]) -> dict[str, A
     return bundle
 
 
+def validate_bundle_integrity(stage: str, bundle: dict[str, Any]) -> dict[str, Any]:
+    schema = bundle.get("schema")
+    if schema == "BBMA_Q10_STAGE_BUNDLE_V1":
+        return _validate_single_bundle(stage, bundle)
+    if schema != "BBMA_Q10_STAGE_BUNDLE_SET_V1":
+        raise Q10Error("invalid stage bundle schema")
+    if bundle.get("stage") != stage:
+        raise Q10Error(
+            f"stage bundle set mismatch: expected={stage} actual={bundle.get('stage')}"
+        )
+    expected_source = str(bundle.get("candidate_source_sha256", "")).upper()
+    expected_tag = str(bundle.get("candidate_build_tag", ""))
+    expected_demo = str(bundle.get("demo_evidence_sha256", "")).upper()
+    if not expected_source or not expected_tag or not expected_demo:
+        raise Q10Error("stage bundle set missing candidate/demo identity")
+
+    refs = bundle.get("bundles")
+    if not isinstance(refs, list) or not refs:
+        raise Q10Error("stage bundle set has no component bundles")
+    for ref in refs:
+        if not isinstance(ref, dict):
+            raise Q10Error("invalid component bundle reference")
+        path = Path(str(ref.get("path", ""))).resolve()
+        expected_hash = str(ref.get("sha256", "")).upper()
+        if not path.is_file():
+            raise Q10Error(f"component bundle missing: {path}")
+        actual_hash = sha256_file(path)
+        if not expected_hash or actual_hash != expected_hash:
+            raise Q10Error(
+                f"component bundle hash mismatch: expected={expected_hash} actual={actual_hash}"
+            )
+        component = load_json(path)
+        _validate_single_bundle(stage, component)
+        if str(component["candidate_source_sha256"]).upper() != expected_source:
+            raise Q10Error("component bundle candidate source mismatch")
+        if str(component["candidate_build_tag"]) != expected_tag:
+            raise Q10Error("component bundle candidate build mismatch")
+        if str(component["demo_evidence_sha256"]).upper() != expected_demo:
+            raise Q10Error("component bundle demo identity mismatch")
+    return bundle
+
+
+def registered_bundle_evidence(bundle: dict[str, Any]) -> dict[str, str]:
+    known: dict[str, str] = {}
+    if bundle.get("schema") == "BBMA_Q10_STAGE_BUNDLE_V1":
+        components = [bundle]
+    elif bundle.get("schema") == "BBMA_Q10_STAGE_BUNDLE_SET_V1":
+        components = [
+            load_json(Path(str(ref["path"])).resolve())
+            for ref in bundle.get("bundles", [])
+        ]
+    else:
+        raise Q10Error("invalid stage bundle schema")
+
+    for component in components:
+        for path_key, hash_key in (
+            ("raw_log_path", "raw_log_sha256"),
+            ("matched_excerpt", "matched_excerpt_sha256"),
+        ):
+            path = str(Path(component[path_key]).resolve())
+            expected = str(component[hash_key]).upper()
+            prior = known.get(path)
+            if prior is not None and prior != expected:
+                raise Q10Error(f"conflicting evidence hash registration: {path}")
+            known[path] = expected
+    return known
+
+
+def combine_stage_bundles(
+    stage: str, bundle_paths: list[Path], output_path: Path
+) -> dict[str, Any]:
+    if not bundle_paths:
+        raise Q10Error("at least one component bundle is required")
+
+    refs: list[dict[str, str]] = []
+    first: dict[str, Any] | None = None
+    for bundle_path in bundle_paths:
+        path = bundle_path.resolve()
+        if not path.is_file():
+            raise Q10Error(f"component bundle missing: {path}")
+        component = load_json(path)
+        _validate_single_bundle(stage, component)
+        if first is None:
+            first = component
+        else:
+            if component["candidate_source_sha256"] != first["candidate_source_sha256"]:
+                raise Q10Error("component bundle candidate source mismatch")
+            if component["candidate_build_tag"] != first["candidate_build_tag"]:
+                raise Q10Error("component bundle candidate build mismatch")
+            if component["demo_evidence_sha256"] != first["demo_evidence_sha256"]:
+                raise Q10Error("component bundle demo identity mismatch")
+        refs.append({"path": str(path), "sha256": sha256_file(path)})
+
+    assert first is not None
+    combined = {
+        "schema": "BBMA_Q10_STAGE_BUNDLE_SET_V1",
+        "stage": stage,
+        "candidate_source_sha256": first["candidate_source_sha256"],
+        "candidate_build_tag": first["candidate_build_tag"],
+        "demo_evidence_sha256": first["demo_evidence_sha256"],
+        "bundles": refs,
+    }
+    write_json(output_path, combined)
+    validate_bundle_integrity(stage, combined)
+    return combined
+
+
 def validate_case_evidence(
     evidence: Any,
     assertions_dir: Path,
@@ -551,12 +658,7 @@ def validate_case_evidence(
     if not isinstance(evidence, list) or not evidence:
         raise Q10Error(f"{case_id} PASS/FAIL requires attributable evidence")
 
-    known = {}
-    for path_key, hash_key in (
-        ("raw_log_path", "raw_log_sha256"),
-        ("matched_excerpt", "matched_excerpt_sha256"),
-    ):
-        known[str(Path(bundle[path_key]).resolve())] = str(bundle[hash_key]).upper()
+    known = registered_bundle_evidence(bundle)
 
     validated: list[dict[str, str]] = []
     for ref in evidence:
@@ -1058,6 +1160,16 @@ def cmd_collect(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_combine_bundles(args: argparse.Namespace) -> int:
+    result = combine_stage_bundles(
+        args.stage,
+        [Path(value) for value in args.bundle],
+        Path(args.output),
+    )
+    print(json.dumps(result, indent=2))
+    return 0
+
+
 def cmd_analyze(args: argparse.Namespace) -> int:
     matrix = load_json(Path(args.matrix))
     bundle = load_json(Path(args.bundle))
@@ -1153,6 +1265,12 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--output-dir", required=True)
     s.add_argument("--start-marker")
     s.set_defaults(func=cmd_collect)
+
+    s = sub.add_parser("combine-bundles")
+    s.add_argument("--stage", required=True)
+    s.add_argument("--bundle", action="append", required=True)
+    s.add_argument("--output", required=True)
+    s.set_defaults(func=cmd_combine_bundles)
 
     s = sub.add_parser("analyze-bundle")
     s.add_argument("--stage", required=True)

@@ -28,7 +28,7 @@ function Sha256([string]$Path) {
     return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash
 }
 
-function Snapshot-Logs([string]$TerminalRoot, [string]$Destination, [string]$Label) {
+function Snapshot-Logs([string]$TerminalRoot, [string]$Destination, [string]$Label, [bool]$RequireHash) {
     $records = @()
     $dirs = @(
         (Join-Path $TerminalRoot "logs"),
@@ -40,12 +40,25 @@ function Snapshot-Logs([string]$TerminalRoot, [string]$Destination, [string]$Lab
             Sort-Object LastWriteTime -Descending |
             Select-Object -First 12
         foreach($f in $files) {
+            $hash = $null
+            $hashError = $null
+            try {
+                $hash = (Get-FileHash -LiteralPath $f.FullName -Algorithm SHA256 -ErrorAction Stop).Hash
+            }
+            catch {
+                $hashError = $_.Exception.Message
+                if($RequireHash) {
+                    Fail-Closed ("LOG_HASH_FAILED_" + $Label.ToUpperInvariant())
+                }
+            }
+
             $records += [ordered]@{
                 label = $Label
                 path = $f.FullName
                 bytes = $f.Length
                 last_write = $f.LastWriteTime.ToString("o")
-                sha256 = (Get-FileHash -LiteralPath $f.FullName -Algorithm SHA256).Hash
+                sha256 = $hash
+                hash_error = $hashError
             }
         }
     }
@@ -132,7 +145,7 @@ if($DryRun) {
 }
 
 New-Item -ItemType Directory -Force -Path $evidence | Out-Null
-$before = Snapshot-Logs $root $evidence "pre_restart"
+$before = Snapshot-Logs $root $evidence "pre_restart" $false
 
 if($running.Count -eq 1) {
     $pidToClose = [int]$running[0].ProcessId
@@ -157,7 +170,7 @@ if($running.Count -eq 1) {
 }
 
 # Snapshot only after the process is fully gone so MT4 has had a chance to flush logs.
-$afterClose = Snapshot-Logs $root $evidence "post_close"
+$afterClose = Snapshot-Logs $root $evidence "post_close" $true
 
 $stillRunning = @(Get-CimInstance Win32_Process -Filter "Name='terminal.exe'" |
     Where-Object {

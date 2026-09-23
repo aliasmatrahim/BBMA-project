@@ -111,10 +111,10 @@ Status: **P1-P11 VERIFIED IN SCOPED DRAFT RESEARCH / CONTRACT STABILIZED / NO AC
 - Exact P10/P11 authority trace remains 2,092/2,092 equal; final tester lineage per run: FIRST=1988, NEW_JOURNEY=28, CONTINUATION=0; broker actions=0.
 - Canonical/runtime/tester native MetaEditor compile = 0 errors / 0 warnings.
 - PR #205 remains Draft: **NO MERGE / NO PRODUCTION ACTIVATION / NO P2 ACTIVATION / NO M5 EXECUTION AUTHORITY**.
-- Issue #101 downstream sequence is now eligible for read-only re-audit, starting with D1TPW lifecycle.
+- Issue #101 downstream production-owner sequence is completed through final integration; do not requeue D1TPW/C044/D1O/M17/TradeLock-risk/N1-N2-N3/M25/Observer/cross-module work without new evidence.
 
 ## Deferred / future work
-- final automated broker/demo user-test programme (#109): run only after one exact final integration candidate is frozen and preceding eligible gates pass.
+- final automated broker/demo user-test programme (#109): **ACTIVE** on exact frozen Build 5.11; Phase L R3 is waiting only on natural D1O restart-continuity evidence (`R3-12`).
 - older dashboard/observer preparation branches are historical staging. Re-audit against the then-current owner before any future materialization; do not merge an old frozen-candidate patch directly.
 
 ## Safety boundary

@@ -42,7 +42,7 @@ Historical patches, experiments and archived evidence are not automatically auth
 4. Open a Draft PR using the repository PR template.
 5. Run the existing specialized compile/static/runtime checks applicable to the change.
 6. Review architecture and regression impact.
-7. Merge only when required evidence is green and material review findings are resolved.
+7. Merge only when required evidence is green and material review findings are resolved. Under the standing user authorization recorded in Issue #256 and repository governance, a normal validated PR is merged without a separate per-PR confirmation; fresh user approval is required only for the explicit exception gates.
 8. Keep the Issue, PR, decisions/contracts and release evidence linked so every change remains traceable.
 
 See `docs/REPOSITORY_GOVERNANCE.md` for the full policy.

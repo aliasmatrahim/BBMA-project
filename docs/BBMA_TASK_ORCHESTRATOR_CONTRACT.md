@@ -154,7 +154,11 @@ Use Issue -> scoped branch -> smallest change -> Draft PR when repository workfl
 
 Before staging/committing locally, verify the current branch and working tree. Preserve unrelated/uncommitted work. Stage only exact task-owned files and inspect the staged diff before commit.
 
-Never automatically force-push, merge, delete branches, destructively reset, deploy, enable production trading, or rewrite project history.
+The user has granted standing authorization for **ordinary validated PR merges**. That standing authorization itself satisfies any older requirement for a fresh "explicit user instruction" before a normal merge.
+
+For a normal scoped PR, once the exact head/target are verified, all scope-required evidence is green, material findings are resolved, no required check is pending/failing, no HOLD/UNRESOLVED/source conflict remains, and the review outcome is MERGE, the orchestrator must mark the PR ready if needed, merge it, verify the target owner contains the exact merge, update/close linked tracking, and continue. It must **not** stop solely to ask for per-PR merge permission.
+
+Never automatically force-push, delete branches, destructively reset, bypass failed/missing validation, merge unresolved Strategy-Core semantics, deploy, enable production trading, restart the primary MT4 terminal, or rewrite project history. Those remain genuine user gates where applicable.
 
 A documentation-only orchestrator change does not require an EA build/version increment.
 
@@ -180,6 +184,8 @@ Next-step rule:
 
 ## 12. User interaction boundary
 
-Proceed continuously through safe, authorized work. User intervention is required only for genuine gates such as explicit strategic approval, credentials, physical action, destructive approval, unavailable dependency, or unresolved BBMA semantic conflict.
+Proceed continuously through safe, authorized work. User intervention is required only for genuine gates such as explicit strategic approval, credentials, physical action, destructive approval, unavailable dependency, unresolved BBMA semantic conflict, or a required validation failure that cannot be safely resolved.
 
-The orchestrator must not stop merely to restate a plan when the next safe action is already determined.
+A normal validated PR merge covered by the standing authorization is **not** a user gate.
+
+The orchestrator must not stop merely to restate a plan, request repeat merge permission, or hand back a normal validated PR when the next safe action is already determined.

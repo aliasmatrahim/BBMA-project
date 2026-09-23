@@ -452,9 +452,11 @@ def test_hybrid_evidence_policy_is_complete_and_fail_closed():
     assert set(policy["stages"]["R4"]["live_reconfirm_cases"])
     assert set(policy["stages"]["R5"]["live_reconfirm_cases"])
     assert set(policy["stages"]["R6"]["live_reconfirm_cases"])
+    assert policy["stages"]["R3"]["deterministic_by_construction_cases"] == ["R3-03"]
+    assert any("R3-03" in rule and "deterministic-by-construction" in rule for rule in policy["rules"])
 
 
-def test_r3_transition_reachability_hold_is_not_promoted():
+def test_historical_r3_transition_hold_artifact_remains_immutable():
     ev = (
         ROOT
         / "blueprint"

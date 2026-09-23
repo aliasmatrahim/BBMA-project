@@ -39,10 +39,12 @@ def write_fixture(tmp_path: Path):
     ]
     log = tmp_path / f"{stem}_tester_newlog.bin"
     log.write_text("\n".join(lines) + "\n", encoding="cp1252")
+    canonical_source = (ROOT / "blueprint" / "source" / "BBMA_EA.mq4").read_text(encoding="utf-8")
+    canonical_source_sha256 = q10h.hashlib.sha256(canonical_source.encode("utf-8")).hexdigest().upper()
     matrix = {
         "label": "ENGINEERING HISTORICAL EVIDENCE / NOT FINAL TICK-ACCURATE",
         "candidate": "Build 5.11 / V511_EVENT_DRIVEN_OBSERVER_20260922",
-        "canonical_mq4_sha256": "SRC",
+        "canonical_mq4_sha256": canonical_source_sha256,
         "tester_adapter_mq4_sha256": "ADAPTER_SRC",
         "tester_adapter_ex4_sha256": "ADAPTER_EX4",
         "settings_sha256": "SET",
@@ -84,7 +86,7 @@ def write_fixture(tmp_path: Path):
             {
                 "build": "5.11",
                 "all_pass": True,
-                "canonical_git_blob_sha256": "SRC",
+                "canonical_git_blob_sha256": canonical_source_sha256,
                 "checks": checks,
             }
         ),
@@ -107,12 +109,23 @@ def test_hybrid_policy_partitions_every_case_once():
         assert reconfirm <= hist
         assert all_cases == matrix_cases
 
+    assert policy["stages"]["R3"]["deterministic_by_construction_cases"] == ["R3-03"]
+    assert "R3-03" in policy["stages"]["R3"]["historical_required_cases"]
+
 
 def test_analyzer_is_hash_bound_and_fail_closed(tmp_path: Path):
     log, hst, invariants = write_fixture(tmp_path)
     result = q10h.analyse(tmp_path, MATRIX, POLICY, hst, invariants)
     assert result["summary"]["fail_count"] == 0
     assert result["historical_cases"]["R3-01"]["status"] == "PASS"
+    assert result["historical_cases"]["R3-03"]["status"] == "PASS"
+    assert result["historical_cases"]["R3-03"]["evidence"]["mode"] == "DETERMINISTIC_BY_CONSTRUCTION"
+    assert result["historical_cases"]["R3-03"]["evidence"]["natural_transition_observations"] == 0
+    assert result["historical_cases"]["R3-03"]["evidence"]["source_reachability"]["pass"] is True
+    expected_source_sha256 = json.loads(
+        (tmp_path / "FINAL_BUILD511_GBPUSD_MATRIX.json").read_text(encoding="utf-8")
+    )["canonical_mq4_sha256"]
+    assert result["historical_cases"]["R3-03"]["evidence"]["source_reachability"]["normalized_source_sha256"] == expected_source_sha256
     assert result["historical_cases"]["R3-06"]["status"] == "PASS"
     assert result["historical_cases"]["R4-04"]["status"] == "PASS"
     assert result["historical_cases"]["R4-07"]["status"] == "PASS"

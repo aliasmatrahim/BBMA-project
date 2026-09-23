@@ -68,7 +68,7 @@ Never convert `INCOMPLETE` or `BLOCKED` into PASS.
 
 Prove the live D1 owner states and ensure D1 Opportunity attribution cannot mutate the executable identity or direction of the underlying fresh lower-timeframe decision.
 
-The current runtime runbook requires observation of D1 BUY, SELL, TRANSITION and UNRESOLVED plus D1O identity/dedup telemetry. Tactical `EXT_TPW` must remain distinct from ordinary strategic-owner-aligned families.
+The current runtime runbook requires attributable D1 BUY, SELL and UNRESOLVED evidence plus D1O identity/dedup telemetry. **R3-03 TRANSITION is the exception to natural-occurrence coverage:** after the 2026-09-23 #248 reconciliation, the immediate EMA(Close) transition safety may be proven deterministically by construction because the old non-equality transition examples are mathematically unreachable under the canonical adjacent-bar mapping. Tactical `EXT_TPW` must remain distinct from ordinary strategic-owner-aligned families.
 
 ## R3 matrix
 
@@ -77,7 +77,7 @@ The current runtime runbook requires observation of D1 BUY, SELL, TRANSITION and
 | R3-00 | Authenticated baseline identity | BASELINE profile in broker/demo session | exact build/blob/SHA/profile verified before D1 assertions | identity mismatch, unauthenticated session, wrong profile |
 | R3-01 | D1 BUY confirmed | runtime D1 owner telemetry on a fully closed D1 candle | canonical owner reports BUY only when the current source-defined BUY conditions are satisfied | BUY owner appears from forming D1 data or unsupported fallback |
 | R3-02 | D1 SELL confirmed | runtime D1 owner telemetry on a fully closed D1 candle | canonical owner reports SELL only when current source-defined SELL conditions are satisfied | SELL owner appears from forming D1 data or unsupported fallback |
-| R3-03 | D1 TRANSITION | valid otherwise-observable D1 transition state | new-entry authority is blocked/transition-classified exactly as current contract requires | transition silently inherits executable prior direction |
+| R3-03 | D1 TRANSITION | deterministic proof of canonical EMA50/PRICE_CLOSE immediate-bar reachability + transition fail-closed branch; natural equality sample optional | non-equality transition is proven unreachable by construction, any transition branch carries DIR_NONE, and new-entry readiness accepts only confirmed BUY/SELL | source/formula contradicts the reachability proof, transition gains executable direction, or readiness accepts transition |
 | R3-04 | D1 UNRESOLVED | missing/invalid D1 history or equivalent source-defined unresolved condition | new strategy entry fails closed; no fabricated D1 owner | EA guesses BUY/SELL or falls back to H4/LTF authority |
 | R3-05 | H4 same-direction under D1 owner | confirmed D1 + compatible H4 setup/owner | downstream eligibility may proceed subject to all other gates | H4 is ignored where contract requires it |
 | R3-06 | H4 opposite D1 | confirmed D1 with otherwise-valid opposite H4 direction | new entry is blocked; H4 cannot override D1 | opposite H4 direction executes against D1 owner |
@@ -93,7 +93,7 @@ The current runtime runbook requires observation of D1 BUY, SELL, TRANSITION and
 
 ## R3 closure rule
 
-R3 is `CLOSED / PASS` only after authenticated evidence covers all four D1 owner classes and proves DecisionID/hash/direction stability plus D1O dedup. If one owner class has not naturally appeared, R3 remains `INCOMPLETE`.
+R3 is `CLOSED / PASS` only after authenticated evidence covers the required D1 owner behavior and proves DecisionID/hash/direction stability plus D1O dedup. BUY, SELL and UNRESOLVED retain their positive-evidence requirements. R3-03 TRANSITION may instead pass through the deterministic-by-construction proof defined by `R3_03_D1_TRANSITION_REACHABILITY_RECONCILIATION_20260923.md`; natural occurrence of an immediate-EMA non-equality transition is not required. A contradiction to that proof remains a blocking verification failure.
 
 ---
 

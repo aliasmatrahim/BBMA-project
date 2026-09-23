@@ -121,6 +121,7 @@ High-value reconciled findings include:
 D1 reconciliation records:
 - `blueprint/decisions/HOME_COURSE_D1_MAJOR_TREND_VS_H4_IMMEDIATE_PARENT_RECONCILIATION.md`;
 - `blueprint/decisions/HOME_COURSE_D1_TRANSITION_MAJOR_TREND_OWNER_DECISION.md`;
+- `blueprint/decisions/R3_03_D1_TRANSITION_REACHABILITY_RECONCILIATION_20260923.md` — clarifies that the immediate adjacent-bar EMA50(Close) slope is algebraically coupled to same-bar price side for non-equality data, so old non-equality transition examples are not naturally reachable and Q10 must validate this state deterministically by construction rather than invent a wider transition rule;
 - `blueprint/CORE_V2_D1_CANONICAL_CONTRACT_RECONCILIATION_AUDIT_20260824.md`.
 
 ## Source precedence / conflict policy

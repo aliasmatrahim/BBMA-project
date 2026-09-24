@@ -41,7 +41,7 @@ Status: **SOURCE/STATIC/NATIVE COMPILE PASS / FINAL BROKER-CLOCK RESTART GATE PE
 - Build 4.80 or Strategy Tester evidence cannot substitute for this exact 4.81 gate.
 
 ### 4. Primary-15 source transcription / reconciliation
-Status: **MECHANICAL TRANSCRIPTION COMPLETE / A4-A5 STRATEGY-CORE SEMANTIC BLOCKERS RESOLVED; TRANSCRIPT-QA RESIDUALS RETAINED**.
+Status: **MECHANICAL TRANSCRIPTION COMPLETE / A4-A5 SEMANTIC BLOCKERS RESOLVED / G40-WIDE STRICT SOURCE RECONCILIATION COMPLETE; EXPLICIT NON_CORE/HOLD BOUNDARIES RETAINED**.
 Fresh Source Autonomy recheck on 2026-09-16 from live G40 manifests and completion markers:
 - 63 existing Primary-15/Group-3 manifests inspected;
 - 63/63 are mechanically complete; missing units = 0;
@@ -53,6 +53,7 @@ Q5 A4/A5 semantic reconciliation is fail-closed under `blueprint/audits/BBMA_Q5_
 - the historical 4 A3 blocked overlaps, 2 excluded A3 records, 6 audio-recheck-empty review rows and W004 duplicate conflict remain preserved as provenance/transcript-QA states only, not Strategy-Core blockers;
 - exact-wording uncertainty remains for five bounded transcript fragments and must not be normalized into source text without materially better evidence;
 - the six audio-recheck-empty source files contain audio streams, and local Finale V07 media is now recovered in the source-audit workspace; neither fact creates new Core authority.
+Strict G40-wide closure on 2026-09-25 additionally inventories/routes the forum archive, extra-deep discovery queue, local Tier-A-priority/direct-Oma-labelled intake, Roohi external-practitioner set and Tier-C derivative taxonomy. Momentum `-nMZUF1Bx0k` and Personal Meeting Room `hqzptZ9uRmg` are now mechanically covered and semantically adjudicated with targeted large-model/visual evidence where material. Result: **PASS WITH EXPLICIT NON_CORE/HOLD BOUNDARIES; ACCEPTED CORE DELTA NONE**. Closure: `blueprint/audits/G40_FINAL_RECONCILIATION_CLOSURE_20260925.md`.
 Rules:
 - do not rerun completed manifests/chunks blindly;
 - no transcript directly creates a production rule; reconcile through the Section 17 source hierarchy first;

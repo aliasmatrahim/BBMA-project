@@ -178,7 +178,7 @@ The exact Build 5.11 source/EX4 candidate is frozen. Phase H remains **56 PASS /
 Issue: **#101**
 Scoped lineage: **Draft PRs #192-#205**
 Priority: **HIGH / SHADOW-RESEARCH CORRECTNESS**
-Status: **P1-P11 VERIFIED / CONTRACT STABILIZED / NO ACTIVATION**
+Status: **V1↔V2 CURRENT-OWNER RECONCILIATION COMPLETE / P1 INTEGRATED / P2-P11 RESEARCH-ONLY / NO ACTIVATION**
 
 Current state:
 1. Do not rerun P1-P10; their exact scoped evidence remains reusable.
@@ -186,8 +186,9 @@ Current state:
 3. Accepted P11: PR #205 head `0f80addc9080e726b8e6bb26a34094ae41ac3256`, Build `4.96`, source SHA-256 `B08CBDEFED1B1A6B6F0B9CADC3CA53B25BD3F98334E7E797A51D765F53E0C148`.
 4. Build 4.95 lineage semantics are superseded; ParentEventID/JourneyID transition = NEW_JOURNEY, unchanged canonical root = FIRST, and CONTINUATION remains unproven without a separate source-owned continuation-event identity.
 5. Static/model/persistence + native compile + deterministic GBPUSD tester authority regression PASS; broker actions=0.
-6. Preserve canonical owner Build 4.86 unchanged. PR #205 stays Draft: no merge, no production activation, no P2 ordering activation, no M5 execution authority.
-7. Issue #101 downstream sequence is **COMPLETED through final integration**; the following list is retained as completed order and must not be requeued without new evidence:
+6. Current owner Build 5.11 already contains the P1 provenance identity substrate. PR #205 is retained as verified historical research provenance only and must **not** be direct-merged: live compare shows it 164 commits behind current owner. Any resumed P2-P8/P10/P11 work must be rematerialized from the then-current owner; P2 ordering remains HOLD and M5 remains shadow-only.
+7. Current-owner reconciliation audit: `blueprint/audits/NMJE_V1_V2_CURRENT_OWNER_IMPLEMENTATION_RECONCILIATION_20260925.md`; current-owner code fix = `NONE`, accepted Core delta = `NONE`.
+8. Issue #101 downstream sequence is **COMPLETED through final integration**; the following list is retained as completed order and must not be requeued without new evidence:
    - D1TPW lifecycle re-audit;
    - C044 lifecycle;
    - D1/D1O identity & dedup;

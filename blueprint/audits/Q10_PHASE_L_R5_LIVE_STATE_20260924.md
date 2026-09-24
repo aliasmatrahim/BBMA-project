@@ -46,7 +46,7 @@ At the 2026-09-24 recovery checkpoint:
 No restart, broker intervention, source change, settings change, Strategy-Core change, or R6 promotion was performed by this reconciliation.
 
 ## Tooling
-PR #268 is the merged tooling-only clean-restart helper fix at `33421ca9fa954b92d6f12bae33844e3fe2f28970`. Exact targeted validation passed 28/28 and EA source delta was zero. Exact targeted validation previously passed 28/28 and EA source delta is zero.
+PR #268 is the merged tooling-only clean-restart helper fix at `33421ca9fa954b92d6f12bae33844e3fe2f28970`. Exact targeted validation passed 28/28 and EA source delta was zero.
 
 ## R6 pre-stage readiness
 

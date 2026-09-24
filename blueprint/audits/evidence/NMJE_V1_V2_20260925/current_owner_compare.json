@@ -1,0 +1,283 @@
+{
+  "schema": "BBMA_NMJE_V1_V2_CURRENT_OWNER_RECONCILIATION_V1",
+  "date": "2026-09-25",
+  "owner": {
+    "ref": "d1-owner-dev",
+    "commit": "f14dc3caad4127e3525744c444469d69e4a53b3a",
+    "build": "5.11",
+    "raw_sha256": "50E4A01A5768B5B5E9A80CABAE21B7260A2912AA058E67E5273386177970D038"
+  },
+  "v2_p11": {
+    "branch": "q9-nmje-v2-p11-lineage-refinement-101",
+    "head": "ddaf4d5855a9f1ddadffd5effff8edab5e71848f",
+    "build": "4.96",
+    "raw_git_show_sha256": "F1539C5A6E2364AF7B033064CAE569CE62D756B519B79D090E4B2D97497D46F9",
+    "documented_canonical_mq4_sha256": "B08CBDEFED1B1A6B6F0B9CADC3CA53B25BD3F98334E7E797A51D765F53E0C148"
+  },
+  "branch_divergence": {
+    "ahead_by": 64,
+    "behind_by": 164,
+    "merge_base": "01f7e8305f6ba558494fc559bb3c734dfc06124a",
+    "source_diff_additions": 2247,
+    "source_diff_deletions": 104
+  },
+  "nmje_functions": {
+    "owner_count": 43,
+    "v2_count": 80,
+    "shared_count": 43,
+    "shared_normalized_exact_count": 41,
+    "shared_changed": [
+      "NMJE_PrintClosedOutcomeShadow",
+      "NMJE_PrintValidatedDecisionShadow"
+    ],
+    "v2_only_count": 37,
+    "v2_only": [
+      "NMJE_AddComponentStructureStages",
+      "NMJE_AppendRelationEvidence",
+      "NMJE_ApplyFirstContinuationLineage",
+      "NMJE_ApplyJourneyProvenanceStability",
+      "NMJE_ApplyM5ProvenanceStability",
+      "NMJE_BuildCandidateStructuralDensity",
+      "NMJE_BuildDecisionStructuralDensity",
+      "NMJE_BuildEntryDisplacementAttribution",
+      "NMJE_BuildM5Refinement",
+      "NMJE_BuildRelationEvidenceID",
+      "NMJE_BuildResolvedJourneyStructureMask",
+      "NMJE_BuildStructurePrefixMask",
+      "NMJE_ClassifyJourneyMaturity",
+      "NMJE_ClassifyM5Maturity",
+      "NMJE_CommitM5Refinement",
+      "NMJE_CountStructureStages",
+      "NMJE_DirectionNormalizedDisplacementPips",
+      "NMJE_FinalizeStructuralDensity",
+      "NMJE_FreezeValidatedDecisionAttribution",
+      "NMJE_IsCanonicalLineageEventID",
+      "NMJE_IsEntryDisplacementValid",
+      "NMJE_IsM5ContextStateValid",
+      "NMJE_IsMaturityDomainValue",
+      "NMJE_IsRelationDomainValue",
+      "NMJE_IsStructuralDensityValid",
+      "NMJE_IsStructureMaskDomainValue",
+      "NMJE_LineageClassText",
+      "NMJE_M5ContextEventID",
+      "NMJE_M5HasStableEvidence",
+      "NMJE_M5LineageSnapshotValid",
+      "NMJE_MaturityText",
+      "NMJE_PrintEqualEligibilityCoherenceShadow",
+      "NMJE_PrintFirstContinuationLineage",
+      "NMJE_PrintProvenanceStability",
+      "NMJE_PrintStructuralDensityShadow",
+      "NMJE_ResolveLineageRootEventID",
+      "NMJE_StructureMaskText"
+    ],
+    "owner_only": []
+  },
+  "identity_substrate": {
+    "owner_has_d1_epoch": true,
+    "owner_has_canonical_event_id": true,
+    "owner_has_parent_event_id": true,
+    "shared_core_nmje_helpers_exact": true
+  },
+  "authority_markers": {
+    "owner_nmje_pass_execution_gate": 0,
+    "v2_nmje_pass_execution_gate": 0,
+    "owner_rej_nmje_relation": 0,
+    "v2_rej_nmje_relation": 0,
+    "owner_period_m5": 0,
+    "v2_period_m5": 8,
+    "legacy_block_inputs_owner_only_declaration": true,
+    "legacy_block_inputs_v2_only_declaration": true
+  },
+  "protected_functions": {
+    "CompareCanonicalCandidates": {
+      "owner": {
+        "present": true,
+        "nmje_refs": 0,
+        "m5_refs": 0,
+        "normalized_sha256": "CAEED9149B75C716265D084D104BB2B19C2C6AFC824386DED695783A0AB20DA7"
+      },
+      "v2": {
+        "present": true,
+        "nmje_refs": 0,
+        "m5_refs": 0,
+        "normalized_sha256": "2E101627ABE70C497274DC6C21BACA63F2BAE62E150A0D39A090649C362AD7B1"
+      },
+      "normalized_equal": false
+    },
+    "PriorityEngine_Atomic": {
+      "owner": {
+        "present": true,
+        "nmje_refs": 0,
+        "m5_refs": 0,
+        "normalized_sha256": "28B34AC1BB7DB58F8B94E468909B691FF7338ECF4EE876E0F47F8759AB00D54B"
+      },
+      "v2": {
+        "present": true,
+        "nmje_refs": 0,
+        "m5_refs": 0,
+        "normalized_sha256": "090A746E4EEA0537C885B8EA0847514AF20502F3CF2B9FF47C73138FEFA3F9F3"
+      },
+      "normalized_equal": false
+    },
+    "InvalidationEngine_Atomic": {
+      "owner": {
+        "present": true,
+        "nmje_refs": 0,
+        "m5_refs": 0,
+        "normalized_sha256": "7264338C505536016A26571ADE40C0533872F800C4901F33B8D1490BADA7CAD0"
+      },
+      "v2": {
+        "present": true,
+        "nmje_refs": 0,
+        "m5_refs": 0,
+        "normalized_sha256": "F854A1EE78743187AD0EBDB8FD6F0B5DEDE06E55FC18EF430A8930025559BAA4"
+      },
+      "normalized_equal": false
+    },
+    "ResolveApprovedInitialSLTP": {
+      "owner": {
+        "present": true,
+        "nmje_refs": 0,
+        "m5_refs": 0,
+        "normalized_sha256": "8A088C9580B9186BBDF7422A732EC5875AE684C9301C3B8EC06A21EF22253EBF"
+      },
+      "v2": {
+        "present": true,
+        "nmje_refs": 0,
+        "m5_refs": 0,
+        "normalized_sha256": "8A088C9580B9186BBDF7422A732EC5875AE684C9301C3B8EC06A21EF22253EBF"
+      },
+      "normalized_equal": true
+    },
+    "CheckRiskBeforeTrade": {
+      "owner": {
+        "present": true,
+        "nmje_refs": 0,
+        "m5_refs": 0,
+        "normalized_sha256": "8F9EB7721652695C20D3B5DBA8FF66343E405A9C81514D84BFF67566B818B708"
+      },
+      "v2": {
+        "present": true,
+        "nmje_refs": 0,
+        "m5_refs": 0,
+        "normalized_sha256": "50DFE78E061AE5442237C4291B353FD2ADAEF9DA62C9945C752415F20EE2FA52"
+      },
+      "normalized_equal": false
+    },
+    "RunEntryPreflightAndExecute": {
+      "owner": {
+        "present": true,
+        "nmje_refs": 0,
+        "m5_refs": 0,
+        "normalized_sha256": "69E1588C94D47448D7B46EB193CB67786AF702B4EC64C407FABEAF531BFBC481"
+      },
+      "v2": {
+        "present": true,
+        "nmje_refs": 0,
+        "m5_refs": 0,
+        "normalized_sha256": "18FC0BC73ECFBDF9BB1366883D5C0EADC823AB1D3C4EF3F209B46CF8D907CA8C"
+      },
+      "normalized_equal": false
+    },
+    "IsSignalAllowed": {
+      "owner": {
+        "present": true,
+        "nmje_refs": 0,
+        "m5_refs": 0,
+        "normalized_sha256": "90B6791F97E1EC5FDBCC467CF0C2AC43B19552DF6F9D3E460F8D5349823732B0"
+      },
+      "v2": {
+        "present": true,
+        "nmje_refs": 0,
+        "m5_refs": 0,
+        "normalized_sha256": "4A2C6B4E6C300C9E993561A9B3F6E534E7008FC69F8ED09F2B5762D7737FCB14"
+      },
+      "normalized_equal": false
+    },
+    "SendOrderWithRetry": {
+      "owner": {
+        "present": true,
+        "nmje_refs": 0,
+        "m5_refs": 0,
+        "normalized_sha256": "CA747072093F4F2AC92CA71DA807C0BA1E88A428481CDE58C1373C478A1AB030"
+      },
+      "v2": {
+        "present": true,
+        "nmje_refs": 0,
+        "m5_refs": 0,
+        "normalized_sha256": "CA747072093F4F2AC92CA71DA807C0BA1E88A428481CDE58C1373C478A1AB030"
+      },
+      "normalized_equal": true
+    },
+    "ResolveExecutionReferencePrice": {
+      "owner": {
+        "present": true,
+        "nmje_refs": 0,
+        "m5_refs": 0,
+        "normalized_sha256": "6C4D92EDCF48010B3A646868F918D7150AD65138DADAA7F17FCEB31287DD23D4"
+      },
+      "v2": {
+        "present": true,
+        "nmje_refs": 0,
+        "m5_refs": 0,
+        "normalized_sha256": "6C4D92EDCF48010B3A646868F918D7150AD65138DADAA7F17FCEB31287DD23D4"
+      },
+      "normalized_equal": true
+    },
+    "ResolveSelectedSLTPSourceComponent": {
+      "owner": {
+        "present": true,
+        "nmje_refs": 0,
+        "m5_refs": 0,
+        "normalized_sha256": "7B3849BFFB76FEE4F23FA8F35D6E1223FA19BCCEDCBF5B0F1FBD09A1AE3896FE"
+      },
+      "v2": {
+        "present": true,
+        "nmje_refs": 0,
+        "m5_refs": 0,
+        "normalized_sha256": "7B3849BFFB76FEE4F23FA8F35D6E1223FA19BCCEDCBF5B0F1FBD09A1AE3896FE"
+      },
+      "normalized_equal": true
+    },
+    "IsApprovedSLTPSourceComponent": {
+      "owner": {
+        "present": true,
+        "nmje_refs": 0,
+        "m5_refs": 0,
+        "normalized_sha256": "2B9A6CF212D543C5827AF6A220614F032643FEA8A6897846AEC2A7587DFBA909"
+      },
+      "v2": {
+        "present": true,
+        "nmje_refs": 0,
+        "m5_refs": 0,
+        "normalized_sha256": "2B9A6CF212D543C5827AF6A220614F032643FEA8A6897846AEC2A7587DFBA909"
+      },
+      "normalized_equal": true
+    }
+  },
+  "v2_only_structs": [
+    "NMJEEntryDisplacementState",
+    "NMJEM5RefinementState",
+    "NMJEShadowAttributionState",
+    "NMJEStructuralDensityState"
+  ],
+  "owner_only_structs": [
+    "PendingExecutionAmbiguity"
+  ],
+  "verdict": {
+    "p1": "ALREADY_INTEGRATED_EQUIVALENT_IN_OWNER",
+    "p2": "SHADOW_METADATA_ONLY_ORDERING_HOLD",
+    "p3": "V2_ONLY_M5_SHADOW_REBASE_REQUIRED_IF_RESUMED",
+    "p4": "V2_ONLY_RESEARCH_ATTRIBUTION_REBASE_REQUIRED_DUE_NEW_OWNER_EXECUTION_PERSISTENCE",
+    "p5": "V2_ONLY_DIAGNOSTIC_MAPPING_HOLD_ON_TRUE_CONFLICT",
+    "p6": "V2_ONLY_CATEGORICAL_RESEARCH_METADATA",
+    "p7": "V2_ONLY_STRUCTURAL_RESEARCH_METADATA",
+    "p8": "V2_ONLY_OBSERVER_STABILITY_REBASE_REQUIRED",
+    "p9": "NO_CODE_DELTA_OWNER_SOURCE_RESOLVERS_STILL_EQUAL",
+    "p10": "V2_ONLY_POST_FILL_TELEMETRY_REBASE_REQUIRED",
+    "p11": "V2_ONLY_LINEAGE_METADATA_REBASE_REQUIRED",
+    "direct_merge_pr205": "PROHIBITED_BY_DIVERGENCE_REGRESSION_RISK",
+    "core_delta": "NONE",
+    "execution_authority_delta": "NONE"
+  }
+}

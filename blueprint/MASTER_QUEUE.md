@@ -168,7 +168,7 @@ Status: **VERIFIED / COMPLETE — GBPUSD ENGINEERING HISTORICAL EVIDENCE**
 
 ### Q10 — Hybrid historical coverage + final MetaQuotes-Demo acceptance
 Issue: **#109**
-Status: **ACTIVE / PHASE L LIVE RECONFIRMATION / R3 NATURAL D1O RESTART GATE**
+Status: **ACTIVE / PHASE L LIVE RECONFIRMATION / R5 NATURAL BROKER-EVENT GATE**
 
 The exact Build 5.11 source/EX4 candidate is frozen. Phase H remains **56 PASS / 1 conditional INCOMPLETE / 0 FAIL**; R5-19 is the approved safe-only conditional case and must not be manufactured. PR #265 merged the final-live `Q10_20PAIR_R2_20260923` settings revision: the only functional settings delta is PairList expansion from GBPUSD to 20 MetaQuotes-Demo-supported fixed-ID FX pairs, with `MaxActivePair=1` and all other approved risk/MM/execution settings unchanged. Read-only broker smoke passed 20/20 resolution/specification plus PairID/Magic isolation. V2 stage evidence binds exact EX4 + settings SHA, so legacy GBPUSD-only Phase-L bundles cannot be combined into R2 evidence. Formal exact-R2 Phase-L state is now `R3 = PASS`, `R4 = PASS`, `R5 = INCOMPLETE`, and `R6 = NOT PROMOTED`. R5 live/reconfirm PASS cases are `R5-00/R5-01/R5-11/R5-12/R5-13/R5-20`; the only mandatory blockers are **R5-14** (natural server blank/replaced broker comment) and **R5-16** (natural safe retryable OrderSend error 135/138/146), with no mandatory R5 FAIL. The dedicated exact-R2 terminal remains running; neither broker condition may be synthesized. R6 cannot be formally promoted until R5 passes. Current runtime audit: `blueprint/audits/Q10_PHASE_L_R5_LIVE_STATE_20260924.md`.
 

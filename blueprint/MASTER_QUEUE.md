@@ -44,7 +44,7 @@ Closure handling:
 
 ### Q5 — Reconcile completed source evidence against current Core/code
 Priority: **HIGH / SOURCE RECONCILIATION**
-Status: **COMPLETE FOR Q7 / TRANSCRIPT-QA RESIDUALS NON-BLOCKING**
+Status: **COMPLETE / G40-WIDE STRICT RECONCILIATION PASS / TRANSCRIPT-QA + NON_CORE/HOLD BOUNDARIES NON-BLOCKING**
 
 Current semantic state after Issue #169 / PR #170 and full Q5 Issue #176 closure:
 - 9 retained records = 6 `CORROBORATION_ONLY` + 3 `REJECTED`; Strategy-Core semantic `UNCLEAR`/`PARTIAL` = 0;
@@ -53,6 +53,8 @@ Current semantic state after Issue #169 / PR #170 and full Q5 Issue #176 closure
 - five exact-wording fragments remain uncertain and non-executable pending materially better evidence;
 - these transcript-QA residuals do not block accepted Core semantics or authorize production changes;
 - Issue #180 / PR #183 is closed unmerged because current owner Build 4.86 already contains the shared MA5/MA10 close-side guard before Type-3 confirmation, so a Type-3-local patch would duplicate canonical logic.
+- 2026-09-25 strict G40-wide source audit is complete: all discovered U1-U6 families now have route/dedup/evidence/authority dispositions; Momentum and Personal Meeting Room media blockers are reconciled; accepted Core delta = `NONE`; news-specific/personal/derivative/ambiguous material remains explicitly NON_CORE/HOLD.
+- Final closure: `blueprint/audits/G40_FINAL_RECONCILIATION_CLOSURE_20260925.md`.
 
 Scope:
 - Extreme/MHV/MLV/Re-Entry/CSA-CSAK/Momentum/F7 timing/lifecycle;
@@ -166,9 +168,9 @@ Status: **VERIFIED / COMPLETE — GBPUSD ENGINEERING HISTORICAL EVIDENCE**
 
 ### Q10 — Hybrid historical coverage + final MetaQuotes-Demo acceptance
 Issue: **#109**
-Status: **ACTIVE / PHASE L LIVE RECONFIRMATION / R5 NATURAL BROKER-EVENT GATE**
+Status: **ACTIVE / PHASE L LIVE RECONFIRMATION / R3 NATURAL D1O RESTART GATE**
 
-The exact Build 5.11 source/EX4 candidate is frozen. Phase H remains **56 PASS / 1 conditional INCOMPLETE / 0 FAIL**; R5-19 is the approved safe-only conditional case and must not be manufactured. PR #265 merged the final-live acceptance revision `Q10_20PAIR_R2_20260923`: the only functional settings delta is PairList expansion from GBPUSD to 20 MetaQuotes-Demo-supported fixed-ID FX pairs, with `MaxActivePair=1` and all other approved settings unchanged. Read-only runtime smoke passed 20/20 resolution/specification plus PairID/Magic isolation. V2 stage evidence binds exact EX4 + settings SHA, so legacy GBPUSD-only Phase-L bundles cannot be combined into R2 evidence. Formal exact-R2 Phase-L state is now `R3 = PASS`, `R4 = PASS`, `R5 = INCOMPLETE`, and `R6 = NOT PROMOTED`. R5 live/reconfirm PASS cases are `R5-00/R5-01/R5-11/R5-12/R5-13/R5-20`; the only mandatory blockers are `R5-14` (natural server blank/replaced broker comment) and `R5-16` (natural safe retryable OrderSend error 135/138/146), with no mandatory R5 FAIL. The dedicated exact-R2 terminal remains running; neither broker condition may be synthesized. R6 cannot be formally promoted until R5 passes. Current runtime audit: `blueprint/audits/Q10_PHASE_L_R5_LIVE_STATE_20260924.md`.
+The exact Build 5.11 source/EX4 candidate is frozen. Phase H remains **56 PASS / 1 conditional INCOMPLETE / 0 FAIL**; R5-19 is the approved safe-only conditional case and must not be manufactured. PR #265 merged the final-live `Q10_20PAIR_R2_20260923` settings revision: the only functional settings delta is PairList expansion from GBPUSD to 20 MetaQuotes-Demo-supported fixed-ID FX pairs, with `MaxActivePair=1` and all other approved risk/MM/execution settings unchanged. Read-only broker smoke passed 20/20 resolution/specification plus PairID/Magic isolation. V2 stage evidence binds exact EX4 + settings SHA, so legacy GBPUSD-only Phase-L bundles cannot be combined into R2 evidence. Formal exact-R2 Phase-L state is now `R3 = PASS`, `R4 = PASS`, `R5 = INCOMPLETE`, and `R6 = NOT PROMOTED`. R5 live/reconfirm PASS cases are `R5-00/R5-01/R5-11/R5-12/R5-13/R5-20`; the only mandatory blockers are **R5-14** (natural server blank/replaced broker comment) and **R5-16** (natural safe retryable OrderSend error 135/138/146), with no mandatory R5 FAIL. The dedicated exact-R2 terminal remains running; neither broker condition may be synthesized. R6 cannot be formally promoted until R5 passes. Current runtime audit: `blueprint/audits/Q10_PHASE_L_R5_LIVE_STATE_20260924.md`.
 
 ## Stage E - Deferred / future
 
@@ -176,7 +178,7 @@ The exact Build 5.11 source/EX4 candidate is frozen. Phase H remains **56 PASS /
 Issue: **#101**
 Scoped lineage: **Draft PRs #192-#205**
 Priority: **HIGH / SHADOW-RESEARCH CORRECTNESS**
-Status: **P1-P11 VERIFIED / CONTRACT STABILIZED / NO ACTIVATION**
+Status: **V1↔V2 CURRENT-OWNER RECONCILIATION COMPLETE / P1 INTEGRATED / P2-P11 RESEARCH-ONLY / NO ACTIVATION**
 
 Current state:
 1. Do not rerun P1-P10; their exact scoped evidence remains reusable.
@@ -184,8 +186,9 @@ Current state:
 3. Accepted P11: PR #205 head `0f80addc9080e726b8e6bb26a34094ae41ac3256`, Build `4.96`, source SHA-256 `B08CBDEFED1B1A6B6F0B9CADC3CA53B25BD3F98334E7E797A51D765F53E0C148`.
 4. Build 4.95 lineage semantics are superseded; ParentEventID/JourneyID transition = NEW_JOURNEY, unchanged canonical root = FIRST, and CONTINUATION remains unproven without a separate source-owned continuation-event identity.
 5. Static/model/persistence + native compile + deterministic GBPUSD tester authority regression PASS; broker actions=0.
-6. Preserve canonical owner Build 4.86 unchanged. PR #205 stays Draft: no merge, no production activation, no P2 ordering activation, no M5 execution authority.
-7. Issue #101 downstream sequence is **COMPLETED through final integration**; the following list is retained as completed order and must not be requeued without new evidence:
+6. Current owner Build 5.11 already contains the P1 provenance identity substrate. PR #205 is retained as verified historical research provenance only and must **not** be direct-merged: live compare shows it 164 commits behind current owner. Any resumed P2-P8/P10/P11 work must be rematerialized from the then-current owner; P2 ordering remains HOLD and M5 remains shadow-only.
+7. Current-owner reconciliation audit: `blueprint/audits/NMJE_V1_V2_CURRENT_OWNER_IMPLEMENTATION_RECONCILIATION_20260925.md`; current-owner code fix = `NONE`, accepted Core delta = `NONE`.
+8. Issue #101 downstream sequence is **COMPLETED through final integration**; the following list is retained as completed order and must not be requeued without new evidence:
    - D1TPW lifecycle re-audit;
    - C044 lifecycle;
    - D1/D1O identity & dedup;

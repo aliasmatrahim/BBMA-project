@@ -11362,6 +11362,11 @@ void ProcessPair(int pairIndex)
    GetDataForTimeframe(actual, PERIOD_M15, g_pair_states[pairIndex].tf_snapshot.M15_CandleTime,
                        g_pair_states[pairIndex].m15_data);
 
+   // NMJE P3 reads one closed M5 snapshot from the M15-owned cycle only.
+   GetDataForTimeframe(actual, PERIOD_M5,
+                       GetLatestClosedCandleTime(actual, PERIOD_M5),
+                       g_pair_states[pairIndex].m5_data);
+
    // D1-01: classify strategic D1/MA50 owner from fully closed D1 data.
    // Producer only in this step; M15/M16 consumption is intentionally later.
    UpdateD1MajorTrendOwner(actual, g_pair_states[pairIndex]);

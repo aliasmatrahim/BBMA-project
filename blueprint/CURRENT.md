@@ -41,7 +41,7 @@ Status: **SOURCE/STATIC/NATIVE COMPILE PASS / FINAL BROKER-CLOCK RESTART GATE PE
 - Build 4.80 or Strategy Tester evidence cannot substitute for this exact 4.81 gate.
 
 ### 4. Primary-15 source transcription / reconciliation
-Status: **MECHANICAL TRANSCRIPTION COMPLETE / A4-A5 SEMANTIC BLOCKERS RESOLVED / G40-WIDE STRICT SOURCE RECONCILIATION COMPLETE; EXPLICIT NON_CORE/HOLD BOUNDARIES RETAINED**.
+Status: **MECHANICAL TRANSCRIPTION COMPLETE / A4-A5 STRATEGY-CORE SEMANTIC BLOCKERS RESOLVED; TRANSCRIPT-QA RESIDUALS RETAINED**.
 Fresh Source Autonomy recheck on 2026-09-16 from live G40 manifests and completion markers:
 - 63 existing Primary-15/Group-3 manifests inspected;
 - 63/63 are mechanically complete; missing units = 0;
@@ -53,7 +53,6 @@ Q5 A4/A5 semantic reconciliation is fail-closed under `blueprint/audits/BBMA_Q5_
 - the historical 4 A3 blocked overlaps, 2 excluded A3 records, 6 audio-recheck-empty review rows and W004 duplicate conflict remain preserved as provenance/transcript-QA states only, not Strategy-Core blockers;
 - exact-wording uncertainty remains for five bounded transcript fragments and must not be normalized into source text without materially better evidence;
 - the six audio-recheck-empty source files contain audio streams, and local Finale V07 media is now recovered in the source-audit workspace; neither fact creates new Core authority.
-Strict G40-wide closure on 2026-09-25 additionally inventories/routes the forum archive, extra-deep discovery queue, local Tier-A-priority/direct-Oma-labelled intake, Roohi external-practitioner set and Tier-C derivative taxonomy. Momentum `-nMZUF1Bx0k` and Personal Meeting Room `hqzptZ9uRmg` are now mechanically covered and semantically adjudicated with targeted large-model/visual evidence where material. Result: **PASS WITH EXPLICIT NON_CORE/HOLD BOUNDARIES; ACCEPTED CORE DELTA NONE**. Closure: `blueprint/audits/G40_FINAL_RECONCILIATION_CLOSURE_20260925.md`.
 Rules:
 - do not rerun completed manifests/chunks blindly;
 - no transcript directly creates a production rule; reconcile through the Section 17 source hierarchy first;
@@ -100,10 +99,10 @@ Authorized G40 Remote Desktop Commander is reachable. Q3 isolated Build 4.81 run
 - D1 Package-B re-audit merged: current M11 -> M15 -> M16 is already integrated; old queue text describing it as unimplemented is historical/stale.
 - project-governance drift #111 and live-status resolution #113 closed by documentation-only governance merge `262ff66...`.
 - historical one-shot trigger issues/PRs and validation-only PRs that explicitly said `do not merge` were closed without deleting their branches/evidence.
-- Issue #109 is active on exact Build 5.11 under hybrid tester-first / MetaQuotes-Demo-last acceptance. Phase H remains **56 PASS / 1 conditional INCOMPLETE / 0 FAIL**. PR #265 merged the final-live `Q10_20PAIR_R2_20260923` settings revision: 20 MetaQuotes-Demo-supported fixed-ID pairs, settings SHA `F114C1DE07ABED434B2754F210E43993E9E3D81599CA5900536E5E2F65F2E700`, `MaxActivePair=1`, Build 5.11 source/EX4 unchanged. Read-only broker smoke passed 20/20 symbol resolution, broker specification, PairID and Magic validation. Formal exact-R2 Phase-L R3 evidence is now attributable and combined under the V2 identity binding: `R3-00`, `R3-02`, `R3-04`, `R3-05` and `R3-15` are **PASS**; `R3-12` is the sole mandatory **INCOMPLETE** case; no required R3 case is FAIL. The exact-R2 combined analysis bundle SHA-256 is `432B5E0F69093F10587E6923616C3B6EC0FE0724FB07DA6DEC244C2732C03915`. The dedicated MetaQuotes-Demo terminal was resumed on exact 20-pair R2 after the controlled R3-04 check; no natural D1O-origin identity/trade has yet appeared, so no restart is authorized. Evidence: `blueprint/audits/Q10_R3_R2_Q3_RUNTIME_CONTINUATION_20260923.md`.
+- Issue #109 is active on exact Build 5.11 under hybrid tester-first / MetaQuotes-Demo-last acceptance. The older R3-only status below is superseded by the 2026-09-24 exact-R2 runtime checkpoint. Formal local Phase-L state is now **R3 PASS / R4 PASS / R5 INCOMPLETE / R6 NOT PROMOTED**. R5 mandatory live/reconfirm PASS cases are `R5-00/R5-01/R5-11/R5-12/R5-13/R5-20`; the only mandatory blockers are **R5-14** (natural server blank/replaced broker comment) and **R5-16** (natural safe retryable OrderSend error 135/138/146), with no mandatory R5 FAIL. USDCHF ticket `1629172566` / hash `CA000D516825BB44` survived a guarded graceful restart as the same persisted identity with `Monitored=1`; no duplicate ticket was observed. Exact candidate/source/EX4/settings identity is unchanged. Evidence: `blueprint/audits/Q10_PHASE_L_R5_LIVE_STATE_20260924.md`.
 
 ### 8. Q9 NMJE v2 / M5 accuracy hardening — Issue #101
-Status: **V1↔V2 CURRENT-OWNER RECONCILIATION COMPLETE / P1 INTEGRATED / P2-P11 RESEARCH-ONLY / NO ACTIVATION**.
+Status: **P1-P11 VERIFIED IN SCOPED DRAFT RESEARCH / CONTRACT STABILIZED / NO ACTIVATION**.
 - Q9 P1-P11 Draft/scoped research lineage #192-#205 remains non-activated against canonical owner Build 5.11; NMJE remains observation-only and M5 remains closed-candle context/shadow only. Subsequent Issue #101 downstream production-owner audits/fixes through Build 5.11 were completed separately and must not be requeued.
 - User decision A locks strict canonical JourneyID semantics for P11.
 - Accepted P11 head: PR #205 commit `0f80addc9080e726b8e6bb26a34094ae41ac3256`, Build `4.96` / `V496_Q9_P11_STRICT_JOURNEY_LINEAGE_20260920`, MQ4 SHA-256 `B08CBDEFED1B1A6B6F0B9CADC3CA53B25BD3F98334E7E797A51D765F53E0C148`.
@@ -111,8 +110,7 @@ Status: **V1↔V2 CURRENT-OWNER RECONCILIATION COMPLETE / P1 INTEGRATED / P2-P11
 - Legacy Build 4.95 higher-owner-root semantics are superseded; durable 4.95 CONTINUATION loads fail-closed as UNRESOLVED under 4.96.
 - Exact P10/P11 authority trace remains 2,092/2,092 equal; final tester lineage per run: FIRST=1988, NEW_JOURNEY=28, CONTINUATION=0; broker actions=0.
 - Canonical/runtime/tester native MetaEditor compile = 0 errors / 0 warnings.
-- PR #205 remains Draft provenance only: **DO NOT DIRECT-MERGE / NO PRODUCTION ACTIVATION / NO P2 ACTIVATION / NO M5 EXECUTION AUTHORITY**.
-- 2026-09-25 V1↔V2 current-owner reconciliation against Build 5.11: P1 identity substrate is already integrated/equivalent; P2-P8/P10/P11 remain bounded research/shadow concepts. PR #205 is 164 commits behind live owner and must be rematerialized from current owner if research resumes. Current-owner code fix = `NONE`. Audit: `blueprint/audits/NMJE_V1_V2_CURRENT_OWNER_IMPLEMENTATION_RECONCILIATION_20260925.md`.
+- PR #205 remains Draft: **NO MERGE / NO PRODUCTION ACTIVATION / NO P2 ACTIVATION / NO M5 EXECUTION AUTHORITY**.
 - Issue #101 downstream production-owner sequence is completed through final integration; do not requeue D1TPW/C044/D1O/M17/TradeLock-risk/N1-N2-N3/M25/Observer/cross-module work without new evidence.
 
 ## Deferred / future work

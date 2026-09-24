@@ -99,6 +99,33 @@ Unresolved items remain in `BBMA_FINALE_SOURCE_CONFLICT_REGISTER.md`. Active cod
 
 The Finale material does **not automatically override** the established PDF contracts. A source clarification and an implementation fix are deliberately treated as separate decisions.
 
+### BBMATV Group-3 + PRIMARY15 corrected video corpus
+- Corpus workspace: `D:\\BBMA_SOURCE_AUDIT_VIDEOS`.
+- Scope: Group-3 (48 videos) + PRIMARY15 (15 videos) = 63 videos.
+- Corrected evidence layer: `FINAL_CORRECTED_20260911`; originals remain unchanged.
+- A2/A3/A4/A5 provenance and semantic boundaries are governed by the Q5 closure records below.
+- Use rule: this corpus is supplemental instructional/corroboration evidence. ASR ambiguity, PARTIAL, UNCLEAR, duplicate conflict, empty-audio recheck or unresolved provenance may not create or weaken an executable Core rule.
+
+### G40-wide discovered supplemental source layers
+Strict archive-wide discovery/reconciliation is closed by `blueprint/audits/G40_FINAL_RECONCILIATION_CLOSURE_20260925.md`.
+- U1 ForexFactory BBMA/Oma Ally archive: community/supplemental, corroboration only.
+- U2 extra-deep YouTube discovery map/queue: discovery metadata only; no rule authority.
+- U3/U4 local Tier-A-priority/direct-Oma-labelled intake: supplemental instructional evidence; exact claims require provenance + semantic reconciliation before any Core use.
+- U5 Roohi structured archive: external-practitioner corroboration with an authority ceiling; cannot independently change Core.
+- U6 Tier-C advanced taxonomy: derivative/discovery evidence; HOLD/NON-EXECUTABLE unless stronger evidence later resolves a specific item.
+- Momentum `-nMZUF1Bx0k` and Personal Meeting Room `hqzptZ9uRmg` now have complete local screening coverage plus targeted large-model adjudication of material windows. Accepted Core delta is **NONE**.
+- News-specific Momentum next-candle wording remains **NON_CORE / HOLD-NON-EXECUTABLE**; personal management, fixed candle thresholds and unrestricted lower-TF state synthesis remain outside executable Core.
+- Content-dedup result: no strong mirror/re-upload match against Group-3/PRIMARY15/Finale; uniqueness never implies authority.
+
+Detailed records:
+- `blueprint/audits/G40_STRICT_SOURCE_DISCOVERY_AUDIT_20260924.md`
+- `blueprint/audits/G40_STRICT_SOURCE_DEDUP_GATE_20260924.md`
+- `blueprint/audits/G40_SOURCE_RECONCILIATION_REGISTER_20260924.md`
+- `blueprint/audits/TIER_B_C_ITEM_LEVEL_CLOSURE_20260924.md`
+- `blueprint/audits/G40_CONTENT_DEDUP_CLOSURE_20260925.md`
+- `blueprint/audits/G40_TIERA_MEDIA_SEMANTIC_RECONCILIATION_20260925.md`
+- `blueprint/audits/NMJE_V1_V2_FULL_SOURCE_RECONCILIATION_20260924.md`
+
 ### A4/A5 supplemental video reconciliation
 - Closure record: `blueprint/audits/BBMA_Q5_A4A5_SEMANTIC_RESOLUTION_20260916.md`.
 - Nine retained A4/A5 evidence rows are resolved at the Strategy-Core semantic layer as 6 `CORROBORATION_ONLY` + 3 `REJECTED`.

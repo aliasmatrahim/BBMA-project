@@ -44,7 +44,7 @@ Closure handling:
 
 ### Q5 — Reconcile completed source evidence against current Core/code
 Priority: **HIGH / SOURCE RECONCILIATION**
-Status: **COMPLETE FOR Q7 / TRANSCRIPT-QA RESIDUALS NON-BLOCKING**
+Status: **COMPLETE / G40-WIDE STRICT RECONCILIATION PASS / TRANSCRIPT-QA + NON_CORE/HOLD BOUNDARIES NON-BLOCKING**
 
 Current semantic state after Issue #169 / PR #170 and full Q5 Issue #176 closure:
 - 9 retained records = 6 `CORROBORATION_ONLY` + 3 `REJECTED`; Strategy-Core semantic `UNCLEAR`/`PARTIAL` = 0;
@@ -53,6 +53,8 @@ Current semantic state after Issue #169 / PR #170 and full Q5 Issue #176 closure
 - five exact-wording fragments remain uncertain and non-executable pending materially better evidence;
 - these transcript-QA residuals do not block accepted Core semantics or authorize production changes;
 - Issue #180 / PR #183 is closed unmerged because current owner Build 4.86 already contains the shared MA5/MA10 close-side guard before Type-3 confirmation, so a Type-3-local patch would duplicate canonical logic.
+- 2026-09-25 strict G40-wide source audit is complete: all discovered U1-U6 families now have route/dedup/evidence/authority dispositions; Momentum and Personal Meeting Room media blockers are reconciled; accepted Core delta = `NONE`; news-specific/personal/derivative/ambiguous material remains explicitly NON_CORE/HOLD.
+- Final closure: `blueprint/audits/G40_FINAL_RECONCILIATION_CLOSURE_20260925.md`.
 
 Scope:
 - Extreme/MHV/MLV/Re-Entry/CSA-CSAK/Momentum/F7 timing/lifecycle;

@@ -1,0 +1,77 @@
+{
+  "schema": "BBMA_G40_TIERA_MEDIA_EVIDENCE_V1",
+  "generated_on": "2026-09-25",
+  "authority_note": "Derived ASR/screenshots are audit evidence only. Original media remains on G40; Core authority follows SOURCE_INDEX precedence and semantic reconciliation.",
+  "artifacts": [
+    {
+      "name": "momentum_audio_g40",
+      "path": "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\youtube_priority\\P0\\08_momentum_oma_ally_-nMZUF1Bx0k\\BBMA Basic Signal Momentun - Dijelaskan Oleh Oma Ally [-nMZUF1Bx0k].m4a",
+      "in_repository": false,
+      "size_bytes": 13817357,
+      "sha256": "A26A4E03265C8A062DA9F0BED52D2BFFAA252BF76D9F59E8F72B61356E71512E"
+    },
+    {
+      "name": "momentum_full_screening_repo",
+      "path": "blueprint\\audits\\evidence\\G40_TIERA_MEDIA_20260925\\MOMENTUM_FULL_SMALL_V3.txt",
+      "in_repository": true,
+      "size_bytes": 9859,
+      "sha256": "B082525FA7315EA3817267DB5C49B4B446AAF7A7C33D26BDA968469DD5A1F8AD"
+    },
+    {
+      "name": "momentum_w3_large_repo",
+      "path": "blueprint\\audits\\evidence\\G40_TIERA_MEDIA_20260925\\MOMENTUM_W3_LARGE.txt",
+      "in_repository": true,
+      "size_bytes": 930,
+      "sha256": "C201B42AB91D17DC5E3349F08077628C526E611B4EB897E7EA2AB745195657C8"
+    },
+    {
+      "name": "pmr_audio_g40",
+      "path": "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\youtube_priority\\P0\\A_hqzptZ9uRmg\\Oma Ally BBMA's Personal Meeting Room [hqzptZ9uRmg].m4a",
+      "in_repository": false,
+      "size_bytes": 119309565,
+      "sha256": "0C92C84C340F3440C4712DFA7F0EFFA5DC0371298F0B7AD01F6B9201E9FD7313"
+    },
+    {
+      "name": "pmr_full_screening_repo",
+      "path": "blueprint\\audits\\evidence\\G40_TIERA_MEDIA_20260925\\PMR_FULL_SMALL_V3.txt",
+      "in_repository": true,
+      "size_bytes": 91943,
+      "sha256": "1B186C834DCA9F78ADC6D88CF76468ECC8066407484243B7FEEC7AA3E53AFF87"
+    },
+    {
+      "name": "pmr_w1_large_repo",
+      "path": "blueprint\\audits\\evidence\\G40_TIERA_MEDIA_20260925\\PMR_W1_RE_MIDBB_LARGE.txt",
+      "in_repository": true,
+      "size_bytes": 2113,
+      "sha256": "D13BBF92F9A9392E9576756B1276D03C1CB6A957726DD657E3F662F01C3AAAFA"
+    },
+    {
+      "name": "pmr_w2_large_repo",
+      "path": "blueprint\\audits\\evidence\\G40_TIERA_MEDIA_20260925\\PMR_W2_MTF_LARGE.txt",
+      "in_repository": true,
+      "size_bytes": 1973,
+      "sha256": "2C034BA43C6428211562E25F0F98370184B73373064109DDF720453FA49BE542"
+    },
+    {
+      "name": "pmr_w1_visual_64s_repo",
+      "path": "blueprint\\audits\\evidence\\G40_TIERA_MEDIA_20260925\\PMR_W1_VISUAL_64S.png",
+      "in_repository": true,
+      "size_bytes": 577957,
+      "sha256": "26DB6246215B7C7F29E21641C9F7E9FDF571A668709872B3A2B657533867ACA0"
+    },
+    {
+      "name": "pmr_w1_visual_78s_repo",
+      "path": "blueprint\\audits\\evidence\\G40_TIERA_MEDIA_20260925\\PMR_W1_VISUAL_78S.png",
+      "in_repository": true,
+      "size_bytes": 575647,
+      "sha256": "37BA2F93801177AE121787DC78B57EE3F64750B1DE37E47AD6BA7773A3F5CECA"
+    },
+    {
+      "name": "pmr_visual_section_g40",
+      "path": "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\youtube_priority\\P0\\A_hqzptZ9uRmg\\large_recheck\\W1_VISUAL_FF9_6080_6190.mp4",
+      "in_repository": false,
+      "size_bytes": 1434946,
+      "sha256": "2AC8D4AD9429F43CF3B0DCA8A13CA7E1AE943B2DA58AA22F65FFF19DDD7EB2AB"
+    }
+  ]
+}

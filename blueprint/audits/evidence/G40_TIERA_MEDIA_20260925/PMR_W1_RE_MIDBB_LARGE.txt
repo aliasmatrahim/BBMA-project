@@ -1,0 +1,44 @@
+# language=ms probability=1
+[6080.00 --> 6081.00] So, saya enter
+[6081.54 --> 6082.00] Kalau
+[6082.84 --> 6085.96] Kat tu dia ada pertemuan dekat apa? Dia reject kat mid tu kan?
+[6086.22 --> 6089.16] Saya enter dekat yang second candle tu
+[6089.70 --> 6091.20] Ni, apa yang atas ni?
+[6091.20 --> 6092.62] Yang kiri, yang kiri sikit
+[6093.22 --> 6094.88] Kiri entry yang lepas second candle tu
+[6095.26 --> 6095.88] Sel, bye?
+[6096.36 --> 6096.98] Ah, sel, sel
+[6098.44 --> 6099.02] Ada duit
+[6102.54 --> 6103.00] Okay?
+[6104.20 --> 6108.74] Saya enter dekat second candle tu sebab saya filter 15 minit di ekstrim
+[6112.62 --> 6114.98] 15 minit, set up time frame 1 jam.
+[6116.08 --> 6116.62] Haa, maksudnya,
+[6117.06 --> 6117.70] saya filter
+[6118.64 --> 6119.04] H1 tu,
+[6119.70 --> 6121.28] re-entry dekat second candle tu kan.
+[6121.62 --> 6121.76] Yang,
+[6123.10 --> 6126.02] so 15 minit ada extreme cell, 5 minit tu
+[6126.48 --> 6127.46] ada MHB lah kan.
+[6127.98 --> 6129.62] Ya. Tapi dia naik, dia cari mid BB.
+[6130.36 --> 6131.86] Dia cari mid BB baru dia jatuh je lah.
+[6132.44 --> 6132.62] Haa.
+[6134.04 --> 6134.34] Kenapa?
+[6135.70 --> 6136.26] So, maksudnya,
+[6137.24 --> 6139.66] re-entry cell tu valid selagi tak lepas mid BB lah kan.
+[6142.62 --> 6146.96] melepasi Mbibi maknanya re-entry tu masih valid. Itu ciri-ciri dia.
+[6148.84 --> 6149.00] Kan?
+[6149.86 --> 6151.46] Dia melepasi Mb5, Mb10
+[6151.76 --> 6153.62] high tapi tak melepasi Mbibi.
+[6155.04 --> 6156.96] Kalau nak jadi candle arah kukuh macam mana?
+[6157.48 --> 6159.80] Candle close melepasi Mb5, Mb10
+[6160.66 --> 6161.38] dan Mbibi.
+[6161.90 --> 6162.84] Itu arah kukuh kan?
+[6163.34 --> 6166.56] Itu untuk re-entry dia tak boleh jadi arah kukuh tu.
+[6168.48 --> 6170.74] So, maknanya candle ni kena close di bawah.
+[6172.62 --> 6173.96] 5-10
+[6174.68 --> 6175.76] tapi tak melepasi
+[6176.14 --> 6177.36] Mibibi so dia masih
+[6179.54 --> 6180.30] re-entry point
+[6180.78 --> 6181.68] dalam proses ni
+[6182.12 --> 6183.26] you tak boleh tengok
+[6183.66 --> 6184.98] satu jam dengan 5

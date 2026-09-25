@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.1.3 - NMJE P4+ Shadow Rematerialization            |
+//| Version 5.1.4 - NMJE P2 Counterfactual Shadow Attribution    |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.13"
+#property version   "5.14"
 #property strict
 
-#define BBMA_BUILD_TAG      "V513_NMJE_P4PLUS_SHADOW_20260925"
-#define BBMA_SOURCE_REV_TAG "NMJE_P4PLUS_SHADOW_006_20260925"
+#define BBMA_BUILD_TAG      "V514_NMJE_P2_COUNTERFACTUAL_SHADOW_20260925"
+#define BBMA_SOURCE_REV_TAG "NMJE_P2_COUNTERFACTUAL_SHADOW_004_20260925"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -155,6 +155,8 @@ int            AllowedExecutionDeviation_MinPoints= 5;
 #define MAX_PAIRS               40
 #define MAX_TRADES_PER_PAIR     20
 #define MAX_MONITORED           400
+#define NMJE_CF_MAX_CANDIDATES   16
+#define NMJE_CF_MAX_ACTIVE_SETS  64
 #define RETRY_SLEEP_MS          100
 #define TRADE_TIMEOUT           2000
 #define MAGIC_BASE              100000
@@ -1156,6 +1158,68 @@ struct SignalHistoryEntry
    int                  TicketNumber;
 };
 
+// Q9 P2 counterfactual research overlay.
+// Tester-only, shadow-only: no candidate/risk/execution authority.
+struct NMJECounterfactualPendingCandidate
+{
+   bool                       Present;
+   ValidatedSequenceCandidate Candidate;
+   bool                       ParentMatch;
+   int                        StructureMask;
+};
+
+struct NMJECounterfactualPendingSet
+{
+   bool                       Present;
+   string                     Pair;
+   string                     SetID;
+   datetime                   M15CandleTime;
+   int                        EligibleCount;
+   int                        Count;
+   ENUM_NESTED_RELATION       Relation;
+   ENUM_NESTED_RELATION       StableRelation;
+   ENUM_NMJE_JOURNEY_MATURITY Maturity;
+   bool                       M5SnapshotPresent;
+   bool                       M5SemanticResolved;
+   NMJECounterfactualPendingCandidate Candidates[NMJE_CF_MAX_CANDIDATES];
+};
+
+struct NMJECounterfactualOutcomeCandidate
+{
+   bool                 Present;
+   string               CandidateID;
+   bool                 Selected;
+   ENUM_SIGNAL_TYPE     SignalType;
+   ENUM_DIRECTION       Direction;
+   string               SequenceHash;
+   datetime             AnchorTime;
+   datetime             SequenceStartTime;
+   double               EntryProxy;
+   double               StopLoss;
+   double               TakeProfit;
+   bool                 SLTPResolved;
+   bool                 Targetless;
+   bool                 BaseGeometryMatch;
+   double               FrozenSpreadPrice;
+   ENUM_SIGNAL_TYPE     SLTPSourceType;
+   int                  SLTPSourceTimeframe;
+   datetime             SLTPSourceCandleTime;
+   bool                 ParentMatch;
+   int                  StructureMask;
+};
+
+struct NMJECounterfactualTradeSet
+{
+   bool                 Active;
+   int                  Ticket;
+   string               Pair;
+   string               SetID;
+   string               BaselineDecisionHash;
+   datetime             OpenTime;
+   int                  Count;
+   NMJECounterfactualOutcomeCandidate Candidates[NMJE_CF_MAX_CANDIDATES];
+};
+
 //+------------------------------------------------------------------+
 //| MODULE 03: GLOBAL VARIABLES                                      |
 //| LEVEL: INTERMEDIATE                                              |
@@ -1179,6 +1243,8 @@ bool                 g_broker_initialized;
 TradeInfo            g_monitored_trades[MAX_MONITORED];
 int                  g_monitored_count;
 PendingExecutionAmbiguity g_execution_ambiguity;
+NMJECounterfactualPendingSet g_nmje_cf_pending[MAX_PAIRS];
+NMJECounterfactualTradeSet   g_nmje_cf_active[NMJE_CF_MAX_ACTIVE_SETS];
 
 //--- Signal history
 SignalHistoryEntry   g_global_signal_history[];
@@ -6044,7 +6110,14 @@ void NMJE_P2_PrintEqualEligibilityShadow(int pairIndex,
                                           int count,
                                           PairState &pairState)
 {
-   if(pairIndex < 0 || pairIndex >= g_pair_count || count < 2) return;
+   if(pairIndex < 0 || pairIndex >= g_pair_count) return;
+
+   // Counterfactual research state is tester-only and cycle-local. Clear first
+   // so a no-longer-equal candidate set can never leak into a later execution.
+   if(IsTesting())
+      ZeroMemory(g_nmje_cf_pending[pairIndex]);
+
+   if(count < 2) return;
    int eligibleCount = 0;
    for(int i = 0; i < count; i++)
    {
@@ -6053,9 +6126,114 @@ void NMJE_P2_PrintEqualEligibilityShadow(int pairIndex,
       eligibleCount++;
    }
    if(eligibleCount < 2) return;
+
    g_nested_journeys[pairIndex].P2CoherencePresent = true;
    g_nested_journeys[pairIndex].P2EligibleCount = eligibleCount;
    g_nested_journeys[pairIndex].P2CandleTime = pairState.m15_data.candle_time;
+
+   if(IsTesting() && eligibleCount <= NMJE_CF_MAX_CANDIDATES)
+   {
+      NMJECounterfactualPendingSet pending;
+      ZeroMemory(pending);
+      pending.Present = true;
+      pending.Pair = pairState.actual_symbol;
+      pending.M15CandleTime = pairState.m15_data.candle_time;
+      pending.EligibleCount = eligibleCount;
+      pending.Relation = g_nested_journeys[pairIndex].Relation;
+      pending.StableRelation = g_nested_journeys[pairIndex].StableRelation;
+      pending.Maturity = g_nested_journeys[pairIndex].Maturity;
+      pending.M5SnapshotPresent = g_nested_journeys[pairIndex].M5ShadowPresent;
+      pending.M5SemanticResolved = g_nested_journeys[pairIndex].M5SemanticResolved;
+
+      for(int c = 0; c < count; c++)
+      {
+         if(!IsCandidateEligible(candidates[c])) continue;
+         if(!IsCandidateAllowedByD1Owner(candidates[c], pairState)) continue;
+
+         // #214 identity enrichment is one executable H1 Re-Entry identity,
+         // not two counterfactual alternatives. Keep the enriched opportunity
+         // variant when the raw pool also contains the standalone twin.
+         int duplicateSlot = -1;
+         bool incomingExtremeTPW =
+            (candidates[c].SequenceType == SIGNAL_RE_ENTRY &&
+             candidates[c].UsesD1Opportunity &&
+             candidates[c].D1OpportunityFamily == D1_OPP_EXTREME_TPW);
+         for(int d = 0; d < pending.Count; d++)
+         {
+            ValidatedSequenceCandidate existing =
+               pending.Candidates[d].Candidate;
+            bool existingExtremeTPW =
+               (existing.SequenceType == SIGNAL_RE_ENTRY &&
+                existing.UsesD1Opportunity &&
+                existing.D1OpportunityFamily == D1_OPP_EXTREME_TPW);
+            bool sameExecutableRE =
+               (candidates[c].SequenceType == SIGNAL_RE_ENTRY &&
+                existing.SequenceType == SIGNAL_RE_ENTRY &&
+                candidates[c].Direction == existing.Direction &&
+                candidates[c].SequenceHash != "" &&
+                candidates[c].SequenceHash == existing.SequenceHash &&
+                candidates[c].SequenceStartTime == existing.SequenceStartTime &&
+                GetCandidateAnchorTime(candidates[c]) ==
+                   GetCandidateAnchorTime(existing) &&
+                incomingExtremeTPW != existingExtremeTPW &&
+                (incomingExtremeTPW || existingExtremeTPW));
+            if(sameExecutableRE)
+            {
+               duplicateSlot = d;
+               break;
+            }
+         }
+
+         NMJEStructuralDensityState density;
+         NMJE_BuildCandidateStructuralDensity(pairState,
+                                              g_nested_journeys[pairIndex],
+                                              candidates[c], density);
+
+         if(duplicateSlot >= 0)
+         {
+            if(incomingExtremeTPW)
+            {
+               pending.Candidates[duplicateSlot].Candidate = candidates[c];
+               pending.Candidates[duplicateSlot].ParentMatch =
+                  (g_nested_journeys[pairIndex].ParentDirection ==
+                   candidates[c].Direction);
+               pending.Candidates[duplicateSlot].StructureMask =
+                  density.StageMask;
+            }
+            continue;
+         }
+
+         if(pending.Count >= NMJE_CF_MAX_CANDIDATES) break;
+         int slot = pending.Count;
+         pending.Candidates[slot].Present = true;
+         pending.Candidates[slot].Candidate = candidates[c];
+         pending.Candidates[slot].ParentMatch =
+            (g_nested_journeys[pairIndex].ParentDirection == candidates[c].Direction);
+         pending.Candidates[slot].StructureMask = density.StageMask;
+         pending.Count++;
+      }
+
+      if(pending.Count >= 2)
+      {
+         pending.SetID = SHORT_HASH(pending.Pair + "|" +
+                                    IntegerToString((int)pending.M15CandleTime) + "|" +
+                                    IntegerToString(pending.Count), 16);
+         g_nmje_cf_pending[pairIndex] = pending;
+      }
+
+      Print("[Q9-P2-CF-SET] Pair=", pairState.actual_symbol,
+            " RawEligible=", IntegerToString(eligibleCount),
+            " Pending=", IntegerToString(pending.Count),
+            " Set=", (pending.SetID == "" ? "-" : pending.SetID),
+            " Authority=NONE");
+   }
+   else if(IsTesting() && eligibleCount > NMJE_CF_MAX_CANDIDATES)
+   {
+      Print("[Q9-P2-CF-SKIP] Pair=", pairState.actual_symbol,
+            " Eligible=", IntegerToString(eligibleCount),
+            " Reason=CAPACITY Authority=NONE");
+   }
+
    for(int i = 0; i < count; i++)
    {
       if(!IsCandidateEligible(candidates[i])) continue;
@@ -6737,6 +6915,441 @@ bool ResolveSelectedSLTPSourceComponent(ValidatedSequenceCandidate &selected,
       return true;
    }
    return false;
+}
+
+
+bool NMJE_P2_IsSelectedCounterfactualCandidate(ValidatedSequenceCandidate &candidate,
+                                                BBMA_Decision &decision)
+{
+   if(!decision.Valid) return false;
+   if(candidate.SequenceType != decision.SignalType ||
+      candidate.Direction != decision.Direction ||
+      candidate.SequenceHash != decision.SequenceHash)
+      return false;
+
+   bool decisionUsesOpportunity =
+      (decision.D1AuthorityMode == D1_AUTH_OPPORTUNITY &&
+       decision.D1OpportunitySnapshotValid);
+   if(candidate.UsesD1Opportunity != decisionUsesOpportunity) return false;
+   if(!candidate.UsesD1Opportunity) return true;
+
+   return (candidate.D1OpportunityFamily == decision.D1OpportunityFamily &&
+           candidate.D1OpportunityDirection == decision.D1OpportunityDirection &&
+           candidate.D1OpportunitySourceSignal == decision.D1OpportunitySourceSignal &&
+           candidate.D1OpportunitySourceCandleTime == decision.D1OpportunitySourceCandleTime &&
+           candidate.D1OpportunityActivationTime == decision.D1OpportunityActivationTime &&
+           candidate.D1OpportunityCycleID == decision.D1OpportunityCycleID);
+}
+
+string NMJE_P2_CounterfactualCandidateID(string setID,
+                                         ValidatedSequenceCandidate &candidate,
+                                         ComponentIdentity &source)
+{
+   string key = setID + "|" + candidate.SequenceHash + "|" +
+                IntegerToString((int)candidate.SequenceType) + "|" +
+                IntegerToString((int)candidate.Direction) + "|" +
+                IntegerToString((int)candidate.UsesD1Opportunity) + "|" +
+                IntegerToString((int)candidate.D1OpportunityFamily) + "|" +
+                IntegerToString((int)source.ComponentType) + "|" +
+                IntegerToString(source.Timeframe) + "|" +
+                IntegerToString((int)source.CandleTime);
+   return SHORT_HASH(key, 16);
+}
+
+bool NMJE_P2_BuildCounterfactualDecision(int pairIndex,
+                                         ValidatedSequenceCandidate &candidate,
+                                         double entryProxy,
+                                         BBMA_Decision &shadow)
+{
+   ZeroMemory(shadow);
+   if(pairIndex < 0 || pairIndex >= g_pair_count || entryProxy <= 0.0)
+      return false;
+
+   shadow.Valid = true;
+   shadow.Pair = g_pair_states[pairIndex].actual_symbol;
+   shadow.Direction = candidate.Direction;
+   shadow.SignalType = candidate.SequenceType;
+   shadow.PriorityTier = TIER_NONE;
+   shadow.ComponentCount = candidate.ComponentCount;
+   for(int i = 0; i < 3; i++)
+      shadow.Components[i] = candidate.Components[i];
+   shadow.CandidateExpiry = candidate.Expiry;
+   shadow.SequenceHash = candidate.SequenceHash;
+   shadow.CandleTime = GetCandidateAnchorTime(candidate);
+   shadow.CycleStartTime = candidate.SequenceStartTime;
+   shadow.EntryPrice = entryProxy;
+
+   shadow.HasSLTPSourceComponent =
+      ResolveSelectedSLTPSourceComponent(candidate, shadow.SLTPSourceComponent);
+   if(!shadow.HasSLTPSourceComponent) return false;
+
+   D1MajorTrendOwner owner = g_pair_states[pairIndex].d1_major_trend_owner;
+   shadow.D1OwnerState = owner.State;
+   shadow.D1OwnerDirection = owner.Direction;
+   shadow.D1OwnerCandleTime = owner.SourceCandleTime;
+   shadow.D1OwnerClose = owner.Close1;
+   shadow.D1OwnerMA50Current = owner.MA50_1;
+   shadow.D1OwnerMA50Previous = owner.MA50_2;
+   shadow.D1OwnerSnapshotValid = owner.IsValid;
+
+   if(candidate.UsesD1Opportunity)
+   {
+      shadow.D1AuthorityMode = D1_AUTH_OPPORTUNITY;
+      shadow.D1OpportunityFamily = candidate.D1OpportunityFamily;
+      shadow.D1OpportunityDirection = candidate.D1OpportunityDirection;
+      shadow.D1OpportunitySourceSignal = candidate.D1OpportunitySourceSignal;
+      shadow.D1OpportunitySourceCandleTime = candidate.D1OpportunitySourceCandleTime;
+      shadow.D1OpportunityActivationTime = candidate.D1OpportunityActivationTime;
+      shadow.D1OpportunityCycleID = candidate.D1OpportunityCycleID;
+      shadow.D1OpportunitySnapshotValid = true;
+   }
+   else
+   {
+      shadow.D1AuthorityMode = D1_AUTH_STRATEGIC_OWNER;
+      shadow.D1OpportunitySnapshotValid = false;
+   }
+   return true;
+}
+
+int NMJE_P2_AllocateCounterfactualTradeSet()
+{
+   for(int i = 0; i < NMJE_CF_MAX_ACTIVE_SETS; i++)
+      if(!g_nmje_cf_active[i].Active) return i;
+   return -1;
+}
+
+int NMJE_P2_FindCounterfactualTradeSet(int ticket)
+{
+   if(ticket <= 0) return -1;
+   for(int i = 0; i < NMJE_CF_MAX_ACTIVE_SETS; i++)
+      if(g_nmje_cf_active[i].Active &&
+         g_nmje_cf_active[i].Ticket == ticket)
+         return i;
+   return -1;
+}
+
+bool NMJE_P2_IsSameCounterfactualExecutionIdentity(
+   NMJECounterfactualOutcomeCandidate &a,
+   NMJECounterfactualOutcomeCandidate &b,
+   double tolerance)
+{
+   if(!a.Present || !b.Present) return false;
+   if(a.SignalType != b.SignalType ||
+      a.Direction != b.Direction ||
+      a.SequenceHash != b.SequenceHash ||
+      a.AnchorTime != b.AnchorTime ||
+      a.SequenceStartTime != b.SequenceStartTime)
+      return false;
+
+   if(a.SLTPSourceType != b.SLTPSourceType ||
+      a.SLTPSourceTimeframe != b.SLTPSourceTimeframe ||
+      a.SLTPSourceCandleTime != b.SLTPSourceCandleTime ||
+      a.SLTPResolved != b.SLTPResolved ||
+      a.Targetless != b.Targetless)
+      return false;
+
+   if(a.SLTPResolved)
+   {
+      if(MathAbs(a.StopLoss - b.StopLoss) > tolerance) return false;
+      if(MathAbs(a.TakeProfit - b.TakeProfit) > tolerance) return false;
+   }
+   return true;
+}
+
+void NMJE_P2_RegisterCounterfactualOpen(int pairIndex,
+                                        BBMA_Decision &decision,
+                                        TradeInfo &info,
+                                        RiskValidationSnapshot &snapshot)
+{
+   if(!IsTesting()) return;
+   if(pairIndex < 0 || pairIndex >= g_pair_count) return;
+   if(info.ticket <= 0 || info.initial_entry_price <= 0.0 || info.open_time <= 0) return;
+
+   NMJECounterfactualPendingSet pending = g_nmje_cf_pending[pairIndex];
+   if(!pending.Present || pending.Count < 2 ||
+      pending.Pair != info.pair ||
+      pending.M15CandleTime != g_pair_states[pairIndex].m15_data.candle_time)
+      return;
+
+   int activeIndex = NMJE_P2_AllocateCounterfactualTradeSet();
+   if(activeIndex < 0)
+   {
+      Print("[Q9-P2-CF-SKIP] Pair=", info.pair,
+            " Ticket=", IntegerToString(info.ticket),
+            " Reason=ACTIVE_CAPACITY Authority=NONE");
+      return;
+   }
+
+   NMJECounterfactualTradeSet active;
+   ZeroMemory(active);
+   active.Active = true;
+   active.Ticket = info.ticket;
+   active.Pair = info.pair;
+   active.SetID = pending.SetID;
+   active.BaselineDecisionHash =
+      (info.execution_hash == "" ? SHORT_HASH(decision.DecisionID) : info.execution_hash);
+   active.OpenTime = info.open_time;
+
+   double tolerance = (snapshot.TickSize_Price > 0.0)
+      ? snapshot.TickSize_Price + 0.000000001 : 0.000000001;
+
+   // Two passes guarantee the real baseline-selected variant is retained when
+   // the raw equal-eligible pool contains execution-equivalent metadata twins.
+   for(int pass = 0; pass < 2; pass++)
+   {
+      for(int i = 0; i < pending.Count && i < NMJE_CF_MAX_CANDIDATES; i++)
+      {
+         if(!pending.Candidates[i].Present) continue;
+         ValidatedSequenceCandidate candidate = pending.Candidates[i].Candidate;
+         bool selected = NMJE_P2_IsSelectedCounterfactualCandidate(candidate, decision);
+         if(pass == 0 && !selected) continue;
+         if(pass == 1 && selected) continue;
+
+         BBMA_Decision shadow;
+         bool built = NMJE_P2_BuildCounterfactualDecision(pairIndex, candidate,
+                                                           info.initial_entry_price,
+                                                           shadow);
+         RiskValidationSnapshot shadowSnapshot = snapshot;
+         shadowSnapshot.EntryPrice = info.initial_entry_price;
+
+         bool resolved = false;
+         if(built)
+            resolved = ResolveApprovedInitialSLTP(shadow, shadowSnapshot);
+
+         bool targetless = (resolved && IsTargetlessLifecycleDecision(shadow));
+         bool geometryValid = (resolved && ValidateDirectionalSLTPGeometry(shadow));
+
+         bool baseMatch = true;
+         if(selected)
+         {
+            baseMatch = resolved &&
+               MathAbs(shadow.StopLoss - info.initial_stop_loss) <= tolerance &&
+               MathAbs(shadow.TakeProfit - info.initial_take_profit) <= tolerance;
+         }
+
+         ComponentIdentity source;
+         ZeroMemory(source);
+         if(built) source = shadow.SLTPSourceComponent;
+
+         NMJECounterfactualOutcomeCandidate record;
+         ZeroMemory(record);
+         record.Present = true;
+         record.CandidateID = NMJE_P2_CounterfactualCandidateID(pending.SetID,
+                                                                 candidate, source);
+         record.Selected = selected;
+         record.SignalType = candidate.SequenceType;
+         record.Direction = candidate.Direction;
+         record.SequenceHash = candidate.SequenceHash;
+         record.AnchorTime = GetCandidateAnchorTime(candidate);
+         record.SequenceStartTime = candidate.SequenceStartTime;
+         record.EntryProxy = info.initial_entry_price;
+         record.StopLoss = resolved ? shadow.StopLoss : 0.0;
+         record.TakeProfit = resolved ? shadow.TakeProfit : 0.0;
+         record.SLTPResolved = (resolved && geometryValid);
+         record.Targetless = targetless;
+         record.BaseGeometryMatch = baseMatch;
+         record.FrozenSpreadPrice = snapshot.CurrentSpreadPrice;
+         record.SLTPSourceType = source.ComponentType;
+         record.SLTPSourceTimeframe = source.Timeframe;
+         record.SLTPSourceCandleTime = source.CandleTime;
+         record.ParentMatch = pending.Candidates[i].ParentMatch;
+         record.StructureMask = pending.Candidates[i].StructureMask;
+
+         bool duplicate = false;
+         for(int d = 0; d < active.Count; d++)
+         {
+            if(NMJE_P2_IsSameCounterfactualExecutionIdentity(active.Candidates[d],
+                                                              record, tolerance))
+            {
+               duplicate = true;
+               break;
+            }
+         }
+         if(duplicate) continue;
+
+         int slot = active.Count;
+         if(slot >= NMJE_CF_MAX_CANDIDATES) break;
+         active.Candidates[slot] = record;
+         active.Count++;
+
+
+      }
+   }
+
+   if(active.Count >= 2)
+   {
+      g_nmje_cf_active[activeIndex] = active;
+      for(int o = 0; o < active.Count; o++)
+      {
+         NMJECounterfactualOutcomeCandidate row = active.Candidates[o];
+         Print("[Q9-P2-CF-OPEN] Pair=", info.pair,
+               " Ticket=", IntegerToString(info.ticket),
+               " DIDH=", active.BaselineDecisionHash,
+               " Set=", pending.SetID,
+               " CID=", row.CandidateID,
+               " Selected=", row.Selected ? "Y" : "N",
+               " Sig=", EnumToString(row.SignalType),
+               " Dir=", NMJE_DirText(row.Direction),
+               " Seq=", row.SequenceHash,
+               " Anchor=", IntegerToString((int)row.AnchorTime),
+               " Start=", IntegerToString((int)row.SequenceStartTime),
+               " Open=", IntegerToString((int)info.open_time),
+               " EntryProxy=", DoubleToString(row.EntryProxy, snapshot.Digits),
+               " SL=", DoubleToString(row.StopLoss, snapshot.Digits),
+               " TP=", DoubleToString(row.TakeProfit, snapshot.Digits),
+               " SLTP=", row.SLTPResolved ? "Y" : "N",
+               " Targetless=", row.Targetless ? "Y" : "N",
+               " BaseMatch=", row.Selected ?
+                  (row.BaseGeometryMatch ? "Y" : "N") : "-",
+               " Src=", EnumToString(row.SLTPSourceType),
+               "/", IntegerToString(row.SLTPSourceTimeframe),
+               "/", IntegerToString((int)row.SLTPSourceCandleTime),
+               " ParentMatch=", row.ParentMatch ? "Y" : "N",
+               " SD=", IntegerToString(row.StructureMask),
+               " REL=", NMJE_RelationText(pending.Relation),
+               " SREL=", NMJE_RelationText(pending.StableRelation),
+               " MAT=", NMJE_MaturityText(pending.Maturity),
+               " M5SEM=", pending.M5SemanticResolved ? "Y" : "N",
+               " Spread=", DoubleToString(row.FrozenSpreadPrice, snapshot.Digits),
+               " Method=BASELINE_FILL_PROXY Authority=NONE");
+      }
+   }
+   else
+      ZeroMemory(active);
+}
+
+void NMJE_P2_ResolvePairedWindowOutcome(NMJECounterfactualTradeSet &active,
+                                        NMJECounterfactualOutcomeCandidate &record,
+                                        datetime closeTime,
+                                        string &outcome,
+                                        datetime &hitTime,
+                                        int &barsChecked)
+{
+   outcome = "UNRESOLVED_AT_BASELINE_CLOSE";
+   hitTime = 0;
+   barsChecked = 0;
+
+   if(record.Targetless)
+   {
+      outcome = "UNCOMPARABLE_TARGETLESS";
+      return;
+   }
+   if(!record.SLTPResolved || record.StopLoss <= 0.0 || record.TakeProfit <= 0.0)
+   {
+      outcome = "UNCOMPARABLE_SLTP_UNRESOLVED";
+      return;
+   }
+   if(active.OpenTime <= 0 || closeTime <= active.OpenTime)
+   {
+      outcome = "UNCOMPARABLE_WINDOW";
+      return;
+   }
+
+   // Conservative paired-window proxy: use only complete M1 bars entirely
+   // after the baseline fill and entirely before/equal to baseline close.
+   datetime firstFullBar =
+      (datetime)(((int)active.OpenTime / 60) * 60);
+   if(firstFullBar < active.OpenTime) firstFullBar += 60;
+   datetime lastFullBar =
+      (datetime)((((int)closeTime - 60) / 60) * 60);
+   if(lastFullBar < firstFullBar)
+   {
+      outcome = "UNRESOLVED_NO_FULL_M1_BAR";
+      return;
+   }
+
+   int startShift = iBarShift(active.Pair, PERIOD_M1, firstFullBar, true);
+   int endShift = iBarShift(active.Pair, PERIOD_M1, lastFullBar, true);
+   if(startShift < 0 || endShift < 0 || startShift < endShift)
+   {
+      outcome = "UNCOMPARABLE_M1_HISTORY";
+      return;
+   }
+
+   for(int shift = startShift; shift >= endShift; shift--)
+   {
+      datetime barTime = iTime(active.Pair, PERIOD_M1, shift);
+      if(barTime < firstFullBar || barTime > lastFullBar) continue;
+      double highBid = iHigh(active.Pair, PERIOD_M1, shift);
+      double lowBid = iLow(active.Pair, PERIOD_M1, shift);
+      if(highBid <= 0.0 || lowBid <= 0.0) continue;
+      barsChecked++;
+
+      bool slHit = false;
+      bool tpHit = false;
+      if(record.Direction == DIR_BUY)
+      {
+         slHit = (lowBid <= record.StopLoss);
+         tpHit = (highBid >= record.TakeProfit);
+      }
+      else if(record.Direction == DIR_SELL)
+      {
+         // MT4 bar history is Bid. Use the preflight-frozen spread as an
+         // explicit engineering proxy for the Ask-side SELL trigger geometry.
+         double highAskProxy = highBid + record.FrozenSpreadPrice;
+         double lowAskProxy = lowBid + record.FrozenSpreadPrice;
+         slHit = (highAskProxy >= record.StopLoss);
+         tpHit = (lowAskProxy <= record.TakeProfit);
+      }
+      else
+      {
+         outcome = "UNCOMPARABLE_DIRECTION";
+         return;
+      }
+
+      if(slHit && tpHit)
+      {
+         outcome = "AMBIGUOUS_SAME_M1_BAR";
+         hitTime = barTime;
+         return;
+      }
+      if(slHit)
+      {
+         outcome = "SL_FIRST";
+         hitTime = barTime;
+         return;
+      }
+      if(tpHit)
+      {
+         outcome = "TP_FIRST";
+         hitTime = barTime;
+         return;
+      }
+   }
+}
+
+void NMJE_P2_PrintCounterfactualOutcomes(int ticket, datetime closeTime)
+{
+   if(!IsTesting()) return;
+   int activeIndex = NMJE_P2_FindCounterfactualTradeSet(ticket);
+   if(activeIndex < 0) return;
+
+   NMJECounterfactualTradeSet active = g_nmje_cf_active[activeIndex];
+   for(int i = 0; i < active.Count && i < NMJE_CF_MAX_CANDIDATES; i++)
+   {
+      if(!active.Candidates[i].Present) continue;
+      string outcome = "";
+      datetime hitTime = 0;
+      int barsChecked = 0;
+      NMJE_P2_ResolvePairedWindowOutcome(active, active.Candidates[i],
+                                         closeTime, outcome,
+                                         hitTime, barsChecked);
+
+      Print("[Q9-P2-CF-OUT] Pair=", active.Pair,
+            " Ticket=", IntegerToString(active.Ticket),
+            " DIDH=", active.BaselineDecisionHash,
+            " Set=", active.SetID,
+            " CID=", active.Candidates[i].CandidateID,
+            " Selected=", active.Candidates[i].Selected ? "Y" : "N",
+            " Sig=", EnumToString(active.Candidates[i].SignalType),
+            " Dir=", NMJE_DirText(active.Candidates[i].Direction),
+            " Outcome=", outcome,
+            " Hit=", IntegerToString((int)hitTime),
+            " Bars=", IntegerToString(barsChecked),
+            " WindowClose=", IntegerToString((int)closeTime),
+            " Method=PAIRED_BASELINE_WINDOW_CLOSED_M1 Authority=NONE");
+   }
+   ZeroMemory(g_nmje_cf_active[activeIndex]);
 }
 
 bool IsExactExtremeTPWIdentityEnrichmentPair(ValidatedSequenceCandidate &a,
@@ -9166,6 +9779,8 @@ void NMJE_PrintClosedOutcomeShadow(TradeInfo &info)
          " SD=", IntegerToString(info.nmje_attribution.StructureDensity.StageMask),
          " M5SEM=", info.nmje_attribution.M5SemanticResolved ? "Y" : "N",
          " DISP=", info.entry_displacement.Present ? "Y" : "N");
+
+   NMJE_P2_PrintCounterfactualOutcomes(info.ticket, OrderCloseTime());
 }
 
 void CompactMonitoredTrades()
@@ -9770,6 +10385,10 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
                " DISP=", info.entry_displacement.Present ? "Y" : "N",
                " Authority=NONE");
 
+         // P2 counterfactual attribution uses only the already-real baseline
+         // fill as an engineering entry proxy. No alternate order is sent.
+         NMJE_P2_RegisterCounterfactualOpen(pairIdx, decision, info, snapshot);
+
          Print("[P3S5][EXEC_ID] Ticket=", IntegerToString(ticket),
                " Pair=", pair,
                " Persist=", localIdentityPersisted ? "PASS" : "FAIL",
@@ -10268,7 +10887,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.13 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.14 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -12757,6 +13376,17 @@ void ProcessPair(int pairIndex)
 
    PriorityEngine_Atomic(allCandidates, allCandidateCount,
                          g_pair_states[pairIndex], decision, conflict);
+
+   // Counterfactual research observes the already-selected baseline decision.
+   // It never changes candidate ordering or the decision itself.
+   if(IsTesting() && g_nmje_cf_pending[pairIndex].Present && decision.Valid)
+      Print("[Q9-P2-CF-BASE] Pair=", actual,
+            " Set=", g_nmje_cf_pending[pairIndex].SetID,
+            " Sig=", EnumToString(decision.SignalType),
+            " Dir=", NMJE_DirText(decision.Direction),
+            " Seq=", decision.SequenceHash,
+            " DIDH=", SHORT_HASH(decision.DecisionID),
+            " Authority=NONE");
 
    // D1-07: M16 may only consume an actual M15-created decision.
    // ZeroMemory() leaves enum value 0 (= DEC_CREATED), so state alone is not

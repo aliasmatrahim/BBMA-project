@@ -8,7 +8,9 @@ on:
       - 'blueprint/source/BBMA_EA.mq4'
       - 'blueprint/audits/NMJE_V2_P2_P3_CURRENT_OWNER_REMATERIALIZATION_20260925.md'
       - 'blueprint/audits/NMJE_V2_P4PLUS_CURRENT_OWNER_REMATERIALIZATION_20260925.md'
+      - 'blueprint/audits/NMJE_V2_P2_COUNTERFACTUAL_SHADOW_ATTRIBUTION_20260925.md'
       - 'blueprint/audits/evidence/NMJE_V2_P4PLUS_20260925/**'
+      - 'blueprint/audits/evidence/NMJE_V2_P2_COUNTERFACTUAL_20260925/**'
       - '.github/workflows/nmje-v2-current-owner-validation.yml'
   workflow_dispatch:
 
@@ -35,11 +37,11 @@ jobs:
           import re
 
           source = Path("blueprint/source/BBMA_EA.mq4").read_text(encoding="utf-8")
-          audit = Path("blueprint/audits/NMJE_V2_P4PLUS_CURRENT_OWNER_REMATERIALIZATION_20260925.md").read_text(encoding="utf-8")
+          audit = Path("blueprint/audits/NMJE_V2_P2_COUNTERFACTUAL_SHADOW_ATTRIBUTION_20260925.md").read_text(encoding="utf-8")
 
           required = [
-              'V513_NMJE_P4PLUS_SHADOW_20260925',
-              'NMJE_P4PLUS_SHADOW_006_20260925',
+              'V514_NMJE_P2_COUNTERFACTUAL_SHADOW_20260925',
+              'NMJE_P2_COUNTERFACTUAL_SHADOW_004_20260925',
               'NMJE_P2_PrintEqualEligibilityShadow',
               'NMJE_P3_UpdateClosedM5Shadow',
               'NMJE_FreezeValidatedDecisionAttribution',
@@ -50,6 +52,10 @@ jobs:
               'NMJE_ApplyJourneyProvenanceStability',
               'NMJE_BuildEntryDisplacementAttribution',
               'NMJE_ApplyStrictJourneyLineage',
+              'NMJE_P2_RegisterCounterfactualOpen',
+              'NMJE_P2_PrintCounterfactualOutcomes',
+              'NMJE_P2_IsSameCounterfactualExecutionIdentity',
+              'TESTER-ONLY SHADOW RESEARCH',
               'M5_SIGNAL_SEMANTICS_NOT_MATERIALIZED_TRUE_CONFLICT_HOLD',
               'M15 remains the sole processing/final-decision clock',
           ]
@@ -101,6 +107,33 @@ jobs:
 
           if 'CONTINUATION is intentionally never inferred' not in source:
               raise SystemExit('P11 strict-A no-inference guard missing')
+
+          def function_body(name):
+              m = re.search(r'(?m)^[^{;\\n]*\\b'+re.escape(name)+r'\\s*\\([^;]*?\\)\\s*\\{', source)
+              if not m:
+                  raise SystemExit(f'missing function: {name}')
+              brace = source.find('{', m.start())
+              depth = 0
+              for i in range(brace, len(source)):
+                  if source[i] == '{': depth += 1
+                  elif source[i] == '}':
+                      depth -= 1
+                      if depth == 0:
+                          return source[m.start():i+1]
+              raise SystemExit(f'unclosed function: {name}')
+
+          register = function_body('NMJE_P2_RegisterCounterfactualOpen')
+          outcome = function_body('NMJE_P2_PrintCounterfactualOutcomes')
+          cf = register + '\\n' + outcome
+          if 'if(!IsTesting()) return;' not in register or 'if(!IsTesting()) return;' not in outcome:
+              raise SystemExit('counterfactual overlay must remain tester-only')
+          for forbidden in ('OrderSend(', 'OrderClose(', 'CheckRiskBeforeTrade(',
+                            'CalculateLotSize(', 'FinalPortfolioGuard(', 'ProcessEntry('):
+              if forbidden in cf:
+                  raise SystemExit(f'counterfactual overlay gained authority call: {forbidden}')
+          if register.find('if(active.Count >= 2)') < 0 or \
+             register.find('[Q9-P2-CF-OPEN]') < register.find('if(active.Count >= 2)'):
+              raise SystemExit('counterfactual OPEN must be emitted only for a committed multi-candidate set')
 
           print('NMJE_V2_CURRENT_OWNER_STATIC=PASS')
           PY

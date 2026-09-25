@@ -117,8 +117,9 @@ jobs:
               raise SystemExit('P11 strict-A no-inference guard missing')
 
           def function_body(name):
-              match = re.search(r'(?:void|bool)\\s+' + re.escape(name) + r'\\s*\\(', source)
-              start = match.start() if match else -1
+              start = source.find('void ' + name + '(')
+              if start < 0:
+                  start = source.find('bool ' + name + '(')
               if start < 0:
                   raise SystemExit(f'missing function: {name}')
               brace = source.find('{', start)

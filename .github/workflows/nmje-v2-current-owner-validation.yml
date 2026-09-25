@@ -133,6 +133,8 @@ jobs:
               if start < 0:
                   start = source.find('bool ' + name + '(')
               if start < 0:
+                  start = source.find('int ' + name + '(')
+              if start < 0:
                   raise SystemExit(f'missing function: {name}')
               brace = source.find('{', start)
               depth = 0

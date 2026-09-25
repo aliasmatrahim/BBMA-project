@@ -1,0 +1,75 @@
+name: NMJE V2 current-owner validation
+
+on:
+  pull_request:
+    branches:
+      - d1-owner-dev
+    paths:
+      - 'blueprint/source/BBMA_EA.mq4'
+      - 'blueprint/audits/NMJE_V2_P2_P3_CURRENT_OWNER_REMATERIALIZATION_20260925.md'
+      - '.github/workflows/nmje-v2-current-owner-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  nmje-v2-static:
+    name: NMJE V2 P2/P3 shadow invariants
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+
+      - name: Verify current-owner P2/P3 shadow boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          source = Path("blueprint/source/BBMA_EA.mq4").read_text(encoding="utf-8")
+          audit = Path("blueprint/audits/NMJE_V2_P2_P3_CURRENT_OWNER_REMATERIALIZATION_20260925.md").read_text(encoding="utf-8")
+
+          required = [
+              'V512_NMJE_P2P3_SHADOW_20260925',
+              'NMJE_SOURCE_REV_TAG',
+              'NMJE_P2_PrintEqualEligibilityShadow',
+              'NMJE_P3_UpdateClosedM5Shadow',
+              'GetLatestClosedCandleTime(actual, PERIOD_M5)',
+              'M15 remains the sole processing clock',
+          ]
+          for marker in required:
+              if marker not in source and marker not in audit:
+                  raise SystemExit(f"missing NMJE marker: {marker}")
+
+          if source.count('NMJE_P2_PrintEqualEligibilityShadow') != 2:
+              raise SystemExit('P2 helper must have one definition and one call')
+          if source.count('NMJE_P3_UpdateClosedM5Shadow') != 2:
+              raise SystemExit('P3 helper must have one definition and one call')
+
+          p2 = source.index('void NMJE_P2_PrintEqualEligibilityShadow')
+          p3 = source.index('void NMJE_P3_UpdateClosedM5Shadow')
+          process = source.index('void ProcessPair')
+          if p2 > process or p3 > process:
+              raise SystemExit('NMJE helpers must be declared before ProcessPair')
+
+          for forbidden in (
+              'EnableNMJEExecutionGate',
+              'EnableNestedExecutionGate',
+              'N3_EXECUTION_POLICY',
+              'N3_POLICY_ACTIVE',
+          ):
+              if forbidden in source:
+                  raise SystemExit(f'forbidden execution authority marker: {forbidden}')
+
+          if 'PriorityEngine_Atomic(allCandidates' not in source:
+              raise SystemExit('priority path marker missing')
+          if 'InvalidationEngine_Atomic' not in source:
+              raise SystemExit('invalidation path marker missing')
+
+          print('NMJE_V2_CURRENT_OWNER_STATIC=PASS')
+          PY

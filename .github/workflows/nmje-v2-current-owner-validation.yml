@@ -15,6 +15,9 @@ on:
       - 'blueprint/audits/evidence/NMJE_V2_P2_TARGETLESS_REPLAY_20260925/**'
       - 'blueprint/audits/NMJE_V2_BUILD516_FORWARD_M5_OWNER_PREP_20260926.md'
       - 'blueprint/audits/evidence/NMJE_V2_BUILD516_20260926/**'
+      - 'blueprint/audits/NMJE_V2_BUILD517_20260926/**'
+      - 'blueprint/decisions/Q9_NMJE_V2_P2_P5_N3_ACTIVE_SELECTION_POLICY_DECISION_20260926.md'
+      - 'blueprint/contracts/N3_NMJE_ACTIVE_SELECTION_POLICY_CONTRACT.md'
       - '.github/workflows/nmje-v2-current-owner-validation.yml'
   workflow_dispatch:
 

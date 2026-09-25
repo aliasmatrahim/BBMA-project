@@ -1,0 +1,32 @@
+{
+  "schema": "NMJE_V2_BUILD517_IMPLEMENTATION_EVIDENCE_V1",
+  "date": "2026-09-26",
+  "issue": 101,
+  "owner_base": "459c0588e625d7f7630f0fb5612b7f04fda496de",
+  "build": "5.17",
+  "build_tag": "V517_NMJE_ACTIVE_SELECTION_POLICY_20260926",
+  "source_rev": "NMJE_ACTIVE_SELECTION_POLICY_001_20260926",
+  "mq4_sha256": "B28E8C7F493D96899A681397FECE14876EFAAF7F73435274E5A3EA6E33394F9F",
+  "native_ex4_sha256": "21B93E75B7465C41737CB5CAF64912DC9510BC599FA27564748DCE54E0C9E4A5",
+  "policy": {
+    "default_enabled": false,
+    "sole_candidate_unchanged": true,
+    "requires_multiple_eligible_same_direction": true,
+    "requires_positive_v1_context": true,
+    "requires_positive_m5_context": true,
+    "m5_hard_conflict_authority": false,
+    "weighted_score": false
+  },
+  "validation": {
+    "diff_check": "PASS",
+    "native_compile": "0 errors / 0 warnings",
+    "targeted_regression": "PASS",
+    "python_suite": "72/72 PASS",
+    "protected_downstream_exact_to_516": true,
+    "ordersend_source_count": 1,
+    "strategy_tester_active_policy": "PENDING",
+    "demo_forward_active_policy": "PENDING",
+    "restart_provenance": "PENDING"
+  },
+  "release_state": "IMPLEMENTED_DEFAULT_OFF_NOT_RUNTIME_VERIFIED_NOT_RELEASE_READY"
+}

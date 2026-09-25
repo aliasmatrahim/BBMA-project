@@ -1,0 +1,65 @@
+{
+  "schema": "NMJE_V2_BUILD517_TARGETED_REGRESSION_V1",
+  "source_sha256": "B28E8C7F493D96899A681397FECE14876EFAAF7F73435274E5A3EA6E33394F9F",
+  "checks": {
+    "version_517": true,
+    "build_tag": true,
+    "selection_default_off": true,
+    "multi_candidate_only": true,
+    "positive_context_required": true,
+    "legacy_baseline_frozen_first": true,
+    "p5_no_hard_conflict_reason": true,
+    "p3_no_nested_conflict_assignment": true,
+    "n3_no_risk_broker_authority": true,
+    "sole_ordersend_owner": true,
+    "protected_downstream_exact": true,
+    "model_single_unchanged": true,
+    "model_disabled_legacy": true,
+    "model_nonpositive_legacy": true,
+    "model_positive_richer_wins": true,
+    "model_density_tie_legacy": true
+  },
+  "protected": {
+    "InvalidationEngine_Atomic": {
+      "base": "2B5438688347C9C646DBD5C19190D30A1BA60C9F1D5D6F73AD88CD6D0A235564",
+      "current": "2B5438688347C9C646DBD5C19190D30A1BA60C9F1D5D6F73AD88CD6D0A235564",
+      "same": true
+    },
+    "CheckRiskBeforeTrade": {
+      "base": "54DD705CB0744B75477C2E625425527B52CB9D5275D0750867033E933CD54132",
+      "current": "54DD705CB0744B75477C2E625425527B52CB9D5275D0750867033E933CD54132",
+      "same": true
+    },
+    "IsSignalAllowed": {
+      "base": "5C5C2237E5F6382DD5A5AB2C68E660DD18FB12DDE3412B05F2C0B1DE50B32DAD",
+      "current": "5C5C2237E5F6382DD5A5AB2C68E660DD18FB12DDE3412B05F2C0B1DE50B32DAD",
+      "same": true
+    },
+    "ResolveExecutionReferencePrice": {
+      "base": "02ACCF135AA89E092DC67E0160B457305E4BE05F8327D4A75967BFBB4E4CDCA0",
+      "current": "02ACCF135AA89E092DC67E0160B457305E4BE05F8327D4A75967BFBB4E4CDCA0",
+      "same": true
+    },
+    "ResolveSelectedSLTPSourceComponent": {
+      "base": "C1CEAD173C4DB5DE15A3FB5C7E2E519061E0F989A30687D7F4DEABC254352296",
+      "current": "C1CEAD173C4DB5DE15A3FB5C7E2E519061E0F989A30687D7F4DEABC254352296",
+      "same": true
+    },
+    "IsApprovedSLTPSourceComponent": {
+      "base": "75FB44D5EF0EB6F477B27A4E4B8EF1124364DDA6F9BBD7D7CB35958F92052EB9",
+      "current": "75FB44D5EF0EB6F477B27A4E4B8EF1124364DDA6F9BBD7D7CB35958F92052EB9",
+      "same": true
+    },
+    "SendOrderWithRetry": {
+      "base": "9C10592790D30497C7C9A3AAD3A996FD8B8C0DBD4898A563E6AF3CD2626A87AB",
+      "current": "9C10592790D30497C7C9A3AAD3A996FD8B8C0DBD4898A563E6AF3CD2626A87AB",
+      "same": true
+    },
+    "RunEntryPreflightAndExecute": {
+      "base": "44B4EC3182F080B3599234FE1B296EEE4C797B8B34E94850627C4B042FE6786A",
+      "current": "44B4EC3182F080B3599234FE1B296EEE4C797B8B34E94850627C4B042FE6786A",
+      "same": true
+    }
+  },
+  "pass": true
+}

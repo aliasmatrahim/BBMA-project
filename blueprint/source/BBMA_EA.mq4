@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.1.6 - NMJE Forward Evidence + M5 Owner Prep       |
+//| Version 5.1.7 - NMJE Active Selection Policy                |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.16"
+#property version   "5.17"
 #property strict
 
-#define BBMA_BUILD_TAG      "V516_NMJE_FORWARD_M5_OWNER_PREP_20260926"
-#define BBMA_SOURCE_REV_TAG "NMJE_FORWARD_M5_OWNER_PREP_001_20260926"
+#define BBMA_BUILD_TAG      "V517_NMJE_ACTIVE_SELECTION_POLICY_20260926"
+#define BBMA_SOURCE_REV_TAG "NMJE_ACTIVE_SELECTION_POLICY_001_20260926"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -105,6 +105,7 @@ input double   MinRRRatio                         = 0.0;        // 08 Advanced |
 input bool     BlockNMJEConflict                  = true;       // 08 Legacy compatibility | INACTIVE: NMJE is observation-only
 input bool     BlockNMJEBuilding                  = true;       // 08 Legacy compatibility | INACTIVE: NMJE is observation-only
 input bool     EnableNMJEForwardEvidence          = false;      // 08 Advanced | demo/test evidence only; never trade authority
+input bool     EnableNMJESelectionPolicy          = false;      // 08 Advanced | N3 bounded active tie-break; default OFF
 input double   MaxSLPips                          = 100.0;      // 08 Advanced | maximum accepted SL distance
 input int      Slippage                           = 3;          // 08 Advanced | broker slippage in points
 input ENUM_DEBUG_LEVEL DebugLevel                 = DBG_OFF;    // 08 Advanced | OFF / ERROR / SIGNAL / TRADE / FULL
@@ -5823,6 +5824,122 @@ void NMJE_BuildCandidateStructuralDensity(PairState &state,
                                                    candidate.Direction);
    NMJE_FinalizeStructuralDensity(mask, density);
 }
+// N3 Build 5.17 explicit engineering policy (2026-09-26).
+// This is NOT claimed as a source-defined BBMA superiority rule.
+// It is a bounded positive-coherence tie-break among already-eligible
+// same-direction candidates only; sole-candidate eligibility is untouched.
+bool NMJE_IsPositiveSelectionContext(PairState &pairState,
+                                     ENUM_DIRECTION direction)
+{
+   if(!EnableNMJESelectionPolicy) return false;
+   if(direction != DIR_BUY && direction != DIR_SELL) return false;
+
+   int pairIndex = -1;
+   for(int i=0; i<g_pair_count; i++)
+   {
+      if(g_pair_states[i].actual_symbol == pairState.actual_symbol)
+      {
+         pairIndex = i;
+         break;
+      }
+   }
+   if(pairIndex < 0) return false;
+
+   NestedJourneyState journey = g_nested_journeys[pairIndex];
+   if(!journey.Valid || !journey.Resolved) return false;
+   if(journey.ParentDirection != direction) return false;
+
+   bool v1Positive =
+      (journey.Relation == NESTED_ALIGNED ||
+       journey.Relation == NESTED_SUPPORTING);
+   if(!v1Positive) return false;
+
+   // P5 closure: M5 never creates a hard NESTED_CONFLICT/reject authority.
+   // Active P2 may use only positive, canonical-owner-derived M5 context.
+   if(!journey.M5SemanticResolved) return false;
+   bool m5Positive =
+      (journey.M5DiagnosticRelation == NESTED_ALIGNED ||
+       journey.M5DiagnosticRelation == NESTED_SUPPORTING);
+   return m5Positive;
+}
+
+int NMJE_CompareActiveSelectionCandidates(PairState &pairState,
+                                          ValidatedSequenceCandidate &a,
+                                          ValidatedSequenceCandidate &b)
+{
+   if(a.Direction != b.Direction) return 0;
+   if(!NMJE_IsPositiveSelectionContext(pairState, a.Direction)) return 0;
+
+   int pairIndex = -1;
+   for(int i=0; i<g_pair_count; i++)
+   {
+      if(g_pair_states[i].actual_symbol == pairState.actual_symbol)
+      {
+         pairIndex = i;
+         break;
+      }
+   }
+   if(pairIndex < 0) return 0;
+
+   NestedJourneyState journey = g_nested_journeys[pairIndex];
+   NMJEStructuralDensityState da, db;
+   NMJE_BuildCandidateStructuralDensity(pairState, journey, a, da);
+   NMJE_BuildCandidateStructuralDensity(pairState, journey, b, db);
+   if(!NMJE_IsStructuralDensityValid(da) ||
+      !NMJE_IsStructuralDensityValid(db) ||
+      !da.Present || !db.Present)
+      return 0;
+
+   // No weighted score. Compare two bounded canonical completeness dimensions
+   // lexicographically, then fall back to the existing M15 comparator.
+   int aPrefix = NMJE_CountStructureStages(da.PrefixMask);
+   int bPrefix = NMJE_CountStructureStages(db.PrefixMask);
+   if(aPrefix > bPrefix) return 1;
+   if(aPrefix < bPrefix) return -1;
+
+   if(da.StageCount > db.StageCount) return 1;
+   if(da.StageCount < db.StageCount) return -1;
+
+   return 0;
+}
+
+void NMJE_LogActiveSelection(PairState &pairState,
+                             ValidatedSequenceCandidate &baseline,
+                             ValidatedSequenceCandidate &selected)
+{
+   if(!EnableNMJESelectionPolicy) return;
+   if(baseline.SequenceHash == selected.SequenceHash &&
+      baseline.SequenceType == selected.SequenceType &&
+      baseline.Direction == selected.Direction)
+      return;
+
+   int pairIndex = -1;
+   for(int i=0; i<g_pair_count; i++)
+   {
+      if(g_pair_states[i].actual_symbol == pairState.actual_symbol)
+      {
+         pairIndex = i;
+         break;
+      }
+   }
+   if(pairIndex < 0) return;
+
+   NMJEStructuralDensityState density;
+   NMJE_BuildCandidateStructuralDensity(pairState,
+                                        g_nested_journeys[pairIndex],
+                                        selected, density);
+   Print("[N3-NMJE-SELECT] Pair=", pairState.actual_symbol,
+         " BaselineSig=", EnumToString(baseline.SequenceType),
+         " BaselineSeq=", baseline.SequenceHash,
+         " SelectedSig=", EnumToString(selected.SequenceType),
+         " SelectedSeq=", selected.SequenceHash,
+         " Prefix=", IntegerToString(NMJE_CountStructureStages(density.PrefixMask)),
+         " Stages=", IntegerToString(density.StageCount),
+         " REL=", NMJE_RelationText(g_nested_journeys[pairIndex].Relation),
+         " M5REL=", NMJE_RelationText(g_nested_journeys[pairIndex].M5DiagnosticRelation),
+         " Policy=POSITIVE_COHERENCE_STRUCTURAL_COMPLETENESS",
+         " Authority=M15_TIEBREAK");
+}
 
 void NMJE_PrintStructuralDensityShadow(int pairIndex,
                                        ValidatedSequenceCandidate &candidates[],
@@ -6685,7 +6802,7 @@ void NMJE_P3_UpdateClosedM5Shadow(int pairIndex)
                g_nested_journeys[pairIndex].M5DiagnosticRelation =
                   NESTED_UNRESOLVED;
                g_nested_journeys[pairIndex].M5DiagnosticReason =
-                  "M5_CONFIRMED_RE_OPPOSES_PARENT_TRUE_CONFLICT_HOLD";
+                  "M5_CONFIRMED_RE_OPPOSES_PARENT_UNRESOLVED_NO_HARD_CONFLICT";
             }
          }
          else if(isReEntry && reState == RE_STATE_CANDIDATE)
@@ -8194,23 +8311,55 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
    else if(sellCount > 0) targetDirection = DIR_SELL;
    else return;
 
-   int canonicalIdx = -1;
+   // Freeze the legacy canonical winner first. It remains the deterministic
+   // fallback and proves N3 cannot invent eligibility.
+   int baselineIdx = -1;
    for(int i = 0; i < count; i++)
    {
       if(!IsCandidateEligible(candidates[i])) continue;
       if(!IsCandidateAllowedByD1Owner(candidates[i], pairState)) continue;
       if(candidates[i].Direction != targetDirection) continue;
 
-      if(canonicalIdx < 0 ||
-         CompareCanonicalCandidates(candidates[i], candidates[canonicalIdx]) > 0)
-      {
-         canonicalIdx = i;
-      }
+      if(baselineIdx < 0 ||
+         CompareCanonicalCandidates(candidates[i], candidates[baselineIdx]) > 0)
+         baselineIdx = i;
    }
 
-   if(canonicalIdx < 0) return;
+   if(baselineIdx < 0) return;
+   int canonicalIdx = baselineIdx;
 
+   int sameDirectionEligible = (targetDirection == DIR_BUY) ? buyCount : sellCount;
+   if(EnableNMJESelectionPolicy && sameDirectionEligible >= 2 &&
+      NMJE_IsPositiveSelectionContext(pairState, targetDirection))
+   {
+      int nmjeIdx = -1;
+      for(int i = 0; i < count; i++)
+      {
+         if(!IsCandidateEligible(candidates[i])) continue;
+         if(!IsCandidateAllowedByD1Owner(candidates[i], pairState)) continue;
+         if(candidates[i].Direction != targetDirection) continue;
+
+         if(nmjeIdx < 0)
+         {
+            nmjeIdx = i;
+            continue;
+         }
+
+         int nmjeCompare =
+            NMJE_CompareActiveSelectionCandidates(pairState,
+                                                  candidates[i],
+                                                  candidates[nmjeIdx]);
+         if(nmjeCompare > 0 ||
+            (nmjeCompare == 0 &&
+             CompareCanonicalCandidates(candidates[i], candidates[nmjeIdx]) > 0))
+            nmjeIdx = i;
+      }
+      if(nmjeIdx >= 0) canonicalIdx = nmjeIdx;
+   }
+
+   ValidatedSequenceCandidate baseline = candidates[baselineIdx];
    ValidatedSequenceCandidate selected = candidates[canonicalIdx];
+   NMJE_LogActiveSelection(pairState, baseline, selected);
    bool authorityFrozen = selected.UsesD1Opportunity
                           ? FreezeD1OpportunitySnapshot(pairState, selected, decision)
                           : FreezeD1OwnerSnapshot(pairState, decision);
@@ -11603,7 +11752,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.16 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.17 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -14090,7 +14239,8 @@ void ProcessPair(int pairIndex)
    ZeroMemory(conflict);
    decision.Pair = actual;
 
-   // NMJE P2 remains telemetry-only; comparator/order is untouched.
+   // P2 always records equal-eligibility telemetry. The default-OFF N3 policy
+   // may then arbitrate only among already-eligible same-direction candidates.
    NMJE_P2_PrintEqualEligibilityShadow(pairIndex, allCandidates,
                                         allCandidateCount,
                                         g_pair_states[pairIndex]);
@@ -14102,8 +14252,9 @@ void ProcessPair(int pairIndex)
    PriorityEngine_Atomic(allCandidates, allCandidateCount,
                          g_pair_states[pairIndex], decision, conflict);
 
-   // Counterfactual research observes the already-selected baseline decision.
-   // It never changes candidate ordering or the decision itself.
+   // Counterfactual evidence observes the selected M15 decision. When the
+   // default-OFF N3 policy is enabled, selection may differ from the legacy
+   // canonical baseline, but no alternate broker order is created.
    if(NMJE_IsForwardEvidenceEnabled() && g_nmje_cf_pending[pairIndex].Present && decision.Valid)
       Print("[Q9-P2-CF-BASE] Pair=", actual,
             " Set=", g_nmje_cf_pending[pairIndex].SetID,
@@ -14216,6 +14367,10 @@ int OnInit()
       else
          Print("[Q9-NMJE-FWD] Mode=REAL BLOCKED Evidence=OFF Authority=NONE");
    }
+   if(EnableNMJESelectionPolicy)
+      Print("[N3-NMJE-POLICY] Mode=ACTIVE Policy=POSITIVE_COHERENCE_STRUCTURAL_COMPLETENESS",
+            " Scope=MULTI_ELIGIBLE_SAME_DIRECTION SoleCandidate=UNCHANGED",
+            " M5HardConflict=DISABLED");
    if(!ValidateInputParameters())
    {
       Log(DBG_ERROR, "Input parameter validation failed");

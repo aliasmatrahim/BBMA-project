@@ -1,0 +1,121 @@
+{
+  "schema": "NMJE_V2_P2_TARGETLESS_REPLAY_RUNTIME_V1",
+  "source_rev": "NMJE_P2_TARGETLESS_REPLAY_001_20260925",
+  "segment_start_line": 286248,
+  "segment_end_line": 309785,
+  "segment_lines": 23538,
+  "build_identity_count": 1,
+  "executed_cf_sets": 3,
+  "cf_open_rows": 9,
+  "cf_out_rows": 9,
+  "selected_rows": 3,
+  "alternative_rows": 6,
+  "selected_targetless_rows": 2,
+  "selected_targetless_seed_match_y": 2,
+  "alternative_targetless_rows": 4,
+  "alternative_targetless_replay_present": 4,
+  "alternative_targetless_outcomes": {
+    "C044_HOLD_AT_BASELINE_CLOSE": 3,
+    "SL_FIRST_TARGETLESS": 1
+  },
+  "all_outcomes": {
+    "C044_CYCLE_SUPERSEDED": 1,
+    "UNCOMPARABLE_SLTP_UNRESOLVED": 1,
+    "TP_FIRST": 1,
+    "C044_HOLD_AT_BASELINE_CLOSE": 3,
+    "C044_FAILED_MOMENTUM": 1,
+    "SL_FIRST_TARGETLESS": 1,
+    "UNRESOLVED_AT_BASELINE_CLOSE": 1
+  },
+  "selected_c044_parity": [
+    {
+      "ticket": "4",
+      "cid": "783F32AFE43EF078",
+      "seed_match": "Y",
+      "owner_tf": 60,
+      "canonical_reason": "C044_EXIT_CYCLE_SUPERSEDED",
+      "shadow_outcome": "C044_CYCLE_SUPERSEDED",
+      "shadow_hit": 1786557600,
+      "expected_event_time": 1786557600,
+      "reason_match": true,
+      "time_match": true
+    },
+    {
+      "ticket": "12",
+      "cid": "B1BABB2618FC899C",
+      "seed_match": "Y",
+      "owner_tf": 240,
+      "canonical_reason": "C044_EXIT_FAILED_MOMENTUM",
+      "shadow_outcome": "C044_FAILED_MOMENTUM",
+      "shadow_hit": 1787040000,
+      "expected_event_time": 1787040000,
+      "reason_match": true,
+      "time_match": true
+    }
+  ],
+  "duplicate_execution_equivalent_sets": 0,
+  "duplicate_details": [],
+  "selected_count_errors": [],
+  "open_out_pairing_errors": [],
+  "cid_pairing_errors": [],
+  "cf_skip_count": 0,
+  "m5_semantic_y_rows": 0,
+  "exec_count": 14,
+  "baseline_exec_count": 14,
+  "execution_trace_exact_514": true,
+  "report_515": {
+    "sha256": "260A4C9838C68EE58E6BCC0BED5FA6DB5F55DADB2BB928369A23B5E51B105CDB",
+    "size": 14188,
+    "fields": {
+      "Total trades": "14",
+      "Net profit": "-0.00",
+      "Gross profit": "6.72",
+      "Gross loss": "-6.72",
+      "Profit factor": "1.00",
+      "Expected payoff": "-0.00",
+      "Maximal drawdown": "7.35 (0.07%)",
+      "Relative drawdown": "0.07% (7.35)"
+    }
+  },
+  "report_514": {
+    "sha256": "9073B291988FF12C3E8B41F4C32F7BD80E304180EEDA2C353BDE983B55AE8470",
+    "size": 14188,
+    "fields": {
+      "Total trades": "14",
+      "Net profit": "-0.00",
+      "Gross profit": "6.72",
+      "Gross loss": "-6.72",
+      "Profit factor": "1.00",
+      "Expected payoff": "-0.00",
+      "Maximal drawdown": "7.35 (0.07%)",
+      "Relative drawdown": "0.07% (7.35)"
+    }
+  },
+  "report_fields_equal_514": true,
+  "fatal_counts": {
+    "zero divide": 0,
+    "array out of range": 0,
+    "stack overflow": 0,
+    "access violation": 0,
+    "critical runtime error": 0,
+    "initialization failed": 0,
+    "init_failed": 0
+  },
+  "checks": {
+    "build_exact_once": true,
+    "same_three_cf_sets": true,
+    "open_out_pairing_exact": true,
+    "one_selected_per_set": true,
+    "no_execution_equivalent_duplicates": true,
+    "selected_targetless_seed_match": true,
+    "all_alt_targetless_have_replay": true,
+    "alt_targetless_no_legacy_uncomparable": true,
+    "selected_c044_reason_time_parity": true,
+    "no_cf_capacity_skip": true,
+    "no_m5_semantic_inference": true,
+    "no_fatal_runtime": true,
+    "execution_trace_exact_514": true,
+    "report_fields_equal_514": true
+  },
+  "pass": true
+}

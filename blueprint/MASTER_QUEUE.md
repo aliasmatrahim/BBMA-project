@@ -178,7 +178,7 @@ The exact Build 5.11 source/EX4 candidate is frozen. Phase H remains **56 PASS /
 Issue: **#101**
 Scoped lineage: **Draft PRs #192-#205**
 Priority: **HIGH / SHADOW-RESEARCH CORRECTNESS**
-Status: **BUILD 5.14 P2 COUNTERFACTUAL SHADOW VALIDATED / P2 ORDERING HOLD / P5 TRUE-CONFLICT HOLD / P9 NO FIX / M5 EXECUTION AUTHORITY NONE**
+Status: **BUILD 5.15 P2 TARGETLESS C044 REPLAY VALIDATED / P2 ORDERING HOLD / P5 TRUE-CONFLICT HOLD / P9 NO FIX / M5 EXECUTION AUTHORITY NONE**
 
 Current state:
 1. Do not rerun P1-P10; their exact scoped evidence remains reusable.
@@ -193,8 +193,9 @@ Current state:
 10. P5 semantic-ownership/evidence adjudication is complete: M5 BBMA structures are source-supported, but M5 semantic state may only come from canonical owner extensions (M08/M09/M10/M12), never a duplicate NMJE detector. Current P3 therefore remains snapshot-only and fail-closed. Opposite child activity alone does not prove true conflict; universal M5 `NESTED_CONFLICT` remains HOLD/NON-EXECUTABLE. Decision: `blueprint/decisions/Q9_NMJE_V2_P5_M5_SEMANTIC_OWNERSHIP_TRUE_CONFLICT_DECISION_20260925.md`. Current EA code fix = `NONE`.
 11. P2 policy/evidence adjudication is complete: BBMA MTF/journey coherence is valid context, but accepted sources do not define an active same-direction candidate comparator or REM/RRE/REE superiority. Build 5.12 rev003 observed 200 equal-eligibility cycles / 472 candidate rows, but telemetry was non-discriminative and current P4 outcomes cover only the selected baseline path. Because a coherence winner can change selected signal identity and semantic SL/TP source, active P2 ordering remains HOLD/NON-EXECUTABLE. Decision: `blueprint/decisions/Q9_NMJE_V2_P2_EQUAL_ELIGIBILITY_COHERENCE_POLICY_DECISION_20260925.md`. Current EA code fix = `NONE`.
 12. P2 counterfactual equal-candidate shadow attribution is validated as Build `5.14` / rev `NMJE_P2_COUNTERFACTUAL_SHADOW_004_20260925`. The overlay is tester-only and has no candidate/risk/execution authority. Final rev004 gives 3 real baseline fills with at least 2 unique execution-distinct candidates, 6 alternatives, exact 9/9 OPEN↔OUT pairing, zero execution-equivalent duplicates, selected geometry 3/3 exact, canonical execution trace/report unchanged, and zero fatal runtime. Only 1 alternative was statically comparable; targetless/unresolved alternatives remain explicitly uncomparable. This evidence layer may support future research but does not release P2 ordering HOLD. Audit: `blueprint/audits/NMJE_V2_P2_COUNTERFACTUAL_SHADOW_ATTRIBUTION_20260925.md`.
-13. Legacy N2/N3 v4.58 workflows are retired from current-owner PR gating and retained only as immutable-revision manual-dispatch historical checks.
-14. Issue #101 downstream sequence is **COMPLETED through final integration**; the following list is retained as completed order and must not be requeued without new evidence:
+13. Build 5.15 targetless C044 counterfactual lifecycle replay is validated tester-only. It reuses the unchanged canonical C044 state machine, keeps D1 TPW excluded, preserves 14/14 Build 5.14 executions/report fields, and converts all 4 targetless alternatives in the accepted sample into bounded replay outcomes (3 HOLD / 1 hard-SL-first). Selected targetless shadow parity is exact 2/2 for canonical C044 reason and owner-event time. P2 ordering remains HOLD / NON-EXECUTABLE. Audit: `blueprint/audits/NMJE_V2_P2_TARGETLESS_LIFECYCLE_REPLAY_20260925.md`.
+14. Legacy N2/N3 v4.58 workflows are retired from current-owner PR gating and retained only as immutable-revision manual-dispatch historical checks.
+15. Issue #101 downstream sequence is **COMPLETED through final integration**; the following list is retained as completed order and must not be requeued without new evidence:
    - D1TPW lifecycle re-audit;
    - C044 lifecycle;
    - D1/D1O identity & dedup;
@@ -206,7 +207,7 @@ Current state:
    - M01-M27 + M12N cross-module audit;
    - final integration candidate/tests/backtest;
    - final MetaQuotes-Demo runtime acceptance last (Issue #109; user-selected demo provider, 2026-09-23).
-15. Old PR #102/#126 lineage remains historical/staging evidence only; do not merge it directly.
+16. Old PR #102/#126 lineage remains historical/staging evidence only; do not merge it directly.
 
 ### Q11 — Dashboard / observer future materialization
 Status: **DEFERRED / RE-AUDIT REQUIRED**

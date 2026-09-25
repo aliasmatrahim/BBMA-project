@@ -2,7 +2,7 @@
 
 Reconciled: **2026-09-25**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`facb1d6c2adea4d8ec6eacfbf3b9e83e0a27cd95`**
+Owner head at reconciliation: **`ce2d6c06d225f964a5eddc2291697d14f0efafb2`**
 
 This file is the active queue. The pre-2026-09-09 historical queue is preserved byte-for-byte at `blueprint/archive/MASTER_QUEUE_pre_20260909.md`.
 
@@ -178,7 +178,7 @@ The exact Build 5.11 source/EX4 candidate is frozen. Phase H remains **56 PASS /
 Issue: **#101**
 Scoped lineage: **Draft PRs #192-#205**
 Priority: **HIGH / SHADOW-RESEARCH CORRECTNESS**
-Status: **BUILD 5.13 P4+ CURRENT-OWNER SHADOW REMATERIALIZATION VALIDATED / P5 TRUE-CONFLICT HOLD / P9 NO FIX / P2 ORDERING HOLD / M5 EXECUTION AUTHORITY NONE**
+Status: **BUILD 5.13 P4+ VALIDATED / P5 SEMANTIC OWNERSHIP DECIDED / TRUE-CONFLICT HOLD / P9 NO FIX / P2 ORDERING HOLD / M5 EXECUTION AUTHORITY NONE**
 
 Current state:
 1. Do not rerun P1-P10; their exact scoped evidence remains reusable.
@@ -190,8 +190,9 @@ Current state:
 7. Current-owner reconciliation audit: `blueprint/audits/NMJE_V1_V2_CURRENT_OWNER_IMPLEMENTATION_RECONCILIATION_20260925.md`; current-owner code fix = `NONE`, accepted Core delta = `NONE`.
 8. Fresh current-owner P2/P3 shadow rematerialization is validated as Build `5.12` / rev `NMJE_P2P3_SHADOW_003_20260925`: native 0E/0W, targeted regression PASS, isolated GBPUSD M15 Strategy Tester runtime/order coverage PASS. P2 ordering remains HOLD; M5 remains closed-candle shadow-only. Audit: `blueprint/audits/NMJE_V2_P2_P3_CURRENT_OWNER_REMATERIALIZATION_20260925.md`.
 9. Fresh current-owner P4+ rematerialization is validated as Build `5.13` / rev `NMJE_P4PLUS_SHADOW_006_20260925`: P4/P6/P7/P8/P10/P11 are shadow-only, P5 true-conflict remains HOLD because P3 has no source-owned M5 signal semantics, and P9 is NO FIX. Native/harness compile 0E/0W, targeted authority regression PASS, final rev006 GBPUSD M15 runtime 14/14 durable reload+match, and execution trace/report remain exact to Build 5.12 baseline. Audit: `blueprint/audits/NMJE_V2_P4PLUS_CURRENT_OWNER_REMATERIALIZATION_20260925.md`.
-10. Legacy N2/N3 v4.58 workflows are retired from current-owner PR gating and retained only as immutable-revision manual-dispatch historical checks.
-11. Issue #101 downstream sequence is **COMPLETED through final integration**; the following list is retained as completed order and must not be requeued without new evidence:
+10. P5 semantic-ownership/evidence adjudication is complete: M5 BBMA structures are source-supported, but M5 semantic state may only come from canonical owner extensions (M08/M09/M10/M12), never a duplicate NMJE detector. Current P3 therefore remains snapshot-only and fail-closed. Opposite child activity alone does not prove true conflict; universal M5 `NESTED_CONFLICT` remains HOLD/NON-EXECUTABLE. Decision: `blueprint/decisions/Q9_NMJE_V2_P5_M5_SEMANTIC_OWNERSHIP_TRUE_CONFLICT_DECISION_20260925.md`. Current EA code fix = `NONE`.
+11. Legacy N2/N3 v4.58 workflows are retired from current-owner PR gating and retained only as immutable-revision manual-dispatch historical checks.
+12. Issue #101 downstream sequence is **COMPLETED through final integration**; the following list is retained as completed order and must not be requeued without new evidence:
    - D1TPW lifecycle re-audit;
    - C044 lifecycle;
    - D1/D1O identity & dedup;
@@ -203,7 +204,7 @@ Current state:
    - M01-M27 + M12N cross-module audit;
    - final integration candidate/tests/backtest;
    - final MetaQuotes-Demo runtime acceptance last (Issue #109; user-selected demo provider, 2026-09-23).
-12. Old PR #102/#126 lineage remains historical/staging evidence only; do not merge it directly.
+13. Old PR #102/#126 lineage remains historical/staging evidence only; do not merge it directly.
 
 ### Q11 — Dashboard / observer future materialization
 Status: **DEFERRED / RE-AUDIT REQUIRED**

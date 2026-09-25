@@ -1,8 +1,8 @@
 # BBMA Active Master Queue
 
-Reconciled: **2026-09-23**
+Reconciled: **2026-09-25**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`e54bc1f8bacc9882c225aa5ac4b034380161e775`**
+Owner head at reconciliation: **`facb1d6c2adea4d8ec6eacfbf3b9e83e0a27cd95`**
 
 This file is the active queue. The pre-2026-09-09 historical queue is preserved byte-for-byte at `blueprint/archive/MASTER_QUEUE_pre_20260909.md`.
 
@@ -21,7 +21,7 @@ Stable Q IDs are preserved. The active dependency order is:
 - **Integration / final acceptance:** Q7 -> Q8 -> Q10
 - **Deferred / future:** Q11
 
-Q3 remains a separate isolated runtime-validation workstream and is environment-blocked at `SEEN=91 / ACTIVE=0` on the exact InstanceID 81 ledger; do not disturb its primary PID 13064. Q9 P1-P11 remains verified scoped Draft research with no activation, while the subsequent Issue #101 downstream sequence (D1TPW -> C044 -> D1/D1O -> M17 -> TradeLock/risk/execution -> N1/N2/N3 -> M25 -> Observer -> cross-module -> final integration) is already completed and must not be requeued. Q6 remains stopped/closed. Q7/Q8 historical gates are complete. **Q10 Phase L R5 is the highest-priority active final-acceptance task. R3 and R4 are formally PASS; R5 remains the first incomplete stage.**
+Q3 remains a separate isolated runtime-validation workstream and is environment-blocked at `SEEN=91 / ACTIVE=0` on the exact InstanceID 81 ledger; do not disturb its primary PID 13064. Q9 current-owner rematerialization is validated through Build 5.13 for shadow-safe P2/P3 and P4+/P6-P8/P10-P11 scope; P2 ordering and P5 true-conflict remain HOLD, P9 is NO FIX, and M5 has no execution authority. Historical Draft PRs #192-#205 remain provenance only. The subsequent Issue #101 downstream sequence (D1TPW -> C044 -> D1/D1O -> M17 -> TradeLock/risk/execution -> N1/N2/N3 -> M25 -> Observer -> cross-module -> final integration) is already completed and must not be requeued. Q6 remains stopped/closed. Q7/Q8 historical gates are complete. **Q10 Phase L R5 remains the highest-priority active final-acceptance task and is separately bound to frozen Build 5.11. R3 and R4 are formally PASS; R5 remains the first incomplete stage.**
 
 ## Stage A - Source evidence / reconciliation
 
@@ -178,7 +178,7 @@ The exact Build 5.11 source/EX4 candidate is frozen. Phase H remains **56 PASS /
 Issue: **#101**
 Scoped lineage: **Draft PRs #192-#205**
 Priority: **HIGH / SHADOW-RESEARCH CORRECTNESS**
-Status: **BUILD 5.12 P2/P3 SHADOW REMATERIALIZATION VALIDATED / P2 ORDERING HOLD / M5 EXECUTION AUTHORITY NONE**
+Status: **BUILD 5.13 P4+ CURRENT-OWNER SHADOW REMATERIALIZATION VALIDATED / P5 TRUE-CONFLICT HOLD / P9 NO FIX / P2 ORDERING HOLD / M5 EXECUTION AUTHORITY NONE**
 
 Current state:
 1. Do not rerun P1-P10; their exact scoped evidence remains reusable.
@@ -186,11 +186,12 @@ Current state:
 3. Accepted P11: PR #205 head `0f80addc9080e726b8e6bb26a34094ae41ac3256`, Build `4.96`, source SHA-256 `B08CBDEFED1B1A6B6F0B9CADC3CA53B25BD3F98334E7E797A51D765F53E0C148`.
 4. Build 4.95 lineage semantics are superseded; ParentEventID/JourneyID transition = NEW_JOURNEY, unchanged canonical root = FIRST, and CONTINUATION remains unproven without a separate source-owned continuation-event identity.
 5. Static/model/persistence + native compile + deterministic GBPUSD tester authority regression PASS; broker actions=0.
-6. Current owner Build 5.11 already contains the P1 provenance identity substrate. PR #205 is retained as verified historical research provenance only and must **not** be direct-merged: live compare shows it 164 commits behind current owner. Any resumed P2-P8/P10/P11 work must be rematerialized from the then-current owner; P2 ordering remains HOLD and M5 remains shadow-only.
+6. Build 5.11 supplied the P1 provenance identity substrate; current-owner Build 5.12/5.13 rematerialization was performed fresh from owner state, not by merging PR #205. Historical PR #205 remains provenance only and must **not** be direct-merged; P2 ordering remains HOLD and M5 remains shadow-only.
 7. Current-owner reconciliation audit: `blueprint/audits/NMJE_V1_V2_CURRENT_OWNER_IMPLEMENTATION_RECONCILIATION_20260925.md`; current-owner code fix = `NONE`, accepted Core delta = `NONE`.
 8. Fresh current-owner P2/P3 shadow rematerialization is validated as Build `5.12` / rev `NMJE_P2P3_SHADOW_003_20260925`: native 0E/0W, targeted regression PASS, isolated GBPUSD M15 Strategy Tester runtime/order coverage PASS. P2 ordering remains HOLD; M5 remains closed-candle shadow-only. Audit: `blueprint/audits/NMJE_V2_P2_P3_CURRENT_OWNER_REMATERIALIZATION_20260925.md`.
-9. Legacy N2/N3 v4.58 workflows are retired from current-owner PR gating and retained only as immutable-revision manual-dispatch historical checks.
-10. Issue #101 downstream sequence is **COMPLETED through final integration**; the following list is retained as completed order and must not be requeued without new evidence:
+9. Fresh current-owner P4+ rematerialization is validated as Build `5.13` / rev `NMJE_P4PLUS_SHADOW_006_20260925`: P4/P6/P7/P8/P10/P11 are shadow-only, P5 true-conflict remains HOLD because P3 has no source-owned M5 signal semantics, and P9 is NO FIX. Native/harness compile 0E/0W, targeted authority regression PASS, final rev006 GBPUSD M15 runtime 14/14 durable reload+match, and execution trace/report remain exact to Build 5.12 baseline. Audit: `blueprint/audits/NMJE_V2_P4PLUS_CURRENT_OWNER_REMATERIALIZATION_20260925.md`.
+10. Legacy N2/N3 v4.58 workflows are retired from current-owner PR gating and retained only as immutable-revision manual-dispatch historical checks.
+11. Issue #101 downstream sequence is **COMPLETED through final integration**; the following list is retained as completed order and must not be requeued without new evidence:
    - D1TPW lifecycle re-audit;
    - C044 lifecycle;
    - D1/D1O identity & dedup;
@@ -202,7 +203,7 @@ Current state:
    - M01-M27 + M12N cross-module audit;
    - final integration candidate/tests/backtest;
    - final MetaQuotes-Demo runtime acceptance last (Issue #109; user-selected demo provider, 2026-09-23).
-11. Old PR #102/#126 lineage remains historical/staging evidence only; do not merge it directly.
+12. Old PR #102/#126 lineage remains historical/staging evidence only; do not merge it directly.
 
 ### Q11 — Dashboard / observer future materialization
 Status: **DEFERRED / RE-AUDIT REQUIRED**

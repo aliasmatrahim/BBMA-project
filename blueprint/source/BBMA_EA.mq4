@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.1.2 - NMJE P2/P3 Shadow Rematerialization         |
+//| Version 5.1.3 - NMJE P4+ Shadow Rematerialization            |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.12"
+#property version   "5.13"
 #property strict
 
-#define BBMA_BUILD_TAG      "V512_NMJE_P2P3_SHADOW_20260925"
-#define BBMA_SOURCE_REV_TAG "NMJE_P2P3_SHADOW_003_20260925"
+#define BBMA_BUILD_TAG      "V513_NMJE_P4PLUS_SHADOW_20260925"
+#define BBMA_SOURCE_REV_TAG "NMJE_P4PLUS_SHADOW_006_20260925"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -266,6 +266,42 @@ enum ENUM_NESTED_PARENT_KIND
    NESTED_PARENT_H4_OWNER,
    NESTED_PARENT_D1_RE,
    NESTED_PARENT_D1_OWNER
+};
+
+// Q9 NMJE V2 P4+ categorical observer metadata. Enum ordinals are storage only.
+enum ENUM_NMJE_JOURNEY_MATURITY
+{
+   NMJE_MATURITY_NONE,
+   NMJE_MATURITY_OWNER_ONLY,
+   NMJE_MATURITY_EXTREME_DEVELOPING,
+   NMJE_MATURITY_EXTREME_MATURE,
+   NMJE_MATURITY_MHV_DEVELOPING,
+   NMJE_MATURITY_MHV_MATURE,
+   NMJE_MATURITY_DIRECTION_STAGE,
+   NMJE_MATURITY_REENTRY_CANDIDATE,
+   NMJE_MATURITY_REENTRY_CONFIRMED,
+   NMJE_MATURITY_MOMENTUM_CONTINUATION,
+   NMJE_MATURITY_OWNER_TRANSITION,
+   NMJE_MATURITY_UNRESOLVED
+};
+
+enum ENUM_NMJE_STRUCTURE_STAGE_BIT
+{
+   NMJE_STRUCTURE_EXTREME   = 1,
+   NMJE_STRUCTURE_TPW       = 2,
+   NMJE_STRUCTURE_MHV       = 4,
+   NMJE_STRUCTURE_DIRECTION = 8,
+   NMJE_STRUCTURE_REENTRY   = 16,
+   NMJE_STRUCTURE_MOMENTUM  = 32
+};
+
+enum ENUM_NMJE_LINEAGE_EVENT_CLASS
+{
+   NMJE_LINEAGE_NONE,
+   NMJE_LINEAGE_FIRST,
+   NMJE_LINEAGE_CONTINUATION,
+   NMJE_LINEAGE_NEW_JOURNEY,
+   NMJE_LINEAGE_UNRESOLVED
 };
 
 enum ENUM_EXTREME_TYPE { EXT_NONE, EXT_SIDEWAYS, EXT_WITH_MOMENTUM, EXT_WITHOUT_MOMENTUM };
@@ -626,6 +662,55 @@ struct NestedTFNode
    string               OverlayLabel;
 };
 
+// Q9 P7 shadow-only canonical-cycle fingerprint. Never score/rank/gate.
+struct NMJEStructuralDensityState
+{
+   bool                 Present;
+   bool                 Valid;
+   int                  StageMask;
+   int                  PrefixMask;
+   int                  StageCount;
+   string               Reason;
+};
+
+// Q9 P10 post-fill research telemetry only.
+struct NMJEEntryDisplacementState
+{
+   bool                 Present;
+   ENUM_SIGNAL_TYPE     SourceSignal;
+   int                  SourceTimeframe;
+   datetime             SourceCandleTime;
+   double               SourceReferencePrice;
+   double               PreflightReferencePrice;
+   double               BrokerOpenPrice;
+   double               SourceToPreflightPips;
+   double               PreflightToOpenPips;
+   double               SourceToOpenPips;
+};
+
+// Q9 P4 durable observer attribution. Missing/corrupt state is diagnostic only.
+struct NMJEShadowAttributionState
+{
+   bool                 Present;
+   bool                 Durable;
+   string               JourneyHash;
+   string               ParentEventHash;
+   ENUM_NESTED_RELATION Relation;
+   ENUM_NESTED_RELATION StableRelation;
+   ENUM_NMJE_JOURNEY_MATURITY Maturity;
+   ENUM_NMJE_LINEAGE_EVENT_CLASS LineageClass;
+   string               LineageRootHash;
+   string               PreviousLineageRootHash;
+   NMJEStructuralDensityState StructureDensity;
+   NMJEEntryDisplacementState EntryDisplacement;
+   bool                 M5SnapshotPresent;
+   string               M5EventHash;
+   datetime             M5ClosedCandleTime;
+   bool                 M5SemanticResolved;
+   ENUM_NESTED_RELATION M5DiagnosticRelation;
+   string               M5ReasonHash;
+};
+
 // N1-03: one pair-level nested journey observation per closed-M15 cycle.
 struct NestedJourneyState
 {
@@ -652,6 +737,22 @@ struct NestedJourneyState
    string                  M5ShadowEventID;
    ENUM_DIRECTION          M5ShadowDirection;
    string                  M5ShadowReason;
+   // P5 current-owner boundary: P3 has closed-M5 data only, no M5 signal semantics.
+   bool                    M5SemanticResolved;
+   ENUM_NESTED_RELATION    M5DiagnosticRelation;
+   string                  M5DiagnosticReason;
+   // P6/P8/P11 observer-only metadata.
+   ENUM_NESTED_RELATION    StableRelation;
+   string                  RelationEvidenceID;
+   string                  StableRelationEvidenceID;
+   bool                    ParentTransitioned;
+   string                  PreviousParentEventID;
+   ENUM_NMJE_LINEAGE_EVENT_CLASS LineageClass;
+   string                  LineageRootEventID;
+   string                  PreviousLineageRootEventID;
+   string                  LineageReason;
+   string                  StabilityReason;
+   ENUM_NMJE_JOURNEY_MATURITY Maturity;
    NestedTFNode            D1Node;
    NestedTFNode            H4Node;
    NestedTFNode            H1Node;
@@ -749,6 +850,28 @@ struct BBMA_Decision
    datetime                     D1OpportunityActivationTime;
    string                       D1OpportunityCycleID;
    bool                         D1OpportunitySnapshotValid;
+
+   // Q9 P4+ frozen observer metadata. Never candidate/risk/execution authority.
+   bool                         NMJESnapshotPresent;
+   string                       NMJEJourneyID;
+   string                       NMJEParentEventID;
+   ENUM_NESTED_RELATION         NMJERelation;
+   ENUM_NESTED_RELATION         NMJEStableRelation;
+   string                       NMJEStableRelationEvidenceID;
+   bool                         NMJEParentTransitioned;
+   string                       NMJEPreviousParentEventID;
+   ENUM_NMJE_LINEAGE_EVENT_CLASS NMJELineageClass;
+   string                       NMJELineageRootEventID;
+   string                       NMJEPreviousLineageRootEventID;
+   ENUM_NMJE_JOURNEY_MATURITY   NMJEMaturity;
+   NMJEStructuralDensityState   NMJEStructureDensity;
+   datetime                     NMJEUpdateCandleTime;
+   bool                         NMJEM5SnapshotPresent;
+   string                       NMJEM5ShadowEventID;
+   datetime                     NMJEM5ShadowClosedCandleTime;
+   bool                         NMJEM5SemanticResolved;
+   ENUM_NESTED_RELATION         NMJEM5DiagnosticRelation;
+   string                       NMJEM5DiagnosticReason;
    
    // MUTABLE LIFECYCLE
    bool                 C044LifecycleManaged;
@@ -933,6 +1056,9 @@ struct TradeInfo
    string               decision_id;
    string               execution_hash;
    string               sequence_hash_short;
+   // Q9 P4/P10 research-only attribution; never recovery/execution authority.
+   NMJEEntryDisplacementState entry_displacement;
+   NMJEShadowAttributionState nmje_attribution;
 
    // C044 immutable lifecycle owner + restart state. These fields are dormant
    // while EnableC044Lifecycle=false.
@@ -5173,11 +5299,495 @@ string NMJE_BuildJourneyID(string pair, ENUM_NESTED_PARENT_KIND kind,
    return "J2|" + pair + "|" + NMJE_ParentText(kind) + "|" + parentEventID;
 }
 
+bool NMJE_IsRelationDomainValue(ENUM_NESTED_RELATION relation)
+{
+   return (relation == NESTED_NOT_APPLICABLE ||
+           relation == NESTED_BUILDING ||
+           relation == NESTED_SUPPORTING ||
+           relation == NESTED_ALIGNED ||
+           relation == NESTED_CONFLICT ||
+           relation == NESTED_UNRESOLVED);
+}
+
+bool NMJE_IsMaturityDomainValue(ENUM_NMJE_JOURNEY_MATURITY maturity)
+{
+   return (maturity >= NMJE_MATURITY_NONE &&
+           maturity <= NMJE_MATURITY_UNRESOLVED);
+}
+
+string NMJE_MaturityText(ENUM_NMJE_JOURNEY_MATURITY maturity)
+{
+   if(maturity == NMJE_MATURITY_OWNER_ONLY) return "OWNER_ONLY";
+   if(maturity == NMJE_MATURITY_EXTREME_DEVELOPING) return "EXTREME_DEVELOPING";
+   if(maturity == NMJE_MATURITY_EXTREME_MATURE) return "EXTREME_MATURE";
+   if(maturity == NMJE_MATURITY_MHV_DEVELOPING) return "MHV_DEVELOPING";
+   if(maturity == NMJE_MATURITY_MHV_MATURE) return "MHV_MATURE";
+   if(maturity == NMJE_MATURITY_DIRECTION_STAGE) return "DIRECTION_STAGE";
+   if(maturity == NMJE_MATURITY_REENTRY_CANDIDATE) return "RE_CANDIDATE";
+   if(maturity == NMJE_MATURITY_REENTRY_CONFIRMED) return "RE_CONFIRMED";
+   if(maturity == NMJE_MATURITY_MOMENTUM_CONTINUATION) return "MOMENTUM_CONTINUATION";
+   if(maturity == NMJE_MATURITY_OWNER_TRANSITION) return "OWNER_TRANSITION";
+   if(maturity == NMJE_MATURITY_UNRESOLVED) return "UNRESOLVED";
+   return "NONE";
+}
+
+string NMJE_LineageClassText(ENUM_NMJE_LINEAGE_EVENT_CLASS lineageClass)
+{
+   if(lineageClass == NMJE_LINEAGE_FIRST) return "FIRST";
+   if(lineageClass == NMJE_LINEAGE_CONTINUATION) return "CONTINUATION";
+   if(lineageClass == NMJE_LINEAGE_NEW_JOURNEY) return "NEW_JOURNEY";
+   if(lineageClass == NMJE_LINEAGE_UNRESOLVED) return "UNRESOLVED";
+   return "NONE";
+}
+
+ENUM_NMJE_JOURNEY_MATURITY NMJE_ClassifyJourneyMaturity(
+   PairState &state, NestedJourneyState &journey)
+{
+   if(state.d1_major_trend_owner.State == D1_OWNER_UNRESOLVED)
+      return NMJE_MATURITY_UNRESOLVED;
+   if(state.d1_major_trend_owner.State == D1_TRANSITION)
+      return NMJE_MATURITY_OWNER_TRANSITION;
+   if(journey.Relation == NESTED_NOT_APPLICABLE && journey.Resolved)
+      return NMJE_MATURITY_NONE;
+   if(!journey.Valid || !journey.Resolved ||
+      journey.Relation == NESTED_UNRESOLVED)
+      return NMJE_MATURITY_UNRESOLVED;
+
+   if(NMJE_IsConfirmedRE(state.re_h1_buy_state) ||
+      NMJE_IsConfirmedRE(state.re_h1_sell_state) ||
+      NMJE_IsConfirmedRE(state.re_m15_buy_state) ||
+      NMJE_IsConfirmedRE(state.re_m15_sell_state))
+      return NMJE_MATURITY_REENTRY_CONFIRMED;
+
+   if(NMJE_IsCandidateRE(state.re_h1_buy_state) ||
+      NMJE_IsCandidateRE(state.re_h1_sell_state) ||
+      NMJE_IsCandidateRE(state.re_m15_buy_state) ||
+      NMJE_IsCandidateRE(state.re_m15_sell_state))
+      return NMJE_MATURITY_REENTRY_CANDIDATE;
+
+   if(journey.ParentKind == NESTED_PARENT_H4_OWNER &&
+      journey.ParentSignal == SIGNAL_CSM)
+      return NMJE_MATURITY_MOMENTUM_CONTINUATION;
+   if(journey.ParentKind == NESTED_PARENT_H4_OWNER &&
+      (journey.ParentSignal == SIGNAL_CSD ||
+       journey.ParentSignal == SIGNAL_ECSD))
+      return NMJE_MATURITY_DIRECTION_STAGE;
+
+   if(NMJE_IsMLVSupporting(state.mlv_buy_state) ||
+      NMJE_IsMLVSupporting(state.mlv_sell_state))
+      return NMJE_MATURITY_MHV_MATURE;
+   if(NMJE_IsMLVActive(state.mlv_buy_state) ||
+      NMJE_IsMLVActive(state.mlv_sell_state))
+      return NMJE_MATURITY_MHV_DEVELOPING;
+
+   if(NMJE_IsExtremeSupporting(state.extreme_h1_buy_lifecycle) ||
+      NMJE_IsExtremeSupporting(state.extreme_h1_sell_lifecycle) ||
+      NMJE_IsExtremeSupporting(state.extreme_m15_buy_lifecycle) ||
+      NMJE_IsExtremeSupporting(state.extreme_m15_sell_lifecycle))
+      return NMJE_MATURITY_EXTREME_MATURE;
+   if(NMJE_IsExtremeActive(state.extreme_h1_buy_lifecycle) ||
+      NMJE_IsExtremeActive(state.extreme_h1_sell_lifecycle) ||
+      NMJE_IsExtremeActive(state.extreme_m15_buy_lifecycle) ||
+      NMJE_IsExtremeActive(state.extreme_m15_sell_lifecycle))
+      return NMJE_MATURITY_EXTREME_DEVELOPING;
+
+   if(journey.ParentEventID != "" && journey.JourneyID != "")
+      return NMJE_MATURITY_OWNER_ONLY;
+   return NMJE_MATURITY_NONE;
+}
+
+string NMJE_BuildRelationEvidenceID(PairState &state,
+                                    NestedJourneyState &journey)
+{
+   if(!journey.Valid || !journey.Resolved ||
+      journey.ParentEventID == "" || journey.JourneyID == "" ||
+      !NMJE_IsRelationDomainValue(journey.Relation))
+      return "";
+
+   // Waiting/developing states without a resolved child identity are deliberately
+   // not promoted to last-proven evidence.
+   if(journey.Reason == "PARENT_WAITING_FOR_CHILD" ||
+      journey.Reason == "LTF_STRUCTURE_BUILDING")
+      return "";
+
+   string evidence = "REL|" + journey.Pair + "|" + journey.JourneyID + "|" +
+                     journey.ParentEventID + "|" +
+                     IntegerToString((int)journey.Relation) + "|" + journey.Reason;
+   if(journey.H1Node.CanonicalEventID != "")
+      evidence += "|H1:" + journey.H1Node.CanonicalEventID;
+   if(journey.M15Node.CanonicalEventID != "")
+      evidence += "|M15:" + journey.M15Node.CanonicalEventID;
+   if(journey.H4Node.CanonicalEventID != "")
+      evidence += "|H4:" + journey.H4Node.CanonicalEventID;
+   if(journey.D1Node.CanonicalEventID != "")
+      evidence += "|D1:" + journey.D1Node.CanonicalEventID;
+
+   // Parent/owner based relation reasons are themselves attributable to the
+   // already-resolved canonical parent identity.
+   if(StringLen(evidence) <= 0) return "";
+   return NMJE_IdentityHash(evidence);
+}
+
+void NMJE_ApplyJourneyProvenanceStability(PairState &state,
+                                          NestedJourneyState &previous,
+                                          NestedJourneyState &journey)
+{
+   journey.StableRelation = journey.Relation;
+   journey.RelationEvidenceID = NMJE_BuildRelationEvidenceID(state, journey);
+   journey.StableRelationEvidenceID = journey.RelationEvidenceID;
+   journey.ParentTransitioned = false;
+   journey.PreviousParentEventID = "";
+   journey.StabilityReason = "CURRENT_RAW_RELATION";
+
+   bool previousHasParent =
+      (previous.ParentEventID != "" && previous.JourneyID != "");
+   bool currentHasParent =
+      (journey.ParentEventID != "" && journey.JourneyID != "");
+
+   if(previousHasParent && !currentHasParent)
+   {
+      journey.ParentTransitioned = true;
+      journey.PreviousParentEventID = previous.ParentEventID;
+      journey.StableRelationEvidenceID = "";
+      journey.StabilityReason = "PARENT_CONTEXT_LOST";
+      return;
+   }
+   if(!currentHasParent)
+   {
+      journey.StableRelationEvidenceID = "";
+      journey.StabilityReason = "NO_CURRENT_PARENT";
+      return;
+   }
+
+   bool sameParent =
+      (previousHasParent &&
+       previous.ParentKind == journey.ParentKind &&
+       previous.ParentEventID == journey.ParentEventID &&
+       previous.JourneyID == journey.JourneyID);
+
+   if(previousHasParent && !sameParent)
+   {
+      journey.ParentTransitioned = true;
+      journey.PreviousParentEventID = previous.ParentEventID;
+      journey.StabilityReason = (journey.RelationEvidenceID != "")
+         ? "PARENT_TRANSITION_CURRENT_EVIDENCE"
+         : "PARENT_TRANSITION_RAW_INIT";
+      return;
+   }
+
+   if(journey.RelationEvidenceID != "")
+   {
+      journey.StabilityReason = "CURRENT_CANONICAL_EVIDENCE";
+      return;
+   }
+
+   if(sameParent && previous.StableRelationEvidenceID != "" &&
+      NMJE_IsRelationDomainValue(previous.StableRelation))
+   {
+      journey.StableRelation = previous.StableRelation;
+      journey.StableRelationEvidenceID = previous.StableRelationEvidenceID;
+      journey.StabilityReason = "HOLD_LAST_PROVEN_RELATION";
+      return;
+   }
+   journey.StabilityReason = "NO_PRIOR_PROVEN_RELATION";
+}
+
+void NMJE_ApplyStrictJourneyLineage(NestedJourneyState &previous,
+                                    NestedJourneyState &journey)
+{
+   journey.LineageClass = NMJE_LINEAGE_NONE;
+   journey.LineageRootEventID = "";
+   journey.PreviousLineageRootEventID = "";
+   journey.LineageReason = "NO_VALID_PARENT";
+
+   if(!journey.Valid || !journey.Resolved ||
+      journey.ParentEventID == "" || journey.JourneyID == "")
+   {
+      if(journey.Relation == NESTED_UNRESOLVED)
+      {
+         journey.LineageClass = NMJE_LINEAGE_UNRESOLVED;
+         journey.LineageReason = "CURRENT_PARENT_UNRESOLVED";
+      }
+      return;
+   }
+
+   // Strict-A: canonical ParentEventID is the exact lineage root.
+   journey.LineageRootEventID = journey.ParentEventID;
+   bool previousCanonical =
+      (previous.Valid && previous.Resolved &&
+       previous.ParentEventID != "" && previous.JourneyID != "");
+
+   if(previousCanonical &&
+      (previous.ParentEventID != journey.ParentEventID ||
+       previous.JourneyID != journey.JourneyID))
+   {
+      journey.LineageClass = NMJE_LINEAGE_NEW_JOURNEY;
+      journey.PreviousLineageRootEventID = previous.ParentEventID;
+      journey.LineageReason = "CANONICAL_JOURNEY_TRANSITION";
+      return;
+   }
+
+   // CONTINUATION is intentionally never inferred: current owner exposes no
+   // distinct source-owned continuation/re-arm event identity.
+   journey.LineageClass = NMJE_LINEAGE_FIRST;
+   journey.LineageReason = previousCanonical
+      ? "CANONICAL_ROOT_STILL_CURRENT" : "CANONICAL_ROOT_CURRENT";
+}
+
+void NMJE_PrintP8StabilityShadow(NestedJourneyState &journey)
+{
+   string message = "[Q9-P8-STABILITY] Pair=" + journey.Pair +
+                    " REL=" + NMJE_RelationText(journey.Relation) +
+                    " SREL=" + NMJE_RelationText(journey.StableRelation) +
+                    " REH=" + (journey.RelationEvidenceID == "" ? "-" :
+                               SHORT_HASH(journey.RelationEvidenceID)) +
+                    " SEH=" + (journey.StableRelationEvidenceID == "" ? "-" :
+                               SHORT_HASH(journey.StableRelationEvidenceID)) +
+                    " PTR=" + (journey.ParentTransitioned ? "Y" : "N") +
+                    " PPEH=" + (journey.PreviousParentEventID == "" ? "-" :
+                                SHORT_HASH(journey.PreviousParentEventID)) +
+                    " MAT=" + NMJE_MaturityText(journey.Maturity) +
+                    " LC=" + NMJE_LineageClassText(journey.LineageClass) +
+                    " LRH=" + (journey.LineageRootEventID == "" ? "-" :
+                               SHORT_HASH(journey.LineageRootEventID)) +
+                    " PLRH=" + (journey.PreviousLineageRootEventID == "" ? "-" :
+                                SHORT_HASH(journey.PreviousLineageRootEventID)) +
+                    " Authority=NONE";
+   ObserverPrintChanged("Q9P8|" + journey.Pair, message);
+}
+
+void NMJE_FinalizeJourneyMetadata(int pairIndex,
+                                  NestedJourneyState &previous,
+                                  NestedJourneyState &journey)
+{
+   if(pairIndex < 0 || pairIndex >= g_pair_count) return;
+   NMJE_ApplyJourneyProvenanceStability(g_pair_states[pairIndex], previous, journey);
+   NMJE_ApplyStrictJourneyLineage(previous, journey);
+   journey.Maturity = NMJE_ClassifyJourneyMaturity(g_pair_states[pairIndex], journey);
+   NMJE_PrintP8StabilityShadow(journey);
+}
+
+int NMJE_CountStructureStages(int mask)
+{
+   int count = 0;
+   int bits[6] = {NMJE_STRUCTURE_EXTREME, NMJE_STRUCTURE_TPW, NMJE_STRUCTURE_MHV,
+                  NMJE_STRUCTURE_DIRECTION, NMJE_STRUCTURE_REENTRY,
+                  NMJE_STRUCTURE_MOMENTUM};
+   for(int i=0; i<6; i++) if((mask & bits[i]) != 0) count++;
+   return count;
+}
+
+int NMJE_BuildStructurePrefixMask(int mask)
+{
+   int bits[6] = {NMJE_STRUCTURE_EXTREME, NMJE_STRUCTURE_TPW, NMJE_STRUCTURE_MHV,
+                  NMJE_STRUCTURE_DIRECTION, NMJE_STRUCTURE_REENTRY,
+                  NMJE_STRUCTURE_MOMENTUM};
+   int prefix = 0;
+   for(int i=0; i<6; i++)
+   {
+      if((mask & bits[i]) == 0) break;
+      prefix |= bits[i];
+   }
+   return prefix;
+}
+
+bool NMJE_IsStructuralDensityValid(NMJEStructuralDensityState &density)
+{
+   if(!density.Present) return true;
+   if(!density.Valid) return false;
+   if(density.StageMask < 0 || density.StageMask > 63) return false;
+   if(density.PrefixMask < 0 || density.PrefixMask > 63) return false;
+   if((density.PrefixMask & density.StageMask) != density.PrefixMask) return false;
+   if(density.StageCount != NMJE_CountStructureStages(density.StageMask)) return false;
+   return true;
+}
+
+void NMJE_AddComponentStructureStages(ComponentIdentity &component, int &mask)
+{
+   if(component.ComponentType == SIGNAL_EXTREME)
+      mask |= NMJE_STRUCTURE_EXTREME;
+   else if(component.ComponentType == SIGNAL_MLV)
+      mask |= (NMJE_STRUCTURE_EXTREME | NMJE_STRUCTURE_TPW | NMJE_STRUCTURE_MHV);
+   else if(component.ComponentType == SIGNAL_RE_ENTRY)
+      mask |= NMJE_STRUCTURE_REENTRY;
+}
+
+int NMJE_BuildResolvedJourneyStructureMask(PairState &state,
+                                           NestedJourneyState &journey,
+                                           ENUM_DIRECTION direction)
+{
+   if(!journey.Valid || !journey.Resolved ||
+      journey.ParentDirection != direction)
+      return 0;
+   int mask = 0;
+
+   ExtremeLifecycleData xh1 = (direction == DIR_BUY)
+      ? state.extreme_h1_buy_lifecycle : state.extreme_h1_sell_lifecycle;
+   ExtremeLifecycleData xm15 = (direction == DIR_BUY)
+      ? state.extreme_m15_buy_lifecycle : state.extreme_m15_sell_lifecycle;
+   MLVData mlv = (direction == DIR_BUY) ? state.mlv_buy_state : state.mlv_sell_state;
+   ReEntryData reh1 = (direction == DIR_BUY) ? state.re_h1_buy_state : state.re_h1_sell_state;
+   ReEntryData rem15 = (direction == DIR_BUY) ? state.re_m15_buy_state : state.re_m15_sell_state;
+
+   if(NMJE_IsExtremeActive(xh1) || NMJE_IsExtremeActive(xm15))
+      mask |= NMJE_STRUCTURE_EXTREME;
+   if(NMJE_IsMLVActive(mlv))
+   {
+      mask |= (NMJE_STRUCTURE_EXTREME | NMJE_STRUCTURE_TPW | NMJE_STRUCTURE_MHV);
+      if(mlv.State == MLV_DIRECTION_TAKEN) mask |= NMJE_STRUCTURE_DIRECTION;
+   }
+   if(NMJE_IsConfirmedRE(reh1) || NMJE_IsConfirmedRE(rem15))
+      mask |= NMJE_STRUCTURE_REENTRY;
+
+   if(journey.ParentKind == NESTED_PARENT_H4_OWNER)
+   {
+      if(journey.ParentSignal == SIGNAL_CSD || journey.ParentSignal == SIGNAL_ECSD)
+         mask |= NMJE_STRUCTURE_DIRECTION;
+      if(journey.ParentSignal == SIGNAL_CSM)
+         mask |= NMJE_STRUCTURE_MOMENTUM;
+   }
+   if(journey.ParentKind == NESTED_PARENT_H4_RE ||
+      journey.ParentKind == NESTED_PARENT_D1_RE)
+      mask |= NMJE_STRUCTURE_REENTRY;
+   return mask;
+}
+
+void NMJE_FinalizeStructuralDensity(int mask, NMJEStructuralDensityState &density)
+{
+   ZeroMemory(density);
+   density.Present = true;
+   density.Valid = true;
+   density.StageMask = mask;
+   density.PrefixMask = NMJE_BuildStructurePrefixMask(mask);
+   density.StageCount = NMJE_CountStructureStages(mask);
+   density.Reason = (mask == 0) ? "NO_PROVEN_STAGE" : "CANONICAL_STAGE_PRESENCE";
+}
+
+void NMJE_BuildCandidateStructuralDensity(PairState &state,
+                                          NestedJourneyState &journey,
+                                          ValidatedSequenceCandidate &candidate,
+                                          NMJEStructuralDensityState &density)
+{
+   ZeroMemory(density);
+   if(!candidate.Valid)
+   {
+      density.Reason = "CANDIDATE_INVALID";
+      return;
+   }
+   int mask = 0;
+   for(int i=0; i<candidate.ComponentCount && i<3; i++)
+      NMJE_AddComponentStructureStages(candidate.Components[i], mask);
+   mask |= NMJE_BuildResolvedJourneyStructureMask(state, journey,
+                                                   candidate.Direction);
+   NMJE_FinalizeStructuralDensity(mask, density);
+}
+
+void NMJE_PrintStructuralDensityShadow(int pairIndex,
+                                       ValidatedSequenceCandidate &candidates[],
+                                       int count,
+                                       PairState &pairState)
+{
+   if(pairIndex < 0 || pairIndex >= g_pair_count || count <= 0) return;
+   NestedJourneyState journey = g_nested_journeys[pairIndex];
+   for(int i=0; i<count; i++)
+   {
+      if(!IsCandidateEligible(candidates[i])) continue;
+      NMJEStructuralDensityState density;
+      NMJE_BuildCandidateStructuralDensity(pairState, journey,
+                                           candidates[i], density);
+      bool d1Allowed = IsCandidateAllowedByD1Owner(candidates[i], pairState);
+      string seq = (candidates[i].SequenceHash == "" ? "-" :
+                    candidates[i].SequenceHash);
+      string message = "[Q9-P7-DENSITY] Pair=" + pairState.actual_symbol +
+                       " Seq=" + seq +
+                       " Sig=" + EnumToString(candidates[i].SequenceType) +
+                       " Dir=" + NMJE_DirText(candidates[i].Direction) +
+                       " D1Allowed=" + (d1Allowed ? "Y" : "N") +
+                       " Mask=" + IntegerToString(density.StageMask) +
+                       " Prefix=" + IntegerToString(density.PrefixMask) +
+                       " Count=" + IntegerToString(density.StageCount) +
+                       " JH=" + (journey.JourneyID == "" ? "-" :
+                                 SHORT_HASH(journey.JourneyID)) +
+                       " PEH=" + (journey.ParentEventID == "" ? "-" :
+                                  SHORT_HASH(journey.ParentEventID)) +
+                       " Authority=NONE";
+      ObserverPrintChanged("Q9P7|" + pairState.actual_symbol + "|" + seq, message);
+   }
+}
+
+void NMJE_BuildDecisionStructuralDensity(PairState &state,
+                                         NestedJourneyState &journey,
+                                         BBMA_Decision &decision,
+                                         NMJEStructuralDensityState &density)
+{
+   ZeroMemory(density);
+   if(!decision.Valid || decision.DecisionState != DEC_VALIDATED)
+   {
+      density.Reason = "DECISION_NOT_VALIDATED";
+      return;
+   }
+   int mask = 0;
+   for(int i=0; i<decision.ComponentCount && i<3; i++)
+      NMJE_AddComponentStructureStages(decision.Components[i], mask);
+   mask |= NMJE_BuildResolvedJourneyStructureMask(state, journey, decision.Direction);
+   NMJE_FinalizeStructuralDensity(mask, density);
+}
+
+void NMJE_FreezeValidatedDecisionAttribution(int pairIndex, BBMA_Decision &decision)
+{
+   if(pairIndex < 0 || pairIndex >= g_pair_count) return;
+   if(!decision.Valid || decision.DecisionState != DEC_VALIDATED) return;
+
+   NestedJourneyState journey = g_nested_journeys[pairIndex];
+   decision.NMJESnapshotPresent = true;
+   decision.NMJEJourneyID = journey.JourneyID;
+   decision.NMJEParentEventID = journey.ParentEventID;
+   decision.NMJERelation = journey.Relation;
+   decision.NMJEStableRelation = journey.StableRelation;
+   decision.NMJEStableRelationEvidenceID = journey.StableRelationEvidenceID;
+   decision.NMJEParentTransitioned = journey.ParentTransitioned;
+   decision.NMJEPreviousParentEventID = journey.PreviousParentEventID;
+   decision.NMJELineageClass = journey.LineageClass;
+   decision.NMJELineageRootEventID = journey.LineageRootEventID;
+   decision.NMJEPreviousLineageRootEventID = journey.PreviousLineageRootEventID;
+   decision.NMJEMaturity = journey.Maturity;
+   decision.NMJEUpdateCandleTime = journey.UpdateCandleTime;
+   decision.NMJEM5SnapshotPresent = journey.M5ShadowPresent;
+   decision.NMJEM5ShadowEventID = journey.M5ShadowEventID;
+   decision.NMJEM5ShadowClosedCandleTime = journey.M5ShadowClosedCandleTime;
+   decision.NMJEM5SemanticResolved = journey.M5SemanticResolved;
+   decision.NMJEM5DiagnosticRelation = journey.M5DiagnosticRelation;
+   decision.NMJEM5DiagnosticReason = journey.M5DiagnosticReason;
+   NMJE_BuildDecisionStructuralDensity(g_pair_states[pairIndex], journey,
+                                       decision, decision.NMJEStructureDensity);
+
+   Print("[Q9-P4PLUS-DEC] Pair=", decision.Pair,
+         " DIDH=", SHORT_HASH(decision.DecisionID),
+         " REL=", NMJE_RelationText(decision.NMJERelation),
+         " SREL=", NMJE_RelationText(decision.NMJEStableRelation),
+         " MAT=", NMJE_MaturityText(decision.NMJEMaturity),
+         " LC=", NMJE_LineageClassText(decision.NMJELineageClass),
+         " SEH=", (decision.NMJEStableRelationEvidenceID == "" ? "-" :
+                    SHORT_HASH(decision.NMJEStableRelationEvidenceID)),
+         " PTR=", decision.NMJEParentTransitioned ? "Y" : "N",
+         " PPEH=", (decision.NMJEPreviousParentEventID == "" ? "-" :
+                     SHORT_HASH(decision.NMJEPreviousParentEventID)),
+         " LRH=", (decision.NMJELineageRootEventID == "" ? "-" :
+                    SHORT_HASH(decision.NMJELineageRootEventID)),
+         " PLRH=", (decision.NMJEPreviousLineageRootEventID == "" ? "-" :
+                     SHORT_HASH(decision.NMJEPreviousLineageRootEventID)),
+         " SD=", IntegerToString(decision.NMJEStructureDensity.StageMask),
+         " M5=", decision.NMJEM5SnapshotPresent ? "Y" : "N",
+         " M5SEM=", decision.NMJEM5SemanticResolved ? "Y" : "N",
+         " Authority=NONE");
+}
+
 void UpdateNestedJourneyObservation(int pairIndex)
 {
    if(pairIndex < 0 || pairIndex >= g_pair_count) return;
    if(!g_pair_states[pairIndex].pair_enabled) return;
 
+   NestedJourneyState previous = g_nested_journeys[pairIndex];
    NestedJourneyState journey;
    ZeroMemory(journey);
    journey.Pair = g_pair_states[pairIndex].actual_symbol;
@@ -5203,7 +5813,8 @@ void UpdateNestedJourneyObservation(int pairIndex)
    {
       journey.Relation = NESTED_UNRESOLVED;
       journey.Reason = "D1_OWNER_UNRESOLVED";
-      g_nested_journeys[pairIndex] = journey;
+      NMJE_FinalizeJourneyMetadata(pairIndex, previous, journey);
+   g_nested_journeys[pairIndex] = journey;
       NMJE_PrintCoverageOverlay(journey);
       string n1Message = "[N1-NMJE] " + journey.Pair +
                          " REL=UNRESOLVED P=NONE J=- D1=" + journey.D1Node.Label +
@@ -5245,7 +5856,8 @@ void UpdateNestedJourneyObservation(int pairIndex)
          journey.Reason = "NO_PARENT_NO_CHILD";
          journey.Resolved = true;
       }
-      g_nested_journeys[pairIndex] = journey;
+      NMJE_FinalizeJourneyMetadata(pairIndex, previous, journey);
+   g_nested_journeys[pairIndex] = journey;
       NMJE_PrintCoverageOverlay(journey);
       string n1Message = "[N1-NMJE] " + journey.Pair +
                          " REL=" + NMJE_RelationText(journey.Relation) +
@@ -5349,6 +5961,7 @@ void UpdateNestedJourneyObservation(int pairIndex)
       }
    }
 
+   NMJE_FinalizeJourneyMetadata(pairIndex, previous, journey);
    g_nested_journeys[pairIndex] = journey;
    NMJE_PrintCoverageOverlay(journey);
    string n1Message = "[N1-NMJE] " + journey.Pair +
@@ -5468,6 +6081,9 @@ void NMJE_P3_UpdateClosedM5Shadow(int pairIndex)
    g_nested_journeys[pairIndex].M5ShadowEventID = "";
    g_nested_journeys[pairIndex].M5ShadowDirection = DIR_NONE;
    g_nested_journeys[pairIndex].M5ShadowReason = "M5_CLOSED_DATA_UNAVAILABLE";
+   g_nested_journeys[pairIndex].M5SemanticResolved = false;
+   g_nested_journeys[pairIndex].M5DiagnosticRelation = NESTED_NOT_APPLICABLE;
+   g_nested_journeys[pairIndex].M5DiagnosticReason = "M5_CONTEXT_UNAVAILABLE";
    if(state.m5_data.timeframe != PERIOD_M5 || state.m5_data.candle_time <= 0) return;
    if(!state.m5_data.is_valid || !state.m5_data.is_closed) return;
    g_nested_journeys[pairIndex].M5ShadowPresent = true;
@@ -5475,6 +6091,11 @@ void NMJE_P3_UpdateClosedM5Shadow(int pairIndex)
    g_nested_journeys[pairIndex].M5ShadowEventID =
       "M5|" + state.actual_symbol + "|" + IntegerToString((int)state.m5_data.candle_time);
    g_nested_journeys[pairIndex].M5ShadowReason = "M5_CLOSED_SNAPSHOT_ONLY";
+   // P5 fail-closed: Build 5.12 P3 does not own M5 Re-Entry/Extreme semantics.
+   g_nested_journeys[pairIndex].M5SemanticResolved = false;
+   g_nested_journeys[pairIndex].M5DiagnosticRelation = NESTED_UNRESOLVED;
+   g_nested_journeys[pairIndex].M5DiagnosticReason =
+      "M5_SIGNAL_SEMANTICS_NOT_MATERIALIZED_TRUE_CONFLICT_HOLD";
 }
 
 void CollectSignalSnapshots(Signal &h1_extreme_snapshot, Signal &m15_mhv_snapshot,
@@ -8116,6 +8737,384 @@ int SendOrderWithRetry(string pair, int direction, double lot,
    return -1;
 }
 
+double NMJE_DirectionNormalizedDisplacementPips(ENUM_DIRECTION direction,
+                                                double fromPrice,
+                                                double toPrice,
+                                                double pipValue)
+{
+   if(pipValue <= 0.0 || fromPrice <= 0.0 || toPrice <= 0.0) return 0.0;
+   if(direction == DIR_BUY) return (toPrice - fromPrice) / pipValue;
+   if(direction == DIR_SELL) return (fromPrice - toPrice) / pipValue;
+   return 0.0;
+}
+
+bool NMJE_IsEntryDisplacementValid(NMJEEntryDisplacementState &state)
+{
+   if(!state.Present) return true;
+   if(state.SourceSignal != SIGNAL_RE_ENTRY &&
+      state.SourceSignal != SIGNAL_EXTREME) return false;
+   if(state.SourceTimeframe <= 0 || state.SourceCandleTime <= 0) return false;
+   if(state.SourceReferencePrice <= 0.0 ||
+      state.PreflightReferencePrice <= 0.0 ||
+      state.BrokerOpenPrice <= 0.0) return false;
+   return true;
+}
+
+bool NMJE_BuildEntryDisplacementAttribution(BBMA_Decision &decision,
+                                            double brokerOpenPrice,
+                                            NMJEEntryDisplacementState &state)
+{
+   ZeroMemory(state);
+   if(!decision.HasSLTPSourceComponent ||
+      decision.EntryPrice <= 0.0 || brokerOpenPrice <= 0.0)
+      return false;
+   ComponentIdentity source = decision.SLTPSourceComponent;
+   if(!IsApprovedSLTPSourceComponent(decision, source)) return false;
+   int shift = ResolveClosedSourceShift(decision.Pair, source);
+   if(shift < 1) return false;
+   double sourcePrice = iClose(decision.Pair, source.Timeframe, shift);
+   double pipValue = GetPipValue(decision.Pair);
+   if(sourcePrice <= 0.0 || pipValue <= 0.0) return false;
+
+   state.Present = true;
+   state.SourceSignal = source.ComponentType;
+   state.SourceTimeframe = source.Timeframe;
+   state.SourceCandleTime = source.CandleTime;
+   state.SourceReferencePrice = sourcePrice;
+   state.PreflightReferencePrice = decision.EntryPrice;
+   state.BrokerOpenPrice = brokerOpenPrice;
+   state.SourceToPreflightPips =
+      NMJE_DirectionNormalizedDisplacementPips(decision.Direction,
+                                               sourcePrice, decision.EntryPrice, pipValue);
+   state.PreflightToOpenPips =
+      NMJE_DirectionNormalizedDisplacementPips(decision.Direction,
+                                               decision.EntryPrice, brokerOpenPrice, pipValue);
+   state.SourceToOpenPips =
+      NMJE_DirectionNormalizedDisplacementPips(decision.Direction,
+                                               sourcePrice, brokerOpenPrice, pipValue);
+   return NMJE_IsEntryDisplacementValid(state);
+}
+
+void NMJE_BuildTradeAttribution(BBMA_Decision &decision,
+                                TradeInfo &info)
+{
+   ZeroMemory(info.nmje_attribution);
+   if(!decision.NMJESnapshotPresent) return;
+   NMJEShadowAttributionState a;
+   ZeroMemory(a);
+   a.Present = true;
+   a.Durable = false;
+   a.JourneyHash = (decision.NMJEJourneyID == "") ? "" : SHORT_HASH(decision.NMJEJourneyID);
+   a.ParentEventHash = (decision.NMJEParentEventID == "") ? "" : SHORT_HASH(decision.NMJEParentEventID);
+   a.Relation = decision.NMJERelation;
+   a.StableRelation = decision.NMJEStableRelation;
+   a.Maturity = decision.NMJEMaturity;
+   a.LineageClass = decision.NMJELineageClass;
+   if(decision.NMJELineageRootEventID != "")
+      a.LineageRootHash = SHORT_HASH(decision.NMJELineageRootEventID);
+   if(decision.NMJEPreviousLineageRootEventID != "")
+      a.PreviousLineageRootHash = SHORT_HASH(decision.NMJEPreviousLineageRootEventID);
+   a.StructureDensity = decision.NMJEStructureDensity;
+   a.EntryDisplacement = info.entry_displacement;
+   a.M5SnapshotPresent = decision.NMJEM5SnapshotPresent;
+   if(decision.NMJEM5ShadowEventID != "")
+      a.M5EventHash = SHORT_HASH(decision.NMJEM5ShadowEventID);
+   a.M5ClosedCandleTime = decision.NMJEM5ShadowClosedCandleTime;
+   a.M5SemanticResolved = decision.NMJEM5SemanticResolved;
+   a.M5DiagnosticRelation = decision.NMJEM5DiagnosticRelation;
+   if(decision.NMJEM5DiagnosticReason != "")
+      a.M5ReasonHash = SHORT_HASH(decision.NMJEM5DiagnosticReason);
+   info.nmje_attribution = a;
+}
+
+string NMJEAttributionGVBase(int ticket)
+{
+   return "BBXQ9|S" + IntegerToString(StrategyID) + "|I" +
+          IntegerToString(InstanceID) + "|T" + IntegerToString(ticket) + "|";
+}
+
+bool NMJESetAttributionGV(string key, double value, string step)
+{
+   if(SetTerminalGlobalExact(key, value)) return true;
+   Print("[Q9-P4PLUS-PERSIST-FAIL] Step=", step,
+         " Key=", key,
+         " Error=", IntegerToString(GetLastError()));
+   return false;
+}
+
+bool NMJEStoreHash16(string base, string prefix, string value)
+{
+   if(StringLen(value) != 16)
+   {
+      Print("[Q9-P4PLUS-PERSIST-FAIL] Step=HASH_LENGTH Prefix=", prefix,
+            " Len=", IntegerToString(StringLen(value)));
+      return false;
+   }
+   for(int i=0; i<4; i++)
+   {
+      double v = Hex4ToNumber(StringSubstr(value, i*4, 4));
+      if(v < 0 || !NMJESetAttributionGV(base + prefix + IntegerToString(i), v,
+                                        "HASH_" + prefix + IntegerToString(i)))
+         return false;
+   }
+   return true;
+}
+
+string NMJELoadHash16(string base, string prefix)
+{
+   string result = "";
+   for(int i=0; i<4; i++)
+   {
+      string key = base + prefix + IntegerToString(i);
+      if(!GlobalVariableCheck(key)) return "";
+      result += NumberToHex4(GlobalVariableGet(key));
+   }
+   return result;
+}
+
+void ClearNMJEShadowAttribution(int ticket)
+{
+   if(ticket <= 0) return;
+   string base = NMJEAttributionGVBase(ticket);
+   string keys[54] = {
+      "V","M","O","R","SR","JM","LC","SDP","SDM","SDX","SDC",
+      "M5P","M5T","M5S","M5R","DP","DSG","DTF","DCT","DSP","DPP","DBP",
+      "D12","D2B","D1B",
+      "X0","X1","X2","X3","J0","J1","J2","J3","P0","P1","P2","P3",
+      "L0","L1","L2","L3","N0","N1","N2","N3","E0","E1","E2","E3",
+      "Q0","Q1","Q2","Q3","Z"
+   };
+   for(int i=0; i<54; i++) DeleteTerminalGlobalExact(base + keys[i]);
+}
+
+bool SaveNMJEShadowAttribution(TradeInfo &info)
+{
+   NMJEShadowAttributionState a = info.nmje_attribution;
+   if(info.ticket <= 0 || info.magic_number <= 0 || info.open_time <= 0 ||
+      StringLen(info.execution_hash) != 16 || !a.Present)
+   {
+      Print("[Q9-P4PLUS-PERSIST-FAIL] Step=IDENTITY_PRECONDITION");
+      return false;
+   }
+   if(StringLen(a.JourneyHash) != 16 || StringLen(a.ParentEventHash) != 16)
+   {
+      Print("[Q9-P4PLUS-PERSIST-FAIL] Step=ATTR_HASH_PRECONDITION",
+            " JLen=", IntegerToString(StringLen(a.JourneyHash)),
+            " PLen=", IntegerToString(StringLen(a.ParentEventHash)));
+      return false;
+   }
+   if(!NMJE_IsMaturityDomainValue(a.Maturity) ||
+      !NMJE_IsRelationDomainValue(a.Relation) ||
+      !NMJE_IsRelationDomainValue(a.StableRelation) ||
+      !NMJE_IsStructuralDensityValid(a.StructureDensity) ||
+      !NMJE_IsEntryDisplacementValid(a.EntryDisplacement))
+   {
+      Print("[Q9-P4PLUS-PERSIST-FAIL] Step=DOMAIN_PRECONDITION",
+            " REL=", IntegerToString((int)a.Relation),
+            " SREL=", IntegerToString((int)a.StableRelation),
+            " MAT=", IntegerToString((int)a.Maturity),
+            " SDP=", a.StructureDensity.Present ? "Y" : "N",
+            " SDV=", a.StructureDensity.Valid ? "Y" : "N",
+            " DISP=", a.EntryDisplacement.Present ? "Y" : "N");
+      return false;
+   }
+
+   // Strict-A persistence never accepts inferred continuation.
+   if(a.LineageClass == NMJE_LINEAGE_CONTINUATION)
+   {
+      Print("[Q9-P4PLUS-PERSIST-FAIL] Step=CONTINUATION_HOLD");
+      return false;
+   }
+
+   string base = NMJEAttributionGVBase(info.ticket);
+   ClearNMJEShadowAttribution(info.ticket);
+   bool ok = true;
+   if(!NMJESetAttributionGV(base+"M",(double)info.magic_number,"M")) ok=false;
+   if(!NMJESetAttributionGV(base+"O",(double)info.open_time,"O")) ok=false;
+   if(!NMJESetAttributionGV(base+"R",(double)a.Relation,"R")) ok=false;
+   if(!NMJESetAttributionGV(base+"SR",(double)a.StableRelation,"SR")) ok=false;
+   if(!NMJESetAttributionGV(base+"JM",(double)a.Maturity,"JM")) ok=false;
+   if(!NMJESetAttributionGV(base+"LC",(double)a.LineageClass,"LC")) ok=false;
+   if(!NMJESetAttributionGV(base+"SDP",a.StructureDensity.Present?1.0:0.0,"SDP")) ok=false;
+   if(!NMJESetAttributionGV(base+"SDM",(double)a.StructureDensity.StageMask,"SDM")) ok=false;
+   if(!NMJESetAttributionGV(base+"SDX",(double)a.StructureDensity.PrefixMask,"SDX")) ok=false;
+   if(!NMJESetAttributionGV(base+"SDC",(double)a.StructureDensity.StageCount,"SDC")) ok=false;
+   if(!NMJESetAttributionGV(base+"M5P",a.M5SnapshotPresent?1.0:0.0,"M5P")) ok=false;
+   if(!NMJESetAttributionGV(base+"M5T",(double)a.M5ClosedCandleTime,"M5T")) ok=false;
+   if(!NMJESetAttributionGV(base+"M5S",a.M5SemanticResolved?1.0:0.0,"M5S")) ok=false;
+   if(!NMJESetAttributionGV(base+"M5R",(double)a.M5DiagnosticRelation,"M5R")) ok=false;
+   if(!NMJESetAttributionGV(base+"DP",a.EntryDisplacement.Present?1.0:0.0,"DP")) ok=false;
+   if(a.EntryDisplacement.Present)
+   {
+      if(!NMJESetAttributionGV(base+"DSG",(double)a.EntryDisplacement.SourceSignal,"DSG")) ok=false;
+      if(!NMJESetAttributionGV(base+"DTF",(double)a.EntryDisplacement.SourceTimeframe,"DTF")) ok=false;
+      if(!NMJESetAttributionGV(base+"DCT",(double)a.EntryDisplacement.SourceCandleTime,"DCT")) ok=false;
+      if(!NMJESetAttributionGV(base+"DSP",a.EntryDisplacement.SourceReferencePrice,"DSP")) ok=false;
+      if(!NMJESetAttributionGV(base+"DPP",a.EntryDisplacement.PreflightReferencePrice,"DPP")) ok=false;
+      if(!NMJESetAttributionGV(base+"DBP",a.EntryDisplacement.BrokerOpenPrice,"DBP")) ok=false;
+      if(!NMJESetAttributionGV(base+"D12",a.EntryDisplacement.SourceToPreflightPips,"D12")) ok=false;
+      if(!NMJESetAttributionGV(base+"D2B",a.EntryDisplacement.PreflightToOpenPips,"D2B")) ok=false;
+      if(!NMJESetAttributionGV(base+"D1B",a.EntryDisplacement.SourceToOpenPips,"D1B")) ok=false;
+   }
+   if(!NMJEStoreHash16(base,"X",info.execution_hash)) ok=false;
+   if(!NMJEStoreHash16(base,"J",a.JourneyHash)) ok=false;
+   if(!NMJEStoreHash16(base,"P",a.ParentEventHash)) ok=false;
+   if(StringLen(a.LineageRootHash) > 0)
+   {
+      if(!NMJEStoreHash16(base,"L",a.LineageRootHash)) ok=false;
+   }
+   if(StringLen(a.PreviousLineageRootHash) > 0)
+   {
+      if(!NMJEStoreHash16(base,"N",a.PreviousLineageRootHash)) ok=false;
+   }
+   if(StringLen(a.M5EventHash) > 0)
+   {
+      if(!NMJEStoreHash16(base,"E",a.M5EventHash)) ok=false;
+   }
+   if(StringLen(a.M5ReasonHash) > 0)
+   {
+      if(!NMJEStoreHash16(base,"Q",a.M5ReasonHash)) ok=false;
+   }
+   if(!ok)
+   {
+      ClearNMJEShadowAttribution(info.ticket);
+      return false;
+   }
+   // Commit marker last.
+   if(!NMJESetAttributionGV(base+"V",1.0,"COMMIT"))
+   {
+      ClearNMJEShadowAttribution(info.ticket);
+      return false;
+   }
+   GlobalVariablesFlush();
+   a.Durable = true;
+   info.nmje_attribution = a;
+   return true;
+}
+
+bool LoadNMJEShadowAttribution(TradeInfo &info)
+{
+   ZeroMemory(info.nmje_attribution);
+   if(info.ticket <= 0 || info.magic_number <= 0 || info.open_time <= 0 ||
+      StringLen(info.execution_hash) != 16) return false;
+   string base = NMJEAttributionGVBase(info.ticket);
+   if(!GlobalVariableCheck(base+"V") || GlobalVariableGet(base+"V") != 1.0)
+      return false;
+   if(!GlobalVariableCheck(base+"M") || !GlobalVariableCheck(base+"O")) return false;
+   if((int)GlobalVariableGet(base+"M") != info.magic_number ||
+      (datetime)((int)GlobalVariableGet(base+"O")) != info.open_time) return false;
+   if(NMJELoadHash16(base,"X") != info.execution_hash) return false;
+
+   NMJEShadowAttributionState a;
+   ZeroMemory(a);
+   a.Present = true; a.Durable = true;
+   a.JourneyHash = NMJELoadHash16(base,"J");
+   a.ParentEventHash = NMJELoadHash16(base,"P");
+   if(a.JourneyHash=="" || a.ParentEventHash=="") { ZeroMemory(a); return false; }
+   if(!GlobalVariableCheck(base+"R") || !GlobalVariableCheck(base+"SR") ||
+      !GlobalVariableCheck(base+"JM") || !GlobalVariableCheck(base+"LC"))
+   { ZeroMemory(a); return false; }
+   a.Relation=(ENUM_NESTED_RELATION)((int)GlobalVariableGet(base+"R"));
+   a.StableRelation=(ENUM_NESTED_RELATION)((int)GlobalVariableGet(base+"SR"));
+   a.Maturity=(ENUM_NMJE_JOURNEY_MATURITY)((int)GlobalVariableGet(base+"JM"));
+   a.LineageClass=(ENUM_NMJE_LINEAGE_EVENT_CLASS)((int)GlobalVariableGet(base+"LC"));
+   if(a.LineageClass==NMJE_LINEAGE_CONTINUATION) a.LineageClass=NMJE_LINEAGE_UNRESOLVED;
+   a.LineageRootHash=NMJELoadHash16(base,"L");
+   a.PreviousLineageRootHash=NMJELoadHash16(base,"N");
+
+   if(GlobalVariableCheck(base+"SDP") && GlobalVariableGet(base+"SDP")==1.0)
+   {
+      a.StructureDensity.Present=true; a.StructureDensity.Valid=true;
+      a.StructureDensity.StageMask=(int)GlobalVariableGet(base+"SDM");
+      a.StructureDensity.PrefixMask=(int)GlobalVariableGet(base+"SDX");
+      a.StructureDensity.StageCount=(int)GlobalVariableGet(base+"SDC");
+      a.StructureDensity.Reason="RECOVERED_RESEARCH_METADATA";
+   }
+   a.M5SnapshotPresent=(GlobalVariableCheck(base+"M5P") &&
+                        GlobalVariableGet(base+"M5P")==1.0);
+   if(GlobalVariableCheck(base+"M5T"))
+      a.M5ClosedCandleTime=(datetime)((int)GlobalVariableGet(base+"M5T"));
+   a.M5SemanticResolved=(GlobalVariableCheck(base+"M5S") &&
+                         GlobalVariableGet(base+"M5S")==1.0);
+   if(GlobalVariableCheck(base+"M5R"))
+      a.M5DiagnosticRelation=(ENUM_NESTED_RELATION)((int)GlobalVariableGet(base+"M5R"));
+   a.M5EventHash=NMJELoadHash16(base,"E");
+   a.M5ReasonHash=NMJELoadHash16(base,"Q");
+
+   if(GlobalVariableCheck(base+"DP") && GlobalVariableGet(base+"DP")==1.0)
+   {
+      a.EntryDisplacement.Present=true;
+      a.EntryDisplacement.SourceSignal=(ENUM_SIGNAL_TYPE)((int)GlobalVariableGet(base+"DSG"));
+      a.EntryDisplacement.SourceTimeframe=(int)GlobalVariableGet(base+"DTF");
+      a.EntryDisplacement.SourceCandleTime=(datetime)((int)GlobalVariableGet(base+"DCT"));
+      a.EntryDisplacement.SourceReferencePrice=GlobalVariableGet(base+"DSP");
+      a.EntryDisplacement.PreflightReferencePrice=GlobalVariableGet(base+"DPP");
+      a.EntryDisplacement.BrokerOpenPrice=GlobalVariableGet(base+"DBP");
+      a.EntryDisplacement.SourceToPreflightPips=GlobalVariableGet(base+"D12");
+      a.EntryDisplacement.PreflightToOpenPips=GlobalVariableGet(base+"D2B");
+      a.EntryDisplacement.SourceToOpenPips=GlobalVariableGet(base+"D1B");
+   }
+   if(!NMJE_IsRelationDomainValue(a.Relation) ||
+      !NMJE_IsRelationDomainValue(a.StableRelation) ||
+      !NMJE_IsMaturityDomainValue(a.Maturity) ||
+      !NMJE_IsStructuralDensityValid(a.StructureDensity) ||
+      !NMJE_IsEntryDisplacementValid(a.EntryDisplacement))
+   { ZeroMemory(a); return false; }
+   info.nmje_attribution = a;
+   return true;
+}
+
+bool NMJE_OptionalStringEqual(string left, string right)
+{
+   if(StringLen(left) == 0 && StringLen(right) == 0) return true;
+   return (left == right);
+}
+
+bool NMJE_AttributionEquivalent(NMJEShadowAttributionState &left,
+                                NMJEShadowAttributionState &right)
+{
+   if(left.Present != right.Present) return false;
+   if(!left.Present) return true;
+   if(left.JourneyHash != right.JourneyHash ||
+      left.ParentEventHash != right.ParentEventHash ||
+      left.Relation != right.Relation ||
+      left.StableRelation != right.StableRelation ||
+      left.Maturity != right.Maturity ||
+      left.LineageClass != right.LineageClass ||
+      !NMJE_OptionalStringEqual(left.LineageRootHash, right.LineageRootHash) ||
+      !NMJE_OptionalStringEqual(left.PreviousLineageRootHash,
+                                right.PreviousLineageRootHash))
+      return false;
+   if(left.StructureDensity.Present != right.StructureDensity.Present ||
+      left.StructureDensity.StageMask != right.StructureDensity.StageMask ||
+      left.StructureDensity.PrefixMask != right.StructureDensity.PrefixMask ||
+      left.StructureDensity.StageCount != right.StructureDensity.StageCount)
+      return false;
+   if(left.M5SnapshotPresent != right.M5SnapshotPresent ||
+      !NMJE_OptionalStringEqual(left.M5EventHash, right.M5EventHash) ||
+      left.M5ClosedCandleTime != right.M5ClosedCandleTime ||
+      left.M5SemanticResolved != right.M5SemanticResolved ||
+      left.M5DiagnosticRelation != right.M5DiagnosticRelation ||
+      !NMJE_OptionalStringEqual(left.M5ReasonHash, right.M5ReasonHash))
+      return false;
+   if(left.EntryDisplacement.Present != right.EntryDisplacement.Present)
+      return false;
+   if(left.EntryDisplacement.Present)
+   {
+      if(left.EntryDisplacement.SourceSignal != right.EntryDisplacement.SourceSignal ||
+         left.EntryDisplacement.SourceTimeframe != right.EntryDisplacement.SourceTimeframe ||
+         left.EntryDisplacement.SourceCandleTime != right.EntryDisplacement.SourceCandleTime ||
+         left.EntryDisplacement.SourceReferencePrice != right.EntryDisplacement.SourceReferencePrice ||
+         left.EntryDisplacement.PreflightReferencePrice != right.EntryDisplacement.PreflightReferencePrice ||
+         left.EntryDisplacement.BrokerOpenPrice != right.EntryDisplacement.BrokerOpenPrice ||
+         left.EntryDisplacement.SourceToPreflightPips != right.EntryDisplacement.SourceToPreflightPips ||
+         left.EntryDisplacement.PreflightToOpenPips != right.EntryDisplacement.PreflightToOpenPips ||
+         left.EntryDisplacement.SourceToOpenPips != right.EntryDisplacement.SourceToOpenPips)
+         return false;
+   }
+   return true;
+}
+
 // N2-13: read-only closed-order outcome telemetry.
 // Called only after OrderSelect() proves that the monitored ticket is closed.
 // It never changes order state, trade lifecycle, risk, exit logic or registry identity.
@@ -8139,13 +9138,34 @@ void NMJE_PrintClosedOutcomeShadow(TradeInfo &info)
 
    double netProfit = OrderProfit() + OrderSwap() + OrderCommission();
 
+   // P4 runtime durability proof: reload exact ticket/open-time/hash-bound
+   // research metadata at outcome time. Failure remains diagnostic only.
+   TradeInfo durableRead = info;
+   ZeroMemory(durableRead.nmje_attribution);
+   bool durableLoad = LoadNMJEShadowAttribution(durableRead);
+   bool durableMatch = durableLoad &&
+      NMJE_AttributionEquivalent(info.nmje_attribution,
+                                 durableRead.nmje_attribution);
+
    Print("[N2-NMJE-OUT] PAIR=", info.pair,
          " TICKET=", IntegerToString(info.ticket),
          " DID=", decisionToken,
          " DIDH=", decisionHash,
          " NET=", DoubleToString(netProfit, 8),
          " CLOSE=", IntegerToString((int)OrderCloseTime()),
-         " REC=", EnumToString(info.recovery_state));
+         " REC=", EnumToString(info.recovery_state),
+         " ATTR=", info.nmje_attribution.Present ? "Y" : "N",
+         " DUR=", info.nmje_attribution.Durable ? "Y" : "N",
+         " DLOAD=", durableLoad ? "Y" : "N",
+         " DMATCH=", durableMatch ? "Y" : "N",
+         " JH=", info.nmje_attribution.JourneyHash == "" ? "-" : info.nmje_attribution.JourneyHash,
+         " REL=", NMJE_RelationText(info.nmje_attribution.Relation),
+         " SREL=", NMJE_RelationText(info.nmje_attribution.StableRelation),
+         " MAT=", NMJE_MaturityText(info.nmje_attribution.Maturity),
+         " LC=", NMJE_LineageClassText(info.nmje_attribution.LineageClass),
+         " SD=", IntegerToString(info.nmje_attribution.StructureDensity.StageMask),
+         " M5SEM=", info.nmje_attribution.M5SemanticResolved ? "Y" : "N",
+         " DISP=", info.entry_displacement.Present ? "Y" : "N");
 }
 
 void CompactMonitoredTrades()
@@ -8160,6 +9180,7 @@ void CompactMonitoredTrades()
       {
          // Emit at most once: the row is discarded immediately afterwards.
          NMJE_PrintClosedOutcomeShadow(g_monitored_trades[i]);
+         ClearNMJEShadowAttribution(g_monitored_trades[i].ticket);
          if(g_monitored_trades[i].c044_lifecycle_managed)
             ClearC044Checkpoint(g_monitored_trades[i]);
          if(g_monitored_trades[i].d1_tpw_lifecycle_managed)
@@ -8734,6 +9755,21 @@ void ProcessEntry(BBMA_Decision &decision, string pair,
             Log(DBG_ERROR, "C044 checkpoint persist failed ticket=" + IntegerToString(ticket));
          }
 
+         // Q9 P10 measures post-fill displacement only; no rejection/filter.
+         NMJE_BuildEntryDisplacementAttribution(decision, info.initial_entry_price,
+                                                info.entry_displacement);
+         // Q9 P4 binds frozen observer metadata to exact ticket/open-time/hash.
+         NMJE_BuildTradeAttribution(decision, info);
+         bool nmjeAttributionPersisted = false;
+         if(info.execution_hash != "" && info.nmje_attribution.Present)
+            nmjeAttributionPersisted = SaveNMJEShadowAttribution(info);
+         Print("[Q9-P4PLUS-OPEN] Ticket=", IntegerToString(ticket),
+               " DIDH=", expectedExecutionHash,
+               " ATTR=", info.nmje_attribution.Present ? "Y" : "N",
+               " DUR=", nmjeAttributionPersisted ? "Y" : "N",
+               " DISP=", info.entry_displacement.Present ? "Y" : "N",
+               " Authority=NONE");
+
          Print("[P3S5][EXEC_ID] Ticket=", IntegerToString(ticket),
                " Pair=", pair,
                " Persist=", localIdentityPersisted ? "PASS" : "FAIL",
@@ -9232,7 +10268,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.12 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.13 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -10846,6 +11882,10 @@ void RecoverExistingOrders()
       info.breakeven_set = false;
       info.be_attempted = false;
 
+      // Q9 P4 recovery is optional research metadata only.
+      if(hasExecutionHash) LoadNMJEShadowAttribution(info);
+      info.entry_displacement = info.nmje_attribution.EntryDisplacement;
+
       AddToMonitoredTrades(info);
 
       if(targetlessRecovered && info.c044_lifecycle_managed)
@@ -11710,6 +12750,10 @@ void ProcessPair(int pairIndex)
    NMJE_P2_PrintEqualEligibilityShadow(pairIndex, allCandidates,
                                         allCandidateCount,
                                         g_pair_states[pairIndex]);
+   // Q9 P7 is candidate-observation telemetry only; it cannot rank or reject.
+   NMJE_PrintStructuralDensityShadow(pairIndex, allCandidates,
+                                     allCandidateCount,
+                                     g_pair_states[pairIndex]);
 
    PriorityEngine_Atomic(allCandidates, allCandidateCount,
                          g_pair_states[pairIndex], decision, conflict);
@@ -11724,6 +12768,8 @@ void ProcessPair(int pairIndex)
 
    if(decision.DecisionState == DEC_VALIDATED)
    {
+      // Q9 P4+ freezes observer metadata only after canonical validation.
+      NMJE_FreezeValidatedDecisionAttribution(pairIndex, decision);
       // N2-01 shadow metadata only; execution path remains unchanged.
       NMJE_PrintValidatedDecisionShadow(pairIndex, decision);
       RunEntryPreflightAndExecute(decision, actual);

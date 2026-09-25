@@ -30,6 +30,12 @@ def test_frozen_candidate_identity_is_exact():
     assert result["status"] == "PASS"
     assert result["source_sha256"] == manifest["source_sha256"]
     assert result["source_neutral_after_freeze"] is True
+    assert result["source_bearing_commit"] == manifest["source_bearing_commit"]
+    current_matches = (
+        q10.normalized_source_sha256(ROOT / manifest["source_path"])
+        == manifest["source_sha256"]
+    )
+    assert result["current_owner_source_matches_candidate"] is current_matches
 
 
 def test_active_acceptance_settings_profile_is_exact_20_pair():

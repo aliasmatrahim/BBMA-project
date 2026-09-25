@@ -1,0 +1,86 @@
+{
+  "schema": "NMJE_V2_P4PLUS_REV006_RUNTIME_ANALYSIS_V1",
+  "source_rev": "NMJE_P4PLUS_SHADOW_006_20260925",
+  "segment_start_line": 169125,
+  "segment_end_line": 192229,
+  "segment_lines": 23105,
+  "build_identity_count": 1,
+  "p4_dec_count": 523,
+  "p4_open_count": 14,
+  "p4_open_durable_count": 14,
+  "p10_displacement_open_count": 14,
+  "closed_outcome_count": 14,
+  "closed_outcome_durable_count": 14,
+  "closed_outcome_dload_count": 14,
+  "closed_outcome_dmatch_count": 14,
+  "closed_outcome_displacement_count": 14,
+  "p7_density_count": 1494,
+  "p8_stability_count": 2016,
+  "p5_m5_semantic_unresolved_decisions": 523,
+  "p11_lineage_classes": [
+    "FIRST",
+    "NEW_JOURNEY"
+  ],
+  "persistence_fail_count": 0,
+  "fatal_counts": {
+    "zero divide": 0,
+    "array out of range": 0,
+    "stack overflow": 0,
+    "access violation": 0,
+    "critical runtime error": 0,
+    "init_failed": 0,
+    "initialization failed": 0
+  },
+  "exec_count": 14,
+  "baseline_512_exec_count": 14,
+  "execution_trace_exact_512": true,
+  "report_512": {
+    "sha256": "3FD9A783BCAB428A992B9F4DF56ABD00923790AA93945E8D7F477822B5B81140",
+    "size": 14185,
+    "fields": {
+      "Total trades": "14",
+      "Net profit": "-0.00",
+      "Gross profit": "6.72",
+      "Gross loss": "-6.72",
+      "Profit factor": "1.00",
+      "Expected payoff": "-0.00",
+      "Maximal drawdown": "7.35 (0.07%)",
+      "Relative drawdown": "0.07% (7.35)"
+    }
+  },
+  "report_513_rev006": {
+    "sha256": "56EF79B100673CCB1107946AA8DD369DBBF99A9520D0113B620FD70119C204F6",
+    "size": 14184,
+    "fields": {
+      "Total trades": "14",
+      "Net profit": "-0.00",
+      "Gross profit": "6.72",
+      "Gross loss": "-6.72",
+      "Profit factor": "1.00",
+      "Expected payoff": "-0.00",
+      "Maximal drawdown": "7.35 (0.07%)",
+      "Relative drawdown": "0.07% (7.35)"
+    }
+  },
+  "report_fields_equal_512": true,
+  "checks": {
+    "build_exact_once": true,
+    "14_natural_opens": true,
+    "all_opens_durable": true,
+    "all_opens_displacement": true,
+    "14_closed_outcomes": true,
+    "all_outcomes_durable": true,
+    "all_outcomes_reload": true,
+    "all_outcomes_match": true,
+    "all_outcomes_displacement": true,
+    "p7_exercised": true,
+    "p8_exercised": true,
+    "p5_m5_semantics_fail_closed": true,
+    "p11_strict_classes_only": true,
+    "no_persist_fail": true,
+    "no_fatal_runtime": true,
+    "execution_trace_exact_512": true,
+    "report_fields_equal_512": true
+  },
+  "pass": true
+}

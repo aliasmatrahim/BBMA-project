@@ -143,15 +143,22 @@ jobs:
           owner = function_body('UpdateCanonicalM5SemanticOwners')
           for required_owner_call in (
               'DetectExtreme(', 'UpdateExtremeLifecycle(', 'UpdateCanonicalMLVState(',
-              'DetectCSD(', 'DetectECSD(', 'DetectCSM(', 'UpdateReEntryState(',
+              'BuildCanonicalM5DirectionSnapshots(', 'UpdateReEntryState(',
           ):
               if required_owner_call not in owner:
                   raise SystemExit(f'M5 canonical owner path missing: {required_owner_call}')
+
+          direction_helper = function_body('BuildCanonicalM5DirectionSnapshots')
+          for required_direction_call in ('DetectCSD(', 'DetectECSD(', 'DetectCSM('):
+              if required_direction_call not in direction_helper:
+                  raise SystemExit(f'M5 canonical M10 helper missing: {required_direction_call}')
+
+          owner_surface = owner + '\n' + direction_helper
           for forbidden_owner_call in (
               'OrderSend(', 'OrderClose(', 'CheckRiskBeforeTrade(',
               'CalculateLotSize(', 'FinalPortfolioGuard(', 'ProcessEntry(',
           ):
-              if forbidden_owner_call in owner:
+              if forbidden_owner_call in owner_surface:
                   raise SystemExit(f'M5 owner preparation gained trade authority: {forbidden_owner_call}')
 
           if source.count('UpdateCanonicalM5SemanticOwners(pairIndex)') != 1:

@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.1.5 - NMJE P2 Targetless Lifecycle Replay         |
+//| Version 5.1.6 - NMJE Forward Evidence + M5 Owner Prep       |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.15"
+#property version   "5.16"
 #property strict
 
-#define BBMA_BUILD_TAG      "V515_NMJE_P2_TARGETLESS_REPLAY_20260925"
-#define BBMA_SOURCE_REV_TAG "NMJE_P2_TARGETLESS_REPLAY_001_20260925"
+#define BBMA_BUILD_TAG      "V516_NMJE_FORWARD_M5_OWNER_PREP_20260926"
+#define BBMA_SOURCE_REV_TAG "NMJE_FORWARD_M5_OWNER_PREP_001_20260926"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -104,6 +104,7 @@ input bool     ShowDashboard                      = true;       // 07 Display | 
 input double   MinRRRatio                         = 0.0;        // 08 Advanced | optional global Min RR filter; 0=disabled
 input bool     BlockNMJEConflict                  = true;       // 08 Legacy compatibility | INACTIVE: NMJE is observation-only
 input bool     BlockNMJEBuilding                  = true;       // 08 Legacy compatibility | INACTIVE: NMJE is observation-only
+input bool     EnableNMJEForwardEvidence          = false;      // 08 Advanced | demo/test evidence only; never trade authority
 input double   MaxSLPips                          = 100.0;      // 08 Advanced | maximum accepted SL distance
 input int      Slippage                           = 3;          // 08 Advanced | broker slippage in points
 input ENUM_DEBUG_LEVEL DebugLevel                 = DBG_OFF;    // 08 Advanced | OFF / ERROR / SIGNAL / TRADE / FULL
@@ -664,6 +665,29 @@ struct NestedTFNode
    string               OverlayLabel;
 };
 
+// Q9 V2 Build 5.16: canonical M5 semantic-owner state.
+// M08/M09/M10/M12 remain the owners; NMJE only consumes this state.
+struct M5SemanticOwnerState
+{
+   bool                 Present;
+   bool                 HistoryGap;
+   datetime             ForwardStartCandleTime;
+   datetime             LastProcessedCandleTime;
+   ExtremeLifecycleData ExtremeBuy;
+   ExtremeLifecycleData ExtremeSell;
+   MLVData              MLVBuy;
+   MLVData              MLVSell;
+   ReEntryData          ReEntryBuy;
+   ReEntryData          ReEntrySell;
+   Signal               CSDBuy;
+   Signal               CSDSell;
+   Signal               ECSDBuy;
+   Signal               ECSDSell;
+   Signal               CSMBuy;
+   Signal               CSMSell;
+   string               Reason;
+};
+
 // Q9 P7 shadow-only canonical-cycle fingerprint. Never score/rank/gate.
 struct NMJEStructuralDensityState
 {
@@ -972,8 +996,10 @@ struct PairState
    TimeframeData        h4_data;
    TimeframeData        h1_data;
    TimeframeData        m15_data;
-   // NMJE P3: closed-M5 shadow context only; never execution authority.
+   // NMJE V2: closed-M5 data sampled only on the M15 processing clock.
    TimeframeData        m5_data;
+   // Canonical M08/M09/M10/M12 M5 owner state; NMJE is read-only consumer.
+   M5SemanticOwnerState m5_semantic_owner;
    Candle               last_3_candles[3];
    Candle               last_5_candles[5];
    Candle               last_20_candles[20];
@@ -1076,7 +1102,7 @@ struct TradeInfo
    // C044 Step4 deterministic replay seed. These are canonical owner snapshots
    // captured at the runtime cursor and persisted with the lifecycle checkpoint.
    bool                 c044_replay_seed_valid;
-   // Q9 P2 tester-only lifecycle replay. Live monitored trades keep false.
+   // Q9 P2 private lifecycle replay. Real monitored trades keep false.
    bool                 c044_shadow_replay;
    ReEntryData          c044_replay_reentry;
    ExtremeLifecycleData c044_replay_extreme_buy;
@@ -1161,7 +1187,7 @@ struct SignalHistoryEntry
 };
 
 // Q9 P2 counterfactual research overlay.
-// Tester-only, shadow-only: no candidate/risk/execution authority.
+// Tester/demo-evidence only, shadow-only: no candidate/risk/execution authority.
 struct NMJECounterfactualPendingCandidate
 {
    bool                       Present;
@@ -1630,6 +1656,7 @@ void InitPairState(PairState &state)
    InitTimeframeData(state.h4_data);
    InitTimeframeData(state.h1_data);
    InitTimeframeData(state.m15_data);
+   InitTimeframeData(state.m5_data);
 
    state.mlv_buy_state.State = MLV_NONE;
    state.mlv_buy_state.Direction = DIR_BUY;
@@ -1678,6 +1705,34 @@ void InitPairState(PairState &state)
    state.re_m15_sell_state.State = RE_STATE_NONE;
    state.re_m15_sell_state.Direction = DIR_SELL;
    state.re_m15_sell_state.Timeframe = PERIOD_M15;
+
+   // M5 semantic owner storage is forward-initialized only. It is never
+   // reconstructed from price guesses and therefore remains fail-closed on gaps.
+   state.m5_semantic_owner.ExtremeBuy.Maturity = EXT_MAT_NONE;
+   state.m5_semantic_owner.ExtremeBuy.Direction = DIR_BUY;
+   state.m5_semantic_owner.ExtremeBuy.Timeframe = PERIOD_M5;
+   state.m5_semantic_owner.ExtremeSell.Maturity = EXT_MAT_NONE;
+   state.m5_semantic_owner.ExtremeSell.Direction = DIR_SELL;
+   state.m5_semantic_owner.ExtremeSell.Timeframe = PERIOD_M5;
+   state.m5_semantic_owner.MLVBuy.State = MLV_NONE;
+   state.m5_semantic_owner.MLVBuy.Direction = DIR_BUY;
+   state.m5_semantic_owner.MLVBuy.ParentExtremeDirection = DIR_SELL;
+   state.m5_semantic_owner.MLVBuy.Timeframe = PERIOD_M5;
+   state.m5_semantic_owner.MLVSell.State = MLV_NONE;
+   state.m5_semantic_owner.MLVSell.Direction = DIR_SELL;
+   state.m5_semantic_owner.MLVSell.ParentExtremeDirection = DIR_BUY;
+   state.m5_semantic_owner.MLVSell.Timeframe = PERIOD_M5;
+   state.m5_semantic_owner.ReEntryBuy.State = RE_STATE_NONE;
+   state.m5_semantic_owner.ReEntryBuy.Direction = DIR_BUY;
+   state.m5_semantic_owner.ReEntryBuy.Timeframe = PERIOD_M5;
+   state.m5_semantic_owner.ReEntrySell.State = RE_STATE_NONE;
+   state.m5_semantic_owner.ReEntrySell.Direction = DIR_SELL;
+   state.m5_semantic_owner.ReEntrySell.Timeframe = PERIOD_M5;
+   state.m5_semantic_owner.Present = false;
+   state.m5_semantic_owner.HistoryGap = false;
+   state.m5_semantic_owner.ForwardStartCandleTime = 0;
+   state.m5_semantic_owner.LastProcessedCandleTime = 0;
+   state.m5_semantic_owner.Reason = "M5 canonical owners not initialized";
 
    state.h4_direction_owner.State = H4_OWNER_RECOVERY_UNRESOLVED;
    state.h4_direction_owner.Direction = DIR_NONE;
@@ -3005,10 +3060,11 @@ ENUM_DIRECTION GetMHVParentExtremeDirection(ENUM_DIRECTION mhvDirection)
    return DIR_NONE;
 }
 
-bool IsMHVParentExtremeMature(ExtremeLifecycleData &parent)
+bool IsMHVParentExtremeMature(ExtremeLifecycleData &parent, int expectedTimeframe)
 {
    if(!parent.IsValid) return false;
-   if(parent.ConfirmationCandleTime <= 0 || parent.Timeframe != PERIOD_M15)
+   if(expectedTimeframe <= 0 || parent.ConfirmationCandleTime <= 0 ||
+      parent.Timeframe != expectedTimeframe)
       return false;
 
    return (parent.Maturity == EXT_MAT_REVERSAL_CONFIRMED ||
@@ -3023,20 +3079,20 @@ bool IsCanonicalMLVMatureState(ENUM_MLV_STATE state)
            state == MLV_DIRECTION_TAKEN);
 }
 
-void ResetMLVState(MLVData &mlv, ENUM_DIRECTION direction)
+void ResetMLVState(MLVData &mlv, ENUM_DIRECTION direction, int timeframe)
 {
    ZeroMemory(mlv);
    mlv.State = MLV_NONE;
    mlv.Direction = direction;
    mlv.ParentExtremeDirection = GetMHVParentExtremeDirection(direction);
-   mlv.Timeframe = PERIOD_M15;
+   mlv.Timeframe = timeframe;
 }
 
 void AttachCanonicalMHVParent(MLVData &mlv, ENUM_DIRECTION direction,
                               ExtremeLifecycleData &parent,
                               TimeframeData &data)
 {
-   ResetMLVState(mlv, direction);
+   ResetMLVState(mlv, direction, data.timeframe);
    mlv.State = MLV_PARENT_READY;
    mlv.ParentRawCandleTime = parent.RawCandleTime;
    mlv.ParentConfirmationCandleTime = parent.ConfirmationCandleTime;
@@ -3044,7 +3100,7 @@ void AttachCanonicalMHVParent(MLVData &mlv, ENUM_DIRECTION direction,
    mlv.LastUpdateCandleTime = data.candle_time;
    mlv.PreviousClose = data.close;
    mlv.IsValid = false;
-   mlv.Reason = "Canonical MHV parent attached: reversal-confirmed M15 Extreme";
+   mlv.Reason = "Canonical MHV parent attached: reversal-confirmed same-TF Extreme";
 }
 
 void MarkCanonicalMLVVoid(MLVData &mlv, TimeframeData &data, string reason)
@@ -3263,9 +3319,9 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
    if(!data.is_valid || !data.is_closed || data.candle_time <= 0) return mlv.State;
 
    if(mlv.Direction != direction || mlv.Timeframe != data.timeframe)
-      ResetMLVState(mlv, direction);
+      ResetMLVState(mlv, direction, data.timeframe);
 
-   bool parentMature = IsMHVParentExtremeMature(parent);
+   bool parentMature = IsMHVParentExtremeMature(parent, data.timeframe);
 
    if(mlv.State == MLV_NONE)
    {
@@ -4866,11 +4922,11 @@ string NMJE_ExtremeEventID(string pair, ExtremeLifecycleData &state)
 
 string NMJE_MLVEventID(string pair, MLVData &state)
 {
-   if(pair == "" || state.Timeframe != PERIOD_M15 ||
+   if(pair == "" || state.Timeframe <= 0 ||
       state.ParentRawCandleTime <= 0 || state.ParentConfirmationCandleTime <= 0 ||
       (state.Direction != DIR_BUY && state.Direction != DIR_SELL))
       return "";
-   string raw = "MLV|" + pair + "|" + IntegerToString(PERIOD_M15) + "|" +
+   string raw = "MLV|" + pair + "|" + IntegerToString(state.Timeframe) + "|" +
                 IntegerToString((int)state.Direction) + "|" +
                 IntegerToString((int)state.ParentRawCandleTime) + "|" +
                 IntegerToString((int)state.ParentConfirmationCandleTime);
@@ -6123,6 +6179,232 @@ void NMJE_PrintValidatedDecisionShadow(int pairIndex, BBMA_Decision &decision)
 //| LEVEL: INTERMEDIATE+                                             |
 //+------------------------------------------------------------------+
 
+// Build 5.16 forward evidence is explicitly bounded to Strategy Tester or demo.
+// It never authorizes an alternate order and is fail-closed on real accounts.
+bool NMJE_IsForwardEvidenceEnabled()
+{
+   if(IsTesting()) return true;
+   return (EnableNMJEForwardEvidence && IsDemo());
+}
+
+void BuildCanonicalM5DirectionSnapshots(string pair,
+                                        TimeframeData &data,
+                                        BollingerBand &band,
+                                        ENUM_DIRECTION direction,
+                                        Signal &csd,
+                                        Signal &ecsd,
+                                        Signal &csm)
+{
+   ZeroMemory(csd);
+   ZeroMemory(ecsd);
+   ZeroMemory(csm);
+   if(!data.is_valid || !data.is_closed || data.timeframe != PERIOD_M5 ||
+      data.candle_time <= 0)
+      return;
+
+   MovingAverage ma;
+   ZeroMemory(ma);
+   ma.MA5_High = data.ma[0];
+   ma.MA10_High = data.ma[1];
+   ma.MA5_Low = data.ma[2];
+   ma.MA10_Low = data.ma[3];
+   ma.EMA50 = data.ma[4];
+
+   if(DetectCSD(pair, PERIOD_M5, direction, data.barIndex, ma, band))
+   {
+      csd.Type = SIGNAL_CSD;
+      csd.Direction = direction;
+      csd.Valid = true;
+      csd.Timeframe = PERIOD_M5;
+      csd.BarIndex = data.barIndex;
+      csd.CandleTime = data.candle_time;
+      csd.Timestamp = data.candle_time;
+      csd.Close = data.close;
+   }
+
+   if(DetectECSD(pair, PERIOD_M5, direction, data.barIndex, ma))
+   {
+      ecsd.Type = SIGNAL_ECSD;
+      ecsd.Direction = direction;
+      ecsd.Valid = true;
+      ecsd.Timeframe = PERIOD_M5;
+      ecsd.BarIndex = data.barIndex;
+      ecsd.CandleTime = data.candle_time;
+      ecsd.Timestamp = data.candle_time;
+      ecsd.Close = data.close;
+   }
+
+   if(DetectCSM(pair, PERIOD_M5, direction, data.barIndex))
+   {
+      csm.Type = SIGNAL_CSM;
+      csm.Direction = direction;
+      csm.Valid = true;
+      csm.Timeframe = PERIOD_M5;
+      csm.BarIndex = data.barIndex;
+      csm.CandleTime = data.candle_time;
+      csm.Timestamp = data.candle_time;
+      csm.Close = data.close;
+   }
+}
+
+// Canonical M5 owners are materialized by reusing M08/M09/M10/M12 owner
+// functions. NMJE does not detect or own these states and M15 remains the
+// sole processing clock. Every newly closed M5 candle since the prior M15
+// cycle is processed oldest-to-newest.
+void UpdateCanonicalM5SemanticOwners(int pairIndex)
+{
+   if(pairIndex < 0 || pairIndex >= g_pair_count) return;
+   string pair = g_pair_states[pairIndex].actual_symbol;
+   TimeframeData latest = g_pair_states[pairIndex].m5_data;
+   if(pair == "" || latest.timeframe != PERIOD_M5 ||
+      !latest.is_valid || !latest.is_closed || latest.candle_time <= 0)
+   {
+      g_pair_states[pairIndex].m5_semantic_owner.Present = false;
+      g_pair_states[pairIndex].m5_semantic_owner.Reason =
+         "M5 canonical owner data unavailable";
+      return;
+   }
+
+   datetime lastProcessed =
+      g_pair_states[pairIndex].m5_semantic_owner.LastProcessedCandleTime;
+   int latestShift = iBarShift(pair, PERIOD_M5, latest.candle_time, true);
+   if(latestShift < 1)
+   {
+      g_pair_states[pairIndex].m5_semantic_owner.Present = false;
+      g_pair_states[pairIndex].m5_semantic_owner.HistoryGap = true;
+      g_pair_states[pairIndex].m5_semantic_owner.Reason =
+         "M5 latest closed candle exact shift unavailable";
+      return;
+   }
+
+   int firstShift = latestShift;
+   if(lastProcessed <= 0)
+   {
+      g_pair_states[pairIndex].m5_semantic_owner.ForwardStartCandleTime =
+         latest.candle_time;
+   }
+   else if(lastProcessed == latest.candle_time)
+   {
+      g_pair_states[pairIndex].m5_semantic_owner.Present = true;
+      return;
+   }
+   else
+   {
+      int previousShift = iBarShift(pair, PERIOD_M5, lastProcessed, true);
+      if(previousShift < 0 || previousShift <= latestShift)
+      {
+         g_pair_states[pairIndex].m5_semantic_owner.Present = false;
+         g_pair_states[pairIndex].m5_semantic_owner.HistoryGap = true;
+         g_pair_states[pairIndex].m5_semantic_owner.Reason =
+            "M5 closed-candle continuity unresolved";
+         return;
+      }
+      firstShift = previousShift - 1;
+   }
+
+   for(int shift = firstShift; shift >= latestShift; shift--)
+   {
+      datetime candleTime = iTime(pair, PERIOD_M5, shift);
+      if(candleTime <= 0) continue;
+
+      TimeframeData data;
+      InitTimeframeData(data);
+      GetDataForTimeframe(pair, PERIOD_M5, candleTime, data);
+      if(!data.is_valid || !data.is_closed || data.candle_time != candleTime)
+      {
+         g_pair_states[pairIndex].m5_semantic_owner.Present = false;
+         g_pair_states[pairIndex].m5_semantic_owner.HistoryGap = true;
+         g_pair_states[pairIndex].m5_semantic_owner.Reason =
+            "M5 closed-candle data gap";
+         return;
+      }
+
+      BollingerBand band;
+      ZeroMemory(band);
+      band.TOP_BB = data.bollinger[0];
+      band.MID_BB = data.bollinger[1];
+      band.LOW_BB = data.bollinger[2];
+      band.Width = band.TOP_BB - band.LOW_BB;
+      band.State = BB_NONE;
+
+      bool rawBuy = DetectExtreme(pair, DIR_BUY, data, band);
+      bool rawSell = DetectExtreme(pair, DIR_SELL, data, band);
+      UpdateExtremeLifecycle(
+         g_pair_states[pairIndex].m5_semantic_owner.ExtremeBuy,
+         pair, DIR_BUY, data, band, rawBuy);
+      UpdateExtremeLifecycle(
+         g_pair_states[pairIndex].m5_semantic_owner.ExtremeSell,
+         pair, DIR_SELL, data, band, rawSell);
+      ResolveOppositeExtremeSupersession(
+         g_pair_states[pairIndex].m5_semantic_owner.ExtremeBuy,
+         g_pair_states[pairIndex].m5_semantic_owner.ExtremeSell, data);
+
+      BuildCanonicalM5DirectionSnapshots(
+         pair, data, band, DIR_BUY,
+         g_pair_states[pairIndex].m5_semantic_owner.CSDBuy,
+         g_pair_states[pairIndex].m5_semantic_owner.ECSDBuy,
+         g_pair_states[pairIndex].m5_semantic_owner.CSMBuy);
+      BuildCanonicalM5DirectionSnapshots(
+         pair, data, band, DIR_SELL,
+         g_pair_states[pairIndex].m5_semantic_owner.CSDSell,
+         g_pair_states[pairIndex].m5_semantic_owner.ECSDSell,
+         g_pair_states[pairIndex].m5_semantic_owner.CSMSell);
+
+      bool buyDirectionStage =
+         (g_pair_states[pairIndex].m5_semantic_owner.CSDBuy.Valid ||
+          g_pair_states[pairIndex].m5_semantic_owner.ECSDBuy.Valid);
+      bool sellDirectionStage =
+         (g_pair_states[pairIndex].m5_semantic_owner.CSDSell.Valid ||
+          g_pair_states[pairIndex].m5_semantic_owner.ECSDSell.Valid);
+
+      UpdateCanonicalMLVState(
+         g_pair_states[pairIndex].m5_semantic_owner.MLVBuy,
+         pair, DIR_BUY, data, band,
+         g_pair_states[pairIndex].m5_semantic_owner.ExtremeSell,
+         buyDirectionStage);
+      UpdateCanonicalMLVState(
+         g_pair_states[pairIndex].m5_semantic_owner.MLVSell,
+         pair, DIR_SELL, data, band,
+         g_pair_states[pairIndex].m5_semantic_owner.ExtremeBuy,
+         sellDirectionStage);
+
+      UpdateReEntryState(
+         g_pair_states[pairIndex].m5_semantic_owner.ReEntryBuy,
+         pair, DIR_BUY, data);
+      UpdateReEntryState(
+         g_pair_states[pairIndex].m5_semantic_owner.ReEntrySell,
+         pair, DIR_SELL, data);
+
+      g_pair_states[pairIndex].m5_semantic_owner.LastProcessedCandleTime =
+         data.candle_time;
+   }
+
+   g_pair_states[pairIndex].m5_semantic_owner.Present = true;
+   g_pair_states[pairIndex].m5_semantic_owner.HistoryGap = false;
+   g_pair_states[pairIndex].m5_semantic_owner.Reason =
+      "Canonical M08/M09/M10/M12 M5 owners current on M15 clock";
+}
+
+bool NMJE_IsMappedM5ReEntry(ReEntryData &state, datetime forwardStart)
+{
+   if(state.Timeframe != PERIOD_M5 || state.StartCandleTime <= 0 ||
+      state.StartCandleTime < forwardStart)
+      return false;
+   return (state.State == RE_STATE_CANDIDATE ||
+           state.State == RE_STATE_CONFIRMED);
+}
+
+bool NMJE_IsMappedM5Extreme(ExtremeLifecycleData &state, datetime forwardStart)
+{
+   if(state.Timeframe != PERIOD_M5 || state.RawCandleTime <= 0 ||
+      state.RawCandleTime < forwardStart)
+      return false;
+   return (state.Maturity == EXT_MAT_RAW ||
+           state.Maturity == EXT_MAT_REVERSAL_CONFIRMED ||
+           state.Maturity == EXT_MAT_RETEST_PHASE ||
+           state.Maturity == EXT_MAT_RETEST_READY);
+}
+
 // NMJE V2 P2/P3 shadow rematerialization from current owner.
 // P2 observes equal-eligibility only; it never assigns order, score, rank or rejection.
 void NMJE_P2_PrintEqualEligibilityShadow(int pairIndex,
@@ -6132,9 +6414,9 @@ void NMJE_P2_PrintEqualEligibilityShadow(int pairIndex,
 {
    if(pairIndex < 0 || pairIndex >= g_pair_count) return;
 
-   // Counterfactual research state is tester-only and cycle-local. Clear first
+   // Counterfactual evidence state is tester/demo-only and cycle-local. Clear first
    // so a no-longer-equal candidate set can never leak into a later execution.
-   if(IsTesting())
+   if(NMJE_IsForwardEvidenceEnabled())
       ZeroMemory(g_nmje_cf_pending[pairIndex]);
 
    if(count < 2) return;
@@ -6151,7 +6433,7 @@ void NMJE_P2_PrintEqualEligibilityShadow(int pairIndex,
    g_nested_journeys[pairIndex].P2EligibleCount = eligibleCount;
    g_nested_journeys[pairIndex].P2CandleTime = pairState.m15_data.candle_time;
 
-   if(IsTesting() && eligibleCount <= NMJE_CF_MAX_CANDIDATES)
+   if(NMJE_IsForwardEvidenceEnabled() && eligibleCount <= NMJE_CF_MAX_CANDIDATES)
    {
       NMJECounterfactualPendingSet pending;
       ZeroMemory(pending);
@@ -6247,7 +6529,7 @@ void NMJE_P2_PrintEqualEligibilityShadow(int pairIndex,
             " Set=", (pending.SetID == "" ? "-" : pending.SetID),
             " Authority=NONE");
    }
-   else if(IsTesting() && eligibleCount > NMJE_CF_MAX_CANDIDATES)
+   else if(NMJE_IsForwardEvidenceEnabled() && eligibleCount > NMJE_CF_MAX_CANDIDATES)
    {
       Print("[Q9-P2-CF-SKIP] Pair=", pairState.actual_symbol,
             " Eligible=", IntegerToString(eligibleCount),
@@ -6269,11 +6551,14 @@ void NMJE_P2_PrintEqualEligibilityShadow(int pairIndex,
    }
 }
 
-// P3 observes closed M5 data only. It deliberately does not classify a signal.
+// P3 consumes canonical M5 owner state only. It never calls M08/M09/M10/M12
+// detectors itself and it never creates/rejects/ranks/executes a trade.
 void NMJE_P3_UpdateClosedM5Shadow(int pairIndex)
 {
    if(pairIndex < 0 || pairIndex >= g_pair_count) return;
    PairState state = g_pair_states[pairIndex];
+   M5SemanticOwnerState owner = state.m5_semantic_owner;
+
    g_nested_journeys[pairIndex].M5ShadowPresent = false;
    g_nested_journeys[pairIndex].M5ShadowClosedCandleTime = 0;
    g_nested_journeys[pairIndex].M5ShadowEventID = "";
@@ -6282,18 +6567,169 @@ void NMJE_P3_UpdateClosedM5Shadow(int pairIndex)
    g_nested_journeys[pairIndex].M5SemanticResolved = false;
    g_nested_journeys[pairIndex].M5DiagnosticRelation = NESTED_NOT_APPLICABLE;
    g_nested_journeys[pairIndex].M5DiagnosticReason = "M5_CONTEXT_UNAVAILABLE";
-   if(state.m5_data.timeframe != PERIOD_M5 || state.m5_data.candle_time <= 0) return;
-   if(!state.m5_data.is_valid || !state.m5_data.is_closed) return;
+
+   if(state.m5_data.timeframe != PERIOD_M5 || state.m5_data.candle_time <= 0 ||
+      !state.m5_data.is_valid || !state.m5_data.is_closed)
+      return;
+
    g_nested_journeys[pairIndex].M5ShadowPresent = true;
-   g_nested_journeys[pairIndex].M5ShadowClosedCandleTime = state.m5_data.candle_time;
+   g_nested_journeys[pairIndex].M5ShadowClosedCandleTime =
+      state.m5_data.candle_time;
    g_nested_journeys[pairIndex].M5ShadowEventID =
-      "M5|" + state.actual_symbol + "|" + IntegerToString((int)state.m5_data.candle_time);
-   g_nested_journeys[pairIndex].M5ShadowReason = "M5_CLOSED_SNAPSHOT_ONLY";
-   // P5 fail-closed: Build 5.12 P3 does not own M5 Re-Entry/Extreme semantics.
-   g_nested_journeys[pairIndex].M5SemanticResolved = false;
-   g_nested_journeys[pairIndex].M5DiagnosticRelation = NESTED_UNRESOLVED;
-   g_nested_journeys[pairIndex].M5DiagnosticReason =
-      "M5_SIGNAL_SEMANTICS_NOT_MATERIALIZED_TRUE_CONFLICT_HOLD";
+      "M5|" + state.actual_symbol + "|" +
+      IntegerToString((int)state.m5_data.candle_time);
+   g_nested_journeys[pairIndex].M5ShadowReason =
+      "M5_CANONICAL_OWNER_SNAPSHOT";
+
+   if(!owner.Present || owner.HistoryGap ||
+      owner.LastProcessedCandleTime != state.m5_data.candle_time ||
+      owner.ForwardStartCandleTime <= 0)
+   {
+      g_nested_journeys[pairIndex].M5DiagnosticRelation = NESTED_UNRESOLVED;
+      g_nested_journeys[pairIndex].M5DiagnosticReason =
+         "M5_CANONICAL_OWNER_NOT_CURRENT_OR_HISTORY_GAP";
+      return;
+   }
+
+   bool reBuy = NMJE_IsMappedM5ReEntry(owner.ReEntryBuy,
+                                        owner.ForwardStartCandleTime);
+   bool reSell = NMJE_IsMappedM5ReEntry(owner.ReEntrySell,
+                                         owner.ForwardStartCandleTime);
+   bool extBuy = NMJE_IsMappedM5Extreme(owner.ExtremeBuy,
+                                         owner.ForwardStartCandleTime);
+   bool extSell = NMJE_IsMappedM5Extreme(owner.ExtremeSell,
+                                          owner.ForwardStartCandleTime);
+
+   int mappedCount = 0;
+   if(reBuy) mappedCount++;
+   if(reSell) mappedCount++;
+   if(extBuy) mappedCount++;
+   if(extSell) mappedCount++;
+
+   if(mappedCount == 0)
+   {
+      g_nested_journeys[pairIndex].M5DiagnosticRelation =
+         NESTED_NOT_APPLICABLE;
+      g_nested_journeys[pairIndex].M5DiagnosticReason =
+         "M5_CANONICAL_OWNERS_CURRENT_NO_APPROVED_P5_MAPPING";
+   }
+   else if(mappedCount > 1)
+   {
+      g_nested_journeys[pairIndex].M5DiagnosticRelation =
+         NESTED_UNRESOLVED;
+      g_nested_journeys[pairIndex].M5DiagnosticReason =
+         "M5_MULTIPLE_CANONICAL_MAPPED_STATES_NO_PRECEDENCE";
+   }
+   else
+   {
+      ENUM_DIRECTION childDirection = DIR_NONE;
+      ENUM_RE_STATE reState = RE_STATE_NONE;
+      bool isReEntry = false;
+      string eventID = "";
+
+      if(reBuy)
+      {
+         childDirection = DIR_BUY;
+         reState = owner.ReEntryBuy.State;
+         isReEntry = true;
+         eventID = NMJE_ReEntryEventID(state.actual_symbol, owner.ReEntryBuy);
+      }
+      else if(reSell)
+      {
+         childDirection = DIR_SELL;
+         reState = owner.ReEntrySell.State;
+         isReEntry = true;
+         eventID = NMJE_ReEntryEventID(state.actual_symbol, owner.ReEntrySell);
+      }
+      else if(extBuy)
+      {
+         childDirection = DIR_BUY;
+         eventID = NMJE_ExtremeEventID(state.actual_symbol, owner.ExtremeBuy);
+      }
+      else if(extSell)
+      {
+         childDirection = DIR_SELL;
+         eventID = NMJE_ExtremeEventID(state.actual_symbol, owner.ExtremeSell);
+      }
+
+      ENUM_DIRECTION parentDirection =
+         g_nested_journeys[pairIndex].ParentDirection;
+      if(eventID == "" ||
+         (parentDirection != DIR_BUY && parentDirection != DIR_SELL))
+      {
+         g_nested_journeys[pairIndex].M5DiagnosticRelation =
+            NESTED_UNRESOLVED;
+         g_nested_journeys[pairIndex].M5DiagnosticReason =
+            "M5_CANONICAL_EVENT_OR_PARENT_UNRESOLVED";
+      }
+      else
+      {
+         bool sameDirection = (childDirection == parentDirection);
+         g_nested_journeys[pairIndex].M5SemanticResolved = true;
+         g_nested_journeys[pairIndex].M5ShadowDirection = childDirection;
+         g_nested_journeys[pairIndex].M5ShadowEventID = eventID;
+
+         if(isReEntry && reState == RE_STATE_CONFIRMED)
+         {
+            if(sameDirection)
+            {
+               g_nested_journeys[pairIndex].M5DiagnosticRelation =
+                  NESTED_ALIGNED;
+               g_nested_journeys[pairIndex].M5DiagnosticReason =
+                  "M5_CONFIRMED_RE_ALIGNED_WITH_PARENT";
+            }
+            else
+            {
+               // Explicit P5 decision: opposite confirmed M5 Re-Entry alone
+               // does not prove genuine structural conflict.
+               g_nested_journeys[pairIndex].M5DiagnosticRelation =
+                  NESTED_UNRESOLVED;
+               g_nested_journeys[pairIndex].M5DiagnosticReason =
+                  "M5_CONFIRMED_RE_OPPOSES_PARENT_TRUE_CONFLICT_HOLD";
+            }
+         }
+         else if(isReEntry && reState == RE_STATE_CANDIDATE)
+         {
+            g_nested_journeys[pairIndex].M5DiagnosticRelation =
+               sameDirection ? NESTED_SUPPORTING : NESTED_BUILDING;
+            g_nested_journeys[pairIndex].M5DiagnosticReason =
+               sameDirection
+               ? "M5_CANDIDATE_RE_SUPPORTS_PARENT"
+               : "M5_CANDIDATE_RE_OPPOSES_PARENT_BUILDING";
+         }
+         else
+         {
+            g_nested_journeys[pairIndex].M5DiagnosticRelation =
+               sameDirection ? NESTED_SUPPORTING : NESTED_BUILDING;
+            g_nested_journeys[pairIndex].M5DiagnosticReason =
+               sameDirection
+               ? "M5_ACTIVE_EXTREME_SUPPORTS_PARENT"
+               : "M5_ACTIVE_EXTREME_OPPOSES_PARENT_BUILDING";
+         }
+      }
+   }
+
+   if(NMJE_IsForwardEvidenceEnabled())
+   {
+      Print("[Q9-P5-M5-OWNER] Pair=", state.actual_symbol,
+            " Candle=", IntegerToString((int)owner.LastProcessedCandleTime),
+            " FStart=", IntegerToString((int)owner.ForwardStartCandleTime),
+            " REB=", EnumToString(owner.ReEntryBuy.State),
+            " RES=", EnumToString(owner.ReEntrySell.State),
+            " XB=", EnumToString(owner.ExtremeBuy.Maturity),
+            " XS=", EnumToString(owner.ExtremeSell.Maturity),
+            " MHVB=", EnumToString(owner.MLVBuy.State),
+            " MHVS=", EnumToString(owner.MLVSell.State),
+            " CSDB=", owner.CSDBuy.Valid ? "Y" : "N",
+            " CSDS=", owner.CSDSell.Valid ? "Y" : "N",
+            " CSMB=", owner.CSMBuy.Valid ? "Y" : "N",
+            " CSMS=", owner.CSMSell.Valid ? "Y" : "N",
+            " M5SEM=", g_nested_journeys[pairIndex].M5SemanticResolved ? "Y" : "N",
+            " REL=", NMJE_RelationText(
+               g_nested_journeys[pairIndex].M5DiagnosticRelation),
+            " R=", g_nested_journeys[pairIndex].M5DiagnosticReason,
+            " Authority=NONE");
+   }
 }
 
 void CollectSignalSnapshots(Signal &h1_extreme_snapshot, Signal &m15_mhv_snapshot,
@@ -7293,7 +7729,7 @@ void NMJE_P2_RegisterCounterfactualOpen(int pairIndex,
                                         TradeInfo &info,
                                         RiskValidationSnapshot &snapshot)
 {
-   if(!IsTesting()) return;
+   if(!NMJE_IsForwardEvidenceEnabled()) return;
    if(pairIndex < 0 || pairIndex >= g_pair_count) return;
    if(info.ticket <= 0 || info.initial_entry_price <= 0.0 || info.open_time <= 0) return;
 
@@ -7597,7 +8033,7 @@ void NMJE_P2_ResolvePairedWindowOutcome(NMJECounterfactualTradeSet &active,
 
 void NMJE_P2_PrintCounterfactualOutcomes(int ticket, datetime closeTime)
 {
-   if(!IsTesting()) return;
+   if(!NMJE_IsForwardEvidenceEnabled()) return;
    int activeIndex = NMJE_P2_FindCounterfactualTradeSet(ticket);
    if(activeIndex < 0) return;
 
@@ -11167,7 +11603,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.15 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.16 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -13540,6 +13976,10 @@ void ProcessPair(int pairIndex)
       m15CSMSnapshots[dirIdx] = m15CSMSnapshot;
    }
 
+   // M5 owner semantics are produced by canonical M08/M09/M10/M12 logic,
+   // sampled only on this closed-M15 cycle. NMJE remains read-only.
+   UpdateCanonicalM5SemanticOwners(pairIndex);
+
    // M12N observes only after both direction owners are current for this cycle.
    UpdateNestedJourneyObservation(pairIndex);
    NMJE_P3_UpdateClosedM5Shadow(pairIndex);
@@ -13664,7 +14104,7 @@ void ProcessPair(int pairIndex)
 
    // Counterfactual research observes the already-selected baseline decision.
    // It never changes candidate ordering or the decision itself.
-   if(IsTesting() && g_nmje_cf_pending[pairIndex].Present && decision.Valid)
+   if(NMJE_IsForwardEvidenceEnabled() && g_nmje_cf_pending[pairIndex].Present && decision.Valid)
       Print("[Q9-P2-CF-BASE] Pair=", actual,
             " Set=", g_nmje_cf_pending[pairIndex].SetID,
             " Sig=", EnumToString(decision.SignalType),
@@ -13766,6 +14206,16 @@ int OnInit()
 {
    F7BuildIdentityTelemetry();
    NormalizeRuntimeLimits();
+
+   if(EnableNMJEForwardEvidence)
+   {
+      if(IsTesting())
+         Print("[Q9-NMJE-FWD] Mode=TESTER Authority=NONE");
+      else if(IsDemo())
+         Print("[Q9-NMJE-FWD] Mode=DEMO ENABLED Authority=NONE");
+      else
+         Print("[Q9-NMJE-FWD] Mode=REAL BLOCKED Evidence=OFF Authority=NONE");
+   }
    if(!ValidateInputParameters())
    {
       Log(DBG_ERROR, "Input parameter validation failed");

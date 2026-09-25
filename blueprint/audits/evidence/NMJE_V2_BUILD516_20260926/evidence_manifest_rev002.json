@@ -1,0 +1,48 @@
+{
+  "schema": "NMJE_V2_BUILD516_EVIDENCE_MANIFEST_V1",
+  "date": "2026-09-26",
+  "issue": 101,
+  "owner_base": "459c0588e625d7f7630f0fb5612b7f04fda496de",
+  "build": "5.16",
+  "build_tag": "V516_NMJE_FORWARD_M5_OWNER_PREP_20260926",
+  "source_rev": "NMJE_FORWARD_M5_OWNER_PREP_001_20260926",
+  "identities": {
+    "mq4_sha256": "98E2C669C90DEAF42A2EE8CAA5AFE2551C0AEBE8E59B61DC2EF261CD406ACD96",
+    "native_ex4_sha256": "6230BE87E4F9FFA3BB44310158F66AF995D7646F28FB5319256148920F23023F",
+    "harness_ex4_sha256": "85DDDA614598D8164E5F523364FCE45E58EBBE770741CC54595B3009309F8BD2",
+    "tester_set_sha256": "BBDA03F495B345E5C1E9F3381F1274B1EF13F9645E49565A9F47344FEC540368",
+    "tester_config_sha256": "3885C48A6A7734F52A2A6F2E1F5CBF4571D51A8124B13CF51B9882C591681E57"
+  },
+  "validation": {
+    "targeted_regression": "PASS",
+    "python_suite": "72/72 PASS",
+    "native_compile": "0 errors / 0 warnings",
+    "harness_compile": "0 errors / 0 warnings",
+    "strategy_tester": "PASS",
+    "execution_trace_exact_to_515": true,
+    "execution_count": 14,
+    "m5_owner_rows": 2016,
+    "m5_semantic_resolved_rows": 1123,
+    "m5_conflict_activation_rows": 0,
+    "counterfactual_open_rows": 9,
+    "counterfactual_out_rows": 9,
+    "fatal_runtime_faults": 0
+  },
+  "demo_forward": {
+    "terminal_root": "D:\\BBMA\\MT4_Q5_180_Demo",
+    "config": "config\\nmje_v2_516_demo_forward.ini",
+    "strategy_id": 93,
+    "instance_id": 95,
+    "max_active_pair": 1,
+    "enable_nmje_forward_evidence": true,
+    "attach_verified": true,
+    "broker_forward_outcome_verified": false,
+    "status": "ATTACHED / BROKER-FORWARD OUTCOME PENDING"
+  },
+  "authority": {
+    "p2_ordering": "HOLD_NON_EXECUTABLE",
+    "p5_true_conflict": "HOLD_NON_EXECUTABLE",
+    "n3_execution_policy": "INACTIVE",
+    "strategy_core_delta": "NONE"
+  }
+}

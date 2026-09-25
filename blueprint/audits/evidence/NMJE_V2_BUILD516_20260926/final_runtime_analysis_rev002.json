@@ -1,0 +1,63 @@
+{
+  "schema": "NMJE_V2_BUILD516_RUNTIME_ANALYSIS_V1",
+  "source_rev": "NMJE_FORWARD_M5_OWNER_PREP_001_20260926",
+  "segment_start_line": 6,
+  "segment_end_line": 25770,
+  "segment_lines": 25765,
+  "build_identity_count": 1,
+  "clean_deinit": true,
+  "execution_count": 14,
+  "baseline_515_execution_count": 14,
+  "execution_trace_exact_515": true,
+  "m5_owner_rows": 2016,
+  "m5_semantic_counts": {
+    "Y": 1123,
+    "N": 893
+  },
+  "m5_relation_counts": {
+    "BUILDING": 307,
+    "UNRESOLVED": 1026,
+    "SUPPORTING": 287,
+    "ALIGNED": 272,
+    "N/A": 124
+  },
+  "m5_reason_counts": {
+    "M5_CANDIDATE_RE_OPPOSES_PARENT_BUILDING": 231,
+    "M5_CONFIRMED_RE_OPPOSES_PARENT_TRUE_CONFLICT_HOLD": 257,
+    "M5_CANDIDATE_RE_SUPPORTS_PARENT": 246,
+    "M5_CONFIRMED_RE_ALIGNED_WITH_PARENT": 272,
+    "M5_CANONICAL_OWNERS_CURRENT_NO_APPROVED_P5_MAPPING": 124,
+    "M5_MULTIPLE_CANONICAL_MAPPED_STATES_NO_PRECEDENCE": 769,
+    "M5_ACTIVE_EXTREME_SUPPORTS_PARENT": 41,
+    "M5_ACTIVE_EXTREME_OPPOSES_PARENT_BUILDING": 76
+  },
+  "m5_conflict_rows": 0,
+  "cf_open_rows": 9,
+  "cf_out_rows": 9,
+  "cf_set_count": 3,
+  "fatal_counts": {
+    "zero divide": 0,
+    "array out of range": 0,
+    "stack overflow": 0,
+    "access violation": 0,
+    "critical runtime error": 0,
+    "initialization failed": 0,
+    "init_failed": 0
+  },
+  "runtime_broker_action_lines": {
+    "OrderSend_runtime": 14,
+    "OrderClose_runtime": 10
+  },
+  "checks": {
+    "build_exact_once": true,
+    "clean_deinit": true,
+    "execution_trace_exact_515": true,
+    "m5_owner_observed": true,
+    "m5_semantics_resolved_observed": true,
+    "bounded_relations_observed": true,
+    "no_m5_conflict_activation": true,
+    "no_fatal_runtime": true,
+    "counterfactual_open_out_pairing": true
+  },
+  "pass": true
+}

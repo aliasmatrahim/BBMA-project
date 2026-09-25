@@ -1,0 +1,22 @@
+{
+  "schema": "NMJE_V2_P2_P3_RUNTIME_V1",
+  "marker_found": true,
+  "build": "5.12",
+  "source_rev": "NMJE_P2P3_SHADOW_003_20260925",
+  "deinit_clean": true,
+  "tester_removed": true,
+  "order_send_token_count": 0,
+  "dec_executed_count": 56,
+  "open_ticket_log_count": 28,
+  "close_ticket_log_count": 20,
+  "fatal_token_count": 0,
+  "tester_log_sha256": "88CE1752B07583CC28EA127A3908E17501586EB8D1904119A6B91136CE2CF1B7",
+  "report_sha256": "3FD9A783BCAB428A992B9F4DF56ABD00923790AA93945E8D7F477822B5B81140",
+  "production_ex4_sha256": "DECCE17D2BAC0694A9A25C4C66C7828DE520D7EFBA4A977FF6703C5B4EECD252",
+  "harness_ex4_sha256": "0E3DD3738352F2C8AF788831C1E8A36DA027DCAE3EB1F8F01470CCEADD654D81",
+  "report_total_trades": 14,
+  "report_profit_trades": 4,
+  "report_loss_trades": 10,
+  "period": "GBPUSD M15 2026-08-01..2026-09-01",
+  "classification": "ENGINEERING_STRATEGY_TESTER_RUNTIME"
+}

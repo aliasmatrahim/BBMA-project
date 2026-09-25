@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.1.1 - Event-Driven Observer                      |
+//| Version 5.1.2 - NMJE P2/P3 Shadow Rematerialization         |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.11"
+#property version   "5.12"
 #property strict
 
-#define BBMA_BUILD_TAG      "V511_EVENT_DRIVEN_OBSERVER_20260922"
-#define BBMA_SOURCE_REV_TAG "OBSERVER_EVENT_DRIVEN_237_20260922"
+#define BBMA_BUILD_TAG      "V512_NMJE_P2P3_SHADOW_20260925"
+#define BBMA_SOURCE_REV_TAG "NMJE_P2P3_SHADOW_003_20260925"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -643,6 +643,15 @@ struct NestedJourneyState
    bool                    Valid;
    datetime                UpdateCandleTime;
    string                  Reason;
+   // NMJE V2 P2/P3 shadow metadata; never candidate/risk/execution authority.
+   bool                    P2CoherencePresent;
+   int                     P2EligibleCount;
+   datetime                P2CandleTime;
+   bool                    M5ShadowPresent;
+   datetime                M5ShadowClosedCandleTime;
+   string                  M5ShadowEventID;
+   ENUM_DIRECTION          M5ShadowDirection;
+   string                  M5ShadowReason;
    NestedTFNode            D1Node;
    NestedTFNode            H4Node;
    NestedTFNode            H1Node;
@@ -838,6 +847,8 @@ struct PairState
    TimeframeData        h4_data;
    TimeframeData        h1_data;
    TimeframeData        m15_data;
+   // NMJE P3: closed-M5 shadow context only; never execution authority.
+   TimeframeData        m5_data;
    Candle               last_3_candles[3];
    Candle               last_5_candles[5];
    Candle               last_20_candles[20];
@@ -5413,6 +5424,59 @@ void NMJE_PrintValidatedDecisionShadow(int pairIndex, BBMA_Decision &decision)
 //| LEVEL: INTERMEDIATE+                                             |
 //+------------------------------------------------------------------+
 
+// NMJE V2 P2/P3 shadow rematerialization from current owner.
+// P2 observes equal-eligibility only; it never assigns order, score, rank or rejection.
+void NMJE_P2_PrintEqualEligibilityShadow(int pairIndex,
+                                          ValidatedSequenceCandidate &candidates[],
+                                          int count,
+                                          PairState &pairState)
+{
+   if(pairIndex < 0 || pairIndex >= g_pair_count || count < 2) return;
+   int eligibleCount = 0;
+   for(int i = 0; i < count; i++)
+   {
+      if(!IsCandidateEligible(candidates[i])) continue;
+      if(!IsCandidateAllowedByD1Owner(candidates[i], pairState)) continue;
+      eligibleCount++;
+   }
+   if(eligibleCount < 2) return;
+   g_nested_journeys[pairIndex].P2CoherencePresent = true;
+   g_nested_journeys[pairIndex].P2EligibleCount = eligibleCount;
+   g_nested_journeys[pairIndex].P2CandleTime = pairState.m15_data.candle_time;
+   for(int i = 0; i < count; i++)
+   {
+      if(!IsCandidateEligible(candidates[i])) continue;
+      if(!IsCandidateAllowedByD1Owner(candidates[i], pairState)) continue;
+      Print("[Q9-P2-COHERENCE] Pair=", pairState.actual_symbol,
+            " Eligible=", IntegerToString(eligibleCount),
+            " Seq=", (candidates[i].SequenceHash == "" ? "-" : candidates[i].SequenceHash),
+            " Sig=", EnumToString(candidates[i].SequenceType),
+            " Dir=", NMJE_DirText(candidates[i].Direction),
+            " ParentMatch=", (g_nested_journeys[pairIndex].ParentDirection == candidates[i].Direction ? "Y" : "N"),
+            " M5Present=", (g_nested_journeys[pairIndex].M5ShadowPresent ? "Y" : "N"),
+            " Authority=NONE");
+   }
+}
+
+// P3 observes closed M5 data only. It deliberately does not classify a signal.
+void NMJE_P3_UpdateClosedM5Shadow(int pairIndex)
+{
+   if(pairIndex < 0 || pairIndex >= g_pair_count) return;
+   PairState state = g_pair_states[pairIndex];
+   g_nested_journeys[pairIndex].M5ShadowPresent = false;
+   g_nested_journeys[pairIndex].M5ShadowClosedCandleTime = 0;
+   g_nested_journeys[pairIndex].M5ShadowEventID = "";
+   g_nested_journeys[pairIndex].M5ShadowDirection = DIR_NONE;
+   g_nested_journeys[pairIndex].M5ShadowReason = "M5_CLOSED_DATA_UNAVAILABLE";
+   if(state.m5_data.timeframe != PERIOD_M5 || state.m5_data.candle_time <= 0) return;
+   if(!state.m5_data.is_valid || !state.m5_data.is_closed) return;
+   g_nested_journeys[pairIndex].M5ShadowPresent = true;
+   g_nested_journeys[pairIndex].M5ShadowClosedCandleTime = state.m5_data.candle_time;
+   g_nested_journeys[pairIndex].M5ShadowEventID =
+      "M5|" + state.actual_symbol + "|" + IntegerToString((int)state.m5_data.candle_time);
+   g_nested_journeys[pairIndex].M5ShadowReason = "M5_CLOSED_SNAPSHOT_ONLY";
+}
+
 void CollectSignalSnapshots(Signal &h1_extreme_snapshot, Signal &m15_mhv_snapshot,
                             MLVData &m15_mlv_snapshot, Signal &m15_csd_snapshot,
                             Signal &m15_ecsd_snapshot, Signal &m15_csm_snapshot,
@@ -9168,7 +9232,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.11 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.12 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -11298,6 +11362,11 @@ void ProcessPair(int pairIndex)
    GetDataForTimeframe(actual, PERIOD_M15, g_pair_states[pairIndex].tf_snapshot.M15_CandleTime,
                        g_pair_states[pairIndex].m15_data);
 
+   // NMJE P3 reads one closed M5 snapshot from the M15-owned cycle only.
+   GetDataForTimeframe(actual, PERIOD_M5,
+                       GetLatestClosedCandleTime(actual, PERIOD_M5),
+                       g_pair_states[pairIndex].m5_data);
+
    // D1-01: classify strategic D1/MA50 owner from fully closed D1 data.
    // Producer only in this step; M15/M16 consumption is intentionally later.
    UpdateD1MajorTrendOwner(actual, g_pair_states[pairIndex]);
@@ -11529,6 +11598,7 @@ void ProcessPair(int pairIndex)
 
    // M12N observes only after both direction owners are current for this cycle.
    UpdateNestedJourneyObservation(pairIndex);
+   NMJE_P3_UpdateClosedM5Shadow(pairIndex);
 
    // M27 locked Phase B: M13/M14 assembly consumes the frozen owner snapshots.
    for(int assembleDirIdx = 0; assembleDirIdx < 2; assembleDirIdx++)
@@ -11635,6 +11705,11 @@ void ProcessPair(int pairIndex)
    ZeroMemory(decision);
    ZeroMemory(conflict);
    decision.Pair = actual;
+
+   // NMJE P2 remains telemetry-only; comparator/order is untouched.
+   NMJE_P2_PrintEqualEligibilityShadow(pairIndex, allCandidates,
+                                        allCandidateCount,
+                                        g_pair_states[pairIndex]);
 
    PriorityEngine_Atomic(allCandidates, allCandidateCount,
                          g_pair_states[pairIndex], decision, conflict);

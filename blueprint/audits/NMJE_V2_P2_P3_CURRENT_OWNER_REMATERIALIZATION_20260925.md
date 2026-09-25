@@ -2,6 +2,8 @@
 
 Status: **DRAFT / IMPLEMENTATION PATCH PREPARED / VALIDATION BLOCKED**
 
+Latest verification: dedicated current-owner static workflow PASS (run `36077659180`).
+
 ## Base and identity
 - Owner base: `d1-owner-dev@39843ce333ba939cf290271fc0c76cfffe452e44`
 - Historical Build 4.96/PR #205: not merged or transplanted.
@@ -31,7 +33,7 @@ Status: **DRAFT / IMPLEMENTATION PATCH PREPARED / VALIDATION BLOCKED**
 - Local source hash for PR head: `0B6F754AAFEFB12A219B9C7C2C719E67E951C0DB84C49C19D7DAFF086F053C9B`.
 
 ## Validation status
-- Native MetaEditor compile: **BLOCKED / NO VERIFIABLE ARTIFACT**. MetaEditor was invoked against the exact PR source using absolute, repository-relative and `MQL4\\Experts` working-directory paths. Each process returned exit code 0, but no candidate `.ex4` or compile log was produced; therefore no compile PASS is claimed.
+- Native MetaEditor compile: **BLOCKED / NO VERIFIABLE ARTIFACT**. MetaEditor was invoked against the exact PR source using absolute, repository-relative and `MQL4\\Experts` working-directory paths. Each process returned exit code 0, but no candidate `.ex4` or compile log was produced; the same command-line behavior occurred when tested against an existing legacy EA source, therefore no compile PASS is claimed.
 - Static project suite: **NOT RUN / repository checkout unavailable locally**.
 - Targeted regression: **NOT RUN**.
 - Runtime/Strategy Tester: **NOT RUNTIME VERIFIED**. Existing MT4 terminal is present, but the PR source was not compiled into a verifiable `.ex4`.

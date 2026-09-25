@@ -1,0 +1,202 @@
+{
+  "schema": "NMJE_V2_P4PLUS_TARGETED_REGRESSION_V1",
+  "source_sha256": "2D433B92452A4A062822594A6B3842F1FABB32EF5FDBA4F766AA4125999AA417",
+  "base_ref": "origin/d1-owner-dev",
+  "checks": {
+    "version_513": {
+      "pass": true,
+      "detail": ""
+    },
+    "build_tag": {
+      "pass": true,
+      "detail": ""
+    },
+    "source_rev_006": {
+      "pass": true,
+      "detail": ""
+    },
+    "runtime_build_identity_513": {
+      "pass": true,
+      "detail": ""
+    },
+    "p3_no_signal_detector": {
+      "pass": true,
+      "detail": ""
+    },
+    "p5_true_conflict_hold": {
+      "pass": true,
+      "detail": ""
+    },
+    "no_m5_context_enum_resurrection": {
+      "pass": true,
+      "detail": ""
+    },
+    "p6_no_score_rank_gate": {
+      "pass": true,
+      "detail": ""
+    },
+    "p8_identity_only_no_time_delay": {
+      "pass": true,
+      "detail": ""
+    },
+    "p8_raw_relation_not_rewritten": {
+      "pass": true,
+      "detail": ""
+    },
+    "p11_strict_a_no_continuation_assignment": {
+      "pass": true,
+      "detail": ""
+    },
+    "p11_root_is_parent": {
+      "pass": true,
+      "detail": ""
+    },
+    "p4_freeze_requires_validated": {
+      "pass": true,
+      "detail": ""
+    },
+    "p4_persistence_diagnostic_only": {
+      "pass": true,
+      "detail": ""
+    },
+    "optional_hash_writes_explicit": {
+      "pass": true,
+      "detail": ""
+    },
+    "p10_no_rejection_threshold": {
+      "pass": true,
+      "detail": ""
+    },
+    "p4_freeze_order": {
+      "pass": true,
+      "detail": "[82, 221, 283]"
+    },
+    "p10_post_fill_before_registry": {
+      "pass": true,
+      "detail": "(360495, 363682, 365125)"
+    },
+    "p4_optional_recovery_load": {
+      "pass": true,
+      "detail": ""
+    },
+    "protected_functions_exact": {
+      "pass": true,
+      "detail": "{\"CheckRiskBeforeTrade\": {\"base_sha256\": \"54DD705CB0744B75477C2E625425527B52CB9D5275D0750867033E933CD54132\", \"current_sha256\": \"54DD705CB0744B75477C2E625425527B52CB9D5275D0750867033E933CD54132\", \"m5_refs\": 0, \"nmje_refs\": 0, \"same\": true}, \"CompareCanonicalCandidates\": {\"base_sha256\": \"A237E78B88912658436619C86BBA4453F15504295EA7F36F0E579CB848627458\", \"current_sha256\": \"A237E78B88912658436619C86BBA4453F15504295EA7F36F0E579CB848627458\", \"m5_refs\": 0, \"nmje_refs\": 0, \"same\": true}, \"InvalidationEngine_Atomic\": {\"base_sha256\": \"2B5438688347C9C646DBD5C19190D30A1BA60C9F1D5D6F73AD88CD6D0A235564\", \"current_sha256\": \"2B5438688347C9C646DBD5C19190D30A1BA60C9F1D5D6F73AD88CD6D0A235564\", \"m5_refs\": 0, \"nmje_refs\": 0, \"same\": true}, \"IsApprovedSLTPSourceComponent\": {\"base_sha256\": \"75FB44D5EF0EB6F477B27A4E4B8EF1124364DDA6F9BBD7D7CB35958F92052EB9\", \"current_sha256\": \"75FB44D5EF0EB6F477B27A4E4B8EF1124364DDA6F9BBD7D7CB35958F92052EB9\", \"m5_refs\": 0, \"nmje_refs\": 0, \"same\": true}, \"IsSignalAllowed\": {\"base_sha256\": \"5C5C2237E5F6382DD5A5AB2C68E660DD18FB12DDE3412B05F2C0B1DE50B32DAD\", \"current_sha256\": \"5C5C2237E5F6382DD5A5AB2C68E660DD18FB12DDE3412B05F2C0B1DE50B32DAD\", \"m5_refs\": 0, \"nmje_refs\": 0, \"same\": true}, \"PriorityEngine_Atomic\": {\"base_sha256\": \"FC161428A5F79FFB1E3BFFBB8868F014BDB4854A7B1B159A28353D2DA7C2C4B7\", \"current_sha256\": \"FC161428A5F79FFB1E3BFFBB8868F014BDB4854A7B1B159A28353D2DA7C2C4B7\", \"m5_refs\": 0, \"nmje_refs\": 0, \"same\": true}, \"ResolveApprovedInitialSLTP\": {\"base_sha256\": \"5C093B38174653E51FCBAEE530B750CA7012DD5D25046D37F48F2C45A63A7AA3\", \"current_sha256\": \"5C093B38174653E51FCBAEE530B750CA7012DD5D25046D37F48F2C45A63A7AA3\", \"m5_refs\": 0, \"nmje_refs\": 0, \"same\": true}, \"ResolveExecutionReferencePrice\": {\"base_sha256\": \"02ACCF135AA89E092DC67E0160B457305E4BE05F8327D4A75967BFBB4E4CDCA0\", \"current_sha256\": \"02ACCF135AA89E092DC67E0160B457305E4BE05F8327D4A75967BFBB4E4CDCA0\", \"m5_refs\": 0, \"nmje_refs\": 0, \"same\": true}, \"ResolveSelectedSLTPSourceComponent\": {\"base_sha256\": \"C1CEAD173C4DB5DE15A3FB5C7E2E519061E0F989A30687D7F4DEABC254352296\", \"current_sha256\": \"C1CEAD173C4DB5DE15A3FB5C7E2E519061E0F989A30687D7F4DEABC254352296\", \"m5_refs\": 0, \"nmje_refs\": 0, \"same\": true}, \"RunEntryPreflightAndExecute\": {\"base_sha256\": \"44B4EC3182F080B3599234FE1B296EEE4C797B8B34E94850627C4B042FE6786A\", \"current_sha256\": \"44B4EC3182F080B3599234FE1B296EEE4C797B8B34E94850627C4B042FE6786A\", \"m5_refs\": 0, \"nmje_refs\": 0, \"same\": true}, \"SendOrderWithRetry\": {\"base_sha256\": \"9C10592790D30497C7C9A3AAD3A996FD8B8C0DBD4898A563E6AF3CD2626A87AB\", \"current_sha256\": \"9C10592790D30497C7C9A3AAD3A996FD8B8C0DBD4898A563E6AF3CD2626A87AB\", \"m5_refs\": 0, \"nmje_refs\": 0, \"same\": true}}"
+    },
+    "protected_functions_no_nmje_m5": {
+      "pass": true,
+      "detail": "{\"CheckRiskBeforeTrade\": {\"base_sha256\": \"54DD705CB0744B75477C2E625425527B52CB9D5275D0750867033E933CD54132\", \"current_sha256\": \"54DD705CB0744B75477C2E625425527B52CB9D5275D0750867033E933CD54132\", \"m5_refs\": 0, \"nmje_refs\": 0, \"same\": true}, \"CompareCanonicalCandidates\": {\"base_sha256\": \"A237E78B88912658436619C86BBA4453F15504295EA7F36F0E579CB848627458\", \"current_sha256\": \"A237E78B88912658436619C86BBA4453F15504295EA7F36F0E579CB848627458\", \"m5_refs\": 0, \"nmje_refs\": 0, \"same\": true}, \"InvalidationEngine_Atomic\": {\"base_sha256\": \"2B5438688347C9C646DBD5C19190D30A1BA60C9F1D5D6F73AD88CD6D0A235564\", \"current_sha256\": \"2B5438688347C9C646DBD5C19190D30A1BA60C9F1D5D6F73AD88CD6D0A235564\", \"m5_refs\": 0, \"nmje_refs\": 0, \"same\": true}, \"IsApprovedSLTPSourceComponent\": {\"base_sha256\": \"75FB44D5EF0EB6F477B27A4E4B8EF1124364DDA6F9BBD7D7CB35958F92052EB9\", \"current_sha256\": \"75FB44D5EF0EB6F477B27A4E4B8EF1124364DDA6F9BBD7D7CB35958F92052EB9\", \"m5_refs\": 0, \"nmje_refs\": 0, \"same\": true}, \"IsSignalAllowed\": {\"base_sha256\": \"5C5C2237E5F6382DD5A5AB2C68E660DD18FB12DDE3412B05F2C0B1DE50B32DAD\", \"current_sha256\": \"5C5C2237E5F6382DD5A5AB2C68E660DD18FB12DDE3412B05F2C0B1DE50B32DAD\", \"m5_refs\": 0, \"nmje_refs\": 0, \"same\": true}, \"PriorityEngine_Atomic\": {\"base_sha256\": \"FC161428A5F79FFB1E3BFFBB8868F014BDB4854A7B1B159A28353D2DA7C2C4B7\", \"current_sha256\": \"FC161428A5F79FFB1E3BFFBB8868F014BDB4854A7B1B159A28353D2DA7C2C4B7\", \"m5_refs\": 0, \"nmje_refs\": 0, \"same\": true}, \"ResolveApprovedInitialSLTP\": {\"base_sha256\": \"5C093B38174653E51FCBAEE530B750CA7012DD5D25046D37F48F2C45A63A7AA3\", \"current_sha256\": \"5C093B38174653E51FCBAEE530B750CA7012DD5D25046D37F48F2C45A63A7AA3\", \"m5_refs\": 0, \"nmje_refs\": 0, \"same\": true}, \"ResolveExecutionReferencePrice\": {\"base_sha256\": \"02ACCF135AA89E092DC67E0160B457305E4BE05F8327D4A75967BFBB4E4CDCA0\", \"current_sha256\": \"02ACCF135AA89E092DC67E0160B457305E4BE05F8327D4A75967BFBB4E4CDCA0\", \"m5_refs\": 0, \"nmje_refs\": 0, \"same\": true}, \"ResolveSelectedSLTPSourceComponent\": {\"base_sha256\": \"C1CEAD173C4DB5DE15A3FB5C7E2E519061E0F989A30687D7F4DEABC254352296\", \"current_sha256\": \"C1CEAD173C4DB5DE15A3FB5C7E2E519061E0F989A30687D7F4DEABC254352296\", \"m5_refs\": 0, \"nmje_refs\": 0, \"same\": true}, \"RunEntryPreflightAndExecute\": {\"base_sha256\": \"44B4EC3182F080B3599234FE1B296EEE4C797B8B34E94850627C4B042FE6786A\", \"current_sha256\": \"44B4EC3182F080B3599234FE1B296EEE4C797B8B34E94850627C4B042FE6786A\", \"m5_refs\": 0, \"nmje_refs\": 0, \"same\": true}, \"SendOrderWithRetry\": {\"base_sha256\": \"9C10592790D30497C7C9A3AAD3A996FD8B8C0DBD4898A563E6AF3CD2626A87AB\", \"current_sha256\": \"9C10592790D30497C7C9A3AAD3A996FD8B8C0DBD4898A563E6AF3CD2626A87AB\", \"m5_refs\": 0, \"nmje_refs\": 0, \"same\": true}}"
+    },
+    "broker_primitive_counts_unchanged": {
+      "pass": true,
+      "detail": "base=1/3 current=1/3"
+    },
+    "p4plus_not_consumed_by_authority": {
+      "pass": true,
+      "detail": ""
+    },
+    "no_density_to_existing_score": {
+      "pass": true,
+      "detail": ""
+    },
+    "p7_candidate_shadow_present": {
+      "pass": true,
+      "detail": ""
+    },
+    "p7_before_priority": {
+      "pass": true,
+      "detail": ""
+    },
+    "p8_changed_only_telemetry": {
+      "pass": true,
+      "detail": ""
+    },
+    "p4_outcome_durable_reload": {
+      "pass": true,
+      "detail": ""
+    },
+    "optional_string_normalization": {
+      "pass": true,
+      "detail": ""
+    }
+  },
+  "protected": {
+    "CompareCanonicalCandidates": {
+      "same": true,
+      "base_sha256": "A237E78B88912658436619C86BBA4453F15504295EA7F36F0E579CB848627458",
+      "current_sha256": "A237E78B88912658436619C86BBA4453F15504295EA7F36F0E579CB848627458",
+      "nmje_refs": 0,
+      "m5_refs": 0
+    },
+    "PriorityEngine_Atomic": {
+      "same": true,
+      "base_sha256": "FC161428A5F79FFB1E3BFFBB8868F014BDB4854A7B1B159A28353D2DA7C2C4B7",
+      "current_sha256": "FC161428A5F79FFB1E3BFFBB8868F014BDB4854A7B1B159A28353D2DA7C2C4B7",
+      "nmje_refs": 0,
+      "m5_refs": 0
+    },
+    "InvalidationEngine_Atomic": {
+      "same": true,
+      "base_sha256": "2B5438688347C9C646DBD5C19190D30A1BA60C9F1D5D6F73AD88CD6D0A235564",
+      "current_sha256": "2B5438688347C9C646DBD5C19190D30A1BA60C9F1D5D6F73AD88CD6D0A235564",
+      "nmje_refs": 0,
+      "m5_refs": 0
+    },
+    "CheckRiskBeforeTrade": {
+      "same": true,
+      "base_sha256": "54DD705CB0744B75477C2E625425527B52CB9D5275D0750867033E933CD54132",
+      "current_sha256": "54DD705CB0744B75477C2E625425527B52CB9D5275D0750867033E933CD54132",
+      "nmje_refs": 0,
+      "m5_refs": 0
+    },
+    "IsSignalAllowed": {
+      "same": true,
+      "base_sha256": "5C5C2237E5F6382DD5A5AB2C68E660DD18FB12DDE3412B05F2C0B1DE50B32DAD",
+      "current_sha256": "5C5C2237E5F6382DD5A5AB2C68E660DD18FB12DDE3412B05F2C0B1DE50B32DAD",
+      "nmje_refs": 0,
+      "m5_refs": 0
+    },
+    "ResolveApprovedInitialSLTP": {
+      "same": true,
+      "base_sha256": "5C093B38174653E51FCBAEE530B750CA7012DD5D25046D37F48F2C45A63A7AA3",
+      "current_sha256": "5C093B38174653E51FCBAEE530B750CA7012DD5D25046D37F48F2C45A63A7AA3",
+      "nmje_refs": 0,
+      "m5_refs": 0
+    },
+    "ResolveExecutionReferencePrice": {
+      "same": true,
+      "base_sha256": "02ACCF135AA89E092DC67E0160B457305E4BE05F8327D4A75967BFBB4E4CDCA0",
+      "current_sha256": "02ACCF135AA89E092DC67E0160B457305E4BE05F8327D4A75967BFBB4E4CDCA0",
+      "nmje_refs": 0,
+      "m5_refs": 0
+    },
+    "ResolveSelectedSLTPSourceComponent": {
+      "same": true,
+      "base_sha256": "C1CEAD173C4DB5DE15A3FB5C7E2E519061E0F989A30687D7F4DEABC254352296",
+      "current_sha256": "C1CEAD173C4DB5DE15A3FB5C7E2E519061E0F989A30687D7F4DEABC254352296",
+      "nmje_refs": 0,
+      "m5_refs": 0
+    },
+    "IsApprovedSLTPSourceComponent": {
+      "same": true,
+      "base_sha256": "75FB44D5EF0EB6F477B27A4E4B8EF1124364DDA6F9BBD7D7CB35958F92052EB9",
+      "current_sha256": "75FB44D5EF0EB6F477B27A4E4B8EF1124364DDA6F9BBD7D7CB35958F92052EB9",
+      "nmje_refs": 0,
+      "m5_refs": 0
+    },
+    "SendOrderWithRetry": {
+      "same": true,
+      "base_sha256": "9C10592790D30497C7C9A3AAD3A996FD8B8C0DBD4898A563E6AF3CD2626A87AB",
+      "current_sha256": "9C10592790D30497C7C9A3AAD3A996FD8B8C0DBD4898A563E6AF3CD2626A87AB",
+      "nmje_refs": 0,
+      "m5_refs": 0
+    },
+    "RunEntryPreflightAndExecute": {
+      "same": true,
+      "base_sha256": "44B4EC3182F080B3599234FE1B296EEE4C797B8B34E94850627C4B042FE6786A",
+      "current_sha256": "44B4EC3182F080B3599234FE1B296EEE4C797B8B34E94850627C4B042FE6786A",
+      "nmje_refs": 0,
+      "m5_refs": 0
+    }
+  }
+}

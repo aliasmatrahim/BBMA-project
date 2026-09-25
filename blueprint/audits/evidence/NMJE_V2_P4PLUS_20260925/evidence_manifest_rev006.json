@@ -1,0 +1,64 @@
+{
+  "schema": "NMJE_V2_P4PLUS_EVIDENCE_MANIFEST_V1",
+  "build": "5.13",
+  "build_tag": "V513_NMJE_P4PLUS_SHADOW_20260925",
+  "source_rev": "NMJE_P4PLUS_SHADOW_006_20260925",
+  "owner_base": "d1-owner-dev@facb1d6c2adea4d8ec6eacfbf3b9e83e0a27cd95",
+  "strategy_core_delta": "NONE",
+  "authority": "SHADOW_RESEARCH_ONLY",
+  "artifacts": {
+    "source_mq4": {
+      "path": "blueprint/source/BBMA_EA.mq4",
+      "sha256": "2D433B92452A4A062822594A6B3842F1FABB32EF5FDBA4F766AA4125999AA417"
+    },
+    "production_ex4": {
+      "external_path": "D:\\BBMA\\MT4_NMJE_141_Demo\\MQL4\\Experts\\BBMA_EA_NMJE_V2_513.ex4",
+      "sha256": "2D33DB5F1D1F51D5DB35E699D15F94D5560979BC5446BB8FD9288A4C70A5731E"
+    },
+    "harness_ex4": {
+      "external_path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\MQL4\\Experts\\BBMA_EA_NMJE_V2_513_HARNESS.ex4",
+      "sha256": "9B8DABAF0E9B00F23DDE8A59A564BDFB2842B94D4C5789ECEC13B8ECD3481BFB"
+    },
+    "native_compile": {
+      "path": "native_compile_rev006.log",
+      "sha256": "07092A14D533F9BA4A3922CF0450601CA3FD9AF8EEC32F0B777DD008F7F7174E"
+    },
+    "harness_compile": {
+      "path": "harness_compile_rev006.log",
+      "sha256": "F96087C226803D10CB82A688A95D49586CD43BA931D71DE437D28B11D6D87F57"
+    },
+    "tester_report": {
+      "external_path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\NMJE_V2_P4PLUS_20260925\\SMOKE_REV006_202608.html",
+      "sha256": "56EF79B100673CCB1107946AA8DD369DBBF99A9520D0113B620FD70119C204F6"
+    },
+    "tester_log": {
+      "external_path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\tester\\logs\\20260925.log",
+      "sha256": "E8F23019667A0F62AF039775546B8D09B9077A52AF4B7BCD3719F270D4271E97",
+      "bound_segment_lines": [
+        169125,
+        192229
+      ]
+    },
+    "runtime_key_rows": {
+      "path": "runtime_rev006_key_rows.log",
+      "sha256": "F6C142A53FFB00B8688842B2E776BA0C80602FD95BA6364953C7B77D4BB455C7"
+    },
+    "targeted_regression_result": {
+      "path": "targeted_regression_result.json",
+      "sha256": "EEB391A7C66DB0EB1D0D0FA7DD2494AEC10DC3CC1AC965BFAD17699225EFF704"
+    },
+    "runtime_analysis": {
+      "path": "final_runtime_analysis_rev006.json",
+      "sha256": "04AF0DC21EC0BF7F1C7530FA17E47E67DAE131A910498904EA58124B751D6793"
+    },
+    "execution_trace_baseline_512": {
+      "path": "execution_trace_512.txt",
+      "sha256": "6480AE78EF92A543CD05DE5125F8A8D45CAC5FF124B180AFBB899E3DED7FF916"
+    },
+    "execution_trace_rev006": {
+      "path": "execution_trace_513_rev006.txt",
+      "sha256": "6480AE78EF92A543CD05DE5125F8A8D45CAC5FF124B180AFBB899E3DED7FF916"
+    }
+  },
+  "runtime_pass": true
+}

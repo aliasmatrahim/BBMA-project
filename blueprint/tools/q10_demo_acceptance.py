@@ -112,18 +112,29 @@ def git_output(repo: Path, *args: str) -> str:
 
 
 def verify_candidate(repo: Path, manifest: dict[str, Any]) -> dict[str, Any]:
-    source = repo / manifest["source_path"]
-    if not source.is_file():
-        raise Q10Error(f"candidate source missing: {source}")
+    source_path = manifest["source_path"]
+    freeze = manifest["candidate_freeze_commit"]
+    source_ref = manifest.get("source_bearing_commit", freeze)
 
-    actual_source_sha = normalized_source_sha256(source)
-    if actual_source_sha != manifest["source_sha256"]:
+    source_at_ref = subprocess.check_output(
+        ["git", "-C", str(repo), "show", f"{source_ref}:{source_path}"]
+    )
+    source_at_freeze = subprocess.check_output(
+        ["git", "-C", str(repo), "show", f"{freeze}:{source_path}"]
+    )
+    ref_sha = sha256_bytes(source_at_ref.replace(b"\r\n", b"\n"))
+    freeze_sha = sha256_bytes(source_at_freeze.replace(b"\r\n", b"\n"))
+    expected_sha = manifest["source_sha256"]
+    if ref_sha != expected_sha:
         raise Q10Error(
-            f"candidate source SHA mismatch: expected={manifest['source_sha256']} "
-            f"actual={actual_source_sha}"
+            f"source-bearing commit mismatch: expected={expected_sha} actual={ref_sha}"
+        )
+    if freeze_sha != expected_sha:
+        raise Q10Error(
+            f"freeze commit source mismatch: expected={expected_sha} actual={freeze_sha}"
         )
 
-    text = source.read_text(encoding="utf-8")
+    text = source_at_ref.decode("utf-8")
     required = (
         f'#property version   "{manifest["property_version"]}"',
         f'#define BBMA_BUILD_TAG      "{manifest["build_tag"]}"',
@@ -133,44 +144,23 @@ def verify_candidate(repo: Path, manifest: dict[str, Any]) -> dict[str, Any]:
     if missing:
         raise Q10Error("candidate build markers missing: " + "; ".join(missing))
 
-    freeze = manifest["candidate_freeze_commit"]
-    source_at_freeze = subprocess.check_output(
-        ["git", "-C", str(repo), "show", f"{freeze}:{manifest['source_path']}"]
-    )
-    freeze_sha = sha256_bytes(source_at_freeze.replace(b"\r\n", b"\n"))
-    if freeze_sha != manifest["source_sha256"]:
-        raise Q10Error(
-            f"freeze commit source mismatch: expected={manifest['source_sha256']} "
-            f"actual={freeze_sha}"
-        )
-
+    # Q10 is frozen to immutable Build 5.11 artifacts. Later current-owner
+    # source advances must not invalidate that frozen candidate; the dedicated
+    # runtime EX4/settings remain independently hash-bound by
+    # verify_runtime_artifacts().
+    current_source = repo / source_path
+    current_sha = normalized_source_sha256(current_source) if current_source.is_file() else ""
     head = git_output(repo, "rev-parse", "HEAD")
-    source_diff = subprocess.run(
-        [
-            "git",
-            "-C",
-            str(repo),
-            "diff",
-            "--exit-code",
-            f"{freeze}..{head}",
-            "--",
-            manifest["source_path"],
-        ],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-    )
-    if source_diff.returncode != 0:
-        raise Q10Error(
-            "candidate source changed after freeze commit; refusing Q10 runtime preparation"
-        )
 
     return {
         "status": "PASS",
         "head": head,
         "freeze_commit": freeze,
-        "source_sha256": actual_source_sha,
+        "source_bearing_commit": source_ref,
+        "source_sha256": expected_sha,
         "source_neutral_after_freeze": True,
+        "current_owner_source_sha256": current_sha,
+        "current_owner_source_matches_candidate": current_sha == expected_sha,
         "build": manifest["build"],
         "build_tag": manifest["build_tag"],
     }

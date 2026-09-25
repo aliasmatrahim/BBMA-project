@@ -1,8 +1,8 @@
 # BBMA Current Project State
 
-Updated: **2026-09-23**
+Updated: **2026-09-25**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`e54bc1f8bacc9882c225aa5ac4b034380161e775`**
+Owner head at reconciliation: **`facb1d6c2adea4d8ec6eacfbf3b9e83e0a27cd95`**
 
 This file is the active current-state record. The pre-2026-09-09 historical `CURRENT.md` is preserved byte-for-byte at `blueprint/archive/CURRENT_pre_20260909.md`.
 
@@ -10,7 +10,7 @@ This file is the active current-state record. The pre-2026-09-09 historical `CUR
 - GitHub `aliasmatrahim/BBMA-project` is authoritative for live project state.
 - Strategy/source semantics are routed through `docs/references/SOURCE_INDEX.md` and the accepted Core/source evidence chain.
 - Canonical active EA path: `blueprint/source/BBMA_EA.mq4`.
-- Canonical owner source: Build `5.11` / `V511_EVENT_DRIVEN_OBSERVER_20260922`; canonical normalized MQ4 SHA-256 `50E4A01A5768B5B5E9A80CABAE21B7260A2912AA058E67E5273386177970D038`.
+- Canonical owner candidate in this update: Build `5.13` / `V513_NMJE_P4PLUS_SHADOW_20260925`, source rev `NMJE_P4PLUS_SHADOW_006_20260925`; raw MQ4 SHA-256 `2D433B92452A4A062822594A6B3842F1FABB32EF5FDBA4F766AA4125999AA417`. Q10 remains separately bound to its frozen exact Build 5.11 final-acceptance candidate.
 - Q7/Q8 Build 4.86 artifacts remain historical verified integration/regression evidence. Q10 is bound to the later exact Build 5.11 final integration candidate; this is still not a production-readiness claim.
 
 ## Current active workstreams / integrated state
@@ -19,14 +19,14 @@ This file is the active current-state record. The pre-2026-09-09 historical `CUR
 Status: **IMPLEMENTATION MERGED / VERIFIED IN OWNER BUILD 4.83+**.
 - PR #142 merged as `193735e2079936003e87bfd0db39ba6585757aa3`.
 - NMJE remains observation-only: no create/reject/rank/execute authority under the active policy.
-- Current Build 5.11 preserves the verified Q1 repair and attributable runtime proof.
+- Build 5.13 preserves the verified Q1 read-only repair; Q10's attributable runtime proof remains bound to its separate frozen Build 5.11 candidate.
 - Issue-level tracking may remain open, but this implementation prerequisite no longer blocks Q7.
 
 ### 2. F7/C044 infrastructure hardening — Issues #127/#132/#133/#138 / PR #140
 Status: **IMPLEMENTATION MERGED / VERIFIED IN OWNER BUILD 4.82+**.
 - PR #140 merged as `30ac09675734da7bf4a23dae6b12faec8138f506`.
 - Deterministic build identity, exact-ticket frozen open-time telemetry source path and generation-atomic C044 persistence are integrated.
-- Deterministic C044 model, static/cross-module guards and native compile passed; current Build 5.11 preserves this lineage.
+- Deterministic C044 model, static/cross-module guards and native compile passed; Build 5.13 preserves this lineage.
 - Residual issue-level live exact-ticket/runtime observations remain separate and do not require recreating Q2 for Q7.
 
 ### 3. C10 Build 4.81 runtime closure — Issues #122/#123 / Draft PR #131
@@ -93,7 +93,7 @@ Status: **VERIFIED / COMPLETE — ENGINEERING HISTORICAL EVIDENCE ONLY**.
 - This remains engineering historical evidence and is not a profitability or production-readiness claim. The former Issue #128 native final-authority programme was later stopped by user decision and closed not planned on 2026-09-20.
 
 ## Current infrastructure blocker
-Authorized G40 Remote Desktop Commander is reachable. Q3 isolated Build 4.81 runtime remains separate/environment-blocked on primary PID 13064. Q10 Phase-L now uses the merged `Q10_20PAIR_R2_20260923` MetaQuotes-Demo profile on one dedicated terminal: 20 broker-supported fixed-ID pairs are monitored, `MaxActivePair=1`, and all other approved risk/MM/execution settings remain unchanged. Do not conflate or restart the Q3 terminal. Q9 P11 remains a verified scoped Draft research branch with no production activation. Q6 native acquisition was stopped by explicit user decision on 2026-09-20 and must not auto-resume.
+Authorized G40 Remote Desktop Commander is reachable. Q3 isolated Build 4.81 runtime remains separate/environment-blocked on primary PID 13064. Q10 Phase-L now uses the merged `Q10_20PAIR_R2_20260923` MetaQuotes-Demo profile on one dedicated terminal: 20 broker-supported fixed-ID pairs are monitored, `MaxActivePair=1`, and all other approved risk/MM/execution settings remain unchanged. Do not conflate or restart the Q3 terminal. Q9 Build 5.13 current-owner rematerialization is shadow/research-only and has no create/reject/rank/risk/execute authority. Q6 native acquisition was stopped by explicit user decision on 2026-09-20 and must not auto-resume.
 
 ## Recently closed tracking/governance work
 - stale v4.58 CI PR-gate bug #136 closed; workflow-only fix merged.
@@ -103,8 +103,8 @@ Authorized G40 Remote Desktop Commander is reachable. Q3 isolated Build 4.81 run
 - Issue #109 is active on exact Build 5.11 under hybrid tester-first / MetaQuotes-Demo-last acceptance. The older R3-only status is superseded by the 2026-09-24 exact-R2 runtime checkpoint. Formal local Phase-L state is now **R3 PASS / R4 PASS / R5 INCOMPLETE / R6 NOT PROMOTED**. R5 mandatory live/reconfirm PASS cases are `R5-00/R5-01/R5-11/R5-12/R5-13/R5-20`; the only mandatory blockers are **R5-14** (natural server blank/replaced broker comment) and **R5-16** (natural safe retryable OrderSend error 135/138/146), with no mandatory R5 FAIL. USDCHF ticket `1629172566` / hash `CA000D516825BB44` survived a guarded graceful restart as the same persisted identity with `Monitored=1`; no duplicate ticket was observed. Exact candidate/source/EX4/settings identity is unchanged. Evidence: `blueprint/audits/Q10_PHASE_L_R5_LIVE_STATE_20260924.md`.
 
 ### 8. Q9 NMJE v2 / M5 accuracy hardening — Issue #101
-Status: **BUILD 5.12 P2/P3 SHADOW REMATERIALIZATION VALIDATED / P2 ORDERING HOLD / M5 EXECUTION AUTHORITY NONE**.
-- Q9 P1-P11 Draft/scoped research lineage #192-#205 remains non-activated against canonical owner Build 5.11; NMJE remains observation-only and M5 remains closed-candle context/shadow only. Subsequent Issue #101 downstream production-owner audits/fixes through Build 5.11 were completed separately and must not be requeued.
+Status: **BUILD 5.13 P4+ CURRENT-OWNER SHADOW REMATERIALIZATION VALIDATED / P5 TRUE-CONFLICT HOLD / P9 NO FIX / P2 ORDERING HOLD / M5 EXECUTION AUTHORITY NONE**.
+- Historical Q9 Draft/scoped lineage #192-#205 remains provenance only and was not transplanted. Fresh current-owner P2/P3 and P4+ rematerialization is integrated only as observation/research metadata; NMJE remains non-authoritative and M5 remains closed-candle shadow only. Subsequent Issue #101 downstream production-owner audits/fixes through Build 5.11 remain completed separately and must not be requeued.
 - User decision A locks strict canonical JourneyID semantics for P11.
 - Accepted P11 head: PR #205 commit `0f80addc9080e726b8e6bb26a34094ae41ac3256`, Build `4.96` / `V496_Q9_P11_STRICT_JOURNEY_LINEAGE_20260920`, MQ4 SHA-256 `B08CBDEFED1B1A6B6F0B9CADC3CA53B25BD3F98334E7E797A51D765F53E0C148`.
 - ParentEventID/JourneyID transition is NEW_JOURNEY; unchanged canonical root is FIRST; CONTINUATION is not inferred without a distinct source-owned continuation-event identity.
@@ -113,7 +113,8 @@ Status: **BUILD 5.12 P2/P3 SHADOW REMATERIALIZATION VALIDATED / P2 ORDERING HOLD
 - Canonical/runtime/tester native MetaEditor compile = 0 errors / 0 warnings.
 - PR #205 remains Draft provenance only: **DO NOT DIRECT-MERGE / NO PRODUCTION ACTIVATION / NO P2 ACTIVATION / NO M5 EXECUTION AUTHORITY**.
 - 2026-09-25 V1↔V2 current-owner reconciliation against Build 5.11: P1 identity substrate is already integrated/equivalent; P2-P8/P10/P11 remain bounded research/shadow concepts. PR #205 is 164 commits behind live owner and must be rematerialized from current owner if research resumes. Current-owner code fix = `NONE`. Audit: `blueprint/audits/NMJE_V1_V2_CURRENT_OWNER_IMPLEMENTATION_RECONCILIATION_20260925.md`.
-- Fresh current-owner P2/P3 rematerialization is validated as Build `5.12` / `V512_NMJE_P2P3_SHADOW_20260925`, source rev `NMJE_P2P3_SHADOW_003_20260925`, source SHA-256 `D80FA8D1A11A1FBAFFEC1F2E3FFF029DBAAB96BB58D89C29EDEBC25830379D1E`, EX4 SHA-256 `DECCE17D2BAC0694A9A25C4C66C7828DE520D7EFBA4A977FF6703C5B4EECD252`. Native compile 0E/0W, targeted regression PASS and isolated GBPUSD M15 Strategy Tester runtime/order coverage PASS. P2 remains telemetry-only; P3 remains latest-closed-M5 shadow context only. Audit: `blueprint/audits/NMJE_V2_P2_P3_CURRENT_OWNER_REMATERIALIZATION_20260925.md`.
+- Fresh current-owner P2/P3 rematerialization is validated as Build `5.12` / `V512_NMJE_P2P3_SHADOW_20260925`; P2 remains telemetry-only and P3 remains latest-closed-M5 shadow context only. Audit: `blueprint/audits/NMJE_V2_P2_P3_CURRENT_OWNER_REMATERIALIZATION_20260925.md`.
+- Fresh current-owner P4+ rematerialization is validated as Build `5.13` / `V513_NMJE_P4PLUS_SHADOW_20260925`, source rev `NMJE_P4PLUS_SHADOW_006_20260925`, MQ4 SHA-256 `2D433B92452A4A062822594A6B3842F1FABB32EF5FDBA4F766AA4125999AA417`, EX4 SHA-256 `2D33DB5F1D1F51D5DB35E699D15F94D5560979BC5446BB8FD9288A4C70A5731E`. P4/P6/P7/P8/P10/P11 are shadow-only; P5 true-conflict remains HOLD because P3 has no M5 signal semantics; P9 is NO FIX. Native/harness compile 0E/0W, targeted regression PASS, and final rev006 GBPUSD M15 runtime gives 14/14 durable attribution reload+match with execution trace exact to Build 5.12. Audit: `blueprint/audits/NMJE_V2_P4PLUS_CURRENT_OWNER_REMATERIALIZATION_20260925.md`.
 - Legacy N2/N3 v4.58 workflows are historical manual-dispatch checks pinned to immutable v4.58 revisions; they no longer gate/misroute current-owner EA PRs.
 - Issue #101 downstream production-owner sequence is completed through final integration; do not requeue D1TPW/C044/D1O/M17/TradeLock-risk/N1-N2-N3/M25/Observer/cross-module work without new evidence.
 

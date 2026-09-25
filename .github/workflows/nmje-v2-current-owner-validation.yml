@@ -62,7 +62,10 @@ jobs:
               'EnableNMJEForwardEvidence',
               'M5SemanticOwnerState',
               'UpdateCanonicalM5SemanticOwners',
-              'M5_CONFIRMED_RE_OPPOSES_PARENT_TRUE_CONFLICT_HOLD',
+              'M5_CONFIRMED_RE_OPPOSES_PARENT_UNRESOLVED_NO_HARD_CONFLICT',
+              'EnableNMJESelectionPolicy',
+              'NMJE_CompareActiveSelectionCandidates',
+              'N3-NMJE-SELECT',
               'The canonical comparator remains untouched.',
           ]
           for marker in required:
@@ -86,6 +89,15 @@ jobs:
 
           if source.count('OrderSend(') != 1:
               raise SystemExit('M22 sole OrderSend ownership changed')
+
+          if not re.search(r'input bool\s+EnableNMJESelectionPolicy\s*=\s*false\s*;', source):
+              raise SystemExit('N3 active selection policy must default OFF')
+          if 'sameDirectionEligible >= 2' not in source:
+              raise SystemExit('N3 policy must require multiple already-eligible candidates')
+          if 'NMJE_IsPositiveSelectionContext(pairState, targetDirection)' not in source:
+              raise SystemExit('N3 policy positive-coherence guard missing')
+          if 'M5_CONFIRMED_RE_OPPOSES_PARENT_UNRESOLVED_NO_HARD_CONFLICT' not in source:
+              raise SystemExit('P5 M5 no-hard-conflict closure missing')
 
           p7 = source.find('NMJE_PrintStructuralDensityShadow(pairIndex')
           priority = source.find('PriorityEngine_Atomic(allCandidates')
@@ -168,6 +180,16 @@ jobs:
           p3_call = source.find('NMJE_P3_UpdateClosedM5Shadow(pairIndex)', m5_owner_call)
           if m5_owner_call < 0 or nested_call < m5_owner_call or p3_call < nested_call:
               raise SystemExit('M5 owner -> nested journey -> P3 consumption ordering invalid')
+
+          active_compare = function_body('NMJE_CompareActiveSelectionCandidates')
+          positive_context = function_body('NMJE_IsPositiveSelectionContext')
+          active_surface = active_compare + '\n' + positive_context
+          for forbidden_active_call in ('OrderSend(', 'OrderClose(', 'CheckRiskBeforeTrade(',
+                                        'CalculateLotSize(', 'FinalPortfolioGuard(', 'ProcessEntry('):
+              if forbidden_active_call in active_surface:
+                  raise SystemExit(f'N3 selection helper gained forbidden authority: {forbidden_active_call}')
+          if 'NESTED_CONFLICT' in positive_context:
+              raise SystemExit('N3 positive selection context must not promote hard conflict')
 
           register = function_body('NMJE_P2_RegisterCounterfactualOpen')
           outcome = function_body('NMJE_P2_PrintCounterfactualOutcomes')

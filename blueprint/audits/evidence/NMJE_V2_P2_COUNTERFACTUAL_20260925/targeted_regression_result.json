@@ -1,0 +1,155 @@
+{
+  "schema": "NMJE_V2_P2_COUNTERFACTUAL_TARGETED_REGRESSION_V1",
+  "source_sha256": "6C375BC36C5971097DE69B12586B1DD50F1445BE5E10D293A4D87CDCFC62C4EC",
+  "base_ref": "origin/d1-owner-dev@0034f31",
+  "checks": {
+    "version_514": {
+      "pass": true,
+      "detail": ""
+    },
+    "build_tag": {
+      "pass": true,
+      "detail": ""
+    },
+    "source_rev": {
+      "pass": true,
+      "detail": ""
+    },
+    "runtime_identity": {
+      "pass": true,
+      "detail": ""
+    },
+    "protected_authority_exact": {
+      "pass": true,
+      "detail": "{\"CheckRiskBeforeTrade\": {\"base_sha256\": \"54DD705CB0744B75477C2E625425527B52CB9D5275D0750867033E933CD54132\", \"current_sha256\": \"54DD705CB0744B75477C2E625425527B52CB9D5275D0750867033E933CD54132\", \"same\": true}, \"CompareCanonicalCandidates\": {\"base_sha256\": \"A237E78B88912658436619C86BBA4453F15504295EA7F36F0E579CB848627458\", \"current_sha256\": \"A237E78B88912658436619C86BBA4453F15504295EA7F36F0E579CB848627458\", \"same\": true}, \"InvalidationEngine_Atomic\": {\"base_sha256\": \"2B5438688347C9C646DBD5C19190D30A1BA60C9F1D5D6F73AD88CD6D0A235564\", \"current_sha256\": \"2B5438688347C9C646DBD5C19190D30A1BA60C9F1D5D6F73AD88CD6D0A235564\", \"same\": true}, \"IsApprovedSLTPSourceComponent\": {\"base_sha256\": \"75FB44D5EF0EB6F477B27A4E4B8EF1124364DDA6F9BBD7D7CB35958F92052EB9\", \"current_sha256\": \"75FB44D5EF0EB6F477B27A4E4B8EF1124364DDA6F9BBD7D7CB35958F92052EB9\", \"same\": true}, \"IsSignalAllowed\": {\"base_sha256\": \"5C5C2237E5F6382DD5A5AB2C68E660DD18FB12DDE3412B05F2C0B1DE50B32DAD\", \"current_sha256\": \"5C5C2237E5F6382DD5A5AB2C68E660DD18FB12DDE3412B05F2C0B1DE50B32DAD\", \"same\": true}, \"PriorityEngine_Atomic\": {\"base_sha256\": \"FC161428A5F79FFB1E3BFFBB8868F014BDB4854A7B1B159A28353D2DA7C2C4B7\", \"current_sha256\": \"FC161428A5F79FFB1E3BFFBB8868F014BDB4854A7B1B159A28353D2DA7C2C4B7\", \"same\": true}, \"ResolveExecutionReferencePrice\": {\"base_sha256\": \"02ACCF135AA89E092DC67E0160B457305E4BE05F8327D4A75967BFBB4E4CDCA0\", \"current_sha256\": \"02ACCF135AA89E092DC67E0160B457305E4BE05F8327D4A75967BFBB4E4CDCA0\", \"same\": true}, \"ResolveSelectedSLTPSourceComponent\": {\"base_sha256\": \"C1CEAD173C4DB5DE15A3FB5C7E2E519061E0F989A30687D7F4DEABC254352296\", \"current_sha256\": \"C1CEAD173C4DB5DE15A3FB5C7E2E519061E0F989A30687D7F4DEABC254352296\", \"same\": true}, \"RunEntryPreflightAndExecute\": {\"base_sha256\": \"44B4EC3182F080B3599234FE1B296EEE4C797B8B34E94850627C4B042FE6786A\", \"current_sha256\": \"44B4EC3182F080B3599234FE1B296EEE4C797B8B34E94850627C4B042FE6786A\", \"same\": true}, \"SendOrderWithRetry\": {\"base_sha256\": \"9C10592790D30497C7C9A3AAD3A996FD8B8C0DBD4898A563E6AF3CD2626A87AB\", \"current_sha256\": \"9C10592790D30497C7C9A3AAD3A996FD8B8C0DBD4898A563E6AF3CD2626A87AB\", \"same\": true}}"
+    },
+    "broker_primitive_counts": {
+      "pass": true,
+      "detail": "base=1/3 current=1/3"
+    },
+    "cf_helpers_present": {
+      "pass": true,
+      "detail": ""
+    },
+    "cf_no_order_send_close": {
+      "pass": true,
+      "detail": ""
+    },
+    "cf_no_risk_approval": {
+      "pass": true,
+      "detail": ""
+    },
+    "cf_register_tester_only": {
+      "pass": true,
+      "detail": ""
+    },
+    "cf_outcome_tester_only": {
+      "pass": true,
+      "detail": ""
+    },
+    "p2_live_authority_unchanged": {
+      "pass": true,
+      "detail": ""
+    },
+    "p2_pending_guarded": {
+      "pass": true,
+      "detail": ""
+    },
+    "cf_baseline_fill_proxy": {
+      "pass": true,
+      "detail": ""
+    },
+    "cf_paired_window_closed_m1": {
+      "pass": true,
+      "detail": ""
+    },
+    "cf_targetless_no_invented_tp": {
+      "pass": true,
+      "detail": ""
+    },
+    "cf_same_bar_ambiguous": {
+      "pass": true,
+      "detail": ""
+    },
+    "cf_sell_spread_proxy": {
+      "pass": true,
+      "detail": ""
+    },
+    "cf_no_m5_semantic_inference": {
+      "pass": true,
+      "detail": ""
+    },
+    "cf_logs_authority_none": {
+      "pass": true,
+      "detail": ""
+    },
+    "cf_selected_first_two_pass": {
+      "pass": true,
+      "detail": ""
+    },
+    "cf_execution_equivalent_dedup": {
+      "pass": true,
+      "detail": ""
+    },
+    "cf_preselection_pool_not_claimed_unique": {
+      "pass": true,
+      "detail": ""
+    },
+    "cf_open_emitted_only_for_active_set": {
+      "pass": true,
+      "detail": ""
+    }
+  },
+  "protected": {
+    "CompareCanonicalCandidates": {
+      "same": true,
+      "base_sha256": "A237E78B88912658436619C86BBA4453F15504295EA7F36F0E579CB848627458",
+      "current_sha256": "A237E78B88912658436619C86BBA4453F15504295EA7F36F0E579CB848627458"
+    },
+    "PriorityEngine_Atomic": {
+      "same": true,
+      "base_sha256": "FC161428A5F79FFB1E3BFFBB8868F014BDB4854A7B1B159A28353D2DA7C2C4B7",
+      "current_sha256": "FC161428A5F79FFB1E3BFFBB8868F014BDB4854A7B1B159A28353D2DA7C2C4B7"
+    },
+    "InvalidationEngine_Atomic": {
+      "same": true,
+      "base_sha256": "2B5438688347C9C646DBD5C19190D30A1BA60C9F1D5D6F73AD88CD6D0A235564",
+      "current_sha256": "2B5438688347C9C646DBD5C19190D30A1BA60C9F1D5D6F73AD88CD6D0A235564"
+    },
+    "CheckRiskBeforeTrade": {
+      "same": true,
+      "base_sha256": "54DD705CB0744B75477C2E625425527B52CB9D5275D0750867033E933CD54132",
+      "current_sha256": "54DD705CB0744B75477C2E625425527B52CB9D5275D0750867033E933CD54132"
+    },
+    "IsSignalAllowed": {
+      "same": true,
+      "base_sha256": "5C5C2237E5F6382DD5A5AB2C68E660DD18FB12DDE3412B05F2C0B1DE50B32DAD",
+      "current_sha256": "5C5C2237E5F6382DD5A5AB2C68E660DD18FB12DDE3412B05F2C0B1DE50B32DAD"
+    },
+    "ResolveExecutionReferencePrice": {
+      "same": true,
+      "base_sha256": "02ACCF135AA89E092DC67E0160B457305E4BE05F8327D4A75967BFBB4E4CDCA0",
+      "current_sha256": "02ACCF135AA89E092DC67E0160B457305E4BE05F8327D4A75967BFBB4E4CDCA0"
+    },
+    "ResolveSelectedSLTPSourceComponent": {
+      "same": true,
+      "base_sha256": "C1CEAD173C4DB5DE15A3FB5C7E2E519061E0F989A30687D7F4DEABC254352296",
+      "current_sha256": "C1CEAD173C4DB5DE15A3FB5C7E2E519061E0F989A30687D7F4DEABC254352296"
+    },
+    "IsApprovedSLTPSourceComponent": {
+      "same": true,
+      "base_sha256": "75FB44D5EF0EB6F477B27A4E4B8EF1124364DDA6F9BBD7D7CB35958F92052EB9",
+      "current_sha256": "75FB44D5EF0EB6F477B27A4E4B8EF1124364DDA6F9BBD7D7CB35958F92052EB9"
+    },
+    "SendOrderWithRetry": {
+      "same": true,
+      "base_sha256": "9C10592790D30497C7C9A3AAD3A996FD8B8C0DBD4898A563E6AF3CD2626A87AB",
+      "current_sha256": "9C10592790D30497C7C9A3AAD3A996FD8B8C0DBD4898A563E6AF3CD2626A87AB"
+    },
+    "RunEntryPreflightAndExecute": {
+      "same": true,
+      "base_sha256": "44B4EC3182F080B3599234FE1B296EEE4C797B8B34E94850627C4B042FE6786A",
+      "current_sha256": "44B4EC3182F080B3599234FE1B296EEE4C797B8B34E94850627C4B042FE6786A"
+    }
+  }
+}

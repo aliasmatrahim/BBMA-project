@@ -1,0 +1,112 @@
+{
+  "schema": "NMJE_V2_P2_COUNTERFACTUAL_RUNTIME_V2",
+  "source_rev": "NMJE_P2_COUNTERFACTUAL_SHADOW_004_20260925",
+  "segment_start_line": 262703,
+  "segment_end_line": 286240,
+  "segment_lines": 23538,
+  "build_identity_count": 1,
+  "raw_cf_set_rows": 200,
+  "raw_pending_distribution": {
+    "3->3": 62,
+    "2->2": 134,
+    "5->5": 2,
+    "4->4": 2
+  },
+  "executed_cf_sets": 3,
+  "cf_open_rows": 9,
+  "cf_out_rows": 9,
+  "selected_rows": 3,
+  "alternative_rows": 6,
+  "selected_base_match_y": 3,
+  "selected_base_match_n": 0,
+  "nonselected_base_match_dash": 6,
+  "m5_semantic_y_rows": 0,
+  "signals": {
+    "SIGNAL_RE_ENTRY": 3,
+    "SIGNAL_EXTREME": 2,
+    "SIGNAL_REM": 2,
+    "SIGNAL_RRE": 2
+  },
+  "outcomes_all": {
+    "UNCOMPARABLE_TARGETLESS": 6,
+    "UNCOMPARABLE_SLTP_UNRESOLVED": 1,
+    "TP_FIRST": 1,
+    "UNRESOLVED_AT_BASELINE_CLOSE": 1
+  },
+  "outcomes_selected": {
+    "UNCOMPARABLE_TARGETLESS": 2,
+    "TP_FIRST": 1
+  },
+  "outcomes_alternative": {
+    "UNCOMPARABLE_SLTP_UNRESOLVED": 1,
+    "UNCOMPARABLE_TARGETLESS": 4,
+    "UNRESOLVED_AT_BASELINE_CLOSE": 1
+  },
+  "comparable_alternative_rows": 1,
+  "duplicate_execution_equivalent_sets": 0,
+  "duplicate_details": [],
+  "selected_count_errors": [],
+  "open_out_pairing_errors": [],
+  "cid_pairing_errors": [],
+  "exec_count": 14,
+  "baseline_exec_count": 14,
+  "execution_trace_exact_513": true,
+  "report_514": {
+    "sha256": "9073B291988FF12C3E8B41F4C32F7BD80E304180EEDA2C353BDE983B55AE8470",
+    "size": 14188,
+    "fields": {
+      "Total trades": "14",
+      "Net profit": "-0.00",
+      "Gross profit": "6.72",
+      "Gross loss": "-6.72",
+      "Profit factor": "1.00",
+      "Expected payoff": "-0.00",
+      "Maximal drawdown": "7.35 (0.07%)",
+      "Relative drawdown": "0.07% (7.35)"
+    }
+  },
+  "report_513": {
+    "sha256": "56EF79B100673CCB1107946AA8DD369DBBF99A9520D0113B620FD70119C204F6",
+    "size": 14184,
+    "fields": {
+      "Total trades": "14",
+      "Net profit": "-0.00",
+      "Gross profit": "6.72",
+      "Gross loss": "-6.72",
+      "Profit factor": "1.00",
+      "Expected payoff": "-0.00",
+      "Maximal drawdown": "7.35 (0.07%)",
+      "Relative drawdown": "0.07% (7.35)"
+    }
+  },
+  "report_fields_equal_513": true,
+  "fatal_counts": {
+    "zero divide": 0,
+    "array out of range": 0,
+    "stack overflow": 0,
+    "access violation": 0,
+    "critical runtime error": 0,
+    "initialization failed": 0,
+    "init_failed": 0
+  },
+  "cf_skip_count": 0,
+  "checks": {
+    "build_exact_once": true,
+    "counterfactual_sets_exercised": true,
+    "alternatives_exercised": true,
+    "comparable_alternative_exercised": true,
+    "open_out_rows_equal": true,
+    "one_selected_per_set": true,
+    "all_selected_geometry_match": true,
+    "nonselected_basematch_na": true,
+    "dedup_execution_equivalent": true,
+    "candidate_id_pairing": true,
+    "set_row_pairing": true,
+    "no_cf_capacity_skip": true,
+    "no_m5_semantic_inference": true,
+    "no_fatal_runtime": true,
+    "execution_trace_exact_513": true,
+    "report_fields_equal_513": true
+  },
+  "pass": true
+}

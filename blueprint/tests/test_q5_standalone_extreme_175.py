@@ -6,9 +6,12 @@ TEXT = SRC.read_text(encoding="utf-8")
 
 
 def body(name: str) -> str:
-    marker = f"{name}("
-    start = TEXT.index(marker)
-    brace = TEXT.index("{", start)
+    match = re.search(
+        rf"(?m)^[^;\n]*\b{re.escape(name)}\s*\([^;]*?\)\s*\{{",
+        TEXT,
+    )
+    assert match, f"function definition not found: {name}"
+    brace = TEXT.index("{", match.start())
     depth = 0
     for i in range(brace, len(TEXT)):
         if TEXT[i] == "{":

@@ -1,0 +1,68 @@
+{
+  "schema": "NMJE_V2_P2_COUNTERFACTUAL_EVIDENCE_MANIFEST_V1",
+  "build": "5.14",
+  "build_tag": "V514_NMJE_P2_COUNTERFACTUAL_SHADOW_20260925",
+  "source_rev": "NMJE_P2_COUNTERFACTUAL_SHADOW_004_20260925",
+  "owner_base": "d1-owner-dev@0034f31aced4e630d0b76ce64009a41078ba7cb3",
+  "strategy_core_delta": "NONE",
+  "authority": "TESTER_ONLY_SHADOW_RESEARCH",
+  "engineering_mappings": [
+    "baseline actual fill price/time is the common counterfactual entry proxy",
+    "candidate-specific semantic SL/TP is resolved through existing approved source logic",
+    "paired outcome window uses complete closed M1 bars from baseline fill to baseline close",
+    "SELL outcome uses frozen preflight spread as Ask-side proxy",
+    "same-M1-bar SL+TP hit is AMBIGUOUS_SAME_M1_BAR",
+    "targetless lifecycle candidates remain UNCOMPARABLE_TARGETLESS; no TP is invented"
+  ],
+  "artifacts": {
+    "source_mq4": {
+      "path": "blueprint/source/BBMA_EA.mq4",
+      "sha256": "6C375BC36C5971097DE69B12586B1DD50F1445BE5E10D293A4D87CDCFC62C4EC"
+    },
+    "production_ex4": {
+      "external_path": "D:\\BBMA\\MT4_NMJE_141_Demo\\MQL4\\Experts\\BBMA_EA_NMJE_V2_514.ex4",
+      "sha256": "DED8AB7B407DFF40E9CCCF5306AC224C970802F40FC36D896958A3CA916673A5"
+    },
+    "harness_ex4": {
+      "external_path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\MQL4\\Experts\\BBMA_EA_NMJE_V2_514_HARNESS.ex4",
+      "sha256": "DC8120885BBCE4CAACE7A266B15567DD642B489746FF72D9994A04D11F1B0ED7"
+    },
+    "native_compile": {
+      "path": "native_compile_rev004.log",
+      "sha256": "F9732589EE29DEF636F38F556CEA081B7D365541FDCA667FFF8EE1B2CF8E17B5"
+    },
+    "harness_compile": {
+      "path": "harness_compile_rev004.log",
+      "sha256": "0484ED6D8965D12F18454FA82846FED7A864AA39A206642C0E57462CEBA78580"
+    },
+    "targeted_regression": {
+      "path": "targeted_regression_result.json",
+      "sha256": "D5527AB33B6016144FC483B89711501A9376B61055511AF06E49D19C41E7CBCE"
+    },
+    "runtime_analysis": {
+      "path": "final_runtime_analysis_rev004.json",
+      "sha256": "33F976DD7582E4B5CC320F7696D5269A12543946F5DA612482BDC958846C6377"
+    },
+    "runtime_key_rows": {
+      "path": "runtime_rev004_key_rows.log",
+      "sha256": "CE62293175C56951FEE09DF47C16B0F5BAFC7B83784D6DD9AF83A87E0B342761"
+    },
+    "execution_trace": {
+      "path": "execution_trace_514_rev004.txt",
+      "sha256": "6480AE78EF92A543CD05DE5125F8A8D45CAC5FF124B180AFBB899E3DED7FF916"
+    },
+    "tester_report": {
+      "external_path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\evidence\\NMJE_V2_P2_COUNTERFACTUAL_20260925\\SMOKE_514_REV004_202608.html",
+      "sha256": "9073B291988FF12C3E8B41F4C32F7BD80E304180EEDA2C353BDE983B55AE8470"
+    },
+    "tester_log": {
+      "external_path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\tester\\logs\\20260925.log",
+      "sha256": "C7E64DEE5732A2C6355ECCC1AF461F9B17BEC60BBDCD7494ADE808AF98E82538",
+      "bound_segment_lines": [
+        262703,
+        286240
+      ]
+    }
+  },
+  "runtime_pass": true
+}

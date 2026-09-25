@@ -57,7 +57,7 @@ jobs:
               'NMJE_P2_IsSameCounterfactualExecutionIdentity',
               'TESTER-ONLY SHADOW RESEARCH',
               'M5_SIGNAL_SEMANTICS_NOT_MATERIALIZED_TRUE_CONFLICT_HOLD',
-              'M15 remains the sole processing/final-decision clock',
+              'The canonical comparator remains untouched.',
           ]
           for marker in required:
               if marker not in source and marker not in audit:

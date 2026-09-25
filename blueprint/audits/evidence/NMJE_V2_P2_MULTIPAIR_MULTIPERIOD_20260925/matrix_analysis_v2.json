@@ -1,0 +1,698 @@
+{
+  "schema": "NMJE_V2_P2_MULTIPAIR_MULTIPERIOD_ANALYSIS_V2",
+  "build": "5.15",
+  "owner_head": "459c0588e625d7f7630f0fb5612b7f04fda496de",
+  "source_sha256": "B9F3876F61645B2F98009A4251A4142EDC7644ED728E41EDECA245FF1E243C45",
+  "scope": "TESTER_ONLY_SHADOW_EVIDENCE_EXPANSION_NO_AUTHORITY_CHANGE",
+  "runs": [
+    {
+      "symbol": "EURUSD",
+      "period": "AUG",
+      "from": "2026.08.01",
+      "to": "2026.09.01",
+      "strategy_id": 84,
+      "instance_id": 74,
+      "terminal_rc": 0,
+      "log": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\tester\\logs\\20260925.log",
+      "segment_start_line": 384714,
+      "segment_end_line": 410654,
+      "clean_deinit": true,
+      "raw_equal_cycles": 259,
+      "cf_base_cycles": 259,
+      "executed_cf_sets": 1,
+      "open_rows": 2,
+      "out_rows": 2,
+      "selected_rows": 1,
+      "alternative_rows": 1,
+      "alternative_targetless_rows": 1,
+      "alternative_targetless_outcomes": {
+        "C044_HOLD_AT_BASELINE_CLOSE": 1
+      },
+      "all_outcomes": {
+        "UNRESOLVED_AT_BASELINE_CLOSE": 1,
+        "C044_HOLD_AT_BASELINE_CLOSE": 1
+      },
+      "duplicate_sets": 0,
+      "selected_count_errors": 0,
+      "pairing_errors": 0,
+      "capacity_skips": 0,
+      "m5_semantic_y": 0,
+      "selected_targetless_parity_observed": 0,
+      "selected_targetless_parity_pass": 0,
+      "selected_static_base_match_errors": 0,
+      "exec_count": 26,
+      "fatal_counts": {
+        "zero divide": 0,
+        "array out of range": 0,
+        "stack overflow": 0,
+        "access violation": 0,
+        "critical runtime error": 0,
+        "initialization failed": 0,
+        "init_failed": 0
+      },
+      "report": {
+        "sha256": "A90265092881EB5929DCE5CA6031171CCD5B505D22D3A40A3FAF0D4461653203",
+        "size": 22414,
+        "fields": {
+          "Total trades": "26",
+          "Net profit": "-1.27",
+          "Gross profit": "6.11",
+          "Gross loss": "-7.38",
+          "Profit factor": "0.83",
+          "Expected payoff": "-0.05",
+          "Maximal drawdown": "4.71 (0.05%)",
+          "Relative drawdown": "0.05% (4.71)"
+        }
+      },
+      "integrity_pass": true,
+      "runtime_integrity_pass": true,
+      "selected_targetless_parity": [],
+      "selected_targetless_comparable": 0,
+      "selected_targetless_comparable_pass": 0,
+      "selected_targetless_uncomparable": 0,
+      "relation_diverse_sets": 0,
+      "structural_relation_diverse_sets": 0,
+      "maturity_diverse_sets": 0,
+      "signal_type_diverse_sets": 0,
+      "parent_match_diverse_sets": 0,
+      "structure_mask_diverse_sets": 0
+    },
+    {
+      "symbol": "EURUSD",
+      "period": "JAN",
+      "from": "2026.01.01",
+      "to": "2026.02.01",
+      "strategy_id": 81,
+      "instance_id": 71,
+      "terminal_rc": 0,
+      "log": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\tester\\logs\\20260925.log",
+      "segment_start_line": 309859,
+      "segment_end_line": 334288,
+      "clean_deinit": true,
+      "raw_equal_cycles": 230,
+      "cf_base_cycles": 230,
+      "executed_cf_sets": 9,
+      "open_rows": 25,
+      "out_rows": 25,
+      "selected_rows": 9,
+      "alternative_rows": 16,
+      "alternative_targetless_rows": 13,
+      "alternative_targetless_outcomes": {
+        "UNCOMPARABLE_C044_REPLAY_FROZEN": 1,
+        "C044_FAILED_MOMENTUM": 3,
+        "C044_HOLD_AT_BASELINE_CLOSE": 6,
+        "C044_CYCLE_SUPERSEDED": 2,
+        "UNCOMPARABLE_C044_M1_HISTORY": 1
+      },
+      "all_outcomes": {
+        "UNRESOLVED_AT_BASELINE_CLOSE": 2,
+        "UNCOMPARABLE_C044_REPLAY_FROZEN": 1,
+        "TP_FIRST": 2,
+        "C044_FAILED_MOMENTUM": 6,
+        "C044_HOLD_AT_BASELINE_CLOSE": 6,
+        "C044_CYCLE_SUPERSEDED": 3,
+        "UNCOMPARABLE_SLTP_UNRESOLVED": 3,
+        "UNCOMPARABLE_C044_M1_HISTORY": 2
+      },
+      "duplicate_sets": 0,
+      "selected_count_errors": 0,
+      "pairing_errors": 0,
+      "capacity_skips": 0,
+      "m5_semantic_y": 0,
+      "selected_targetless_parity_observed": 5,
+      "selected_targetless_parity_pass": 4,
+      "selected_static_base_match_errors": 0,
+      "exec_count": 34,
+      "fatal_counts": {
+        "zero divide": 0,
+        "array out of range": 0,
+        "stack overflow": 0,
+        "access violation": 0,
+        "critical runtime error": 0,
+        "initialization failed": 0,
+        "init_failed": 0
+      },
+      "report": {
+        "sha256": "72ADBD7CEE78124EC73BA2EBB8D04C9ECEDC8DFC7D8E4CCB521FFF6DA7ACE43D",
+        "size": 27937,
+        "fields": {
+          "Total trades": "34",
+          "Net profit": "-3.50",
+          "Gross profit": "13.93",
+          "Gross loss": "-17.43",
+          "Profit factor": "0.80",
+          "Expected payoff": "-0.10",
+          "Maximal drawdown": "22.76 (0.23%)",
+          "Relative drawdown": "0.23% (22.76)"
+        }
+      },
+      "integrity_pass": false,
+      "runtime_integrity_pass": true,
+      "selected_targetless_parity": [
+        {
+          "ticket": "9",
+          "cid": "A34D5CEB25937E5A",
+          "outcome": "C044_FAILED_MOMENTUM",
+          "seed_match": "Y",
+          "owner_tf": 240,
+          "canonical_reason": "C044_EXIT_FAILED_MOMENTUM",
+          "comparable": true,
+          "reason_match": true,
+          "time_match": true,
+          "pass": true
+        },
+        {
+          "ticket": "11",
+          "cid": "8C7FE49EAA7CCA7C",
+          "outcome": "C044_FAILED_MOMENTUM",
+          "seed_match": "Y",
+          "owner_tf": 60,
+          "canonical_reason": "C044_EXIT_FAILED_MOMENTUM",
+          "comparable": true,
+          "reason_match": true,
+          "time_match": true,
+          "pass": true
+        },
+        {
+          "ticket": "12",
+          "cid": "96181A2EAC22CE66",
+          "outcome": "C044_FAILED_MOMENTUM",
+          "seed_match": "Y",
+          "owner_tf": 240,
+          "canonical_reason": "C044_EXIT_FAILED_MOMENTUM",
+          "comparable": true,
+          "reason_match": true,
+          "time_match": true,
+          "pass": true
+        },
+        {
+          "ticket": "13",
+          "cid": "6689B3427574EDCD",
+          "outcome": "C044_CYCLE_SUPERSEDED",
+          "seed_match": "Y",
+          "owner_tf": 240,
+          "canonical_reason": "C044_EXIT_CYCLE_SUPERSEDED",
+          "comparable": true,
+          "reason_match": true,
+          "time_match": true,
+          "pass": true
+        },
+        {
+          "ticket": "14",
+          "cid": "D9D9335C70D354EA",
+          "outcome": "UNCOMPARABLE_C044_M1_HISTORY",
+          "seed_match": "Y",
+          "owner_tf": 240,
+          "canonical_reason": "C044_EXIT_FAILED_MOMENTUM",
+          "comparable": false,
+          "pass": null
+        }
+      ],
+      "selected_targetless_comparable": 4,
+      "selected_targetless_comparable_pass": 4,
+      "selected_targetless_uncomparable": 1,
+      "relation_diverse_sets": 0,
+      "structural_relation_diverse_sets": 0,
+      "maturity_diverse_sets": 0,
+      "signal_type_diverse_sets": 6,
+      "parent_match_diverse_sets": 0,
+      "structure_mask_diverse_sets": 0
+    },
+    {
+      "symbol": "GBPUSD",
+      "period": "AUG",
+      "from": "2026.08.01",
+      "to": "2026.09.01",
+      "strategy_id": 85,
+      "instance_id": 75,
+      "terminal_rc": 0,
+      "log": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\tester\\logs\\20260925.log",
+      "segment_start_line": 410662,
+      "segment_end_line": 434199,
+      "clean_deinit": true,
+      "raw_equal_cycles": 200,
+      "cf_base_cycles": 200,
+      "executed_cf_sets": 3,
+      "open_rows": 9,
+      "out_rows": 9,
+      "selected_rows": 3,
+      "alternative_rows": 6,
+      "alternative_targetless_rows": 4,
+      "alternative_targetless_outcomes": {
+        "C044_HOLD_AT_BASELINE_CLOSE": 3,
+        "SL_FIRST_TARGETLESS": 1
+      },
+      "all_outcomes": {
+        "C044_CYCLE_SUPERSEDED": 1,
+        "UNCOMPARABLE_SLTP_UNRESOLVED": 1,
+        "TP_FIRST": 1,
+        "C044_HOLD_AT_BASELINE_CLOSE": 3,
+        "C044_FAILED_MOMENTUM": 1,
+        "SL_FIRST_TARGETLESS": 1,
+        "UNRESOLVED_AT_BASELINE_CLOSE": 1
+      },
+      "duplicate_sets": 0,
+      "selected_count_errors": 0,
+      "pairing_errors": 0,
+      "capacity_skips": 0,
+      "m5_semantic_y": 0,
+      "selected_targetless_parity_observed": 2,
+      "selected_targetless_parity_pass": 2,
+      "selected_static_base_match_errors": 0,
+      "exec_count": 14,
+      "fatal_counts": {
+        "zero divide": 0,
+        "array out of range": 0,
+        "stack overflow": 0,
+        "access violation": 0,
+        "critical runtime error": 0,
+        "initialization failed": 0,
+        "init_failed": 0
+      },
+      "report": {
+        "sha256": "42181F04021F0FD9ACCF956E02BB3C8CD96DB4A3D3C6FCED46657AD645D85505",
+        "size": 14180,
+        "fields": {
+          "Total trades": "14",
+          "Net profit": "-0.00",
+          "Gross profit": "6.72",
+          "Gross loss": "-6.72",
+          "Profit factor": "1.00",
+          "Expected payoff": "-0.00",
+          "Maximal drawdown": "7.35 (0.07%)",
+          "Relative drawdown": "0.07% (7.35)"
+        }
+      },
+      "integrity_pass": true,
+      "runtime_integrity_pass": true,
+      "selected_targetless_parity": [
+        {
+          "ticket": "4",
+          "cid": "783F32AFE43EF078",
+          "outcome": "C044_CYCLE_SUPERSEDED",
+          "seed_match": "Y",
+          "owner_tf": 60,
+          "canonical_reason": "C044_EXIT_CYCLE_SUPERSEDED",
+          "comparable": true,
+          "reason_match": true,
+          "time_match": true,
+          "pass": true
+        },
+        {
+          "ticket": "12",
+          "cid": "B1BABB2618FC899C",
+          "outcome": "C044_FAILED_MOMENTUM",
+          "seed_match": "Y",
+          "owner_tf": 240,
+          "canonical_reason": "C044_EXIT_FAILED_MOMENTUM",
+          "comparable": true,
+          "reason_match": true,
+          "time_match": true,
+          "pass": true
+        }
+      ],
+      "selected_targetless_comparable": 2,
+      "selected_targetless_comparable_pass": 2,
+      "selected_targetless_uncomparable": 0,
+      "relation_diverse_sets": 0,
+      "structural_relation_diverse_sets": 0,
+      "maturity_diverse_sets": 0,
+      "signal_type_diverse_sets": 3,
+      "parent_match_diverse_sets": 0,
+      "structure_mask_diverse_sets": 0
+    },
+    {
+      "symbol": "GBPUSD",
+      "period": "JAN",
+      "from": "2026.01.01",
+      "to": "2026.02.01",
+      "strategy_id": 82,
+      "instance_id": 72,
+      "terminal_rc": 0,
+      "log": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\tester\\logs\\20260925.log",
+      "segment_start_line": 334296,
+      "segment_end_line": 357533,
+      "clean_deinit": true,
+      "raw_equal_cycles": 154,
+      "cf_base_cycles": 154,
+      "executed_cf_sets": 4,
+      "open_rows": 9,
+      "out_rows": 9,
+      "selected_rows": 4,
+      "alternative_rows": 5,
+      "alternative_targetless_rows": 3,
+      "alternative_targetless_outcomes": {
+        "C044_HOLD_AT_BASELINE_CLOSE": 1,
+        "UNCOMPARABLE_C044_M1_HISTORY": 1,
+        "C044_FAILED_MOMENTUM": 1
+      },
+      "all_outcomes": {
+        "UNRESOLVED_AT_BASELINE_CLOSE": 2,
+        "C044_HOLD_AT_BASELINE_CLOSE": 1,
+        "UNCOMPARABLE_C044_M1_HISTORY": 2,
+        "TP_FIRST": 3,
+        "C044_FAILED_MOMENTUM": 1
+      },
+      "duplicate_sets": 0,
+      "selected_count_errors": 0,
+      "pairing_errors": 0,
+      "capacity_skips": 0,
+      "m5_semantic_y": 0,
+      "selected_targetless_parity_observed": 1,
+      "selected_targetless_parity_pass": 0,
+      "selected_static_base_match_errors": 0,
+      "exec_count": 34,
+      "fatal_counts": {
+        "zero divide": 0,
+        "array out of range": 0,
+        "stack overflow": 0,
+        "access violation": 0,
+        "critical runtime error": 0,
+        "initialization failed": 0,
+        "init_failed": 0
+      },
+      "report": {
+        "sha256": "10293D192C2E9029FDF16493DDB750CB5A6EAE74CDD0AB70D58F1EB84A63B09C",
+        "size": 27918,
+        "fields": {
+          "Total trades": "34",
+          "Net profit": "-4.10",
+          "Gross profit": "15.76",
+          "Gross loss": "-19.85",
+          "Profit factor": "0.79",
+          "Expected payoff": "-0.12",
+          "Maximal drawdown": "19.32 (0.19%)",
+          "Relative drawdown": "0.19% (19.32)"
+        }
+      },
+      "integrity_pass": false,
+      "runtime_integrity_pass": true,
+      "selected_targetless_parity": [
+        {
+          "ticket": "10",
+          "cid": "90C275785A51C49A",
+          "outcome": "UNCOMPARABLE_C044_M1_HISTORY",
+          "seed_match": "Y",
+          "owner_tf": 240,
+          "canonical_reason": "C044_EXIT_FAILED_MOMENTUM",
+          "comparable": false,
+          "pass": null
+        }
+      ],
+      "selected_targetless_comparable": 0,
+      "selected_targetless_comparable_pass": 0,
+      "selected_targetless_uncomparable": 1,
+      "relation_diverse_sets": 0,
+      "structural_relation_diverse_sets": 0,
+      "maturity_diverse_sets": 0,
+      "signal_type_diverse_sets": 3,
+      "parent_match_diverse_sets": 0,
+      "structure_mask_diverse_sets": 0
+    },
+    {
+      "symbol": "USDJPY",
+      "period": "AUG",
+      "from": "2026.08.01",
+      "to": "2026.09.01",
+      "strategy_id": 86,
+      "instance_id": 76,
+      "terminal_rc": 0,
+      "log": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\tester\\logs\\20260925.log",
+      "segment_start_line": 434207,
+      "segment_end_line": 455287,
+      "clean_deinit": true,
+      "raw_equal_cycles": 72,
+      "cf_base_cycles": 72,
+      "executed_cf_sets": 0,
+      "open_rows": 0,
+      "out_rows": 0,
+      "selected_rows": 0,
+      "alternative_rows": 0,
+      "alternative_targetless_rows": 0,
+      "alternative_targetless_outcomes": {},
+      "all_outcomes": {},
+      "duplicate_sets": 0,
+      "selected_count_errors": 0,
+      "pairing_errors": 0,
+      "capacity_skips": 0,
+      "m5_semantic_y": 0,
+      "selected_targetless_parity_observed": 0,
+      "selected_targetless_parity_pass": 0,
+      "selected_static_base_match_errors": 0,
+      "exec_count": 16,
+      "fatal_counts": {
+        "zero divide": 0,
+        "array out of range": 0,
+        "stack overflow": 0,
+        "access violation": 0,
+        "critical runtime error": 0,
+        "initialization failed": 0,
+        "init_failed": 0
+      },
+      "report": {
+        "sha256": "C86B5489F41D1FC75D2EF7D64B9F063D73875AC477089F9F8F4018071E4E2565",
+        "size": 15324,
+        "fields": {
+          "Total trades": "16",
+          "Net profit": "0.13",
+          "Gross profit": "5.88",
+          "Gross loss": "-5.75",
+          "Profit factor": "1.02",
+          "Expected payoff": "0.01",
+          "Maximal drawdown": "3.80 (0.04%)",
+          "Relative drawdown": "0.04% (3.80)"
+        }
+      },
+      "integrity_pass": true,
+      "runtime_integrity_pass": true,
+      "selected_targetless_parity": [],
+      "selected_targetless_comparable": 0,
+      "selected_targetless_comparable_pass": 0,
+      "selected_targetless_uncomparable": 0,
+      "relation_diverse_sets": 0,
+      "structural_relation_diverse_sets": 0,
+      "maturity_diverse_sets": 0,
+      "signal_type_diverse_sets": 0,
+      "parent_match_diverse_sets": 0,
+      "structure_mask_diverse_sets": 0
+    },
+    {
+      "symbol": "USDJPY",
+      "period": "JAN",
+      "from": "2026.01.01",
+      "to": "2026.02.01",
+      "strategy_id": 83,
+      "instance_id": 73,
+      "terminal_rc": 0,
+      "log": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\tester\\logs\\20260925.log",
+      "segment_start_line": 357541,
+      "segment_end_line": 384706,
+      "clean_deinit": true,
+      "raw_equal_cycles": 376,
+      "cf_base_cycles": 376,
+      "executed_cf_sets": 7,
+      "open_rows": 15,
+      "out_rows": 15,
+      "selected_rows": 7,
+      "alternative_rows": 8,
+      "alternative_targetless_rows": 7,
+      "alternative_targetless_outcomes": {
+        "UNCOMPARABLE_C044_REPLAY_FROZEN": 1,
+        "C044_HOLD_AT_BASELINE_CLOSE": 4,
+        "C044_FAILED_MOMENTUM": 2
+      },
+      "all_outcomes": {
+        "SL_FIRST": 4,
+        "UNCOMPARABLE_C044_REPLAY_FROZEN": 1,
+        "C044_HOLD_AT_BASELINE_CLOSE": 4,
+        "UNRESOLVED_AT_BASELINE_CLOSE": 3,
+        "C044_FAILED_MOMENTUM": 2,
+        "TP_FIRST": 1
+      },
+      "duplicate_sets": 0,
+      "selected_count_errors": 0,
+      "pairing_errors": 0,
+      "capacity_skips": 0,
+      "m5_semantic_y": 0,
+      "selected_targetless_parity_observed": 0,
+      "selected_targetless_parity_pass": 0,
+      "selected_static_base_match_errors": 0,
+      "exec_count": 42,
+      "fatal_counts": {
+        "zero divide": 0,
+        "array out of range": 0,
+        "stack overflow": 0,
+        "access violation": 0,
+        "critical runtime error": 0,
+        "initialization failed": 0,
+        "init_failed": 0
+      },
+      "report": {
+        "sha256": "EC6592BF5740084AF030620A95D376D24B53F4433B9D413E3AC866E7BDDD8AFC",
+        "size": 32849,
+        "fields": {
+          "Total trades": "42",
+          "Net profit": "-12.26",
+          "Gross profit": "9.58",
+          "Gross loss": "-21.84",
+          "Profit factor": "0.44",
+          "Expected payoff": "-0.29",
+          "Maximal drawdown": "17.49 (0.17%)",
+          "Relative drawdown": "0.17% (17.49)"
+        }
+      },
+      "integrity_pass": true,
+      "runtime_integrity_pass": true,
+      "selected_targetless_parity": [],
+      "selected_targetless_comparable": 0,
+      "selected_targetless_comparable_pass": 0,
+      "selected_targetless_uncomparable": 0,
+      "relation_diverse_sets": 0,
+      "structural_relation_diverse_sets": 0,
+      "maturity_diverse_sets": 0,
+      "signal_type_diverse_sets": 4,
+      "parent_match_diverse_sets": 0,
+      "structure_mask_diverse_sets": 0
+    }
+  ],
+  "totals": {
+    "runs": 6,
+    "runtime_integrity_pass_runs": 6,
+    "raw_equal_cycles": 1291,
+    "executed_cf_sets": 24,
+    "open_rows": 60,
+    "out_rows": 60,
+    "selected_rows": 24,
+    "alternative_rows": 36,
+    "selected_targetless_rows": 8,
+    "alternative_targetless_rows": 28,
+    "selected_targetless_comparable": 6,
+    "selected_targetless_comparable_pass": 6,
+    "selected_targetless_strict_uncomparable": 2,
+    "relation_diverse_sets": 0,
+    "structural_relation_diverse_sets": 0,
+    "maturity_diverse_sets": 0,
+    "signal_type_diverse_sets": 16,
+    "parent_match_diverse_sets": 0,
+    "structure_mask_diverse_sets": 0,
+    "executions": 166
+  },
+  "selected_relation_distribution": {
+    "ALIGNED": 13,
+    "SUPPORTING": 5,
+    "CONFLICT": 6
+  },
+  "alternative_relation_distribution": {
+    "ALIGNED": 21,
+    "SUPPORTING": 8,
+    "CONFLICT": 7
+  },
+  "selected_signal_distribution": {
+    "SIGNAL_RE_ENTRY": 16,
+    "SIGNAL_REM": 6,
+    "SIGNAL_EXTREME": 2
+  },
+  "alternative_signal_distribution": {
+    "SIGNAL_RE_ENTRY": 12,
+    "SIGNAL_RRE": 11,
+    "SIGNAL_REM": 6,
+    "SIGNAL_EXTREME": 7
+  },
+  "alternative_outcomes_by_relation": {
+    "ALIGNED": {
+      "C044_HOLD_AT_BASELINE_CLOSE": 8,
+      "UNCOMPARABLE_C044_REPLAY_FROZEN": 2,
+      "C044_FAILED_MOMENTUM": 5,
+      "UNCOMPARABLE_SLTP_UNRESOLVED": 4,
+      "SL_FIRST_TARGETLESS": 1,
+      "UNRESOLVED_AT_BASELINE_CLOSE": 1
+    },
+    "CONFLICT": {
+      "UNCOMPARABLE_C044_M1_HISTORY": 1,
+      "TP_FIRST": 1,
+      "C044_HOLD_AT_BASELINE_CLOSE": 3,
+      "C044_FAILED_MOMENTUM": 1,
+      "UNRESOLVED_AT_BASELINE_CLOSE": 1
+    },
+    "SUPPORTING": {
+      "C044_CYCLE_SUPERSEDED": 2,
+      "C044_HOLD_AT_BASELINE_CLOSE": 4,
+      "UNCOMPARABLE_C044_M1_HISTORY": 1,
+      "TP_FIRST": 1
+    }
+  },
+  "alternative_outcomes_by_signal": {
+    "SIGNAL_EXTREME": {
+      "UNCOMPARABLE_SLTP_UNRESOLVED": 4,
+      "UNRESOLVED_AT_BASELINE_CLOSE": 2,
+      "TP_FIRST": 1
+    },
+    "SIGNAL_REM": {
+      "C044_HOLD_AT_BASELINE_CLOSE": 5,
+      "C044_FAILED_MOMENTUM": 1
+    },
+    "SIGNAL_RE_ENTRY": {
+      "C044_HOLD_AT_BASELINE_CLOSE": 3,
+      "UNCOMPARABLE_C044_REPLAY_FROZEN": 2,
+      "C044_FAILED_MOMENTUM": 5,
+      "SL_FIRST_TARGETLESS": 1,
+      "TP_FIRST": 1
+    },
+    "SIGNAL_RRE": {
+      "C044_CYCLE_SUPERSEDED": 2,
+      "C044_HOLD_AT_BASELINE_CLOSE": 7,
+      "UNCOMPARABLE_C044_M1_HISTORY": 2
+    }
+  },
+  "selected_outcomes_by_relation": {
+    "ALIGNED": {
+      "UNRESOLVED_AT_BASELINE_CLOSE": 4,
+      "TP_FIRST": 3,
+      "C044_FAILED_MOMENTUM": 3,
+      "C044_CYCLE_SUPERSEDED": 2,
+      "SL_FIRST": 1
+    },
+    "CONFLICT": {
+      "UNCOMPARABLE_C044_M1_HISTORY": 1,
+      "UNRESOLVED_AT_BASELINE_CLOSE": 2,
+      "SL_FIRST": 3
+    },
+    "SUPPORTING": {
+      "C044_FAILED_MOMENTUM": 1,
+      "TP_FIRST": 2,
+      "UNRESOLVED_AT_BASELINE_CLOSE": 1,
+      "UNCOMPARABLE_C044_M1_HISTORY": 1
+    }
+  },
+  "selected_targetless_strict_uncomparable_details": [
+    {
+      "ticket": "14",
+      "cid": "D9D9335C70D354EA",
+      "outcome": "UNCOMPARABLE_C044_M1_HISTORY",
+      "seed_match": "Y",
+      "owner_tf": 240,
+      "canonical_reason": "C044_EXIT_FAILED_MOMENTUM",
+      "comparable": false,
+      "pass": null
+    },
+    {
+      "ticket": "10",
+      "cid": "90C275785A51C49A",
+      "outcome": "UNCOMPARABLE_C044_M1_HISTORY",
+      "seed_match": "Y",
+      "owner_tf": 240,
+      "canonical_reason": "C044_EXIT_FAILED_MOMENTUM",
+      "comparable": false,
+      "pass": null
+    }
+  ],
+  "classification": {
+    "runtime_mechanics": "PASS",
+    "selected_targetless_parity": "PASS_FOR_ALL_COMPARABLE",
+    "strict_uncomparable_boundary": "RETAIN_FAIL_CLOSED",
+    "p2_ordering": "HOLD_NON_EXECUTABLE",
+    "strategy_core_delta": "NONE",
+    "ea_fix": "NONE"
+  },
+  "pass": true
+}

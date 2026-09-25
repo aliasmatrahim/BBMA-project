@@ -2,7 +2,7 @@
 
 Reconciled: **2026-09-25**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`0034f31aced4e630d0b76ce64009a41078ba7cb3`**
+Owner head at reconciliation: **`459c0588e625d7f7630f0fb5612b7f04fda496de`**
 
 This file is the active queue. The pre-2026-09-09 historical queue is preserved byte-for-byte at `blueprint/archive/MASTER_QUEUE_pre_20260909.md`.
 
@@ -21,7 +21,7 @@ Stable Q IDs are preserved. The active dependency order is:
 - **Integration / final acceptance:** Q7 -> Q8 -> Q10
 - **Deferred / future:** Q11
 
-Q3 remains a separate isolated runtime-validation workstream and is environment-blocked at `SEEN=91 / ACTIVE=0` on the exact InstanceID 81 ledger; do not disturb its primary PID 13064. Q9 current-owner rematerialization is validated through Build 5.13 for shadow-safe P2/P3 and P4+/P6-P8/P10-P11 scope; P2 coherence metadata is source-supported but active ordering remains HOLD, P5 true-conflict remains HOLD, P9 is NO FIX, and M5 has no execution authority. Historical Draft PRs #192-#205 remain provenance only. The subsequent Issue #101 downstream sequence (D1TPW -> C044 -> D1/D1O -> M17 -> TradeLock/risk/execution -> N1/N2/N3 -> M25 -> Observer -> cross-module -> final integration) is already completed and must not be requeued. Q6 remains stopped/closed. Q7/Q8 historical gates are complete. **Q10 Phase L R5 remains the highest-priority active final-acceptance task and is separately bound to frozen Build 5.11. R3 and R4 are formally PASS; R5 remains the first incomplete stage.**
+Q3 remains a separate isolated runtime-validation workstream and is environment-blocked at `SEEN=91 / ACTIVE=0` on the exact InstanceID 81 ledger; do not disturb its primary PID 13064. Q9 current-owner research is validated through Build 5.15, including the P2 targetless replay and the EURUSD/GBPUSD/USDJPY January/August counterfactual evidence expansion; P2 coherence metadata is source-supported but active ordering remains HOLD, P5 true-conflict remains HOLD, P9 is NO FIX, and M5 has no execution authority. Historical Draft PRs #192-#205 remain provenance only. The subsequent Issue #101 downstream sequence (D1TPW -> C044 -> D1/D1O -> M17 -> TradeLock/risk/execution -> N1/N2/N3 -> M25 -> Observer -> cross-module -> final integration) is already completed and must not be requeued. Q6 remains stopped/closed. Q7/Q8 historical gates are complete. **Q10 Phase L R5 remains the highest-priority active final-acceptance task and is separately bound to frozen Build 5.11. R3 and R4 are formally PASS; R5 remains the first incomplete stage.**
 
 ## Stage A - Source evidence / reconciliation
 
@@ -178,7 +178,7 @@ The exact Build 5.11 source/EX4 candidate is frozen. Phase H remains **56 PASS /
 Issue: **#101**
 Scoped lineage: **Draft PRs #192-#205**
 Priority: **HIGH / SHADOW-RESEARCH CORRECTNESS**
-Status: **BUILD 5.15 P2 TARGETLESS C044 REPLAY VALIDATED / P2 ORDERING HOLD / P5 TRUE-CONFLICT HOLD / P9 NO FIX / M5 EXECUTION AUTHORITY NONE**
+Status: **BUILD 5.15 P2 MULTI-PAIR/MULTI-PERIOD COUNTERFACTUAL EVIDENCE VALIDATED / P2 ORDERING HOLD / P5 TRUE-CONFLICT HOLD / P9 NO FIX / M5 EXECUTION AUTHORITY NONE**
 
 Current state:
 1. Do not rerun P1-P10; their exact scoped evidence remains reusable.
@@ -194,8 +194,9 @@ Current state:
 11. P2 policy/evidence adjudication is complete: BBMA MTF/journey coherence is valid context, but accepted sources do not define an active same-direction candidate comparator or REM/RRE/REE superiority. Build 5.12 rev003 observed 200 equal-eligibility cycles / 472 candidate rows, but telemetry was non-discriminative and current P4 outcomes cover only the selected baseline path. Because a coherence winner can change selected signal identity and semantic SL/TP source, active P2 ordering remains HOLD/NON-EXECUTABLE. Decision: `blueprint/decisions/Q9_NMJE_V2_P2_EQUAL_ELIGIBILITY_COHERENCE_POLICY_DECISION_20260925.md`. Current EA code fix = `NONE`.
 12. P2 counterfactual equal-candidate shadow attribution is validated as Build `5.14` / rev `NMJE_P2_COUNTERFACTUAL_SHADOW_004_20260925`. The overlay is tester-only and has no candidate/risk/execution authority. Final rev004 gives 3 real baseline fills with at least 2 unique execution-distinct candidates, 6 alternatives, exact 9/9 OPEN↔OUT pairing, zero execution-equivalent duplicates, selected geometry 3/3 exact, canonical execution trace/report unchanged, and zero fatal runtime. Only 1 alternative was statically comparable; targetless/unresolved alternatives remain explicitly uncomparable. This evidence layer may support future research but does not release P2 ordering HOLD. Audit: `blueprint/audits/NMJE_V2_P2_COUNTERFACTUAL_SHADOW_ATTRIBUTION_20260925.md`.
 13. Build 5.15 targetless C044 counterfactual lifecycle replay is validated tester-only. It reuses the unchanged canonical C044 state machine, keeps D1 TPW excluded, preserves 14/14 Build 5.14 executions/report fields, and converts all 4 targetless alternatives in the accepted sample into bounded replay outcomes (3 HOLD / 1 hard-SL-first). Selected targetless shadow parity is exact 2/2 for canonical C044 reason and owner-event time. P2 ordering remains HOLD / NON-EXECUTABLE. Audit: `blueprint/audits/NMJE_V2_P2_TARGETLESS_LIFECYCLE_REPLAY_20260925.md`.
-14. Legacy N2/N3 v4.58 workflows are retired from current-owner PR gating and retained only as immutable-revision manual-dispatch historical checks.
-15. Issue #101 downstream sequence is **COMPLETED through final integration**; the following list is retained as completed order and must not be requeued without new evidence:
+14. P2 multi-pair/multi-period evidence expansion is validated on unchanged Build 5.15 across EURUSD/GBPUSD/USDJPY x Jan/Aug 2026: 1,291 raw equal-eligibility cycles, 24 executed sets, 60/60 paired rows, 36 alternatives, 6/6 comparable selected-targetless canonical reason/time parity, with two strict fail-closed weekend M1-boundary rows. Candidate-level discrimination remains absent: REL/SREL/MAT/ParentMatch/StructureMask diversity is 0/24 sets; REL/SREL/MAT are statically set-level snapshots. Additional repetition of the same metadata is not an activation path. P2 ordering remains HOLD / NON-EXECUTABLE; Strategy-Core delta NONE; EA fix NONE. Audit: `blueprint/audits/NMJE_V2_P2_MULTIPAIR_MULTIPERIOD_EVIDENCE_EXPANSION_20260925.md`.
+15. Legacy N2/N3 v4.58 workflows are retired from current-owner PR gating and retained only as immutable-revision manual-dispatch historical checks.
+16. Issue #101 downstream sequence is **COMPLETED through final integration**; the following list is retained as completed order and must not be requeued without new evidence:
    - D1TPW lifecycle re-audit;
    - C044 lifecycle;
    - D1/D1O identity & dedup;
@@ -207,7 +208,7 @@ Current state:
    - M01-M27 + M12N cross-module audit;
    - final integration candidate/tests/backtest;
    - final MetaQuotes-Demo runtime acceptance last (Issue #109; user-selected demo provider, 2026-09-23).
-16. Old PR #102/#126 lineage remains historical/staging evidence only; do not merge it directly.
+17. Old PR #102/#126 lineage remains historical/staging evidence only; do not merge it directly.
 
 ### Q11 — Dashboard / observer future materialization
 Status: **DEFERRED / RE-AUDIT REQUIRED**

@@ -1,0 +1,18 @@
+{
+  "schema": "NMJE_V2_P2_WEEKEND_M1_BOUNDARY_V1",
+  "boundary": "2026-01-16/2026-01-19",
+  "symbols": {
+    "EURUSD": {
+      "previous_bar_utc": "2026-01-16T23:59:00+00:00",
+      "next_bar_utc": "2026-01-19T00:00:00+00:00",
+      "gap_seconds": 172860,
+      "classification": "EXPECTED_MARKET_CLOSED_WEEKEND_GAP"
+    },
+    "GBPUSD": {
+      "previous_bar_utc": "2026-01-16T23:59:00+00:00",
+      "next_bar_utc": "2026-01-19T00:00:00+00:00",
+      "gap_seconds": 172860,
+      "classification": "EXPECTED_MARKET_CLOSED_WEEKEND_GAP"
+    }
+  }
+}

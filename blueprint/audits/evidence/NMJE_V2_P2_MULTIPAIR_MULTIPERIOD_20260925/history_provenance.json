@@ -1,0 +1,138 @@
+{
+  "schema": "NMJE_V2_P2_MATRIX_HISTORY_PROVENANCE_V1",
+  "record_format": "HST v401 / 148-byte header / 60-byte records",
+  "symbols": {
+    "EURUSD": {
+      "1": {
+        "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\EURUSD1.hst",
+        "bytes": 447599728,
+        "records": 7459993,
+        "first_utc": "2006-09-01T03:00:00+00:00",
+        "last_utc": "2026-09-01T02:59:00+00:00"
+      },
+      "5": {
+        "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\EURUSD5.hst",
+        "bytes": 89735488,
+        "records": 1495589,
+        "first_utc": "2006-09-01T03:00:00+00:00",
+        "last_utc": "2026-09-01T02:55:00+00:00"
+      },
+      "15": {
+        "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\EURUSD15.hst",
+        "bytes": 29915668,
+        "records": 498592,
+        "first_utc": "2006-09-01T03:00:00+00:00",
+        "last_utc": "2026-09-01T02:45:00+00:00"
+      },
+      "60": {
+        "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\EURUSD60.hst",
+        "bytes": 7479628,
+        "records": 124658,
+        "first_utc": "2006-09-01T03:00:00+00:00",
+        "last_utc": "2026-09-01T02:00:00+00:00"
+      },
+      "240": {
+        "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\EURUSD240.hst",
+        "bytes": 1870708,
+        "records": 31176,
+        "first_utc": "2006-09-01T04:00:00+00:00",
+        "last_utc": "2026-08-31T20:00:00+00:00"
+      },
+      "1440": {
+        "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\EURUSD1440.hst",
+        "bytes": 312508,
+        "records": 5206,
+        "first_utc": "2006-09-04T00:00:00+00:00",
+        "last_utc": "2026-08-31T00:00:00+00:00"
+      }
+    },
+    "GBPUSD": {
+      "1": {
+        "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\GBPUSD1.hst",
+        "bytes": 448208968,
+        "records": 7470147,
+        "first_utc": "2006-09-01T03:00:00+00:00",
+        "last_utc": "2026-09-01T02:59:00+00:00"
+      },
+      "5": {
+        "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\GBPUSD5.hst",
+        "bytes": 89814568,
+        "records": 1496907,
+        "first_utc": "2006-09-01T03:00:00+00:00",
+        "last_utc": "2026-09-01T02:55:00+00:00"
+      },
+      "15": {
+        "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\GBPUSD15.hst",
+        "bytes": 29943688,
+        "records": 499059,
+        "first_utc": "2006-09-01T03:00:00+00:00",
+        "last_utc": "2026-09-01T02:45:00+00:00"
+      },
+      "60": {
+        "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\GBPUSD60.hst",
+        "bytes": 7486468,
+        "records": 124772,
+        "first_utc": "2006-09-01T03:00:00+00:00",
+        "last_utc": "2026-09-01T02:00:00+00:00"
+      },
+      "240": {
+        "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\GBPUSD240.hst",
+        "bytes": 1872148,
+        "records": 31200,
+        "first_utc": "2006-09-01T04:00:00+00:00",
+        "last_utc": "2026-08-31T20:00:00+00:00"
+      },
+      "1440": {
+        "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\GBPUSD1440.hst",
+        "bytes": 312508,
+        "records": 5206,
+        "first_utc": "2006-09-04T00:00:00+00:00",
+        "last_utc": "2026-08-31T00:00:00+00:00"
+      }
+    },
+    "USDJPY": {
+      "1": {
+        "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\USDJPY1.hst",
+        "bytes": 448049068,
+        "records": 7467482,
+        "first_utc": "2006-09-01T03:00:00+00:00",
+        "last_utc": "2026-09-01T02:59:00+00:00"
+      },
+      "5": {
+        "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\USDJPY5.hst",
+        "bytes": 89823028,
+        "records": 1497048,
+        "first_utc": "2006-09-01T03:00:00+00:00",
+        "last_utc": "2026-09-01T02:55:00+00:00"
+      },
+      "15": {
+        "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\USDJPY15.hst",
+        "bytes": 29944828,
+        "records": 499078,
+        "first_utc": "2006-09-01T03:00:00+00:00",
+        "last_utc": "2026-09-01T02:45:00+00:00"
+      },
+      "60": {
+        "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\USDJPY60.hst",
+        "bytes": 7486588,
+        "records": 124774,
+        "first_utc": "2006-09-01T03:00:00+00:00",
+        "last_utc": "2026-09-01T02:00:00+00:00"
+      },
+      "240": {
+        "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\USDJPY240.hst",
+        "bytes": 1872148,
+        "records": 31200,
+        "first_utc": "2006-09-01T04:00:00+00:00",
+        "last_utc": "2026-08-31T20:00:00+00:00"
+      },
+      "1440": {
+        "path": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\history\\MetaQuotes-Demo\\USDJPY1440.hst",
+        "bytes": 312508,
+        "records": 5206,
+        "first_utc": "2006-09-04T00:00:00+00:00",
+        "last_utc": "2026-08-31T00:00:00+00:00"
+      }
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "symbol": "GBPUSD",
+  "period": "AUG",
+  "from": "2026.08.01",
+  "to": "2026.09.01",
+  "strategy_id": 85,
+  "instance_id": 75,
+  "terminal_rc": 0,
+  "log": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\tester\\logs\\20260925.log",
+  "segment_start_line": 410662,
+  "segment_end_line": 434199,
+  "clean_deinit": true,
+  "raw_equal_cycles": 200,
+  "cf_base_cycles": 200,
+  "executed_cf_sets": 3,
+  "open_rows": 9,
+  "out_rows": 9,
+  "selected_rows": 3,
+  "alternative_rows": 6,
+  "alternative_targetless_rows": 4,
+  "alternative_targetless_outcomes": {
+    "C044_HOLD_AT_BASELINE_CLOSE": 3,
+    "SL_FIRST_TARGETLESS": 1
+  },
+  "all_outcomes": {
+    "C044_CYCLE_SUPERSEDED": 1,
+    "UNCOMPARABLE_SLTP_UNRESOLVED": 1,
+    "TP_FIRST": 1,
+    "C044_HOLD_AT_BASELINE_CLOSE": 3,
+    "C044_FAILED_MOMENTUM": 1,
+    "SL_FIRST_TARGETLESS": 1,
+    "UNRESOLVED_AT_BASELINE_CLOSE": 1
+  },
+  "duplicate_sets": 0,
+  "selected_count_errors": 0,
+  "pairing_errors": 0,
+  "capacity_skips": 0,
+  "m5_semantic_y": 0,
+  "selected_targetless_parity_observed": 2,
+  "selected_targetless_parity_pass": 2,
+  "selected_static_base_match_errors": 0,
+  "exec_count": 14,
+  "fatal_counts": {
+    "zero divide": 0,
+    "array out of range": 0,
+    "stack overflow": 0,
+    "access violation": 0,
+    "critical runtime error": 0,
+    "initialization failed": 0,
+    "init_failed": 0
+  },
+  "report": {
+    "sha256": "42181F04021F0FD9ACCF956E02BB3C8CD96DB4A3D3C6FCED46657AD645D85505",
+    "size": 14180,
+    "fields": {
+      "Total trades": "14",
+      "Net profit": "-0.00",
+      "Gross profit": "6.72",
+      "Gross loss": "-6.72",
+      "Profit factor": "1.00",
+      "Expected payoff": "-0.00",
+      "Maximal drawdown": "7.35 (0.07%)",
+      "Relative drawdown": "0.07% (7.35)"
+    }
+  },
+  "integrity_pass": true
+}

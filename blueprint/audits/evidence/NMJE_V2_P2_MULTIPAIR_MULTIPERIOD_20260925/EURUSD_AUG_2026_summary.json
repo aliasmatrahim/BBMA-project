@@ -1,0 +1,61 @@
+{
+  "symbol": "EURUSD",
+  "period": "AUG",
+  "from": "2026.08.01",
+  "to": "2026.09.01",
+  "strategy_id": 84,
+  "instance_id": 74,
+  "terminal_rc": 0,
+  "log": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\tester\\logs\\20260925.log",
+  "segment_start_line": 384714,
+  "segment_end_line": 410654,
+  "clean_deinit": true,
+  "raw_equal_cycles": 259,
+  "cf_base_cycles": 259,
+  "executed_cf_sets": 1,
+  "open_rows": 2,
+  "out_rows": 2,
+  "selected_rows": 1,
+  "alternative_rows": 1,
+  "alternative_targetless_rows": 1,
+  "alternative_targetless_outcomes": {
+    "C044_HOLD_AT_BASELINE_CLOSE": 1
+  },
+  "all_outcomes": {
+    "UNRESOLVED_AT_BASELINE_CLOSE": 1,
+    "C044_HOLD_AT_BASELINE_CLOSE": 1
+  },
+  "duplicate_sets": 0,
+  "selected_count_errors": 0,
+  "pairing_errors": 0,
+  "capacity_skips": 0,
+  "m5_semantic_y": 0,
+  "selected_targetless_parity_observed": 0,
+  "selected_targetless_parity_pass": 0,
+  "selected_static_base_match_errors": 0,
+  "exec_count": 26,
+  "fatal_counts": {
+    "zero divide": 0,
+    "array out of range": 0,
+    "stack overflow": 0,
+    "access violation": 0,
+    "critical runtime error": 0,
+    "initialization failed": 0,
+    "init_failed": 0
+  },
+  "report": {
+    "sha256": "A90265092881EB5929DCE5CA6031171CCD5B505D22D3A40A3FAF0D4461653203",
+    "size": 22414,
+    "fields": {
+      "Total trades": "26",
+      "Net profit": "-1.27",
+      "Gross profit": "6.11",
+      "Gross loss": "-7.38",
+      "Profit factor": "0.83",
+      "Expected payoff": "-0.05",
+      "Maximal drawdown": "4.71 (0.05%)",
+      "Relative drawdown": "0.05% (4.71)"
+    }
+  },
+  "integrity_pass": true
+}

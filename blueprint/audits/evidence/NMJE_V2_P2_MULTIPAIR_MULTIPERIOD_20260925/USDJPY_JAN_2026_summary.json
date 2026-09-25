@@ -1,0 +1,67 @@
+{
+  "symbol": "USDJPY",
+  "period": "JAN",
+  "from": "2026.01.01",
+  "to": "2026.02.01",
+  "strategy_id": 83,
+  "instance_id": 73,
+  "terminal_rc": 0,
+  "log": "D:\\BBMA\\MT4_TesterRunner_OfflineDiag\\tester\\logs\\20260925.log",
+  "segment_start_line": 357541,
+  "segment_end_line": 384706,
+  "clean_deinit": true,
+  "raw_equal_cycles": 376,
+  "cf_base_cycles": 376,
+  "executed_cf_sets": 7,
+  "open_rows": 15,
+  "out_rows": 15,
+  "selected_rows": 7,
+  "alternative_rows": 8,
+  "alternative_targetless_rows": 7,
+  "alternative_targetless_outcomes": {
+    "UNCOMPARABLE_C044_REPLAY_FROZEN": 1,
+    "C044_HOLD_AT_BASELINE_CLOSE": 4,
+    "C044_FAILED_MOMENTUM": 2
+  },
+  "all_outcomes": {
+    "SL_FIRST": 4,
+    "UNCOMPARABLE_C044_REPLAY_FROZEN": 1,
+    "C044_HOLD_AT_BASELINE_CLOSE": 4,
+    "UNRESOLVED_AT_BASELINE_CLOSE": 3,
+    "C044_FAILED_MOMENTUM": 2,
+    "TP_FIRST": 1
+  },
+  "duplicate_sets": 0,
+  "selected_count_errors": 0,
+  "pairing_errors": 0,
+  "capacity_skips": 0,
+  "m5_semantic_y": 0,
+  "selected_targetless_parity_observed": 0,
+  "selected_targetless_parity_pass": 0,
+  "selected_static_base_match_errors": 0,
+  "exec_count": 42,
+  "fatal_counts": {
+    "zero divide": 0,
+    "array out of range": 0,
+    "stack overflow": 0,
+    "access violation": 0,
+    "critical runtime error": 0,
+    "initialization failed": 0,
+    "init_failed": 0
+  },
+  "report": {
+    "sha256": "EC6592BF5740084AF030620A95D376D24B53F4433B9D413E3AC866E7BDDD8AFC",
+    "size": 32849,
+    "fields": {
+      "Total trades": "42",
+      "Net profit": "-12.26",
+      "Gross profit": "9.58",
+      "Gross loss": "-21.84",
+      "Profit factor": "0.44",
+      "Expected payoff": "-0.29",
+      "Maximal drawdown": "17.49 (0.17%)",
+      "Relative drawdown": "0.17% (17.49)"
+    }
+  },
+  "integrity_pass": true
+}

@@ -9,8 +9,10 @@ on:
       - 'blueprint/audits/NMJE_V2_P2_P3_CURRENT_OWNER_REMATERIALIZATION_20260925.md'
       - 'blueprint/audits/NMJE_V2_P4PLUS_CURRENT_OWNER_REMATERIALIZATION_20260925.md'
       - 'blueprint/audits/NMJE_V2_P2_COUNTERFACTUAL_SHADOW_ATTRIBUTION_20260925.md'
+      - 'blueprint/audits/NMJE_V2_P2_TARGETLESS_LIFECYCLE_REPLAY_20260925.md'
       - 'blueprint/audits/evidence/NMJE_V2_P4PLUS_20260925/**'
       - 'blueprint/audits/evidence/NMJE_V2_P2_COUNTERFACTUAL_20260925/**'
+      - 'blueprint/audits/evidence/NMJE_V2_P2_TARGETLESS_REPLAY_20260925/**'
       - '.github/workflows/nmje-v2-current-owner-validation.yml'
   workflow_dispatch:
 
@@ -38,10 +40,11 @@ jobs:
 
           source = Path("blueprint/source/BBMA_EA.mq4").read_text(encoding="utf-8")
           audit = Path("blueprint/audits/NMJE_V2_P2_COUNTERFACTUAL_SHADOW_ATTRIBUTION_20260925.md").read_text(encoding="utf-8")
+          replay_audit = Path("blueprint/audits/NMJE_V2_P2_TARGETLESS_LIFECYCLE_REPLAY_20260925.md").read_text(encoding="utf-8")
 
           required = [
-              'V514_NMJE_P2_COUNTERFACTUAL_SHADOW_20260925',
-              'NMJE_P2_COUNTERFACTUAL_SHADOW_004_20260925',
+              'V515_NMJE_P2_TARGETLESS_REPLAY_20260925',
+              'NMJE_P2_TARGETLESS_REPLAY_001_20260925',
               'NMJE_P2_PrintEqualEligibilityShadow',
               'NMJE_P3_UpdateClosedM5Shadow',
               'NMJE_FreezeValidatedDecisionAttribution',
@@ -60,7 +63,7 @@ jobs:
               'The canonical comparator remains untouched.',
           ]
           for marker in required:
-              if marker not in source and marker not in audit:
+              if marker not in source and marker not in audit and marker not in replay_audit:
                   raise SystemExit(f"missing NMJE marker: {marker}")
 
           if source.count('NMJE_P2_PrintEqualEligibilityShadow') != 2:
@@ -134,6 +137,35 @@ jobs:
           if register.find('if(active.Count >= 2)') < 0 or \
              register.find('[Q9-P2-CF-OPEN]') < register.find('if(active.Count >= 2)'):
               raise SystemExit('counterfactual OPEN must be emitted only for a committed multi-candidate set')
+
+          targetless_names = (
+              'NMJE_P2_CaptureC044ReplayState',
+              'NMJE_P2_RestoreC044ReplayTrade',
+              'NMJE_P2_FindHardSLHitInClosedM1Window',
+              'NMJE_P2_ResolveTargetlessC044Outcome',
+          )
+          for name in targetless_names:
+              if name not in source:
+                  raise SystemExit(f'missing targetless replay helper: {name}')
+
+          targetless = function_body('NMJE_P2_ResolveTargetlessC044Outcome')
+          if 'ProcessC044OwnerClosedCandle(replay, pairIndex, candleTime)' not in targetless:
+              raise SystemExit('targetless replay must reuse canonical C044 owner-event processor')
+          for forbidden in ('OrderSend(', 'OrderClose(', 'CheckRiskBeforeTrade(',
+                            'CalculateLotSize(', 'FinalPortfolioGuard(', 'ProcessEntry(',
+                            'DetectCSM(', 'DetectExtreme(', 'UpdateExtremeLifecycle(',
+                            'UpdateReEntryState('):
+              if forbidden in targetless:
+                  raise SystemExit(f'targetless replay gained forbidden authority/formula: {forbidden}')
+
+          if 'if(info.c044_shadow_replay) return true;' not in source:
+              raise SystemExit('shadow checkpoint no-op guard missing')
+          if 'if(info.c044_shadow_replay) return;' not in source:
+              raise SystemExit('shadow F7 telemetry suppression missing')
+          if 'info.c044_shadow_replay = false;' not in source:
+              raise SystemExit('live shadow replay default reset missing')
+          if '!shadow.D1TPWLifecycleManaged' not in register:
+              raise SystemExit('D1 TPW must remain excluded from targetless C044 replay')
 
           print('NMJE_V2_CURRENT_OWNER_STATIC=PASS')
           PY

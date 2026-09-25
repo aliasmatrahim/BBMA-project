@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.1.4 - NMJE P2 Counterfactual Shadow Attribution    |
+//| Version 5.1.5 - NMJE P2 Targetless Lifecycle Replay         |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.14"
+#property version   "5.15"
 #property strict
 
-#define BBMA_BUILD_TAG      "V514_NMJE_P2_COUNTERFACTUAL_SHADOW_20260925"
-#define BBMA_SOURCE_REV_TAG "NMJE_P2_COUNTERFACTUAL_SHADOW_004_20260925"
+#define BBMA_BUILD_TAG      "V515_NMJE_P2_TARGETLESS_REPLAY_20260925"
+#define BBMA_SOURCE_REV_TAG "NMJE_P2_TARGETLESS_REPLAY_001_20260925"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -1076,6 +1076,8 @@ struct TradeInfo
    // C044 Step4 deterministic replay seed. These are canonical owner snapshots
    // captured at the runtime cursor and persisted with the lifecycle checkpoint.
    bool                 c044_replay_seed_valid;
+   // Q9 P2 tester-only lifecycle replay. Live monitored trades keep false.
+   bool                 c044_shadow_replay;
    ReEntryData          c044_replay_reentry;
    ExtremeLifecycleData c044_replay_extreme_buy;
    ExtremeLifecycleData c044_replay_extreme_sell;
@@ -1184,6 +1186,22 @@ struct NMJECounterfactualPendingSet
    NMJECounterfactualPendingCandidate Candidates[NMJE_CF_MAX_CANDIDATES];
 };
 
+struct NMJECounterfactualC044ReplayState
+{
+   bool                       Present;
+   int                        OwnerTimeframe;
+   datetime                   OwnerReEntryCandle;
+   datetime                   EpochAnchorCandle;
+   datetime                   LastProcessedOwnerCandle;
+   ENUM_C044_LIFECYCLE_STATE  State;
+   ENUM_C044_EXIT_REASON      ExitReason;
+   datetime                   ExitLatchedCandle;
+   bool                       ReplaySeedValid;
+   ReEntryData                ReplayReEntry;
+   ExtremeLifecycleData       ReplayExtremeBuy;
+   ExtremeLifecycleData       ReplayExtremeSell;
+};
+
 struct NMJECounterfactualOutcomeCandidate
 {
    bool                 Present;
@@ -1206,6 +1224,8 @@ struct NMJECounterfactualOutcomeCandidate
    datetime             SLTPSourceCandleTime;
    bool                 ParentMatch;
    int                  StructureMask;
+   bool                 C044SeedMatch;
+   NMJECounterfactualC044ReplayState C044Replay;
 };
 
 struct NMJECounterfactualTradeSet
@@ -7028,6 +7048,218 @@ int NMJE_P2_FindCounterfactualTradeSet(int ticket)
    return -1;
 }
 
+bool NMJE_P2_CaptureC044ReplayState(
+   TradeInfo &info,
+   NMJECounterfactualC044ReplayState &state)
+{
+   ZeroMemory(state);
+   if(!info.c044_lifecycle_managed || !info.c044_replay_seed_valid ||
+      !IsValidC044OwnerTimeframe(info.c044_owner_timeframe))
+      return false;
+
+   state.Present = true;
+   state.OwnerTimeframe = info.c044_owner_timeframe;
+   state.OwnerReEntryCandle = info.c044_owner_reentry_candle;
+   state.EpochAnchorCandle = info.c044_epoch_anchor_candle;
+   state.LastProcessedOwnerCandle = info.c044_last_processed_owner_candle;
+   state.State = info.c044_state;
+   state.ExitReason = info.c044_exit_reason;
+   state.ExitLatchedCandle = info.c044_exit_latched_candle;
+   state.ReplaySeedValid = info.c044_replay_seed_valid;
+   state.ReplayReEntry = info.c044_replay_reentry;
+   state.ReplayExtremeBuy = info.c044_replay_extreme_buy;
+   state.ReplayExtremeSell = info.c044_replay_extreme_sell;
+   return true;
+}
+
+bool NMJE_P2_RestoreC044ReplayTrade(
+   NMJECounterfactualTradeSet &active,
+   NMJECounterfactualOutcomeCandidate &record,
+   TradeInfo &info)
+{
+   ZeroMemory(info);
+   if(!record.C044Replay.Present || active.Pair == "" ||
+      (record.Direction != DIR_BUY && record.Direction != DIR_SELL) ||
+      active.OpenTime <= 0)
+      return false;
+
+   info.pair = active.Pair;
+   info.direction = record.Direction;
+   info.open_time = active.OpenTime;
+   info.c044_lifecycle_managed = true;
+   info.c044_shadow_replay = true;
+   info.c044_owner_timeframe = record.C044Replay.OwnerTimeframe;
+   info.c044_owner_reentry_candle = record.C044Replay.OwnerReEntryCandle;
+   info.c044_epoch_anchor_candle = record.C044Replay.EpochAnchorCandle;
+   info.c044_last_processed_owner_candle =
+      record.C044Replay.LastProcessedOwnerCandle;
+   info.c044_state = record.C044Replay.State;
+   info.c044_exit_reason = record.C044Replay.ExitReason;
+   info.c044_exit_latched_candle = record.C044Replay.ExitLatchedCandle;
+   info.c044_replay_seed_valid = record.C044Replay.ReplaySeedValid;
+   info.c044_replay_reentry = record.C044Replay.ReplayReEntry;
+   info.c044_replay_extreme_buy = record.C044Replay.ReplayExtremeBuy;
+   info.c044_replay_extreme_sell = record.C044Replay.ReplayExtremeSell;
+   info.recovery_state = REC_NORMAL;
+
+   return (info.c044_replay_seed_valid &&
+           IsValidC044OwnerTimeframe(info.c044_owner_timeframe) &&
+           info.c044_last_processed_owner_candle > 0);
+}
+
+bool NMJE_P2_FindHardSLHitInClosedM1Window(
+   NMJECounterfactualTradeSet &active,
+   NMJECounterfactualOutcomeCandidate &record,
+   datetime startTime,
+   datetime endTime,
+   datetime &hitTime,
+   int &barsChecked)
+{
+   hitTime = 0;
+   if(record.StopLoss <= 0.0 || active.Pair == "" ||
+      (record.Direction != DIR_BUY && record.Direction != DIR_SELL))
+      return false;
+   if(endTime <= startTime) return true;
+
+   datetime firstFullBar = (datetime)(((int)startTime / 60) * 60);
+   if(firstFullBar < startTime) firstFullBar += 60;
+   datetime lastFullBar = (datetime)((((int)endTime - 60) / 60) * 60);
+   if(lastFullBar < firstFullBar) return true;
+
+   int startShift = iBarShift(active.Pair, PERIOD_M1, firstFullBar, true);
+   int endShift = iBarShift(active.Pair, PERIOD_M1, lastFullBar, true);
+   if(startShift < 0 || endShift < 0 || startShift < endShift) return false;
+
+   for(int shift = startShift; shift >= endShift; shift--)
+   {
+      datetime barTime = iTime(active.Pair, PERIOD_M1, shift);
+      if(barTime < firstFullBar || barTime > lastFullBar) continue;
+      double highBid = iHigh(active.Pair, PERIOD_M1, shift);
+      double lowBid = iLow(active.Pair, PERIOD_M1, shift);
+      if(highBid <= 0.0 || lowBid <= 0.0 || highBid < lowBid) return false;
+      barsChecked++;
+
+      bool slHit = (record.Direction == DIR_BUY)
+         ? (lowBid <= record.StopLoss)
+         : (highBid + record.FrozenSpreadPrice >= record.StopLoss);
+      if(slHit)
+      {
+         hitTime = barTime;
+         return true;
+      }
+   }
+   return true;
+}
+
+string NMJE_P2_C044OutcomeText(ENUM_C044_EXIT_REASON reason)
+{
+   if(reason == C044_EXIT_FAILED_MOMENTUM) return "C044_FAILED_MOMENTUM";
+   if(reason == C044_EXIT_CYCLE_SUPERSEDED) return "C044_CYCLE_SUPERSEDED";
+   if(reason == C044_EXIT_OPPOSITE_CSM) return "C044_OPPOSITE_CSM";
+   return "C044_EXIT_UNRESOLVED";
+}
+
+void NMJE_P2_ResolveTargetlessC044Outcome(
+   NMJECounterfactualTradeSet &active,
+   NMJECounterfactualOutcomeCandidate &record,
+   datetime closeTime,
+   string &outcome,
+   datetime &hitTime,
+   int &barsChecked,
+   int &ownerBarsChecked)
+{
+   outcome = "UNCOMPARABLE_C044_REPLAY_UNRESOLVED";
+   hitTime = 0;
+   ownerBarsChecked = 0;
+
+   TradeInfo replay;
+   if(!NMJE_P2_RestoreC044ReplayTrade(active, record, replay))
+      return;
+   int pairIndex = FindPairStateIndex(active.Pair);
+   if(pairIndex < 0)
+   {
+      for(int p = 0; p < g_pair_count; p++)
+      {
+         if(g_pair_states[p].actual_symbol == active.Pair)
+         {
+            pairIndex = p;
+            break;
+         }
+      }
+   }
+   if(pairIndex < 0 || closeTime <= active.OpenTime) return;
+
+   int tfSeconds = GetTimeframeSeconds(replay.c044_owner_timeframe);
+   int previousShift = iBarShift(active.Pair, replay.c044_owner_timeframe,
+                                 replay.c044_last_processed_owner_candle, true);
+   if(tfSeconds <= 0 || previousShift < 1)
+   {
+      outcome = "UNCOMPARABLE_C044_OWNER_HISTORY";
+      return;
+   }
+
+   datetime cursorTime = active.OpenTime;
+   for(int shift = previousShift - 1; shift >= 1; shift--)
+   {
+      datetime candleTime = iTime(active.Pair, replay.c044_owner_timeframe, shift);
+      if(candleTime <= replay.c044_last_processed_owner_candle)
+      {
+         outcome = "UNCOMPARABLE_C044_CANDLE_ORDER";
+         return;
+      }
+      datetime eventTime = candleTime + tfSeconds;
+      if(eventTime > closeTime) break;
+
+      datetime slHitTime = 0;
+      if(!NMJE_P2_FindHardSLHitInClosedM1Window(active, record,
+                                                 cursorTime, eventTime,
+                                                 slHitTime, barsChecked))
+      {
+         outcome = "UNCOMPARABLE_C044_M1_HISTORY";
+         return;
+      }
+      if(slHitTime > 0)
+      {
+         outcome = "SL_FIRST_TARGETLESS";
+         hitTime = slHitTime;
+         return;
+      }
+
+      if(!ProcessC044OwnerClosedCandle(replay, pairIndex, candleTime) ||
+         replay.c044_state == C044_LIFE_FROZEN)
+      {
+         outcome = "UNCOMPARABLE_C044_REPLAY_FROZEN";
+         return;
+      }
+      ownerBarsChecked++;
+      cursorTime = eventTime;
+
+      if(replay.c044_state == C044_LIFE_EXIT_LATCHED)
+      {
+         outcome = NMJE_P2_C044OutcomeText(replay.c044_exit_reason);
+         hitTime = eventTime;
+         return;
+      }
+   }
+
+   datetime finalSLHit = 0;
+   if(!NMJE_P2_FindHardSLHitInClosedM1Window(active, record,
+                                              cursorTime, closeTime,
+                                              finalSLHit, barsChecked))
+   {
+      outcome = "UNCOMPARABLE_C044_M1_HISTORY";
+      return;
+   }
+   if(finalSLHit > 0)
+   {
+      outcome = "SL_FIRST_TARGETLESS";
+      hitTime = finalSLHit;
+      return;
+   }
+
+   outcome = "C044_HOLD_AT_BASELINE_CLOSE";
+}
+
 bool NMJE_P2_IsSameCounterfactualExecutionIdentity(
    NMJECounterfactualOutcomeCandidate &a,
    NMJECounterfactualOutcomeCandidate &b,
@@ -7154,6 +7386,40 @@ void NMJE_P2_RegisterCounterfactualOpen(int pairIndex,
          record.SLTPSourceCandleTime = source.CandleTime;
          record.ParentMatch = pending.Candidates[i].ParentMatch;
          record.StructureMask = pending.Candidates[i].StructureMask;
+         record.C044SeedMatch = true;
+
+         if(targetless && built && shadow.C044LifecycleManaged &&
+            !shadow.D1TPWLifecycleManaged)
+         {
+            TradeInfo replayInfo;
+            ZeroMemory(replayInfo);
+            replayInfo.pair = info.pair;
+            replayInfo.direction = shadow.Direction;
+            replayInfo.open_time = info.open_time;
+
+            bool replayReady =
+               InitializeC044TradeStateFromDecision(replayInfo, shadow);
+            if(replayReady)
+            {
+               replayInfo.c044_shadow_replay = true;
+               replayReady =
+                  NMJE_P2_CaptureC044ReplayState(replayInfo, record.C044Replay);
+            }
+
+            if(selected)
+            {
+               record.C044SeedMatch =
+                  (replayReady && info.c044_lifecycle_managed &&
+                   info.c044_owner_timeframe == record.C044Replay.OwnerTimeframe &&
+                   info.c044_owner_reentry_candle ==
+                      record.C044Replay.OwnerReEntryCandle &&
+                   info.c044_epoch_anchor_candle ==
+                      record.C044Replay.EpochAnchorCandle &&
+                   info.c044_last_processed_owner_candle ==
+                      record.C044Replay.LastProcessedOwnerCandle &&
+                   info.c044_state == record.C044Replay.State);
+            }
+         }
 
          bool duplicate = false;
          for(int d = 0; d < active.Count; d++)
@@ -7210,6 +7476,10 @@ void NMJE_P2_RegisterCounterfactualOpen(int pairIndex,
                " SREL=", NMJE_RelationText(pending.StableRelation),
                " MAT=", NMJE_MaturityText(pending.Maturity),
                " M5SEM=", pending.M5SemanticResolved ? "Y" : "N",
+               " C044R=", row.C044Replay.Present ? "Y" : "N",
+               " C044SeedMatch=", (row.Selected && row.Targetless) ?
+                  (row.C044SeedMatch ? "Y" : "N") : "-",
+               " OwnerTF=", IntegerToString(row.C044Replay.OwnerTimeframe),
                " Spread=", DoubleToString(row.FrozenSpreadPrice, snapshot.Digits),
                " Method=BASELINE_FILL_PROXY Authority=NONE");
       }
@@ -7223,15 +7493,22 @@ void NMJE_P2_ResolvePairedWindowOutcome(NMJECounterfactualTradeSet &active,
                                         datetime closeTime,
                                         string &outcome,
                                         datetime &hitTime,
-                                        int &barsChecked)
+                                        int &barsChecked,
+                                        int &ownerBarsChecked)
 {
    outcome = "UNRESOLVED_AT_BASELINE_CLOSE";
    hitTime = 0;
    barsChecked = 0;
+   ownerBarsChecked = 0;
 
    if(record.Targetless)
    {
-      outcome = "UNCOMPARABLE_TARGETLESS";
+      if(record.C044Replay.Present)
+         NMJE_P2_ResolveTargetlessC044Outcome(active, record, closeTime,
+                                               outcome, hitTime,
+                                               barsChecked, ownerBarsChecked);
+      else
+         outcome = "UNCOMPARABLE_TARGETLESS_NO_C044_REPLAY";
       return;
    }
    if(!record.SLTPResolved || record.StopLoss <= 0.0 || record.TakeProfit <= 0.0)
@@ -7331,9 +7608,11 @@ void NMJE_P2_PrintCounterfactualOutcomes(int ticket, datetime closeTime)
       string outcome = "";
       datetime hitTime = 0;
       int barsChecked = 0;
+      int ownerBarsChecked = 0;
       NMJE_P2_ResolvePairedWindowOutcome(active, active.Candidates[i],
                                          closeTime, outcome,
-                                         hitTime, barsChecked);
+                                         hitTime, barsChecked,
+                                         ownerBarsChecked);
 
       Print("[Q9-P2-CF-OUT] Pair=", active.Pair,
             " Ticket=", IntegerToString(active.Ticket),
@@ -7346,8 +7625,9 @@ void NMJE_P2_PrintCounterfactualOutcomes(int ticket, datetime closeTime)
             " Outcome=", outcome,
             " Hit=", IntegerToString((int)hitTime),
             " Bars=", IntegerToString(barsChecked),
+            " OwnerBars=", IntegerToString(ownerBarsChecked),
             " WindowClose=", IntegerToString((int)closeTime),
-            " Method=PAIRED_BASELINE_WINDOW_CLOSED_M1 Authority=NONE");
+            " Method=PAIRED_BASELINE_WINDOW_CLOSED_M1_C044_REPLAY Authority=NONE");
    }
    ZeroMemory(g_nmje_cf_active[activeIndex]);
 }
@@ -10887,7 +11167,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.14 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.15 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -10896,6 +11176,7 @@ void F7BuildIdentityTelemetry()
 
 void F7Telemetry(string eventName, TradeInfo &info, string detail="")
 {
+   if(info.c044_shadow_replay) return;
    string line="[F7-TELEM] Event="+eventName+" Ticket="+IntegerToString(info.ticket)+" Pair="+info.pair+
       " State="+EnumToString(info.c044_state)+" Reason="+EnumToString(info.c044_exit_reason)+
       " DecisionID="+info.decision_id+" Hash="+info.execution_hash+" OwnerTF="+IntegerToString(info.c044_owner_timeframe)+
@@ -11462,6 +11743,7 @@ void ResetC044TradeState(TradeInfo &info)
    info.c044_exit_reason = C044_EXIT_NONE;
    info.c044_exit_latched_candle = 0;
    info.c044_replay_seed_valid = false;
+   info.c044_shadow_replay = false;
    ZeroMemory(info.c044_replay_reentry);
    ZeroMemory(info.c044_replay_extreme_buy);
    ZeroMemory(info.c044_replay_extreme_sell);
@@ -11845,6 +12127,9 @@ void ClearC044Checkpoint(TradeInfo &info)
 
 bool SaveC044Checkpoint(TradeInfo &info)
 {
+   // Tester-only counterfactual replay reuses the canonical C044 state machine
+   // without writing terminal globals or requiring a broker ticket.
+   if(info.c044_shadow_replay) return true;
    if(!info.c044_lifecycle_managed || info.ticket <= 0 ||
       info.magic_number <= 0 || info.open_time <= 0 ||
       (info.direction != DIR_BUY && info.direction != DIR_SELL) ||

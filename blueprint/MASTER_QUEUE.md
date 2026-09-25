@@ -178,7 +178,7 @@ The exact Build 5.11 source/EX4 candidate is frozen. Phase H remains **56 PASS /
 Issue: **#101**
 Scoped lineage: **Draft PRs #192-#205**
 Priority: **HIGH / SHADOW-RESEARCH CORRECTNESS**
-Status: **V1↔V2 CURRENT-OWNER RECONCILIATION COMPLETE / P1 INTEGRATED / P2-P11 RESEARCH-ONLY / NO ACTIVATION**
+Status: **BUILD 5.12 P2/P3 SHADOW REMATERIALIZATION VALIDATED / P2 ORDERING HOLD / M5 EXECUTION AUTHORITY NONE**
 
 Current state:
 1. Do not rerun P1-P10; their exact scoped evidence remains reusable.
@@ -188,7 +188,9 @@ Current state:
 5. Static/model/persistence + native compile + deterministic GBPUSD tester authority regression PASS; broker actions=0.
 6. Current owner Build 5.11 already contains the P1 provenance identity substrate. PR #205 is retained as verified historical research provenance only and must **not** be direct-merged: live compare shows it 164 commits behind current owner. Any resumed P2-P8/P10/P11 work must be rematerialized from the then-current owner; P2 ordering remains HOLD and M5 remains shadow-only.
 7. Current-owner reconciliation audit: `blueprint/audits/NMJE_V1_V2_CURRENT_OWNER_IMPLEMENTATION_RECONCILIATION_20260925.md`; current-owner code fix = `NONE`, accepted Core delta = `NONE`.
-8. Issue #101 downstream sequence is **COMPLETED through final integration**; the following list is retained as completed order and must not be requeued without new evidence:
+8. Fresh current-owner P2/P3 shadow rematerialization is validated as Build `5.12` / rev `NMJE_P2P3_SHADOW_003_20260925`: native 0E/0W, targeted regression PASS, isolated GBPUSD M15 Strategy Tester runtime/order coverage PASS. P2 ordering remains HOLD; M5 remains closed-candle shadow-only. Audit: `blueprint/audits/NMJE_V2_P2_P3_CURRENT_OWNER_REMATERIALIZATION_20260925.md`.
+9. Legacy N2/N3 v4.58 workflows are retired from current-owner PR gating and retained only as immutable-revision manual-dispatch historical checks.
+10. Issue #101 downstream sequence is **COMPLETED through final integration**; the following list is retained as completed order and must not be requeued without new evidence:
    - D1TPW lifecycle re-audit;
    - C044 lifecycle;
    - D1/D1O identity & dedup;
@@ -200,7 +202,7 @@ Current state:
    - M01-M27 + M12N cross-module audit;
    - final integration candidate/tests/backtest;
    - final MetaQuotes-Demo runtime acceptance last (Issue #109; user-selected demo provider, 2026-09-23).
-8. Old PR #102/#126 lineage remains historical/staging evidence only; do not merge it directly.
+11. Old PR #102/#126 lineage remains historical/staging evidence only; do not merge it directly.
 
 ### Q11 — Dashboard / observer future materialization
 Status: **DEFERRED / RE-AUDIT REQUIRED**

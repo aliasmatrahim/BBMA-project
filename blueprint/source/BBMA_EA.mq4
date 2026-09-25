@@ -35,7 +35,7 @@
 #property strict
 
 #define BBMA_BUILD_TAG      "V512_NMJE_P2P3_SHADOW_20260925"
-#define BBMA_SOURCE_REV_TAG "NMJE_P2P3_SHADOW_001_20260925"
+#define BBMA_SOURCE_REV_TAG "NMJE_P2P3_SHADOW_003_20260925"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -5462,19 +5462,19 @@ void NMJE_P2_PrintEqualEligibilityShadow(int pairIndex,
 void NMJE_P3_UpdateClosedM5Shadow(int pairIndex)
 {
    if(pairIndex < 0 || pairIndex >= g_pair_count) return;
-   PairState &state = g_pair_states[pairIndex];
-   NestedJourneyState &journey = g_nested_journeys[pairIndex];
-   journey.M5ShadowPresent = false;
-   journey.M5ShadowClosedCandleTime = 0;
-   journey.M5ShadowEventID = "";
-   journey.M5ShadowDirection = DIR_NONE;
-   journey.M5ShadowReason = "M5_CLOSED_DATA_UNAVAILABLE";
+   PairState state = g_pair_states[pairIndex];
+   g_nested_journeys[pairIndex].M5ShadowPresent = false;
+   g_nested_journeys[pairIndex].M5ShadowClosedCandleTime = 0;
+   g_nested_journeys[pairIndex].M5ShadowEventID = "";
+   g_nested_journeys[pairIndex].M5ShadowDirection = DIR_NONE;
+   g_nested_journeys[pairIndex].M5ShadowReason = "M5_CLOSED_DATA_UNAVAILABLE";
    if(state.m5_data.timeframe != PERIOD_M5 || state.m5_data.candle_time <= 0) return;
    if(!state.m5_data.is_valid || !state.m5_data.is_closed) return;
-   journey.M5ShadowPresent = true;
-   journey.M5ShadowClosedCandleTime = state.m5_data.candle_time;
-   journey.M5ShadowEventID = "M5|" + state.actual_symbol + "|" + IntegerToString((int)state.m5_data.candle_time);
-   journey.M5ShadowReason = "M5_CLOSED_SNAPSHOT_ONLY";
+   g_nested_journeys[pairIndex].M5ShadowPresent = true;
+   g_nested_journeys[pairIndex].M5ShadowClosedCandleTime = state.m5_data.candle_time;
+   g_nested_journeys[pairIndex].M5ShadowEventID =
+      "M5|" + state.actual_symbol + "|" + IntegerToString((int)state.m5_data.candle_time);
+   g_nested_journeys[pairIndex].M5ShadowReason = "M5_CLOSED_SNAPSHOT_ONLY";
 }
 
 void CollectSignalSnapshots(Signal &h1_extreme_snapshot, Signal &m15_mhv_snapshot,
@@ -9232,7 +9232,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.11 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.12 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);

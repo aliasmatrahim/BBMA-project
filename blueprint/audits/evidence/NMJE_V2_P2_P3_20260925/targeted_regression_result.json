@@ -1,0 +1,158 @@
+{
+  "schema": "NMJE_V2_P2_P3_TARGETED_REGRESSION_V1",
+  "source_sha256": "D80FA8D1A11A1FBAFFEC1F2E3FFF029DBAAB96BB58D89C29EDEBC25830379D1E",
+  "base_ref": "origin/d1-owner-dev",
+  "checks": {
+    "version_512": {
+      "pass": true,
+      "detail": ""
+    },
+    "source_rev_003": {
+      "pass": true,
+      "detail": ""
+    },
+    "runtime_build_identity_512": {
+      "pass": true,
+      "detail": ""
+    },
+    "p2_definition_and_call_once": {
+      "pass": true,
+      "detail": "2"
+    },
+    "p3_definition_and_call_once": {
+      "pass": true,
+      "detail": "2"
+    },
+    "m5_latest_closed_binding": {
+      "pass": true,
+      "detail": ""
+    },
+    "forbidden_execution_gate_absent": {
+      "pass": true,
+      "detail": ""
+    },
+    "p2_no_order_score_reject_write": {
+      "pass": true,
+      "detail": ""
+    },
+    "p3_no_detector_or_execution": {
+      "pass": true,
+      "detail": ""
+    },
+    "p3_closed_data_guard": {
+      "pass": true,
+      "detail": ""
+    },
+    "p3_only_nested_shadow_mutation": {
+      "pass": true,
+      "detail": ""
+    },
+    "p3_call_order": {
+      "pass": true,
+      "detail": "1192,14024,14070,14195"
+    },
+    "p2_pre_priority_observer_order": {
+      "pass": true,
+      "detail": "19363,19555"
+    },
+    "protected_functions_exact": {
+      "pass": true,
+      "detail": "{\"CheckRiskBeforeTrade\": {\"base_sha256\": \"8F9EB7721652695C20D3B5DBA8FF66343E405A9C81514D84BFF67566B818B708\", \"current_m5_refs\": 0, \"current_nmje_refs\": 0, \"current_sha256\": \"8F9EB7721652695C20D3B5DBA8FF66343E405A9C81514D84BFF67566B818B708\", \"same\": true}, \"CompareCanonicalCandidates\": {\"base_sha256\": \"CAEED9149B75C716265D084D104BB2B19C2C6AFC824386DED695783A0AB20DA7\", \"current_m5_refs\": 0, \"current_nmje_refs\": 0, \"current_sha256\": \"CAEED9149B75C716265D084D104BB2B19C2C6AFC824386DED695783A0AB20DA7\", \"same\": true}, \"InvalidationEngine_Atomic\": {\"base_sha256\": \"7264338C505536016A26571ADE40C0533872F800C4901F33B8D1490BADA7CAD0\", \"current_m5_refs\": 0, \"current_nmje_refs\": 0, \"current_sha256\": \"7264338C505536016A26571ADE40C0533872F800C4901F33B8D1490BADA7CAD0\", \"same\": true}, \"IsApprovedSLTPSourceComponent\": {\"base_sha256\": \"2B9A6CF212D543C5827AF6A220614F032643FEA8A6897846AEC2A7587DFBA909\", \"current_m5_refs\": 0, \"current_nmje_refs\": 0, \"current_sha256\": \"2B9A6CF212D543C5827AF6A220614F032643FEA8A6897846AEC2A7587DFBA909\", \"same\": true}, \"IsSignalAllowed\": {\"base_sha256\": \"90B6791F97E1EC5FDBCC467CF0C2AC43B19552DF6F9D3E460F8D5349823732B0\", \"current_m5_refs\": 0, \"current_nmje_refs\": 0, \"current_sha256\": \"90B6791F97E1EC5FDBCC467CF0C2AC43B19552DF6F9D3E460F8D5349823732B0\", \"same\": true}, \"PriorityEngine_Atomic\": {\"base_sha256\": \"28B34AC1BB7DB58F8B94E468909B691FF7338ECF4EE876E0F47F8759AB00D54B\", \"current_m5_refs\": 0, \"current_nmje_refs\": 0, \"current_sha256\": \"28B34AC1BB7DB58F8B94E468909B691FF7338ECF4EE876E0F47F8759AB00D54B\", \"same\": true}, \"ResolveApprovedInitialSLTP\": {\"base_sha256\": \"8A088C9580B9186BBDF7422A732EC5875AE684C9301C3B8EC06A21EF22253EBF\", \"current_m5_refs\": 0, \"current_nmje_refs\": 0, \"current_sha256\": \"8A088C9580B9186BBDF7422A732EC5875AE684C9301C3B8EC06A21EF22253EBF\", \"same\": true}, \"ResolveExecutionReferencePrice\": {\"base_sha256\": \"6C4D92EDCF48010B3A646868F918D7150AD65138DADAA7F17FCEB31287DD23D4\", \"current_m5_refs\": 0, \"current_nmje_refs\": 0, \"current_sha256\": \"6C4D92EDCF48010B3A646868F918D7150AD65138DADAA7F17FCEB31287DD23D4\", \"same\": true}, \"ResolveSelectedSLTPSourceComponent\": {\"base_sha256\": \"7B3849BFFB76FEE4F23FA8F35D6E1223FA19BCCEDCBF5B0F1FBD09A1AE3896FE\", \"current_m5_refs\": 0, \"current_nmje_refs\": 0, \"current_sha256\": \"7B3849BFFB76FEE4F23FA8F35D6E1223FA19BCCEDCBF5B0F1FBD09A1AE3896FE\", \"same\": true}, \"RunEntryPreflightAndExecute\": {\"base_sha256\": \"69E1588C94D47448D7B46EB193CB67786AF702B4EC64C407FABEAF531BFBC481\", \"current_m5_refs\": 0, \"current_nmje_refs\": 0, \"current_sha256\": \"69E1588C94D47448D7B46EB193CB67786AF702B4EC64C407FABEAF531BFBC481\", \"same\": true}, \"SendOrderWithRetry\": {\"base_sha256\": \"CA747072093F4F2AC92CA71DA807C0BA1E88A428481CDE58C1373C478A1AB030\", \"current_m5_refs\": 0, \"current_nmje_refs\": 0, \"current_sha256\": \"CA747072093F4F2AC92CA71DA807C0BA1E88A428481CDE58C1373C478A1AB030\", \"same\": true}}"
+    },
+    "protected_functions_no_nmje_m5": {
+      "pass": true,
+      "detail": ""
+    },
+    "existing_nmje_helpers_preserved": {
+      "pass": true,
+      "detail": "{\"NMJE_BuildJourneyID\": true, \"NMJE_PrintClosedOutcomeShadow\": true, \"NMJE_PrintValidatedDecisionShadow\": true, \"NMJE_ResolveParent\": true, \"UpdateNestedJourneyObservation\": true}"
+    }
+  },
+  "protected": {
+    "CompareCanonicalCandidates": {
+      "same": true,
+      "current_nmje_refs": 0,
+      "current_m5_refs": 0,
+      "current_sha256": "CAEED9149B75C716265D084D104BB2B19C2C6AFC824386DED695783A0AB20DA7",
+      "base_sha256": "CAEED9149B75C716265D084D104BB2B19C2C6AFC824386DED695783A0AB20DA7"
+    },
+    "PriorityEngine_Atomic": {
+      "same": true,
+      "current_nmje_refs": 0,
+      "current_m5_refs": 0,
+      "current_sha256": "28B34AC1BB7DB58F8B94E468909B691FF7338ECF4EE876E0F47F8759AB00D54B",
+      "base_sha256": "28B34AC1BB7DB58F8B94E468909B691FF7338ECF4EE876E0F47F8759AB00D54B"
+    },
+    "InvalidationEngine_Atomic": {
+      "same": true,
+      "current_nmje_refs": 0,
+      "current_m5_refs": 0,
+      "current_sha256": "7264338C505536016A26571ADE40C0533872F800C4901F33B8D1490BADA7CAD0",
+      "base_sha256": "7264338C505536016A26571ADE40C0533872F800C4901F33B8D1490BADA7CAD0"
+    },
+    "ResolveApprovedInitialSLTP": {
+      "same": true,
+      "current_nmje_refs": 0,
+      "current_m5_refs": 0,
+      "current_sha256": "8A088C9580B9186BBDF7422A732EC5875AE684C9301C3B8EC06A21EF22253EBF",
+      "base_sha256": "8A088C9580B9186BBDF7422A732EC5875AE684C9301C3B8EC06A21EF22253EBF"
+    },
+    "CheckRiskBeforeTrade": {
+      "same": true,
+      "current_nmje_refs": 0,
+      "current_m5_refs": 0,
+      "current_sha256": "8F9EB7721652695C20D3B5DBA8FF66343E405A9C81514D84BFF67566B818B708",
+      "base_sha256": "8F9EB7721652695C20D3B5DBA8FF66343E405A9C81514D84BFF67566B818B708"
+    },
+    "RunEntryPreflightAndExecute": {
+      "same": true,
+      "current_nmje_refs": 0,
+      "current_m5_refs": 0,
+      "current_sha256": "69E1588C94D47448D7B46EB193CB67786AF702B4EC64C407FABEAF531BFBC481",
+      "base_sha256": "69E1588C94D47448D7B46EB193CB67786AF702B4EC64C407FABEAF531BFBC481"
+    },
+    "IsSignalAllowed": {
+      "same": true,
+      "current_nmje_refs": 0,
+      "current_m5_refs": 0,
+      "current_sha256": "90B6791F97E1EC5FDBCC467CF0C2AC43B19552DF6F9D3E460F8D5349823732B0",
+      "base_sha256": "90B6791F97E1EC5FDBCC467CF0C2AC43B19552DF6F9D3E460F8D5349823732B0"
+    },
+    "SendOrderWithRetry": {
+      "same": true,
+      "current_nmje_refs": 0,
+      "current_m5_refs": 0,
+      "current_sha256": "CA747072093F4F2AC92CA71DA807C0BA1E88A428481CDE58C1373C478A1AB030",
+      "base_sha256": "CA747072093F4F2AC92CA71DA807C0BA1E88A428481CDE58C1373C478A1AB030"
+    },
+    "ResolveExecutionReferencePrice": {
+      "same": true,
+      "current_nmje_refs": 0,
+      "current_m5_refs": 0,
+      "current_sha256": "6C4D92EDCF48010B3A646868F918D7150AD65138DADAA7F17FCEB31287DD23D4",
+      "base_sha256": "6C4D92EDCF48010B3A646868F918D7150AD65138DADAA7F17FCEB31287DD23D4"
+    },
+    "ResolveSelectedSLTPSourceComponent": {
+      "same": true,
+      "current_nmje_refs": 0,
+      "current_m5_refs": 0,
+      "current_sha256": "7B3849BFFB76FEE4F23FA8F35D6E1223FA19BCCEDCBF5B0F1FBD09A1AE3896FE",
+      "base_sha256": "7B3849BFFB76FEE4F23FA8F35D6E1223FA19BCCEDCBF5B0F1FBD09A1AE3896FE"
+    },
+    "IsApprovedSLTPSourceComponent": {
+      "same": true,
+      "current_nmje_refs": 0,
+      "current_m5_refs": 0,
+      "current_sha256": "2B9A6CF212D543C5827AF6A220614F032643FEA8A6897846AEC2A7587DFBA909",
+      "base_sha256": "2B9A6CF212D543C5827AF6A220614F032643FEA8A6897846AEC2A7587DFBA909"
+    }
+  },
+  "existing_nmje": {
+    "NMJE_BuildJourneyID": true,
+    "NMJE_ResolveParent": true,
+    "UpdateNestedJourneyObservation": true,
+    "NMJE_PrintValidatedDecisionShadow": true,
+    "NMJE_PrintClosedOutcomeShadow": true
+  },
+  "status": "PASS"
+}

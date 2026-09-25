@@ -103,7 +103,7 @@ Authorized G40 Remote Desktop Commander is reachable. Q3 isolated Build 4.81 run
 - Issue #109 is active on exact Build 5.11 under hybrid tester-first / MetaQuotes-Demo-last acceptance. The older R3-only status is superseded by the 2026-09-24 exact-R2 runtime checkpoint. Formal local Phase-L state is now **R3 PASS / R4 PASS / R5 INCOMPLETE / R6 NOT PROMOTED**. R5 mandatory live/reconfirm PASS cases are `R5-00/R5-01/R5-11/R5-12/R5-13/R5-20`; the only mandatory blockers are **R5-14** (natural server blank/replaced broker comment) and **R5-16** (natural safe retryable OrderSend error 135/138/146), with no mandatory R5 FAIL. USDCHF ticket `1629172566` / hash `CA000D516825BB44` survived a guarded graceful restart as the same persisted identity with `Monitored=1`; no duplicate ticket was observed. Exact candidate/source/EX4/settings identity is unchanged. Evidence: `blueprint/audits/Q10_PHASE_L_R5_LIVE_STATE_20260924.md`.
 
 ### 8. Q9 NMJE v2 / M5 accuracy hardening — Issue #101
-Status: **V1↔V2 CURRENT-OWNER RECONCILIATION COMPLETE / P1 INTEGRATED / P2-P11 RESEARCH-ONLY / NO ACTIVATION**.
+Status: **BUILD 5.12 P2/P3 SHADOW REMATERIALIZATION VALIDATED / P2 ORDERING HOLD / M5 EXECUTION AUTHORITY NONE**.
 - Q9 P1-P11 Draft/scoped research lineage #192-#205 remains non-activated against canonical owner Build 5.11; NMJE remains observation-only and M5 remains closed-candle context/shadow only. Subsequent Issue #101 downstream production-owner audits/fixes through Build 5.11 were completed separately and must not be requeued.
 - User decision A locks strict canonical JourneyID semantics for P11.
 - Accepted P11 head: PR #205 commit `0f80addc9080e726b8e6bb26a34094ae41ac3256`, Build `4.96` / `V496_Q9_P11_STRICT_JOURNEY_LINEAGE_20260920`, MQ4 SHA-256 `B08CBDEFED1B1A6B6F0B9CADC3CA53B25BD3F98334E7E797A51D765F53E0C148`.
@@ -113,6 +113,8 @@ Status: **V1↔V2 CURRENT-OWNER RECONCILIATION COMPLETE / P1 INTEGRATED / P2-P11
 - Canonical/runtime/tester native MetaEditor compile = 0 errors / 0 warnings.
 - PR #205 remains Draft provenance only: **DO NOT DIRECT-MERGE / NO PRODUCTION ACTIVATION / NO P2 ACTIVATION / NO M5 EXECUTION AUTHORITY**.
 - 2026-09-25 V1↔V2 current-owner reconciliation against Build 5.11: P1 identity substrate is already integrated/equivalent; P2-P8/P10/P11 remain bounded research/shadow concepts. PR #205 is 164 commits behind live owner and must be rematerialized from current owner if research resumes. Current-owner code fix = `NONE`. Audit: `blueprint/audits/NMJE_V1_V2_CURRENT_OWNER_IMPLEMENTATION_RECONCILIATION_20260925.md`.
+- Fresh current-owner P2/P3 rematerialization is validated as Build `5.12` / `V512_NMJE_P2P3_SHADOW_20260925`, source rev `NMJE_P2P3_SHADOW_003_20260925`, source SHA-256 `D80FA8D1A11A1FBAFFEC1F2E3FFF029DBAAB96BB58D89C29EDEBC25830379D1E`, EX4 SHA-256 `DECCE17D2BAC0694A9A25C4C66C7828DE520D7EFBA4A977FF6703C5B4EECD252`. Native compile 0E/0W, targeted regression PASS and isolated GBPUSD M15 Strategy Tester runtime/order coverage PASS. P2 remains telemetry-only; P3 remains latest-closed-M5 shadow context only. Audit: `blueprint/audits/NMJE_V2_P2_P3_CURRENT_OWNER_REMATERIALIZATION_20260925.md`.
+- Legacy N2/N3 v4.58 workflows are historical manual-dispatch checks pinned to immutable v4.58 revisions; they no longer gate/misroute current-owner EA PRs.
 - Issue #101 downstream production-owner sequence is completed through final integration; do not requeue D1TPW/C044/D1O/M17/TradeLock-risk/N1-N2-N3/M25/Observer/cross-module work without new evidence.
 
 ## Deferred / future work

@@ -36,7 +36,7 @@ jobs:
 
           required = [
               'V512_NMJE_P2P3_SHADOW_20260925',
-              'NMJE_SOURCE_REV_TAG',
+              'BBMA_SOURCE_REV_TAG',
               'NMJE_P2_PrintEqualEligibilityShadow',
               'NMJE_P3_UpdateClosedM5Shadow',
               'GetLatestClosedCandleTime(actual, PERIOD_M5)',

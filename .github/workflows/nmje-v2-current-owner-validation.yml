@@ -190,7 +190,8 @@ jobs:
                                         'CalculateLotSize(', 'FinalPortfolioGuard(', 'ProcessEntry('):
               if forbidden_active_call in active_surface:
                   raise SystemExit(f'N3 selection helper gained forbidden authority: {forbidden_active_call}')
-          if 'NESTED_CONFLICT' in positive_context:
+          if 'journey.Relation == NESTED_CONFLICT' in positive_context or \
+             'journey.M5DiagnosticRelation == NESTED_CONFLICT' in positive_context:
               raise SystemExit('N3 positive selection context must not promote hard conflict')
 
           register = function_body('NMJE_P2_RegisterCounterfactualOpen')

@@ -13,6 +13,8 @@ on:
       - 'blueprint/audits/evidence/NMJE_V2_P4PLUS_20260925/**'
       - 'blueprint/audits/evidence/NMJE_V2_P2_COUNTERFACTUAL_20260925/**'
       - 'blueprint/audits/evidence/NMJE_V2_P2_TARGETLESS_REPLAY_20260925/**'
+      - 'blueprint/audits/NMJE_V2_BUILD516_FORWARD_M5_OWNER_PREP_20260926.md'
+      - 'blueprint/audits/evidence/NMJE_V2_BUILD516_20260926/**'
       - '.github/workflows/nmje-v2-current-owner-validation.yml'
   workflow_dispatch:
 
@@ -21,7 +23,7 @@ permissions:
 
 jobs:
   nmje-v2-static:
-    name: NMJE V2 current-owner shadow invariants
+    name: NMJE V2 current-owner authority invariants
     runs-on: ubuntu-latest
     steps:
       - name: Checkout exact PR head
@@ -30,7 +32,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 1
 
-      - name: Verify current-owner shadow boundaries
+      - name: Verify current-owner bounded authority
         shell: bash
         run: |
           set -euo pipefail
@@ -43,8 +45,6 @@ jobs:
           replay_audit = Path("blueprint/audits/NMJE_V2_P2_TARGETLESS_LIFECYCLE_REPLAY_20260925.md").read_text(encoding="utf-8")
 
           required = [
-              'V515_NMJE_P2_TARGETLESS_REPLAY_20260925',
-              'NMJE_P2_TARGETLESS_REPLAY_001_20260925',
               'NMJE_P2_PrintEqualEligibilityShadow',
               'NMJE_P3_UpdateClosedM5Shadow',
               'NMJE_FreezeValidatedDecisionAttribution',
@@ -58,8 +58,11 @@ jobs:
               'NMJE_P2_RegisterCounterfactualOpen',
               'NMJE_P2_PrintCounterfactualOutcomes',
               'NMJE_P2_IsSameCounterfactualExecutionIdentity',
-              'TESTER-ONLY SHADOW RESEARCH',
-              'M5_SIGNAL_SEMANTICS_NOT_MATERIALIZED_TRUE_CONFLICT_HOLD',
+              'NMJE_IsForwardEvidenceEnabled',
+              'EnableNMJEForwardEvidence',
+              'M5SemanticOwnerState',
+              'UpdateCanonicalM5SemanticOwners',
+              'M5_CONFIRMED_RE_OPPOSES_PARENT_TRUE_CONFLICT_HOLD',
               'The canonical comparator remains untouched.',
           ]
           for marker in required:
@@ -107,12 +110,15 @@ jobs:
           for detector in ('DetectExtreme(', 'DetectCSD(', 'DetectECSD(', 'DetectCSM(', 'UpdateReEntryState('):
               if detector in p3_body:
                   raise SystemExit(f'P3 must not create M5 semantics: {detector}')
+          if 'NESTED_CONFLICT' in p3_body:
+              raise SystemExit('P5 true conflict must remain HOLD / non-executable')
 
           if 'CONTINUATION is intentionally never inferred' not in source:
               raise SystemExit('P11 strict-A no-inference guard missing')
 
           def function_body(name):
-              start = source.find('void ' + name + '(')
+              match = re.search(r'(?:void|bool)\\s+' + re.escape(name) + r'\\s*\\(', source)
+              start = match.start() if match else -1
               if start < 0:
                   raise SystemExit(f'missing function: {name}')
               brace = source.find('{', start)
@@ -125,11 +131,41 @@ jobs:
                           return source[start:i+1]
               raise SystemExit(f'unclosed function: {name}')
 
+          forward = function_body('NMJE_IsForwardEvidenceEnabled')
+          if 'if(IsTesting()) return true;' not in forward:
+              raise SystemExit('NMJE forward evidence must always allow tester mode')
+          if 'return (EnableNMJEForwardEvidence && IsDemo());' not in forward:
+              raise SystemExit('NMJE forward evidence must be explicitly demo-only outside tester')
+          if not re.search(r'input bool\s+EnableNMJEForwardEvidence\s*=\s*false\s*;', source):
+              raise SystemExit('NMJE forward evidence input must default OFF')
+
+          owner = function_body('UpdateCanonicalM5SemanticOwners')
+          for required_owner_call in (
+              'DetectExtreme(', 'UpdateExtremeLifecycle(', 'UpdateCanonicalMLVState(',
+              'DetectCSD(', 'DetectECSD(', 'DetectCSM(', 'UpdateReEntryState(',
+          ):
+              if required_owner_call not in owner:
+                  raise SystemExit(f'M5 canonical owner path missing: {required_owner_call}')
+          for forbidden_owner_call in (
+              'OrderSend(', 'OrderClose(', 'CheckRiskBeforeTrade(',
+              'CalculateLotSize(', 'FinalPortfolioGuard(', 'ProcessEntry(',
+          ):
+              if forbidden_owner_call in owner:
+                  raise SystemExit(f'M5 owner preparation gained trade authority: {forbidden_owner_call}')
+
+          if source.count('UpdateCanonicalM5SemanticOwners(pairIndex)') != 1:
+              raise SystemExit('M5 owner preparation must be called exactly once per M15 ProcessPair cycle')
+          m5_owner_call = source.find('UpdateCanonicalM5SemanticOwners(pairIndex)')
+          nested_call = source.find('UpdateNestedJourneyObservation(pairIndex)', m5_owner_call)
+          p3_call = source.find('NMJE_P3_UpdateClosedM5Shadow(pairIndex)', m5_owner_call)
+          if m5_owner_call < 0 or nested_call < m5_owner_call or p3_call < nested_call:
+              raise SystemExit('M5 owner -> nested journey -> P3 consumption ordering invalid')
+
           register = function_body('NMJE_P2_RegisterCounterfactualOpen')
           outcome = function_body('NMJE_P2_PrintCounterfactualOutcomes')
           cf = register + '\\n' + outcome
-          if 'if(!IsTesting()) return;' not in register or 'if(!IsTesting()) return;' not in outcome:
-              raise SystemExit('counterfactual overlay must remain tester-only')
+          if 'if(!NMJE_IsForwardEvidenceEnabled()) return;' not in register or 'if(!NMJE_IsForwardEvidenceEnabled()) return;' not in outcome:
+              raise SystemExit('counterfactual overlay must remain bounded to tester/demo evidence mode')
           for forbidden in ('OrderSend(', 'OrderClose(', 'CheckRiskBeforeTrade(',
                             'CalculateLotSize(', 'FinalPortfolioGuard(', 'ProcessEntry('):
               if forbidden in cf:

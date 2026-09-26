@@ -128,8 +128,8 @@ def run(root: Path, expert: str, out: Path, tag: str, period: str, vals: dict, t
         p.kill(); p.wait(timeout=30); raise RuntimeError(f"timeout {tag} {period}")
     if not report.is_file(): raise RuntimeError(f"missing report {report}")
     logs,logmeta=log_delta(root,before); low=logs.lower()
-    dids=re.findall(r"\[P3M2\]\[EXEC\].*?DecisionID=(.*?)\s+Signal=",logs)
-    tickets=re.findall(r"\[P3M2\]\[EXEC\]\s+Ticket=(\d+)",logs)
+    dids=re.findall(r"\[P3M[12]\]\[EXEC\].*?DecisionID=(.*?)\s+Signal=",logs)
+    tickets=re.findall(r"\[P3M[12]\]\[EXEC\]\s+Ticket=(\d+)",logs)
     safety={"fatal":{x:low.count(x) for x in FATAL},"duplicate_decision_ids":len(dids)-len(set(dids)),
             "duplicate_tickets":len(tickets)-len(set(tickets)),"exec_count":len(tickets),
             "nmje_active":"[N3-NMJE-POLICY] Mode=ACTIVE" in logs,"build519":f"Build={BUILD}" in logs and BUILD_TAG in logs}
@@ -145,6 +145,7 @@ def clean(r: dict, min_trades=20) -> bool:
         and all(v==0 for v in s["fatal"].values())
         and s["duplicate_decision_ids"]==0
         and s["duplicate_tickets"]==0
+        and s["exec_count"] == r["metrics"]["total_trades"]
         and r["metrics"]["total_trades"]>=min_trades
     )
 

@@ -139,7 +139,14 @@ def run(root: Path, expert: str, out: Path, tag: str, period: str, vals: dict, t
 
 def clean(r: dict, min_trades=20) -> bool:
     s=r["safety"]
-    return all(v==0 for v in s["fatal"].values()) and s["duplicate_decision_ids"]==0 and s["duplicate_tickets"]==0 and r["metrics"]["total_trades"]>=min_trades
+    return (
+        s["build519"]
+        and s["nmje_active"]
+        and all(v==0 for v in s["fatal"].values())
+        and s["duplicate_decision_ids"]==0
+        and s["duplicate_tickets"]==0
+        and r["metrics"]["total_trades"]>=min_trades
+    )
 
 def key(r: dict):
     m=r["metrics"]; dd=m["relative_drawdown_pct"] or m["max_drawdown_pct"] or 999.0

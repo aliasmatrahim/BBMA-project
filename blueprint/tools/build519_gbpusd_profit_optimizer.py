@@ -81,7 +81,8 @@ def log_delta(root: Path, before: dict[str,int]) -> tuple[str,list[dict]]:
 
 def report_text(path: Path) -> str:
     raw=path.read_bytes()
-    for enc in ("utf-16","utf-8","cp1252"):
+    encodings = ("utf-16","utf-8","cp1252") if raw.startswith((b"\\xff\\xfe", b"\\xfe\\xff")) else ("utf-8","cp1252","utf-16")
+    for enc in encodings:
         try: s=raw.decode(enc); break
         except UnicodeError: pass
     else: s=raw.decode("cp1252",errors="ignore")

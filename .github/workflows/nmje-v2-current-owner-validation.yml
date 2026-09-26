@@ -95,8 +95,12 @@ jobs:
 
           if not re.search(r'input bool\s+EnableNMJESelectionPolicy\s*=\s*false\s*;', source):
               raise SystemExit('N3 active selection policy must default OFF')
-          if 'sameDirectionEligible >= 2' not in source:
-              raise SystemExit('N3 policy must require multiple already-eligible candidates')
+          if 'nmjeSelectableCount >= 2' not in source:
+              raise SystemExit('N3 policy must require at least two current unconsumed eligible candidates')
+          if 'EnableNMJESelectionPolicy && !nmjeBaselineConsumed' not in source:
+              raise SystemExit('N3 policy must not bypass an already-consumed legacy baseline')
+          if 'NMJE_IsCandidateExecutionConsumed' not in source or 'return IsDecisionExecuted(decisionID);' not in source:
+              raise SystemExit('N3 current-candidate lifecycle guard must reuse authoritative execution history')
           if 'NMJE_IsPositiveSelectionContext(pairState, targetDirection)' not in source:
               raise SystemExit('N3 policy positive-coherence guard missing')
           if 'M5_CONFIRMED_RE_OPPOSES_PARENT_UNRESOLVED_NO_HARD_CONFLICT' not in source:

@@ -100,7 +100,7 @@ def drawdown(label: str, text: str):
 def parse_report(path: Path) -> dict:
     t=report_text(path)
     md,mdp=drawdown("Maximal drawdown",t)
-    rdm=re.search(r"Relative drawdown\\s*:?\\s*([\\d.]+)%\\s*\\(([-\\d,.]+)\\)",t,re.I)
+    rdm=re.search(r"Relative drawdown\s*:?\s*([\d.]+)%\s*\(([-\d,.]+)\)",t,re.I)
     rdp=float(rdm.group(1)) if rdm else None
     vals={"net_profit":num("Total net profit",t),"profit_factor":num("Profit factor",t),"total_trades":num("Total trades",t),
           "max_drawdown_abs":md,"max_drawdown_pct":mdp,"relative_drawdown_pct":rdp,"initial_deposit":num("Initial deposit",t)}

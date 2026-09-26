@@ -97,7 +97,10 @@ def drawdown(label: str, text: str):
     return (None,None) if not m else (float(m.group(1).replace(",","")),float(m.group(2)) if m.group(2) else None)
 
 def parse_report(path: Path) -> dict:
-    t=report_text(path); md,mdp=drawdown("Maximal drawdown",t); _,rdp=drawdown("Relative drawdown",t)
+    t=report_text(path)
+    md,mdp=drawdown("Maximal drawdown",t)
+    rdm=re.search(r"Relative drawdown\\s*:?\\s*([\\d.]+)%\\s*\\(([-\\d,.]+)\\)",t,re.I)
+    rdp=float(rdm.group(1)) if rdm else None
     vals={"net_profit":num("Total net profit",t),"profit_factor":num("Profit factor",t),"total_trades":num("Total trades",t),
           "max_drawdown_abs":md,"max_drawdown_pct":mdp,"relative_drawdown_pct":rdp,"initial_deposit":num("Initial deposit",t)}
     if any(vals[k] is None for k in ("net_profit","profit_factor","total_trades","max_drawdown_abs")):

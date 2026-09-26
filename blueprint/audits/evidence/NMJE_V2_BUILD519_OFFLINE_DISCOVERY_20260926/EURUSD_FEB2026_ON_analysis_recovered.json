@@ -1,0 +1,22 @@
+{
+  "tag": "EURUSD_FEB2026",
+  "symbol": "EURUSD",
+  "executions": 5,
+  "execution_trace": [
+    "[P3M2][EXEC] Ticket=1 Pair=EURUSD DecisionID=EURUSD|2026.02.03 21:00|1|7|FC0D8EDC65BDA9D7 Signal=SIGNAL_RE_ENTRY Dir=DIR_BUY ValidateCandle=2026.02.03 21:00 OrderOpen=2026.02.04 04:00",
+    "[P3M2][EXEC] Ticket=2 Pair=EURUSD DecisionID=EURUSD|2026.02.06 09:00|1|7|0BF92921FD784B81 Signal=SIGNAL_RE_ENTRY Dir=DIR_BUY ValidateCandle=2026.02.06 09:00 OrderOpen=2026.02.06 16:00",
+    "[P3M2][EXEC] Ticket=3 Pair=EURUSD DecisionID=EURUSD|2026.02.09 04:00|1|7|409FFD3C77D48238 Signal=SIGNAL_RE_ENTRY Dir=DIR_BUY ValidateCandle=2026.02.09 04:00 OrderOpen=2026.02.09 05:00",
+    "[P3M2][EXEC] Ticket=4 Pair=EURUSD DecisionID=EURUSD|2026.02.09 18:00|1|7|140B5BD2085E8C54 Signal=SIGNAL_RE_ENTRY Dir=DIR_BUY ValidateCandle=2026.02.09 18:00 OrderOpen=2026.02.09 19:00",
+    "[P3M2][EXEC] Ticket=5 Pair=EURUSD DecisionID=EURUSD|2026.02.10 07:00|1|7|FDFCBE6C734BD21A Signal=SIGNAL_RE_ENTRY Dir=DIR_BUY ValidateCandle=2026.02.10 07:00 OrderOpen=2026.02.10 08:00"
+  ],
+  "n3_changes": 0,
+  "n3_rows": [],
+  "policy": 1,
+  "fatal": 0,
+  "tester_removed": false,
+  "duplicate_decision_ids": 0,
+  "duplicate_tickets": 0,
+  "baseline_exec": 20,
+  "trace_equal_to_stored_off": false,
+  "pass": false
+}

@@ -15,6 +15,8 @@ When `EnableNMJESelectionPolicy=true`, N3 may arbitrate only among two or more a
 
 Preconditions:
 - candidate eligibility already proven;
+- execution identity has not already been consumed by a prior execution;
+- the legacy canonical baseline identity itself is unconsumed; N3 does not bypass an already-consumed baseline into another candidate;
 - D1 authority already permits the candidate;
 - V1 journey is valid/resolved and positively coherent (`ALIGNED` or `SUPPORTING`);
 - canonical M5 semantic owner state is resolved and positively coherent (`ALIGNED` or `SUPPORTING`).

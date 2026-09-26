@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.1.7 - NMJE Active Selection Policy                |
+//| Version 5.1.9 - NMJE Current-Candidate Lifecycle Hardening   |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.17"
+#property version   "5.19"
 #property strict
 
-#define BBMA_BUILD_TAG      "V517_NMJE_ACTIVE_SELECTION_POLICY_20260926"
-#define BBMA_SOURCE_REV_TAG "NMJE_ACTIVE_SELECTION_POLICY_001_20260926"
+#define BBMA_BUILD_TAG      "V519_NMJE_CURRENT_CANDIDATE_LIFECYCLE_20260926"
+#define BBMA_SOURCE_REV_TAG "NMJE_CURRENT_CANDIDATE_LIFECYCLE_001_20260926"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -7189,6 +7189,24 @@ bool IsCandidateEligible(ValidatedSequenceCandidate &candidate)
    return true;
 }
 
+// Build 5.18 N3 lifecycle boundary.
+// Active NMJE arbitration must not rank an execution identity that has already
+// crossed into DEC_EXECUTED. Legacy OFF selection remains unchanged.
+bool NMJE_IsCandidateExecutionConsumed(PairState &pairState,
+                                       ValidatedSequenceCandidate &candidate)
+{
+   if(!candidate.Valid || pairState.actual_symbol == "") return false;
+   datetime anchorTime = GetCandidateAnchorTime(candidate);
+   if(anchorTime <= 0 || candidate.SequenceHash == "") return false;
+
+   string decisionID = GenerateDecisionID(pairState.actual_symbol,
+                                          anchorTime,
+                                          candidate.Direction,
+                                          candidate.SequenceType,
+                                          candidate.SequenceHash);
+   return IsDecisionExecuted(decisionID);
+}
+
 void BuildConfirmedReEntryCandidate(ReEntryData &reEntry,
                                     H4DirectionalOwner &h4Owner,
                                     ValidatedSequenceCandidate &candidate)
@@ -8328,8 +8346,27 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
    if(baselineIdx < 0) return;
    int canonicalIdx = baselineIdx;
 
-   int sameDirectionEligible = (targetDirection == DIR_BUY) ? buyCount : sellCount;
-   if(EnableNMJESelectionPolicy && sameDirectionEligible >= 2 &&
+   // Build 5.19: N3 is a tie-break among current executable candidates only.
+   // If the legacy baseline identity has already executed, preserve the legacy
+   // duplicate/lifecycle path; do not let NMJE rescue a different candidate.
+   bool nmjeBaselineConsumed =
+      NMJE_IsCandidateExecutionConsumed(pairState, candidates[baselineIdx]);
+
+   int nmjeSelectableCount = 0;
+   if(EnableNMJESelectionPolicy)
+   {
+      for(int i = 0; i < count; i++)
+      {
+         if(!IsCandidateEligible(candidates[i])) continue;
+         if(!IsCandidateAllowedByD1Owner(candidates[i], pairState)) continue;
+         if(candidates[i].Direction != targetDirection) continue;
+         if(NMJE_IsCandidateExecutionConsumed(pairState, candidates[i])) continue;
+         nmjeSelectableCount++;
+      }
+   }
+
+   if(EnableNMJESelectionPolicy && !nmjeBaselineConsumed &&
+      nmjeSelectableCount >= 2 &&
       NMJE_IsPositiveSelectionContext(pairState, targetDirection))
    {
       int nmjeIdx = -1;
@@ -8338,6 +8375,7 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
          if(!IsCandidateEligible(candidates[i])) continue;
          if(!IsCandidateAllowedByD1Owner(candidates[i], pairState)) continue;
          if(candidates[i].Direction != targetDirection) continue;
+         if(NMJE_IsCandidateExecutionConsumed(pairState, candidates[i])) continue;
 
          if(nmjeIdx < 0)
          {
@@ -11752,7 +11790,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.17 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.19 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);

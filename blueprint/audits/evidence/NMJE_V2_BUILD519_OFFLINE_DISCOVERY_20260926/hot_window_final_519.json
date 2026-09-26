@@ -1,0 +1,73 @@
+{
+  "schema": "NMJE_V2_BUILD519_HOT_WINDOW_FINAL_V1",
+  "build": "5.19",
+  "mq4_sha256": "7AE7FA680132F42A4D4FDF13451FEA2CF704A26FE5FB616ACCA22A3C64F265C4",
+  "existing_cases": [
+    {
+      "tag": "EURUSD_FEB2026",
+      "symbol": "EURUSD",
+      "executions": 20,
+      "n3_changes": 0,
+      "policy": 1,
+      "fatal": 0,
+      "tester_removed": true,
+      "duplicate_decision_ids": 0,
+      "duplicate_tickets": 0,
+      "baseline_exec": 20,
+      "trace_equal_to_off": true,
+      "pass": true
+    },
+    {
+      "tag": "EURUSD_JAN2026",
+      "symbol": "EURUSD",
+      "executions": 34,
+      "n3_changes": 0,
+      "policy": 1,
+      "fatal": 0,
+      "tester_removed": true,
+      "duplicate_decision_ids": 0,
+      "duplicate_tickets": 0,
+      "baseline_exec": 34,
+      "trace_equal_to_off": true,
+      "pass": true
+    },
+    {
+      "tag": "GBPUSD_AUG2026",
+      "symbol": "GBPUSD",
+      "executions": 14,
+      "n3_changes": 0,
+      "policy": 1,
+      "fatal": 0,
+      "tester_removed": true,
+      "duplicate_decision_ids": 0,
+      "duplicate_tickets": 0,
+      "baseline_exec": 14,
+      "trace_equal_to_off": true,
+      "pass": true
+    }
+  ],
+  "july": {
+    "tag": "EURUSD_JUL2026",
+    "off_exec": 31,
+    "on_exec": 31,
+    "on_n3": 0,
+    "trace_equal": true,
+    "off_policy": 0,
+    "on_policy": 1,
+    "off_fatal": 0,
+    "on_fatal": 0,
+    "off_dup": 0,
+    "on_dup": 0,
+    "pass": true
+  },
+  "checks": {
+    "version_519": true,
+    "tag": true,
+    "baseline_consumed_guard": true,
+    "selectable_count_guard": true,
+    "sole_ordersend": true
+  },
+  "all_known_hot_windows_trace_equal": true,
+  "all_known_hot_windows_n3_zero": true,
+  "pass": true
+}

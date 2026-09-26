@@ -1,0 +1,31 @@
+{
+  "tag": "GBPUSD_AUG2026",
+  "symbol": "GBPUSD",
+  "executions": 14,
+  "execution_trace": [
+    "[P3M2][EXEC] Ticket=1 Pair=GBPUSD DecisionID=GBPUSD|2026.08.10 13:00|1|7|6365325817470039 Signal=SIGNAL_RE_ENTRY Dir=DIR_BUY ValidateCandle=2026.08.10 13:00 OrderOpen=2026.08.10 14:00",
+    "[P3M2][EXEC] Ticket=2 Pair=GBPUSD DecisionID=GBPUSD|2026.08.11 16:00|1|8|4B1CB64003DD4DC8 Signal=SIGNAL_REM Dir=DIR_BUY ValidateCandle=2026.08.11 16:00 OrderOpen=2026.08.11 17:00",
+    "[P3M2][EXEC] Ticket=3 Pair=GBPUSD DecisionID=GBPUSD|2026.08.11 20:15|1|8|E1E3F48904CCA71A Signal=SIGNAL_REM Dir=DIR_BUY ValidateCandle=2026.08.11 20:15 OrderOpen=2026.08.11 20:30",
+    "[P3M2][EXEC] Ticket=4 Pair=GBPUSD DecisionID=GBPUSD|2026.08.11 20:00|1|7|FFCD29ABCA31595F Signal=SIGNAL_RE_ENTRY Dir=DIR_BUY ValidateCandle=2026.08.11 20:00 OrderOpen=2026.08.12 12:00",
+    "[P3M2][EXEC] Ticket=5 Pair=GBPUSD DecisionID=GBPUSD|2026.08.14 06:00|1|7|A8EAC65F43ACB5F7 Signal=SIGNAL_RE_ENTRY Dir=DIR_BUY ValidateCandle=2026.08.14 06:00 OrderOpen=2026.08.14 07:00",
+    "[P3M2][EXEC] Ticket=6 Pair=GBPUSD DecisionID=GBPUSD|2026.08.17 04:30|1|7|A2E74B4130D950E7 Signal=SIGNAL_RE_ENTRY Dir=DIR_BUY ValidateCandle=2026.08.17 04:30 OrderOpen=2026.08.17 04:45",
+    "[P3M2][EXEC] Ticket=7 Pair=GBPUSD DecisionID=GBPUSD|2026.08.17 06:00|1|7|531024FBDC6FE151 Signal=SIGNAL_RE_ENTRY Dir=DIR_BUY ValidateCandle=2026.08.17 06:00 OrderOpen=2026.08.17 07:00",
+    "[P3M2][EXEC] Ticket=8 Pair=GBPUSD DecisionID=GBPUSD|2026.08.17 11:00|1|7|1A9323C5B05D3040 Signal=SIGNAL_RE_ENTRY Dir=DIR_BUY ValidateCandle=2026.08.17 11:00 OrderOpen=2026.08.17 11:30",
+    "[P3M2][EXEC] Ticket=9 Pair=GBPUSD DecisionID=GBPUSD|2026.08.17 11:00|1|7|F64CFECF5DB3AC98 Signal=SIGNAL_RE_ENTRY Dir=DIR_BUY ValidateCandle=2026.08.17 11:00 OrderOpen=2026.08.17 12:00",
+    "[P3M2][EXEC] Ticket=10 Pair=GBPUSD DecisionID=GBPUSD|2026.08.18 03:30|1|7|8B54EBDF53682F15 Signal=SIGNAL_RE_ENTRY Dir=DIR_BUY ValidateCandle=2026.08.18 03:30 OrderOpen=2026.08.18 04:15",
+    "[P3M2][EXEC] Ticket=11 Pair=GBPUSD DecisionID=GBPUSD|2026.08.18 01:00|1|9|23E3CFE898C22163 Signal=SIGNAL_RRE Dir=DIR_BUY ValidateCandle=2026.08.18 01:00 OrderOpen=2026.08.18 05:00",
+    "[P3M2][EXEC] Ticket=12 Pair=GBPUSD DecisionID=GBPUSD|2026.08.18 05:45|1|8|9E2334C5D9CFE9F2 Signal=SIGNAL_REM Dir=DIR_BUY ValidateCandle=2026.08.18 05:45 OrderOpen=2026.08.18 06:00",
+    "[P3M2][EXEC] Ticket=13 Pair=GBPUSD DecisionID=GBPUSD|2026.08.19 14:00|1|7|2EC4B87EB3573FC5 Signal=SIGNAL_RE_ENTRY Dir=DIR_BUY ValidateCandle=2026.08.19 14:00 OrderOpen=2026.08.19 15:00",
+    "[P3M2][EXEC] Ticket=14 Pair=GBPUSD DecisionID=GBPUSD|2026.08.24 04:00|1|7|F04807D3FBF4B533 Signal=SIGNAL_RE_ENTRY Dir=DIR_BUY ValidateCandle=2026.08.24 04:00 OrderOpen=2026.08.24 05:00"
+  ],
+  "n3_changes": 0,
+  "n3_rows": [],
+  "policy": 1,
+  "fatal": 0,
+  "tester_removed": true,
+  "duplicate_decision_ids": 0,
+  "duplicate_tickets": 0,
+  "baseline_exec": 14,
+  "trace_equal_to_stored_off": true,
+  "pass": true
+}

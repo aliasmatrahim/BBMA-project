@@ -127,6 +127,14 @@ Detailed records:
 - `blueprint/audits/NMJE_V1_V2_FULL_SOURCE_RECONCILIATION_20260924.md`
 
 ### A4/A5 supplemental video reconciliation
+
+The underlying video corpora must be named explicitly during retrieval rather than being hidden behind the A4/A5 process labels:
+
+- **BBMATV Group-3** — 48-video corpus; use its `FINAL_CORRECTED` transcript set together with materially relevant A3/A4 evidence.
+- **PRIMARY15** — 15-video corpus; use its `FINAL_CORRECTED` transcript set together with materially relevant A3/A4 evidence.
+- For MTF/NMJE or other video-corroboration audits, retrieve both corpora by name when materially relevant before relying on the consolidated A4/A5 disposition.
+- These corpus names identify provenance only. They do **not** create a higher source tier, bypass accepted Core, or convert transcript evidence into executable authority.
+
 - Closure record: `blueprint/audits/BBMA_Q5_A4A5_SEMANTIC_RESOLUTION_20260916.md`.
 - Nine retained A4/A5 evidence rows are resolved at the Strategy-Core semantic layer as 6 `CORROBORATION_ONLY` + 3 `REJECTED`.
 - None is `ACCEPTED_CORE`; no source conflict, detector, filter, timing rule or other executable authority is created.

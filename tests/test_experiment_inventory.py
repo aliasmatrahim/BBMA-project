@@ -54,6 +54,10 @@ class ExperimentInventoryTests(unittest.TestCase):
                 self.assertFalse(second["created"])
                 self.assertEqual(first["manifest_sha256"], second["manifest_sha256"])
                 self.assertEqual(db.get_node("experiment:RUN-1")["status"], "NOT VERIFIED")
+                (root / "artifact.txt").write_text("tampered", encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "registered evidence drift"):
+                    db.register_experiment(manifest, path, root, run_status="EVIDENCE_ACCEPTED")
+                (root / "artifact.txt").write_text("immutable test artifact", encoding="utf-8")
                 changed = dict(manifest)
                 changed["hypothesis"] = {**manifest["hypothesis"], "statement": "changed manifest"}
                 path.write_text(json.dumps(changed, sort_keys=True, indent=2) + "\n", encoding="utf-8")

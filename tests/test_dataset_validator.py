@@ -19,6 +19,7 @@ def _manifest(text: str, basis: str = "BID_ASK_BARS") -> dict:
         "hypothesis": {"parameter_sha256": _sha("parameters")},
         "dataset": {
             "sha256": _sha(text),
+            "dataset_id": "DATA-G1-001", "symbol": "GBPUSD",
             "timeframe": "M15",
             "price_basis": basis,
             "source_type": "broker-native",

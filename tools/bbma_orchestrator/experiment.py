@@ -174,6 +174,8 @@ def validate_manifest(manifest: Any) -> list[str]:
                 if not _nonempty(artifact.get(field)):
                     errors.append(f"{prefix}.{field}: required non-empty string")
             if _nonempty(artifact.get("kind")):
+                if artifact["kind"] in kinds:
+                    errors.append(f"{prefix}.kind: duplicate artifact kind {artifact['kind']}")
                 kinds.add(artifact["kind"])
             if not SHA256_RE.fullmatch(str(artifact.get("sha256", ""))):
                 errors.append(f"{prefix}.sha256: expected SHA-256 hex")

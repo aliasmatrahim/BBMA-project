@@ -17,6 +17,14 @@ def _hash(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
+_DATASET_CONTENT = (
+    "timestamp,bid,ask\\n"
+    "2026-01-01T00:00:00Z,1.1000,1.1002\\n"
+    "2026-01-01T00:15:00Z,1.1001,1.1003\\n"
+    "2026-01-01T00:29:59Z,1.1002,1.1004\\n"
+)
+
+
 def valid_manifest(root: Path) -> dict:
     files = {}
     for kind, name, content in (
@@ -24,20 +32,20 @@ def valid_manifest(root: Path) -> dict:
         ("ex4", "EA.ex4", "ex4"),
         ("set", "EA.set", "set"),
         ("parameters", "parameters.json", "parameters"),
-        ("dataset", "dataset.csv", "dataset"),
+        ("dataset", "dataset.csv", _DATASET_CONTENT),
         ("trade_history", "trades.csv", "ticket,net\n1,10\n"),
         ("tester_report", "report.htm", "tester report"),
         ("tester_log", "tester.log", "tester log"),
         ("validation_report", "validation.json", json.dumps({
             "validation_status": "PASS", "run_id": "BBMA-EXP-0001",
-            "build_id": "BUILD-TEST-1", "dataset_sha256": _hash("dataset"),
+            "build_id": "BUILD-TEST-1", "dataset_sha256": _hash(_DATASET_CONTENT),
             "parameter_sha256": _hash("parameters"),
         }, sort_keys=True)),
         ("dataset_validation_report", "dataset-validation.json", json.dumps({
             "validation_status": "PASS", "dataset_status": "VALID",
             "validator_version": "G1-DATASET-VALIDATOR-1.0", "price_basis": "BID_ASK_TICKS",
-            "timeframe": "M15", "rows": 100, "duplicate_timestamps": 0,
-            "non_monotonic_timestamps": 0, "errors": [],
+            "timeframe": "M15", "rows": 3, "duplicate_timestamps": 0,
+            "non_monotonic_timestamps": 0, "gap_count": 0, "gaps": [], "errors": [],
             "run_id": "BBMA-EXP-0001", "build_id": "BUILD-TEST-1",
             "dataset_sha256": _hash("dataset"), "parameter_sha256": _hash("parameters"),
         }, sort_keys=True)),
@@ -49,7 +57,7 @@ def valid_manifest(root: Path) -> dict:
         "run_id": "BBMA-EXP-0001",
         "hypothesis": {
             "id": "HYP-001", "statement": "Pre-registered test hypothesis",
-            "preregistered_at": "2026-01-01T00:00:00Z",
+            "preregistered_at": "2025-12-01T00:00:00Z",
             "parameter_sha256": _hash("parameters"), "parameters_frozen": True,
         },
         "build": {
@@ -62,9 +70,9 @@ def valid_manifest(root: Path) -> dict:
             "symbol": "GBPUSD", "timeframe": "M15", "source_type": "broker-native",
             "price_basis": "BID_ASK_TICKS", "synthetic_ticks": False,
             "timezone": "UTC", "start": "2026-01-01T00:00:00Z",
-            "end": "2026-09-01T00:00:00Z", "warmup_start": "2025-12-01T00:00:00Z",
-            "evaluation_start": "2026-02-01T00:00:00Z",
-            "evaluation_end": "2026-08-01T00:00:00Z", "data_as_of": "2026-09-01T00:00:00Z",
+            "end": "2026-01-01T00:30:00Z", "warmup_start": "2026-01-01T00:00:00Z",
+            "evaluation_start": "2026-01-01T00:00:00Z",
+            "evaluation_end": "2026-01-01T00:30:00Z", "data_as_of": "2026-01-01T00:45:00Z",
             "timestamp_convention": "TICK_TIME", "price_basis": "BID_ASK_TICKS", "max_gap_seconds": 900, "closed_candles_only": True,
         },
         "environment": {
@@ -75,7 +83,7 @@ def valid_manifest(root: Path) -> dict:
             "swap_included": True, "slippage_model": "recorded/explained",
         },
         "protocol": {
-            "partition": "OOS", "frozen_at": "2026-01-15T00:00:00Z",
+            "partition": "OOS", "frozen_at": "2025-12-15T00:00:00Z",
             "parameter_freeze_sha256": _hash("parameters"), "oos_tuning_performed": False,
         },
         "artifacts": list(files.values()),
@@ -121,7 +129,7 @@ class ExperimentEvidenceTests(unittest.TestCase):
     def test_data_as_of_and_timestamp_convention_are_hard_gates(self):
         with tempfile.TemporaryDirectory() as tmp:
             manifest = valid_manifest(Path(tmp))
-            manifest["dataset"]["data_as_of"] = "2026-07-01T00:00:00Z"
+            manifest["dataset"]["data_as_of"] = "2025-12-31T23:59:00Z"
             manifest["dataset"]["timestamp_convention"] = "BAR_OPEN"
             errors = validate_manifest(manifest)
             self.assertTrue(any("data_as_of" in item for item in errors))
@@ -191,8 +199,8 @@ class ExperimentEvidenceTests(unittest.TestCase):
             report_text = json.dumps({
                 "validation_status": "PASS", "dataset_status": "VALID",
                 "validator_version": "G1-DATASET-VALIDATOR-1.0", "price_basis": "BID_ASK_TICKS",
-                "timeframe": "M15", "rows": 100, "duplicate_timestamps": 0,
-                "non_monotonic_timestamps": 0, "errors": ["hidden data gap"],
+                "timeframe": "M15", "rows": 3, "duplicate_timestamps": 0,
+                "non_monotonic_timestamps": 0, "gap_count": 0, "gaps": [], "errors": ["hidden data gap"],
                 "run_id": "BBMA-EXP-0001", "build_id": "BUILD-TEST-1",
                 "dataset_sha256": _hash("dataset"), "parameter_sha256": _hash("parameters"),
             }, sort_keys=True)

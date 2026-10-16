@@ -119,8 +119,6 @@ class EvidenceDB:
         hypothesis_result: str = "NOT_EVALUATED",
     ) -> dict[str, Any]:
         """Register a validated run in the existing evidence DAG without granting runtime authority."""
-        from datetime import datetime
-
         if not isinstance(manifest, dict):
             raise ValueError("manifest must be an object")
         run_id = manifest.get("run_id")
@@ -192,6 +190,8 @@ class EvidenceDB:
                 continue
             resolved_artifacts.append((kind, digest, path, path.stat().st_size))
 
+        if run_status == "EVIDENCE_ACCEPTED" and artifact_errors:
+            raise ValueError("cannot accept evidence with artifact errors: " + "; ".join(artifact_errors))
         existing = self.conn.execute(
             "SELECT manifest_sha256,fingerprint,run_status,hypothesis_result FROM experiment_runs WHERE run_id=?",
             (run_id,),
@@ -199,9 +199,12 @@ class EvidenceDB:
         if existing:
             if existing[0] != manifest_digest:
                 raise ValueError(f"run_id collision: {run_id} already belongs to a different manifest")
+            if existing[2] == "EVIDENCE_ACCEPTED" and artifact_errors:
+                raise ValueError("registered evidence drift: " + "; ".join(artifact_errors))
             return {"run_id": run_id, "created": False, "manifest_sha256": manifest_digest,
                     "fingerprint": existing[1], "run_status": existing[2],
-                    "hypothesis_result": existing[3], "lineage_node": f"experiment:{run_id}"}
+                    "hypothesis_result": existing[3], "lineage_node": f"experiment:{run_id}",
+                    "artifact_errors": artifact_errors}
         if parent_run_id:
             parent = self.conn.execute("SELECT 1 FROM experiment_runs WHERE run_id=?", (parent_run_id,)).fetchone()
             if parent is None:

@@ -20,7 +20,7 @@ A JSON object contains:
 - `run_id`: unique immutable identifier; reruns use a new ID.
 - `hypothesis`: `id`, `statement`, `preregistered_at`, `parameter_sha256`, `parameters_frozen`.
 - `build`: `build_id`, `source_commit`, `source_sha256`, `ex4_sha256`, `set_sha256`.
-- `dataset`: `dataset_id`, `sha256`, `symbol`, `timeframe`, `source_type`, `price_basis`, `synthetic_ticks`, `timezone`, `start`, `end`, `warmup_start`, `evaluation_start`, `evaluation_end`, `data_as_of`, `timestamp_convention`, `closed_candles_only`. Optional `allowed_gap_windows` must list exact timezone-aware `start`/`end` windows; tick datasets must supply a preregistered `max_gap_seconds` to the G1 validator.
+- `dataset`: `dataset_id`, `sha256`, `symbol`, `timeframe`, `source_type`, `price_basis`, `synthetic_ticks`, `timezone`, `start`, `end`, `warmup_start`, `evaluation_start`, `evaluation_end`, `data_as_of`, `timestamp_convention`, `closed_candles_only`. Optional `allowed_gap_windows` must list exact timezone-aware `start`/`end` windows; tick datasets must supply a preregistered positive integer `dataset.max_gap_seconds`; a CLI override, if used, must match.
 - `environment`: `broker`, `terminal_build`, `tester_mode`.
 - `costs`: `spread_model`, `commission_model`, `swap_included`, `slippage_model`.
 - `protocol`: `partition` (`IS`, `VALIDATION`, or `OOS`), `frozen_at`, `parameter_freeze_sha256`, `oos_tuning_performed`.

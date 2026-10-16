@@ -316,13 +316,20 @@ def cmd_artifact_identity(args: argparse.Namespace) -> None:
 def cmd_dataset_validate(args: argparse.Namespace) -> None:
     manifest_path = Path(args.manifest).resolve()
     manifest = _load_json(str(manifest_path))
+    if not isinstance(manifest, dict):
+        raise SystemExit("manifest must be a JSON object")
     root = Path(args.evidence_root).resolve()
     dataset_artifacts = [item for item in manifest.get("artifacts", []) if isinstance(item, dict) and item.get("kind") == "dataset"]
     if len(dataset_artifacts) != 1:
         raise SystemExit("manifest must contain exactly one dataset artifact")
-    dataset_path = (root / dataset_artifacts[0].get("path", "")).resolve()
+    dataset_relative_path = dataset_artifacts[0].get("path")
+    if not isinstance(dataset_relative_path, str) or not dataset_relative_path.strip():
+        raise SystemExit("dataset artifact must declare a non-empty relative path")
+    dataset_path = (root / dataset_relative_path).resolve()
     if dataset_path != root and root not in dataset_path.parents:
         raise SystemExit("dataset artifact path escapes evidence root")
+    if not isinstance(args.output, str) or not args.output.strip():
+        raise SystemExit("output path is required")
     output_path = Path(args.output)
     output_path = (root / output_path).resolve() if not output_path.is_absolute() else output_path.resolve()
     if output_path == dataset_path:

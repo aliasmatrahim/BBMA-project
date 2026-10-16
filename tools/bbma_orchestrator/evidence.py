@@ -190,8 +190,6 @@ class EvidenceDB:
                 continue
             resolved_artifacts.append((kind, digest, path, path.stat().st_size))
 
-        if run_status == "EVIDENCE_ACCEPTED" and artifact_errors:
-            raise ValueError("cannot accept evidence with artifact errors: " + "; ".join(artifact_errors))
         existing = self.conn.execute(
             "SELECT manifest_sha256,fingerprint,run_status,hypothesis_result FROM experiment_runs WHERE run_id=?",
             (run_id,),
@@ -205,6 +203,8 @@ class EvidenceDB:
                     "fingerprint": existing[1], "run_status": existing[2],
                     "hypothesis_result": existing[3], "lineage_node": f"experiment:{run_id}",
                     "artifact_errors": artifact_errors}
+        if run_status == "EVIDENCE_ACCEPTED" and artifact_errors:
+            raise ValueError("cannot accept evidence with artifact errors: " + "; ".join(artifact_errors))
         if parent_run_id:
             parent = self.conn.execute("SELECT 1 FROM experiment_runs WHERE run_id=?", (parent_run_id,)).fetchone()
             if parent is None:

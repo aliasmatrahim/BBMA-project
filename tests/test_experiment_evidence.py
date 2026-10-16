@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -27,7 +28,11 @@ def valid_manifest(root: Path) -> dict:
         ("trade_history", "trades.csv", "ticket,net\n1,10\n"),
         ("tester_report", "report.htm", "tester report"),
         ("tester_log", "tester.log", "tester log"),
-        ("validation_report", "validation.json", "{\"validation_status\":\"PASS\"}"),
+        ("validation_report", "validation.json", json.dumps({
+            "validation_status": "PASS", "run_id": "BBMA-EXP-0001",
+            "build_id": "BUILD-TEST-1", "dataset_sha256": _hash("dataset"),
+            "parameter_sha256": _hash("parameters"),
+        }, sort_keys=True)),
     ):
         (root / name).write_text(content, encoding="utf-8")
         files[kind] = {"kind": kind, "path": name, "sha256": _hash(content)}
@@ -123,6 +128,18 @@ class ExperimentEvidenceTests(unittest.TestCase):
             manifest["artifacts"][0]["path"] = "../outside.csv"
             errors = verify_artifacts(manifest, root)
             self.assertTrue(any("escapes evidence root" in item for item in errors))
+
+    def test_validation_report_must_match_exact_run_identity(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = valid_manifest(root)
+            (root / "validation.json").write_text(json.dumps({
+                "validation_status": "PASS", "run_id": "OTHER-RUN",
+                "build_id": "BUILD-TEST-1", "dataset_sha256": _hash("dataset"),
+                "parameter_sha256": _hash("parameters"),
+            }, sort_keys=True), encoding="utf-8")
+            errors = verify_artifacts(manifest, root)
+            self.assertTrue(any("validation_report.run_id" in item for item in errors))
 
     def test_missing_validation_report_artifact_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:

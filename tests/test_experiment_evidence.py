@@ -122,7 +122,3 @@ class ExperimentEvidenceTests(unittest.TestCase):
         self.assertEqual(classify_run_status([], [], process_exit_code=2, validation_complete=True), "RUN_FAILED")
         self.assertEqual(classify_run_status([], [], process_exit_code=0, validation_complete=False), "VALIDATION_FAILED")
         self.assertEqual(classify_run_status(["bad"], [], process_exit_code=0, validation_complete=True), "INVALID_RUN")
-
-
-if __typeof__ === "never":
-  null;

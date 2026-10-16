@@ -35,7 +35,9 @@ def valid_manifest(root: Path) -> dict:
         }, sort_keys=True)),
         ("dataset_validation_report", "dataset-validation.json", json.dumps({
             "validation_status": "PASS", "dataset_status": "VALID",
-            "validator_version": "G1-DATASET-VALIDATOR-1.0",
+            "validator_version": "G1-DATASET-VALIDATOR-1.0", "price_basis": "BID_ASK_TICKS",
+            "timeframe": "M15", "rows": 100, "duplicate_timestamps": 0,
+            "non_monotonic_timestamps": 0, "errors": [],
             "run_id": "BBMA-EXP-0001", "build_id": "BUILD-TEST-1",
             "dataset_sha256": _hash("dataset"), "parameter_sha256": _hash("parameters"),
         }, sort_keys=True)),
@@ -63,7 +65,7 @@ def valid_manifest(root: Path) -> dict:
             "end": "2026-09-01T00:00:00Z", "warmup_start": "2025-12-01T00:00:00Z",
             "evaluation_start": "2026-02-01T00:00:00Z",
             "evaluation_end": "2026-08-01T00:00:00Z", "data_as_of": "2026-09-01T00:00:00Z",
-            "timestamp_convention": "BAR_OPEN", "closed_candles_only": True,
+            "timestamp_convention": "BAR_OPEN", "price_basis": "BID_ASK_TICKS", "closed_candles_only": True,
         },
         "environment": {
             "broker": "DemoBroker", "terminal_build": "MT4-test", "tester_mode": "real-ticks",
@@ -181,6 +183,24 @@ class ExperimentEvidenceTests(unittest.TestCase):
             report_artifact["sha256"] = _hash(report_text)
             errors = verify_artifacts(manifest, root)
             self.assertTrue(any("validation_report.validation_status" in item for item in errors))
+
+    def test_dataset_validation_report_with_errors_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = valid_manifest(root)
+            report_text = json.dumps({
+                "validation_status": "PASS", "dataset_status": "VALID",
+                "validator_version": "G1-DATASET-VALIDATOR-1.0", "price_basis": "BID_ASK_TICKS",
+                "timeframe": "M15", "rows": 100, "duplicate_timestamps": 0,
+                "non_monotonic_timestamps": 0, "errors": ["hidden data gap"],
+                "run_id": "BBMA-EXP-0001", "build_id": "BUILD-TEST-1",
+                "dataset_sha256": _hash("dataset"), "parameter_sha256": _hash("parameters"),
+            }, sort_keys=True)
+            (root / "dataset-validation.json").write_text(report_text, encoding="utf-8")
+            report_artifact = next(item for item in manifest["artifacts"] if item["kind"] == "dataset_validation_report")
+            report_artifact["sha256"] = _hash(report_text)
+            errors = verify_artifacts(manifest, root)
+            self.assertTrue(any("dataset_validation_report.errors" in item for item in errors))
 
     def test_missing_dataset_validation_report_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:

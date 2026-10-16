@@ -144,6 +144,28 @@ class ExperimentEvidenceTests(unittest.TestCase):
             errors = verify_artifacts(manifest, root)
             self.assertTrue(any("validation_report.run_id" in item for item in errors))
 
+    def test_boolean_schema_version_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest = valid_manifest(Path(tmp))
+            manifest["schema_version"] = True
+            errors = validate_manifest(manifest)
+            self.assertTrue(any("schema_version" in item for item in errors))
+
+    def test_validation_report_non_pass_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = valid_manifest(root)
+            report_text = json.dumps({
+                "validation_status": "FAIL", "run_id": "BBMA-EXP-0001",
+                "build_id": "BUILD-TEST-1", "dataset_sha256": _hash("dataset"),
+                "parameter_sha256": _hash("parameters"),
+            }, sort_keys=True)
+            (root / "validation.json").write_text(report_text, encoding="utf-8")
+            report_artifact = next(item for item in manifest["artifacts"] if item["kind"] == "validation_report")
+            report_artifact["sha256"] = _hash(report_text)
+            errors = verify_artifacts(manifest, root)
+            self.assertTrue(any("validation_report.validation_status" in item for item in errors))
+
     def test_missing_validation_report_artifact_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             manifest = valid_manifest(Path(tmp))

@@ -35,6 +35,19 @@ python -m tools.bbma_orchestrator context-pack \
 
 Only explicitly supplied authority references, modules, validations and evidence nodes are included. The tool does not import historical chat context.
 
+## Profitability experiment evidence gate
+
+Validate a versioned run manifest and verify every referenced artifact against its SHA-256 within an isolated evidence root:
+
+```bash
+python -m tools.bbma_orchestrator experiment-validate \\
+  --manifest run-manifest.json \\
+  --evidence-root ./evidence/run-001 \\
+  --validation-complete
+```
+
+The command exits non-zero unless the run manifest and artifact hashes pass and validation is explicitly marked complete. `EVIDENCE_ACCEPTED` means evidence integrity only; profitability, BBMA Core compliance and runtime acceptance remain separate decisions. See `blueprint/research/PROFITABILITY_EXPERIMENT_EVIDENCE_CONTRACT_V1.md`.
+
 ## Evidence and cache
 
 ```bash

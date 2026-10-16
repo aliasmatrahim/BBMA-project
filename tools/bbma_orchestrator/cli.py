@@ -319,7 +319,9 @@ def cmd_dataset_validate(args: argparse.Namespace) -> None:
     if not isinstance(manifest, dict):
         raise SystemExit("manifest must be a JSON object")
     root = Path(args.evidence_root).resolve()
-    dataset_artifacts = [item for item in manifest.get("artifacts", []) if isinstance(item, dict) and item.get("kind") == "dataset"]
+    if not isinstance(manifest.get("artifacts"), list):
+        raise SystemExit("manifest artifacts must be a list")
+    dataset_artifacts = [item for item in manifest["artifacts"] if isinstance(item, dict) and item.get("kind") == "dataset"]
     if len(dataset_artifacts) != 1:
         raise SystemExit("manifest must contain exactly one dataset artifact")
     dataset_relative_path = dataset_artifacts[0].get("path")

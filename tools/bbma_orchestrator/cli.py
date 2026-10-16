@@ -353,6 +353,34 @@ def cmd_dataset_validate(args: argparse.Namespace) -> None:
     if result.get("validation_status") != "PASS":
         raise SystemExit(2)
 
+def cmd_experiment_register(args: argparse.Namespace) -> None:
+    manifest_path = Path(args.manifest).resolve()
+    manifest = _load_json(str(manifest_path))
+    root = Path(args.evidence_root).resolve()
+    manifest_errors = validate_manifest(manifest)
+    artifact_errors = verify_artifacts(manifest, root)
+    run_status = classify_run_status(
+        manifest_errors,
+        artifact_errors,
+        process_exit_code=args.process_exit_code,
+        validation_complete=args.validation_complete,
+    )
+    with EvidenceDB(args.db) as db:
+        registered = db.register_experiment(
+            manifest, manifest_path, root, run_status=run_status
+        )
+        matching = db.find_experiment_runs(registered["fingerprint"])
+    _json_print({
+        **registered,
+        "same_configuration_run_ids": [item["run_id"] for item in matching],
+        "manifest_errors": manifest_errors,
+        "artifact_errors": artifact_errors,
+        "evidence_only": True,
+        "trade_authority": "NONE",
+    })
+    if run_status != "EVIDENCE_ACCEPTED":
+        raise SystemExit(2)
+
 def cmd_experiment_validate(args: argparse.Namespace) -> None:
     manifest = _load_json(args.manifest)
     manifest_errors = validate_manifest(manifest)
@@ -487,6 +515,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--catalog", required=True)
     p.add_argument("--module-graph", required=True)
     p.set_defaults(func=cmd_architecture_invariants)
+
+    p = sub.add_parser("experiment-register")
+    p.add_argument("--manifest", required=True)
+    p.add_argument("--evidence-root", required=True)
+    p.add_argument("--db", required=True)
+    p.add_argument("--process-exit-code", type=int, default=0)
+    p.add_argument("--validation-complete", action="store_true")
+    p.set_defaults(func=cmd_experiment_register)
 
     p = sub.add_parser("dataset-validate")
     p.add_argument("--manifest", required=True)

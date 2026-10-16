@@ -17,7 +17,7 @@ _REQUIRED = {
     "dataset": (
         "dataset_id", "sha256", "symbol", "timeframe", "source_type", "price_basis",
         "synthetic_ticks", "timezone", "start", "end", "warmup_start",
-        "evaluation_start", "evaluation_end", "closed_candles_only",
+        "evaluation_start", "evaluation_end", "data_as_of", "timestamp_convention", "closed_candles_only",
     ),
     "environment": ("broker", "terminal_build", "tester_mode"),
     "costs": ("spread_model", "commission_model", "swap_included", "slippage_model"),
@@ -38,6 +38,7 @@ _TIME_FIELDS = {
     ("dataset", "warmup_start"),
     ("dataset", "evaluation_start"),
     ("dataset", "evaluation_end"),
+    ("dataset", "data_as_of"),
     ("protocol", "frozen_at"),
 }
 
@@ -159,7 +160,7 @@ def validate_manifest(manifest: Any) -> list[str]:
                 kinds.add(artifact["kind"])
             if not SHA256_RE.fullmatch(str(artifact.get("sha256", ""))):
                 errors.append(f"{prefix}.sha256: expected SHA-256 hex")
-        for required_kind in ("source", "ex4", "set", "parameters", "dataset", "trade_history", "tester_report", "tester_log", "validation_report"):
+        for required_kind in ("source", "ex4", "set", "parameters", "dataset", "trade_history", "tester_report", "tester_log", "validation_report", "dataset_validation_report"):
             if required_kind not in kinds:
                 errors.append(f"artifacts: missing required kind {required_kind}")
     return errors
@@ -189,7 +190,7 @@ def verify_artifacts(manifest: dict[str, Any], evidence_root: str | Path) -> lis
         if digest.lower() != str(artifact.get("sha256", "")).lower():
             errors.append(f"artifacts[{index}].sha256: mismatch")
             continue
-        if artifact.get("kind") == "validation_report":
+        if artifact.get("kind") in {"validation_report", "dataset_validation_report"}:
             try:
                 report = json.loads(path.read_text(encoding="utf-8"))
             except (OSError, UnicodeDecodeError, json.JSONDecodeError):
@@ -205,9 +206,12 @@ def verify_artifacts(manifest: dict[str, Any], evidence_root: str | Path) -> lis
                 "dataset_sha256": manifest.get("dataset", {}).get("sha256") if isinstance(manifest.get("dataset"), dict) else None,
                 "parameter_sha256": manifest.get("hypothesis", {}).get("parameter_sha256") if isinstance(manifest.get("hypothesis"), dict) else None,
             }
+            if artifact.get("kind") == "dataset_validation_report":
+                expected["dataset_status"] = "VALID"
+                expected["validator_version"] = "G1-DATASET-VALIDATOR-1.0"
             for field, value in expected.items():
                 if report.get(field) != value:
-                    errors.append(f"artifacts[{index}].validation_report.{field}: mismatch or non-PASS")
+                    errors.append(f"artifacts[{index}].{artifact.get('kind')}.{field}: mismatch or non-PASS")
     return errors
 
 

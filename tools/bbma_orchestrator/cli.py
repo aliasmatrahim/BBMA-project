@@ -336,8 +336,16 @@ def cmd_dataset_validate(args: argparse.Namespace) -> None:
     output_path = (root / output_path).resolve() if not output_path.is_absolute() else output_path.resolve()
     if output_path == root:
         raise SystemExit("output must be a file path inside the evidence root")
+    if output_path == manifest_path:
+        raise SystemExit("validation report cannot overwrite the run manifest")
     if output_path == dataset_path:
         raise SystemExit("validation report cannot overwrite the dataset")
+    for existing_artifact in manifest["artifacts"]:
+        if not isinstance(existing_artifact, dict) or existing_artifact.get("kind") == "dataset_validation_report":
+            continue
+        existing_path = existing_artifact.get("path")
+        if isinstance(existing_path, str) and (root / existing_path).resolve() == output_path:
+            raise SystemExit("validation report cannot overwrite another evidence artifact")
     if output_path != root and root not in output_path.parents:
         raise SystemExit("validation report path must remain inside evidence root")
     result = write_dataset_validation_report(

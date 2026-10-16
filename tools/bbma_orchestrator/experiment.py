@@ -62,7 +62,7 @@ def validate_manifest(manifest: Any) -> list[str]:
     errors: list[str] = []
     if not isinstance(manifest, dict):
         return ["manifest: expected object"]
-    if manifest.get("schema_version") != 1:
+    if isinstance(manifest.get("schema_version"), bool) or not isinstance(manifest.get("schema_version"), int) or manifest.get("schema_version") != 1:
         errors.append("schema_version: expected 1")
     if not _nonempty(manifest.get("run_id")):
         errors.append("run_id: required non-empty string")

@@ -40,7 +40,7 @@ Only explicitly supplied authority references, modules, validations and evidence
 Use the G1 data gate first, then validate and register the manifest in the existing SQLite evidence inventory:
 
 ```bash
-python -m tools.bbma_orchestrator dataset-validate \\\
+python -m tools.bbma_orchestrator dataset-validate \
   --manifest ./evidence/run-001/run-manifest.json \\\
   --evidence-root ./evidence/run-001 \\\
   --output dataset-validation.json \\\

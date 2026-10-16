@@ -20,6 +20,7 @@ from .core import (
 )
 from .evidence import ContentAddressedStore, EvidenceDB, build_evidence_package, sha256_file
 from .experiment import classify_run_status, validate_manifest, verify_artifacts
+from .dataset_validator import write_dataset_validation_report
 from .telemetry import MT4_SOURCE_KINDS, TelemetryStore
 from .trace import (
     build_trace_artifact,
@@ -312,6 +313,46 @@ def cmd_git_snapshot(args: argparse.Namespace) -> None:
 def cmd_artifact_identity(args: argparse.Namespace) -> None:
     _json_print({"artifacts": artifact_identity(args.files)})
 
+def cmd_dataset_validate(args: argparse.Namespace) -> None:
+    manifest_path = Path(args.manifest).resolve()
+    manifest = _load_json(str(manifest_path))
+    root = Path(args.evidence_root).resolve()
+    dataset_artifacts = [item for item in manifest.get("artifacts", []) if isinstance(item, dict) and item.get("kind") == "dataset"]
+    if len(dataset_artifacts) != 1:
+        raise SystemExit("manifest must contain exactly one dataset artifact")
+    dataset_path = (root / dataset_artifacts[0].get("path", "")).resolve()
+    if dataset_path != root and root not in dataset_path.parents:
+        raise SystemExit("dataset artifact path escapes evidence root")
+    output_path = Path(args.output)
+    output_path = (root / output_path).resolve() if not output_path.is_absolute() else output_path.resolve()
+    if output_path == dataset_path:
+        raise SystemExit("validation report cannot overwrite the dataset")
+    if output_path != root and root not in output_path.parents:
+        raise SystemExit("validation report path must remain inside evidence root")
+    result = write_dataset_validation_report(
+        dataset_path, manifest, output_path, max_gap_seconds=args.max_gap_seconds
+    )
+    digest = sha256_file(output_path)
+    artifact = {"kind": "dataset_validation_report", "path": str(output_path.relative_to(root)), "sha256": digest}
+    manifest["artifacts"] = [
+        item for item in manifest.get("artifacts", [])
+        if not isinstance(item, dict) or item.get("kind") != "dataset_validation_report"
+    ]
+    manifest["artifacts"].append(artifact)
+    atomic_write_json(manifest_path, manifest)
+    _json_print({
+        "dataset_status": result.get("dataset_status"),
+        "validation_status": result.get("validation_status"),
+        "rows": result.get("rows", 0),
+        "gap_count": result.get("gap_count", 0),
+        "errors": result.get("errors", []),
+        "report_path": str(output_path),
+        "report_sha256": digest,
+        "manifest_path": str(manifest_path),
+    })
+    if result.get("validation_status") != "PASS":
+        raise SystemExit(2)
+
 def cmd_experiment_validate(args: argparse.Namespace) -> None:
     manifest = _load_json(args.manifest)
     manifest_errors = validate_manifest(manifest)
@@ -446,6 +487,13 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--catalog", required=True)
     p.add_argument("--module-graph", required=True)
     p.set_defaults(func=cmd_architecture_invariants)
+
+    p = sub.add_parser("dataset-validate")
+    p.add_argument("--manifest", required=True)
+    p.add_argument("--evidence-root", required=True)
+    p.add_argument("--output", required=True)
+    p.add_argument("--max-gap-seconds", type=int)
+    p.set_defaults(func=cmd_dataset_validate)
 
     p = sub.add_parser("experiment-validate")
     p.add_argument("--manifest", required=True)

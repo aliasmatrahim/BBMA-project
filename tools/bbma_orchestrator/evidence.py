@@ -88,9 +88,195 @@ class EvidenceDB:
                 FOREIGN KEY (src) REFERENCES nodes(node_id) ON DELETE CASCADE,
                 FOREIGN KEY (dst) REFERENCES nodes(node_id) ON DELETE CASCADE
             );
+            CREATE TABLE IF NOT EXISTS experiment_runs (
+                run_id TEXT PRIMARY KEY,
+                manifest_sha256 TEXT NOT NULL,
+                fingerprint TEXT NOT NULL,
+                hypothesis_id TEXT NOT NULL,
+                build_id TEXT NOT NULL,
+                dataset_sha256 TEXT NOT NULL,
+                parameter_sha256 TEXT NOT NULL,
+                run_status TEXT NOT NULL,
+                hypothesis_result TEXT NOT NULL,
+                parent_run_id TEXT,
+                metadata_json TEXT NOT NULL,
+                registered_at TEXT NOT NULL,
+                FOREIGN KEY (parent_run_id) REFERENCES experiment_runs(run_id)
+            );
+            CREATE INDEX IF NOT EXISTS idx_experiment_runs_fingerprint
+                ON experiment_runs(fingerprint);
             """
         )
         self.conn.commit()
+
+    def register_experiment(
+        self,
+        manifest: dict[str, Any],
+        manifest_path: str | Path,
+        evidence_root: str | Path,
+        *,
+        run_status: str,
+        hypothesis_result: str = "NOT_EVALUATED",
+    ) -> dict[str, Any]:
+        """Register a validated run in the existing evidence DAG without granting runtime authority."""
+        from datetime import datetime
+
+        if not isinstance(manifest, dict):
+            raise ValueError("manifest must be an object")
+        run_id = manifest.get("run_id")
+        if not isinstance(run_id, str) or not run_id.strip():
+            raise ValueError("run_id is required")
+        if run_status not in {"INVALID_RUN", "RUN_FAILED", "VALIDATION_FAILED", "EVIDENCE_ACCEPTED"}:
+            raise ValueError("invalid experiment run status")
+        if hypothesis_result not in {"NOT_EVALUATED", "SUPPORTED", "NOT_SUPPORTED", "INCONCLUSIVE"}:
+            raise ValueError("invalid hypothesis result")
+        hypothesis = manifest.get("hypothesis", {})
+        build = manifest.get("build", {})
+        dataset = manifest.get("dataset", {})
+        costs = manifest.get("costs", {})
+        environment = manifest.get("environment", {})
+        protocol = manifest.get("protocol", {})
+        if not all(isinstance(value, dict) for value in (hypothesis, build, dataset, costs, environment, protocol)):
+            raise ValueError("manifest identity sections must be objects")
+        manifest_file = Path(manifest_path).resolve()
+        root = Path(evidence_root).resolve()
+        if not manifest_file.is_file():
+            raise FileNotFoundError(manifest_file)
+        manifest_digest = sha256_file(manifest_file)
+        fingerprint_payload = {
+            "hypothesis_id": hypothesis.get("id"),
+            "parameter_sha256": hypothesis.get("parameter_sha256"),
+            "build_id": build.get("build_id"),
+            "source_commit": build.get("source_commit"),
+            "source_sha256": build.get("source_sha256"),
+            "ex4_sha256": build.get("ex4_sha256"),
+            "set_sha256": build.get("set_sha256"),
+            "dataset_sha256": dataset.get("sha256"),
+            "symbol": dataset.get("symbol"),
+            "timeframe": dataset.get("timeframe"),
+            "environment": environment,
+            "costs": costs,
+            "partition": protocol.get("partition"),
+        }
+        fingerprint = hashlib.sha256(json.dumps(fingerprint_payload, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+        parent_run_id = manifest.get("parent_run_id")
+        artifacts = manifest.get("artifacts")
+        if not isinstance(artifacts, list) or not artifacts:
+            raise ValueError("manifest artifacts must be a non-empty list")
+        resolved_artifacts: list[tuple[str, str, Path, int]] = []
+        seen_kinds: set[str] = set()
+        for item in artifacts:
+            if not isinstance(item, dict) or not isinstance(item.get("kind"), str) or not isinstance(item.get("path"), str):
+                raise ValueError("invalid artifact record")
+            kind = item["kind"]
+            if kind in seen_kinds:
+                raise ValueError(f"duplicate artifact kind: {kind}")
+            seen_kinds.add(kind)
+            path = (root / item["path"]).resolve()
+            if path != root and root not in path.parents:
+                raise ValueError(f"artifact path escapes evidence root: {kind}")
+            if not path.is_file():
+                raise FileNotFoundError(path)
+            digest = sha256_file(path)
+            if digest.lower() != str(item.get("sha256", "")).lower():
+                raise ValueError(f"artifact hash mismatch: {kind}")
+            resolved_artifacts.append((kind, digest, path, path.stat().st_size))
+
+        existing = self.conn.execute(
+            "SELECT manifest_sha256,fingerprint,run_status,hypothesis_result FROM experiment_runs WHERE run_id=?",
+            (run_id,),
+        ).fetchone()
+        if existing:
+            if existing[0] != manifest_digest:
+                raise ValueError(f"run_id collision: {run_id} already belongs to a different manifest")
+            return {"run_id": run_id, "created": False, "manifest_sha256": manifest_digest,
+                    "fingerprint": existing[1], "run_status": existing[2],
+                    "hypothesis_result": existing[3], "lineage_node": f"experiment:{run_id}"}
+        if parent_run_id:
+            parent = self.conn.execute("SELECT 1 FROM experiment_runs WHERE run_id=?", (parent_run_id,)).fetchone()
+            if parent is None:
+                raise KeyError(f"parent experiment not registered: {parent_run_id}")
+
+        now = utc_now()
+        metadata = {
+            "hypothesis_id": hypothesis.get("id"),
+            "build_id": build.get("build_id"),
+            "dataset_id": dataset.get("dataset_id"),
+            "dataset_sha256": dataset.get("sha256"),
+            "parameter_sha256": hypothesis.get("parameter_sha256"),
+            "partition": protocol.get("partition"),
+            "evidence_only": True,
+            "trade_authority": "NONE",
+        }
+        run_node = f"experiment:{run_id}"
+        try:
+            self.conn.execute("BEGIN IMMEDIATE")
+            self.conn.execute(
+                """INSERT INTO experiment_runs
+                (run_id,manifest_sha256,fingerprint,hypothesis_id,build_id,dataset_sha256,
+                 parameter_sha256,run_status,hypothesis_result,parent_run_id,metadata_json,registered_at)
+                VALUES(?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (run_id, manifest_digest, fingerprint, str(hypothesis.get("id", "")),
+                 str(build.get("build_id", "")), str(dataset.get("sha256", "")),
+                 str(hypothesis.get("parameter_sha256", "")), run_status, hypothesis_result,
+                 parent_run_id, json.dumps(metadata, sort_keys=True), now),
+            )
+            self.conn.execute(
+                "INSERT INTO nodes(node_id,kind,digest,status,metadata_json,updated_at) VALUES(?,?,?,?,?,?)",
+                (run_node, "report", manifest_digest, "NOT VERIFIED",
+                 json.dumps({**metadata, "run_status": run_status, "hypothesis_result": hypothesis_result}, sort_keys=True), now),
+            )
+            for kind, digest, path, size in resolved_artifacts:
+                artifact_node = f"experiment-artifact:{run_id}:{kind}"
+                artifact_meta = {"run_id": run_id, "kind": kind, "path": str(path), "fingerprint": fingerprint}
+                self.conn.execute(
+                    """INSERT INTO artifacts(digest,path,size,reviewed_status,authority_fingerprint,metadata_json,updated_at)
+                    VALUES(?,?,?,?,?,?,?) ON CONFLICT(digest) DO NOTHING""",
+                    (digest, str(path), size, "NOT VERIFIED", fingerprint, json.dumps(artifact_meta, sort_keys=True), now),
+                )
+                self.conn.execute(
+                    "INSERT INTO nodes(node_id,kind,digest,status,metadata_json,updated_at) VALUES(?,?,?,?,?,?)",
+                    (artifact_node, "artifact", digest, "NOT VERIFIED", json.dumps(artifact_meta, sort_keys=True), now),
+                )
+                self.conn.execute("INSERT INTO edges(src,dst) VALUES(?,?)", (artifact_node, run_node))
+            if parent_run_id:
+                self.conn.execute("INSERT INTO edges(src,dst) VALUES(?,?)", (f"experiment:{parent_run_id}", run_node))
+            self.conn.commit()
+        except Exception:
+            self.conn.rollback()
+            raise
+        return {"run_id": run_id, "created": True, "manifest_sha256": manifest_digest,
+                "fingerprint": fingerprint, "run_status": run_status,
+                "hypothesis_result": hypothesis_result, "lineage_node": run_node,
+                "artifact_nodes": [f"experiment-artifact:{run_id}:{kind}" for kind, _, _, _ in resolved_artifacts]}
+
+    def find_experiment_runs(self, fingerprint: str) -> list[dict[str, Any]]:
+        rows = self.conn.execute(
+            """SELECT run_id,manifest_sha256,fingerprint,hypothesis_id,build_id,dataset_sha256,
+            parameter_sha256,run_status,hypothesis_result,parent_run_id,registered_at
+            FROM experiment_runs WHERE fingerprint=? ORDER BY registered_at,run_id""",
+            (fingerprint,),
+        ).fetchall()
+        keys = ("run_id", "manifest_sha256", "fingerprint", "hypothesis_id", "build_id",
+                "dataset_sha256", "parameter_sha256", "run_status", "hypothesis_result",
+                "parent_run_id", "registered_at")
+        return [dict(zip(keys, row)) for row in rows]
+
+    def get_experiment_run(self, run_id: str) -> dict[str, Any]:
+        row = self.conn.execute(
+            """SELECT run_id,manifest_sha256,fingerprint,hypothesis_id,build_id,dataset_sha256,
+            parameter_sha256,run_status,hypothesis_result,parent_run_id,metadata_json,registered_at
+            FROM experiment_runs WHERE run_id=?""",
+            (run_id,),
+        ).fetchone()
+        if row is None:
+            raise KeyError(run_id)
+        return {
+            "run_id": row[0], "manifest_sha256": row[1], "fingerprint": row[2],
+            "hypothesis_id": row[3], "build_id": row[4], "dataset_sha256": row[5],
+            "parameter_sha256": row[6], "run_status": row[7], "hypothesis_result": row[8],
+            "parent_run_id": row[9], "metadata": json.loads(row[10]), "registered_at": row[11],
+        }
 
     def record_artifact(
         self,

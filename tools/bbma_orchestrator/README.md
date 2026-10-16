@@ -41,18 +41,18 @@ Use the G1 data gate first, then validate and register the manifest in the exist
 
 ```bash
 python -m tools.bbma_orchestrator dataset-validate \
-  --manifest ./evidence/run-001/run-manifest.json \\\
-  --evidence-root ./evidence/run-001 \\\
-  --output dataset-validation.json \\\
+  --manifest ./evidence/run-001/run-manifest.json \
+  --evidence-root ./evidence/run-001 \
+  --output dataset-validation.json \
   --max-gap-seconds 60
-python -m tools.bbma_orchestrator experiment-validate \\\
-  --manifest ./evidence/run-001/run-manifest.json \\\
-  --evidence-root ./evidence/run-001 \\\
+python -m tools.bbma_orchestrator experiment-validate \
+  --manifest ./evidence/run-001/run-manifest.json \
+  --evidence-root ./evidence/run-001 \
   --validation-complete
-python -m tools.bbma_orchestrator experiment-register \\\
-  --manifest ./evidence/run-001/run-manifest.json \\\
-  --evidence-root ./evidence/run-001 \\\
-  --db ./evidence/evidence.sqlite \\\
+python -m tools.bbma_orchestrator experiment-register \
+  --manifest ./evidence/run-001/run-manifest.json \
+  --evidence-root ./evidence/run-001 \
+  --db ./evidence/evidence.sqlite \
   --validation-complete
 ```
 

@@ -60,7 +60,7 @@ For bar CSVs, use `timestamp,bid_open,bid_high,bid_low,bid_close,ask_open,ask_hi
 
 `experiment-register` enforces unique `run_id`, stores manifest/artifact lineage in the existing EvidenceDB DAG, groups matching setup fingerprints, and supports explicit `parent_run_id` links. Re-registering the exact same manifest is idempotent; reusing a run ID for different manifest bytes fails closed. Evidence nodes remain `NOT VERIFIED`; no runtime or trade authority is granted.
 
-The commands exit non-zero on invalid evidence. `EVIDENCE_ACCEPTED` means evidence integrity only; profitability, data-source authenticity, BBMA Core compliance and runtime acceptance remain separate decisions. See `blueprint/research/PROFITABILITY_EXPERIMENT_EVIDENCE_CONTRACT_V1.md` and `blueprint/research/PROFITABILITY_EXPERIMENT_GAP_AUDIT_G0_G5.md`.
+`experiment-validate` reruns G1 against the actual dataset and checks the report against recomputed row/gap/duplicate/OHLC metrics. The commands exit non-zero on invalid evidence. `EVIDENCE_ACCEPTED` means evidence integrity only; profitability, data-source authenticity, BBMA Core compliance and runtime acceptance remain separate decisions. See `blueprint/research/PROFITABILITY_EXPERIMENT_EVIDENCE_CONTRACT_V1.md` and `blueprint/research/PROFITABILITY_EXPERIMENT_GAP_AUDIT_G0_G5.md`.
 
 ## Evidence and cache
 

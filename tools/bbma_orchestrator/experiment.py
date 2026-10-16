@@ -189,6 +189,7 @@ def verify_artifacts(manifest: dict[str, Any], evidence_root: str | Path) -> lis
     """Verify artifact paths and SHA-256 values without permitting root escape."""
     root = Path(evidence_root).resolve()
     errors: list[str] = []
+    parsed_reports: dict[str, dict[str, Any]] = {}
     if not isinstance(manifest, dict):
         return ["manifest: expected object"]
     artifacts = manifest.get("artifacts")
@@ -218,6 +219,7 @@ def verify_artifacts(manifest: dict[str, Any], evidence_root: str | Path) -> lis
             if not isinstance(report, dict):
                 errors.append(f"artifacts[{index}].validation_report: expected JSON object")
                 continue
+            parsed_reports[str(artifact.get("kind"))] = report
             expected = {
                 "validation_status": "PASS",
                 "run_id": manifest.get("run_id"),
@@ -241,6 +243,32 @@ def verify_artifacts(manifest: dict[str, Any], evidence_root: str | Path) -> lis
             for field, value in expected.items():
                 if report.get(field) != value:
                     errors.append(f"artifacts[{index}].{artifact.get('kind')}.{field}: mismatch or non-PASS")
+    dataset_entries = [item for item in artifacts if isinstance(item, dict) and item.get("kind") == "dataset"]
+    if len(dataset_entries) != 1:
+        errors.append("dataset: expected exactly one dataset artifact for G1 revalidation")
+    else:
+        dataset_path = (root / str(dataset_entries[0].get("path", ""))).resolve()
+        if dataset_path != root and root not in dataset_path.parents:
+            errors.append("dataset.path: escapes evidence root during G1 revalidation")
+        else:
+            from .dataset_validator import validate_dataset_file
+            dataset_meta = manifest.get("dataset", {})
+            gap_limit = dataset_meta.get("max_gap_seconds") if isinstance(dataset_meta, dict) else None
+            recomputed = validate_dataset_file(dataset_path, manifest, max_gap_seconds=gap_limit)
+            if recomputed.get("validation_status") != "PASS":
+                errors.append("dataset G1 validation failed: " + "; ".join(recomputed.get("errors", [])))
+            report = parsed_reports.get("dataset_validation_report")
+            if report is None:
+                errors.append("dataset_validation_report: missing valid, hash-verified report")
+            else:
+                for field in (
+                    "validator_version", "validation_status", "dataset_status", "run_id",
+                    "build_id", "dataset_sha256", "parameter_sha256", "price_basis",
+                    "timeframe", "rows", "duplicate_timestamps", "non_monotonic_timestamps",
+                    "gap_count", "gaps", "errors",
+                ):
+                    if report.get(field) != recomputed.get(field):
+                        errors.append(f"dataset_validation_report.{field}: does not match recomputed G1 result")
     return errors
 
 

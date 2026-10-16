@@ -37,16 +37,30 @@ Only explicitly supplied authority references, modules, validations and evidence
 
 ## Profitability experiment evidence gate
 
-Validate a versioned run manifest and verify every referenced artifact against its SHA-256 within an isolated evidence root:
+Use the G1 data gate first, then validate and register the manifest in the existing SQLite evidence inventory:
 
 ```bash
-python -m tools.bbma_orchestrator experiment-validate \\
-  --manifest run-manifest.json \\
-  --evidence-root ./evidence/run-001 \\
+python -m tools.bbma_orchestrator dataset-validate \\\
+  --manifest ./evidence/run-001/run-manifest.json \\\
+  --evidence-root ./evidence/run-001 \\\
+  --output dataset-validation.json \\\
+  --max-gap-seconds 60
+python -m tools.bbma_orchestrator experiment-validate \\\
+  --manifest ./evidence/run-001/run-manifest.json \\\
+  --evidence-root ./evidence/run-001 \\\
+  --validation-complete
+python -m tools.bbma_orchestrator experiment-register \\\
+  --manifest ./evidence/run-001/run-manifest.json \\\
+  --evidence-root ./evidence/run-001 \\\
+  --db ./evidence/evidence.sqlite \\\
   --validation-complete
 ```
 
-The command exits non-zero unless the run manifest and artifact hashes pass and validation is explicitly marked complete. `EVIDENCE_ACCEPTED` means evidence integrity only; profitability, BBMA Core compliance and runtime acceptance remain separate decisions. See `blueprint/research/PROFITABILITY_EXPERIMENT_EVIDENCE_CONTRACT_V1.md`.
+For bar CSVs, use `timestamp,bid_open,bid_high,bid_low,bid_close,ask_open,ask_high,ask_low,ask_close`. For tick CSVs, use `timestamp,bid,ask` and declare a preregistered `--max-gap-seconds`. Timestamp values must be timezone-aware ISO-8601. Bar timestamps use `BAR_OPEN`; tick timestamps use `TICK_TIME`. Missing bar intervals fail unless the exact gap is covered by an explicit `dataset.allowed_gap_windows` entry. The validator never interpolates or repairs data.
+
+`experiment-register` enforces unique `run_id`, stores manifest/artifact lineage in the existing EvidenceDB DAG, groups matching setup fingerprints, and supports explicit `parent_run_id` links. Re-registering the exact same manifest is idempotent; reusing a run ID for different manifest bytes fails closed. Evidence nodes remain `NOT VERIFIED`; no runtime or trade authority is granted.
+
+The commands exit non-zero on invalid evidence. `EVIDENCE_ACCEPTED` means evidence integrity only; profitability, data-source authenticity, BBMA Core compliance and runtime acceptance remain separate decisions. See `blueprint/research/PROFITABILITY_EXPERIMENT_EVIDENCE_CONTRACT_V1.md` and `blueprint/research/PROFITABILITY_EXPERIMENT_GAP_AUDIT_G0_G5.md`.
 
 ## Evidence and cache
 

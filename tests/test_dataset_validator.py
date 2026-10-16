@@ -133,6 +133,18 @@ class DatasetValidatorTests(unittest.TestCase):
             result = validate_dataset_file(path, manifest, max_gap_seconds=60)
         self.assertTrue(any("timestamp gap" in error for error in result["errors"]))
 
+    def test_synthetic_source_and_unregistered_tick_gap_policy_fail(self):
+        text = "timestamp,bid,ask\\n2026-01-01T00:00:01Z,1.1000,1.1002\\n"
+        manifest = _manifest(text, "BID_ASK_TICKS")
+        manifest["dataset"]["source_type"] = "reconstructed synthetic ticks"
+        manifest["dataset"].pop("max_gap_seconds")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "ticks.csv"
+            path.write_text(text, encoding="utf-8")
+            result = validate_dataset_file(path, manifest)
+        self.assertTrue(any("source_type" in error for error in result["errors"]))
+        self.assertTrue(any("max_gap_seconds" in error for error in result["errors"]))
+
     def test_incomplete_candle_window_and_data_as_of_fail(self):
         text = (
             "timestamp,bid_open,bid_high,bid_low,bid_close,ask_open,ask_high,ask_low,ask_close\n"

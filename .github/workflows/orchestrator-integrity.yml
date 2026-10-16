@@ -1,10 +1,14 @@
 name: Orchestrator Integrity
 
+# Includes the experiment evidence manifest suite for scoped tooling PRs.
+
 on:
   pull_request:
     paths:
       - "tools/bbma_orchestrator/**"
       - "tests/test_bbma_orchestrator.py"
+      - "tests/test_experiment_evidence.py"
+      - "blueprint/research/PROFITABILITY_EXPERIMENT_*.md"
       - "config/bbma_architecture_invariants.json"
       - "config/bbma_module_graph.json"
       - "docs/BBMA_AUTONOMOUS_ENGINEERING_INFRASTRUCTURE.md"
@@ -46,7 +50,7 @@ jobs:
         run: python -m compileall tools/bbma_orchestrator
 
       - name: Run orchestrator unit and property-style tests
-        run: python -m unittest discover -s tests -p "test_bbma_orchestrator.py" -v
+        run: python -m unittest discover -s tests -p "test_*.py" -v
 
       - name: CLI smoke test
         shell: bash

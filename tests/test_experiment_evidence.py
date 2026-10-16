@@ -122,7 +122,7 @@ class ExperimentEvidenceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             manifest = valid_manifest(Path(tmp))
             manifest["dataset"]["data_as_of"] = "2026-07-01T00:00:00Z"
-            manifest["dataset"]["timestamp_convention"] = "TICK_TIME"
+            manifest["dataset"]["timestamp_convention"] = "BAR_OPEN"
             errors = validate_manifest(manifest)
             self.assertTrue(any("data_as_of" in item for item in errors))
             self.assertTrue(any("timestamp_convention" in item for item in errors))

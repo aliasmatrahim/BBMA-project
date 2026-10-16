@@ -193,6 +193,9 @@ def verify_artifacts(manifest: dict[str, Any], evidence_root: str | Path) -> lis
             except (OSError, UnicodeDecodeError, json.JSONDecodeError):
                 errors.append(f"artifacts[{index}]: validation report must be UTF-8 JSON")
                 continue
+            if not isinstance(report, dict):
+                errors.append(f"artifacts[{index}].validation_report: expected JSON object")
+                continue
             expected = {
                 "validation_status": "PASS",
                 "run_id": manifest.get("run_id"),

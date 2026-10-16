@@ -89,6 +89,10 @@ def validate_dataset_file(
         errors.append("dataset.closed_candles_only: must be true")
     if basis not in {"BID_ASK_TICKS", "BID_ASK_BARS"}:
         errors.append("dataset.price_basis: expected BID_ASK_TICKS or BID_ASK_BARS")
+    if basis == "BID_ASK_TICKS" and max_gap_seconds is None:
+        errors.append("max_gap_seconds: required for irregular tick timestamp gap validation")
+    if max_gap_seconds is not None and max_gap_seconds <= 0:
+        errors.append("max_gap_seconds: must be a positive integer")
     windows = dataset.get("allowed_gap_windows", [])
     if not isinstance(windows, list) or any(not isinstance(w, dict) for w in windows):
         errors.append("dataset.allowed_gap_windows: expected list of start/end objects")

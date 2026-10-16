@@ -24,9 +24,9 @@ A JSON object contains:
 - `environment`: `broker`, `terminal_build`, `tester_mode`.
 - `costs`: `spread_model`, `commission_model`, `swap_included`, `slippage_model`.
 - `protocol`: `partition` (`IS`, `VALIDATION`, or `OOS`), `frozen_at`, `parameter_freeze_sha256`, `oos_tuning_performed`.
-- `artifacts`: non-empty list of `kind`, `path`, and `sha256` records, including complete trade history, tester report/log, and a validation report whose contents can be independently reviewed.
+- `artifacts`: non-empty list of `kind`, `path`, and `sha256` records, including complete trade history, tester report/log, and a validation report whose contents can be independently reviewed. The machine-readable validation report must be UTF-8 JSON and bind `validation_status=PASS`, `run_id`, `build_id`, `dataset_sha256`, and `parameter_sha256` to the manifest.
 
-All SHA-256 values must be 64 hexadecimal characters. `price_basis` must explicitly identify Bid/Ask ticks or Bid/Ask bars. Reconstructed/synthetic ticks are not accepted as native tick evidence. The manifest must state the actual timezone and separate warm-up from evaluation windows.
+All SHA-256 values must be 64 hexadecimal characters. `price_basis` must explicitly identify Bid/Ask ticks or Bid/Ask bars. Reconstructed/synthetic ticks are not accepted as native tick evidence. The manifest must state the actual timezone and separate warm-up from evaluation windows. The validator verifies the validation report’s exact run/build/dataset/parameter identity and PASS marker; this still does not independently prove that the underlying validation method is correct.
 
 ## Hard-fail conditions
 

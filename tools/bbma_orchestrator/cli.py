@@ -19,6 +19,7 @@ from .core import (
     build_closeout,
 )
 from .evidence import ContentAddressedStore, EvidenceDB, build_evidence_package, sha256_file
+from .experiment import classify_run_status, validate_manifest, verify_artifacts
 from .telemetry import MT4_SOURCE_KINDS, TelemetryStore
 from .trace import (
     build_trace_artifact,
@@ -311,6 +312,26 @@ def cmd_git_snapshot(args: argparse.Namespace) -> None:
 def cmd_artifact_identity(args: argparse.Namespace) -> None:
     _json_print({"artifacts": artifact_identity(args.files)})
 
+def cmd_experiment_validate(args: argparse.Namespace) -> None:
+    manifest = _load_json(args.manifest)
+    manifest_errors = validate_manifest(manifest)
+    artifact_errors = verify_artifacts(manifest, args.evidence_root)
+    status = classify_run_status(
+        manifest_errors,
+        artifact_errors,
+        process_exit_code=args.process_exit_code,
+        validation_complete=args.validation_complete,
+    )
+    _json_print({
+        "run_status": status,
+        "hypothesis_result": "NOT_EVALUATED",
+        "manifest_errors": manifest_errors,
+        "artifact_errors": artifact_errors,
+        "interpretation": "Evidence validity only; no profitability or runtime PASS is inferred.",
+    })
+    if status != "EVIDENCE_ACCEPTED":
+        raise SystemExit(2)
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="bbma-orchestrator")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -425,6 +446,13 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--catalog", required=True)
     p.add_argument("--module-graph", required=True)
     p.set_defaults(func=cmd_architecture_invariants)
+
+    p = sub.add_parser("experiment-validate")
+    p.add_argument("--manifest", required=True)
+    p.add_argument("--evidence-root", required=True)
+    p.add_argument("--process-exit-code", type=int, default=0)
+    p.add_argument("--validation-complete", action="store_true")
+    p.set_defaults(func=cmd_experiment_validate)
 
     p = sub.add_parser("evidence-package")
     p.add_argument("--output", required=True)

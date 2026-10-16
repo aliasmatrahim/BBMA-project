@@ -21,6 +21,9 @@ def _manifest(text: str, basis: str = "BID_ASK_BARS") -> dict:
             "sha256": _sha(text),
             "timeframe": "M15",
             "price_basis": basis,
+            "source_type": "broker-native",
+            "timezone": "UTC",
+            "max_gap_seconds": 900 if basis == "BID_ASK_TICKS" else None,
             "timestamp_convention": "TICK_TIME" if basis == "BID_ASK_TICKS" else "BAR_OPEN",
             "closed_candles_only": True,
             "start": "2026-01-01T00:00:00Z",
@@ -121,6 +124,7 @@ class DatasetValidatorTests(unittest.TestCase):
         manifest["dataset"]["end"] = "2026-01-01T00:15:00Z"
         manifest["dataset"]["evaluation_end"] = "2026-01-01T00:15:00Z"
         manifest["dataset"]["data_as_of"] = "2026-01-01T00:30:00Z"
+        manifest["dataset"]["max_gap_seconds"] = 60
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "ticks.csv"
             path.write_text(text, encoding="utf-8")

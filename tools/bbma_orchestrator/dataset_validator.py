@@ -81,6 +81,8 @@ def validate_dataset_file(
         interval = 0
     basis = dataset.get("price_basis")
     source_type = str(dataset.get("source_type", "")).strip().lower()
+    if dataset.get("synthetic_ticks") is not False:
+        errors.append("dataset.synthetic_ticks: reconstructed/synthetic ticks are not accepted")
     if any(term in source_type for term in ("synthetic", "reconstructed", "interpolated", "generated tick", "simulated tick")):
         errors.append("dataset.source_type: synthetic/reconstructed tick data is not accepted")
     convention = dataset.get("timestamp_convention")
@@ -106,6 +108,11 @@ def validate_dataset_file(
     if not isinstance(windows, list) or any(not isinstance(w, dict) for w in windows):
         errors.append("dataset.allowed_gap_windows: expected list of start/end objects")
         windows = []
+    else:
+        for index, window in enumerate(windows):
+            left, right = _time(window.get("start")), _time(window.get("end"))
+            if left is None or right is None or left >= right:
+                errors.append(f"dataset.allowed_gap_windows[{index}]: expected timezone-aware start < end")
     start = _time(dataset.get("start"))
     end = _time(dataset.get("end"))
     warmup = _time(dataset.get("warmup_start"))
@@ -131,7 +138,10 @@ def validate_dataset_file(
         try:
             with path.open("r", encoding="utf-8-sig", newline="") as handle:
                 reader = csv.DictReader(handle)
-                fields = set(reader.fieldnames or [])
+                field_list = reader.fieldnames or []
+                fields = set(field_list)
+                if len(field_list) != len(fields):
+                    errors.append("dataset.columns: duplicate column names")
                 required = {"timestamp", "bid", "ask"} if basis == "BID_ASK_TICKS" else {"timestamp", *_BAR_FIELDS}
                 missing = sorted(required - fields)
                 if missing:

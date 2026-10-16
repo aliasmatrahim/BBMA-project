@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -9,7 +10,7 @@ from tools.bbma_orchestrator.dataset_validator import validate_dataset_file
 
 
 def _sha(text: str) -> str:
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+    return hashlib.sha256(text.replace("\n", os.linesep).encode("utf-8")).hexdigest()
 
 
 def _manifest(text: str, basis: str = "BID_ASK_BARS") -> dict:
@@ -158,6 +159,36 @@ class DatasetValidatorTests(unittest.TestCase):
             result = validate_dataset_file(path, manifest)
         self.assertTrue(any("data_as_of" in error for error in result["errors"]))
         self.assertTrue(any("does not cover through" in error for error in result["errors"]))
+
+
+    def test_invalid_timestamp_fails_deterministically(self):
+        text = (
+            "timestamp,bid,ask\n"
+            "not-a-timestamp,1.1000,1.1002\n"
+        )
+        manifest = _manifest(text, "BID_ASK_TICKS")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "ticks.csv"
+            path.write_text(text, encoding="utf-8")
+            result = validate_dataset_file(path, manifest)
+        self.assertEqual(result["validation_status"], "FAIL")
+        self.assertTrue(any("timestamp must be timezone-aware ISO-8601" in error for error in result["errors"]))
+        self.assertEqual(result["rows"], 0)
+
+    def test_nonfinite_and_nonpositive_tick_prices_fail_deterministically(self):
+        for bid, ask in (("nan", "1.1002"), ("0", "0.0002"), ("1.1000", "inf"), ("1.1002", "1.1000")):
+            with self.subTest(bid=bid, ask=ask):
+                text = f"timestamp,bid,ask\n2026-01-01T00:00:01Z,{bid},{ask}\n"
+                manifest = _manifest(text, "BID_ASK_TICKS")
+                with tempfile.TemporaryDirectory() as tmp:
+                    path = Path(tmp) / "ticks.csv"
+                    path.write_text(text, encoding="utf-8")
+                    result = validate_dataset_file(path, manifest)
+                self.assertEqual(result["validation_status"], "FAIL")
+                self.assertTrue(any(
+                    "finite positive numbers" in error or "Ask is below Bid" in error
+                    for error in result["errors"]
+                ), result["errors"])
 
 
 if __name__ == "__main__":

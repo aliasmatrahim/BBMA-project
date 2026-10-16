@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -14,7 +15,7 @@ from tools.bbma_orchestrator.experiment import (
 
 
 def _hash(value: str) -> str:
-    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+    return hashlib.sha256(value.replace("\n", os.linesep).encode("utf-8")).hexdigest()
 
 
 _DATASET_CONTENT = (
@@ -209,6 +210,20 @@ class ExperimentEvidenceTests(unittest.TestCase):
             report_artifact["sha256"] = _hash(report_text)
             errors = verify_artifacts(manifest, root)
             self.assertTrue(any("dataset_validation_report.errors" in item for item in errors))
+
+    def test_forged_pass_report_metrics_are_recomputed_and_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = valid_manifest(root)
+            report_path = root / "dataset-validation.json"
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+            report["rows"] = 999
+            report_text = json.dumps(report, sort_keys=True)
+            report_path.write_text(report_text, encoding="utf-8")
+            report_artifact = next(item for item in manifest["artifacts"] if item["kind"] == "dataset_validation_report")
+            report_artifact["sha256"] = _hash(report_text)
+            errors = verify_artifacts(manifest, root)
+            self.assertTrue(any("does not match recomputed G1 result" in item for item in errors), errors)
 
     def test_missing_dataset_validation_report_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:

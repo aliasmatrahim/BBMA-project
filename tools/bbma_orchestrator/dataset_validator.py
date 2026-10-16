@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import csv
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 import hashlib
@@ -209,8 +209,14 @@ def validate_dataset_file(
         if first < start or last > end:
             errors.append("dataset: row timestamps fall outside declared data start/end")
         if eval_start and first > eval_start:
-            errors.append("dataset: data does not cover evaluation_start")
-        if eval_end and last < eval_end - (interval or 0):
+            leading_gap = (first - eval_start).total_seconds()
+            if basis != "BID_ASK_TICKS" or max_gap_seconds is None or leading_gap > max_gap_seconds:
+                errors.append("dataset: data does not cover evaluation_start within the declared gap threshold")
+        if basis == "BID_ASK_TICKS":
+            trailing_limit = max_gap_seconds if max_gap_seconds is not None else interval
+            if eval_end and last < eval_end - timedelta(seconds=(trailing_limit or 0)):
+                errors.append("dataset: tick data does not cover through evaluation_end within the declared gap threshold")
+        elif eval_end and last < eval_end - timedelta(seconds=(interval or 0)):
             errors.append("dataset: data does not cover through the final closed evaluation candle")
     if basis == "BID_ASK_BARS" and rows and as_of and interval:
         last_ts = rows[-1][1]

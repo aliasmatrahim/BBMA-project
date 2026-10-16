@@ -234,7 +234,7 @@ adapter. Start disabled and bind only the reviewed missing units, for example:
 
 ```bash
 python -m compileall tools/bbma_orchestrator
-python -m unittest discover -s tests -p "test_bbma_orchestrator.py" -v
+python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-The suite covers atomic persistence, recovery capsules, evidence staleness, failure-first telemetry, lifecycle and evidence-bound BBMA architecture property checks, mutation self-detection, golden traces, shadow comparison and native-adapter fail-closed behaviour.
+The suite covers atomic persistence, recovery capsules, evidence staleness, failure-first telemetry, lifecycle and evidence-bound BBMA architecture property checks, mutation self-detection, golden traces, shadow comparison, native-adapter fail-closed behaviour, and the separate profitability experiment manifest contract. The experiment validator checks provenance/schema and does not claim profitability or runtime PASS.

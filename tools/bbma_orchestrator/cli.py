@@ -332,6 +332,8 @@ def cmd_dataset_validate(args: argparse.Namespace) -> None:
         raise SystemExit("output path is required")
     output_path = Path(args.output)
     output_path = (root / output_path).resolve() if not output_path.is_absolute() else output_path.resolve()
+    if output_path == root:
+        raise SystemExit("output must be a file path inside the evidence root")
     if output_path == dataset_path:
         raise SystemExit("validation report cannot overwrite the dataset")
     if output_path != root and root not in output_path.parents:

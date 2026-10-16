@@ -109,6 +109,13 @@ def validate_manifest(manifest: Any) -> list[str]:
             errors.append("dataset.synthetic_ticks: reconstructed/synthetic ticks are not accepted")
         if dataset.get("closed_candles_only") is not True:
             errors.append("dataset.closed_candles_only: must be true")
+        expected_convention = "TICK_TIME" if dataset.get("price_basis") == "BID_ASK_TICKS" else "BAR_OPEN"
+        if dataset.get("timestamp_convention") != expected_convention:
+            errors.append(f"dataset.timestamp_convention: expected {expected_convention}")
+        as_of = parsed.get(("dataset", "data_as_of"))
+        evaluation_end = parsed.get(("dataset", "evaluation_end"))
+        if as_of and evaluation_end and as_of < evaluation_end:
+            errors.append("dataset.data_as_of: must be at or after evaluation_end")
         chronology = [
             ("dataset", "warmup_start"), ("dataset", "start"),
             ("dataset", "evaluation_start"), ("dataset", "evaluation_end"),

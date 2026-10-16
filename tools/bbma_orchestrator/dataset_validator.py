@@ -79,6 +79,9 @@ def validate_dataset_file(
     if interval is None:
         errors.append("dataset.timeframe: unsupported timeframe for alignment validation")
         interval = 0
+    for field in ("dataset_id", "source_type", "timezone", "symbol"):
+        if not isinstance(dataset.get(field), str) or not dataset.get(field, "").strip():
+            errors.append(f"dataset.{field}: required non-empty string")
     basis = dataset.get("price_basis")
     source_type = str(dataset.get("source_type", "")).strip().lower()
     if dataset.get("synthetic_ticks") is not False:

@@ -2,6 +2,7 @@ name: Orchestrator Integrity
 
 # Includes the experiment evidence manifest suite for scoped tooling PRs.
 # Keep validation runs tied to the exact PR head after test-only changes.
+# G1 dataset integrity and experiment inventory tests are mandatory regression inputs.
 
 on:
   pull_request:

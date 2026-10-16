@@ -24,7 +24,7 @@ A JSON object contains:
 - `environment`: `broker`, `terminal_build`, `tester_mode`.
 - `costs`: `spread_model`, `commission_model`, `swap_included`, `slippage_model`.
 - `protocol`: `partition` (`IS`, `VALIDATION`, or `OOS`), `frozen_at`, `parameter_freeze_sha256`, `oos_tuning_performed`.
-- `artifacts`: non-empty list of `kind`, `path`, and `sha256` records, including complete trade history and tester report/log.
+- `artifacts`: non-empty list of `kind`, `path`, and `sha256` records, including complete trade history, tester report/log, and a validation report whose contents can be independently reviewed.
 
 All SHA-256 values must be 64 hexadecimal characters. `price_basis` must explicitly identify Bid/Ask ticks or Bid/Ask bars. Reconstructed/synthetic ticks are not accepted as native tick evidence. The manifest must state the actual timezone and separate warm-up from evaluation windows.
 
@@ -36,7 +36,7 @@ Fail closed as `INVALID_RUN` when a required field is absent/empty, schema is un
 - warm-up/evaluation chronology violations;
 - OOS parameter tuning, parameter changes after freeze, or a freeze timestamp after OOS evaluation starts;
 - missing spread/commission/slippage assumptions or omitted swap accounting;
-- artifact hash mismatch, path traversal outside the declared evidence root, or missing trade history/report/log.
+- artifact hash mismatch, path traversal outside the declared evidence root, or missing trade history/report/log/validation report.
 
 A process error is `RUN_FAILED`. A completed run missing required validation evidence is `VALIDATION_FAILED`. Zero trades are not automatically a data-invalid run: report the run as inconclusive unless the preregistered hypothesis explicitly makes zero trades a protocol failure.
 

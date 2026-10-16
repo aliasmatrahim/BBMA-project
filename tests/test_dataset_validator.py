@@ -22,6 +22,7 @@ def _manifest(text: str, basis: str = "BID_ASK_BARS") -> dict:
             "timeframe": "M15",
             "price_basis": basis,
             "source_type": "broker-native",
+            "synthetic_ticks": False,
             "timezone": "UTC",
             "max_gap_seconds": 900 if basis == "BID_ASK_TICKS" else None,
             "timestamp_convention": "TICK_TIME" if basis == "BID_ASK_TICKS" else "BAR_OPEN",

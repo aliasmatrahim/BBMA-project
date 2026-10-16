@@ -27,6 +27,7 @@ def valid_manifest(root: Path) -> dict:
         ("trade_history", "trades.csv", "ticket,net\n1,10\n"),
         ("tester_report", "report.htm", "tester report"),
         ("tester_log", "tester.log", "tester log"),
+        ("validation_report", "validation.json", "{\"validation_status\":\"PASS\"}"),
     ):
         (root / name).write_text(content, encoding="utf-8")
         files[kind] = {"kind": kind, "path": name, "sha256": _hash(content)}
@@ -122,6 +123,13 @@ class ExperimentEvidenceTests(unittest.TestCase):
             manifest["artifacts"][0]["path"] = "../outside.csv"
             errors = verify_artifacts(manifest, root)
             self.assertTrue(any("escapes evidence root" in item for item in errors))
+
+    def test_missing_validation_report_artifact_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest = valid_manifest(Path(tmp))
+            manifest["artifacts"] = [item for item in manifest["artifacts"] if item["kind"] != "validation_report"]
+            errors = validate_manifest(manifest)
+            self.assertTrue(any("validation_report" in item for item in errors))
 
     def test_failed_process_and_incomplete_validation_are_not_accepted(self):
         self.assertEqual(classify_run_status([], [], process_exit_code=2, validation_complete=True), "RUN_FAILED")

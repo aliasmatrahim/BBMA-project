@@ -133,11 +133,14 @@ class ExperimentEvidenceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             manifest = valid_manifest(root)
-            (root / "validation.json").write_text(json.dumps({
+            report_text = json.dumps({
                 "validation_status": "PASS", "run_id": "OTHER-RUN",
                 "build_id": "BUILD-TEST-1", "dataset_sha256": _hash("dataset"),
                 "parameter_sha256": _hash("parameters"),
-            }, sort_keys=True), encoding="utf-8")
+            }, sort_keys=True)
+            (root / "validation.json").write_text(report_text, encoding="utf-8")
+            report_artifact = next(item for item in manifest["artifacts"] if item["kind"] == "validation_report")
+            report_artifact["sha256"] = _hash(report_text)
             errors = verify_artifacts(manifest, root)
             self.assertTrue(any("validation_report.run_id" in item for item in errors))
 

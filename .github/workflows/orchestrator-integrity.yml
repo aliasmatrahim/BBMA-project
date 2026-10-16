@@ -1,6 +1,7 @@
 name: Orchestrator Integrity
 
 # Includes the experiment evidence manifest suite for scoped tooling PRs.
+# Keep validation runs tied to the exact PR head after test-only changes.
 
 on:
   pull_request:

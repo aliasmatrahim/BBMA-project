@@ -116,6 +116,15 @@ class ExperimentEvidenceTests(unittest.TestCase):
             errors = validate_manifest(manifest)
             self.assertTrue(any("chronology" in item or "warmup_start" in item for item in errors))
 
+    def test_data_as_of_and_timestamp_convention_are_hard_gates(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest = valid_manifest(Path(tmp))
+            manifest["dataset"]["data_as_of"] = "2026-07-01T00:00:00Z"
+            manifest["dataset"]["timestamp_convention"] = "TICK_TIME"
+            errors = validate_manifest(manifest)
+            self.assertTrue(any("data_as_of" in item for item in errors))
+            self.assertTrue(any("timestamp_convention" in item for item in errors))
+
     def test_synthetic_ticks_and_live_candle_contract_are_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             manifest = valid_manifest(Path(tmp))

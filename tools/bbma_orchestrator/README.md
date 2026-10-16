@@ -56,7 +56,7 @@ python -m tools.bbma_orchestrator experiment-register \
   --validation-complete
 ```
 
-For bar CSVs, use `timestamp,bid_open,bid_high,bid_low,bid_close,ask_open,ask_high,ask_low,ask_close`. For tick CSVs, use `timestamp,bid,ask` and declare a preregistered `--max-gap-seconds`. Timestamp values must be timezone-aware ISO-8601. Bar timestamps use `BAR_OPEN`; tick timestamps use `TICK_TIME`. Missing bar intervals fail unless the exact gap is covered by an explicit `dataset.allowed_gap_windows` entry. The validator never interpolates or repairs data.
+For bar CSVs, use `timestamp,bid_open,bid_high,bid_low,bid_close,ask_open,ask_high,ask_low,ask_close`. For tick CSVs, use `timestamp,bid,ask` and set a preregistered positive integer `dataset.max_gap_seconds`; if the CLI flag is supplied, it must match the manifest. Timestamp values must be timezone-aware ISO-8601. Bar timestamps use `BAR_OPEN`; tick timestamps use `TICK_TIME`. Missing bar intervals fail unless the exact gap is covered by an explicit `dataset.allowed_gap_windows` entry. The validator never interpolates or repairs data.
 
 `experiment-register` enforces unique `run_id`, stores manifest/artifact lineage in the existing EvidenceDB DAG, groups matching setup fingerprints, and supports explicit `parent_run_id` links. Re-registering the exact same manifest is idempotent; reusing a run ID for different manifest bytes fails closed. Evidence nodes remain `NOT VERIFIED`; no runtime or trade authority is granted.
 
@@ -264,4 +264,4 @@ python -m compileall tools/bbma_orchestrator
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-The suite covers atomic persistence, recovery capsules, evidence staleness, failure-first telemetry, lifecycle and evidence-bound BBMA architecture property checks, mutation self-detection, golden traces, shadow comparison, native-adapter fail-closed behaviour, and the separate profitability experiment manifest contract. The experiment validator checks provenance/schema and does not claim profitability or runtime PASS.
+The suite covers atomic persistence, recovery capsules, evidence staleness, failure-first telemetry, lifecycle and evidence-bound BBMA architecture property checks, mutation self-detection, golden traces, shadow comparison, native-adapter fail-closed behaviour, experiment manifest validation, G1 dataset quality checks, and experiment inventory uniqueness/lineage. Evidence validation does not claim profitability, source authenticity or runtime PASS.

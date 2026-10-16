@@ -169,6 +169,8 @@ def verify_artifacts(manifest: dict[str, Any], evidence_root: str | Path) -> lis
     """Verify artifact paths and SHA-256 values without permitting root escape."""
     root = Path(evidence_root).resolve()
     errors: list[str] = []
+    if not isinstance(manifest, dict):
+        return ["manifest: expected object"]
     artifacts = manifest.get("artifacts")
     if not isinstance(artifacts, list):
         return ["artifacts: expected list"]

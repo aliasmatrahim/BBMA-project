@@ -134,7 +134,7 @@ def validate_dataset_file(
     gaps: list[dict[str, Any]] = []
     previous: tuple[int, datetime, dict[str, str]] | None = None
     for line_no, ts, row in rows:
-        if interval and int(ts.timestamp()) % interval:
+        if basis == "BID_ASK_BARS" and interval and int(ts.timestamp()) % interval:
             errors.append(f"line {line_no}: timestamp is not aligned to {timeframe} boundary")
         if basis == "BID_ASK_TICKS":
             bid, ask = _number(row.get("bid")), _number(row.get("ask"))
@@ -162,11 +162,12 @@ def validate_dataset_file(
             elif delta < 0:
                 non_monotonic += 1
                 errors.append(f"line {line_no}: timestamp is not strictly increasing after line {prev_line}")
-            elif interval and delta > interval:
-                gap = {"from": prev_ts.isoformat(), "to": ts.isoformat(), "seconds": int(delta)}
-                gaps.append(gap)
-                if not _allowed_gap(prev_ts, ts, windows):
-                    if basis == "BID_ASK_BARS" or max_gap_seconds is None or delta > max_gap_seconds:
+            else:
+                gap_threshold = interval if basis == "BID_ASK_BARS" else (max_gap_seconds or interval)
+                if gap_threshold and delta > gap_threshold:
+                    gap = {"from": prev_ts.isoformat(), "to": ts.isoformat(), "seconds": int(delta)}
+                    gaps.append(gap)
+                    if not _allowed_gap(prev_ts, ts, windows):
                         errors.append(f"timestamp gap {int(delta)}s from {prev_ts.isoformat()} to {ts.isoformat()}")
         previous = (line_no, ts, row)
 

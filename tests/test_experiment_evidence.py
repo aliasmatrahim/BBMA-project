@@ -18,10 +18,10 @@ def _hash(value: str) -> str:
 
 
 _DATASET_CONTENT = (
-    "timestamp,bid,ask\\n"
-    "2026-01-01T00:00:00Z,1.1000,1.1002\\n"
-    "2026-01-01T00:15:00Z,1.1001,1.1003\\n"
-    "2026-01-01T00:29:59Z,1.1002,1.1004\\n"
+    "timestamp,bid,ask\n"
+    "2026-01-01T00:00:00Z,1.1000,1.1002\n"
+    "2026-01-01T00:15:00Z,1.1001,1.1003\n"
+    "2026-01-01T00:29:59Z,1.1002,1.1004\n"
 )
 
 
@@ -47,7 +47,7 @@ def valid_manifest(root: Path) -> dict:
             "timeframe": "M15", "rows": 3, "duplicate_timestamps": 0,
             "non_monotonic_timestamps": 0, "gap_count": 0, "gaps": [], "errors": [],
             "run_id": "BBMA-EXP-0001", "build_id": "BUILD-TEST-1",
-            "dataset_sha256": _hash("dataset"), "parameter_sha256": _hash("parameters"),
+            "dataset_sha256": _hash(_DATASET_CONTENT), "parameter_sha256": _hash("parameters"),
         }, sort_keys=True)),
     ):
         (root / name).write_text(content, encoding="utf-8")

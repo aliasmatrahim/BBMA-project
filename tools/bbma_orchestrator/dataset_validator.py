@@ -80,6 +80,9 @@ def validate_dataset_file(
         errors.append("dataset.timeframe: unsupported timeframe for alignment validation")
         interval = 0
     basis = dataset.get("price_basis")
+    source_type = str(dataset.get("source_type", "")).strip().lower()
+    if any(term in source_type for term in ("synthetic", "reconstructed", "interpolated", "generated tick", "simulated tick")):
+        errors.append("dataset.source_type: synthetic/reconstructed tick data is not accepted")
     convention = dataset.get("timestamp_convention")
     if basis == "BID_ASK_BARS" and convention != "BAR_OPEN":
         errors.append("dataset.timestamp_convention: BID_ASK_BARS requires BAR_OPEN timestamps")
@@ -89,9 +92,15 @@ def validate_dataset_file(
         errors.append("dataset.closed_candles_only: must be true")
     if basis not in {"BID_ASK_TICKS", "BID_ASK_BARS"}:
         errors.append("dataset.price_basis: expected BID_ASK_TICKS or BID_ASK_BARS")
-    if basis == "BID_ASK_TICKS" and max_gap_seconds is None:
-        errors.append("max_gap_seconds: required for irregular tick timestamp gap validation")
-    if max_gap_seconds is not None and max_gap_seconds <= 0:
+    declared_gap = dataset.get("max_gap_seconds")
+    if basis == "BID_ASK_TICKS":
+        if isinstance(declared_gap, bool) or not isinstance(declared_gap, int) or declared_gap <= 0:
+            errors.append("dataset.max_gap_seconds: preregister a positive integer for tick gap validation")
+        elif max_gap_seconds is not None and max_gap_seconds != declared_gap:
+            errors.append("max_gap_seconds: CLI value differs from preregistered dataset.max_gap_seconds")
+        else:
+            max_gap_seconds = declared_gap
+    if max_gap_seconds is not None and (isinstance(max_gap_seconds, bool) or not isinstance(max_gap_seconds, int) or max_gap_seconds <= 0):
         errors.append("max_gap_seconds: must be a positive integer")
     windows = dataset.get("allowed_gap_windows", [])
     if not isinstance(windows, list) or any(not isinstance(w, dict) for w in windows):

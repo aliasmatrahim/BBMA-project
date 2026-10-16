@@ -4,6 +4,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 import hashlib
+import json
 import re
 
 SHA256_RE = re.compile(r"^[0-9a-fA-F]{64}$")
@@ -185,6 +186,23 @@ def verify_artifacts(manifest: dict[str, Any], evidence_root: str | Path) -> lis
         digest = hashlib.sha256(path.read_bytes()).hexdigest()
         if digest.lower() != str(artifact.get("sha256", "")).lower():
             errors.append(f"artifacts[{index}].sha256: mismatch")
+            continue
+        if artifact.get("kind") == "validation_report":
+            try:
+                report = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+                errors.append(f"artifacts[{index}]: validation report must be UTF-8 JSON")
+                continue
+            expected = {
+                "validation_status": "PASS",
+                "run_id": manifest.get("run_id"),
+                "build_id": manifest.get("build", {}).get("build_id") if isinstance(manifest.get("build"), dict) else None,
+                "dataset_sha256": manifest.get("dataset", {}).get("sha256") if isinstance(manifest.get("dataset"), dict) else None,
+                "parameter_sha256": manifest.get("hypothesis", {}).get("parameter_sha256") if isinstance(manifest.get("hypothesis"), dict) else None,
+            }
+            for field, value in expected.items():
+                if report.get(field) != value:
+                    errors.append(f"artifacts[{index}].validation_report.{field}: mismatch or non-PASS")
     return errors
 
 

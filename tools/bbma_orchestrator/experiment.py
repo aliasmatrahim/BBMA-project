@@ -7,6 +7,7 @@ import hashlib
 import re
 
 SHA256_RE = re.compile(r"^[0-9a-fA-F]{64}$")
+COMMIT_RE = re.compile(r"^[0-9a-fA-F]{40}$")
 RUN_STATUSES = {"INVALID_RUN", "RUN_FAILED", "VALIDATION_FAILED", "EVIDENCE_ACCEPTED"}
 HYPOTHESIS_RESULTS = {"NOT_EVALUATED", "SUPPORTED", "NOT_SUPPORTED", "INCONCLUSIVE"}
 _REQUIRED = {
@@ -94,6 +95,10 @@ def validate_manifest(manifest: Any) -> list[str]:
             else:
                 parsed[(section, field)] = value
 
+    build = manifest.get("build")
+    if isinstance(build, dict) and not COMMIT_RE.fullmatch(str(build.get("source_commit", ""))):
+        errors.append("build.source_commit: expected full 40-character Git commit SHA")
+
     dataset = manifest.get("dataset")
     if isinstance(dataset, dict):
         if dataset.get("price_basis") not in {"BID_ASK_TICKS", "BID_ASK_BARS"}:
@@ -108,8 +113,9 @@ def validate_manifest(manifest: Any) -> list[str]:
         ]
         values = [parsed.get(item) for item in chronology]
         if all(values):
-            if not (values[0] <= values[1] <= values[2] < values[3]):
-                errors.append("dataset: expected warmup_start <= start <= evaluation_start < evaluation_end")
+            data_end = parsed.get(("dataset", "end"))
+            if not (values[0] <= values[1] <= values[2] < values[3] and data_end and values[3] <= data_end):
+                errors.append("dataset: expected warmup_start <= start <= evaluation_start < evaluation_end <= end")
 
     hypothesis = manifest.get("hypothesis")
     protocol = manifest.get("protocol")
@@ -125,6 +131,8 @@ def validate_manifest(manifest: Any) -> list[str]:
         if protocol.get("partition") == "OOS" and freeze_time and evaluation_start and freeze_time > evaluation_start:
             errors.append("protocol.frozen_at: must not be after OOS evaluation_start")
         if isinstance(hypothesis, dict):
+            if hypothesis.get("parameter_sha256") != protocol.get("parameter_freeze_sha256"):
+                errors.append("protocol.parameter_freeze_sha256: must match hypothesis.parameter_sha256")
             preregistered = parsed.get(("hypothesis", "preregistered_at"))
             if preregistered and freeze_time and preregistered > freeze_time:
                 errors.append("hypothesis.preregistered_at: must not be after protocol.frozen_at")
@@ -150,7 +158,7 @@ def validate_manifest(manifest: Any) -> list[str]:
                 kinds.add(artifact["kind"])
             if not SHA256_RE.fullmatch(str(artifact.get("sha256", ""))):
                 errors.append(f"{prefix}.sha256: expected SHA-256 hex")
-        for required_kind in ("trade_history", "tester_report", "tester_log"):
+        for required_kind in ("source", "ex4", "set", "parameters", "dataset", "trade_history", "tester_report", "tester_log"):
             if required_kind not in kinds:
                 errors.append(f"artifacts: missing required kind {required_kind}")
     return errors

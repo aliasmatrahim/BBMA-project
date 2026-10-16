@@ -158,7 +158,7 @@ def validate_manifest(manifest: Any) -> list[str]:
                 kinds.add(artifact["kind"])
             if not SHA256_RE.fullmatch(str(artifact.get("sha256", ""))):
                 errors.append(f"{prefix}.sha256: expected SHA-256 hex")
-        for required_kind in ("source", "ex4", "set", "parameters", "dataset", "trade_history", "tester_report", "tester_log"):
+        for required_kind in ("source", "ex4", "set", "parameters", "dataset", "trade_history", "tester_report", "tester_log", "validation_report"):
             if required_kind not in kinds:
                 errors.append(f"artifacts: missing required kind {required_kind}")
     return errors

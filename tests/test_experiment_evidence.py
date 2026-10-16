@@ -19,6 +19,11 @@ def _hash(value: str) -> str:
 def valid_manifest(root: Path) -> dict:
     files = {}
     for kind, name, content in (
+        ("source", "EA.mq4", "source"),
+        ("ex4", "EA.ex4", "ex4"),
+        ("set", "EA.set", "set"),
+        ("parameters", "parameters.json", "parameters"),
+        ("dataset", "dataset.csv", "dataset"),
         ("trade_history", "trades.csv", "ticket,net\n1,10\n"),
         ("tester_report", "report.htm", "tester report"),
         ("tester_log", "tester.log", "tester log"),
@@ -34,7 +39,7 @@ def valid_manifest(root: Path) -> dict:
             "parameter_sha256": _hash("parameters"), "parameters_frozen": True,
         },
         "build": {
-            "build_id": "BUILD-TEST-1", "source_commit": "abc123",
+            "build_id": "BUILD-TEST-1", "source_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "source_sha256": _hash("source"), "ex4_sha256": _hash("ex4"),
             "set_sha256": _hash("set"),
         },

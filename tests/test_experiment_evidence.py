@@ -33,6 +33,12 @@ def valid_manifest(root: Path) -> dict:
             "build_id": "BUILD-TEST-1", "dataset_sha256": _hash("dataset"),
             "parameter_sha256": _hash("parameters"),
         }, sort_keys=True)),
+        ("dataset_validation_report", "dataset-validation.json", json.dumps({
+            "validation_status": "PASS", "dataset_status": "VALID",
+            "validator_version": "G1-DATASET-VALIDATOR-1.0",
+            "run_id": "BBMA-EXP-0001", "build_id": "BUILD-TEST-1",
+            "dataset_sha256": _hash("dataset"), "parameter_sha256": _hash("parameters"),
+        }, sort_keys=True)),
     ):
         (root / name).write_text(content, encoding="utf-8")
         files[kind] = {"kind": kind, "path": name, "sha256": _hash(content)}
@@ -56,7 +62,8 @@ def valid_manifest(root: Path) -> dict:
             "timezone": "UTC", "start": "2026-01-01T00:00:00Z",
             "end": "2026-09-01T00:00:00Z", "warmup_start": "2025-12-01T00:00:00Z",
             "evaluation_start": "2026-02-01T00:00:00Z",
-            "evaluation_end": "2026-08-01T00:00:00Z", "closed_candles_only": True,
+            "evaluation_end": "2026-08-01T00:00:00Z", "data_as_of": "2026-09-01T00:00:00Z",
+            "timestamp_convention": "BAR_OPEN", "closed_candles_only": True,
         },
         "environment": {
             "broker": "DemoBroker", "terminal_build": "MT4-test", "tester_mode": "real-ticks",
@@ -165,6 +172,13 @@ class ExperimentEvidenceTests(unittest.TestCase):
             report_artifact["sha256"] = _hash(report_text)
             errors = verify_artifacts(manifest, root)
             self.assertTrue(any("validation_report.validation_status" in item for item in errors))
+
+    def test_missing_dataset_validation_report_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest = valid_manifest(Path(tmp))
+            manifest["artifacts"] = [item for item in manifest["artifacts"] if item["kind"] != "dataset_validation_report"]
+            errors = validate_manifest(manifest)
+            self.assertTrue(any("dataset_validation_report" in item for item in errors))
 
     def test_missing_validation_report_artifact_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:

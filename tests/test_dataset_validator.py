@@ -21,6 +21,8 @@ def _manifest(text: str, basis: str = "BID_ASK_BARS") -> dict:
             "sha256": _sha(text),
             "timeframe": "M15",
             "price_basis": basis,
+            "timestamp_convention": "TICK_TIME" if basis == "BID_ASK_TICKS" else "BAR_OPEN",
+            "closed_candles_only": True,
             "start": "2026-01-01T00:00:00Z",
             "end": "2026-01-01T00:30:00Z",
             "warmup_start": "2026-01-01T00:00:00Z",

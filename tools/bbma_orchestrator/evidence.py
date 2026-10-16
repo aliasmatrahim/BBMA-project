@@ -143,6 +143,12 @@ class EvidenceDB:
         if not manifest_file.is_file():
             raise FileNotFoundError(manifest_file)
         manifest_digest = sha256_file(manifest_file)
+        try:
+            manifest_on_disk = json.loads(manifest_file.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ValueError("manifest file must be valid UTF-8 JSON") from exc
+        if manifest_on_disk != manifest:
+            raise ValueError("manifest object does not match manifest file bytes")
         fingerprint_payload = {
             "hypothesis_id": hypothesis.get("id"),
             "parameter_sha256": hypothesis.get("parameter_sha256"),
@@ -164,6 +170,7 @@ class EvidenceDB:
         if not isinstance(artifacts, list) or not artifacts:
             raise ValueError("manifest artifacts must be a non-empty list")
         resolved_artifacts: list[tuple[str, str, Path, int]] = []
+        artifact_errors: list[str] = []
         seen_kinds: set[str] = set()
         for item in artifacts:
             if not isinstance(item, dict) or not isinstance(item.get("kind"), str) or not isinstance(item.get("path"), str):
@@ -174,12 +181,15 @@ class EvidenceDB:
             seen_kinds.add(kind)
             path = (root / item["path"]).resolve()
             if path != root and root not in path.parents:
-                raise ValueError(f"artifact path escapes evidence root: {kind}")
+                artifact_errors.append(f"artifact path escapes evidence root: {kind}")
+                continue
             if not path.is_file():
-                raise FileNotFoundError(path)
+                artifact_errors.append(f"artifact missing: {kind}")
+                continue
             digest = sha256_file(path)
             if digest.lower() != str(item.get("sha256", "")).lower():
-                raise ValueError(f"artifact hash mismatch: {kind}")
+                artifact_errors.append(f"artifact hash mismatch: {kind}")
+                continue
             resolved_artifacts.append((kind, digest, path, path.stat().st_size))
 
         existing = self.conn.execute(
@@ -207,6 +217,7 @@ class EvidenceDB:
             "partition": protocol.get("partition"),
             "evidence_only": True,
             "trade_authority": "NONE",
+            "artifact_errors": artifact_errors,
         }
         run_node = f"experiment:{run_id}"
         try:

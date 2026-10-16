@@ -73,7 +73,7 @@ def valid_manifest(root: Path) -> dict:
             "end": "2026-01-01T00:30:00Z", "warmup_start": "2026-01-01T00:00:00Z",
             "evaluation_start": "2026-01-01T00:00:00Z",
             "evaluation_end": "2026-01-01T00:30:00Z", "data_as_of": "2026-01-01T00:45:00Z",
-            "timestamp_convention": "TICK_TIME", "price_basis": "BID_ASK_TICKS", "max_gap_seconds": 900, "closed_candles_only": True,
+            "timestamp_convention": "TICK_TIME", "max_gap_seconds": 900, "closed_candles_only": True,
         },
         "environment": {
             "broker": "DemoBroker", "terminal_build": "MT4-test", "tester_mode": "real-ticks",

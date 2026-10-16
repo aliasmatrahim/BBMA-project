@@ -80,6 +80,13 @@ def validate_dataset_file(
         errors.append("dataset.timeframe: unsupported timeframe for alignment validation")
         interval = 0
     basis = dataset.get("price_basis")
+    convention = dataset.get("timestamp_convention")
+    if basis == "BID_ASK_BARS" and convention != "BAR_OPEN":
+        errors.append("dataset.timestamp_convention: BID_ASK_BARS requires BAR_OPEN timestamps")
+    if basis == "BID_ASK_TICKS" and convention != "TICK_TIME":
+        errors.append("dataset.timestamp_convention: BID_ASK_TICKS requires TICK_TIME")
+    if dataset.get("closed_candles_only") is not True:
+        errors.append("dataset.closed_candles_only: must be true")
     if basis not in {"BID_ASK_TICKS", "BID_ASK_BARS"}:
         errors.append("dataset.price_basis: expected BID_ASK_TICKS or BID_ASK_BARS")
     windows = dataset.get("allowed_gap_windows", [])

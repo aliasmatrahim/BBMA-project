@@ -107,6 +107,16 @@ def validate_manifest(manifest: Any) -> list[str]:
             errors.append("dataset.price_basis: expected BID_ASK_TICKS or BID_ASK_BARS")
         if dataset.get("synthetic_ticks") is not False:
             errors.append("dataset.synthetic_ticks: reconstructed/synthetic ticks are not accepted")
+        source_type = str(dataset.get("source_type", "")).strip().lower()
+        if any(term in source_type for term in ("synthetic", "reconstructed", "interpolated", "generated tick", "simulated tick")):
+            errors.append("dataset.source_type: synthetic/reconstructed tick data is not accepted")
+        if dataset.get("price_basis") == "BID_ASK_TICKS":
+            gap_limit = dataset.get("max_gap_seconds")
+            if isinstance(gap_limit, bool) or not isinstance(gap_limit, int) or gap_limit <= 0:
+                errors.append("dataset.max_gap_seconds: preregister a positive integer for tick data")
+        allowed_gaps = dataset.get("allowed_gap_windows", [])
+        if not isinstance(allowed_gaps, list):
+            errors.append("dataset.allowed_gap_windows: expected list")
         if dataset.get("closed_candles_only") is not True:
             errors.append("dataset.closed_candles_only: must be true")
         expected_convention = "TICK_TIME" if dataset.get("price_basis") == "BID_ASK_TICKS" else "BAR_OPEN"

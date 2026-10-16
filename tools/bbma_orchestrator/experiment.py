@@ -226,6 +226,16 @@ def verify_artifacts(manifest: dict[str, Any], evidence_root: str | Path) -> lis
             if artifact.get("kind") == "dataset_validation_report":
                 expected["dataset_status"] = "VALID"
                 expected["validator_version"] = "G1-DATASET-VALIDATOR-1.0"
+                expected["price_basis"] = manifest.get("dataset", {}).get("price_basis") if isinstance(manifest.get("dataset"), dict) else None
+                expected["timeframe"] = manifest.get("dataset", {}).get("timeframe") if isinstance(manifest.get("dataset"), dict) else None
+                if report.get("errors") != []:
+                    errors.append(f"artifacts[{index}].dataset_validation_report.errors: expected empty list")
+                rows = report.get("rows")
+                if isinstance(rows, bool) or not isinstance(rows, int) or rows <= 0:
+                    errors.append(f"artifacts[{index}].dataset_validation_report.rows: expected positive integer")
+                for counter in ("duplicate_timestamps", "non_monotonic_timestamps"):
+                    if report.get(counter) != 0:
+                        errors.append(f"artifacts[{index}].dataset_validation_report.{counter}: expected zero")
             for field, value in expected.items():
                 if report.get(field) != value:
                     errors.append(f"artifacts[{index}].{artifact.get('kind')}.{field}: mismatch or non-PASS")

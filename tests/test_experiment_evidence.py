@@ -66,7 +66,7 @@ def valid_manifest(root: Path) -> dict:
             "set_sha256": _hash("set"),
         },
         "dataset": {
-            "dataset_id": "DATA-001", "sha256": _hash("dataset"),
+            "dataset_id": "DATA-001", "sha256": _hash(_DATASET_CONTENT),
             "symbol": "GBPUSD", "timeframe": "M15", "source_type": "broker-native",
             "price_basis": "BID_ASK_TICKS", "synthetic_ticks": False,
             "timezone": "UTC", "start": "2026-01-01T00:00:00Z",
@@ -161,7 +161,7 @@ class ExperimentEvidenceTests(unittest.TestCase):
             manifest = valid_manifest(root)
             report_text = json.dumps({
                 "validation_status": "PASS", "run_id": "OTHER-RUN",
-                "build_id": "BUILD-TEST-1", "dataset_sha256": _hash("dataset"),
+                "build_id": "BUILD-TEST-1", "dataset_sha256": _hash(_DATASET_CONTENT),
                 "parameter_sha256": _hash("parameters"),
             }, sort_keys=True)
             (root / "validation.json").write_text(report_text, encoding="utf-8")
@@ -183,7 +183,7 @@ class ExperimentEvidenceTests(unittest.TestCase):
             manifest = valid_manifest(root)
             report_text = json.dumps({
                 "validation_status": "FAIL", "run_id": "BBMA-EXP-0001",
-                "build_id": "BUILD-TEST-1", "dataset_sha256": _hash("dataset"),
+                "build_id": "BUILD-TEST-1", "dataset_sha256": _hash(_DATASET_CONTENT),
                 "parameter_sha256": _hash("parameters"),
             }, sort_keys=True)
             (root / "validation.json").write_text(report_text, encoding="utf-8")
@@ -202,7 +202,7 @@ class ExperimentEvidenceTests(unittest.TestCase):
                 "timeframe": "M15", "rows": 3, "duplicate_timestamps": 0,
                 "non_monotonic_timestamps": 0, "gap_count": 0, "gaps": [], "errors": ["hidden data gap"],
                 "run_id": "BBMA-EXP-0001", "build_id": "BUILD-TEST-1",
-                "dataset_sha256": _hash("dataset"), "parameter_sha256": _hash("parameters"),
+                "dataset_sha256": _hash(_DATASET_CONTENT), "parameter_sha256": _hash("parameters"),
             }, sort_keys=True)
             (root / "dataset-validation.json").write_text(report_text, encoding="utf-8")
             report_artifact = next(item for item in manifest["artifacts"] if item["kind"] == "dataset_validation_report")

@@ -12,4 +12,6 @@ The rows below cover the current atomic task only. F1–F6 tooling and 49/49 his
 
 Scope exclusions: HOLD/source-conflict rules remain non-executable. No indicator period/method, entry signature, expiry, exit, risk, execution or M12N-policy change is authorized by these findings.
 
+CP03 update: A-BB20 and A-SNAPSHOT repaired in Build 5.20 (`V520_M06_COMPLETE_DATA_20261022`). Full-period input checks and post-calculation validity now reject the failing fixtures. Exact-body tests 15/15; complete repository pytest 87/87; native strict compile 0 errors / 0 warnings. See `build520_manifest.json`. Both rows remain **NOT RUNTIME VERIFIED**; no eligible historical Strategy Tester or end-to-end order replay has certified the repair. B-FRESHNESS is unchanged and still pending reproduction.
+
 Atomic repair exit: expected failing probes become green on the smallest source change, complete-data controls remain unchanged, unique build identity, native strict compile and scope regression evidence captured. Qualified Strategy Tester and source-to-runtime validation remain separate mandatory gates; a blocked gate is not PASS.

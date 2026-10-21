@@ -1,0 +1,21 @@
+{
+  "task": "CORE-FIDELITY-292",
+  "baseline_commit": "459c0588e625d7f7630f0fb5612b7f04fda496de",
+  "parent_checkpoint": "ad738fa6314fb544fdb6e9fddb6f90a911936357",
+  "build": "5.20",
+  "build_tag": "V520_M06_COMPLETE_DATA_20261022",
+  "source_sha256": "ebb139f00ba24fe5c1b0f9a26fcb4a027f36c8b074e001201ef3bfe35b0f2d79",
+  "native_ex4_sha256": "d4defb11a105abd947b7c39dd9bfae6ff69e10add8cac8b28c33f3a4e73bb424",
+  "native_compile_log_sha256_utf16": "105cfc8adb80563511272aca8532d1af21061940f21b78aa6acf1f0c77787f32",
+  "native_result": "0 errors, 0 warnings, 882 msec elapsed",
+  "g40_directory": "D:\\BBMA\\Workspace\\CORE_FIDELITY_292_20261022",
+  "targeted_tests": "15 passed",
+  "full_suite": "87 passed",
+  "strategy_tester": "BLOCKED_QUALIFIED_DATA_GATE",
+  "source_to_runtime_replay": "NOT_TESTED",
+  "deployment": "NONE",
+  "artifacts": {
+    "pytest_520.log": "58a3fee43d042160a4f8d63f6188f97b2a0449333390cf048fb064db58e4e671",
+    "pytest_520_identity_red.log": "8b263d6c63d6e022dad3ae85e7eeb75a85de8d28efbf4c874f5cf5bcb7b9b0a6"
+  }
+}

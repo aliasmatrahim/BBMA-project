@@ -1,0 +1,3 @@
+Native MetaEditor output (transcribed UTF-8; raw UTF-16 hash in manifest):
+D:\BBMA\Workspace\CORE_FIDELITY_292_20261022\BBMA_EA_520.mq4 : information: compiling 'BBMA_EA_520.mq4'
+Result: 0 errors, 0 warnings, 882 msec elapsed

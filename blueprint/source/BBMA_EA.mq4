@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.1.5 - NMJE P2 Targetless Lifecycle Replay         |
+//| Version 5.2.0 - M06 Complete Indicator Data Validation       |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.15"
+#property version   "5.20"
 #property strict
 
-#define BBMA_BUILD_TAG      "V515_NMJE_P2_TARGETLESS_REPLAY_20260925"
-#define BBMA_SOURCE_REV_TAG "NMJE_P2_TARGETLESS_REPLAY_001_20260925"
+#define BBMA_BUILD_TAG      "V520_M06_COMPLETE_DATA_20261022"
+#define BBMA_SOURCE_REV_TAG "CORE_FIDELITY_292_M06_001_20261022"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -2404,64 +2404,77 @@ double GetAllowedExecutionDeviation(string pair, RiskValidationSnapshot &snapsho
 //| LEVEL: INTERMEDIATE                                              |
 //+------------------------------------------------------------------+
 
-double SMA(string pair, int timeframe, int period, int shift)
+bool IsBBMAHistoryReady(string pair, int timeframe, int period, int shift,
+                        int appliedPrice)
 {
-   double sum = 0;
-   int count = 0;
+   if(period <= 0 || shift < 0 || iBars(pair, timeframe) - shift < period)
+      return false;
    for(int i = 0; i < period; i++)
    {
       double price = iClose(pair, timeframe, shift + i);
-      if(price > 0)
-      {
-         sum += price;
-         count++;
-      }
+      if(appliedPrice == PRICE_HIGH) price = iHigh(pair, timeframe, shift + i);
+      else if(appliedPrice == PRICE_LOW) price = iLow(pair, timeframe, shift + i);
+      if(!MathIsValidNumber(price) || price <= 0) return false;
    }
-   if(count == 0) return 0;
-   return sum / count;
+   return true;
+}
+
+double SMA(string pair, int timeframe, int period, int shift)
+{
+   if(!IsBBMAHistoryReady(pair, timeframe, period, shift, PRICE_CLOSE)) return 0;
+   double sum = 0;
+   for(int i = 0; i < period; i++)
+   {
+      double price = iClose(pair, timeframe, shift + i);
+      if(!MathIsValidNumber(price) || price <= 0) return 0;
+      sum += price;
+   }
+   return sum / period;
 }
 
 double BBMAHighMA(string pair, int timeframe, int period, int shift)
 {
-   if(period <= 0 || shift < 0) return 0;
+   if(!IsBBMAHistoryReady(pair, timeframe, period, shift, PRICE_HIGH)) return 0;
    return iMA(pair, timeframe, period, 0, MODE_LWMA, PRICE_HIGH, shift);
 }
 
 double BBMALowMA(string pair, int timeframe, int period, int shift)
 {
-   if(period <= 0 || shift < 0) return 0;
+   if(!IsBBMAHistoryReady(pair, timeframe, period, shift, PRICE_LOW)) return 0;
    return iMA(pair, timeframe, period, 0, MODE_LWMA, PRICE_LOW, shift);
 }
 
 double EMA(string pair, int timeframe, int period, int shift)
 {
-   if(period <= 0 || shift < 0) return 0;
+   if(!IsBBMAHistoryReady(pair, timeframe, period, shift, PRICE_CLOSE)) return 0;
    return iMA(pair, timeframe, period, 0, MODE_EMA, PRICE_CLOSE, shift);
 }
 
 double StandardDeviation(string pair, int timeframe, int period, int shift)
 {
    double mean = SMA(pair, timeframe, period, shift);
-   if(mean == 0) return 0;
+   // Negative denotes unavailable history; zero is a valid flat-price deviation.
+   if(!MathIsValidNumber(mean) || mean <= 0) return -1;
    double sum = 0;
-   int count = 0;
    for(int i = 0; i < period; i++)
    {
       double price = iClose(pair, timeframe, shift + i);
-      if(price > 0)
-      {
-         sum += MathPow(price - mean, 2);
-         count++;
-      }
+      if(!MathIsValidNumber(price) || price <= 0) return -1;
+      sum += MathPow(price - mean, 2);
    }
-   if(count == 0) return 0;
-   return MathSqrt(sum / count);
+   return MathSqrt(sum / period);
 }
 
 void CalculateBollinger(string pair, int timeframe, int shift, BollingerBand &band)
 {
    double middle = SMA(pair, timeframe, BB_PERIOD, shift);
    double stdDev = StandardDeviation(pair, timeframe, BB_PERIOD, shift);
+   if(!MathIsValidNumber(middle) || middle <= 0 ||
+      !MathIsValidNumber(stdDev) || stdDev < 0)
+   {
+      middle = 0;
+      stdDev = 0;
+   }
    band.MID_BB = middle;
    band.TOP_BB = middle + BB_DEVIATION * stdDev;
    band.LOW_BB = middle - BB_DEVIATION * stdDev;
@@ -2496,9 +2509,14 @@ void GetDataForTimeframe(string pair, int timeframe, datetime targetTime, Timefr
    data.barIndex = shift;
    data.point = GetPointSize(pair);
    data.digits = GetDigits(pair);
-   data.is_valid = true;
    data.is_closed = IsCandleClosed(candleTime, GetTimeframeSeconds(timeframe));
    data.data_count = iBars(pair, timeframe);
+
+   if(!MathIsValidNumber(data.open) || !MathIsValidNumber(data.high) ||
+      !MathIsValidNumber(data.low) || !MathIsValidNumber(data.close) ||
+      data.open <= 0 || data.close <= 0 || data.low <= 0 ||
+      data.high < MathMax(data.open, data.close) ||
+      data.low > MathMin(data.open, data.close)) return;
    
    BollingerBand band;
    CalculateBollinger(pair, timeframe, shift, band);
@@ -2513,6 +2531,12 @@ void GetDataForTimeframe(string pair, int timeframe, datetime targetTime, Timefr
    data.ma[2] = ma.MA5_Low;
    data.ma[3] = ma.MA10_Low;
    data.ma[4] = ma.EMA50;
+
+   for(int b = 0; b < 3; b++)
+      if(!MathIsValidNumber(data.bollinger[b]) || data.bollinger[b] <= 0) return;
+   for(int m = 0; m < 5; m++)
+      if(!MathIsValidNumber(data.ma[m]) || data.ma[m] <= 0) return;
+   data.is_valid = true;
    
    double ema50 = ma.EMA50;
    if(data.close > ema50) data.trend = 1.0;
@@ -11167,7 +11191,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.15 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.20 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);

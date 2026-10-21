@@ -1,0 +1,56 @@
+...................F.................................................... [ 82%]
+F.....F....F...                                                          [100%]
+=================================== FAILURES ===================================
+___________ test_integrated_f7_build_identity_tracks_current_version ___________
+
+    def test_integrated_f7_build_identity_tracks_current_version():
+        text = SOURCE.read_text(encoding="utf-8", errors="replace")
+        match = re.search(r'#property\s+version\s+"([0-9.]+)"', text)
+        assert match
+        version = match.group(1)
+        assert '#define BBMA_BUILD_TAG' in text
+        assert '#define BBMA_SOURCE_REV_TAG' in text
+>       assert f'[F7-BUILD] EA=BBMA_EA Build={version} BuildTag=' in text
+E       AssertionError: assert '[F7-BUILD] EA=BBMA_EA Build=5.20 BuildTag=' in '//+------------------------------------------------------------------+\n//|                                          ...                                           |\n//+------------------------------------------------------------------+\n'
+
+blueprint/tests/test_nmje_readonly_authority.py:65: AssertionError
+________________ test_m12n_repair_survives_later_build_identity ________________
+
+    def test_m12n_repair_survives_later_build_identity():
+        match = re.search(r'#property\s+version\s+"([0-9.]+)"', SRC)
+        assert match
+        version = match.group(1)
+        assert float(version) >= 4.85
+>       assert f'[F7-BUILD] EA=BBMA_EA Build={version} BuildTag=' in SRC
+E       AssertionError: assert '[F7-BUILD] EA=BBMA_EA Build=5.20 BuildTag=' in '//+------------------------------------------------------------------+\n//|                                          ...                                           |\n//+------------------------------------------------------------------+\n'
+
+blueprint/tests/test_q5_m12n_orchestration_order.py:37: AssertionError
+__________ test_runtime_build_marker_matches_current_property_version __________
+
+    def test_runtime_build_marker_matches_current_property_version():
+        match = re.search(r'#property\s+version\s+"([0-9.]+)"', TEXT)
+        assert match
+        version = match.group(1)
+>       assert f'[F7-BUILD] EA=BBMA_EA Build={version} BuildTag=' in TEXT
+E       AssertionError: assert '[F7-BUILD] EA=BBMA_EA Build=5.20 BuildTag=' in '//+------------------------------------------------------------------+\n//|                                          ...                                           |\n//+------------------------------------------------------------------+\n'
+
+blueprint/tests/test_q5_standalone_extreme_175.py:70: AssertionError
+______________________ test_f7_identity_and_startup_order ______________________
+
+    def test_f7_identity_and_startup_order():
+        import re
+        match = re.search(r'#property\s+version\s+"([0-9.]+)"', TEXT)
+        assert match, "missing MQL4 version identity"
+        version = match.group(1)
+        assert '#define BBMA_BUILD_TAG' in TEXT
+        assert '#define BBMA_SOURCE_REV_TAG' in TEXT
+>       assert f'[F7-BUILD] EA=BBMA_EA Build={version} BuildTag=' in TEXT
+E       AssertionError: assert '[F7-BUILD] EA=BBMA_EA Build=5.20 BuildTag=' in '//+------------------------------------------------------------------+\n//|                                          ...                                           |\n//+------------------------------------------------------------------+\n'
+
+blueprint/tests/test_v482_f7_source_guards.py:20: AssertionError
+=========================== short test summary info ============================
+FAILED blueprint/tests/test_nmje_readonly_authority.py::test_integrated_f7_build_identity_tracks_current_version
+FAILED blueprint/tests/test_q5_m12n_orchestration_order.py::test_m12n_repair_survives_later_build_identity
+FAILED blueprint/tests/test_q5_standalone_extreme_175.py::test_runtime_build_marker_matches_current_property_version
+FAILED blueprint/tests/test_v482_f7_source_guards.py::test_f7_identity_and_startup_order
+4 failed, 83 passed in 0.80s

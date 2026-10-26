@@ -75,6 +75,10 @@ Type-specific lifecycle:
 
 M15 remains the sole orchestration clock, but H1/H4/D1 lifecycle state advances only when a new closed candle of that state slot's own timeframe is observed.
 
+### Unreadable current source refresh — execution-safety boundary
+
+An invalid, unclosed or mismatched H1/H4 refresh preserves the last M12/H4 structural owner; persistence is not evidence that the latest required source snapshot was readable. M15 must not admit a new entry that depends on that snapshot until the exact latest closed source candle is valid. M16 repeats the check before validation. When readable data returns, the still-valid structural owner may be reconsidered. This is a data-integrity execution safeguard, not an age-based Strategy-Core expiry or a new BBMA signal rule.
+
 ## Explicit implementation interpretations
 These are engineering encodings needed to turn source language into deterministic code. They are NOT claimed as verbatim source rules.
 

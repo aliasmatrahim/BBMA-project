@@ -26,6 +26,8 @@ Baseline reviewed: Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04f
 
 Separate confirmed issue: M06 incomplete-history validity remains a Build 5.15 bug. Candidate repair and tests are in Draft PR #293; the active owner is unchanged. M12 unreadable-refresh admission remains **VERIFICATION REQUIRED** under Issue #292.
 
+Additional current-owner reconciliation: source MODULE 11J was absent from the older graph and regression map; it is now mapped to the approved D1O-01 execution decision and Build 5.15 code. D1O-01 is a project execution extension, not independent original-source provenance. The 23 M01 inputs, 68 M01/M02 type declarations, 37 M03 globals and detected cross-module function calls are statically inventoried in Draft PR #294. BlockNMJEConflict and BlockNMJEBuilding have no code readers, but their source comments explicitly mark them inactive legacy compatibility inputs because NMJE is observation-only; they are not wired into trading behavior. Nested field ownership, tests and runtime remain open.
+
 | ID | Area | Current active behavior (historical snapshot) | Source/Core expectation | Assessment at original audit | Priority |
 |---|---|---|---|---|---|
 | IG-01 | M09 MLV outer-BB invalidation | `MarkMLVVoid()` exists, but the active source only contains its definition; `DetectMLV_State()` does not call it when a candidate/confirmed MLV closes outside the relevant outer BB | Existing PDF Core and Finale V05 both say MHV/MLV becomes void when price closes outside the relevant outer BB / turns into momentum | **CORRECT — genuine implementation gap** | **HIGH** |

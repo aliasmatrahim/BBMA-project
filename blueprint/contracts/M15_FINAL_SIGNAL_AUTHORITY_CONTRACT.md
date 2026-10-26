@@ -118,6 +118,12 @@ Freshness ownership remains:
 
 D1 strategic validity is a separate M11 snapshot and must be current for the same processing decision.
 
+### Current source snapshot admission
+
+Before candidate counts or canonical selection, M15 requires every Re-Entry component to have a valid, closed snapshot on its exact timeframe that matches the latest closed candle in the processing snapshot. Standalone H1 Re-Entry and H1 Extreme candidates also require a readable latest H4 snapshot and the same-direction active H4 owner used during construction. A D1 opportunity path requires current H4 data where its M15 component or Extreme/TPW family relied on H4 alignment.
+
+An unreadable snapshot blocks the decision for that cycle but does not erase the persistent M12 owner or add a candle-age TTL. This is EA data-integrity policy; it does not change BBMA setup definitions.
+
 ## D1 snapshot in decision payload
 When M15 creates a decision, it must preserve enough frozen M11 identity for downstream M16 verification.
 

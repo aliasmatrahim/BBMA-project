@@ -7,7 +7,11 @@ Scope: static producer/consumer and control-flow reconciliation. No EA source is
 
 ## Reading the edge ledger
 
-The ledger records strategy state handoffs and direct control/helper calls identified in the pinned source. M01 inputs, M02 types, M03 shared state, and M04/M05 common helpers create broad field-level dependencies; the existing JSON graph does not enumerate every read/write site for those shared surfaces. Therefore `consumer_edges` remains **PARTIAL**. A missing edge is not proof of no dependency.
+The ledger records producer/consumer handoffs and control/helper calls from the pinned source. The machine-readable graph now includes a lexical inventory of 431 detected function definitions, 96 cross-module call edges / 364 call pairs, 23 M01 input fields, 68 M01/M02 type declarations, and 37 M03 globals. It also adds the previously omitted M11J source module. These references do not fully classify nested field ownership or read/write direction; `consumer_edges` remains **PARTIAL**.
+
+Machine-readable detail: `config/bbma_module_graph.json` under `connection_inventory` lists the exact caller/callee pairs, input readers, type users, global identifier references and D1 owner-field handoffs. Two legacy NMJE inputs have no readers and are explicitly marked inactive in the source.
+
+D1O-01 is the approved project execution extension for M11J. The owner source writes PairState.d1_opportunity in M11J; M12N reads it as an observer overlay, while M15 builds the candidate and M16 revalidates its identity. The strategic D1 owner field remains a separate M11 producer/consumer path. No new rule or runtime claim is added.
 
 ## Main decision and execution path
 
@@ -24,19 +28,20 @@ M27 runs portfolio and position management before the new closed-M15 scan on eac
 
 | Module | Main output / control | Consumers or next handoff | Current gap/status |
 |---|---|---|---|
-| M01 Header & Inputs | Runtime inputs and modes | M26 validates; runtime readers across M06–M27 | Field-to-reader inventory incomplete |
-| M02 Enums & Structs | Shared signal, state, candidate and decision types | M03–M27 | Type-level edges are crosscutting and not enumerated |
-| M03 Global Variables | PairState, owner states, monitored trades, observer state | M04–M27 read/write shared state | Reader/writer ownership map incomplete |
-| M04 Symbol & Market Data | Candle, quote, symbol and broker properties | M05–M07, M12, M17, M19–M20, M22–M24, M26–M27 | Shared dependency; broad helper map remains partial |
-| M05 Utility Functions | Pair lookup, time, hashes, logging, normalization | M04, M06, M11–M17, M19–M20, M22–M27 | Shared-helper map remains partial |
+| M01 Header & Inputs | Runtime inputs and modes | M26 validates; readers enumerated in the machine graph | 23 inputs mapped; two legacy NMJE flags are explicitly inactive and unread; no runtime input replay here |
+| M02 Enums & Structs | Shared signal, state, candidate and decision types | Modules listed in the machine graph type inventory | 68 M01/M02 declarations mapped to references; nested-field ownership remains partial |
+| M03 Global Variables | PairState, owner states, monitored trades, observer state | Modules listed in the machine graph global inventory | 37 global identifiers mapped to referencing modules; read/write ownership remains partial |
+| M04 Symbol & Market Data | Candle, quote, symbol and broker properties | Direct function callers enumerated in the machine graph | Call sites mapped; shared field-level read/write ownership remains partial |
+| M05 Utility Functions | Pair lookup, time, hashes, logging, normalization | Direct function callers enumerated in the machine graph | Call sites mapped; shared helper/state ownership remains partial |
 | M06 BBMA Data Engine | Closed-candle OHLC, MA and BB values | M07–M12, M17, M23–M24, M27 | **Owner bug confirmed:** incomplete history can yield biased indicators/valid snapshots; candidate repair is only in Draft PR #293 |
 | M07 BB Shape Engine | BB shape / flat state | M27 builds shape state | Direct consumer edge was missing from the old graph; standalone M07 contract still absent |
 | M08 Extreme Detector | Extreme maturity, validity and lifecycle snapshots | M09, M12N, M13, M16, M23 replay, M27 | Old gap-register claims are stale; runtime lifecycle trace still open |
 | M09 MHV/MLV Lifecycle | Parent Extreme, TP-Wajib, loss, body mark, retest, invalidation | M12N, M13, M16, M27 | No standalone M09 contract; old graph incorrectly cited the D1 TPW contract |
 | M10 CSM/CSD/eCSD | Direction and momentum evidence | M12, M12N, M13, M23 replay, M27 | All-case runtime trace not verified |
-| M11 Trend Functions | Atomic closed-D1 major-trend owner | M12, M12N, M15, M16, M27 | Static implementation present; old contract gap text stale; runtime remains unverified |
+| M11 Trend Functions | Atomic closed-D1 major-trend owner | M11J, M12, M12N, M15, M16, M27 | Static implementation present; D1 owner field handoff is inventoried; runtime remains unverified |
+| M11J D1 Opportunity Journey | D1 opportunity family/cycle state from the approved D1O-01 extension | M12N overlay, M15 candidate construction, M16 revalidation, M23 TPW completion check, M27 update | Source module was omitted from older maps; now included. D1O-01 is mapped; no standalone module contract is linked here. Test/runtime status remains partial/unverified |
 | M12 Re-Entry Engine | Persistent Re-Entry owner states and confirmed signal | M12N, M13, M15, M17, M23 replay, M27 | Invalid refresh preserves prior state; admission impact still requires reproduction |
-| M12N Nested MTF Journey | Read-only lineage and journey context | M13; M15/M22/M23 telemetry; M27 observer update | No create/reject/rank/execute authority |
+| M12N Nested MTF Journey | Read-only lineage and journey context | M11J D1 opportunity overlay; M13; M15/M22/M23 telemetry; M27 observer update | No create/reject/rank/execute authority |
 | M13 Combination Engine | Collected component sets and candidates | M14; M27 orchestration | Candidate/test assignment coverage partial |
 | M14 Sequence Engine | Validated REM/RRE/REE candidates | M15; M27 orchestration | Full signature regression matrix absent |
 | M15 Priority Engine | Sole final new-entry decision | M16, M17; M27 orchestration | D1 gate exists statically; combined/runtime proof partial |
@@ -51,12 +56,12 @@ M27 runs portfolio and position management before the new closed-M15 scan on eac
 | M24 Recovery Engine | Reconstructed execution, risk and lifecycle state | M19–M23, M26 initialization, M27 owner/H4 helpers | Restart/provenance runtime remains unverified |
 | M25 Dashboard | Read-only display snapshot | M27 refresh | Preserve display-only boundary |
 | M26 Initialization & Cleanup | Input validation, initialization and recovery dispatch | M24 recovery; platform lifecycle | No new startup/restart runtime evidence |
-| M27 Main Controller | Snapshot clock, owner updates, candidate handoffs and lifecycle orchestration | Entry point; no downstream consumer | Direct edges were absent from the old graph; orchestration runtime remains unverified |
+| M27 Main Controller | Snapshot clock, owner updates, candidate handoffs and lifecycle orchestration | Entry point; no downstream consumer | Direct function edges are now inventoried; orchestration runtime remains unverified |
 
 ## Evidence and unresolved gates
 
 - The source signatures retained are REM = H4 RE + H1 Extreme + M15 MHV/MLV; RRE = D1/H4 RE + H1 Extreme; REE = D1 RE + H4/H1 Extreme.
 - M06 repair exists in Draft PR #293 / Build 5.20; owner baseline remains Build 5.15.
 - Finding B is **VERIFICATION REQUIRED**: reproduce an actual unreadable H1/H4 refresh through candidate construction, M15, M16 and downstream gates. Do not add generic age expiry.
-- The full accepted-Core rule denominator, global regression assignment, qualified data gate, and M01–M27/M12N runtime trace remain **PARTIAL / NOT VERIFIED**.
+- The full accepted-Core rule denominator, global regression assignment, qualified data gate, and M01–M27/M11J/M12N runtime trace remain **PARTIAL / NOT VERIFIED**.
 - This document records a static owner snapshot; it adds no BBMA rule and makes no profitability or production-readiness claim.

@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.2.0 - M06 Complete Indicator Data Validation       |
+//| Version 5.2.1 - M12 Current-Source Admission Gate            |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.20"
+#property version   "5.21"
 #property strict
 
-#define BBMA_BUILD_TAG      "V520_M06_COMPLETE_DATA_20261022"
-#define BBMA_SOURCE_REV_TAG "CORE_FIDELITY_292_M06_001_20261022"
+#define BBMA_BUILD_TAG      "V521_M12_CURRENT_SOURCE_ADMISSION_20261026"
+#define BBMA_SOURCE_REV_TAG "CORE_FIDELITY_292_M12_001_20261026"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -6660,6 +6660,108 @@ bool IsCandidateEligible(ValidatedSequenceCandidate &candidate)
    return true;
 }
 
+// M15/M16 execution gate: retain persistent BBMA owners on a failed read,
+// but require exact, readable latest closed source snapshots for new entries.
+bool IsCurrentClosedSourceSnapshot(PairState &pairState, int timeframe)
+{
+   if(timeframe == PERIOD_D1)
+      return (pairState.tf_snapshot.D1_IsClosed &&
+              pairState.tf_snapshot.D1_CandleTime > 0 &&
+              pairState.d1_data.timeframe == PERIOD_D1 &&
+              pairState.d1_data.is_valid && pairState.d1_data.is_closed &&
+              pairState.d1_data.candle_time == pairState.tf_snapshot.D1_CandleTime);
+   if(timeframe == PERIOD_H4)
+      return (pairState.tf_snapshot.H4_IsClosed &&
+              pairState.tf_snapshot.H4_CandleTime > 0 &&
+              pairState.h4_data.timeframe == PERIOD_H4 &&
+              pairState.h4_data.is_valid && pairState.h4_data.is_closed &&
+              pairState.h4_data.candle_time == pairState.tf_snapshot.H4_CandleTime);
+   if(timeframe == PERIOD_H1)
+      return (pairState.tf_snapshot.H1_IsClosed &&
+              pairState.tf_snapshot.H1_CandleTime > 0 &&
+              pairState.h1_data.timeframe == PERIOD_H1 &&
+              pairState.h1_data.is_valid && pairState.h1_data.is_closed &&
+              pairState.h1_data.candle_time == pairState.tf_snapshot.H1_CandleTime);
+   if(timeframe == PERIOD_M15)
+      return (pairState.tf_snapshot.M15_IsClosed &&
+              pairState.tf_snapshot.M15_CandleTime > 0 &&
+              pairState.m15_data.timeframe == PERIOD_M15 &&
+              pairState.m15_data.is_valid && pairState.m15_data.is_closed &&
+              pairState.m15_data.candle_time == pairState.tf_snapshot.M15_CandleTime);
+   return false;
+}
+
+bool IsCandidateSourceSnapshotReady(ValidatedSequenceCandidate &candidate,
+                                    PairState &pairState)
+{
+   bool requireH4Owner = false;
+   for(int i = 0; i < candidate.ComponentCount && i < 3; i++)
+   {
+      ComponentIdentity component = candidate.Components[i];
+      if(component.ComponentType != SIGNAL_RE_ENTRY) continue;
+      if(!IsCurrentClosedSourceSnapshot(pairState, component.Timeframe))
+         return false;
+      if(candidate.UsesD1Opportunity && component.Timeframe == PERIOD_M15)
+         requireH4Owner = true;
+   }
+
+   // Standalone H1 Re-Entry and Extreme depend on the immediate H4 owner.
+   if(candidate.ComponentCount == 1 &&
+      candidate.Components[0].Timeframe == PERIOD_H1 &&
+      ((candidate.SequenceType == SIGNAL_RE_ENTRY &&
+        !candidate.UsesD1Opportunity) ||
+       candidate.SequenceType == SIGNAL_EXTREME))
+      requireH4Owner = true;
+
+   // Tactical D1 Extreme/TPW and M15-only opportunity paths require the H4
+   // alignment used during candidate construction.
+   if(candidate.UsesD1Opportunity &&
+      candidate.D1OpportunityFamily == D1_OPP_EXTREME_TPW)
+      requireH4Owner = true;
+
+   if(!requireH4Owner) return true;
+   H4DirectionalOwner owner = pairState.h4_direction_owner;
+   return (IsCurrentClosedSourceSnapshot(pairState, PERIOD_H4) &&
+           owner.RecoveryComplete && owner.IsValid &&
+           owner.State == H4_OWNER_ACTIVE &&
+           owner.Direction == candidate.Direction);
+}
+
+bool IsDecisionSourceSnapshotReady(BBMA_Decision &decision,
+                                   PairState &pairState)
+{
+   bool requireH4Owner = false;
+   for(int i = 0; i < decision.ComponentCount && i < 3; i++)
+   {
+      ComponentIdentity component = decision.Components[i];
+      if(component.ComponentType != SIGNAL_RE_ENTRY) continue;
+      if(!IsCurrentClosedSourceSnapshot(pairState, component.Timeframe))
+         return false;
+      if(decision.D1AuthorityMode == D1_AUTH_OPPORTUNITY &&
+         component.Timeframe == PERIOD_M15)
+         requireH4Owner = true;
+   }
+
+   if(decision.ComponentCount == 1 &&
+      decision.Components[0].Timeframe == PERIOD_H1 &&
+      ((decision.SignalType == SIGNAL_RE_ENTRY &&
+        decision.D1AuthorityMode == D1_AUTH_STRATEGIC_OWNER) ||
+       decision.SignalType == SIGNAL_EXTREME))
+      requireH4Owner = true;
+
+   if(decision.D1AuthorityMode == D1_AUTH_OPPORTUNITY &&
+      decision.D1OpportunityFamily == D1_OPP_EXTREME_TPW)
+      requireH4Owner = true;
+
+   if(!requireH4Owner) return true;
+   H4DirectionalOwner owner = pairState.h4_direction_owner;
+   return (IsCurrentClosedSourceSnapshot(pairState, PERIOD_H4) &&
+           owner.RecoveryComplete && owner.IsValid &&
+           owner.State == H4_OWNER_ACTIVE &&
+           owner.Direction == decision.Direction);
+}
+
+
 void BuildConfirmedReEntryCandidate(ReEntryData &reEntry,
                                     H4DirectionalOwner &h4Owner,
                                     ValidatedSequenceCandidate &candidate)
@@ -7741,7 +7843,9 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
 {
    int structurallyEligible = 0;
    for(int i = 0; i < count; i++)
-      if(IsCandidateEligible(candidates[i])) structurallyEligible++;
+      if(IsCandidateEligible(candidates[i]) &&
+         IsCandidateSourceSnapshotReady(candidates[i], pairState))
+         structurallyEligible++;
 
    // D1O-02: authority is evaluated per candidate. Legacy candidates remain
    // MA50-strategic gated; only explicit Mode-2 D1 opportunity candidates may
@@ -7751,7 +7855,8 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
 
    for(int i = 0; i < count; i++)
    {
-      if(!IsCandidateEligible(candidates[i])) continue;
+      if(!IsCandidateEligible(candidates[i]) ||
+         !IsCandidateSourceSnapshotReady(candidates[i], pairState)) continue;
       if(!IsCandidateAllowedByD1Owner(candidates[i], pairState)) continue;
       if(candidates[i].Direction == DIR_BUY) buyCount++;
       else if(candidates[i].Direction == DIR_SELL) sellCount++;
@@ -7785,7 +7890,8 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
    int canonicalIdx = -1;
    for(int i = 0; i < count; i++)
    {
-      if(!IsCandidateEligible(candidates[i])) continue;
+      if(!IsCandidateEligible(candidates[i]) ||
+         !IsCandidateSourceSnapshotReady(candidates[i], pairState)) continue;
       if(!IsCandidateAllowedByD1Owner(candidates[i], pairState)) continue;
       if(candidates[i].Direction != targetDirection) continue;
 
@@ -8066,6 +8172,8 @@ bool ValidateDecisionOwnerSnapshot(int pairIndex, BBMA_Decision &decision,
    expired = false;
    if(pairIndex < 0 || pairIndex >= g_pair_count) return false;
    if(decision.ComponentCount < 1 || decision.ComponentCount > 3) return false;
+   if(!IsDecisionSourceSnapshotReady(decision, g_pair_states[pairIndex]))
+      return false;
 
    for(int i = 0; i < decision.ComponentCount; i++)
    {

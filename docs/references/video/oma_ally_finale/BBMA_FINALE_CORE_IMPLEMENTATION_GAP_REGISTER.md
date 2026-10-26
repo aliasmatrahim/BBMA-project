@@ -3,15 +3,30 @@
 ## Purpose
 Separate **source knowledge changes** from **active EA implementation gaps**. A source rule can already be correct in the BBMA Core specification while the current code still implements it incompletely.
 
-Audit basis:
+Original audit basis (historical pre-Build-5.15 snapshot):
 - `docs/references/BBMA_OMA_ALLY_RULE_INDEX.md`
 - current Core contracts (`M08`, `M10`, `M12`, `M15`, `M17`)
 - BBMA Finale V01–V07 evidence
 - active `blueprint/source/BBMA_EA.mq4` on the status-owner branch identified by `blueprint/CURRENT.md`
 
-No item in this file is an instruction to patch the EA during the current runtime/debug phase. It is a KIV source-alignment backlog.
+Rows below are historical KIV findings. Their active-behavior claims must be read with the current-owner reconciliation below; they are not an authoritative Build 5.15 backlog.
 
-| ID | Area | Current active behavior | Source/Core expectation | Assessment | Priority |
+## Current-owner reconciliation — 2026-10-26
+
+Baseline reviewed: Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`. This reconciliation supersedes only stale status claims; it does not certify all source fidelity.
+
+| Historical item | Current-owner finding | Disposition |
+|---|---|---|
+| IG-01 MLV outer-BB invalidation | `UpdateCanonicalMLVState` calls canonical void logic for outer-BB/Momentum continuation before direction takeover. The old `MarkMLVVoid` / `DetectMLV_State` names are absent from the pinned source. | **STALE FINDING — no patch from this row** |
+| IG-02 fixed MLV pattern construction | The active canonical lifecycle uses a reversal-confirmed parent, body-edge accumulation and a frozen marked body; the old `bar +2` / fixed-point candidate path is absent. | **STALE FINDING — no patch from this row** |
+| IG-03 raw MHV detector | The old `DetectMHV` entry point is absent. The active MHV/MLV lifecycle models parent Extreme, TP-Wajib, post-TP loss phase, invalidation and retest. | **STALE FINDING — no patch from this row** |
+| IG-04 BB_FLAT unreachable | M07 contains a geometric horizontal-band branch. M27 calls the BB-shape builder. | **STALE FINDING — add M07 contract/attributable runtime evidence separately** |
+| IG-09/IG-10 standalone Extreme / TPW | M27 builds a standalone H1 Extreme candidate through M15, subject to lifecycle and owner gates. This invalidates the old “withheld/non-executable” status; exact TPW/runtime semantics still need their own trace. | **STALE STATUS — TPW conformance remains open** |
+| IG-05–IG-08, IG-11 | Not revalidated end-to-end against every Build 5.15 input and lifecycle path in this update. | **RECHECK REQUIRED — do not treat old KEEP/VERIFY labels as current verification** |
+
+Separate confirmed issue: M06 incomplete-history validity remains a Build 5.15 bug. Candidate repair and tests are in Draft PR #293; the active owner is unchanged. M12 unreadable-refresh admission remains **VERIFICATION REQUIRED** under Issue #292.
+
+| ID | Area | Current active behavior (historical snapshot) | Source/Core expectation | Assessment at original audit | Priority |
 |---|---|---|---|---|---|
 | IG-01 | M09 MLV outer-BB invalidation | `MarkMLVVoid()` exists, but the active source only contains its definition; `DetectMLV_State()` does not call it when a candidate/confirmed MLV closes outside the relevant outer BB | Existing PDF Core and Finale V05 both say MHV/MLV becomes void when price closes outside the relevant outer BB / turns into momentum | **CORRECT — genuine implementation gap** | **HIGH** |
 | IG-02 | M09 MLV pattern construction | Candidate is hard-wired to current High/Low vs bar `+2`, `< point*10` tolerance, and a synthetic `point*5` neckline; candidate type is only `DoubleTop`/`DoubleBottom` | Existing Core emphasizes highest/lowest **body** marking and retest; double/triple morphology is descriptive, and the sources do not define those fixed point thresholds | **CORRECT / RE-DESIGN SOURCE ENCODING** | **HIGH** |

@@ -65,3 +65,18 @@ M27 runs portfolio and position management before the new closed-M15 scan on eac
 - Finding B is **VERIFICATION REQUIRED**: reproduce an actual unreadable H1/H4 refresh through candidate construction, M15, M16 and downstream gates. Do not add generic age expiry.
 - The full accepted-Core rule denominator, global regression assignment, qualified data gate, and M01–M27/M11J/M12N runtime trace remain **PARTIAL / NOT VERIFIED**.
 - This document records a static owner snapshot; it adds no BBMA rule and makes no profitability or production-readiness claim.
+
+## Candidate-branch delta — Build 5.21 / CP06 (2026-10-26)
+
+The owner inventory above remains pinned to Build 5.15. Draft PR #293 adds this separately verified candidate handoff:
+
+| Producer / source | Consumer / gate | Required link | Result |
+|---|---|---|---|
+| M27 `BuildTimeframeSnapshot` + M06 `GetDataForTimeframe` | M15 `IsCurrentClosedSourceSnapshot` | Valid, closed data timeframe and candle time must equal the latest closed processing-snapshot candle | Invalid H1/H4 refresh is rejected for new entry |
+| M12 Re-Entry owner + M24 H4 directional owner | M15 `IsCandidateSourceSnapshotReady` / `PriorityEngine_Atomic` | Exact current source snapshot; H1 standalone candidates retain the active, same-direction H4 dependency | Candidate excluded before M15 direction counts/selection |
+| M15-created decision + persistent M12 owner | M16 `IsDecisionSourceSnapshotReady` / `ValidateDecisionOwnerSnapshot` | Repeat current snapshot and required H4-owner check before `DEC_VALIDATED` | Forced stale decision fails closed |
+| M16 validated decision | M27 preflight dispatch -> M17 -> M19 -> M20 -> M22 | Existing order remains; no new execution authority | Dispatch chain checked statically; no preflight/order runtime executed |
+
+A failed read does not reset M12/H4 state or create age expiry. The exact-source portable probe confirms invalid-H1/H4 rejection and a valid-data control. Build 5.21 native compilation, qualified Strategy Tester and broker runtime remain NOT TESTED; owner Build 5.15 is unchanged.
+
+This candidate delta does not complete the full consumer-field graph or the M01–M27/M11J/M12N audit.

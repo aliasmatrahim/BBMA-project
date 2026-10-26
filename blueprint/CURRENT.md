@@ -25,6 +25,7 @@ Status: **PARTIAL — BUILD 5.22 NATIVE STRICT COMPILE PASS; TESTER/RUNTIME AND 
 - No owner/production artifact, live order, terminal restart or trading activation changed.
 - CP10 maps accepted Core §4 across M06/M07/M08/M10/M12/M27. M07 shape labels are currently write-only; M10 CSM feeds M12 Type-3, while M08 checks a local CSM-equivalent predicate. Static trace only; focused parity/runtime remains NOT VERIFIED.
 - CP11 statically maps Core §5.1–5.4 through M06/M08/M09/M11J/M13/M15/M16/M17/M23/M27. The owner implements the accepted M08 maturity path; Mode-2 standalone H1 requires exact RETEST_READY plus owner gates. D1O TPW is separate and its lifecycle gate remains OFF/fail-closed. The stale Finale standalone status is corrected; no code, test or runtime state changed in CP11.
+- CP12 maps accepted Core §6 through the M08 M15 parent → M09 M15 MHV/MLV → M13/M14 REM → M16 identity path; M12N is read-only with an M15 overlay. IG-01–IG-03 are stale against Build 5.15. No direct M09/Core §6 mismatch was confirmed by static trace; standalone M09 contract and the C039/C040 HTF observer feature (which needs a separately scoped contract/task) remain open. No tests/runtime ran in CP12.
 
 ## Current active workstreams / integrated state
 

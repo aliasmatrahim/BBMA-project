@@ -32,6 +32,13 @@ M27 runs portfolio and position management before the new closed-M15 scan on eac
 - M17 resolves the Q5 H1 structural-wick stop and opposite-MA TP-Wajib mapping. The separate D1O path is an execution extension: `EnableD1TPWLifecycle=false`, M17 rejects that identity while disabled, and M23's D1 TPW close path is gated. No live D1 TPW lifecycle is claimed.
 - CP11 is static-only. Focused maturity/TPW tests and runtime remain NOT VERIFIED; Strategy Tester remains NOT RUN.
 
+### CP12 — Core §6 MHV/MLV owner path
+
+- M27 refreshes the closed M15 source snapshot, updates both M08 M15 Extreme directions, then calls M09 for BUY MHV with the SELL Extreme parent and SELL MHV with the BUY Extreme parent. The accepted owner is source-timeframe M15 only.
+- M09 statically maps the accepted lifecycle: reversal-confirmed parent → normal TP-Wajib → inside-BB loss-of-prior-momentum phase → body-edge accumulation and freeze on the first later close-away candle → later body retest or same-cycle direction takeover. Outer-BB / prior-direction Momentum invalidation applies before takeover; an opposite RAW Extreme is only a candidate until reversal confirmation supersedes the cycle. No generic expiry is applied.
+- M13 exports the mature M15 MHV state. REM keeps the exact H4 RE + H1 Extreme + M15 MHV signature; formation-established/frozen body is sufficient, with no separate retest requirement. M14 keeps exact component/timeframe validation. M16 checks the persistent M15 direction, frozen body and formation candle identity.
+- M12N reads the M15 MLV owner as a read-only overlay. Build 5.15 has no H4/H1 MHV state owner or H4_MHV_WATCH implementation. C039/C040 HTF observer/context behavior is documented but not implemented; those decisions explicitly do not authorize MQL4 changes by themselves. It is a separate scoped contract/task, not a canonical Core §6 M09 mismatch.
+- CP12 is static only: no M09 contract, code, test, native compile, Strategy Tester or runtime was added/run. The CP07 Build 5.22 probe checks stale MLV component admission, not M09 lifecycle parity.
 ## Module connection ledger
 
 | Module | Main output / control | Consumers or next handoff | Current gap/status |
@@ -44,16 +51,16 @@ M27 runs portfolio and position management before the new closed-M15 scan on eac
 | M06 BBMA Data Engine | Closed-candle OHLC, MA and BB values | M07–M12, M17, M23–M24, M27 | **Owner bug confirmed:** incomplete history can yield biased indicators/valid snapshots; candidate repair is only in Draft PR #293 |
 | M07 BB Shape Engine | BB shape / flat state | M27 builds H1/H4 shape snapshots; current source has no downstream BB-state reader | CP10 adds a source/ownership contract; output remains auxiliary/write-only and does not gate M10 CSM |
 | M08 Extreme Detector | RAW signal plus persistent maturity, invalidation, supersession and retest lifecycle | M09 M15 parent; M12N observer; M13 combination snapshots; M15 standalone H1; M16 exact identity; M17 SL/TP source; M23 private replay; M27 orchestration | CP11 maps Core §5. RAW is not an entry; M08-local invalidation is not a direct M10 call. Standalone H1 requires RETEST_READY/Mode 2/H4 plus M11 D1 gate. Focused test/runtime remain NOT VERIFIED |
-| M09 MHV/MLV Lifecycle | Reversal-confirmed M15 parent Extreme, normal TP-Wajib, loss/formation, body mark, retest and invalidation | M12N, M13, M16, M27 | CP11 verifies the M08 parent edge; Core §6/M09 full owner-gap reconciliation remains next. No standalone M09 contract is linked |
+| M09 MHV/MLV Lifecycle | Reversal-confirmed M15 parent Extreme → normal TP-Wajib → post-TP loss/formation → frozen body, retest, invalidation and opposite-cycle supersession | M12N, M13/M14, M16, M27 | CP12 maps accepted Core §6 statically; no direct M15 lifecycle mismatch found. No standalone M09 contract is linked; HTF observer extensions C039/C040 are absent from this owner. Parity/runtime remain NOT VERIFIED |
 | M10 CSM/CSD/eCSD | Direction and momentum evidence | M12, M12N, M13, M23 replay, M27 | Core §4 signal geometry is statically mapped; M12 Type-3 consumption is present; all-case test/runtime trace remains NOT VERIFIED |
 | M11 Trend Functions | Atomic closed-D1 major-trend owner | M11J, M12, M12N, M15, M16, M27 | Static implementation present; D1 owner field handoff is inventoried; runtime remains unverified |
 | M11J D1 Opportunity Journey | D1 opportunity family/cycle state; D1 Extreme requires reversal-confirmed maturity and active normal TP-Wajib | M12N overlay, M15 candidate construction, M16 revalidation, M23 TPW lifecycle, M27 update | D1O is a project extension. Dedicated D1 TPW lifecycle gate is OFF; M17 rejects D1TPW identity while OFF. Runtime remains unverified |
 | M12 Re-Entry Engine | Persistent Re-Entry owner states and confirmed signal | M12N, M13, M15, M17, M23 replay, M27 | Invalid refresh preserves prior state; admission impact still requires reproduction |
-| M12N Nested MTF Journey | Read-only lineage and journey context | M11J D1 opportunity overlay; M13; M15/M22/M23 telemetry; M27 observer update | No create/reject/rank/execute authority |
-| M13 Combination Engine | Collected component sets and candidates | M14; M27 orchestration | Candidate/test assignment coverage partial |
-| M14 Sequence Engine | Validated REM/RRE/REE candidates | M15; M27 orchestration | Full signature regression matrix absent |
+| M12N Nested MTF Journey | Read-only lineage and journey context; M15 MLV overlay | M11J D1 opportunity overlay; M13; M15/M22/M23 telemetry; M27 observer update | No create/reject/rank/execute authority. Build 5.15 has no H4/H1 MHV watch/context state; C039/C040 implementation requires a separate scoped contract/task |
+| M13 Combination Engine | Collects REM/RRE/REE owner snapshots; REM includes mature M15 MLV | M14; M27 orchestration | CP12 maps REM readiness to formation-established frozen MHV; no retest requirement. Candidate regression/runtime coverage remains partial |
+| M14 Sequence Engine | Validates exact REM/RRE/REE component/timeframe signatures | M15; M27 orchestration | CP12 maps REM's M15 MLV component to Core §6; full signature regression matrix absent |
 | M15 Priority Engine | Sole final new-entry decision; Mode-2 standalone H1 Extreme candidate only from exact M08 RETEST_READY plus active same-direction H4 | M16, M17; M27 orchestration | Core §5 static gate mapped. M11 D1 authority and source-freshness checks also apply; combined/runtime proof partial |
-| M16 Conflict & Invalidation | Revalidates frozen component and owner identity; standalone Extreme must match exact M08 H1 RETEST_READY completion candle | M17; M27 orchestration | Core §5 identity path mapped. Candidate freshness repair in PR #293 remains separate from owner; runtime incomplete |
+| M16 Conflict & Invalidation | Revalidates frozen component and owner identity; MLV must match exact M15 direction, formation candle and frozen body | M17; M27 orchestration | CP12 maps Core §6 MLV identity; candidate freshness repair in PR #293 remains separate/unmerged from owner; runtime incomplete |
 | M17 SL/TP Validation | Standalone H1 Extreme: Q5 structural-wick SL window and opposite-MA TPW area-edge mapping; D1 TPW identity is fail-closed while gate OFF | M21, M19, M22 preflight; M23 TPW lifecycle when enabled | Static mapping confirmed. SELL spread normalization and full broker runtime remain open; D1 lifecycle is not activated |
 | M18 Signal Scoring | Label-only score | No caller found in pinned source | Confirm whether any display/telemetry consumer is intended |
 | M19 Risk Engine | Risk approval/rejection | M22; M24 recovery helpers | No signal authority |
@@ -64,7 +71,7 @@ M27 runs portfolio and position management before the new closed-M15 scan on eac
 | M24 Recovery Engine | Reconstructed execution, risk and lifecycle state | M19–M23, M26 initialization, M27 owner/H4 helpers | Restart/provenance runtime remains unverified |
 | M25 Dashboard | Read-only display snapshot | M27 refresh | Preserve display-only boundary |
 | M26 Initialization & Cleanup | Input validation, initialization and recovery dispatch | M24 recovery; platform lifecycle | No new startup/restart runtime evidence |
-| M27 Main Controller | Closed D1/M15/H1/H4 M08 lifecycle updates, M15 parent M09 update, M12N observer, M13/M14 assembly, M15 candidates, M16 decision and M17 handoff | Entry point / M22 preflight and lifecycle tick path | CP11 order statically traced; orchestration runtime remains unverified |
+| M27 Main Controller | Closed D1/M15/H1/H4 M08 lifecycle updates, M15 parent M09 update, M12N observer, M13/M14 assembly, M15 candidates, M16 decision and M17 handoff | Entry point / M22 preflight and lifecycle tick path | CP11/CP12 order statically traced; M08 M15 precedes M09; orchestration runtime remains unverified |
 
 ## Evidence and unresolved gates
 

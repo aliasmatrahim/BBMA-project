@@ -33,7 +33,8 @@ Status: **PARTIAL — BUILD 5.22 NATIVE STRICT COMPILE PASS; HISTORY/RUNTIME AND
 - Full M01–M27/M11J/M12N rule denominator, nested-field ownership and attributable runtime matrix remain PARTIAL.
 - CP10 adds the M07 BB-shape ownership contract and maps Core §4 through M06/M07/M08/M10/M12/M27. M07 labels remain unused; M08's local CSM-equivalent invalidation is not a direct M10 call. Tests/runtime for this path remain NOT VERIFIED.
 - CP11 maps accepted Core §5.1–5.4 across the Extreme owner and downstream candidate/TPW paths. Owner source is statically aligned with the accepted F2 mapping; stale Finale status claims were corrected. Focused tests/runtime remain NOT VERIFIED; D1 TPW lifecycle is still OFF/fail-closed.
-- Exact next action: map accepted Core §6 MHV/MLV against owner M09 and its M08 parent, M13 collection and M27 routing; verify the current-owner dispositions for historical IG-01–IG-03 and keep any implementation claim static until source/read-write ownership is reconciled. Strategy Tester remains NOT RUN until qualified G40 history is verified. No merge, terminal restart or trading activation.
+- CP12 maps accepted Core §6 through M08/M09/M12N/M13/M14/M16/M27. The M15 lifecycle aligns statically with the accepted Core mapping; IG-01–IG-03 are stale patch claims. M09 parity/runtime remain NOT VERIFIED. M12N has no H4/H1 MHV watch/context state under C039/C040 documentation decisions, which do not by themselves authorize MQL4 changes; a separate scoped contract/task is needed. No M09 contract is linked.
+- Exact next action: map accepted Core §7 CSD/eCSD against M10 production and M12 consumers, then record M27/M13/M15 handoffs. Strategy Tester remains NOT RUN until qualified G40 history is verified. No merge, terminal restart or trading activation.
 
 ## Stage A - Source evidence / reconciliation
 

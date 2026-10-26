@@ -63,7 +63,7 @@ This is a static owner mapping, not a claim of focused lifecycle tests, broker/r
 
 **Decision:** Keep the accepted normal lifecycle and bounded §5.3 exceptions. Do not reinstate the old claim that standalone Mode 2 Extreme is wholly non-executable; do not expand beyond the approved mappings.
 
-## 4. MHV / MLV — KEEP / CLARIFY at Core level; implementation audit required
+## 4. MHV / MLV — KEEP / CLARIFY; Build 5.15 owner mapping reconciled statically
 ### Terminology
 Finale repeatedly uses **MHV = Market Hilang Volume**. The primary summary PDF uses `MLV`; the historical technique PDF uses `MHV`.
 
@@ -79,7 +79,9 @@ Finale repeatedly uses **MHV = Market Hilang Volume**. The primary summary PDF u
 
 **Finale evidence:** V05 00:18:07–00:28:12; V01 00:59:18–01:00:05.
 
-**Current-Core comparison:** The PDF-derived Core already contains the outer-BB void rule, body marking/retest, and double/triple morphology. Finale mostly corroborates and expands the visual explanation. However, the active M09 implementation does not fully represent that Core contract; this is tracked separately in `BBMA_FINALE_CORE_IMPLEMENTATION_GAP_REGISTER.md`.
+**Current-Core / owner comparison (CP12, 2026-10-26):** The Build 5.15 M09 owner statically maps the accepted §6 lifecycle on M15: reversal-confirmed Extreme parent, normal TP-Wajib, post-TP loss phase, body reference freeze, retest, invalidation before same-cycle direction takeover, and opposite-cycle supersession. M13/M14 preserve the exact REM signature and accept a mature frozen M15 MHV without requiring retest; M16 validates the exact component identity. M12N remains a read-only M15 overlay. No direct canonical M09 mismatch was confirmed. Focused parity/runtime remains NOT VERIFIED.
+
+The M09 contract is not separately documented. Higher-timeframe MHV watch/context behavior in C039/C040 is also absent from the pinned owner (no H4/H1 MHV state or `H4_MHV_WATCH` was found); track it as separate extension coverage requiring its own scoped contract/task; the decisions do not authorize an MQL4 change by themselves, and the absence is not a Core §6 M09 mismatch.
 
 **Decision:** **KEEP/CLARIFY** at Strategy-Core level. H&S-like appearance remains non-mandatory.
 
@@ -170,4 +172,4 @@ The strongest post-Finale gains are:
 5. a useful first-candle-validation / second-candle-entry teaching phrase that must be mapped carefully to the existing closed-candle execution architecture;
 6. stronger higher-TF ownership/context for lower-TF signals.
 
-The current Build 5.15 owner has a canonical M09 MHV/MLV lifecycle; its full Core §6 owner, consumer and runtime reconciliation remains the next audit task. Historical IG-01–IG-03 are marked stale against this owner in the live implementation gap register and must not be treated as patch instructions. Runtime verification remains separate.
+The current Build 5.15 owner has a canonical M09 MHV/MLV lifecycle; CP12 records its static Core §6 owner/consumer mapping. Historical IG-01–IG-03 are stale against this owner and must not be treated as patch instructions. The standalone M09 contract and C039/C040 HTF observer extension remain documentation/coverage gaps; runtime verification remains separate. The next audit task is Core §7 CSD/eCSD and the M10→M12 handoff.

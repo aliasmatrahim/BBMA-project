@@ -24,7 +24,7 @@ Baseline reviewed: Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04f
 | IG-09/IG-10 standalone Extreme / TPW | M27 builds a standalone H1 Extreme candidate through M15, subject to lifecycle and owner gates. This invalidates the old “withheld/non-executable” status; exact TPW/runtime semantics still need their own trace. | **STALE STATUS — TPW conformance remains open** |
 | IG-05–IG-08, IG-11 | Not revalidated end-to-end against every Build 5.15 input and lifecycle path in this update. | **RECHECK REQUIRED — do not treat old KEEP/VERIFY labels as current verification** |
 
-Separate confirmed issue: M06 incomplete-history validity remains a Build 5.15 bug. Candidate repair and tests are in Draft PR #293; the active owner is unchanged. M12 unreadable-refresh admission remains **VERIFICATION REQUIRED** under Issue #292.
+Separate confirmed issues: M06 incomplete-history validity remains a Build 5.15 owner bug; its repair is candidate-scoped in Draft PR #293. M12 unreadable-refresh admission was reproduced against Build 5.15; Build 5.22 candidate freshness gates have portable exact-source evidence and a strict native compile pass, but the candidate is unmerged and qualified-history/runtime verification remains open. The active owner is unchanged.
 
 Additional current-owner reconciliation: source MODULE 11J was absent from the older graph and regression map; it is now mapped to the approved D1O-01 execution decision and Build 5.15 code. D1O-01 is a project execution extension, not independent original-source provenance. The 23 M01 inputs, 68 M01/M02 type declarations, 37 M03 globals and detected cross-module function calls are statically inventoried in Draft PR #294. BlockNMJEConflict and BlockNMJEBuilding have no code readers, but their source comments explicitly mark them inactive legacy compatibility inputs because NMJE is observation-only; they are not wired into trading behavior. Nested field ownership, tests and runtime remain open.
 
@@ -42,19 +42,12 @@ Additional current-owner reconciliation: source MODULE 11J was absent from the o
 | IG-10 | Extreme TP Wajib | Current executable Mode 1/2 decisions source TP from Re-Entry components; standalone Extreme is non-executable | Finale clarifies normal standalone Extreme TP Wajib toward opposite MA5/MA10 first | **DORMANT SPEC CLARIFICATION, not current live TP bug** | LOW/FUTURE |
 | IG-11 | REM/RRE/REE signatures | Current M13/M14 exact signatures match the PDF-derived contracts | Finale does not provide unambiguous subtitle-only evidence to replace them | **KEEP — no fix** | NONE |
 
-## Highest-value future repairs
-### P1 — M09 source alignment
-The strongest actionable finding is M09. This is supported by **both** the pre-existing PDF Core and Finale, so it is not a speculative video-only change.
+## Historical high-value findings and current disposition
+### P1 — M09 source alignment (historical finding reconciled in CP12)
+The original pre-Build-5.15 audit correctly identified a mismatch in its snapshot. The pinned Build 5.15 owner now contains one canonical M15 MHV/MLV lifecycle: outer-BB/prior-Momentum invalidation, body-edge tracking and freeze, retest, and parent/cycle supersession. IG-01–IG-03 are stale status claims against this owner and are not patch instructions. CP12 records a static Core §6 mapping; focused parity and runtime remain unverified. Do not reopen this as a source-code repair without new evidence.
 
-A future repair should first define one canonical MHV/MLV owner/state model and then ensure:
-- outer-BB close voids candidate/confirmed state immediately on the source timeframe;
-- highest/lowest body and retest ownership are explicit;
-- no arbitrary fixed point tolerance is presented as an Oma Ally rule;
-- pattern morphology is not restricted to an invented single double-top/bottom formula unless explicitly classified as engineering interpretation;
-- the legacy raw `DetectMHV()` cannot contradict the persistent MLV/MHV owner.
-
-### P2 — BB flat classification
-Fix the auxiliary state enum so `BB_FLAT` is reachable and semantically distinct. This is lower priority than M09 because the active M10 CSM detector already uses direct expansion/directional tests and is currently source-aligned.
+### P2 — BB flat classification (historical finding reconciled in CP10)
+The pinned Build 5.15 owner contains a geometric BB_FLAT branch and M07's contract is documented. The labels have no downstream reader and do not gate M10 CSM. No current signal mismatch was confirmed; focused parity/runtime remains unverified. Do not recreate the historical branch fix.
 
 ### VERIFY — Re-Entry timing before changing anything
 Do not add a new waiting candle yet. The current architecture processes closed source candles and executes later at the live market price. A timestamp audit should answer whether the current market entry already occurs on the second Re-Entry candle as Finale describes. Only if execution is demonstrably one candle too early should M12/M15 timing be altered.
@@ -74,11 +67,18 @@ Finale does **not** justify changing the following merely for the sake of change
 The historical M09/M07 rows above were already reconciled against owner Build 5.15: IG-01 to IG-04 are stale status claims for that source, not patch instructions. The owner contains the canonical `UpdateCanonicalMLVState` lifecycle and geometric `BB_FLAT` branch. Do not recreate those old fixes.
 
 The separate M12 invalid-refresh admission finding was reproduced against owner Build 5.15. Build 5.22 candidate checks all frozen component timeframes (Re-Entry, Extreme, MHV and MLV) at M15 and M16; portable exact-source probes pass. CP08 verifies strict native compile on G40 with 0 errors / 0 warnings. The qualified-history gate is NOT VERIFIED, so Strategy Tester and broker/runtime remain NOT RUN. Owner source remains unchanged; the candidate is unmerged.
-
-
 ## CP11 owner reconciliation — Core §5 Extreme lifecycle (2026-10-26)
 
 - Core V2 §5.4 / the user-approved F2 decision and Build 5.15 owner code now agree on the accepted maturity path: M08 RAW → first subsequent closed reversal-direction candle → REVERSAL_CONFIRMED → retest phase/anchor freeze → first valid body-anchor or MA5 interaction → RETEST_READY.
 - M15 constructs standalone H1 Extreme only from RETEST_READY, Mode 2, and the active same-direction H4 owner; M11 D1 strategic filtering and M16 exact owner revalidation remain downstream gates. M17 contains the Q5 structural-wick SL and opposite-MA TPW execution mapping.
 - The D1O Extreme-TPW path is separate project extension work. `EnableD1TPWLifecycle=false`; M17 fails closed for a D1 TPW identity when disabled, and M23 D1 TPW lifecycle functions are gated. Do not treat it as an enabled trade path.
 - The old “standalone withheld” and “TPW dormant” claims in the historical IG-09/IG-10 rows are superseded for static owner scope. No focused test, native compile, Strategy Tester or broker/runtime was run in CP11; those validations remain NOT VERIFIED / NOT RUN.
+
+
+## CP12 owner reconciliation — Core §6 MHV/MLV (2026-10-26)
+
+- Build 5.15 M09 has a single canonical M15 lifecycle and consumes only a reversal-confirmed M15 Extreme parent. Static trace matches the accepted Core §6 sequence and the F1 mapping: normal TP-Wajib, post-TP loss phase, body accumulation/freeze, retest/context, pre-takeover invalidation, same-cycle direction takeover and opposite-cycle supersession. No fixed candle/session expiry is applied.
+- M13/M14 preserve the exact REM signature H4 RE + H1 Extreme + M15 MHV/MLV; Core §6 formation/frozen-body maturity is sufficient and a retest is not required for REM. M16 checks the exact persistent M15 component identity.
+- M12N is read-only and exposes only the M15 MLV overlay. No H4/H1 MHV owner or H4_MHV_WATCH implementation was found in the pinned source. C039/C040 document read-only HTF observer/context semantics, but explicitly do not authorize MQL4 changes by themselves. The behavior is absent from the pinned owner and needs its own scoped contract/task; it is not evidence of a canonical M09/Core §6 mismatch.
+- Historical IG-01–IG-03 and P1 are closed as current-owner patch targets. No standalone M09 contract is linked; this remains a documentation gap. CP12 adds no code and runs no tests/compile/runtime. The Build 5.22 stale-MLV source gate is candidate freshness evidence only, not M09 lifecycle parity.
+- Focused M09/TP-Wajib parity, attributable runtime and Strategy Tester remain NOT VERIFIED / NOT RUN. The Strategy Tester remains gated on qualified G40 history.

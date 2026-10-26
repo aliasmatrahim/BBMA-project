@@ -1,8 +1,8 @@
 # BBMA Active Master Queue
 
-Reconciled: **2026-09-25**
+Reconciled: **2026-10-26**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`0034f31aced4e630d0b76ce64009a41078ba7cb3`**
+Owner head at reconciliation: **`459c0588e625d7f7630f0fb5612b7f04fda496de`**
 
 This file is the active queue. The pre-2026-09-09 historical queue is preserved byte-for-byte at `blueprint/archive/MASTER_QUEUE_pre_20260909.md`.
 
@@ -22,6 +22,14 @@ Stable Q IDs are preserved. The active dependency order is:
 - **Deferred / future:** Q11
 
 Q3 remains a separate isolated runtime-validation workstream and is environment-blocked at `SEEN=91 / ACTIVE=0` on the exact InstanceID 81 ledger; do not disturb its primary PID 13064. Q9 current-owner rematerialization is validated through Build 5.13 for shadow-safe P2/P3 and P4+/P6-P8/P10-P11 scope; P2 coherence metadata is source-supported but active ordering remains HOLD, P5 true-conflict remains HOLD, P9 is NO FIX, and M5 has no execution authority. Historical Draft PRs #192-#205 remain provenance only. The subsequent Issue #101 downstream sequence (D1TPW -> C044 -> D1/D1O -> M17 -> TradeLock/risk/execution -> N1/N2/N3 -> M25 -> Observer -> cross-module -> final integration) is already completed and must not be requeued. Q6 remains stopped/closed. Q7/Q8 historical gates are complete. **Q10 Phase L R5 remains the highest-priority active final-acceptance task and is separately bound to frozen Build 5.11. R3 and R4 are formally PASS; R5 remains the first incomplete stage.**
+
+## CORE-FIDELITY-292 scoped audit — 2026-10-26
+
+Status: **PARTIAL**. Baseline: Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`; audit candidate: Draft PR #293 at `d628b113cea94b77fde2936476f4fd2df452c960`.
+- CP03 confirmed the M06 incomplete-data defect and recorded a candidate repair with focused tests and native strict compile. Those results apply to the PR head only.
+- Exact next task: reproduce an invalid/unreadable H1/H4 refresh through candidate construction, M15 admission, M16 revalidation and downstream gates. Classify the result before any M12 patch.
+- Full M01–M27/M12N rule denominator, comprehensive consumer graph and attributable runtime matrix remain incomplete.
+- Qualified Strategy Tester data remains blocked in G40. No merge, terminal restart or trading activation is authorized by Issue #292.
 
 ## Stage A - Source evidence / reconciliation
 

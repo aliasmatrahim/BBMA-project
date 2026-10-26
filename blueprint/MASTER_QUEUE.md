@@ -28,7 +28,8 @@ Q3 remains a separate isolated runtime-validation workstream and is environment-
 Status: **PARTIAL**. Baseline: Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`; audit candidate: Draft PR #293 at `d628b113cea94b77fde2936476f4fd2df452c960`.
 - CP03 confirmed the M06 incomplete-data defect and recorded a candidate repair with focused tests and native strict compile. Those results apply to the PR head only.
 - Exact next task: reproduce an invalid/unreadable H1/H4 refresh through candidate construction, M15 admission, M16 revalidation and downstream gates. Classify the result before any M12 patch.
-- Full M01–M27/M12N rule denominator, comprehensive consumer graph and attributable runtime matrix remain incomplete.
+- Full M01–M27/M11J/M12N rule denominator, nested-field ownership classification and attributable runtime matrix remain incomplete; the detected call/input/type/global reference inventory is now recorded.
+- CP05 adds the previously omitted M11J source module and static input/type/global/function-reference inventories. Full nested-field ownership, source-to-contract coverage and attributable runtime matrix remain incomplete; machine-readable reconciliation is in Draft PR #294.
 - Qualified Strategy Tester data remains blocked in G40. No merge, terminal restart or trading activation is authorized by Issue #292.
 
 ## Stage A - Source evidence / reconciliation

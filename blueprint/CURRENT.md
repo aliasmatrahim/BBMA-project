@@ -144,3 +144,14 @@ Status: **BUILD 5.15 P2 TARGETLESS C044 REPLAY VALIDATED / P2 ORDERING HOLD / P5
 - PR #140 and #142 are already merged into the verified lineage; PR #131 remains gated by its exact C10 runtime acceptance.
 - Do not invent a Strategy-Core rule to fill source uncertainty or improve historical profitability.
 - Every EA source change requires a unique visible build identity and attributable native compile/runtime evidence.
+
+## CORE-FIDELITY-292 CP06 — 2026-10-26
+
+Status: **OWNER REPRODUCTION CONFIRMED; BUILD 5.21 CANDIDATE PORTABLE FIX VERIFIED; NATIVE/RUNTIME GATES OPEN**.
+
+- Owner baseline remains Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`. No owner branch or production artifact changed.
+- Exact-source reproduction confirmed that an unreadable H1 or H4 refresh preserves its structural owner, yet Build 5.15 still lets the old H1 Re-Entry candidate pass M15 and M16 to the preflight dispatch.
+- Draft PR #293 now carries a Build 5.21 candidate. M15 requires each Re-Entry component's exact latest closed timeframe snapshot; H1 standalone candidates also require readable H4 data and the active same-direction H4 owner. M16 repeats the source check before validation.
+- The M12/H4 owner remains stored through an unreadable refresh. There is no age-based expiry or lifecycle reset.
+- Portable exact-source regression probe: four test methods pass, covering unreadable H1, unreadable H4, forced M16 revalidation, a valid-data control and the static M17/risk/portfolio preflight order. The preflight stub stops before broker or order calls.
+- Build 5.21 native strict compile and Strategy Tester are **NOT TESTED**. The qualified G40 data gate remains blocked; there is no runtime, order or live-trading claim. Overall Core audit remains PARTIAL.

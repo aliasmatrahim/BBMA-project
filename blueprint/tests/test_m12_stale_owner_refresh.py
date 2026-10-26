@@ -196,8 +196,8 @@ class TestM12StaleOwnerRefresh(unittest.TestCase):
         compiler = shutil.which("g++")
         if not compiler:
             raise RuntimeError("g++ required; do not simulate a PASS")
-        directory = Path("/tmp") / "m12-stale-owner-refresh-test"
-        directory.mkdir(parents=True, exist_ok=True)
+        cls.tempdir = tempfile.TemporaryDirectory(prefix="m12-stale-owner-refresh-")
+        directory = Path(cls.tempdir.name)
         cls.executable = directory / "probe"
         cpp = directory / "probe.cpp"
         cpp.write_text(portable_source(SOURCE.read_text()))
@@ -206,6 +206,10 @@ class TestM12StaleOwnerRefresh(unittest.TestCase):
              str(cpp), "-o", str(cls.executable)],
             check=True, capture_output=True, text=True,
         )
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tempdir.cleanup()
 
     def run_probe(self, scenario):
         fields = subprocess.check_output([str(self.executable), scenario], text=True).split()

@@ -178,3 +178,8 @@ The 2026-08-24 D1 owner revalidation is implemented on isolated `d1-owner-dev` a
 
 ## D1-03 atomic snapshot ownership overlay
 M16 continues to revalidate D1 before structural component freshness, but the comparison now uses only the current M11-owned atomic D1 snapshot. It no longer compares frozen decision identity against split raw `d1_data` / PairState MA mirror fields. No D1 trend formula is duplicated and no live-position exit authority is added.
+
+
+## CP07 candidate component source revalidation — Build 5.22
+
+Immediately before M16 marks a decision validated, it repeats the current closed-source snapshot check for every frozen component, then applies the existing persistent owner-identity checks. Any unreadable, invalid, wrong-timeframe or non-current component snapshot invalidates the pending decision before M17. Owner lifecycle state is not erased and no generic age expiry or live-position close authority is introduced. Portable helper-level regression passes; native compile and broker/runtime validation remain NOT TESTED under Issue #292.

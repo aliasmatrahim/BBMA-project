@@ -218,3 +218,8 @@ The 2026-08-24 D1 strategic gate is implemented on isolated `d1-owner-dev` as bu
 
 ## D1-03 atomic snapshot ownership overlay
 M15 continues the D1-02 gate order, but its frozen D1 identity now comes exclusively from the M11-owned `D1MajorTrendOwner` atomic snapshot (`state`, `direction`, closed-D1 candle, `Close1`, `MA50_1`, `MA50_2`). M15 no longer mixes raw `d1_data` fields with separate PairState MA mirrors when freezing a decision. Strategy semantics and candidate signatures are unchanged.
+
+
+## CP07 candidate component source-admission delta — Build 5.22
+
+Before M15 counts or selects a candidate, every frozen component must have a valid, closed source-timeframe snapshot whose candle time matches the latest closed processing snapshot. This covers Re-Entry, Extreme and MHV/MLV components. Persistent component owners remain stored across unreadable refreshes; the M15 gate excludes the candidate until its required source snapshots are readable again. This is an admission safeguard only: it adds no age TTL, detection rule, priority change or execution authority. Native/runtime validation remains pending under Issue #292.

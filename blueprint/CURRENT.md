@@ -155,3 +155,14 @@ Status: **OWNER REPRODUCTION CONFIRMED; BUILD 5.21 CANDIDATE PORTABLE FIX VERIFI
 - The M12/H4 owner remains stored through an unreadable refresh. There is no age-based expiry or lifecycle reset.
 - Portable exact-source regression probe: four test methods pass, covering unreadable H1, unreadable H4, forced M16 revalidation, a valid-data control and the static M17/risk/portfolio preflight order. The preflight stub stops before broker or order calls.
 - Build 5.21 native strict compile and Strategy Tester are **NOT TESTED**. The qualified G40 data gate remains blocked; there is no runtime, order or live-trading claim. Overall Core audit remains PARTIAL.
+
+
+## CORE-FIDELITY-292 CP07 — 2026-10-27
+
+Status: **BUILD 5.22 PORTABLE ALL-COMPONENT SOURCE GATE VERIFIED; NATIVE/RUNTIME GATES OPEN**.
+
+- Owner Build 5.15 remains unchanged. Draft PR #293 carries candidate Build 5.22.
+- A second stale-admission gap was reproduced: Build 5.21 checked current source snapshots only for Re-Entry components. Stale H1 Extreme, M15 MLV and H4 Extreme components could still pass M15/M16 identity gates.
+- Build 5.22 checks every candidate component against a valid, closed current source snapshot in M15 and repeats the check in M16. Owner persistence, no-age-expiry semantics, H4 alignment and signal/priority rules are preserved.
+- Two portable exact-source unittest methods pass across three stale-source cases and a valid control. Probe stops before broker APIs; no order/runtime execution occurred.
+- Native strict compile and Strategy Tester remain **NOT TESTED**. G40 compile/data gates are unavailable; overall Core audit remains PARTIAL.

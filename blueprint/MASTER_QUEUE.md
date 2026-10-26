@@ -244,3 +244,12 @@ No destructive reset, blind recreation, automatic MT4 restart, or trading enable
 - Focused portable exact-source regression: **PASS** for invalid H1, invalid H4, forced M16 revalidation and valid-data control. Preflight routing was checked; broker/order execution was not run.
 - Exact next action: native strict compile of Build 5.21 in the approved compile environment. Strategy Tester remains NOT TESTED until the qualified G40 history gate is available. No merge, terminal restart or trading activation.
 - Full source-rule denominator, native/runtime coverage and the wider M01–M27/M11J/M12N audit remain PARTIAL.
+
+
+## CORE-FIDELITY-292 CP07 execution update — 2026-10-27
+
+- Build 5.21 is extended in Draft PR #293 to Build 5.22 after exact-source reproduction found stale non-Re-Entry component admission.
+- M15/M16 now require a valid, closed, current snapshot for every decision component (Re-Entry, Extreme, MHV/MLV); invalid H1, H4 or M15 refresh blocks before validated preflight.
+- Owner states are preserved; no TTL or BBMA signal/priority change was introduced.
+- Portable exact-source probe: **PASS** (2 unittest methods; invalid H1 Extreme/M15 MLV/H4 Extreme rejected; valid control admitted). No broker API or OrderSend was exercised.
+- Exact next action: native strict compile of Build 5.22 in the approved environment; G40 is offline. Strategy Tester stays NOT TESTED until compile and qualified-history gate pass. No merge, terminal restart or trading activation.

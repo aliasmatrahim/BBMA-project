@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.2.1 - M12 Current-Source Admission Gate            |
+//| Version 5.2.2 - All-Component Current-Source Admission Gate   |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.21"
+#property version   "5.22"
 #property strict
 
-#define BBMA_BUILD_TAG      "V521_M12_CURRENT_SOURCE_ADMISSION_20261026"
-#define BBMA_SOURCE_REV_TAG "CORE_FIDELITY_292_M12_001_20261026"
+#define BBMA_BUILD_TAG      "V522_ALL_COMPONENT_CURRENT_SOURCE_ADMISSION_20261027"
+#define BBMA_SOURCE_REV_TAG "CORE_FIDELITY_292_M16_COMPONENT_SOURCE_001_20261027"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -6698,10 +6698,12 @@ bool IsCandidateSourceSnapshotReady(ValidatedSequenceCandidate &candidate,
    for(int i = 0; i < candidate.ComponentCount && i < 3; i++)
    {
       ComponentIdentity component = candidate.Components[i];
-      if(component.ComponentType != SIGNAL_RE_ENTRY) continue;
+      // Validate source readability for every selected component. Owner identity
+      // remains persistent; this admission gate adds no age-based expiry.
       if(!IsCurrentClosedSourceSnapshot(pairState, component.Timeframe))
          return false;
-      if(candidate.UsesD1Opportunity && component.Timeframe == PERIOD_M15)
+      if(component.ComponentType == SIGNAL_RE_ENTRY &&
+         candidate.UsesD1Opportunity && component.Timeframe == PERIOD_M15)
          requireH4Owner = true;
    }
 
@@ -6734,10 +6736,11 @@ bool IsDecisionSourceSnapshotReady(BBMA_Decision &decision,
    for(int i = 0; i < decision.ComponentCount && i < 3; i++)
    {
       ComponentIdentity component = decision.Components[i];
-      if(component.ComponentType != SIGNAL_RE_ENTRY) continue;
+      // Recheck every frozen component source at M16 before validation.
       if(!IsCurrentClosedSourceSnapshot(pairState, component.Timeframe))
          return false;
-      if(decision.D1AuthorityMode == D1_AUTH_OPPORTUNITY &&
+      if(component.ComponentType == SIGNAL_RE_ENTRY &&
+         decision.D1AuthorityMode == D1_AUTH_OPPORTUNITY &&
          component.Timeframe == PERIOD_M15)
          requireH4Owner = true;
    }

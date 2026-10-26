@@ -1,0 +1,10 @@
+Build 5.22 GREEN — exact production helper bodies
+Source SHA-256: 532763ea2a60a14e5d377b966be8f62dc5db28607ba5edf65c649a0fb9dd19b1
+Test SHA-256: bd00a4d2807309d0558d7b4a771a3e5ea6d3f07db1dae03d6aa27930f9e04a1b
+Command: python3 -m unittest discover -v -s blueprint/tests -p test_candidate_component_source_snapshots.py
+Result: PASS (2 unittest methods; 4 scenario branches; 0.521s)
+stale_h1_extreme: M15=0 M16=0 preflight=0
+stale_m15_mlv: M15=0 M16=0 preflight=0
+stale_h4_extreme: M15=0 M16=0 preflight=0
+valid: M15=1 M16=1 preflight=1
+Scope: harness stops before broker APIs; native compile and Strategy Tester were not run.

@@ -1,0 +1,19 @@
+{
+  "task": "CORE-FIDELITY-292",
+  "baseline_commit": "459c0588e625d7f7630f0fb5612b7f04fda496de",
+  "parent_checkpoint": "8ad007c5644a3ad5fbb09415831b1c02bcf00748",
+  "build": "5.22",
+  "build_tag": "V522_ALL_COMPONENT_CURRENT_SOURCE_ADMISSION_20261027",
+  "source_sha256": "532763ea2a60a14e5d377b966be8f62dc5db28607ba5edf65c649a0fb9dd19b1",
+  "source_git_blob_sha": "205d4540eb5893c8cf7bfa9dd150f92c89ffbe97",
+  "test_path": "blueprint/tests/test_candidate_component_source_snapshots.py",
+  "test_sha256": "bd00a4d2807309d0558d7b4a771a3e5ea6d3f07db1dae03d6aa27930f9e04a1b",
+  "test_git_blob_sha": "592f34910f49354da7fd4ca6ba8f4665d3054def",
+  "portable_exact_source_probe": "2 unittest methods passed; stale H1 Extreme, M15 MLV, H4 Extreme and valid control",
+  "native_compile": "NOT_TESTED_BLOCKED_G40_OFFLINE",
+  "strategy_tester": "NOT_TESTED_BLOCKED_QUALIFIED_DATA_GATE",
+  "preflight": "portable M15/M16 exact-helper gate probe only; routing call sites statically inspected; no broker API or OrderSend",
+  "deployment": "NONE",
+  "owner_branch_changed": false,
+  "test_runner": "stdlib unittest; two methods passed (0.521s)"
+}

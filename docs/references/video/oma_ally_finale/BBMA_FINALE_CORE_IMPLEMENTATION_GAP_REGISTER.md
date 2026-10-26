@@ -67,3 +67,10 @@ Finale does **not** justify changing the following merely for the sake of change
 - current exact REM/RRE/REE signatures;
 - prohibition on raw direction/Extreme execution;
 - Mode 1/Mode 2 eligibility contract.
+
+
+## Issue #292 implementation update — 2026-10-27
+
+The historical M09/M07 rows above were already reconciled against owner Build 5.15: IG-01 to IG-04 are stale status claims for that source, not patch instructions. The owner contains the canonical `UpdateCanonicalMLVState` lifecycle and geometric `BB_FLAT` branch. Do not recreate those old fixes.
+
+The separate M12 invalid-refresh admission finding was reproduced against owner Build 5.15 and is blocked in candidate Build 5.21; it remains unmerged and uncompiled. CP07 then found that Build 5.21 only checked Re-Entry component source snapshots. Build 5.22 candidate now checks all frozen component timeframes (Re-Entry, Extreme and MHV/MLV) at M15 and M16. Portable exact-source regression passes; native strict compile, Strategy Tester and broker/runtime remain NOT TESTED. Owner source remains unchanged.

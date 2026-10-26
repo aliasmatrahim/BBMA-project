@@ -80,3 +80,16 @@ The owner inventory above remains pinned to Build 5.15. Draft PR #293 adds this 
 A failed read does not reset M12/H4 state or create age expiry. The exact-source portable probe confirms invalid-H1/H4 rejection and a valid-data control. Build 5.21 native compilation, qualified Strategy Tester and broker runtime remain NOT TESTED; owner Build 5.15 is unchanged.
 
 This candidate delta does not complete the full consumer-field graph or the M01–M27/M11J/M12N audit.
+
+
+## Candidate-branch delta — Build 5.22 / CP07 (2026-10-27)
+
+The Build 5.15 owner inventory above remains pinned and unchanged. Draft PR #293 adds a source-readiness gate for every component in the frozen candidate/decision:
+
+| Producer / source | Consumer / gate | Required link | Result |
+|---|---|---|---|
+| M08 Extreme / M09 MHV-MLV / M12 Re-Entry owner snapshots | M15 `IsCandidateSourceSnapshotReady` | Every component timeframe must have valid, closed data equal to the latest closed processing snapshot | Stale H1 Extreme, H4 Extreme or M15 MLV is excluded before M15 selection |
+| M15 frozen component identities | M16 `IsDecisionSourceSnapshotReady` + `ValidateDecisionOwnerSnapshot` | Repeat source readiness for every component, then preserve existing owner identity validation | Forced stale decision cannot reach `DEC_VALIDATED` |
+| M16 validated decision | M27 preflight -> M17 -> risk/portfolio -> M22 | Existing call order and authority remain unchanged | Portable gate probe stops before broker APIs; runtime not exercised |
+
+Owners remain persistent through unreadable refreshes. Build 5.22 adds no expiry or signal/ranking semantics. Native strict compile and Strategy Tester are NOT TESTED; full audit remains PARTIAL.

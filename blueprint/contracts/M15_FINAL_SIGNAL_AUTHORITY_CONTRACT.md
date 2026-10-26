@@ -177,12 +177,15 @@ M15 does not own:
 - lot/risk;
 - position lifecycle / broker close.
 
-## Current implementation gap
-The active EA still reflects the earlier H4-only standalone-H1 gate and does not yet consume a canonical M11 D1 owner snapshot.
+## Current owner implementation status — reconciled 2026-10-26
+The previous implementation-gap statement is superseded for static status by owner Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`.
 
-Therefore the 2026-08-24 D1 portion of this contract is **SPECIFICATION-ONLY / NOT IMPLEMENTED** while the P3 runtime candidate remains frozen.
+- M15 consumes M11 D1 owner state and applies the D1 eligibility gate before final candidate selection.
+- M15 remains the sole final new-entry authority; M27 calls its priority engine only after candidate assembly.
+- M15 freezes the selected D1 owner identity for M16 revalidation.
+- Exact REM/RRE/REE signatures remain unchanged.
 
-Previous Step 6 implementation records remain historical evidence for the atomic M15 architecture, but they do not prove implementation of the newly reconciled D1 strategic gate.
+Classification: **STATIC IMPLEMENTATION PRESENT / COMBINED REGRESSION PARTIAL / RUNTIME NOT VERIFIED**. No runtime compliance claim is made by this reconciliation.
 
 ## Implementation record — historical Step 6 baseline
 Patch:

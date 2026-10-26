@@ -20,9 +20,10 @@ Status: **PARTIAL — STATIC OWNER RECONCILIATION COMPLETE; RUNTIME AND FULL RUL
 - Draft PR #293 is Build 5.20 based on that owner. It contains a focused M06 incomplete-history repair; its recorded 15 focused tests, 87-test suite and native strict compile apply to that candidate only. The owner branch remains Build 5.15 until an authorized, fully gated integration.
 - Finding A is a confirmed M06 data-validity bug on the owner baseline. The candidate repair in PR #293 is not a runtime certification.
 - Finding B (unreadable H1/H4 refresh and possible stale-owner admission) remains **VERIFICATION REQUIRED**. Do not add age-based expiry without evidence; exact owner semantics remain governed by M12.
-- M11/M15/M16 D1-owner code is present in the pinned owner source; older “not implemented” paragraphs in contracts are superseded by the current-owner reconciliation under review.
-- Current M01–M27/M12N rule/test/runtime traceability remains partial. Runtime evidence and the G40 qualified-data gate have not been revalidated by this documentation refresh.
+- M11/M11J/M15/M16 D1-owner and opportunity-journey code is present in the pinned owner source; older “not implemented” paragraphs in contracts are superseded by the current-owner reconciliation under review.
+- Current M01–M27/M11J/M12N rule/test/runtime traceability remains partial. Runtime evidence and the G40 qualified-data gate have not been revalidated by this documentation refresh.
 - This update refreshes GitHub source/contract status only. Existing G40/runtime claims below retain their original evidence dates and scope.
+- CP05 static connection inventory now identifies source MODULE 11J and maps 431 detected function definitions into 96 cross-module call edges / 364 call pairs, plus 23 M01 inputs, 68 M01/M02 type declarations and 37 M03 global identifiers. It is lexical evidence only; nested-field ownership and read/write direction remain partial. The two BlockNMJE inputs remain intentionally inactive per their source comments.
 
 ## Current active workstreams / integrated state
 

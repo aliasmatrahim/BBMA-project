@@ -2,7 +2,7 @@ POST-PATCH GREEN — Build 5.21 source commit 9414608844874af4b6613783316fd8ccd5
 Command: python3 blueprint/tests/test_m12_stale_owner_refresh.py
 Output:
 ....
-Ran 4 tests in 0.474s
+Ran 4 tests in 0.403s
 
 OK
 

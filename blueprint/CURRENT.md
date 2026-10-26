@@ -1,6 +1,6 @@
 # BBMA Current Project State
 
-Updated: **2026-10-26**
+Updated: **2026-10-27**
 Status owner: **`d1-owner-dev`**
 Owner head at reconciliation: **`459c0588e625d7f7630f0fb5612b7f04fda496de`**
 
@@ -13,17 +13,16 @@ This file is the active current-state record. The pre-2026-09-09 historical `CUR
 - Canonical active owner baseline: Build `5.15` / `V515_NMJE_P2_TARGETLESS_REPLAY_20260925`, source rev `NMJE_P2_TARGETLESS_REPLAY_001_20260925`, at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`. Build 5.14 and Build 5.11 references below are historical/shadow or frozen Q10 evidence, not the active owner source.
 - Q7/Q8 Build 4.86 artifacts remain historical verified integration/regression evidence. Q10 is bound to the later exact Build 5.11 final integration candidate; this is still not a production-readiness claim.
 
-## Core-fidelity / traceability reconciliation — 2026-10-26
+## Core-fidelity / traceability reconciliation — 2026-10-27
 
-Status: **PARTIAL — STATIC OWNER RECONCILIATION COMPLETE; RUNTIME AND FULL RULE MATRIX OPEN**.
-- Current source baseline remains Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`.
-- Draft PR #293 is Build 5.20 based on that owner. It contains a focused M06 incomplete-history repair; its recorded 15 focused tests, 87-test suite and native strict compile apply to that candidate only. The owner branch remains Build 5.15 until an authorized, fully gated integration.
-- Finding A is a confirmed M06 data-validity bug on the owner baseline. The candidate repair in PR #293 is not a runtime certification.
-- Finding B (unreadable H1/H4 refresh and possible stale-owner admission) remains **VERIFICATION REQUIRED**. Do not add age-based expiry without evidence; exact owner semantics remain governed by M12.
-- M11/M11J/M15/M16 D1-owner and opportunity-journey code is present in the pinned owner source; older “not implemented” paragraphs in contracts are superseded by the current-owner reconciliation under review.
-- Current M01–M27/M11J/M12N rule/test/runtime traceability remains partial. Runtime evidence and the G40 qualified-data gate have not been revalidated by this documentation refresh.
-- This update refreshes GitHub source/contract status only. Existing G40/runtime claims below retain their original evidence dates and scope.
-- CP05 static connection inventory now identifies source MODULE 11J and maps 431 detected function definitions into 96 cross-module call edges / 364 call pairs, plus 23 M01 inputs, 68 M01/M02 type declarations and 37 M03 global identifiers. It is lexical evidence only; nested-field ownership and read/write direction remain partial. The two BlockNMJE inputs remain intentionally inactive per their source comments.
+Status: **PARTIAL — BUILD 5.22 NATIVE STRICT COMPILE PASS; TESTER/RUNTIME AND FULL RULE MATRIX OPEN**.
+- Implementation owner remains Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`; Draft PR #293 carries the separate Build 5.22 candidate.
+- M06 incomplete-history repair evidence from Build 5.20 remains candidate-scoped. It does not change the owner branch.
+- Finding B was reproduced on the owner path; Build 5.21 added the current closed-source gate for Re-Entry, and Build 5.22 extends it to every frozen component in M15/M16 without a new rule or owner reset.
+- CP08 verifies G40 native strict compile of the exact Build 5.22 Git blob: MetaEditor 5.0.0.2425, 0 errors / 0 warnings. Source/log/EX4 hashes are in the current manifest.
+- G40 is online. The qualified-history gate is **NOT VERIFIED**: no `MARKET_DATA_INDEX*` was found in inspected BBMA roots, and the wider profile search hit its 3-second cap. Strategy Tester remains NOT RUN.
+- Static inventory remains lexical: 29 module headers, 431 function definitions, 96 cross-module call edges / 364 call pairs, 23 M01 inputs, 68 type declarations and 37 M03 globals. Nested-field read/write ownership and full rule-to-runtime coverage remain PARTIAL.
+- No owner/production artifact, live order, terminal restart or trading activation changed.
 
 ## Current active workstreams / integrated state
 

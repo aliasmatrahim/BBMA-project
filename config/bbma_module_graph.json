@@ -641,84 +641,84 @@
       "consumers": [
         {
           "module": "M05",
-          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M06",
-          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M07",
-          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M12",
-          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M17",
-          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M19",
-          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M20",
-          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M22",
-          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M23",
-          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M24",
-          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M26",
-          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M27",
-          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides symbol, quote, candle and broker properties used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -735,14 +735,14 @@
       "consumers": [
         {
           "module": "M04",
-          "relationship": "provides shared utility calls used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides shared utility calls used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M06",
-          "relationship": "provides shared utility calls used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides shared utility calls used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -756,112 +756,112 @@
         },
         {
           "module": "M12",
-          "relationship": "provides shared utility calls used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides shared utility calls used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M13",
-          "relationship": "provides shared utility calls used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides shared utility calls used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M14",
-          "relationship": "provides shared utility calls used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides shared utility calls used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M15",
-          "relationship": "provides shared utility calls used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides shared utility calls used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M16",
-          "relationship": "provides shared utility calls used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides shared utility calls used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M17",
-          "relationship": "provides shared utility calls used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides shared utility calls used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M19",
-          "relationship": "provides shared utility calls used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides shared utility calls used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M20",
-          "relationship": "provides shared utility calls used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides shared utility calls used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M22",
-          "relationship": "provides shared utility calls used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides shared utility calls used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M23",
-          "relationship": "provides shared utility calls used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides shared utility calls used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M24",
-          "relationship": "provides shared utility calls used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides shared utility calls used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M25",
-          "relationship": "provides shared utility calls used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides shared utility calls used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M26",
-          "relationship": "provides shared utility calls used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides shared utility calls used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M27",
-          "relationship": "provides shared utility calls used by this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides shared utility calls used by this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M11J",
-          "relationship": "direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M12N",
-          "relationship": "direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -879,7 +879,7 @@
       "consumers": [
         {
           "module": "M08",
-          "relationship": "provides MA/BB numeric data; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides MA/BB numeric data; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "C_M06",
             "C_M08",
@@ -888,7 +888,7 @@
         },
         {
           "module": "M10",
-          "relationship": "provides MA/BB numeric data; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides MA/BB numeric data; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "C_M06",
             "C_M10",
@@ -906,49 +906,49 @@
         },
         {
           "module": "M07",
-          "relationship": "provides closed-candle OHLC/MA/BB data or its validity state; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides closed-candle OHLC/MA/BB data or its validity state; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M11",
-          "relationship": "provides closed-candle OHLC/MA/BB data or its validity state; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides closed-candle OHLC/MA/BB data or its validity state; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M17",
-          "relationship": "provides closed-candle OHLC/MA/BB data or its validity state; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides closed-candle OHLC/MA/BB data or its validity state; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M23",
-          "relationship": "provides closed-candle OHLC/MA/BB data or its validity state; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides closed-candle OHLC/MA/BB data or its validity state; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M24",
-          "relationship": "provides closed-candle OHLC/MA/BB data or its validity state; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides closed-candle OHLC/MA/BB data or its validity state; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M27",
-          "relationship": "provides closed-candle OHLC/MA/BB data or its validity state; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides closed-candle OHLC/MA/BB data or its validity state; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M11J",
-          "relationship": "direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -965,7 +965,7 @@
       "consumers": [
         {
           "module": "M27",
-          "relationship": "M27 builds BB shape state from the closed timeframe snapshot; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "M27 builds BB shape state from the closed timeframe snapshot; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -1001,7 +1001,7 @@
         },
         {
           "module": "M09",
-          "relationship": "provides Extreme lifecycle data or canonical replay functions; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides Extreme lifecycle data or canonical replay functions; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -1015,14 +1015,14 @@
         },
         {
           "module": "M23",
-          "relationship": "provides Extreme lifecycle data or canonical replay functions; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides Extreme lifecycle data or canonical replay functions; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M27",
-          "relationship": "provides Extreme lifecycle data or canonical replay functions; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides Extreme lifecycle data or canonical replay functions; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -1047,7 +1047,7 @@
         },
         {
           "module": "M13",
-          "relationship": "provides MHV/MLV evidence; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides MHV/MLV evidence; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "C_M13",
             "CODE_OWNER_459C"
@@ -1055,14 +1055,14 @@
         },
         {
           "module": "M16",
-          "relationship": "provides MHV/MLV lifecycle and maturity state; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides MHV/MLV lifecycle and maturity state; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M27",
-          "relationship": "provides MHV/MLV lifecycle and maturity state; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides MHV/MLV lifecycle and maturity state; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -1080,7 +1080,7 @@
       "consumers": [
         {
           "module": "M12",
-          "relationship": "provides direction and momentum evidence; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides direction and momentum evidence; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "C_M10",
             "C_M12",
@@ -1107,35 +1107,35 @@
         },
         {
           "module": "M23",
-          "relationship": "provides direction/Momentum evidence or replay classification; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides direction/Momentum evidence or replay classification; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M24",
-          "relationship": "provides direction/Momentum evidence or replay classification; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides direction/Momentum evidence or replay classification; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M27",
-          "relationship": "provides direction/Momentum evidence or replay classification; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides direction/Momentum evidence or replay classification; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M09",
-          "relationship": "direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M11J",
-          "relationship": "direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -1187,7 +1187,7 @@
         },
         {
           "module": "M27",
-          "relationship": "provides D1 strategic-owner state or owner helper; direct call sites enumerated in connection_inventory.direct_call_edges; writes/readers of PairState.d1_major_trend_owner listed in connection_inventory.owner_field_handoffs",
+          "relationship": "provides D1 strategic-owner state or owner helper; direct function pairs enumerated in connection_inventory.direct_call_edges; writes/readers of PairState.d1_major_trend_owner listed in connection_inventory.owner_field_handoffs",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -1213,28 +1213,28 @@
       "consumers": [
         {
           "module": "M12N",
-          "relationship": "direct call sites enumerated in connection_inventory.direct_call_edges; writes/readers of PairState.d1_opportunity listed in connection_inventory.owner_field_handoffs",
+          "relationship": "direct function pairs enumerated in connection_inventory.direct_call_edges; writes/readers of PairState.d1_opportunity listed in connection_inventory.owner_field_handoffs",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M16",
-          "relationship": "direct call sites enumerated in connection_inventory.direct_call_edges; writes/readers of PairState.d1_opportunity listed in connection_inventory.owner_field_handoffs",
+          "relationship": "direct function pairs enumerated in connection_inventory.direct_call_edges; writes/readers of PairState.d1_opportunity listed in connection_inventory.owner_field_handoffs",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M23",
-          "relationship": "direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M27",
-          "relationship": "direct call sites enumerated in connection_inventory.direct_call_edges; writes/readers of PairState.d1_opportunity listed in connection_inventory.owner_field_handoffs",
+          "relationship": "direct function pairs enumerated in connection_inventory.direct_call_edges; writes/readers of PairState.d1_opportunity listed in connection_inventory.owner_field_handoffs",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -1295,21 +1295,21 @@
         },
         {
           "module": "M23",
-          "relationship": "provides Re-Entry state or canonical replay functions; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides Re-Entry state or canonical replay functions; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M24",
-          "relationship": "provides Re-Entry state or canonical replay functions; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides Re-Entry state or canonical replay functions; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M27",
-          "relationship": "provides Re-Entry state or canonical replay functions; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides Re-Entry state or canonical replay functions; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -1327,7 +1327,7 @@
       "consumers": [
         {
           "module": "M13",
-          "relationship": "provides read-only nested journey context and lineage; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides read-only nested journey context and lineage; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "C_M12N",
             "CODE_OWNER_459C"
@@ -1335,28 +1335,28 @@
         },
         {
           "module": "M15",
-          "relationship": "provides read-only journey metadata/attribution only; no decision authority; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides read-only journey metadata/attribution only; no decision authority; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M22",
-          "relationship": "provides read-only journey metadata/attribution only; no decision authority; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides read-only journey metadata/attribution only; no decision authority; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M23",
-          "relationship": "provides read-only journey metadata/attribution only; no decision authority; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides read-only journey metadata/attribution only; no decision authority; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M27",
-          "relationship": "provides read-only journey metadata/attribution only; no decision authority; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides read-only journey metadata/attribution only; no decision authority; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -1382,7 +1382,7 @@
         },
         {
           "module": "M27",
-          "relationship": "hands candidate or combination collection to this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "hands candidate or combination collection to this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -1408,7 +1408,7 @@
         },
         {
           "module": "M27",
-          "relationship": "hands validated sequence candidates to this module; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "hands validated sequence candidates to this module; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -1426,7 +1426,7 @@
       "consumers": [
         {
           "module": "M16",
-          "relationship": "hands off the authoritative decision; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "hands off the authoritative decision; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "C_M15",
             "CODE_OWNER_459C"
@@ -1442,28 +1442,28 @@
         },
         {
           "module": "M22",
-          "relationship": "provides final decision or read-only outcome attribution; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides final decision or read-only outcome attribution; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M27",
-          "relationship": "provides final decision or read-only outcome attribution; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides final decision or read-only outcome attribution; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M12N",
-          "relationship": "direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M13",
-          "relationship": "direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -1490,7 +1490,7 @@
         },
         {
           "module": "M27",
-          "relationship": "provides invalidation/revalidation result; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides invalidation/revalidation result; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -1525,7 +1525,7 @@
         },
         {
           "module": "M22",
-          "relationship": "provides approved entry and SL/TP parameters; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides approved entry and SL/TP parameters; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "C_M22",
             "CODE_OWNER_459C"
@@ -1533,14 +1533,14 @@
         },
         {
           "module": "M24",
-          "relationship": "provides approved SL/TP component and geometry; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides approved SL/TP component and geometry; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M15",
-          "relationship": "direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -1568,7 +1568,7 @@
       "consumers": [
         {
           "module": "M22",
-          "relationship": "provides risk-filter approval state; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides risk-filter approval state; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "C_M22",
             "CODE_OWNER_459C"
@@ -1583,7 +1583,7 @@
         },
         {
           "module": "M20",
-          "relationship": "direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -1601,7 +1601,7 @@
       "consumers": [
         {
           "module": "M22",
-          "relationship": "provides portfolio-protection approval state; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides portfolio-protection approval state; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "C_M22",
             "CODE_OWNER_459C"
@@ -1617,14 +1617,14 @@
         },
         {
           "module": "M27",
-          "relationship": "provides portfolio gate/protection state; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides portfolio gate/protection state; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M19",
-          "relationship": "direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -1650,7 +1650,7 @@
         },
         {
           "module": "M22",
-          "relationship": "provides approved sizing parameters; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides approved sizing parameters; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "C_M21",
             "CODE_OWNER_459C"
@@ -1677,7 +1677,7 @@
         },
         {
           "module": "M24",
-          "relationship": "creates execution state reconstructed by recovery; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "creates execution state reconstructed by recovery; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "C_M24",
             "CODE_OWNER_459C"
@@ -1685,14 +1685,14 @@
         },
         {
           "module": "M27",
-          "relationship": "provides execution state or the orchestration preflight; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides execution state or the orchestration preflight; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M26",
-          "relationship": "direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -1710,28 +1710,28 @@
       "consumers": [
         {
           "module": "M24",
-          "relationship": "provides position lifecycle or recovery event snapshot; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides position lifecycle or recovery event snapshot; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M27",
-          "relationship": "provides position lifecycle or recovery event snapshot; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides position lifecycle or recovery event snapshot; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M15",
-          "relationship": "direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M22",
-          "relationship": "direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -1765,7 +1765,7 @@
         },
         {
           "module": "M22",
-          "relationship": "restores execution state; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "restores execution state; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "C_M24",
             "CODE_OWNER_459C"
@@ -1773,7 +1773,7 @@
         },
         {
           "module": "M23",
-          "relationship": "restores position-lifecycle state; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "restores position-lifecycle state; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "C_M24",
             "CODE_OWNER_459C"
@@ -1781,7 +1781,7 @@
         },
         {
           "module": "M26",
-          "relationship": "participates in initialization recovery; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "participates in initialization recovery; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "C_M24",
             "C_M25_M26",
@@ -1790,14 +1790,14 @@
         },
         {
           "module": "M27",
-          "relationship": "provides recovered state or recovery/init helper; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides recovered state or recovery/init helper; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
         },
         {
           "module": "M15",
-          "relationship": "direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -1815,7 +1815,7 @@
       "consumers": [
         {
           "module": "M27",
-          "relationship": "provides dashboard snapshot/refresh; direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "provides dashboard snapshot/refresh; direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -1833,7 +1833,7 @@
       "consumers": [
         {
           "module": "M27",
-          "relationship": "direct call sites enumerated in connection_inventory.direct_call_edges",
+          "relationship": "direct function pairs enumerated in connection_inventory.direct_call_edges",
           "evidence": [
             "CODE_OWNER_459C"
           ]
@@ -1869,7 +1869,7 @@
       "commit": "459c0588e625d7f7630f0fb5612b7f04fda496de",
       "path": "blueprint/source/BBMA_EA.mq4"
     },
-    "method": "Lexical static scan of module headers, detected function definitions/calls, M01 input declarations, M01/M02 enum/struct declarations, and M03 g_* identifiers. Comments and quoted strings excluded from reference scans. Global references are not classified as reads vs writes; aliases and nested struct-field ownership are not fully resolved.",
+    "method": "Lexical static scan of module headers, detected function definitions and direct calls, M01 input declarations, M01/M02 enum/struct declarations, and M03 g_* identifiers. Comments and quoted strings excluded from reference scans. Direct-call function pairs are unique caller/callee names; actual cross-module occurrences are counted separately. Global references are not classified as reads vs writes; aliases and nested struct-field ownership are not fully resolved.",
     "counts": {
       "module_headers": 29,
       "function_definitions_detected": 431,
@@ -1877,7 +1877,8 @@
       "direct_function_call_pairs": 364,
       "M01_input_fields": 23,
       "M01_M02_type_declarations": 68,
-      "M03_global_identifiers": 37
+      "M03_global_identifiers": 37,
+      "direct_function_call_occurrences": 502
     },
     "functions_by_module": {
       "M01": 0,
@@ -1914,7 +1915,7 @@
       {
         "dependency_module": "M04",
         "consumer_module": "M05",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "BuildRiskValidationSnapshot",
             "callee": "GetDigits"
@@ -2004,7 +2005,7 @@
       {
         "dependency_module": "M04",
         "consumer_module": "M06",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "GetDataForTimeframe",
             "callee": "GetDigits"
@@ -2022,7 +2023,7 @@
       {
         "dependency_module": "M04",
         "consumer_module": "M07",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "BuildBBShapeState",
             "callee": "GetPointSize"
@@ -2032,7 +2033,7 @@
       {
         "dependency_module": "M04",
         "consumer_module": "M12",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "DetectReEntry_Type2",
             "callee": "IsNear"
@@ -2042,7 +2043,7 @@
       {
         "dependency_module": "M04",
         "consumer_module": "M17",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ResolveApprovedInitialSLTP",
             "callee": "GetPipValue"
@@ -2064,7 +2065,7 @@
       {
         "dependency_module": "M04",
         "consumer_module": "M19",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "CheckRiskBeforeTrade",
             "callee": "GetPipValue"
@@ -2074,7 +2075,7 @@
       {
         "dependency_module": "M04",
         "consumer_module": "M20",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "BrokerConfirmsNoLiveEAOwnedOrders",
             "callee": "IsTerminalConnected"
@@ -2084,7 +2085,7 @@
       {
         "dependency_module": "M04",
         "consumer_module": "M22",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "AdoptAmbiguousExecutionTicket",
             "callee": "GetDigits"
@@ -2118,7 +2119,7 @@
       {
         "dependency_module": "M04",
         "consumer_module": "M23",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "AdvanceC044OwnerEventOneCandle",
             "callee": "GetLatestClosedCandleTime"
@@ -2140,7 +2141,7 @@
       {
         "dependency_module": "M04",
         "consumer_module": "M24",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "InitializeC044TradeStateFromDecision",
             "callee": "GetLatestClosedCandleTime"
@@ -2170,7 +2171,7 @@
       {
         "dependency_module": "M04",
         "consumer_module": "M26",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "InitializeEA",
             "callee": "GetProcessingTime"
@@ -2232,7 +2233,7 @@
       {
         "dependency_module": "M04",
         "consumer_module": "M27",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "IsNewCandle",
             "callee": "GetLatestClosedCandleTime"
@@ -2258,7 +2259,7 @@
       {
         "dependency_module": "M05",
         "consumer_module": "M04",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "GetLatestClosedCandleTime",
             "callee": "GetTimeframeSeconds"
@@ -2268,7 +2269,7 @@
       {
         "dependency_module": "M05",
         "consumer_module": "M06",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "GetDataForTimeframe",
             "callee": "GetTimeframeSeconds"
@@ -2282,7 +2283,7 @@
       {
         "dependency_module": "M05",
         "consumer_module": "M11J",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "InstallD1OpportunityJourney",
             "callee": "SHORT_HASH"
@@ -2296,7 +2297,7 @@
       {
         "dependency_module": "M05",
         "consumer_module": "M12",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ConfirmReEntryState",
             "callee": "GetTimeframeSeconds"
@@ -2306,7 +2307,7 @@
       {
         "dependency_module": "M05",
         "consumer_module": "M12N",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "NMJE_FreezeValidatedDecisionAttribution",
             "callee": "SHORT_HASH"
@@ -2344,7 +2345,7 @@
       {
         "dependency_module": "M05",
         "consumer_module": "M13",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "FinalizeCombinationCandidate",
             "callee": "GenerateSequenceHash"
@@ -2358,7 +2359,7 @@
       {
         "dependency_module": "M05",
         "consumer_module": "M14",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "PopulateValidatedCombination",
             "callee": "GenerateSequenceHash"
@@ -2368,7 +2369,7 @@
       {
         "dependency_module": "M05",
         "consumer_module": "M15",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "BuildConfirmedReEntryCandidate",
             "callee": "SHORT_HASH"
@@ -2414,7 +2415,7 @@
       {
         "dependency_module": "M05",
         "consumer_module": "M16",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "InvalidationEngine_Atomic",
             "callee": "ObserverPrintChanged"
@@ -2424,7 +2425,7 @@
       {
         "dependency_module": "M05",
         "consumer_module": "M17",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ResolveMatchingReEntryLifecycle",
             "callee": "FindPairStateIndex"
@@ -2446,7 +2447,7 @@
       {
         "dependency_module": "M05",
         "consumer_module": "M19",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "CalculateTotalRisk",
             "callee": "CalculateTradeRiskMoney"
@@ -2460,7 +2461,7 @@
       {
         "dependency_module": "M05",
         "consumer_module": "M20",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "BrokerConfirmsNoLiveEAOwnedOrders",
             "callee": "IsExactEAOwnedSelectedOrder"
@@ -2486,7 +2487,7 @@
       {
         "dependency_module": "M05",
         "consumer_module": "M22",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "AddToMonitoredTrades",
             "callee": "Log"
@@ -2596,7 +2597,7 @@
       {
         "dependency_module": "M05",
         "consumer_module": "M23",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ExecuteLatchedC044Close",
             "callee": "Log"
@@ -2642,7 +2643,7 @@
       {
         "dependency_module": "M05",
         "consumer_module": "M24",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ClearD1TPWCheckpoint",
             "callee": "Log"
@@ -2700,7 +2701,7 @@
       {
         "dependency_module": "M05",
         "consumer_module": "M25",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "CountDashboardLiveEAOwnedTrades",
             "callee": "IsExactEAOwnedSelectedOrder"
@@ -2710,7 +2711,7 @@
       {
         "dependency_module": "M05",
         "consumer_module": "M26",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "InitializeEA",
             "callee": "GetTodayStart"
@@ -2776,7 +2777,7 @@
       {
         "dependency_module": "M05",
         "consumer_module": "M27",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "OnDeinit",
             "callee": "Log"
@@ -2818,7 +2819,7 @@
       {
         "dependency_module": "M06",
         "consumer_module": "M07",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "BuildBBShapeState",
             "callee": "CalculateBollinger"
@@ -2828,7 +2829,7 @@
       {
         "dependency_module": "M06",
         "consumer_module": "M08",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "IsExtremeMomentumInvalidation",
             "callee": "CalculateBollinger"
@@ -2838,7 +2839,7 @@
       {
         "dependency_module": "M06",
         "consumer_module": "M10",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "DetectCSM",
             "callee": "CalculateBollinger"
@@ -2848,7 +2849,7 @@
       {
         "dependency_module": "M06",
         "consumer_module": "M11",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "M11_ClassifyD1OwnerAtShift",
             "callee": "EMA"
@@ -2862,7 +2863,7 @@
       {
         "dependency_module": "M06",
         "consumer_module": "M11J",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "D1OpportunityTPWCompletedSince",
             "callee": "BBMAHighMA"
@@ -2884,7 +2885,7 @@
       {
         "dependency_module": "M06",
         "consumer_module": "M17",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ResolveStandaloneExtremeTPWajib",
             "callee": "BBMAHighMA"
@@ -2898,7 +2899,7 @@
       {
         "dependency_module": "M06",
         "consumer_module": "M23",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ProcessC044OwnerClosedCandle",
             "callee": "GetDataForTimeframe"
@@ -2916,7 +2917,7 @@
       {
         "dependency_module": "M06",
         "consumer_module": "M24",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "RecoverH4DirectionalOwnerForPair",
             "callee": "GetDataForTimeframe"
@@ -2930,7 +2931,7 @@
       {
         "dependency_module": "M06",
         "consumer_module": "M27",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ProcessPair",
             "callee": "GetDataForTimeframe"
@@ -2940,7 +2941,7 @@
       {
         "dependency_module": "M07",
         "consumer_module": "M27",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ProcessPair",
             "callee": "BuildBBShapeState"
@@ -2950,7 +2951,7 @@
       {
         "dependency_module": "M08",
         "consumer_module": "M09",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "InstallMHVSupersessionParent",
             "callee": "GetExtremeRelevantMA5"
@@ -2980,7 +2981,7 @@
       {
         "dependency_module": "M08",
         "consumer_module": "M23",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ProcessC044OwnerClosedCandle",
             "callee": "DetectExtreme"
@@ -2998,7 +2999,7 @@
       {
         "dependency_module": "M08",
         "consumer_module": "M27",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ProcessPair",
             "callee": "DetectExtreme"
@@ -3020,7 +3021,7 @@
       {
         "dependency_module": "M09",
         "consumer_module": "M13",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "IsCombinationMLVReady",
             "callee": "IsCanonicalMLVMatureState"
@@ -3030,7 +3031,7 @@
       {
         "dependency_module": "M09",
         "consumer_module": "M16",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "IsPersistentMLVComponentValid",
             "callee": "IsCanonicalMLVMatureState"
@@ -3040,7 +3041,7 @@
       {
         "dependency_module": "M09",
         "consumer_module": "M27",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ProcessPair",
             "callee": "ExportCanonicalMHVSignal"
@@ -3054,7 +3055,7 @@
       {
         "dependency_module": "M10",
         "consumer_module": "M09",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "IsMHVContinuationInvalidation",
             "callee": "DetectCSM"
@@ -3068,7 +3069,7 @@
       {
         "dependency_module": "M10",
         "consumer_module": "M11J",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "DetectD1OpportunityCSD",
             "callee": "DetectCSD"
@@ -3086,7 +3087,7 @@
       {
         "dependency_module": "M10",
         "consumer_module": "M12",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "DetectReEntryDirectionOwnerSignal",
             "callee": "DetectCSD"
@@ -3112,7 +3113,7 @@
       {
         "dependency_module": "M10",
         "consumer_module": "M23",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ProcessC044OwnerClosedCandle",
             "callee": "DetectCSM"
@@ -3122,7 +3123,7 @@
       {
         "dependency_module": "M10",
         "consumer_module": "M24",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ClassifyH4AuthoritativeSignal",
             "callee": "DetectCSD"
@@ -3140,7 +3141,7 @@
       {
         "dependency_module": "M10",
         "consumer_module": "M27",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ProcessPair",
             "callee": "DetectCSD"
@@ -3158,7 +3159,7 @@
       {
         "dependency_module": "M11",
         "consumer_module": "M27",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ProcessPair",
             "callee": "UpdateD1MajorTrendOwner"
@@ -3168,7 +3169,7 @@
       {
         "dependency_module": "M11J",
         "consumer_module": "M12N",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "NMJE_PrintCoverageOverlay",
             "callee": "D1OpportunityFamilyText"
@@ -3186,7 +3187,7 @@
       {
         "dependency_module": "M11J",
         "consumer_module": "M16",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "InvalidationEngine_Atomic",
             "callee": "D1AuthorityModeText"
@@ -3200,7 +3201,7 @@
       {
         "dependency_module": "M11J",
         "consumer_module": "M23",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ProcessD1TPWClosedCandle",
             "callee": "IsD1TPWCompletionAtShift"
@@ -3210,7 +3211,7 @@
       {
         "dependency_module": "M11J",
         "consumer_module": "M27",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "PrintSignalBottleneckDiagnostic",
             "callee": "D1OpportunityFamilyText"
@@ -3224,7 +3225,7 @@
       {
         "dependency_module": "M12",
         "consumer_module": "M23",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ProcessC044OwnerClosedCandle",
             "callee": "BuildReEntryDirectionInputs"
@@ -3238,7 +3239,7 @@
       {
         "dependency_module": "M12",
         "consumer_module": "M24",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ClassifyH4AuthoritativeSignal",
             "callee": "BuildReEntryDirectionInputs"
@@ -3248,7 +3249,7 @@
       {
         "dependency_module": "M12",
         "consumer_module": "M27",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ProcessPair",
             "callee": "ExportConfirmedReEntrySignal"
@@ -3262,7 +3263,7 @@
       {
         "dependency_module": "M12N",
         "consumer_module": "M13",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "NMJE_P2_PrintEqualEligibilityShadow",
             "callee": "NMJE_BuildCandidateStructuralDensity"
@@ -3276,7 +3277,7 @@
       {
         "dependency_module": "M12N",
         "consumer_module": "M15",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "NMJE_P2_PrintCounterfactualOutcomes",
             "callee": "NMJE_DirText"
@@ -3298,7 +3299,7 @@
       {
         "dependency_module": "M12N",
         "consumer_module": "M22",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "LoadNMJEShadowAttribution",
             "callee": "NMJE_IsMaturityDomainValue"
@@ -3344,7 +3345,7 @@
       {
         "dependency_module": "M12N",
         "consumer_module": "M23",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "F7ProspectiveContextTelemetry",
             "callee": "NMJE_DirText"
@@ -3366,7 +3367,7 @@
       {
         "dependency_module": "M12N",
         "consumer_module": "M27",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ProcessPair",
             "callee": "NMJE_DirText"
@@ -3392,7 +3393,7 @@
       {
         "dependency_module": "M13",
         "consumer_module": "M27",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ProcessPair",
             "callee": "BuildPossibleCombinations"
@@ -3414,7 +3415,7 @@
       {
         "dependency_module": "M14",
         "consumer_module": "M27",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ProcessPair",
             "callee": "ValidateSequence"
@@ -3424,7 +3425,7 @@
       {
         "dependency_module": "M15",
         "consumer_module": "M12N",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "NMJE_PrintStructuralDensityShadow",
             "callee": "IsCandidateAllowedByD1Owner"
@@ -3438,7 +3439,7 @@
       {
         "dependency_module": "M15",
         "consumer_module": "M13",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "NMJE_P2_PrintEqualEligibilityShadow",
             "callee": "GetCandidateAnchorTime"
@@ -3456,7 +3457,7 @@
       {
         "dependency_module": "M15",
         "consumer_module": "M16",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ValidateDecisionD1OpportunitySnapshot",
             "callee": "IsD1MajorTrendOwnerExecutionReady"
@@ -3470,7 +3471,7 @@
       {
         "dependency_module": "M15",
         "consumer_module": "M22",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "NMJE_PrintClosedOutcomeShadow",
             "callee": "NMJE_P2_PrintCounterfactualOutcomes"
@@ -3484,7 +3485,7 @@
       {
         "dependency_module": "M15",
         "consumer_module": "M27",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ProcessPair",
             "callee": "AppendValidatedCandidate"
@@ -3510,7 +3511,7 @@
       {
         "dependency_module": "M16",
         "consumer_module": "M27",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ProcessPair",
             "callee": "InvalidationEngine_Atomic"
@@ -3524,7 +3525,7 @@
       {
         "dependency_module": "M17",
         "consumer_module": "M15",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "NMJE_P2_RegisterCounterfactualOpen",
             "callee": "IsTargetlessLifecycleDecision"
@@ -3542,7 +3543,7 @@
       {
         "dependency_module": "M17",
         "consumer_module": "M22",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "NMJE_BuildEntryDisplacementAttribution",
             "callee": "IsApprovedSLTPSourceComponent"
@@ -3572,7 +3573,7 @@
       {
         "dependency_module": "M17",
         "consumer_module": "M24",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "InitializeD1TPWTradeStateFromDecision",
             "callee": "IsD1TPWLifecycleIdentity"
@@ -3582,7 +3583,7 @@
       {
         "dependency_module": "M19",
         "consumer_module": "M20",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ManagePortfolio",
             "callee": "CalculateBasketLossPercent_EA"
@@ -3592,7 +3593,7 @@
       {
         "dependency_module": "M19",
         "consumer_module": "M22",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "RunEntryPreflightAndExecute",
             "callee": "CheckRiskBeforeTrade"
@@ -3602,7 +3603,7 @@
       {
         "dependency_module": "M20",
         "consumer_module": "M19",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "CalculateBasketLossPercent_EA",
             "callee": "GetLiveEAOwnedPortfolioTradeState"
@@ -3612,7 +3613,7 @@
       {
         "dependency_module": "M20",
         "consumer_module": "M22",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "IsSignalAllowed",
             "callee": "GetLiveEAOwnedPortfolioTradeState"
@@ -3626,7 +3627,7 @@
       {
         "dependency_module": "M20",
         "consumer_module": "M27",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "OnTickMain",
             "callee": "ManagePortfolio"
@@ -3636,7 +3637,7 @@
       {
         "dependency_module": "M21",
         "consumer_module": "M22",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "RunEntryPreflightAndExecute",
             "callee": "CalculateLotSize"
@@ -3654,7 +3655,7 @@
       {
         "dependency_module": "M22",
         "consumer_module": "M24",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "RecoverExistingOrders",
             "callee": "AddToMonitoredTrades"
@@ -3668,7 +3669,7 @@
       {
         "dependency_module": "M22",
         "consumer_module": "M26",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "InitializeEA",
             "callee": "LoadExecutionAmbiguityHold"
@@ -3678,7 +3679,7 @@
       {
         "dependency_module": "M22",
         "consumer_module": "M27",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "OnTickMain",
             "callee": "CompactMonitoredTrades"
@@ -3696,7 +3697,7 @@
       {
         "dependency_module": "M23",
         "consumer_module": "M15",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "NMJE_P2_ResolveTargetlessC044Outcome",
             "callee": "ProcessC044OwnerClosedCandle"
@@ -3706,7 +3707,7 @@
       {
         "dependency_module": "M23",
         "consumer_module": "M22",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ProcessEntry",
             "callee": "F7ProspectiveContextTelemetry"
@@ -3716,7 +3717,7 @@
       {
         "dependency_module": "M23",
         "consumer_module": "M24",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "CaptureC044ReplaySeed",
             "callee": "GetC044OwnerExtremeSnapshot"
@@ -3734,7 +3735,7 @@
       {
         "dependency_module": "M23",
         "consumer_module": "M27",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "OnInit",
             "callee": "F7BuildIdentityTelemetry"
@@ -3760,7 +3761,7 @@
       {
         "dependency_module": "M24",
         "consumer_module": "M15",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "NMJE_P2_CaptureC044ReplayState",
             "callee": "IsValidC044OwnerTimeframe"
@@ -3778,7 +3779,7 @@
       {
         "dependency_module": "M24",
         "consumer_module": "M22",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "AdoptAmbiguousExecutionTicket",
             "callee": "ResetC044TradeState"
@@ -3836,7 +3837,7 @@
       {
         "dependency_module": "M24",
         "consumer_module": "M23",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "AdvanceC044OwnerEventOneCandle",
             "callee": "IsValidC044OwnerTimeframe"
@@ -3882,7 +3883,7 @@
       {
         "dependency_module": "M24",
         "consumer_module": "M26",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "InitializeEA",
             "callee": "RecoverExistingOrders"
@@ -3896,7 +3897,7 @@
       {
         "dependency_module": "M24",
         "consumer_module": "M27",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "ProcessPair",
             "callee": "NoteH4ReEntryInheritance"
@@ -3910,7 +3911,7 @@
       {
         "dependency_module": "M25",
         "consumer_module": "M27",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "OnTickMain",
             "callee": "UpdateDashboard"
@@ -3928,7 +3929,7 @@
       {
         "dependency_module": "M26",
         "consumer_module": "M27",
-        "call_sites": [
+        "function_pairs": [
           {
             "caller": "OnInit",
             "callee": "InitializeEA"

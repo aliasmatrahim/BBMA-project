@@ -1,6 +1,10 @@
 {
   "schema_version": 1,
-  "authority": {"repository": "aliasmatrahim/BBMA-project", "branch": "d1-owner-dev", "commit": "459c0588e625d7f7630f0fb5612b7f04fda496de"},
+  "authority": {
+    "repository": "aliasmatrahim/BBMA-project",
+    "branch": "d1-owner-dev",
+    "commit": "459c0588e625d7f7630f0fb5612b7f04fda496de"
+  },
   "coverage": {
     "module_identity": "VERIFIED",
     "consumer_edges": "PARTIAL",
@@ -8,42 +12,392 @@
     "mandatory_global": "NOT VERIFIED"
   },
   "tests": {
-    "TEST_DRIVER_F1": {"core_rule_id": "CORE-V2-F1", "status": "VERIFIED", "evidence": ["TEST_DRIVER_F1", "TEST_F1"]},
-    "TEST_DRIVER_F2": {"core_rule_id": "CORE-V2-F2", "status": "VERIFIED", "evidence": ["TEST_DRIVER_F2", "TEST_F2"]},
-    "TEST_DRIVER_F3": {"core_rule_id": "CORE-V2-F3", "status": "VERIFIED", "evidence": ["TEST_DRIVER_F3", "TEST_F3"]},
-    "TEST_DRIVER_F5": {"core_rule_id": "CORE-V2-F5", "status": "VERIFIED", "evidence": ["TEST_DRIVER_F5", "TEST_F5"]},
-    "TEST_DRIVER_F6": {"core_rule_id": "CORE-V2-F6", "status": "VERIFIED", "evidence": ["TEST_DRIVER_F6", "TEST_F6"]}
+    "TEST_DRIVER_F1": {
+      "core_rule_id": "CORE-V2-F1",
+      "status": "VERIFIED",
+      "evidence": [
+        "TEST_DRIVER_F1",
+        "TEST_F1"
+      ]
+    },
+    "TEST_DRIVER_F2": {
+      "core_rule_id": "CORE-V2-F2",
+      "status": "VERIFIED",
+      "evidence": [
+        "TEST_DRIVER_F2",
+        "TEST_F2"
+      ]
+    },
+    "TEST_DRIVER_F3": {
+      "core_rule_id": "CORE-V2-F3",
+      "status": "VERIFIED",
+      "evidence": [
+        "TEST_DRIVER_F3",
+        "TEST_F3"
+      ]
+    },
+    "TEST_DRIVER_F5": {
+      "core_rule_id": "CORE-V2-F5",
+      "status": "VERIFIED",
+      "evidence": [
+        "TEST_DRIVER_F5",
+        "TEST_F5"
+      ]
+    },
+    "TEST_DRIVER_F6": {
+      "core_rule_id": "CORE-V2-F6",
+      "status": "VERIFIED",
+      "evidence": [
+        "TEST_DRIVER_F6",
+        "TEST_F6"
+      ]
+    }
   },
   "mandatory_global": [],
   "modules": {
-    "M01": {"tests": [], "consumers": []},
-    "M02": {"tests": [], "consumers": []},
-    "M03": {"tests": [], "consumers": []},
-    "M04": { "tests": [], "consumers": ["M05", "M06", "M07", "M12", "M17", "M19", "M20", "M22", "M23", "M24", "M26", "M27"] },
-    "M05": { "tests": [], "consumers": ["M04", "M06", "M11", "M12", "M13", "M14", "M15", "M16", "M17", "M19", "M20", "M22", "M23", "M24", "M25", "M26", "M27"] },
-    "M06": { "tests": [], "consumers": ["M08", "M10", "M12", "M07", "M11", "M17", "M23", "M24", "M27"] },
-    "M07": { "tests": ["TEST_DRIVER_F5"], "consumers": ["M27"] },
-    "M08": { "tests": ["TEST_DRIVER_F2"], "consumers": ["M12N", "M13", "M09", "M16", "M23", "M27"] },
-    "M09": { "tests": ["TEST_DRIVER_F1"], "consumers": ["M12N", "M13", "M16", "M27"] },
-    "M10": { "tests": [], "consumers": ["M12", "M12N", "M13", "M23", "M24", "M27"] },
-    "M11": { "tests": [], "consumers": ["M12N", "M15", "M16", "M12", "M27"] },
-    "M12": { "tests": ["TEST_DRIVER_F3", "TEST_DRIVER_F6"], "consumers": ["M12N", "M13", "M15", "M17", "M23", "M24", "M27"] },
-    "M12N": { "tests": [], "consumers": ["M13", "M15", "M22", "M23", "M27"] },
-    "M13": { "tests": ["TEST_DRIVER_F1"], "consumers": ["M14", "M27"] },
-    "M14": { "tests": [], "consumers": ["M15", "M27"] },
-    "M15": { "tests": [], "consumers": ["M16", "M17", "M22", "M27"] },
-    "M16": { "tests": [], "consumers": ["M17", "M27"] },
-    "M17": { "tests": [], "consumers": ["M21", "M19", "M22", "M24"] },
-    "M18": {"tests": [], "consumers": []},
-    "M19": { "tests": [], "consumers": ["M22", "M24"] },
-    "M20": { "tests": [], "consumers": ["M22", "M23", "M27"] },
-    "M21": {"tests": [], "consumers": ["M19", "M22"]},
-    "M22": { "tests": ["TEST_DRIVER_F6"], "consumers": ["M23", "M24", "M27"] },
-    "M23": { "tests": [], "consumers": ["M24", "M27"] },
-    "M24": { "tests": [], "consumers": ["M19", "M20", "M22", "M23", "M26", "M27"] },
-    "M25": { "tests": [], "consumers": ["M27"] },
-    "M26": {"tests": [], "consumers": []},
-    "M27": {"tests": ["TEST_DRIVER_F6"], "consumers": []}
+    "M01": {
+      "tests": [],
+      "consumers": [
+        "M05",
+        "M08",
+        "M09",
+        "M11",
+        "M11J",
+        "M12N",
+        "M15",
+        "M16",
+        "M17",
+        "M19",
+        "M20",
+        "M21",
+        "M22",
+        "M23",
+        "M24",
+        "M25",
+        "M26",
+        "M27"
+      ]
+    },
+    "M02": {
+      "tests": [],
+      "consumers": [
+        "M03",
+        "M04",
+        "M05",
+        "M06",
+        "M07",
+        "M08",
+        "M09",
+        "M10",
+        "M11",
+        "M11J",
+        "M12",
+        "M12N",
+        "M13",
+        "M14",
+        "M15",
+        "M16",
+        "M17",
+        "M18",
+        "M19",
+        "M20",
+        "M21",
+        "M22",
+        "M23",
+        "M24",
+        "M27"
+      ]
+    },
+    "M03": {
+      "tests": [],
+      "consumers": [
+        "M04",
+        "M05",
+        "M11J",
+        "M12N",
+        "M13",
+        "M15",
+        "M16",
+        "M17",
+        "M19",
+        "M20",
+        "M22",
+        "M23",
+        "M24",
+        "M25",
+        "M26",
+        "M27"
+      ]
+    },
+    "M04": {
+      "tests": [],
+      "consumers": [
+        "M05",
+        "M06",
+        "M07",
+        "M12",
+        "M17",
+        "M19",
+        "M20",
+        "M22",
+        "M23",
+        "M24",
+        "M26",
+        "M27"
+      ]
+    },
+    "M05": {
+      "tests": [],
+      "consumers": [
+        "M04",
+        "M06",
+        "M11",
+        "M11J",
+        "M12",
+        "M12N",
+        "M13",
+        "M14",
+        "M15",
+        "M16",
+        "M17",
+        "M19",
+        "M20",
+        "M22",
+        "M23",
+        "M24",
+        "M25",
+        "M26",
+        "M27"
+      ]
+    },
+    "M06": {
+      "tests": [],
+      "consumers": [
+        "M07",
+        "M08",
+        "M10",
+        "M11",
+        "M11J",
+        "M12",
+        "M17",
+        "M23",
+        "M24",
+        "M27"
+      ]
+    },
+    "M07": {
+      "tests": [
+        "TEST_DRIVER_F5"
+      ],
+      "consumers": [
+        "M27"
+      ]
+    },
+    "M08": {
+      "tests": [
+        "TEST_DRIVER_F2"
+      ],
+      "consumers": [
+        "M09",
+        "M12N",
+        "M13",
+        "M16",
+        "M23",
+        "M27"
+      ]
+    },
+    "M09": {
+      "tests": [
+        "TEST_DRIVER_F1"
+      ],
+      "consumers": [
+        "M12N",
+        "M13",
+        "M16",
+        "M27"
+      ]
+    },
+    "M10": {
+      "tests": [],
+      "consumers": [
+        "M09",
+        "M11J",
+        "M12",
+        "M12N",
+        "M13",
+        "M23",
+        "M24",
+        "M27"
+      ]
+    },
+    "M11": {
+      "tests": [],
+      "consumers": [
+        "M11J",
+        "M12",
+        "M12N",
+        "M15",
+        "M16",
+        "M27"
+      ]
+    },
+    "M12": {
+      "tests": [
+        "TEST_DRIVER_F3",
+        "TEST_DRIVER_F6"
+      ],
+      "consumers": [
+        "M12N",
+        "M13",
+        "M15",
+        "M17",
+        "M23",
+        "M24",
+        "M27"
+      ]
+    },
+    "M12N": {
+      "tests": [],
+      "consumers": [
+        "M13",
+        "M15",
+        "M22",
+        "M23",
+        "M27"
+      ]
+    },
+    "M13": {
+      "tests": [
+        "TEST_DRIVER_F1"
+      ],
+      "consumers": [
+        "M14",
+        "M27"
+      ]
+    },
+    "M14": {
+      "tests": [],
+      "consumers": [
+        "M15",
+        "M27"
+      ]
+    },
+    "M15": {
+      "tests": [],
+      "consumers": [
+        "M12N",
+        "M13",
+        "M16",
+        "M17",
+        "M22",
+        "M27"
+      ]
+    },
+    "M16": {
+      "tests": [],
+      "consumers": [
+        "M17",
+        "M27"
+      ]
+    },
+    "M17": {
+      "tests": [],
+      "consumers": [
+        "M15",
+        "M19",
+        "M21",
+        "M22",
+        "M24"
+      ]
+    },
+    "M18": {
+      "tests": [],
+      "consumers": []
+    },
+    "M19": {
+      "tests": [],
+      "consumers": [
+        "M20",
+        "M22",
+        "M24"
+      ]
+    },
+    "M20": {
+      "tests": [],
+      "consumers": [
+        "M19",
+        "M22",
+        "M23",
+        "M27"
+      ]
+    },
+    "M21": {
+      "tests": [],
+      "consumers": [
+        "M19",
+        "M22"
+      ]
+    },
+    "M22": {
+      "tests": [
+        "TEST_DRIVER_F6"
+      ],
+      "consumers": [
+        "M23",
+        "M24",
+        "M26",
+        "M27"
+      ]
+    },
+    "M23": {
+      "tests": [],
+      "consumers": [
+        "M15",
+        "M22",
+        "M24",
+        "M27"
+      ]
+    },
+    "M24": {
+      "tests": [],
+      "consumers": [
+        "M15",
+        "M19",
+        "M20",
+        "M22",
+        "M23",
+        "M26",
+        "M27"
+      ]
+    },
+    "M25": {
+      "tests": [],
+      "consumers": [
+        "M27"
+      ]
+    },
+    "M26": {
+      "tests": [],
+      "consumers": [
+        "M27"
+      ]
+    },
+    "M27": {
+      "tests": [
+        "TEST_DRIVER_F6"
+      ],
+      "consumers": []
+    },
+    "M11J": {
+      "tests": [],
+      "consumers": [
+        "M12N",
+        "M15",
+        "M16",
+        "M23",
+        "M27"
+      ]
+    }
   },
   "known_unknowns": [
     "Consumer-edge coverage remains PARTIAL exactly as recorded by the accepted module graph; absent edges are NOT VERIFIED.",
@@ -51,6 +405,7 @@
     "No mandatory global regression command has attributable authority evidence, so mandatory_global remains empty and NOT VERIFIED.",
     "Only drivers attached to VERIFIED traceability test stages are selectable; runtime evidence remains outside this static regression map.",
     "M06 has no baseline regression assignment for the confirmed Build 5.15 incomplete-history defect; focused repair tests are candidate-only in Draft PR #293 / Build 5.20.",
-    "The module consumers are pinned to owner 459c; shared-input/type/global readers remain partially enumerated."
+    "The module consumers are pinned to owner 459c; shared-input/type/global readers remain partially enumerated.",
+    "M11J is now present in the source/module graph; no module-specific test assignment is mapped in this regression map. Static edge inventories do not replace field-level ownership review or runtime validation."
   ]
 }

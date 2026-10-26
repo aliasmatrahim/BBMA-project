@@ -1,7 +1,7 @@
 # M11 D1 Major-Trend Owner Contract
 
 Date: 2026-08-24  
-Status: **CANONICAL SPECIFICATION — IMPLEMENTED ON ISOLATED `d1-owner-dev` / CANONICAL INTEGRATION PENDING**
+Status: **CANONICAL SPECIFICATION — IMPLEMENTED IN ACTIVE OWNER BUILD 5.15; RUNTIME NOT VERIFIED**
 
 ## Role
 M11 is the sole producer of the project D1 major-trend strategic owner used for **new-entry eligibility**.
@@ -123,10 +123,15 @@ No H4/current-candle/last-known-direction fallback is allowed.
 - price-side + MA50-slope agreement: **DIRECT PRIMARY-PDF RULE**.
 - explicit transition/unresolved software states and fail-closed blocking: **MINIMAL DETERMINISTIC PROJECT MAPPING**.
 
-## Implementation gap
-The active EA currently derives `TimeframeData.trend` from price relative to EMA50 only and has no dedicated M11 D1 major-trend owner state. Therefore this contract is not yet implemented.
+## Current owner implementation status — reconciled 2026-10-26
+The previous implementation-gap statement was written against an older source snapshot and is superseded for static implementation status by owner Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`.
 
-No EA source change is authorized by this documentation-only contract while the current P3 runtime candidate remains frozen.
+- M11 owns `UpdateD1MajorTrendOwner` and the atomic D1 snapshot.
+- M27 calls the M11 producer during the closed-M15 processing cycle.
+- M15 consumes and freezes the M11 owner; M16 revalidates that frozen identity.
+- No second D1 trend formula is added by this reconciliation.
+
+Classification: **STATIC IMPLEMENTATION PRESENT / NATIVE RUNTIME NOT VERIFIED**. This status does not claim broker-connected or Strategy Tester acceptance.
 
 ## D1-03 implementation record — atomic M11 snapshot
 Build `Version 4.5.1 - D1-03 M11 Snapshot Atomicity` on isolated `d1-owner-dev` closes the M11 snapshot-interface ownership gap without changing the accepted D1 formula.
@@ -136,4 +141,4 @@ Build `Version 4.5.1 - D1-03 M11 Snapshot Atomicity` on isolated `d1-owner-dev` 
 - `current_daily_ema50` / `prev_daily_ema50` remain compatibility mirrors only and are not downstream D1 identity authority.
 - M15 freezes only the M11-owned atomic snapshot; M16 verifies only against the current M11-owned atomic snapshot.
 - BUY/SELL/TRANSITION/UNRESOLVED semantics and exact REM/RRE/REE signatures are unchanged.
-- `blueprint-dev` remains unchanged; canonical integration still requires explicit release of the P3 freeze.
+- `blueprint-dev` remains unchanged as a separate historical branch. The active owner source contains the D1 implementation; production/runtime acceptance remains separately gated.

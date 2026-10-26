@@ -1,8 +1,8 @@
 # BBMA Current Project State
 
-Updated: **2026-09-25**
+Updated: **2026-10-26**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`0034f31aced4e630d0b76ce64009a41078ba7cb3`**
+Owner head at reconciliation: **`459c0588e625d7f7630f0fb5612b7f04fda496de`**
 
 This file is the active current-state record. The pre-2026-09-09 historical `CURRENT.md` is preserved byte-for-byte at `blueprint/archive/CURRENT_pre_20260909.md`.
 
@@ -10,8 +10,19 @@ This file is the active current-state record. The pre-2026-09-09 historical `CUR
 - GitHub `aliasmatrahim/BBMA-project` is authoritative for live project state.
 - Strategy/source semantics are routed through `docs/references/SOURCE_INDEX.md` and the accepted Core/source evidence chain.
 - Canonical active EA path: `blueprint/source/BBMA_EA.mq4`.
-- Canonical owner candidate in this update: Build `5.14` / `V514_NMJE_P2_COUNTERFACTUAL_SHADOW_20260925`, source rev `NMJE_P2_COUNTERFACTUAL_SHADOW_004_20260925`; raw MQ4 SHA-256 `6C375BC36C5971097DE69B12586B1DD50F1445BE5E10D293A4D87CDCFC62C4EC`. This is tester-only/shadow research; P2 ordering remains HOLD. Q10 remains separately bound to its frozen exact Build 5.11 final-acceptance candidate.
+- Canonical active owner baseline: Build `5.15` / `V515_NMJE_P2_TARGETLESS_REPLAY_20260925`, source rev `NMJE_P2_TARGETLESS_REPLAY_001_20260925`, at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`. Build 5.14 and Build 5.11 references below are historical/shadow or frozen Q10 evidence, not the active owner source.
 - Q7/Q8 Build 4.86 artifacts remain historical verified integration/regression evidence. Q10 is bound to the later exact Build 5.11 final integration candidate; this is still not a production-readiness claim.
+
+## Core-fidelity / traceability reconciliation — 2026-10-26
+
+Status: **PARTIAL — STATIC OWNER RECONCILIATION COMPLETE; RUNTIME AND FULL RULE MATRIX OPEN**.
+- Current source baseline remains Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`.
+- Draft PR #293 is Build 5.20 based on that owner. It contains a focused M06 incomplete-history repair; its recorded 15 focused tests, 87-test suite and native strict compile apply to that candidate only. The owner branch remains Build 5.15 until an authorized, fully gated integration.
+- Finding A is a confirmed M06 data-validity bug on the owner baseline. The candidate repair in PR #293 is not a runtime certification.
+- Finding B (unreadable H1/H4 refresh and possible stale-owner admission) remains **VERIFICATION REQUIRED**. Do not add age-based expiry without evidence; exact owner semantics remain governed by M12.
+- M11/M15/M16 D1-owner code is present in the pinned owner source; older “not implemented” paragraphs in contracts are superseded by the current-owner reconciliation under review.
+- Current M01–M27/M12N rule/test/runtime traceability remains partial. Runtime evidence and the G40 qualified-data gate have not been revalidated by this documentation refresh.
+- This update refreshes GitHub source/contract status only. Existing G40/runtime claims below retain their original evidence dates and scope.
 
 ## Current active workstreams / integrated state
 

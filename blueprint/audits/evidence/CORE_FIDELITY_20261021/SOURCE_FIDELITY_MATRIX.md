@@ -15,3 +15,13 @@ Scope exclusions: HOLD/source-conflict rules remain non-executable. No indicator
 CP03 update: A-BB20 and A-SNAPSHOT repaired in Build 5.20 (`V520_M06_COMPLETE_DATA_20261022`). Full-period input checks and post-calculation validity now reject the failing fixtures. Exact-body tests 15/15; complete repository pytest 87/87; native strict compile 0 errors / 0 warnings. See `build520_manifest.json`. Both rows remain **NOT RUNTIME VERIFIED**; no eligible historical Strategy Tester or end-to-end order replay has certified the repair. B-FRESHNESS is unchanged and still pending reproduction.
 
 Atomic repair exit: expected failing probes become green on the smallest source change, complete-data controls remain unchanged, unique build identity, native strict compile and scope regression evidence captured. Qualified Strategy Tester and source-to-runtime validation remain separate mandatory gates; a blocked gate is not PASS.
+
+## CP06 — B-FRESHNESS candidate result (2026-10-26)
+
+Owner Build 5.15 reproduction: an unreadable H1 refresh leaves the confirmed M12 owner intact; an unreadable H4 refresh leaves the active H4 directional owner intact. In both cases the old standalone H1 Re-Entry candidate is admitted by M15 and exact-owner revalidated by M16. The M27 decision-state branch then dispatches to `RunEntryPreflightAndExecute`.
+
+Candidate Build 5.21 change: M15 checks that each Re-Entry component's timeframe data is valid, closed and matches the current `TimeframeSnapshot`; H1 standalone Re-Entry/Extreme and H4-aligned opportunity paths also require the current same-direction H4 owner. M16 repeats the snapshot check before setting `DEC_VALIDATED`. Persistent owners are retained and no age TTL is added.
+
+Evidence: `blueprint/tests/test_m12_stale_owner_refresh.py` executed exact production bodies with terminal/logging/preflight stubs. RED: invalid-H1 and invalid-H4 scenarios reached M15/M16 and the preflight boundary; forced M16 cases also passed. GREEN on Build 5.21: those invalid-source paths fail closed, owner states remain, forced M16 decisions reject, and valid H1/H4 control still reaches the preflight stub. M17/risk/portfolio ordering is statically checked; those broker-dependent gates were not executed.
+
+Classification: **owner bug reproduced; candidate fix VERIFIED by portable exact-source tests; native/runtime NOT TESTED**. The live owner branch is unchanged. G40 qualified-history gate and overall rule-to-runtime audit remain open.

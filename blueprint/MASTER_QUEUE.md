@@ -236,3 +236,11 @@ G40 was reachable during the 2026-09-17 Q7 reconciliation. Future work must stil
 G40-dependent live process state is **Q3** (watcher/isolated terminal preserved; environment-blocked). Q9 P11 is now verified and pushed to its scoped Draft branch; do not merge/activate it through this queue. Q6 native acquisition is stopped/closed and must not auto-resume. Q1/Q2 are already integrated and Q7 is frozen; do not recreate them. Q4 is mechanically complete and must not be re-added without new evidence.
 
 No destructive reset, blind recreation, automatic MT4 restart, or trading enablement is authorized by this queue.
+
+## CORE-FIDELITY-292 CP06 execution update — 2026-10-26
+
+- Finding B is now reproduced on the Build 5.15 owner: unreadable H1/H4 refreshes preserve old owners, and the stale H1 Re-Entry still passes M15/M16 into the preflight dispatcher.
+- Draft PR #293 has a Build 5.21 candidate gate in M15/M16. It blocks admission when the required latest closed source snapshot is unavailable while retaining the structural M12/H4 owner and adding no TTL.
+- Focused portable exact-source regression: **PASS** for invalid H1, invalid H4, forced M16 revalidation and valid-data control. Preflight routing was checked; broker/order execution was not run.
+- Exact next action: native strict compile of Build 5.21 in the approved compile environment. Strategy Tester remains NOT TESTED until the qualified G40 history gate is available. No merge, terminal restart or trading activation.
+- Full source-rule denominator, native/runtime coverage and the wider M01–M27/M11J/M12N audit remain PARTIAL.

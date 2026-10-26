@@ -8,7 +8,7 @@ from pathlib import Path
 import shutil
 import subprocess
 
-import pytest
+import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "blueprint/source/BBMA_EA.mq4"
@@ -190,63 +190,76 @@ int main(int argc,char** argv){
     return prelude + module + driver
 
 
-@pytest.fixture(scope="module")
-def probe(tmp_path_factory):
-    compiler = shutil.which("g++")
-    assert compiler, "g++ required; do not simulate a PASS"
-    directory = tmp_path_factory.mktemp("m12-stale-refresh")
-    cpp, executable = directory / "probe.cpp", directory / "probe"
-    cpp.write_text(portable_source(SOURCE.read_text()))
-    subprocess.run(
-        [compiler, "-std=c++17", "-Wall", "-Wextra", "-Wno-unused-parameter",
-         str(cpp), "-o", str(executable)],
-        check=True, capture_output=True, text=True,
-    )
-    def run(scenario):
-        fields = subprocess.check_output([str(executable), scenario], text=True).split()
+class TestM12StaleOwnerRefresh(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        compiler = shutil.which("g++")
+        if not compiler:
+            raise RuntimeError("g++ required; do not simulate a PASS")
+        directory = Path("/tmp") / "m12-stale-owner-refresh-test"
+        directory.mkdir(parents=True, exist_ok=True)
+        cls.executable = directory / "probe"
+        cpp = directory / "probe.cpp"
+        cpp.write_text(portable_source(SOURCE.read_text()))
+        subprocess.run(
+            [compiler, "-std=c++17", "-Wall", "-Wextra", "-Wno-unused-parameter",
+             str(cpp), "-o", str(cls.executable)],
+            check=True, capture_output=True, text=True,
+        )
+
+    def run_probe(self, scenario):
+        fields = subprocess.check_output([str(self.executable), scenario], text=True).split()
         return {key: int(value) for key, value in (field.split("=") for field in fields)}
-    return run
+
+    def test_unreadable_refresh_cannot_reach_m15_m16_or_preflight(self):
+        for scenario in ("invalid_h1", "invalid_h4"):
+            with self.subTest(scenario=scenario):
+                result = self.run_probe(scenario)
+                self.assertEqual(result["retained"], 1,
+                                 "M12 structural owner must persist; do not add age expiry")
+                self.assertEqual(result["h4_retained"], 1,
+                                 "H4 owner must not be destructively erased")
+                self.assertEqual(result["candidate"], 1,
+                                 "fixture must exercise the retained confirmed owner")
+                self.assertEqual(result["m15"], 0,
+                                 f"{scenario}: M15 admitted without readable current data")
+                self.assertEqual(result["m16"], 0)
+                self.assertEqual(result["preflight"], 0)
+
+    def test_m16_rejects_a_precreated_decision_after_unreadable_refresh(self):
+        for scenario in ("invalid_h1", "invalid_h4"):
+            with self.subTest(scenario=scenario):
+                result = self.run_probe(scenario)
+                self.assertEqual(
+                    result["forced_m16"], 0,
+                    f"{scenario}: M16 accepted exact owner identity without current data",
+                )
+
+    def test_valid_closed_h1_h4_control_still_reaches_preflight(self):
+        result = self.run_probe("valid")
+        self.assertEqual(result["candidate"], 1)
+        self.assertEqual(result["m15"], 1)
+        self.assertEqual(result["m16"], 1)
+        self.assertEqual(result["preflight"], 1)
+
+    def test_preflight_chain_has_m17_risk_and_portfolio_gates_without_direct_send(self):
+        source = SOURCE.read_text()
+        process_pair = source_block(source, "void ProcessPair(")
+        self.assertIn("if(decision.DecisionState == DEC_VALIDATED)", process_pair)
+        self.assertIn("RunEntryPreflightAndExecute(decision, actual)", process_pair)
+        preflight = source_block(source, "bool RunEntryPreflightAndExecute(")
+        ordered = [
+            "ResolveExecutionReferencePrice(",
+            "ResolveApprovedInitialSLTP(",
+            "ValidateSLTP(",
+            "CheckRiskBeforeTrade(",
+            "FinalPortfolioGuard(",
+            "ProcessEntry(",
+        ]
+        positions = [preflight.index(token) for token in ordered]
+        self.assertEqual(positions, sorted(positions))
+        self.assertNotIn("OrderSend(", preflight)
 
 
-@pytest.mark.parametrize("scenario", ["invalid_h1", "invalid_h4"])
-def test_unreadable_refresh_cannot_reach_m15_m16_or_preflight(probe, scenario):
-    result = probe(scenario)
-    assert result["retained"] == 1, "M12 structural owner must persist; do not add age expiry"
-    assert result["h4_retained"] == 1, "H4 owner state must not be destructively erased"
-    assert result["candidate"] == 1, "the fixture must exercise the retained confirmed owner"
-    assert result["m15"] == 0, f"{scenario}: M15 admitted a candidate without readable current data"
-    assert result["m16"] == 0
-    assert result["preflight"] == 0
-
-
-@pytest.mark.parametrize("scenario", ["invalid_h1", "invalid_h4"])
-def test_m16_rejects_a_precreated_decision_after_unreadable_refresh(probe, scenario):
-    result = probe(scenario)
-    assert result["forced_m16"] == 0, f"{scenario}: M16 revalidated stale owner identity without current data"
-
-
-def test_valid_closed_h1_h4_control_still_reaches_preflight(probe):
-    result = probe("valid")
-    assert result["candidate"] == 1
-    assert result["m15"] == 1
-    assert result["m16"] == 1
-    assert result["preflight"] == 1
-
-
-def test_preflight_chain_is_downstream_of_m16_and_contains_m17_risk_portfolio_gates():
-    source = SOURCE.read_text()
-    process_pair = source_block(source, "void ProcessPair(")
-    assert "if(decision.DecisionState == DEC_VALIDATED)" in process_pair
-    assert "RunEntryPreflightAndExecute(decision, actual)" in process_pair
-    preflight = source_block(source, "bool RunEntryPreflightAndExecute(")
-    ordered = [
-        "ResolveExecutionReferencePrice(",
-        "ResolveApprovedInitialSLTP(",
-        "ValidateSLTP(",
-        "CheckRiskBeforeTrade(",
-        "FinalPortfolioGuard(",
-        "ProcessEntry(",
-    ]
-    positions = [preflight.index(token) for token in ordered]
-    assert positions == sorted(positions)
-    assert "OrderSend(" not in preflight
+if __name__ == "__main__":
+    unittest.main()

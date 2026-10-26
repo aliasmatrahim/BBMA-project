@@ -175,6 +175,7 @@ The canonical V2 Core preserves the previously reconciled contracts, including:
 - D1 major-trend strategic owner: confirmed only when closed D1 price side and MA50 slope agree; transition/unresolved blocks new entries.
 - H4 remains immediate structural/setup parent for standalone H1 but cannot override D1 strategic direction.
 - D1 strategic gating is separate from REM/RRE/REE component signatures.
+- The D1 Opportunity Journey is a user-approved project execution extension, not independent original-source provenance. Its active decision record is blueprint/decisions/D1_OPPORTUNITY_JOURNEY_EXECUTION_DECISION_20260825.md (D1O-01); the Build 5.15 implementation is module M11J. Keep its authority separate from the M11 D1 Strategic Owner, retain M15/M16 final-entry controls, and do not infer it from the D1 Extreme/TP-Wajib contract.
 
 Post-source implementation mismatches must be handled through the implementation-gap / decision / queue process and subsequent blueprint/code audit. They must not be confused with source-of-truth changes.
 

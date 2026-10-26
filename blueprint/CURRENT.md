@@ -165,3 +165,12 @@ Status: **BUILD 5.22 PORTABLE ALL-COMPONENT SOURCE GATE VERIFIED; NATIVE/RUNTIME
 - Build 5.22 checks every candidate component against a valid, closed current source snapshot in M15 and repeats the check in M16. Owner persistence, no-age-expiry semantics, H4 alignment and signal/priority rules are preserved.
 - Two portable exact-source unittest methods pass across three stale-source cases and a valid control. Probe stops before broker APIs; no order/runtime execution occurred.
 - Native strict compile and Strategy Tester remain **NOT TESTED**. G40 compile/data gates are unavailable; overall Core audit remains PARTIAL.
+
+## CORE-FIDELITY-292 CP09 — 2026-10-27
+
+Status: **PARTIAL — CURRENT-SNAPSHOT SOURCE/CONTRACT LINKS RECONCILED; FULL RULE DENOMINATOR OPEN**.
+- Updated the incremental traceability row to map the Build 5.22 all-component source gate through M12/H4 → M15 → M16 → M17/preflight.
+- M15/M16 current-snapshot contract text now covers Re-Entry, Extreme, MHV and MLV; persistent owners and H4 dependency remain intact.
+- CP08 native compile remains PASS; qualified G40 history remains NOT VERIFIED and tester/runtime remain NOT RUN.
+- Local attachment copies for Core V2, Finale Master Index and implementation-gap register differ from live GitHub blobs; live GitHub sources were used.
+

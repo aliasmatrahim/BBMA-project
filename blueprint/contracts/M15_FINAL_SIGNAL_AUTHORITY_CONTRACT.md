@@ -120,7 +120,7 @@ D1 strategic validity is a separate M11 snapshot and must be current for the sam
 
 ### Current source snapshot admission
 
-Before candidate counts or canonical selection, M15 requires every Re-Entry component to have a valid, closed snapshot on its exact timeframe that matches the latest closed candle in the processing snapshot. Standalone H1 Re-Entry and H1 Extreme candidates also require a readable latest H4 snapshot and the same-direction active H4 owner used during construction. A D1 opportunity path requires current H4 data where its M15 component or Extreme/TPW family relied on H4 alignment.
+Before candidate counts or canonical selection, M15 requires every frozen component of each candidate to have a valid, closed snapshot on its exact source timeframe whose candle time matches the current processing snapshot. This applies to Re-Entry, Extreme, MHV and MLV. The existing H4 dependency remains for standalone H1 Re-Entry/Extreme and D1 opportunity paths whose construction used H4 alignment. An unreadable snapshot blocks that candidate for the cycle but does not erase owner state or add age expiry. This is an EA data-integrity gate, not a new BBMA setup rule.
 
 An unreadable snapshot blocks the decision for that cycle but does not erase the persistent M12 owner or add a candle-age TTL. This is EA data-integrity policy; it does not change BBMA setup definitions.
 
@@ -223,3 +223,7 @@ M15 continues the D1-02 gate order, but its frozen D1 identity now comes exclusi
 ## CP07 candidate component source-admission delta — Build 5.22
 
 Before M15 counts or selects a candidate, every frozen component must have a valid, closed source-timeframe snapshot whose candle time matches the latest closed processing snapshot. This covers Re-Entry, Extreme and MHV/MLV components. Persistent component owners remain stored across unreadable refreshes; the M15 gate excludes the candidate until its required source snapshots are readable again. This is an admission safeguard only: it adds no age TTL, detection rule, priority change or execution authority. Native/runtime validation remains pending under Issue #292.
+
+## CP08 — native compile status (2026-10-27)
+
+Build 5.22 exact-source strict native compile on G40 passed with 0 errors / 0 warnings. The Strategy Tester, broker preflight and runtime matrix remain NOT RUN under Issue #292; qualified history remains NOT VERIFIED. See `blueprint/audits/evidence/CORE_FIDELITY_20261021/CHECKPOINT_CP08_20261027.md`.

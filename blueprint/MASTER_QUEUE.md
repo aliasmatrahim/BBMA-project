@@ -260,3 +260,9 @@ No destructive reset, blind recreation, automatic MT4 restart, or trading enable
 - Exact Build 5.22 source was natively compiled on online G40 with MetaEditor 5.0.0.2425: **0 errors / 0 warnings**; EX4 and raw log hashes are in the manifest.
 - Tester/runtime remain NOT RUN; qualified G40 history is NOT VERIFIED. The old CP07 “G40 offline” status is superseded by this update.
 - Next: continue independent rule-to-module source coverage and keep tester gated on a qualified history manifest.
+
+## CORE-FIDELITY-292 CP09 execution update — 2026-10-27
+
+- Source-to-contract mapping for the Build 5.22 freshness gate now traces all decision components through M15 admission and M16 revalidation.
+- Native strict compile remains PASS. Qualified history is NOT VERIFIED; Strategy Tester and broker/runtime remain NOT RUN.
+- Full accepted-Core denominator and nested-field ownership remain PARTIAL; continue those independent static audits without reviving historical stale gap rows.

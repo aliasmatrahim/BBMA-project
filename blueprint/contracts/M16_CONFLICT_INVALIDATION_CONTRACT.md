@@ -107,7 +107,7 @@ Valid only when the matching H1/H4/D1 M12 slot remains:
 
 ### Current source snapshot revalidation
 
-Before marking a decision validated, M16 independently requires each Re-Entry component's current exact-timeframe snapshot to be valid, closed and equal to the latest closed processing-snapshot candle. It also rechecks a same-direction active H4 owner and current H4 snapshot for the standalone H1 paths and D1 opportunity paths that were admitted using H4 alignment.
+Before marking a decision validated, M16 independently requires every frozen decision component's exact-timeframe snapshot to be valid, closed and equal to the latest closed processing-snapshot candle. This applies to Re-Entry, Extreme, MHV and MLV components. It also rechecks a same-direction active H4 owner and current H4 snapshot for the standalone H1 paths and D1 opportunity paths that were admitted using H4 alignment.
 
 If the required snapshot is unreadable or mismatched, the pending decision fails closed. M12/H4 structural state remains intact for a later readable cycle; no age expiry is introduced. This is an EA data-integrity safeguard, not a new BBMA setup or signal rule.
 
@@ -182,4 +182,8 @@ M16 continues to revalidate D1 before structural component freshness, but the co
 
 ## CP07 candidate component source revalidation — Build 5.22
 
-Immediately before M16 marks a decision validated, it repeats the current closed-source snapshot check for every frozen component, then applies the existing persistent owner-identity checks. Any unreadable, invalid, wrong-timeframe or non-current component snapshot invalidates the pending decision before M17. Owner lifecycle state is not erased and no generic age expiry or live-position close authority is introduced. Portable helper-level regression passes; native compile and broker/runtime validation remain NOT TESTED under Issue #292.
+Immediately before M16 marks a decision validated, it repeats the current closed-source snapshot check for every frozen component, then applies the existing persistent owner-identity checks. Any unreadable, invalid, wrong-timeframe or non-current component snapshot invalidates the pending decision before M17. Owner lifecycle state is not erased and no generic age expiry or live-position close authority is introduced. Portable helper-level regression passes; Build 5.22 native strict compile is PASS (0 errors / 0 warnings) under CP08. Strategy Tester and broker/runtime validation remain NOT TESTED under Issue #292.
+
+## CP08 — native compile status (2026-10-27)
+
+Build 5.22 exact-source strict native compile on G40 passed with 0 errors / 0 warnings. The Strategy Tester, broker preflight and runtime matrix remain NOT RUN under Issue #292; qualified history remains NOT VERIFIED. See `blueprint/audits/evidence/CORE_FIDELITY_20261021/CHECKPOINT_CP08_20261027.md`.

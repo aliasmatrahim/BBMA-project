@@ -32,7 +32,8 @@ Status: **PARTIAL — BUILD 5.22 NATIVE STRICT COMPILE PASS; HISTORY/RUNTIME AND
 - G40 is online, but qualified history is **NOT VERIFIED**: no `MARKET_DATA_INDEX*` was found in inspected BBMA roots; the wider profile search stopped at its 3-second cap. Strategy Tester remains NOT RUN.
 - Full M01–M27/M11J/M12N rule denominator, nested-field ownership and attributable runtime matrix remain PARTIAL.
 - CP10 adds the M07 BB-shape ownership contract and maps Core §4 through M06/M07/M08/M10/M12/M27. M07 labels remain unused; M08's local CSM-equivalent invalidation is not a direct M10 call. Tests/runtime for this path remain NOT VERIFIED.
-- Exact next action: continue accepted Core §5 Extreme lifecycle source-to-module mapping across M06/M08/M09/M11J/M13/M15/M16; preserve HOLD boundaries. Strategy Tester remains NOT RUN until qualified G40 history is verified. No merge, terminal restart or trading activation.
+- CP11 maps accepted Core §5.1–5.4 across the Extreme owner and downstream candidate/TPW paths. Owner source is statically aligned with the accepted F2 mapping; stale Finale status claims were corrected. Focused tests/runtime remain NOT VERIFIED; D1 TPW lifecycle is still OFF/fail-closed.
+- Exact next action: map accepted Core §6 MHV/MLV against owner M09 and its M08 parent, M13 collection and M27 routing; verify the current-owner dispositions for historical IG-01–IG-03 and keep any implementation claim static until source/read-write ownership is reconciled. Strategy Tester remains NOT RUN until qualified G40 history is verified. No merge, terminal restart or trading activation.
 
 ## Stage A - Source evidence / reconciliation
 

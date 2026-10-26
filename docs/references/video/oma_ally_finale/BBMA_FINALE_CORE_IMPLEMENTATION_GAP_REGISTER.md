@@ -74,3 +74,11 @@ Finale does **not** justify changing the following merely for the sake of change
 The historical M09/M07 rows above were already reconciled against owner Build 5.15: IG-01 to IG-04 are stale status claims for that source, not patch instructions. The owner contains the canonical `UpdateCanonicalMLVState` lifecycle and geometric `BB_FLAT` branch. Do not recreate those old fixes.
 
 The separate M12 invalid-refresh admission finding was reproduced against owner Build 5.15. Build 5.22 candidate checks all frozen component timeframes (Re-Entry, Extreme, MHV and MLV) at M15 and M16; portable exact-source probes pass. CP08 verifies strict native compile on G40 with 0 errors / 0 warnings. The qualified-history gate is NOT VERIFIED, so Strategy Tester and broker/runtime remain NOT RUN. Owner source remains unchanged; the candidate is unmerged.
+
+
+## CP11 owner reconciliation — Core §5 Extreme lifecycle (2026-10-26)
+
+- Core V2 §5.4 / the user-approved F2 decision and Build 5.15 owner code now agree on the accepted maturity path: M08 RAW → first subsequent closed reversal-direction candle → REVERSAL_CONFIRMED → retest phase/anchor freeze → first valid body-anchor or MA5 interaction → RETEST_READY.
+- M15 constructs standalone H1 Extreme only from RETEST_READY, Mode 2, and the active same-direction H4 owner; M11 D1 strategic filtering and M16 exact owner revalidation remain downstream gates. M17 contains the Q5 structural-wick SL and opposite-MA TPW execution mapping.
+- The D1O Extreme-TPW path is separate project extension work. `EnableD1TPWLifecycle=false`; M17 fails closed for a D1 TPW identity when disabled, and M23 D1 TPW lifecycle functions are gated. Do not treat it as an enabled trade path.
+- The old “standalone withheld” and “TPW dormant” claims in the historical IG-09/IG-10 rows are superseded for static owner scope. No focused test, native compile, Strategy Tester or broker/runtime was run in CP11; those validations remain NOT VERIFIED / NOT RUN.

@@ -24,6 +24,14 @@ D1O-01 is the approved project execution extension for M11J. The owner source wr
 
 M27 runs portfolio and position management before the new closed-M15 scan on each tick. M23's C044 replay calls the canonical M08/M10/M12 state machines on private replay state; it does not own the canonical entry-state objects.
 
+### CP11 — Extreme-specific owner path
+
+- M06 supplies the frozen closed-candle OHLC/MA/BB snapshots. M27 invokes M08 on D1, M15, H1 and H4, resolves opposite mature-owner supersession, then exports reversal-confirmed H1/H4 state. The M15 lifecycle is the distinct M09 parent.
+- M09 attaches only a reversal-confirmed M15 Extreme, then manages normal TP-Wajib and MHV/MLV progression. M12N observes the owner state after both directions update; it cannot create, reject or rank signals.
+- M13/M14 consume immutable H1/H4 snapshots under the existing REM/RRE/REE signatures. Standalone H1 reaches M15 separately only at RETEST_READY with Mode 2 and active same-direction H4; M11 D1 and M16 exact-owner revalidation still apply.
+- M17 resolves the Q5 H1 structural-wick stop and opposite-MA TP-Wajib mapping. The separate D1O path is an execution extension: `EnableD1TPWLifecycle=false`, M17 rejects that identity while disabled, and M23's D1 TPW close path is gated. No live D1 TPW lifecycle is claimed.
+- CP11 is static-only. Focused maturity/TPW tests and runtime remain NOT VERIFIED; Strategy Tester remains NOT RUN.
+
 ## Module connection ledger
 
 | Module | Main output / control | Consumers or next handoff | Current gap/status |
@@ -35,28 +43,28 @@ M27 runs portfolio and position management before the new closed-M15 scan on eac
 | M05 Utility Functions | Pair lookup, time, hashes, logging, normalization | Direct function callers enumerated in the machine graph | Call sites mapped; shared helper/state ownership remains partial |
 | M06 BBMA Data Engine | Closed-candle OHLC, MA and BB values | M07–M12, M17, M23–M24, M27 | **Owner bug confirmed:** incomplete history can yield biased indicators/valid snapshots; candidate repair is only in Draft PR #293 |
 | M07 BB Shape Engine | BB shape / flat state | M27 builds H1/H4 shape snapshots; current source has no downstream BB-state reader | CP10 adds a source/ownership contract; output remains auxiliary/write-only and does not gate M10 CSM |
-| M08 Extreme Detector | Extreme maturity, validity and lifecycle snapshots | M09, M12N, M13, M16, M23 replay, M27 | Lifecycle invalidation calls a local CSM-equivalent predicate, not M10 `DetectCSM`; focused parity/runtime remain NOT VERIFIED |
-| M09 MHV/MLV Lifecycle | Parent Extreme, TP-Wajib, loss, body mark, retest, invalidation | M12N, M13, M16, M27 | No standalone M09 contract; old graph incorrectly cited the D1 TPW contract |
+| M08 Extreme Detector | RAW signal plus persistent maturity, invalidation, supersession and retest lifecycle | M09 M15 parent; M12N observer; M13 combination snapshots; M15 standalone H1; M16 exact identity; M17 SL/TP source; M23 private replay; M27 orchestration | CP11 maps Core §5. RAW is not an entry; M08-local invalidation is not a direct M10 call. Standalone H1 requires RETEST_READY/Mode 2/H4 plus M11 D1 gate. Focused test/runtime remain NOT VERIFIED |
+| M09 MHV/MLV Lifecycle | Reversal-confirmed M15 parent Extreme, normal TP-Wajib, loss/formation, body mark, retest and invalidation | M12N, M13, M16, M27 | CP11 verifies the M08 parent edge; Core §6/M09 full owner-gap reconciliation remains next. No standalone M09 contract is linked |
 | M10 CSM/CSD/eCSD | Direction and momentum evidence | M12, M12N, M13, M23 replay, M27 | Core §4 signal geometry is statically mapped; M12 Type-3 consumption is present; all-case test/runtime trace remains NOT VERIFIED |
 | M11 Trend Functions | Atomic closed-D1 major-trend owner | M11J, M12, M12N, M15, M16, M27 | Static implementation present; D1 owner field handoff is inventoried; runtime remains unverified |
-| M11J D1 Opportunity Journey | D1 opportunity family/cycle state from the approved D1O-01 extension | M12N overlay, M15 candidate construction, M16 revalidation, M23 TPW completion check, M27 update | Source module was omitted from older maps; now included. D1O-01 is mapped; no standalone module contract is linked here. Test/runtime status remains partial/unverified |
+| M11J D1 Opportunity Journey | D1 opportunity family/cycle state; D1 Extreme requires reversal-confirmed maturity and active normal TP-Wajib | M12N overlay, M15 candidate construction, M16 revalidation, M23 TPW lifecycle, M27 update | D1O is a project extension. Dedicated D1 TPW lifecycle gate is OFF; M17 rejects D1TPW identity while OFF. Runtime remains unverified |
 | M12 Re-Entry Engine | Persistent Re-Entry owner states and confirmed signal | M12N, M13, M15, M17, M23 replay, M27 | Invalid refresh preserves prior state; admission impact still requires reproduction |
 | M12N Nested MTF Journey | Read-only lineage and journey context | M11J D1 opportunity overlay; M13; M15/M22/M23 telemetry; M27 observer update | No create/reject/rank/execute authority |
 | M13 Combination Engine | Collected component sets and candidates | M14; M27 orchestration | Candidate/test assignment coverage partial |
 | M14 Sequence Engine | Validated REM/RRE/REE candidates | M15; M27 orchestration | Full signature regression matrix absent |
-| M15 Priority Engine | Sole final new-entry decision | M16, M17; M27 orchestration | D1 gate exists statically; combined/runtime proof partial |
-| M16 Conflict & Invalidation | Revalidated or rejected selected decision | M17; M27 orchestration | M12 stale-refresh path still unproven |
-| M17 SL/TP Validation | Approved execution geometry and source component | M21, M19, M22 preflight | SELL spread normalization and full broker runtime remain open |
+| M15 Priority Engine | Sole final new-entry decision; Mode-2 standalone H1 Extreme candidate only from exact M08 RETEST_READY plus active same-direction H4 | M16, M17; M27 orchestration | Core §5 static gate mapped. M11 D1 authority and source-freshness checks also apply; combined/runtime proof partial |
+| M16 Conflict & Invalidation | Revalidates frozen component and owner identity; standalone Extreme must match exact M08 H1 RETEST_READY completion candle | M17; M27 orchestration | Core §5 identity path mapped. Candidate freshness repair in PR #293 remains separate from owner; runtime incomplete |
+| M17 SL/TP Validation | Standalone H1 Extreme: Q5 structural-wick SL window and opposite-MA TPW area-edge mapping; D1 TPW identity is fail-closed while gate OFF | M21, M19, M22 preflight; M23 TPW lifecycle when enabled | Static mapping confirmed. SELL spread normalization and full broker runtime remain open; D1 lifecycle is not activated |
 | M18 Signal Scoring | Label-only score | No caller found in pinned source | Confirm whether any display/telemetry consumer is intended |
 | M19 Risk Engine | Risk approval/rejection | M22; M24 recovery helpers | No signal authority |
 | M20 Portfolio Protection | Portfolio gate and protection request | M22, M23, M27 tick path | Broker-connected protection path not revalidated |
 | M21 Money Management | Frozen lot-size result | M19, M22 | Broker lot/tick-value runtime matrix remains separate |
 | M22 Order Execution | Approved order side effects and execution identity | M23, M24, M27 preflight call | No runtime/order/SL/TP acceptance in this audit |
-| M23 Position Management | Tick-driven position lifecycle and close actions | M24 recovery; M27 tick path | C044 replay uses private owner snapshots |
+| M23 Position Management | Tick-driven close/position lifecycle; private M08 replay for C044 and separate gated D1 TPW close | M24 recovery; M27 tick path | CP11 confirms D1 TPW lifecycle gate is OFF; C044 uses private owner snapshots; no runtime rerun |
 | M24 Recovery Engine | Reconstructed execution, risk and lifecycle state | M19–M23, M26 initialization, M27 owner/H4 helpers | Restart/provenance runtime remains unverified |
 | M25 Dashboard | Read-only display snapshot | M27 refresh | Preserve display-only boundary |
 | M26 Initialization & Cleanup | Input validation, initialization and recovery dispatch | M24 recovery; platform lifecycle | No new startup/restart runtime evidence |
-| M27 Main Controller | Snapshot clock, owner updates, candidate handoffs and lifecycle orchestration | Entry point; no downstream consumer | Direct function edges are now inventoried; orchestration runtime remains unverified |
+| M27 Main Controller | Closed D1/M15/H1/H4 M08 lifecycle updates, M15 parent M09 update, M12N observer, M13/M14 assembly, M15 candidates, M16 decision and M17 handoff | Entry point / M22 preflight and lifecycle tick path | CP11 order statically traced; orchestration runtime remains unverified |
 
 ## Evidence and unresolved gates
 

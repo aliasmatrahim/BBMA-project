@@ -105,6 +105,12 @@ Valid only when the matching H1/H4/D1 M12 slot remains:
 - same confirmation-candle identity;
 - still source-valid under the M12 structural owner contract; no generic fixed-age TTL is added by M16.
 
+### Current source snapshot revalidation
+
+Before marking a decision validated, M16 independently requires each Re-Entry component's current exact-timeframe snapshot to be valid, closed and equal to the latest closed processing-snapshot candle. It also rechecks a same-direction active H4 owner and current H4 snapshot for the standalone H1 paths and D1 opportunity paths that were admitted using H4 alignment.
+
+If the required snapshot is unreadable or mismatched, the pending decision fails closed. M12/H4 structural state remains intact for a later readable cycle; no age expiry is introduced. This is an EA data-integrity safeguard, not a new BBMA setup or signal rule.
+
 ### MHV/MLV component
 Valid only when the matching M09 owner state remains at the required maturity/identity for the selected decision.
 

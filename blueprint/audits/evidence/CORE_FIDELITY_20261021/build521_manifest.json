@@ -7,12 +7,13 @@
   "source_sha256": "2d484f2aca5eb9487e11f04197b6ce8a0db181df6c8b36c78b0605dfb0b24aff",
   "source_git_blob_sha": "313247e0fec1fa905a4928d5baa715d801a66ef6",
   "test_path": "blueprint/tests/test_m12_stale_owner_refresh.py",
-  "test_sha256": "df315f8c44b231576e659c221a3bd93038034cd76148a8bf2a53ba81273dab70",
-  "test_git_blob_sha": "2c404661fbaf55c5df55c8f8043e91ed52bfaba5",
+  "test_sha256": "ce36499359e97ba2986b28e03c5ff67eb7153f425c8d35e4b9d5147b1f9d1c17",
+  "test_git_blob_sha": "d3aea095c15f9a5fd22733dcb9f09b0cea6c8db4",
   "portable_exact_source_probe": "4 unittest methods passed; invalid H1/H4 and valid control covered",
   "native_compile": "NOT_TESTED",
   "strategy_tester": "NOT_TESTED_BLOCKED_QUALIFIED_DATA_GATE",
   "preflight": "static dispatch and call-order check only; broker APIs and OrderSend not executed",
   "deployment": "NONE",
-  "owner_branch_changed": false
+  "owner_branch_changed": false,
+  "test_runner": "stdlib unittest; four test methods passed (green run 0.403s)"
 }

@@ -139,12 +139,14 @@ M16 does not own:
 - broker execution/recovery;
 - live-position strategy close.
 
-## Current implementation gap
-The active EA does not yet carry/verify the canonical M11 D1 strategic-owner snapshot through M15 -> M16.
+## Current owner implementation status — reconciled 2026-10-26
+The previous implementation-gap statement is superseded for static status by owner Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`.
 
-Therefore the 2026-08-24 D1-owner revalidation portion is **SPECIFICATION-ONLY / NOT IMPLEMENTED** while the P3 runtime candidate remains frozen.
+- M16 consumes a decision created by M15 and revalidates the frozen M11 D1 snapshot before downstream execution.
+- M16 does not reproduce the D1 price/MA50 slope formula.
+- D1 transition or identity failure blocks the pending entry; it does not create a live-position close rule.
 
-Historical Step 7 implementation remains valid for the existing component/Extreme invalidation architecture but is not proof of D1 gate implementation.
+Classification: **STATIC IMPLEMENTATION PRESENT / COMBINED REGRESSION PARTIAL / RUNTIME NOT VERIFIED**.
 
 ## Historical implementation record
 Patch:

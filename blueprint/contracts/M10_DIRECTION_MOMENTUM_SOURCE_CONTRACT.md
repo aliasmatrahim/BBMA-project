@@ -26,6 +26,8 @@ Operational directional mapping retained for deterministic implementation:
 
 The supplied text says `MA5/10` but does not explicitly spell out which High/Low pair is used for each direction. The mapping above is therefore an implementation interpretation consistent with the directional MA arrangement already used throughout the BBMA project; it must not be quoted as verbatim PDF wording.
 
+`DetectECSD` implements the raw MA5/MA10 crossing predicate. Since CSD also crosses this pair, the raw predicate can be true on a same-direction CSD candle. The normalized event classification must prefer CSD when its Mid-BB cross is also present; only a same-direction MA-pair cross without CSD is labelled eCSD.
+
 ## CSD contract
 Source rule:
 - CSD crosses MA5/10 **and MID BB**;
@@ -86,8 +88,19 @@ M08 owns that temporal lifecycle: `UpdateExtremeLifecycle` invokes `IsExtremeLif
 
 Static source mapping is VERIFIED. A focused helper-parity regression and attributable runtime evidence were not run; they remain NOT VERIFIED. Keep M10 as the CSM signal producer and M08 as the Extreme lifecycle owner; this reconciliation authorizes no behavior change.
 
-## Collector classification note
-A candle that crosses MA5/10 and MID BB mechanically also satisfies the simpler MA5/10 crossing predicate. The source distinguishes CSD from eCSD by the MID BB cross. M10 defines both predicates; M13 must later decide collector-level classification precedence so the same candle is not incorrectly double-counted as two independent confirmations.
+## Current-owner classification and handoff (CP13, 2026-10-26)
+
+`DetectECSD` returns the raw MA5/MA10 cross predicate, so it can be true on the same candle as a same-direction CSD. Consumers normalize the class before strategy use:
+- M12 `DetectReEntryDirectionOwnerSignal()` classifies `CSM > CSD > eCSD`. CSM and CSD may start their own Type 3/Type 4 Re-Entry candidates; a later source-specific MA retrace confirms them. eCSD may establish/advance Type 1 direction ownership but does not confirm entry.
+- M13 `CollectSignalSnapshots()` suppresses a same-direction eCSD when CSD has the same candle timestamp. Its REM/RRE/REE assembler does not make raw CSD/eCSD a component.
+- M27's H4 authoritative classifier uses `CSM > CSD > eCSD`. Its M15 data comes from the exact latest-closed M15 snapshot. M09's canonical MHV/MLV update independently requires valid, closed source data and consumes a same-direction M15 CSD/eCSD only as the later direction-takeover event.
+- The approved D1O-01 M11J path uses closed D1 CSD only as opportunity context. D1 eCSD is watch-only; its logger reports the raw MA-cross predicate and can overlap with a same-direction CSD, but it installs no opportunity family. A D1 CSD opportunity still requires an aligned D1 strategic owner and a fresh confirmed LTF Re-Entry after activation. The materialized candidate is `SIGNAL_RE_ENTRY`; M15 remains final authority and M16 remains fail-closed.
+
+M12/H4/D1 caller paths validate closed data; the M15 input path selects an exact candle through `GetLatestClosedCandleTime` and `GetDataForTimeframe`, and M09 rejects invalid or unclosed M15 data before state takeover. This confirms the static closed-candle handoff.
+
+Input quality is a separate dependency: current owner Build 5.15 still has the recorded M06 incomplete-history validity defect. Its repair is candidate-scoped in Build 5.20/PR #293 and does not make current-owner CSD/eCSD signals on incomplete histories runtime-verified.
+
+The old instruction that M13 must later decide CSD/eCSD precedence is stale and is corrected by the existing M13 contract and owner implementation. CP13 is static only; no focused precedence test or attributable runtime was run. It adds no signal formula, combination component or direct raw-signal execution path.
 
 ## Scope guard
 Step 3E does not change:
@@ -113,7 +126,7 @@ Focused reconstruction verification:
 - brackets balanced;
 - old three-candle / 70%-average-body CSM formula removed;
 - CSD requires MA5/10 + MID BB crossing;
-- eCSD requires MA5/10 crossing;
+- the raw eCSD predicate requires MA5/10 crossing; CSD-over-eCSD is normalized by the active consumer precedence;
 - CSM requires directional outer-BB close plus expanding/directional BB context.
 
 Because the project previously discovered that a partial reconstruction had been mislabeled as a full-chain source, no new full-working-source SHA is claimed from this focused Step 3E verification.

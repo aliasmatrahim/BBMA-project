@@ -99,6 +99,8 @@ Candle direction is a **signal**, not the entry setup. Wait for Re-Entry.
 
 **Current-Core comparison:** These semantics already exist in the M10 contract and current Mode 1/Mode 2 eligibility design.
 
+**Current-owner trace (CP13, 2026-10-26):** `DetectECSD` is the inclusive raw MA-pair predicate; normalized M12/H4 classification is CSM > CSD > eCSD and M13 suppresses a same-direction same-candle eCSD duplicate under CSD. The M27 M15 input is selected from the latest-closed source and M09 validates closed data before direction takeover. CSD/eCSD remain context signals; the M11J D1 CSD opportunity path requires a fresh LTF Re-Entry and remains subject to M15/M16 authority. The D1 eCSD logger is raw/watch-only. M06 incomplete-history input quality remains a separate owner Build 5.15 defect with candidate-only repair. Static mapping only; focused tests/runtime remain NOT VERIFIED.
+
 **Decision:** **KEEP.** No raw eCSD/CSD execution.
 
 ## 6. Re-Entry — KEEP / CLARIFY, with one timing semantic to verify

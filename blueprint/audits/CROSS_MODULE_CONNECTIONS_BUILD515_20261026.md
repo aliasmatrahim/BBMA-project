@@ -34,10 +34,10 @@ M27 runs portfolio and position management before the new closed-M15 scan on eac
 | M04 Symbol & Market Data | Candle, quote, symbol and broker properties | Direct function callers enumerated in the machine graph | Call sites mapped; shared field-level read/write ownership remains partial |
 | M05 Utility Functions | Pair lookup, time, hashes, logging, normalization | Direct function callers enumerated in the machine graph | Call sites mapped; shared helper/state ownership remains partial |
 | M06 BBMA Data Engine | Closed-candle OHLC, MA and BB values | M07–M12, M17, M23–M24, M27 | **Owner bug confirmed:** incomplete history can yield biased indicators/valid snapshots; candidate repair is only in Draft PR #293 |
-| M07 BB Shape Engine | BB shape / flat state | M27 builds shape state | Direct consumer edge was missing from the old graph; standalone M07 contract still absent |
-| M08 Extreme Detector | Extreme maturity, validity and lifecycle snapshots | M09, M12N, M13, M16, M23 replay, M27 | Old gap-register claims are stale; runtime lifecycle trace still open |
+| M07 BB Shape Engine | BB shape / flat state | M27 builds H1/H4 shape snapshots; current source has no downstream BB-state reader | CP10 adds a source/ownership contract; output remains auxiliary/write-only and does not gate M10 CSM |
+| M08 Extreme Detector | Extreme maturity, validity and lifecycle snapshots | M09, M12N, M13, M16, M23 replay, M27 | Lifecycle invalidation calls a local CSM-equivalent predicate, not M10 `DetectCSM`; focused parity/runtime remain NOT VERIFIED |
 | M09 MHV/MLV Lifecycle | Parent Extreme, TP-Wajib, loss, body mark, retest, invalidation | M12N, M13, M16, M27 | No standalone M09 contract; old graph incorrectly cited the D1 TPW contract |
-| M10 CSM/CSD/eCSD | Direction and momentum evidence | M12, M12N, M13, M23 replay, M27 | All-case runtime trace not verified |
+| M10 CSM/CSD/eCSD | Direction and momentum evidence | M12, M12N, M13, M23 replay, M27 | Core §4 signal geometry is statically mapped; M12 Type-3 consumption is present; all-case test/runtime trace remains NOT VERIFIED |
 | M11 Trend Functions | Atomic closed-D1 major-trend owner | M11J, M12, M12N, M15, M16, M27 | Static implementation present; D1 owner field handoff is inventoried; runtime remains unverified |
 | M11J D1 Opportunity Journey | D1 opportunity family/cycle state from the approved D1O-01 extension | M12N overlay, M15 candidate construction, M16 revalidation, M23 TPW completion check, M27 update | Source module was omitted from older maps; now included. D1O-01 is mapped; no standalone module contract is linked here. Test/runtime status remains partial/unverified |
 | M12 Re-Entry Engine | Persistent Re-Entry owner states and confirmed signal | M12N, M13, M15, M17, M23 replay, M27 | Invalid refresh preserves prior state; admission impact still requires reproduction |
@@ -93,3 +93,14 @@ The Build 5.15 owner inventory above remains pinned and unchanged. Draft PR #293
 | M16 validated decision | M27 preflight -> M17 -> risk/portfolio -> M22 | Existing call order and authority remain unchanged | Portable gate probe stops before broker APIs; runtime not exercised |
 
 Owners remain persistent through unreadable refreshes. Build 5.22 adds no expiry or signal/ranking semantics. Native strict compile and Strategy Tester are NOT TESTED; full audit remains PARTIAL.
+
+
+## Candidate-branch delta — CP10 Core §4 BB-state / Momentum trace (2026-10-27)
+
+The Build 5.15 owner remains unchanged. This static trace adds no signal, priority or execution rule:
+
+- M06 supplies closed BB values. M27 invokes M07 `BuildBBShapeState` for H1/H4; `DetectBBState` writes the enum snapshot, but the pinned source contains no downstream BB-state reader. M07 is auxiliary, not an M10 gate.
+- M10 `DetectCSM` independently requires a closed outside-band candle, increased BB width and same-direction Mid/relevant outer-band movement. M12 consumes it as a Type-3 precursor and direction-owner signal; M27 owns the closed-candle call order.
+- M08's persistent Extreme lifecycle checks `IsExtremeLifecycleInvalidation` before maturity promotion. That calls the M08-local `IsExtremeMomentumInvalidation`, whose valid-data geometry mirrors the M10 CSM predicate; it is a local calculation, not a direct M10 call.
+- The stale M08/M10 contract statements are reconciled. Static trace is VERIFIED; focused M08/M10 helper parity and attributable runtime remain NOT VERIFIED. M07's 0.9/1.1 classifications and one-point tolerance are engineering labels, not BBMA rules.
+

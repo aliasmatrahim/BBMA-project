@@ -79,8 +79,12 @@ Type 3 now receives a source-aligned CSM precursor from M10. The existing Step 3
 Type 4 now receives the corrected CSD crossing signal as its precursor. Its existing Step 3B lifecycle remains:
 `CSD precursor -> candidate -> later retrace to MA5/10 -> confirmed Re-Entry`.
 
-### M08 Extreme invalidation
-The primary reference states that Extreme is no longer valid in the presence of CSM. Step 3E repairs the CSM producer, but M08 currently represents raw per-candle Extreme detection rather than a persistent Extreme lifecycle. Therefore historical Extreme invalidation by a later CSM still requires an explicit owner/lifecycle connection; Step 3E does not falsely claim that this temporal invalidation is already solved.
+### M08 Extreme invalidation — current-owner reconciliation (CP10, 2026-10-27)
+The accepted primary/Core rule states that Extreme is no longer valid in the presence of source-valid CSM/Momentum. The older Step 3E note that M08 had no persistent lifecycle is superseded by current Build 5.15 source.
+
+M08 owns that temporal lifecycle: `UpdateExtremeLifecycle` invokes `IsExtremeLifecycleInvalidation` before maturity promotion, and the latter invokes M08's local `IsExtremeMomentumInvalidation`. On valid closed BB inputs, that helper mirrors M10 `DetectCSM` geometry (increased width, directional Mid/relevant outer movement, and close outside the relevant band). It is not a direct M08 → M10 function call, so no direct call edge is claimed.
+
+Static source mapping is VERIFIED. A focused helper-parity regression and attributable runtime evidence were not run; they remain NOT VERIFIED. Keep M10 as the CSM signal producer and M08 as the Extreme lifecycle owner; this reconciliation authorizes no behavior change.
 
 ## Collector classification note
 A candle that crosses MA5/10 and MID BB mechanically also satisfies the simpler MA5/10 crossing predicate. The source distinguishes CSD from eCSD by the MID BB cross. M10 defines both predicates; M13 must later decide collector-level classification precedence so the same candle is not incorrectly double-counted as two independent confirmations.

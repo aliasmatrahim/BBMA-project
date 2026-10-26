@@ -23,6 +23,7 @@ Status: **PARTIAL — BUILD 5.22 NATIVE STRICT COMPILE PASS; TESTER/RUNTIME AND 
 - G40 is online. The qualified-history gate is **NOT VERIFIED**: no `MARKET_DATA_INDEX*` was found in inspected BBMA roots, and the wider profile search hit its 3-second cap. Strategy Tester remains NOT RUN.
 - Static inventory remains lexical: 29 module headers, 431 function definitions, 96 cross-module call edges / 364 call pairs, 23 M01 inputs, 68 type declarations and 37 M03 globals. Nested-field read/write ownership and full rule-to-runtime coverage remain PARTIAL.
 - No owner/production artifact, live order, terminal restart or trading activation changed.
+- CP10 maps accepted Core §4 across M06/M07/M08/M10/M12/M27. M07 shape labels are currently write-only; M10 CSM feeds M12 Type-3, while M08 checks a local CSM-equivalent predicate. Static trace only; focused parity/runtime remains NOT VERIFIED.
 
 ## Current active workstreams / integrated state
 

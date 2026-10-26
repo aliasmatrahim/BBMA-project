@@ -60,12 +60,12 @@ This means:
 - Extreme must not become a standalone trade merely because `DetectExtreme()` returned true;
 - final standalone Extreme entry eligibility must remain separate from raw signal validity.
 
-### CSM invalidation dependency
-The primary reference states that Extreme is no longer valid in the presence of CSM, regardless of MA5 position outside the BB.
+### CSM invalidation dependency — current-owner reconciliation (CP10, 2026-10-27)
+The accepted source rule remains: a later source-valid Momentum/CSM context invalidates the Extreme lifecycle; an outside close through the original Extreme-side outer BB also remains a separate source invalidation.
 
-M08 does not own CSM detection. M10 owns CSM. Because M10 is still awaiting its own source-alignment audit, Step 3D does not hard-wire the current unaudited M10 result into M08.
+The older Step 3D statement that this temporal link awaited M10 source alignment is superseded by the current Build 5.15 source. `UpdateExtremeLifecycle` calls `IsExtremeLifecycleInvalidation` before maturity promotion; that helper calls the M08-local `IsExtremeMomentumInvalidation` predicate. For valid closed BB inputs, its geometry matches the M10 CSM definition: width increases, Mid and the relevant outer band move in the same direction, and close is outside that outer band.
 
-The CSM invalidation rule remains a required downstream dependency and must be connected after M10 CSM is source-aligned.
+This is a static behavioral mapping, not a direct call to M10 `DetectCSM`. M08 remains the Extreme lifecycle owner and M10 remains the CSM signal owner. No focused M08/M10 parity test or attributable runtime proof was run; that status remains NOT VERIFIED. Do not route the M07 enum into M10 or infer a new source rule from this mapping.
 
 ## Ownership rule
 - M06 owns MA/BB numeric production.

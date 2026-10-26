@@ -94,6 +94,12 @@ These are engineering encodings needed to turn source language into deterministi
    - Uses candle high/low reaching the relevant MA support/resistance cluster together with close remaining on the source-stated side.
    - This avoids inventing a new pip-distance trading threshold.
 
+### Overlapping Type 2/3/4 precursor predicates — unresolved
+
+The primary PDF (p.10), accepted Core V2 §§8.3–8.5, Finale evidence and this contract define the individual Type 2, 3 and 4 structures but do not set a priority when more than one precursor predicate qualifies on the same source-timeframe candle. The owner source has one Re-Entry state per direction/timeframe; when that owner is empty, `TryStartSpecificReEntry()` currently tries Type 3, then Type 4, then Type 2, before Type 1. No explicit mutual-exclusion check makes those predicates source-disjoint.
+
+This order is an implementation detail, not a source-authorized BBMA precedence. Static review does not establish that such overlap has occurred in market data. Keep the current owner behavior unchanged while the gap is unresolved; do not promote the order to Core or redesign ownership without stronger source evidence or an explicit project decision. Status: **UNRESOLVED — no source conflict identified; overlap handling is not source-defined**.
+
 ## Removed non-source logic
 Step 3B removes/rejects these active M12 behaviours:
 - Type 1 EMA50-near candidate + later EMA50-cross confirmation.

@@ -103,7 +103,7 @@ Candle direction is a **signal**, not the entry setup. Wait for Re-Entry.
 
 **Decision:** **KEEP.** No raw eCSD/CSD execution.
 
-## 6. Re-Entry — KEEP / CLARIFY, with one timing semantic to verify
+## 6. Re-Entry — KEEP / CLARIFY, static owner map complete; runtime timing pending
 ### Entry zone and MA5/MA10 validity
 - Re-Entry follows direction/momentum and is the actual setup/entry zone.
 - MA5 is the main retest area and MA10 confluence strengthens context.
@@ -119,9 +119,11 @@ Candle direction is a **signal**, not the entry setup. Wait for Re-Entry.
 
 **Finale evidence:** V06 00:30:46–00:31:06; 00:52:48–00:56:27.
 
-**Current-Core comparison:** M12 confirms only from a fully closed source candle. The EA then makes the decision/execution after that candle has closed, which operationally can place execution at the beginning/current price of the next candle. Therefore the Finale wording may already match the runtime architecture rather than require an additional one-full-candle delay. The current data field names (`ConfirmationCandle`, `EntryCandle`, `EntryPrice`) blur this distinction because confirmation metadata is stored from the closed validation candle while broker execution uses the later live market price.
+**Current-Core comparison:** M12 confirms only from a fully closed source candle. M27 can pass the candidate to the normal live-price execution path in that same closed-M15 processing pass; this statically maps to the immediately following source-TF candle, without an added full-candle wait. Runtime order-time confirmation remains pending.
 
-**Decision:** **CLARIFY / VERIFY SEMANTICS**, not an automatic code correction. Do **not** add another candle delay until the exact intended mapping is proven against chart/audio examples and runtime timestamps.
+**CP14 owner trace:** M11J D1O-01 also consumes D1 `EntryCandle` as the opportunity `ActivationTime`; fresh H1/M15 Re-Entry readiness must be strictly later. This is a D1 opportunity freshness boundary, not a general broker-order timer. The earlier F6 statement that `EntryCandle` is unused by eligibility was overbroad.
+
+**Decision:** **STATIC MAPPING RECORDED; RUNTIME TRACE PENDING.** Do not add another full-candle delay to ordinary Re-Entry execution without contradictory timestamp evidence. D1O-01's post-activation freshness rule remains a separate approved project extension.
 
 ## 7. Powerful Re-Entry / Type 2 — KEEP
 - MA5 + MA10 + Mid BB confluence is Powerful Re-Entry.
@@ -174,4 +176,4 @@ The strongest post-Finale gains are:
 5. a useful first-candle-validation / second-candle-entry teaching phrase that must be mapped carefully to the existing closed-candle execution architecture;
 6. stronger higher-TF ownership/context for lower-TF signals.
 
-The current Build 5.15 owner has a canonical M09 MHV/MLV lifecycle; CP12 records its static Core §6 owner/consumer mapping. Historical IG-01–IG-03 are stale against this owner and must not be treated as patch instructions. The standalone M09 contract and C039/C040 HTF observer extension remain documentation/coverage gaps; runtime verification remains separate. The next audit task is Core §7 CSD/eCSD and the M10→M12 handoff.
+The current Build 5.15 owner has a canonical M09 MHV/MLV lifecycle; CP12 records its static Core §6 owner/consumer mapping. Historical IG-01–IG-03 are stale against this owner and must not be treated as patch instructions. The standalone M09 contract and C039/C040 HTF observer extension remain documentation/coverage gaps; runtime verification remains separate. CP14 statically maps Core §8 Re-Entry through M12 and downstream M13/M14/M15/M16/M27 paths, and corrects the F6 finding that EntryCandle was unused by eligibility: approved M11J D1O-01 consumes it as the D1 activation boundary. M12's Type3→Type4→Type2 empty-owner start order remains implementation detail because reviewed sources assign no Type2/3/4 overlap precedence. Core §9 is queued until the project resolves that gate.

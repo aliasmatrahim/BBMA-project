@@ -17,11 +17,12 @@ This file is the active current-state record. The pre-2026-09-09 historical `CUR
 
 Status: **PARTIAL — Build 5.28 targeted source regression PASS; exact-candidate native strict compile NOT TESTED; qualified history, Strategy Tester/runtime, and full Core-rule matrix remain open.**
 - Active owner baseline: Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`; PR #293 remains open/Draft/DO NOT MERGE.
-- Latest audit source candidate: Build 5.28 / `V528_M10_M11_CONST_DIRECTION_INPUTS_20261027`, exact Git blob `388ee68b5b8071d50dcf1dab1ddcb10733a120a9`; CP28/CP29 are on `audit/core-fidelity-20261021`.
+- Latest audit source candidate: Build 5.28 / `V528_M10_M11_CONST_DIRECTION_INPUTS_20261027`, exact Git blob `388ee68b5b8071d50dcf1dab1ddcb10733a120a9`; CP28–CP30 are on `audit/core-fidelity-20261021`.
 - CP28 records source regression PASS but no G40 staging, compile log, or EX4. Desktop Commander reports monthly usage exhausted and instructs not to retry or reconnect; native strict compile remains NOT TESTED.
 - CP29 statically inventories 16 M11 functions with by-reference parameters. All read-only inputs are const-qualified; remaining mutable references are classifier/selector outputs or owner/journey state. CP29 makes no source change.
+- CP30 adds the accepted Core §8 Re-Entry pseudocode crosswalk to the existing source-fidelity matrix. Build 5.15 Type 1–4 mapping is static; stale-source admission and incomplete M06 history remain candidate-only repairs. No ordinary `OrderOpenTime` timing trace exists; session-gap `EntryCandle` mapping remains unverified.
 - Q10 Phase L R5 remains the highest-priority global acceptance task; R5-14/R5-16 require natural broker events. The last verified runtime checkpoint is dated 2026-09-24; current terminal/process state was not rechecked in this continuation.
-- Next action after Desktop Commander access is restored: stage exact blob `388ee68b5b8071d50dcf1dab1ddcb10733a120a9`, verify the staged source hash, then run HFM MetaEditor strict compile. No Strategy Tester/runtime, merge, terminal restart, or trading activation is authorized by this checkpoint.
+- Next action after Desktop Commander access is restored: stage exact blob `388ee68b5b8071d50dcf1dab1ddcb10733a120a9`, verify its raw hash, then run HFM MetaEditor strict compile. After the qualified-history gate passes, capture the pending Re-Entry candle/OrderOpenTime tester trace. No merge, terminal restart, or trading activation.
 
 ## Historical core-fidelity / traceability reconciliation through CP25 — 2026-10-27
 

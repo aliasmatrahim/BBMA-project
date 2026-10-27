@@ -1,6 +1,6 @@
 # BBMA Current Project State
 
-Updated: **2026-10-27**
+Updated: **2026-10-28**
 Status owner: **`d1-owner-dev`**
 Owner head at reconciliation: **`459c0588e625d7f7630f0fb5612b7f04fda496de`**
 
@@ -13,14 +13,24 @@ This file is the active current-state record. The pre-2026-09-09 historical `CUR
 - Canonical active owner baseline: Build `5.15` / `V515_NMJE_P2_TARGETLESS_REPLAY_20260925`, source rev `NMJE_P2_TARGETLESS_REPLAY_001_20260925`, at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`. Build 5.14 and Build 5.11 references below are historical/shadow or frozen Q10 evidence, not the active owner source.
 - Q7/Q8 Build 4.86 artifacts remain historical verified integration/regression evidence. Q10 is bound to the later exact Build 5.11 final integration candidate; this is still not a production-readiness claim.
 
-## Core-fidelity / traceability reconciliation — 2026-10-27
+## Core-fidelity current status — 2026-10-28
 
-Status: **PARTIAL — BUILD 5.23 FOCUSED REGRESSION + EXACT-GIT-BLOB NATIVE STRICT COMPILE PASS; TESTER/RUNTIME AND FULL RULE MATRIX OPEN**.
+Status: **PARTIAL — Build 5.28 targeted source regression PASS; exact-candidate native strict compile NOT TESTED; qualified history, Strategy Tester/runtime, and full Core-rule matrix remain open.**
+- Active owner baseline: Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`; PR #293 remains open/Draft/DO NOT MERGE.
+- Latest audit source candidate: Build 5.28 / `V528_M10_M11_CONST_DIRECTION_INPUTS_20261027`, exact Git blob `388ee68b5b8071d50dcf1dab1ddcb10733a120a9`; CP28/CP29 are on `audit/core-fidelity-20261021`.
+- CP28 records source regression PASS but no G40 staging, compile log, or EX4. Desktop Commander reports monthly usage exhausted and instructs not to retry or reconnect; native strict compile remains NOT TESTED.
+- CP29 statically inventories 16 M11 functions with by-reference parameters. All read-only inputs are const-qualified; remaining mutable references are classifier/selector outputs or owner/journey state. CP29 makes no source change.
+- Q10 Phase L R5 remains the highest-priority global acceptance task; R5-14/R5-16 require natural broker events. The last verified runtime checkpoint is dated 2026-09-24; current terminal/process state was not rechecked in this continuation.
+- Next action after Desktop Commander access is restored: stage exact blob `388ee68b5b8071d50dcf1dab1ddcb10733a120a9`, verify the staged source hash, then run HFM MetaEditor strict compile. No Strategy Tester/runtime, merge, terminal restart, or trading activation is authorized by this checkpoint.
+
+## Historical core-fidelity / traceability reconciliation through CP25 — 2026-10-27
+
+Status at CP15: **PARTIAL — BUILD 5.23 FOCUSED REGRESSION + EXACT-GIT-BLOB NATIVE STRICT COMPILE PASS; TESTER/RUNTIME AND FULL RULE MATRIX OPEN**.
 - Implementation owner remains Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`; Draft PR #293 carries the separate Build 5.23 candidate; CP18 resolves the D1 TPW transition project-policy gate.
 - M06 incomplete-history repair evidence from Build 5.20 remains candidate-scoped. It does not change the owner branch.
 - Finding B was reproduced on the owner path; Build 5.21 added the current closed-source gate for Re-Entry, and Build 5.22 extends it to every frozen component in M15/M16 without a new rule or owner reset.
 - CP08 verifies G40 native strict compile of the exact Build 5.22 Git blob: MetaEditor 5.0.0.2425, 0 errors / 0 warnings. Source/log/EX4 hashes are in the current manifest.
-- G40 is online. The qualified-history gate is **NOT VERIFIED**: no `MARKET_DATA_INDEX*` was found in inspected BBMA roots, and the wider profile search hit its 3-second cap. Strategy Tester remains NOT RUN.
+- At CP08, G40 was online. The qualified-history gate was **NOT VERIFIED**: no `MARKET_DATA_INDEX*` was found in inspected BBMA roots, and the wider profile search hit its 3-second cap. Strategy Tester remained NOT RUN.
 - Static inventory remains lexical: 29 source headers, 431 functions, 1,478 calls, 502 cross-module call occurrences, 96 module edges and 364 function pairs. The main graph now links 338 typed cross-module fields and 317 struct-by-reference callsites. Static propagation resolved 344 context-insensitive origins with no unresolved/unbound/cyclic rows; 19 callsites carry multiple legitimate local/global or timeframe/direction origins. Ownership, const enforcement, full rule-to-runtime coverage and runtime remain PARTIAL.
 - No owner/production artifact, live order, terminal restart or trading activation changed.
 - CP10 maps accepted Core §4 across M06/M07/M08/M10/M12/M27. M07 shape labels are currently write-only; M10 CSM feeds M12 Type-3, while M08 checks a local CSM-equivalent predicate. Static trace only; focused parity/runtime remains NOT VERIFIED.

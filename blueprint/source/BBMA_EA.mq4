@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.2.5 - M08/M09 Const Leaf Input Hardening            |
+//| Version 5.2.6 - M11 Const Read-Only Snapshot Inputs           |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.25"
+#property version   "5.26"
 #property strict
 
-#define BBMA_BUILD_TAG      "V525_M08_M09_CONST_LEAF_INPUTS_20261027"
-#define BBMA_SOURCE_REV_TAG "CORE_FIDELITY_292_D1_TPW_TRANSITION_GATE_001_20261027"
+#define BBMA_BUILD_TAG      "V526_M11_CONST_READONLY_SNAPSHOT_INPUTS_20261027"
+#define BBMA_SOURCE_REV_TAG "CORE_FIDELITY_292_M11_CONST_READONLY_001_20261027"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -3928,7 +3928,7 @@ bool IsD1TPWCompletionAtShift(string pair, ENUM_DIRECTION direction, int shift)
 }
 
 bool D1OpportunityTPWCompletedSince(string pair, ExtremeLifecycleData &extreme,
-                                    TimeframeData &latestClosedD1)
+                                    const TimeframeData &latestClosedD1)
 {
    if(!D1OpportunityExtremeMature(extreme)) return true;
    if(!latestClosedD1.is_valid || !latestClosedD1.is_closed ||
@@ -3995,7 +3995,7 @@ void InstallD1OpportunityJourney(D1OpportunityJourney &journey, string pair,
    journey.Reason = reason;
 }
 
-bool DetectD1OpportunityCSD(string pair, TimeframeData &data,
+bool DetectD1OpportunityCSD(string pair, const TimeframeData &data,
                             BollingerBand &band, ENUM_DIRECTION direction)
 {
    if(!data.is_valid || !data.is_closed || data.barIndex < 1) return false;
@@ -4008,7 +4008,7 @@ bool DetectD1OpportunityCSD(string pair, TimeframeData &data,
    return DetectCSD(pair, PERIOD_D1, direction, data.barIndex, ma, band);
 }
 
-bool DetectD1OpportunityECSDWatch(string pair, TimeframeData &data,
+bool DetectD1OpportunityECSDWatch(string pair, const TimeframeData &data,
                                   ENUM_DIRECTION direction)
 {
    if(!data.is_valid || !data.is_closed || data.barIndex < 1) return false;

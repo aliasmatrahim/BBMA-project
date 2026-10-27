@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.2.6 - M11 Const Read-Only Snapshot Inputs           |
+//| Version 5.2.7 - M11 Const Read-Only Owner Inputs              |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.26"
+#property version   "5.27"
 #property strict
 
-#define BBMA_BUILD_TAG      "V526_M11_CONST_READONLY_SNAPSHOT_INPUTS_20261027"
-#define BBMA_SOURCE_REV_TAG "CORE_FIDELITY_292_M11_CONST_READONLY_001_20261027"
+#define BBMA_BUILD_TAG      "V527_M11_CONST_READONLY_OWNER_INPUTS_20261027"
+#define BBMA_SOURCE_REV_TAG "CORE_FIDELITY_292_M11_CONST_READONLY_002_20261027"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -3665,7 +3665,7 @@ bool M11_ClassifyD1OwnerAtShift(string pair, int shift,
 
 // Reconstructs the exact contiguous owner epoch after restart/recovery.
 // If history cannot prove the older boundary, provenance stays unresolved.
-bool M11_ResolveD1OwnerEpochStart(string pair, D1MajorTrendOwner &owner,
+bool M11_ResolveD1OwnerEpochStart(string pair, const D1MajorTrendOwner &owner,
                                   datetime &epochStart)
 {
    epochStart = 0;
@@ -3716,7 +3716,7 @@ void SetD1OwnerUnresolved(PairState &state, string reason)
    state.d1_major_trend_owner = owner;
 }
 
-void TraceD1MajorTrendOwner(string pair, PairState &state)
+void TraceD1MajorTrendOwner(string pair, const PairState &state)
 {
    if(DebugLevel < DBG_SIGNAL) return;
 
@@ -3848,14 +3848,14 @@ void ResetD1OpportunityJourney(D1OpportunityJourney &journey, string reason)
    journey.Reason = reason;
 }
 
-bool D1OpportunityIsConfirmedRE(ReEntryData &reEntry)
+bool D1OpportunityIsConfirmedRE(const ReEntryData &reEntry)
 {
    return (reEntry.State == RE_STATE_CONFIRMED && reEntry.IsValid &&
            (reEntry.Direction == DIR_BUY || reEntry.Direction == DIR_SELL) &&
            reEntry.Timeframe == PERIOD_D1 && reEntry.ConfirmationCandle > 0);
 }
 
-bool SelectConfirmedD1OpportunityRE(ReEntryData &buyState, ReEntryData &sellState,
+bool SelectConfirmedD1OpportunityRE(const ReEntryData &buyState, const ReEntryData &sellState,
                                     ReEntryData &selected, bool &ambiguous)
 {
    ZeroMemory(selected);
@@ -3867,7 +3867,7 @@ bool SelectConfirmedD1OpportunityRE(ReEntryData &buyState, ReEntryData &sellStat
    return true;
 }
 
-bool D1OpportunityExtremeMature(ExtremeLifecycleData &extreme)
+bool D1OpportunityExtremeMature(const ExtremeLifecycleData &extreme)
 {
    if(!extreme.IsValid || extreme.Timeframe != PERIOD_D1 ||
       extreme.ConfirmationCandleTime <= 0) return false;
@@ -3876,8 +3876,8 @@ bool D1OpportunityExtremeMature(ExtremeLifecycleData &extreme)
            extreme.Maturity == EXT_MAT_RETEST_READY);
 }
 
-bool SelectMatureD1OpportunityExtreme(ExtremeLifecycleData &buyState,
-                                      ExtremeLifecycleData &sellState,
+bool SelectMatureD1OpportunityExtreme(const ExtremeLifecycleData &buyState,
+                                      const ExtremeLifecycleData &sellState,
                                       ExtremeLifecycleData &selected,
                                       bool &ambiguous)
 {
@@ -3927,7 +3927,7 @@ bool IsD1TPWCompletionAtShift(string pair, ENUM_DIRECTION direction, int shift)
    return false;
 }
 
-bool D1OpportunityTPWCompletedSince(string pair, ExtremeLifecycleData &extreme,
+bool D1OpportunityTPWCompletedSince(string pair, const ExtremeLifecycleData &extreme,
                                     const TimeframeData &latestClosedD1)
 {
    if(!D1OpportunityExtremeMature(extreme)) return true;

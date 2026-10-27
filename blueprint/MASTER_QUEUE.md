@@ -39,7 +39,7 @@ Status: **PARTIAL — BUILD 5.23 FOCUSED REGRESSION + EXACT-GIT-BLOB NATIVE STRI
 - CP15 direct primary-PDF verification: the supplied PDF SHA-256 matches SOURCE_INDEX; pp.9–10 define Re-Entry types but give no Type2/3/4 overlap priority.
 - CP16 project decision: retain the existing Type3→Type4→Type2→Type1 empty-owner order as explicit project policy. It is not a source rule and does not claim observed overlap. See blueprint/decisions/M12_REENTRY_OVERLAP_PRIORITY_POLICY_DECISION_20261027.md.
 - CP17 completed the static Core §9 hierarchy trace and found a material D1_TRANSITION / D1_OPP_EXTREME_TPW policy discrepancy. The D1 TPW lifecycle gate remains OFF and fails closed in M17.
-- CP18 resolves the policy as a strict fail-closed application of Core §9.2 to D1_OPP_EXTREME_TPW; no Core rule or owner-source change. CP19 has reconciled accepted Core §10 against the existing verified CP11/12/14/17 traces and CP18 evidence. Next eligible scoped static task: Core §11 exclusions/change-control boundaries; runtime gates remain blocked on qualified history. Qualified G40 history remains NOT VERIFIED; Strategy Tester and broker/runtime remain NOT RUN. No merge, terminal restart or trading activation.
+- CP18 resolves the policy as a strict fail-closed application of Core §9.2 to D1_OPP_EXTREME_TPW; no Core rule or owner-source change. CP19 has reconciled accepted Core §10 against the existing verified CP11/12/14/17 traces and CP18 evidence. Next eligible task: complete shared nested-field read/write ownership and consumer edges for M01–M27/M11J/M12N; preserve the existing full rule-to-runtime denominator as PARTIAL.; runtime gates remain blocked on qualified history. Qualified G40 history remains NOT VERIFIED; Strategy Tester and broker/runtime remain NOT RUN. No merge, terminal restart or trading activation.
 
 ## Stage A - Source evidence / reconciliation
 
@@ -297,7 +297,7 @@ No destructive reset, blind recreation, automatic MT4 restart, or trading enable
 - Candidate Build 5.23 applies the confirmed-owner readiness helper at M15 and M16 while preserving counter-direction eligibility against a confirmed owner under existing D1O-01 H4/H1 prerequisites.
 - Five focused regression scripts passed; exact Git-blob G40 MetaEditor compile passed with 0 errors / 0 warnings. See CP18 manifest and logs.
 - D1 TPW lifecycle remains OFF. Owner Build 5.15 is unchanged. Qualified history remains NOT VERIFIED; Strategy Tester and broker/runtime remain NOT RUN. PR #293 remains draft/unmerged and DO NOT MERGE.
-- CP19 completed the accepted Core §10 static synthesis using existing CP11/12/14/17 evidence and CP18 candidate verification; next scoped review is Core §11 exclusions/change-control. No merge, terminal restart or trading activation.
+- CP19 completed the accepted Core §10 static synthesis using existing CP11/12/14/17 evidence and CP18 candidate verification; Next eligible task: complete shared nested-field read/write ownership and consumer edges for M01–M27/M11J/M12N; preserve the existing full rule-to-runtime denominator as PARTIAL.. No merge, terminal restart or trading activation.
 
 ## CORE-FIDELITY-292 CP19 execution update — 2026-10-27
 
@@ -305,3 +305,10 @@ No destructive reset, blind recreation, automatic MT4 restart, or trading enable
 - D1 strategic ownership remains an independent M11 producer and M15/M16 execution gate; REM has no D1 component and RRE/REE D1 Re-Entry is not owner confirmation. CP18 closes D1O-TPW transition applicability at candidate M15/M16.
 - No code, tests or compile changed/ran in CP19. Full accepted-Core/runtime denominator remains PARTIAL; qualified history remains NOT VERIFIED and Strategy Tester remains NOT RUN.
 - Next eligible scoped task: accepted Core §11 exclusions/change-control boundary audit.
+
+## CORE-FIDELITY-292 CP20 execution update — 2026-10-27
+
+- Core §11 exclusions and the 49/49 classification boundary are revalidated from the active Core and dated closure authorities. No excluded personal rule or EA mechanism is promoted into universal BBMA Strategy-Core.
+- The implementation modules remain project plumbing under their contracts; semantic classification is not trade-entry or runtime proof.
+- CP20 changes no EA code and runs no tests, compile, Tester or broker runtime. Qualified history remains NOT VERIFIED; full rule-to-runtime and nested-field ownership are PARTIAL.
+- Next eligible scoped task: complete M01–M27/M11J/M12N shared nested-field read/write ownership and consumer-edge mapping.

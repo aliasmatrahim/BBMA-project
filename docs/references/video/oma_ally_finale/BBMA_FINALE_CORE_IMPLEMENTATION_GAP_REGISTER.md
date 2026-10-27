@@ -135,3 +135,9 @@ Verification: five focused exact-source regression scripts passed, including fou
 Core §10 is statically reconciled to the existing verified owner traces: M13/M14 preserve the exact REM/RRE/REE signatures; M08/M09 enforce the required Extreme and M15 MHV/MLV maturity states; M11 supplies the independent D1 owner; M15/M16 enforce final executable direction. D1 is not added as a REM component, and D1 Re-Entry inside RRE/REE does not replace M11 confirmation.
 
 No new source-to-owner mismatch was found. This conclusion reuses CP11/CP12/CP14/CP17 and CP18 evidence; CP19 added no code, test or compile. Runtime remains NOT VERIFIED, qualified G40 history remains NOT VERIFIED, Strategy Tester remains NOT RUN, and C039/C040 remains separate.
+
+## CP20 — Core §11 exclusion boundary (2026-10-27)
+
+Accepted Core §11 explicitly excludes personal workflow and statistics, personal money-management/SL methods, literal guarantees and EA plumbing from universal Strategy-Core. The referenced Q5 rebaseline classifies 49/49 Home Course families with zero unresolved Core semantic holds. This is a semantic classification result, not executable or runtime certification.
+
+M17–M27 and M11J/M12N remain governed project implementation/observer layers. No code or Core promotion occurred in CP20. Qualified history, Strategy Tester, broker runtime, full field-level ownership and end-to-end traceability remain separate open verification items.

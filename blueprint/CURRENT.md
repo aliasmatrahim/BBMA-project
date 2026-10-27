@@ -216,4 +216,13 @@ Status: **CORE §10 STATIC MATURITY/SIGNATURE/GATE MAPPING VERIFIED; NO NEW MISM
 - Reused CP11 for Extreme maturity and standalone-versus-MTF readiness; CP12 for M15 MHV/MLV formation/frozen-body maturity; CP14 for exact REM/RRE/REE signatures; CP17 for the independent M11/M15/M16 strategic gate; CP18 for D1O-TPW transition fail-closed behavior.
 - Core §10 adds no fourth D1 component to REM. RRE/REE D1 Re-Entry identity remains distinct from confirmed M11 D1 strategic ownership. M15/M16 remain final executable authority.
 - No source code, contract behavior, regression test or compile changed/ran in CP19. CP18 test/compile evidence is unchanged. Qualified G40 history remains NOT VERIFIED; Strategy Tester and broker/runtime remain NOT RUN.
-- Next eligible static review: accepted Core §11 explicit exclusions/change-control boundaries; full rule-to-runtime denominator remains PARTIAL.
+- CP20 confirms Core §11 exclusions and reuses the 49/49 source classification. Next eligible task: complete the shared M01–M27/M11J/M12N nested-field read/write ownership graph and rule-to-runtime denominator.
+
+## CORE-FIDELITY-292 CP20 — 2026-10-27
+
+Status: **CORE §11 EXCLUSION BOUNDARY REVALIDATED; NO NEW CORE SEMANTIC GAP**.
+- Accepted Core §11 explicitly excludes personal workflow/statistics, personal money-management/SL preferences, literal guarantees and EA implementation mechanisms from universal Strategy-Core.
+- The 49-family rebaseline and dated decisions classify 49/49 families with zero unresolved semantic holds. This remains semantic coverage, not executable or runtime proof.
+- M17–M27 and M11J/M12N remain project implementation/observer layers under their separate contracts; no excluded personal claim or plumbing mechanism is promoted to a BBMA signal rule.
+- No code, test, compile or runtime changed/ran in CP20. Qualified history remains NOT VERIFIED; Strategy Tester and broker/runtime remain NOT RUN. Full rule-to-runtime and nested-field ownership remain PARTIAL.
+- Next eligible task: complete shared nested-field read/write ownership and consumer edges for M01–M27/M11J/M12N.

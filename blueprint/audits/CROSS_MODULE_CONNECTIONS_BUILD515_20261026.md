@@ -175,3 +175,11 @@ Static baseline: accepted Core V2 blob 3c450d7157db6b7a6bf53549f645bb75c88371e5 
 - M11 remains the D1 strategic-owner producer. M15/M16 gate executable direction independently from signature validity; D1 Re-Entry is a component identity, not a substitute for M11 owner confirmation. M12N remains observational. M27 preserves the closed-snapshot → owner/candidate → M15 → M16 → downstream sequence.
 - CP11/CP12/CP14/CP17 already provide the owner-source maturity/signature traces; CP18 resolves the separate D1O-TPW transition gate. CP19 reconciles Core §10 against those verified records without repeating their tests or compile and finds no new mismatch.
 - Static mapping only. Qualified G40 history remains NOT VERIFIED; Strategy Tester and broker/runtime remain NOT RUN. C039/C040 stays a separate scoped extension gap.
+
+## CP20 — Core §11 scope and non-Core boundary (2026-10-27)
+
+- Accepted Core §11 excludes personal H4-only workflow, sample win-rate claims, personal risk/leverage/lot/portfolio, personal MA10-plus-allowance stop methodology, psychology, literal guarantees, and EA mechanisms such as lock/scheduler/dashboard/logging/broker/execution plumbing.
+- Current Core authority says the Home Course denominator is 49/49 classified with zero unresolved Core semantic holds. This is semantic classification coverage, not a claim that 49 families are executable or runtime verified.
+- Cross-module interpretation: M17 SL/TP, M18 label-only score, M19 risk, M20 portfolio, M21 sizing, M22 order side effects, M23 lifecycle, M24 recovery, M25 display, M26 initialization and M27 orchestration remain project implementation layers. Their authority is governed by project contracts and accepted mappings; they do not add universal BBMA signal rules.
+- C039/C040/C041 remain bounded context; C044 remains separately gated. D1O-01 remains a labelled project extension. No new code or Core promotion was made in CP20.
+- No new source-to-Core gap found. CP20 reuses the Q5 rebaseline and dated closure decisions; no tests, compile, Strategy Tester or broker runtime ran. Full rule-to-runtime and nested-field ownership remain PARTIAL.

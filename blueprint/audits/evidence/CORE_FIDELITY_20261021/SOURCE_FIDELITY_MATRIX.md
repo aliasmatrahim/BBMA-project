@@ -43,3 +43,82 @@ Build 5.22 extends the M15/M16 data-integrity gate from Re-Entry-only components
 The two Build 5.22 portable test methods reject three stale-component cases and admit the valid control. Exact-source strict MetaEditor compile on G40 passed with **0 errors / 0 warnings**. Evidence: `build522_native_compile_g40_20261027.log`; source, log and EX4 hashes are in `build522_manifest.json`.
 
 This compile does not certify live runtime. The qualified-history gate remains **NOT VERIFIED**, Strategy Tester is **NOT RUN**, and the M06 Build 5.20 row-level runtime impact remains unverified.
+
+## CP30 — Accepted Core pseudocode audit: Re-Entry path (2026-10-28)
+
+Status: **STATIC CORE-TO-OWNER COMPARISON COMPLETE / ORDINARY ENTRY TIMING NOT RUNTIME VERIFIED**. This section extends the existing fidelity matrix; it does not add a BBMA rule or duplicate the earlier CP14 source/consumer audit.
+
+### Authority and scope
+
+- Retrieval followed the live `docs/references/SOURCE_INDEX.md` at audit branch blob `54ec43b6d0f73c9da66e9061481f18deef1ee515`, then accepted Core V2 blob `e3a5a97d1a0a76dc9aaef51701e74ec5bd6b5f84` (§§8.1–8.6, 9.3 and 10), M12 contract blob `6d9f50ae07aec988de346ffb2cc66ed1a90e2559`, and the existing CP14/CP16/F6 evidence.
+- Live implementation baseline is `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`, Build 5.15, source blob `09de8b80fdaeeb2fd614de0a1826134e9a8b2411`. Build 5.28 on PR #293 is an audit candidate, not the active owner.
+- This pass covers M12 Type 1–4 lifecycle, the closed-candle/next-candle timing boundary, and the M13/M14/M15/M16 consumers needed to decide whether a confirmed Re-Entry can become a decision. It does not re-run CP14 or earlier exact-source probes.
+
+### Pseudocode derived from accepted Core
+
+```text
+ON M27 M15-owned processing pass:
+  build the latest closed D1, H4, H1, and M15 snapshots
+  for each source timeframe and direction:
+    if the current source snapshot is invalid, unclosed, or has no candle time:
+      retain the structural M12 owner, mark this source refresh unusable
+      do not admit a new decision that depends on the unreadable snapshot
+    else if this source candle was already processed:
+      do nothing
+    else:
+      classify same-candle direction/momentum context using current project precedence
+      if an opposite valid direction/momentum owner supersedes this direction:
+        clear this direction candidate/confirmed owner
+      else if the active Re-Entry has structurally failed its MA5/MA10 close side:
+        clear it
+      else if no Re-Entry owner exists:
+        if CSM precursor: start Type 3 candidate
+        else if CSD precursor: start Type 4 candidate
+        else if MA5/MA10 collide with Mid BB: start Type 2 candidate at candle 1
+        else if valid direction/momentum owner exists: retain Type 1 direction context
+      else if Type 1 direction context exists:
+        require pause plus positive retrace/cluster evidence; do not use absence of CSM alone
+        when the relevant MA5/MA10 cluster is reached and the close remains on the valid side:
+          confirm Type 1
+      else if Type 2 candidate exists:
+        reset if collision breaks; otherwise count distinct consecutive closed candles
+        after at least 3 qualifying candles, require valid MA5/MA10 retest to confirm
+      else if Type 3 candidate exists:
+        only a later closed candle reaching MA5 or MA50 on the valid side can confirm
+      else if Type 4 candidate exists:
+        only a later closed candle reaching MA5/MA10 on the valid side can confirm
+      on confirmation:
+        ConfirmationCandle = the fully closed source candle that validated the setup
+        EntryCandle = metadata for the immediately following live source candle
+        export only the confirmed owner; M12 itself does not place an order
+      keep the owner until structural invalidation/transfer; do not apply generic candle TTL
+
+  collect the exact MTF signatures; preserve M15 final selection and M16 revalidation
+  apply H4/D1 owner and current-source gates before downstream preflight/execution
+```
+
+### Static crosswalk to Build 5.15
+
+| Core expectation | Exact owner implementation | Audit result |
+|---|---|---|
+| Closed source candles only; duplicate candle is not processed twice | `UpdateReEntryState` rejects invalid/unclosed inputs and ignores `candle_time <= LastUpdateCandleTime` (source lines 4508–4520); M27 updates each D1/H4/H1/M15 owner from its timeframe snapshot (13502–13530) | **STATIC MATCH** |
+| Type 1 requires prior valid direction, structural pause/retrace, and MA5/10 support/resistance; no arbitrary count or TTL | `DetectReEntryDirectionOwnerSignal`, `AdoptType1DirectionOwner`, `IsType1StructuralRetraceEvidence`, `BeginType1RangingCandidate`, and Type 1 confirmation (4254–4271, 4359–4372, 4390–4430, 4594–4639, 4651–4685) | **MATCH AT PROJECT-MAPPING LEVEL**; exact ranging geometry is an engineering mapping, not verbatim source formula |
+| Type 2 uses MA5/10 + Mid BB collision, MA50 as stronger confluence, and at least three candles | `DetectReEntry_Type2` uses `IsNear`; `StartSpecificReEntryCandidate` sets 3; candidate processing counts distinct qualifying closes before confirming (4273–4289, 4453–4459, 4692–4716) | **STATIC MATCH**; numeric `IsNear` tolerance remains project configuration |
+| Type 3 is CSM then later MA5/MA50 retrace; Type 4 is CSD then later MA5/10 retrace | `DetectReEntry_Type3/4`, `TryStartSpecificReEntry`, and later-candle candidate handling (4291–4306, 4472–4495, 4719–4734) | **STATIC MATCH**; empty-owner order is project policy Type3→Type4→Type2→Type1, approved in CP16, not source precedence |
+| Confirmed signal is setup identity; M15/M16 remain final authority; standalone H1 needs same-direction active H4 owner | `ExportConfirmedReEntrySignal`, `BuildConfirmedReEntryCandidate`, M27 assembly (4750–4771, 6639–6685, 13591–13630) | **STATIC PATH MAPPED**; see confirmed freshness defect below |
+| Confirmation uses a fully closed validation candle; eligibility begins in the immediately following live source candle, with no extra full-candle delay | `ConfirmReEntryState` stores `ConfirmationCandle=data.candle_time` and `EntryCandle=data.candle_time+timeframe seconds` (4330–4348); F6 maps the ordinary path through same-pass M15/M16/preflight but still requires an `OrderOpenTime` trace | **STATIC ONLY / RUNTIME NOT VERIFIED** |
+
+### Findings and limits
+
+1. **Confirmed owner-side stale-source admission defect (already reproduced; not re-tested).** Build 5.15 retains a structural Re-Entry/H4 owner when an H1/H4 refresh is unreadable. The owner path can still admit the stale H1 candidate through M15/M16 to preflight. CP06 records the exact-source reproduction; candidate Build 5.22 adds current closed-snapshot checks for every decision component and passed its portable probe plus native strict compile in CP08. Owner Build 5.15 is unchanged; the candidate is not promoted.
+2. **Confirmed upstream data-validity defect (already audited; not re-tested).** Build 5.15 M06 can accept incomplete BB20/indicator history after skipping unavailable closes. That makes Re-Entry inputs unreliable on incomplete history. The Build 5.20 repair remains candidate-scoped; current owner is unchanged.
+3. **Timing is not closed by static code.** The metadata formula `ConfirmationCandle + period seconds` is a nominal next-period boundary. It is not proof that M22 sent or filled inside the immediately following actual source candle. At a weekend/session gap, compare against the next actual source-bar timestamp rather than assuming the arithmetic timestamp is an existing candle. This edge is especially relevant to D1O-01 because that separate opportunity path consumes `EntryCandle` as `ActivationTime`; the ordinary standalone path uses the live M15 decision/preflight flow.
+4. No new Type 1–4 strategy mismatch was confirmed by this pseudocode pass. Type 1 geometry, collision tolerance, same-candle signal precedence, and Type 2/3/4 arbitration remain explicit project mappings/policy; no fixed expiry, extra candle wait, or new entry authority was added.
+
+### Required timing trace before any PASS claim
+
+Capture one isolated Strategy Tester or already-authorized runtime event on the exact candidate/build and record, in the same broker-server time basis: symbol; source timeframe; `ConfirmationCandle`; computed `EntryCandle`; actual next source-bar `iTime` and its close; M15 processing-cycle timestamp; M15 decision ID/time; M16 validation time/state; M22 `OrderSend` request time; ticket and broker `OrderOpenTime`; source-snapshot validity/identity; and any gate rejection reason.
+
+Expected result: the validation candle is closed before the M15/M16 decision, the first eligibility window is the immediately following actual live source candle, and no extra full source-timeframe close is required. If a gate delays the decision, retain its reason and classify the observed timing; do not infer PASS from `EntryCandle` alone. Include a contiguous-bar case and a session-gap case. Qualified history and tester prerequisites must pass first.
+
+Validation in CP30: static repository comparison only. No test, compile, Strategy Tester, broker runtime, order, source change, merge, terminal restart, or trading activation was run.

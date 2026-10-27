@@ -141,3 +141,9 @@ No new source-to-owner mismatch was found. This conclusion reuses CP11/CP12/CP14
 Accepted Core §11 explicitly excludes personal workflow and statistics, personal money-management/SL methods, literal guarantees and EA plumbing from universal Strategy-Core. The referenced Q5 rebaseline classifies 49/49 Home Course families with zero unresolved Core semantic holds. This is a semantic classification result, not executable or runtime certification.
 
 M17–M27 and M11J/M12N remain governed project implementation/observer layers. No code or Core promotion occurred in CP20. Qualified history, Strategy Tester, broker runtime, full field-level ownership and end-to-end traceability remain separate open verification items.
+
+## CP21 — Typed field access inventory (2026-10-27)
+
+Main now contains a separate lexical inventory for the exact Build 5.15 owner source: 29 source headers, 36 structs / 640 fields / 595 accessed fields, and 338 struct-field pairs observed in more than one module. The inventory records direct reads, direct writes and nested traversals per module.
+
+This closes the availability gap for direct typed access enumeration only. It does not prove same-object identity or resolve all by-reference/copy aliases and call-side mutation. Interprocedural field ownership and end-to-end traceability remain open. No code, Core semantics, test, compile, Strategy Tester or broker runtime changed/ran in CP21.

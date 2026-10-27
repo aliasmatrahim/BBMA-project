@@ -21,7 +21,7 @@ Status: **PARTIAL — BUILD 5.23 FOCUSED REGRESSION + EXACT-GIT-BLOB NATIVE STRI
 - Finding B was reproduced on the owner path; Build 5.21 added the current closed-source gate for Re-Entry, and Build 5.22 extends it to every frozen component in M15/M16 without a new rule or owner reset.
 - CP08 verifies G40 native strict compile of the exact Build 5.22 Git blob: MetaEditor 5.0.0.2425, 0 errors / 0 warnings. Source/log/EX4 hashes are in the current manifest.
 - G40 is online. The qualified-history gate is **NOT VERIFIED**: no `MARKET_DATA_INDEX*` was found in inspected BBMA roots, and the wider profile search hit its 3-second cap. Strategy Tester remains NOT RUN.
-- Static inventory remains lexical: 29 module headers, 431 function definitions, 96 cross-module call edges / 364 call pairs, 23 M01 inputs, 68 type declarations and 37 M03 globals. Nested-field read/write ownership and full rule-to-runtime coverage remain PARTIAL.
+- Static inventory remains lexical: 29 source headers, 431 function definitions, 96 cross-module module edges / 364 function pairs and 502 cross-module call occurrences. Main now also carries a typed field-access inventory: 36 structs, 640 declared fields, 595 accessed fields and 338 type-field pairs seen across modules. Object identity, interprocedural alias/call mutation, full rule-to-runtime coverage and runtime remain PARTIAL.
 - No owner/production artifact, live order, terminal restart or trading activation changed.
 - CP10 maps accepted Core §4 across M06/M07/M08/M10/M12/M27. M07 shape labels are currently write-only; M10 CSM feeds M12 Type-3, while M08 checks a local CSM-equivalent predicate. Static trace only; focused parity/runtime remains NOT VERIFIED.
 - CP11 statically maps Core §5.1–5.4 through M06/M08/M09/M11J/M13/M15/M16/M17/M23/M27. The owner implements the accepted M08 maturity path; Mode-2 standalone H1 requires exact RETEST_READY plus owner gates. D1O TPW is separate and its lifecycle gate remains OFF/fail-closed. The stale Finale standalone status is corrected; no code, test or runtime state changed in CP11.
@@ -225,4 +225,14 @@ Status: **CORE §11 EXCLUSION BOUNDARY REVALIDATED; NO NEW CORE SEMANTIC GAP**.
 - The 49-family rebaseline and dated decisions classify 49/49 families with zero unresolved semantic holds. This remains semantic coverage, not executable or runtime proof.
 - M17–M27 and M11J/M12N remain project implementation/observer layers under their separate contracts; no excluded personal claim or plumbing mechanism is promoted to a BBMA signal rule.
 - No code, test, compile or runtime changed/ran in CP20. Qualified history remains NOT VERIFIED; Strategy Tester and broker/runtime remain NOT RUN. Full rule-to-runtime and nested-field ownership remain PARTIAL.
-- Next eligible task: complete shared nested-field read/write ownership and consumer edges for M01–M27/M11J/M12N.
+- CP21 completed direct typed-field inventory; interprocedural by-reference/copy aliases, call-side mutation and actual shared-object identity remain unresolved. Full rule-to-runtime coverage remains PARTIAL.
+
+## CORE-FIDELITY-292 CP21 — 2026-10-27
+
+Status: **DIRECT TYPED-FIELD INVENTORY RECORDED; INTERPROCEDURAL OWNERSHIP AND RUNTIME PARTIAL**.
+- The exact Build 5.15 owner source remains d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de, blob 09de8b80fdaeeb2fd614de0a1826134e9a8b2411.
+- PR #295 merged at main@22b2e539a82eea768c53bd2a905dd958b6072324. It preserves the accepted root graph authority and adds a separate current-owner overlay plus config/bbma_field_access_inventory_build515.json.
+- Inventory scope: 29 source headers; 431 function definitions; 1,478 call occurrences; 502 cross-module call occurrences; 96 module edges; 364 function pairs; 36 structs; 640 declared fields; 595 fields with typed accesses; 338 multi-module type-field pairs; zero unresolved typed-member occurrences within scanner scope.
+- Direct typed reads/writes/traversals and their per-module totals are recorded in the machine-readable inventory. This does not prove object identity across functions or resolve every by-reference/copy alias and callee mutation.
+- No EA/Core source, tests, compile, Strategy Tester, broker runtime, terminal restart or trade activation changed/ran. G40 device is online; qualified history remains NOT VERIFIED and Strategy Tester/runtime remain NOT RUN.
+- Next scoped action: resolve remaining alias/reference/call-side mutation and shared-object identity edges. Q10 Phase L R5 remains the highest-priority global final-acceptance item on its separate frozen Build 5.11 scope.

@@ -104,3 +104,11 @@ The separate M12 invalid-refresh admission finding was reproduced against owner 
 - The supplied primary PDF SHA-256 `3e6065dd97c20951bd8af96bc81b81ca138800184be6fc4740a32aa4ab0a9c9c` matches the value recorded in SOURCE_INDEX. Pages 9–10 were checked in extracted text and rendered visual form.
 - Page 10 defines Type2, Type3 and Type4 individually but contains no precedence/tie-break or mutual-exclusion instruction. Page 9 covers Type1 ranging and also does not arbitrate the other types.
 - Therefore the CP14 M12 overlap question remains a project-policy gate. No strategy rule was inferred and no EA code changed. CP15 is source verification only; no test, compile, Strategy Tester or runtime ran.
+
+
+## CP16 project-policy decision — M12 overlap arbitration (2026-10-27)
+
+- The requester selected the current deterministic empty-owner order Type3→Type4→Type2→Type1 as project policy. See blueprint/decisions/M12_REENTRY_OVERLAP_PRIORITY_POLICY_DECISION_20261027.md.
+- This resolves the project arbitration choice while preserving the source finding: primary PDF/Core/Finale do not define overlap precedence, and no predicate overlap has been demonstrated in market data.
+- Build 5.15 code already follows the selected order. No EA code or trading rule was changed; this is documentation/governance only.
+- Strategy Tester remains NOT RUN; qualified G40 history is NOT VERIFIED. CP16 does not authorize merge, restart or trading activation.

@@ -94,12 +94,15 @@ These are engineering encodings needed to turn source language into deterministi
    - Uses candle high/low reaching the relevant MA support/resistance cluster together with close remaining on the source-stated side.
    - This avoids inventing a new pip-distance trading threshold.
 
-### Overlapping Type 2/3/4 precursor predicates — unresolved
+### Overlapping Type 2/3/4 precursor predicates — project policy selected
 
-The primary PDF (p.10), accepted Core V2 §§8.3–8.5, Finale evidence and this contract define the individual Type 2, 3 and 4 structures but do not set a priority when more than one precursor predicate qualifies on the same source-timeframe candle. The owner source has one Re-Entry state per direction/timeframe; when that owner is empty, `TryStartSpecificReEntry()` currently tries Type 3, then Type 4, then Type 2, before Type 1. No explicit mutual-exclusion check makes those predicates source-disjoint.
+The primary PDF (p.10), accepted Core V2 §§8.3–8.5, Finale evidence and this contract define the individual Type 2, 3 and 4 structures but do not set a priority when more than one precursor predicate qualifies on the same source-timeframe candle. CP15 directly inspected primary PDF p.10 (SHA-256 matches SOURCE_INDEX: 3e6065dd97c20951bd8af96bc81b81ca138800184be6fc4740a32aa4ab0a9c9c) and confirmed there is no overlap priority, tie-break or mutual-exclusion instruction. Static review does not establish that such overlap occurred in market data.
 
-This order is an implementation detail, not a source-authorized BBMA precedence. CP15 directly inspected primary PDF p.10 from the supplied artifact (SHA-256 matches SOURCE_INDEX: `3e6065dd97c20951bd8af96bc81b81ca138800184be6fc4740a32aa4ab0a9c9c`): the page lists Types 2, 3 and 4 in sequence, with no overlap priority, tie-break or mutual-exclusion rule. Static review does not establish that such overlap has occurred in market data. Keep the current owner behavior unchanged while the gap is unresolved; do not promote the order to Core or redesign ownership without an explicit project decision. Status: **UNRESOLVED — primary source defines each type, but not overlap arbitration**.
+**Project policy approved 2026-10-27:** when the direction/timeframe M12 owner is empty, preserve the existing Build 5.15 short-circuit sequence: Type 3 → Type 4 → Type 2 → Type 1. The first matching Type 3, Type 4 or Type 2 precursor starts the owner; Type 1 remains the fallback when no specific precursor starts. This makes the existing deterministic implementation order an explicit project policy. It is not an Oma Ally, Core V2 or Finale source rule.
 
+The policy does not assert that the predicates overlap or are mutually exclusive. It does not change type detectors, confirmed-owner persistence/lifecycle, close-side validation, higher-timeframe eligibility, M15/M16 authority, risk or execution. No owner source change is needed for this decision because Build 5.15 already follows the selected order.
+
+Status: **PROJECT POLICY SELECTED — source precedence remains unspecified; market overlap not verified**. Decision record: blueprint/decisions/M12_REENTRY_OVERLAP_PRIORITY_POLICY_DECISION_20261027.md.
 ## Removed non-source logic
 Step 3B removes/rejects these active M12 behaviours:
 - Type 1 EMA50-near candidate + later EMA50-cross confirmation.

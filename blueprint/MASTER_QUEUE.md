@@ -36,8 +36,9 @@ Status: **PARTIAL — BUILD 5.22 NATIVE STRICT COMPILE PASS; HISTORY/RUNTIME AND
 - CP12 maps accepted Core §6 through M08/M09/M12N/M13/M14/M16/M27. The M15 lifecycle aligns statically with the accepted Core mapping; IG-01–IG-03 are stale patch claims. M09 parity/runtime remain NOT VERIFIED. M12N has no H4/H1 MHV watch/context state under C039/C040 documentation decisions, which do not by themselves authorize MQL4 changes; a separate scoped contract/task is needed. No M09 contract is linked.
 - CP13 maps accepted Core §7 through M10/M12/M13/M27 and M11J D1 CSD opportunity context. Raw eCSD can overlap a same-direction CSD predicate; M12/M27 classification priority and M13 suppression prevent duplicate strategy use. D1 eCSD is raw/watch-only; D1 CSD requires a fresh LTF Re-Entry, with M15/M16 final authority. The stale M10 collector note is corrected. M06 incomplete-history input quality remains a separate Build 5.15 owner defect with candidate-only repair. Focused test/runtime remains NOT VERIFIED.
 - CP14 statically completed Core §8 Re-Entry owner/consumer mapping and corrected the F6 D1O-01 EntryCandle use. No owner code changed; no CP14 test/compile/Tester/runtime ran.
-- CP15 direct primary-PDF verification: the supplied PDF SHA-256 matches SOURCE_INDEX; pp.9–10 define Re-Entry types but give no Type2/3/4 overlap priority. The M12 gate therefore remains a project-policy decision; no EA code changed.
-- Exact next action / USER GATE: choose whether to preserve Type3→Type4→Type2 as explicit project policy, fail closed on ambiguous overlap, or hold separate owners for M15 evaluation. Direct primary PDF p.10 inspection and the other reviewed sources set no precedence. Core §9 stays queued until this policy is decided. Strategy Tester remains NOT RUN until qualified G40 history is verified. No merge, terminal restart or trading activation.
+- CP15 direct primary-PDF verification: the supplied PDF SHA-256 matches SOURCE_INDEX; pp.9–10 define Re-Entry types but give no Type2/3/4 overlap priority.
+- CP16 project decision: retain the existing Type3→Type4→Type2→Type1 empty-owner order as explicit project policy. It is not a source rule and does not claim observed overlap. See blueprint/decisions/M12_REENTRY_OVERLAP_PRIORITY_POLICY_DECISION_20261027.md.
+- The M12 project-policy gate is closed. Next eligible atomic task: static mapping of accepted Core §9 MTF relationship/strategic hierarchy through M11/M11J/M12/M12N/M13/M14/M15/M16/M27. Strategy Tester remains NOT RUN until qualified G40 history is verified. No merge, terminal restart or trading activation.
 
 ## Stage A - Source evidence / reconciliation
 
@@ -272,3 +273,11 @@ No destructive reset, blind recreation, automatic MT4 restart, or trading enable
 - Source-to-contract mapping for the Build 5.22 freshness gate now traces all decision components through M15 admission and M16 revalidation.
 - Native strict compile remains PASS. Qualified history is NOT VERIFIED; Strategy Tester and broker/runtime remain NOT RUN.
 - Full accepted-Core denominator and nested-field ownership remain PARTIAL; continue those independent static audits without reviving historical stale gap rows.
+
+
+## CORE-FIDELITY-292 CP16 execution update — 2026-10-27
+
+- M12 arbitration policy selected: preserve Type3→Type4→Type2→Type1 on an empty owner, matching Build 5.15. The choice is project policy, not source precedence; no market overlap is claimed.
+- M12 source/contract trace now separates the direct source finding from the selected project behavior. No EA source changed.
+- Next: static audit of accepted Core §9 MTF relationship and strategic hierarchy. Qualified G40 history remains NOT VERIFIED; Strategy Tester and broker/runtime remain NOT RUN.
+- Overall rule-to-runtime denominator remains PARTIAL. Draft PR #293 remains unmerged and DO NOT MERGE.

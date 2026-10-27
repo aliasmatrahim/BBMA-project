@@ -180,3 +180,13 @@ Status: **PARTIAL — CURRENT-SNAPSHOT SOURCE/CONTRACT LINKS RECONCILED; FULL RU
 - CP08 native compile remains PASS; qualified G40 history remains NOT VERIFIED and tester/runtime remain NOT RUN.
 - Local attachment copies for Core V2, Finale Master Index and implementation-gap register differ from live GitHub blobs; live GitHub sources were used.
 
+
+## CORE-FIDELITY-292 CP16 — 2026-10-27
+
+Status: **M12 ARBITRATION POLICY DECIDED; CORE §9 STATIC AUDIT NEXT**.
+- The requester approved the existing Build 5.15 empty-owner order Type3→Type4→Type2→Type1 as explicit project policy.
+- Primary PDF pp.9–10 and reviewed Core/Finale sources still assign no overlap priority. The selected order is not represented as source-derived and no actual predicate overlap is claimed.
+- Build 5.15 code already follows this order; no EA source change was needed. Decision and contract links are in the M12 decision record and source contract.
+- Documentation only. No tests, compile, Strategy Tester, broker/runtime, merge, terminal restart or trading activation occurred.
+- Qualified G40 history remains NOT VERIFIED; Strategy Tester remains NOT RUN. PR #293 remains draft, open, unmerged and DO NOT MERGE.
+- Exact next task: statically map accepted Core §9 MTF relationship/strategic hierarchy through M11/M11J/M12/M12N/M13/M14/M15/M16/M27 and record any remaining source-to-owner gaps.

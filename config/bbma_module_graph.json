@@ -3,21 +3,20 @@
   "authority": {
     "repository": "aliasmatrahim/BBMA-project",
     "branch": "d1-owner-dev",
-    "commit": "459c0588e625d7f7630f0fb5612b7f04fda496de"
+    "commit": "23def0919386263007ead1898b94637cc17f7f36"
   },
   "coverage": {
     "module_identity": "VERIFIED",
     "consumer_edges": "PARTIAL",
-    "tests": "NOT VERIFIED",
-    "field_access_inventory": "STATIC_TYPED_DIRECT_ACCESS_SNAPSHOT"
+    "tests": "NOT VERIFIED"
   },
   "evidence_catalog": {
     "EA_HEADERS": {
       "repository": "aliasmatrahim/BBMA-project",
-      "commit": "459c0588e625d7f7630f0fb5612b7f04fda496de",
+      "commit": "23def0919386263007ead1898b94637cc17f7f36",
       "path": "blueprint/source/BBMA_EA.mq4",
-      "blob_sha": "09de8b80fdaeeb2fd614de0a1826134e9a8b2411",
-      "locator": "MODULE 01 through MODULE 27, including distinct MODULE 11J and MODULE 12N headers"
+      "blob_sha": "6e629128f37c3fd482dd49e275360503f73fee68",
+      "locator": "MODULE 01 through MODULE 27 and MODULE 12N headers"
     },
     "C_D1": {
       "repository": "aliasmatrahim/BBMA-project",
@@ -749,2979 +748,25 @@
         "C_M27"
       ],
       "consumers": []
-    },
-    "M11J": {
-      "module_id": "M11J",
-      "ownership": "D1 OPPORTUNITY JOURNEY / D1O-01 PROJECT EXTENSION",
-      "status": "VERIFIED",
-      "evidence": [
-        "EA_HEADERS"
-      ],
-      "consumers": []
     }
   },
   "known_unknowns": [
-    "Consumer-edge coverage remains PARTIAL. The typed field inventory records direct reads, writes and nested traversal, while the connection inventory records direct source-defined function calls; neither resolves every by-reference/copy alias or proves object identity across function boundaries.",
-    "A field passed to a helper can be mutated through a reference parameter; call-side mutation is not attributed unless a direct member write is visible in the callee.",
-    "No consumer edge is inferred absent from lexical non-observation; contract-backed call-flow review remains required for complete M01-M27/M11J/M12N ownership.",
-    "Targeted regression assignments remain NOT VERIFIED until graph acceptance and test authority are mapped."
+    "Consumer-edge coverage for M01-M05, M07, and M09 is incomplete where no active standalone module contract exists.",
+    "Only directly cited consumer relationships are present; absence of an edge is NOT VERIFIED as absence of a dependency.",
+    "Targeted regression assignments are intentionally NOT VERIFIED until the graph is accepted and test authority is mapped."
   ],
-  "connection_inventory": {
+  "current_owner_source_overlay": {
+    "schema_version": 1,
+    "purpose": "Current-source lexical audit overlay; does not mutate the accepted module graph authority or its verified consumer-edge set.",
     "authority": {
+      "repository": "aliasmatrahim/BBMA-project",
       "branch": "d1-owner-dev",
       "commit": "459c0588e625d7f7630f0fb5612b7f04fda496de",
-      "source_blob_sha": "09de8b80fdaeeb2fd614de0a1826134e9a8b2411"
+      "path": "blueprint/source/BBMA_EA.mq4",
+      "blob_sha": "09de8b80fdaeeb2fd614de0a1826134e9a8b2411",
+      "build": "5.15"
     },
-    "function_definitions": 431,
-    "function_call_occurrences": 1478,
-    "cross_module_call_occurrences": 502,
-    "cross_module_module_edges": 96,
-    "cross_module_function_pairs": 364,
-    "module_edges": [
-      {
-        "edge": "M04->M05",
-        "pair_count": 1
-      },
-      {
-        "edge": "M05->M04",
-        "pair_count": 21
-      },
-      {
-        "edge": "M06->M05",
-        "pair_count": 2
-      },
-      {
-        "edge": "M06->M04",
-        "pair_count": 3
-      },
-      {
-        "edge": "M07->M06",
-        "pair_count": 1
-      },
-      {
-        "edge": "M07->M04",
-        "pair_count": 1
-      },
-      {
-        "edge": "M08->M06",
-        "pair_count": 1
-      },
-      {
-        "edge": "M09->M10",
-        "pair_count": 2
-      },
-      {
-        "edge": "M09->M08",
-        "pair_count": 6
-      },
-      {
-        "edge": "M10->M06",
-        "pair_count": 1
-      },
-      {
-        "edge": "M11->M06",
-        "pair_count": 2
-      },
-      {
-        "edge": "M11J->M06",
-        "pair_count": 4
-      },
-      {
-        "edge": "M11J->M05",
-        "pair_count": 2
-      },
-      {
-        "edge": "M11J->M10",
-        "pair_count": 3
-      },
-      {
-        "edge": "M12->M10",
-        "pair_count": 5
-      },
-      {
-        "edge": "M12->M04",
-        "pair_count": 1
-      },
-      {
-        "edge": "M12->M05",
-        "pair_count": 1
-      },
-      {
-        "edge": "M12N->M05",
-        "pair_count": 8
-      },
-      {
-        "edge": "M12N->M11J",
-        "pair_count": 3
-      },
-      {
-        "edge": "M12N->M15",
-        "pair_count": 2
-      },
-      {
-        "edge": "M13->M15",
-        "pair_count": 3
-      },
-      {
-        "edge": "M13->M12N",
-        "pair_count": 2
-      },
-      {
-        "edge": "M13->M05",
-        "pair_count": 2
-      },
-      {
-        "edge": "M13->M09",
-        "pair_count": 1
-      },
-      {
-        "edge": "M14->M05",
-        "pair_count": 1
-      },
-      {
-        "edge": "M15->M05",
-        "pair_count": 10
-      },
-      {
-        "edge": "M15->M24",
-        "pair_count": 3
-      },
-      {
-        "edge": "M15->M23",
-        "pair_count": 1
-      },
-      {
-        "edge": "M15->M17",
-        "pair_count": 3
-      },
-      {
-        "edge": "M15->M12N",
-        "pair_count": 4
-      },
-      {
-        "edge": "M16->M09",
-        "pair_count": 1
-      },
-      {
-        "edge": "M16->M15",
-        "pair_count": 2
-      },
-      {
-        "edge": "M16->M11J",
-        "pair_count": 2
-      },
-      {
-        "edge": "M16->M05",
-        "pair_count": 1
-      },
-      {
-        "edge": "M17->M05",
-        "pair_count": 4
-      },
-      {
-        "edge": "M17->M04",
-        "pair_count": 4
-      },
-      {
-        "edge": "M17->M06",
-        "pair_count": 2
-      },
-      {
-        "edge": "M19->M20",
-        "pair_count": 1
-      },
-      {
-        "edge": "M19->M05",
-        "pair_count": 2
-      },
-      {
-        "edge": "M19->M04",
-        "pair_count": 1
-      },
-      {
-        "edge": "M20->M05",
-        "pair_count": 5
-      },
-      {
-        "edge": "M20->M04",
-        "pair_count": 1
-      },
-      {
-        "edge": "M20->M19",
-        "pair_count": 1
-      },
-      {
-        "edge": "M22->M05",
-        "pair_count": 26
-      },
-      {
-        "edge": "M22->M20",
-        "pair_count": 2
-      },
-      {
-        "edge": "M22->M17",
-        "pair_count": 6
-      },
-      {
-        "edge": "M22->M04",
-        "pair_count": 7
-      },
-      {
-        "edge": "M22->M24",
-        "pair_count": 13
-      },
-      {
-        "edge": "M22->M12N",
-        "pair_count": 10
-      },
-      {
-        "edge": "M22->M15",
-        "pair_count": 2
-      },
-      {
-        "edge": "M22->M23",
-        "pair_count": 1
-      },
-      {
-        "edge": "M22->M21",
-        "pair_count": 3
-      },
-      {
-        "edge": "M22->M19",
-        "pair_count": 1
-      },
-      {
-        "edge": "M23->M24",
-        "pair_count": 10
-      },
-      {
-        "edge": "M23->M05",
-        "pair_count": 10
-      },
-      {
-        "edge": "M23->M06",
-        "pair_count": 3
-      },
-      {
-        "edge": "M23->M12",
-        "pair_count": 2
-      },
-      {
-        "edge": "M23->M08",
-        "pair_count": 3
-      },
-      {
-        "edge": "M23->M10",
-        "pair_count": 1
-      },
-      {
-        "edge": "M23->M04",
-        "pair_count": 4
-      },
-      {
-        "edge": "M23->M12N",
-        "pair_count": 4
-      },
-      {
-        "edge": "M23->M11J",
-        "pair_count": 1
-      },
-      {
-        "edge": "M24->M05",
-        "pair_count": 13
-      },
-      {
-        "edge": "M24->M17",
-        "pair_count": 1
-      },
-      {
-        "edge": "M24->M04",
-        "pair_count": 6
-      },
-      {
-        "edge": "M24->M23",
-        "pair_count": 3
-      },
-      {
-        "edge": "M24->M12",
-        "pair_count": 1
-      },
-      {
-        "edge": "M24->M10",
-        "pair_count": 3
-      },
-      {
-        "edge": "M24->M06",
-        "pair_count": 2
-      },
-      {
-        "edge": "M24->M22",
-        "pair_count": 2
-      },
-      {
-        "edge": "M25->M05",
-        "pair_count": 1
-      },
-      {
-        "edge": "M26->M05",
-        "pair_count": 15
-      },
-      {
-        "edge": "M26->M04",
-        "pair_count": 14
-      },
-      {
-        "edge": "M26->M24",
-        "pair_count": 2
-      },
-      {
-        "edge": "M26->M22",
-        "pair_count": 1
-      },
-      {
-        "edge": "M27->M04",
-        "pair_count": 5
-      },
-      {
-        "edge": "M27->M05",
-        "pair_count": 9
-      },
-      {
-        "edge": "M27->M11J",
-        "pair_count": 2
-      },
-      {
-        "edge": "M27->M06",
-        "pair_count": 1
-      },
-      {
-        "edge": "M27->M11",
-        "pair_count": 1
-      },
-      {
-        "edge": "M27->M24",
-        "pair_count": 2
-      },
-      {
-        "edge": "M27->M07",
-        "pair_count": 1
-      },
-      {
-        "edge": "M27->M08",
-        "pair_count": 4
-      },
-      {
-        "edge": "M27->M16",
-        "pair_count": 2
-      },
-      {
-        "edge": "M27->M10",
-        "pair_count": 3
-      },
-      {
-        "edge": "M27->M09",
-        "pair_count": 2
-      },
-      {
-        "edge": "M27->M12",
-        "pair_count": 2
-      },
-      {
-        "edge": "M27->M12N",
-        "pair_count": 5
-      },
-      {
-        "edge": "M27->M13",
-        "pair_count": 4
-      },
-      {
-        "edge": "M27->M15",
-        "pair_count": 5
-      },
-      {
-        "edge": "M27->M14",
-        "pair_count": 1
-      },
-      {
-        "edge": "M27->M23",
-        "pair_count": 5
-      },
-      {
-        "edge": "M27->M22",
-        "pair_count": 3
-      },
-      {
-        "edge": "M27->M25",
-        "pair_count": 3
-      },
-      {
-        "edge": "M27->M20",
-        "pair_count": 1
-      },
-      {
-        "edge": "M27->M26",
-        "pair_count": 3
-      }
-    ],
-    "function_pairs": [
-      {
-        "caller_module": "M04",
-        "caller": "GetLatestClosedCandleTime",
-        "callee_module": "M05",
-        "callee": "GetTimeframeSeconds",
-        "calls": 1
-      },
-      {
-        "caller_module": "M05",
-        "caller": "GeneratePairID",
-        "callee_module": "M04",
-        "callee": "RemoveSuffix",
-        "calls": 1
-      },
-      {
-        "caller_module": "M05",
-        "caller": "InitBrokerInfo",
-        "callee_module": "M04",
-        "callee": "GetLotDigits",
-        "calls": 1
-      },
-      {
-        "caller_module": "M05",
-        "caller": "InitBrokerInfo",
-        "callee_module": "M04",
-        "callee": "GetDigits",
-        "calls": 1
-      },
-      {
-        "caller_module": "M05",
-        "caller": "InitBrokerInfo",
-        "callee_module": "M04",
-        "callee": "GetPointSize",
-        "calls": 1
-      },
-      {
-        "caller_module": "M05",
-        "caller": "InitBrokerInfo",
-        "callee_module": "M04",
-        "callee": "GetTickValue",
-        "calls": 1
-      },
-      {
-        "caller_module": "M05",
-        "caller": "InitBrokerInfo",
-        "callee_module": "M04",
-        "callee": "GetTickSize_Price",
-        "calls": 1
-      },
-      {
-        "caller_module": "M05",
-        "caller": "InitBrokerInfo",
-        "callee_module": "M04",
-        "callee": "GetStopLevel",
-        "calls": 1
-      },
-      {
-        "caller_module": "M05",
-        "caller": "InitBrokerInfo",
-        "callee_module": "M04",
-        "callee": "GetFreezeLevel",
-        "calls": 1
-      },
-      {
-        "caller_module": "M05",
-        "caller": "IsValidLotStep",
-        "callee_module": "M04",
-        "callee": "GetLotStep",
-        "calls": 1
-      },
-      {
-        "caller_module": "M05",
-        "caller": "CalculateTradeRiskMoney",
-        "callee_module": "M04",
-        "callee": "GetTickValue",
-        "calls": 1
-      },
-      {
-        "caller_module": "M05",
-        "caller": "CalculateTradeRiskMoney",
-        "callee_module": "M04",
-        "callee": "GetTickSize_Price",
-        "calls": 1
-      },
-      {
-        "caller_module": "M05",
-        "caller": "BuildTimeframeSnapshot",
-        "callee_module": "M04",
-        "callee": "GetLatestClosedCandleTime",
-        "calls": 4
-      },
-      {
-        "caller_module": "M05",
-        "caller": "BuildTimeframeSnapshot",
-        "callee_module": "M04",
-        "callee": "IsCandleClosed",
-        "calls": 4
-      },
-      {
-        "caller_module": "M05",
-        "caller": "BuildRiskValidationSnapshot",
-        "callee_module": "M04",
-        "callee": "GetTickValue",
-        "calls": 1
-      },
-      {
-        "caller_module": "M05",
-        "caller": "BuildRiskValidationSnapshot",
-        "callee_module": "M04",
-        "callee": "GetTickSize_Price",
-        "calls": 1
-      },
-      {
-        "caller_module": "M05",
-        "caller": "BuildRiskValidationSnapshot",
-        "callee_module": "M04",
-        "callee": "GetLotStep",
-        "calls": 1
-      },
-      {
-        "caller_module": "M05",
-        "caller": "BuildRiskValidationSnapshot",
-        "callee_module": "M04",
-        "callee": "GetMinLot",
-        "calls": 1
-      },
-      {
-        "caller_module": "M05",
-        "caller": "BuildRiskValidationSnapshot",
-        "callee_module": "M04",
-        "callee": "GetMaxLot",
-        "calls": 1
-      },
-      {
-        "caller_module": "M05",
-        "caller": "BuildRiskValidationSnapshot",
-        "callee_module": "M04",
-        "callee": "GetPointSize",
-        "calls": 1
-      },
-      {
-        "caller_module": "M05",
-        "caller": "BuildRiskValidationSnapshot",
-        "callee_module": "M04",
-        "callee": "GetDigits",
-        "calls": 1
-      },
-      {
-        "caller_module": "M05",
-        "caller": "BuildRiskValidationSnapshot",
-        "callee_module": "M04",
-        "callee": "GetLotDigits",
-        "calls": 1
-      },
-      {
-        "caller_module": "M06",
-        "caller": "GetDataForTimeframe",
-        "callee_module": "M05",
-        "callee": "InitTimeframeData",
-        "calls": 1
-      },
-      {
-        "caller_module": "M06",
-        "caller": "GetDataForTimeframe",
-        "callee_module": "M04",
-        "callee": "GetPointSize",
-        "calls": 1
-      },
-      {
-        "caller_module": "M06",
-        "caller": "GetDataForTimeframe",
-        "callee_module": "M04",
-        "callee": "GetDigits",
-        "calls": 1
-      },
-      {
-        "caller_module": "M06",
-        "caller": "GetDataForTimeframe",
-        "callee_module": "M04",
-        "callee": "IsCandleClosed",
-        "calls": 1
-      },
-      {
-        "caller_module": "M06",
-        "caller": "GetDataForTimeframe",
-        "callee_module": "M05",
-        "callee": "GetTimeframeSeconds",
-        "calls": 1
-      },
-      {
-        "caller_module": "M07",
-        "caller": "BuildBBShapeState",
-        "callee_module": "M06",
-        "callee": "CalculateBollinger",
-        "calls": 1
-      },
-      {
-        "caller_module": "M07",
-        "caller": "BuildBBShapeState",
-        "callee_module": "M04",
-        "callee": "GetPointSize",
-        "calls": 1
-      },
-      {
-        "caller_module": "M08",
-        "caller": "IsExtremeMomentumInvalidation",
-        "callee_module": "M06",
-        "callee": "CalculateBollinger",
-        "calls": 1
-      },
-      {
-        "caller_module": "M09",
-        "caller": "IsMHVContinuationInvalidation",
-        "callee_module": "M10",
-        "callee": "DetectCSM",
-        "calls": 2
-      },
-      {
-        "caller_module": "M09",
-        "caller": "IsMHVLossPhaseEligible",
-        "callee_module": "M10",
-        "callee": "DetectCSM",
-        "calls": 1
-      },
-      {
-        "caller_module": "M09",
-        "caller": "InstallMHVSupersessionParent",
-        "callee_module": "M08",
-        "callee": "ResetExtremeLifecycle",
-        "calls": 1
-      },
-      {
-        "caller_module": "M09",
-        "caller": "InstallMHVSupersessionParent",
-        "callee_module": "M08",
-        "callee": "GetExtremeReversalBodyEdge",
-        "calls": 1
-      },
-      {
-        "caller_module": "M09",
-        "caller": "InstallMHVSupersessionParent",
-        "callee_module": "M08",
-        "callee": "GetExtremeRelevantMA5",
-        "calls": 1
-      },
-      {
-        "caller_module": "M09",
-        "caller": "TryAdvanceMHVSupersessionCandidate",
-        "callee_module": "M08",
-        "callee": "IsExtremeLifecycleInvalidation",
-        "calls": 2
-      },
-      {
-        "caller_module": "M09",
-        "caller": "TryAdvanceMHVSupersessionCandidate",
-        "callee_module": "M08",
-        "callee": "IsExtremeReversalDirection",
-        "calls": 1
-      },
-      {
-        "caller_module": "M09",
-        "caller": "TryAdvanceMHVSupersessionCandidate",
-        "callee_module": "M08",
-        "callee": "DetectExtreme",
-        "calls": 1
-      },
-      {
-        "caller_module": "M10",
-        "caller": "DetectCSM",
-        "callee_module": "M06",
-        "callee": "CalculateBollinger",
-        "calls": 2
-      },
-      {
-        "caller_module": "M11",
-        "caller": "M11_ClassifyD1OwnerAtShift",
-        "callee_module": "M06",
-        "callee": "EMA",
-        "calls": 2
-      },
-      {
-        "caller_module": "M11",
-        "caller": "UpdateD1MajorTrendOwner",
-        "callee_module": "M06",
-        "callee": "EMA",
-        "calls": 1
-      },
-      {
-        "caller_module": "M11J",
-        "caller": "IsD1TPWCompletionAtShift",
-        "callee_module": "M06",
-        "callee": "BBMALowMA",
-        "calls": 2
-      },
-      {
-        "caller_module": "M11J",
-        "caller": "IsD1TPWCompletionAtShift",
-        "callee_module": "M06",
-        "callee": "BBMAHighMA",
-        "calls": 2
-      },
-      {
-        "caller_module": "M11J",
-        "caller": "D1OpportunityTPWCompletedSince",
-        "callee_module": "M06",
-        "callee": "BBMALowMA",
-        "calls": 2
-      },
-      {
-        "caller_module": "M11J",
-        "caller": "D1OpportunityTPWCompletedSince",
-        "callee_module": "M06",
-        "callee": "BBMAHighMA",
-        "calls": 2
-      },
-      {
-        "caller_module": "M11J",
-        "caller": "InstallD1OpportunityJourney",
-        "callee_module": "M05",
-        "callee": "SHORT_HASH",
-        "calls": 1
-      },
-      {
-        "caller_module": "M11J",
-        "caller": "DetectD1OpportunityCSD",
-        "callee_module": "M10",
-        "callee": "DetectCSD",
-        "calls": 1
-      },
-      {
-        "caller_module": "M11J",
-        "caller": "DetectD1OpportunityECSDWatch",
-        "callee_module": "M10",
-        "callee": "DetectECSD",
-        "calls": 1
-      },
-      {
-        "caller_module": "M11J",
-        "caller": "UpdateD1OpportunityJourney",
-        "callee_module": "M05",
-        "callee": "GetTimeframeSeconds",
-        "calls": 4
-      },
-      {
-        "caller_module": "M11J",
-        "caller": "UpdateD1OpportunityJourney",
-        "callee_module": "M10",
-        "callee": "DetectCSM",
-        "calls": 2
-      },
-      {
-        "caller_module": "M12",
-        "caller": "DetectReEntryDirectionOwnerSignal",
-        "callee_module": "M10",
-        "callee": "DetectCSM",
-        "calls": 1
-      },
-      {
-        "caller_module": "M12",
-        "caller": "DetectReEntryDirectionOwnerSignal",
-        "callee_module": "M10",
-        "callee": "DetectCSD",
-        "calls": 1
-      },
-      {
-        "caller_module": "M12",
-        "caller": "DetectReEntryDirectionOwnerSignal",
-        "callee_module": "M10",
-        "callee": "DetectECSD",
-        "calls": 1
-      },
-      {
-        "caller_module": "M12",
-        "caller": "DetectReEntry_Type2",
-        "callee_module": "M04",
-        "callee": "IsNear",
-        "calls": 3
-      },
-      {
-        "caller_module": "M12",
-        "caller": "DetectReEntry_Type3",
-        "callee_module": "M10",
-        "callee": "DetectCSM",
-        "calls": 1
-      },
-      {
-        "caller_module": "M12",
-        "caller": "DetectReEntry_Type4",
-        "callee_module": "M10",
-        "callee": "DetectCSD",
-        "calls": 1
-      },
-      {
-        "caller_module": "M12",
-        "caller": "ConfirmReEntryState",
-        "callee_module": "M05",
-        "callee": "GetTimeframeSeconds",
-        "calls": 1
-      },
-      {
-        "caller_module": "M12N",
-        "caller": "NMJE_IdentityHash",
-        "callee_module": "M05",
-        "callee": "SHORT_HASH",
-        "calls": 1
-      },
-      {
-        "caller_module": "M12N",
-        "caller": "NMJE_PrintCoverageOverlay",
-        "callee_module": "M11J",
-        "callee": "D1OpportunityFamilyText",
-        "calls": 1
-      },
-      {
-        "caller_module": "M12N",
-        "caller": "NMJE_PrintP8StabilityShadow",
-        "callee_module": "M05",
-        "callee": "SHORT_HASH",
-        "calls": 5
-      },
-      {
-        "caller_module": "M12N",
-        "caller": "NMJE_PrintP8StabilityShadow",
-        "callee_module": "M05",
-        "callee": "ObserverPrintChanged",
-        "calls": 1
-      },
-      {
-        "caller_module": "M12N",
-        "caller": "NMJE_PrintStructuralDensityShadow",
-        "callee_module": "M15",
-        "callee": "IsCandidateEligible",
-        "calls": 1
-      },
-      {
-        "caller_module": "M12N",
-        "caller": "NMJE_PrintStructuralDensityShadow",
-        "callee_module": "M15",
-        "callee": "IsCandidateAllowedByD1Owner",
-        "calls": 1
-      },
-      {
-        "caller_module": "M12N",
-        "caller": "NMJE_PrintStructuralDensityShadow",
-        "callee_module": "M05",
-        "callee": "SHORT_HASH",
-        "calls": 2
-      },
-      {
-        "caller_module": "M12N",
-        "caller": "NMJE_PrintStructuralDensityShadow",
-        "callee_module": "M05",
-        "callee": "ObserverPrintChanged",
-        "calls": 1
-      },
-      {
-        "caller_module": "M12N",
-        "caller": "NMJE_FreezeValidatedDecisionAttribution",
-        "callee_module": "M05",
-        "callee": "SHORT_HASH",
-        "calls": 5
-      },
-      {
-        "caller_module": "M12N",
-        "caller": "UpdateNestedJourneyObservation",
-        "callee_module": "M05",
-        "callee": "ObserverPrintChanged",
-        "calls": 3
-      },
-      {
-        "caller_module": "M12N",
-        "caller": "NMJE_PrintValidatedDecisionShadow",
-        "callee_module": "M05",
-        "callee": "SHORT_HASH",
-        "calls": 1
-      },
-      {
-        "caller_module": "M12N",
-        "caller": "NMJE_PrintValidatedDecisionShadow",
-        "callee_module": "M11J",
-        "callee": "D1AuthorityModeText",
-        "calls": 1
-      },
-      {
-        "caller_module": "M12N",
-        "caller": "NMJE_PrintValidatedDecisionShadow",
-        "callee_module": "M11J",
-        "callee": "D1OpportunityFamilyText",
-        "calls": 1
-      },
-      {
-        "caller_module": "M13",
-        "caller": "NMJE_P2_PrintEqualEligibilityShadow",
-        "callee_module": "M15",
-        "callee": "IsCandidateEligible",
-        "calls": 3
-      },
-      {
-        "caller_module": "M13",
-        "caller": "NMJE_P2_PrintEqualEligibilityShadow",
-        "callee_module": "M15",
-        "callee": "IsCandidateAllowedByD1Owner",
-        "calls": 3
-      },
-      {
-        "caller_module": "M13",
-        "caller": "NMJE_P2_PrintEqualEligibilityShadow",
-        "callee_module": "M15",
-        "callee": "GetCandidateAnchorTime",
-        "calls": 2
-      },
-      {
-        "caller_module": "M13",
-        "caller": "NMJE_P2_PrintEqualEligibilityShadow",
-        "callee_module": "M12N",
-        "callee": "NMJE_BuildCandidateStructuralDensity",
-        "calls": 1
-      },
-      {
-        "caller_module": "M13",
-        "caller": "NMJE_P2_PrintEqualEligibilityShadow",
-        "callee_module": "M05",
-        "callee": "SHORT_HASH",
-        "calls": 1
-      },
-      {
-        "caller_module": "M13",
-        "caller": "NMJE_P2_PrintEqualEligibilityShadow",
-        "callee_module": "M12N",
-        "callee": "NMJE_DirText",
-        "calls": 1
-      },
-      {
-        "caller_module": "M13",
-        "caller": "IsCombinationMLVReady",
-        "callee_module": "M09",
-        "callee": "IsCanonicalMLVMatureState",
-        "calls": 1
-      },
-      {
-        "caller_module": "M13",
-        "caller": "FinalizeCombinationCandidate",
-        "callee_module": "M05",
-        "callee": "GenerateSequenceHash",
-        "calls": 1
-      },
-      {
-        "caller_module": "M14",
-        "caller": "PopulateValidatedCombination",
-        "callee_module": "M05",
-        "callee": "GenerateSequenceHash",
-        "calls": 1
-      },
-      {
-        "caller_module": "M15",
-        "caller": "BuildConfirmedReEntryCandidate",
-        "callee_module": "M05",
-        "callee": "SHORT_HASH",
-        "calls": 1
-      },
-      {
-        "caller_module": "M15",
-        "caller": "BuildStandaloneExtremeCandidate",
-        "callee_module": "M05",
-        "callee": "SHORT_HASH",
-        "calls": 1
-      },
-      {
-        "caller_module": "M15",
-        "caller": "OpportunityReEntryReadyTime",
-        "callee_module": "M05",
-        "callee": "GetTimeframeSeconds",
-        "calls": 1
-      },
-      {
-        "caller_module": "M15",
-        "caller": "BuildD1OpportunityCandidate",
-        "callee_module": "M05",
-        "callee": "SHORT_HASH",
-        "calls": 1
-      },
-      {
-        "caller_module": "M15",
-        "caller": "NMJE_P2_CounterfactualCandidateID",
-        "callee_module": "M05",
-        "callee": "SHORT_HASH",
-        "calls": 1
-      },
-      {
-        "caller_module": "M15",
-        "caller": "NMJE_P2_CaptureC044ReplayState",
-        "callee_module": "M24",
-        "callee": "IsValidC044OwnerTimeframe",
-        "calls": 1
-      },
-      {
-        "caller_module": "M15",
-        "caller": "NMJE_P2_RestoreC044ReplayTrade",
-        "callee_module": "M24",
-        "callee": "IsValidC044OwnerTimeframe",
-        "calls": 1
-      },
-      {
-        "caller_module": "M15",
-        "caller": "NMJE_P2_ResolveTargetlessC044Outcome",
-        "callee_module": "M05",
-        "callee": "FindPairStateIndex",
-        "calls": 1
-      },
-      {
-        "caller_module": "M15",
-        "caller": "NMJE_P2_ResolveTargetlessC044Outcome",
-        "callee_module": "M05",
-        "callee": "GetTimeframeSeconds",
-        "calls": 1
-      },
-      {
-        "caller_module": "M15",
-        "caller": "NMJE_P2_ResolveTargetlessC044Outcome",
-        "callee_module": "M23",
-        "callee": "ProcessC044OwnerClosedCandle",
-        "calls": 1
-      },
-      {
-        "caller_module": "M15",
-        "caller": "NMJE_P2_RegisterCounterfactualOpen",
-        "callee_module": "M05",
-        "callee": "SHORT_HASH",
-        "calls": 1
-      },
-      {
-        "caller_module": "M15",
-        "caller": "NMJE_P2_RegisterCounterfactualOpen",
-        "callee_module": "M17",
-        "callee": "ResolveApprovedInitialSLTP",
-        "calls": 1
-      },
-      {
-        "caller_module": "M15",
-        "caller": "NMJE_P2_RegisterCounterfactualOpen",
-        "callee_module": "M17",
-        "callee": "IsTargetlessLifecycleDecision",
-        "calls": 1
-      },
-      {
-        "caller_module": "M15",
-        "caller": "NMJE_P2_RegisterCounterfactualOpen",
-        "callee_module": "M17",
-        "callee": "ValidateDirectionalSLTPGeometry",
-        "calls": 1
-      },
-      {
-        "caller_module": "M15",
-        "caller": "NMJE_P2_RegisterCounterfactualOpen",
-        "callee_module": "M24",
-        "callee": "InitializeC044TradeStateFromDecision",
-        "calls": 1
-      },
-      {
-        "caller_module": "M15",
-        "caller": "NMJE_P2_RegisterCounterfactualOpen",
-        "callee_module": "M12N",
-        "callee": "NMJE_DirText",
-        "calls": 1
-      },
-      {
-        "caller_module": "M15",
-        "caller": "NMJE_P2_RegisterCounterfactualOpen",
-        "callee_module": "M12N",
-        "callee": "NMJE_RelationText",
-        "calls": 2
-      },
-      {
-        "caller_module": "M15",
-        "caller": "NMJE_P2_RegisterCounterfactualOpen",
-        "callee_module": "M12N",
-        "callee": "NMJE_MaturityText",
-        "calls": 1
-      },
-      {
-        "caller_module": "M15",
-        "caller": "NMJE_P2_PrintCounterfactualOutcomes",
-        "callee_module": "M12N",
-        "callee": "NMJE_DirText",
-        "calls": 1
-      },
-      {
-        "caller_module": "M15",
-        "caller": "PriorityEngine_Atomic",
-        "callee_module": "M05",
-        "callee": "GenerateDecisionID",
-        "calls": 1
-      },
-      {
-        "caller_module": "M15",
-        "caller": "PriorityEngine_Atomic",
-        "callee_module": "M05",
-        "callee": "ObserverPrintChanged",
-        "calls": 2
-      },
-      {
-        "caller_module": "M16",
-        "caller": "IsPersistentMLVComponentValid",
-        "callee_module": "M09",
-        "callee": "IsCanonicalMLVMatureState",
-        "calls": 1
-      },
-      {
-        "caller_module": "M16",
-        "caller": "ValidateDecisionD1OwnerSnapshot",
-        "callee_module": "M15",
-        "callee": "IsD1MajorTrendOwnerExecutionReady",
-        "calls": 1
-      },
-      {
-        "caller_module": "M16",
-        "caller": "ValidateDecisionD1OpportunitySnapshot",
-        "callee_module": "M15",
-        "callee": "IsD1MajorTrendOwnerExecutionReady",
-        "calls": 1
-      },
-      {
-        "caller_module": "M16",
-        "caller": "InvalidationEngine_Atomic",
-        "callee_module": "M11J",
-        "callee": "D1AuthorityModeText",
-        "calls": 1
-      },
-      {
-        "caller_module": "M16",
-        "caller": "InvalidationEngine_Atomic",
-        "callee_module": "M11J",
-        "callee": "D1OpportunityFamilyText",
-        "calls": 1
-      },
-      {
-        "caller_module": "M16",
-        "caller": "InvalidationEngine_Atomic",
-        "callee_module": "M05",
-        "callee": "ObserverPrintChanged",
-        "calls": 2
-      },
-      {
-        "caller_module": "M17",
-        "caller": "ResolveMatchingReEntryLifecycle",
-        "callee_module": "M05",
-        "callee": "FindPairStateIndex",
-        "calls": 1
-      },
-      {
-        "caller_module": "M17",
-        "caller": "ResolveSourceOwnedStructuralAnchor",
-        "callee_module": "M05",
-        "callee": "GetTimeframeSeconds",
-        "calls": 1
-      },
-      {
-        "caller_module": "M17",
-        "caller": "ResolveSourceOwnedStructuralAnchor",
-        "callee_module": "M04",
-        "callee": "IsCandleClosed",
-        "calls": 1
-      },
-      {
-        "caller_module": "M17",
-        "caller": "ResolveMatchingStandaloneExtremeLifecycle",
-        "callee_module": "M05",
-        "callee": "FindPairStateIndex",
-        "calls": 1
-      },
-      {
-        "caller_module": "M17",
-        "caller": "ResolveStandaloneExtremeStructuralAnchor",
-        "callee_module": "M05",
-        "callee": "GetTimeframeSeconds",
-        "calls": 1
-      },
-      {
-        "caller_module": "M17",
-        "caller": "ResolveStandaloneExtremeStructuralAnchor",
-        "callee_module": "M04",
-        "callee": "IsCandleClosed",
-        "calls": 1
-      },
-      {
-        "caller_module": "M17",
-        "caller": "ResolveStandaloneExtremeTPWajib",
-        "callee_module": "M06",
-        "callee": "BBMAHighMA",
-        "calls": 2
-      },
-      {
-        "caller_module": "M17",
-        "caller": "ResolveStandaloneExtremeTPWajib",
-        "callee_module": "M06",
-        "callee": "BBMALowMA",
-        "calls": 2
-      },
-      {
-        "caller_module": "M17",
-        "caller": "ResolveApprovedInitialSLTP",
-        "callee_module": "M04",
-        "callee": "GetPipValue",
-        "calls": 2
-      },
-      {
-        "caller_module": "M17",
-        "caller": "ValidateSLTP",
-        "callee_module": "M04",
-        "callee": "GetPipValue",
-        "calls": 2
-      },
-      {
-        "caller_module": "M19",
-        "caller": "CalculateBasketLossPercent_EA",
-        "callee_module": "M20",
-        "callee": "GetLiveEAOwnedPortfolioTradeState",
-        "calls": 1
-      },
-      {
-        "caller_module": "M19",
-        "caller": "CalculateTotalRisk",
-        "callee_module": "M05",
-        "callee": "FindPairStateIndex",
-        "calls": 1
-      },
-      {
-        "caller_module": "M19",
-        "caller": "CalculateTotalRisk",
-        "callee_module": "M05",
-        "callee": "CalculateTradeRiskMoney",
-        "calls": 2
-      },
-      {
-        "caller_module": "M19",
-        "caller": "CheckRiskBeforeTrade",
-        "callee_module": "M04",
-        "callee": "GetPipValue",
-        "calls": 1
-      },
-      {
-        "caller_module": "M20",
-        "caller": "GetLiveEAOwnedPortfolioTradeState",
-        "callee_module": "M05",
-        "callee": "FindPairStateIndex",
-        "calls": 1
-      },
-      {
-        "caller_module": "M20",
-        "caller": "CheckPortfolioLimits",
-        "callee_module": "M05",
-        "callee": "FindPairStateIndex",
-        "calls": 1
-      },
-      {
-        "caller_module": "M20",
-        "caller": "FinalPortfolioGuard",
-        "callee_module": "M05",
-        "callee": "FindPairStateIndex",
-        "calls": 1
-      },
-      {
-        "caller_module": "M20",
-        "caller": "BrokerConfirmsNoLiveEAOwnedOrders",
-        "callee_module": "M04",
-        "callee": "IsTerminalConnected",
-        "calls": 1
-      },
-      {
-        "caller_module": "M20",
-        "caller": "BrokerConfirmsNoLiveEAOwnedOrders",
-        "callee_module": "M05",
-        "callee": "IsExactEAOwnedSelectedOrder",
-        "calls": 1
-      },
-      {
-        "caller_module": "M20",
-        "caller": "ManagePortfolio",
-        "callee_module": "M19",
-        "callee": "CalculateBasketLossPercent_EA",
-        "calls": 1
-      },
-      {
-        "caller_module": "M20",
-        "caller": "ManagePortfolio",
-        "callee_module": "M05",
-        "callee": "Log",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "FindExistingExecutionTicket",
-        "callee_module": "M05",
-        "callee": "FindPersistedExecutionTicket",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "FindExistingExecutionTicket",
-        "callee_module": "M05",
-        "callee": "SHORT_HASH",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "IsSignalAllowed",
-        "callee_module": "M05",
-        "callee": "IsDecisionExecuted",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "IsSignalAllowed",
-        "callee_module": "M20",
-        "callee": "GetLiveEAOwnedPortfolioTradeState",
-        "calls": 2
-      },
-      {
-        "caller_module": "M22",
-        "caller": "NMJE_BuildEntryDisplacementAttribution",
-        "callee_module": "M17",
-        "callee": "IsApprovedSLTPSourceComponent",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "NMJE_BuildEntryDisplacementAttribution",
-        "callee_module": "M17",
-        "callee": "ResolveClosedSourceShift",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "NMJE_BuildEntryDisplacementAttribution",
-        "callee_module": "M04",
-        "callee": "GetPipValue",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "NMJE_BuildTradeAttribution",
-        "callee_module": "M05",
-        "callee": "SHORT_HASH",
-        "calls": 6
-      },
-      {
-        "caller_module": "M22",
-        "caller": "NMJESetAttributionGV",
-        "callee_module": "M24",
-        "callee": "SetTerminalGlobalExact",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "NMJEStoreHash16",
-        "callee_module": "M05",
-        "callee": "Hex4ToNumber",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "NMJELoadHash16",
-        "callee_module": "M05",
-        "callee": "NumberToHex4",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "ClearNMJEShadowAttribution",
-        "callee_module": "M24",
-        "callee": "DeleteTerminalGlobalExact",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "SaveNMJEShadowAttribution",
-        "callee_module": "M12N",
-        "callee": "NMJE_IsMaturityDomainValue",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "SaveNMJEShadowAttribution",
-        "callee_module": "M12N",
-        "callee": "NMJE_IsRelationDomainValue",
-        "calls": 2
-      },
-      {
-        "caller_module": "M22",
-        "caller": "SaveNMJEShadowAttribution",
-        "callee_module": "M12N",
-        "callee": "NMJE_IsStructuralDensityValid",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "LoadNMJEShadowAttribution",
-        "callee_module": "M12N",
-        "callee": "NMJE_IsRelationDomainValue",
-        "calls": 2
-      },
-      {
-        "caller_module": "M22",
-        "caller": "LoadNMJEShadowAttribution",
-        "callee_module": "M12N",
-        "callee": "NMJE_IsMaturityDomainValue",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "LoadNMJEShadowAttribution",
-        "callee_module": "M12N",
-        "callee": "NMJE_IsStructuralDensityValid",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "NMJE_PrintClosedOutcomeShadow",
-        "callee_module": "M12N",
-        "callee": "NMJE_LogIdentityToken",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "NMJE_PrintClosedOutcomeShadow",
-        "callee_module": "M12N",
-        "callee": "NMJE_RelationText",
-        "calls": 2
-      },
-      {
-        "caller_module": "M22",
-        "caller": "NMJE_PrintClosedOutcomeShadow",
-        "callee_module": "M12N",
-        "callee": "NMJE_MaturityText",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "NMJE_PrintClosedOutcomeShadow",
-        "callee_module": "M12N",
-        "callee": "NMJE_LineageClassText",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "NMJE_PrintClosedOutcomeShadow",
-        "callee_module": "M15",
-        "callee": "NMJE_P2_PrintCounterfactualOutcomes",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "CompactMonitoredTrades",
-        "callee_module": "M24",
-        "callee": "ClearC044Checkpoint",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "CompactMonitoredTrades",
-        "callee_module": "M24",
-        "callee": "ClearD1TPWCheckpoint",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "AddToMonitoredTrades",
-        "callee_module": "M05",
-        "callee": "Log",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "SaveExecutionAmbiguityHold",
-        "callee_module": "M05",
-        "callee": "Hex4ToNumber",
-        "calls": 4
-      },
-      {
-        "caller_module": "M22",
-        "caller": "SaveExecutionAmbiguityHold",
-        "callee_module": "M05",
-        "callee": "NumberToHex4",
-        "calls": 4
-      },
-      {
-        "caller_module": "M22",
-        "caller": "LoadExecutionAmbiguityHold",
-        "callee_module": "M05",
-        "callee": "NumberToHex4",
-        "calls": 4
-      },
-      {
-        "caller_module": "M22",
-        "caller": "ClearExecutionAmbiguityHold",
-        "callee_module": "M24",
-        "callee": "DeleteTerminalGlobalExact",
-        "calls": 2
-      },
-      {
-        "caller_module": "M22",
-        "caller": "LatchExecutionAmbiguity",
-        "callee_module": "M05",
-        "callee": "SHORT_HASH",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "LatchExecutionAmbiguity",
-        "callee_module": "M05",
-        "callee": "Log",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "AdoptAmbiguousExecutionTicket",
-        "callee_module": "M05",
-        "callee": "ExtractExecutionHash",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "AdoptAmbiguousExecutionTicket",
-        "callee_module": "M05",
-        "callee": "SaveExecutionIdentityHash",
-        "calls": 2
-      },
-      {
-        "caller_module": "M22",
-        "caller": "AdoptAmbiguousExecutionTicket",
-        "callee_module": "M05",
-        "callee": "UpsertExecutionHashTombstone",
-        "calls": 2
-      },
-      {
-        "caller_module": "M22",
-        "caller": "AdoptAmbiguousExecutionTicket",
-        "callee_module": "M04",
-        "callee": "GetPointSize",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "AdoptAmbiguousExecutionTicket",
-        "callee_module": "M04",
-        "callee": "GetDigits",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "AdoptAmbiguousExecutionTicket",
-        "callee_module": "M04",
-        "callee": "GetStopLevel",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "AdoptAmbiguousExecutionTicket",
-        "callee_module": "M04",
-        "callee": "GetFreezeLevel",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "AdoptAmbiguousExecutionTicket",
-        "callee_module": "M24",
-        "callee": "ResetC044TradeState",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "AdoptAmbiguousExecutionTicket",
-        "callee_module": "M24",
-        "callee": "ResetD1TPWTradeState",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "ReconcileExecutionAmbiguityHold",
-        "callee_module": "M05",
-        "callee": "Log",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "ProcessEntry",
-        "callee_module": "M17",
-        "callee": "IsTargetlessLifecycleDecision",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "ProcessEntry",
-        "callee_module": "M05",
-        "callee": "IsDecisionExecuted",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "ProcessEntry",
-        "callee_module": "M05",
-        "callee": "FindPairStateIndex",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "ProcessEntry",
-        "callee_module": "M05",
-        "callee": "Log",
-        "calls": 4
-      },
-      {
-        "caller_module": "M22",
-        "caller": "ProcessEntry",
-        "callee_module": "M05",
-        "callee": "GetAllowedExecutionDeviation",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "ProcessEntry",
-        "callee_module": "M05",
-        "callee": "CreateOrderComment",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "ProcessEntry",
-        "callee_module": "M04",
-        "callee": "GetStopLevel",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "ProcessEntry",
-        "callee_module": "M04",
-        "callee": "GetFreezeLevel",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "ProcessEntry",
-        "callee_module": "M05",
-        "callee": "SHORT_HASH",
-        "calls": 2
-      },
-      {
-        "caller_module": "M22",
-        "caller": "ProcessEntry",
-        "callee_module": "M24",
-        "callee": "ResetC044TradeState",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "ProcessEntry",
-        "callee_module": "M24",
-        "callee": "ResetD1TPWTradeState",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "ProcessEntry",
-        "callee_module": "M24",
-        "callee": "InitializeD1TPWTradeStateFromDecision",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "ProcessEntry",
-        "callee_module": "M24",
-        "callee": "InitializeC044TradeStateFromDecision",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "ProcessEntry",
-        "callee_module": "M05",
-        "callee": "SaveExecutionIdentityHash",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "ProcessEntry",
-        "callee_module": "M05",
-        "callee": "ExtractExecutionHash",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "ProcessEntry",
-        "callee_module": "M24",
-        "callee": "SaveD1TPWCheckpoint",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "ProcessEntry",
-        "callee_module": "M24",
-        "callee": "SaveC044Checkpoint",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "ProcessEntry",
-        "callee_module": "M15",
-        "callee": "NMJE_P2_RegisterCounterfactualOpen",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "ProcessEntry",
-        "callee_module": "M05",
-        "callee": "MarkDecisionExecuted",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "ProcessEntry",
-        "callee_module": "M23",
-        "callee": "F7ProspectiveContextTelemetry",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "RunEntryPreflightAndExecute",
-        "callee_module": "M05",
-        "callee": "BuildRiskValidationSnapshot",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "RunEntryPreflightAndExecute",
-        "callee_module": "M17",
-        "callee": "ResolveExecutionReferencePrice",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "RunEntryPreflightAndExecute",
-        "callee_module": "M17",
-        "callee": "ResolveApprovedInitialSLTP",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "RunEntryPreflightAndExecute",
-        "callee_module": "M17",
-        "callee": "ValidateSLTP",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "RunEntryPreflightAndExecute",
-        "callee_module": "M21",
-        "callee": "CalculateLotSize",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "RunEntryPreflightAndExecute",
-        "callee_module": "M21",
-        "callee": "DiagnoseInvalidLotReason",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "RunEntryPreflightAndExecute",
-        "callee_module": "M21",
-        "callee": "PrintInvalidLotDiagnostic",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "RunEntryPreflightAndExecute",
-        "callee_module": "M19",
-        "callee": "CheckRiskBeforeTrade",
-        "calls": 1
-      },
-      {
-        "caller_module": "M22",
-        "caller": "RunEntryPreflightAndExecute",
-        "callee_module": "M20",
-        "callee": "FinalPortfolioGuard",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "FreezeC044Lifecycle",
-        "callee_module": "M24",
-        "callee": "SaveC044Checkpoint",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "FreezeC044Lifecycle",
-        "callee_module": "M05",
-        "callee": "Log",
-        "calls": 2
-      },
-      {
-        "caller_module": "M23",
-        "caller": "ProcessC044OwnerClosedCandle",
-        "callee_module": "M24",
-        "callee": "IsValidC044OwnerTimeframe",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "ProcessC044OwnerClosedCandle",
-        "callee_module": "M05",
-        "callee": "InitTimeframeData",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "ProcessC044OwnerClosedCandle",
-        "callee_module": "M06",
-        "callee": "GetDataForTimeframe",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "ProcessC044OwnerClosedCandle",
-        "callee_module": "M12",
-        "callee": "BuildReEntryDirectionInputs",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "ProcessC044OwnerClosedCandle",
-        "callee_module": "M08",
-        "callee": "DetectExtreme",
-        "calls": 2
-      },
-      {
-        "caller_module": "M23",
-        "caller": "ProcessC044OwnerClosedCandle",
-        "callee_module": "M08",
-        "callee": "UpdateExtremeLifecycle",
-        "calls": 2
-      },
-      {
-        "caller_module": "M23",
-        "caller": "ProcessC044OwnerClosedCandle",
-        "callee_module": "M08",
-        "callee": "ResolveOppositeExtremeSupersession",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "ProcessC044OwnerClosedCandle",
-        "callee_module": "M12",
-        "callee": "UpdateReEntryState",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "ProcessC044OwnerClosedCandle",
-        "callee_module": "M24",
-        "callee": "SaveC044Checkpoint",
-        "calls": 4
-      },
-      {
-        "caller_module": "M23",
-        "caller": "ProcessC044OwnerClosedCandle",
-        "callee_module": "M10",
-        "callee": "DetectCSM",
-        "calls": 2
-      },
-      {
-        "caller_module": "M23",
-        "caller": "AdvanceC044OwnerEventOneCandle",
-        "callee_module": "M24",
-        "callee": "IsValidC044OwnerTimeframe",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "AdvanceC044OwnerEventOneCandle",
-        "callee_module": "M04",
-        "callee": "GetLatestClosedCandleTime",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "F7ProspectiveContextTelemetry",
-        "callee_module": "M12N",
-        "callee": "NMJE_LogIdentityToken",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "F7ProspectiveContextTelemetry",
-        "callee_module": "M05",
-        "callee": "SHORT_HASH",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "F7ProspectiveContextTelemetry",
-        "callee_module": "M12N",
-        "callee": "NMJE_DirText",
-        "calls": 2
-      },
-      {
-        "caller_module": "M23",
-        "caller": "F7ProspectiveContextTelemetry",
-        "callee_module": "M12N",
-        "callee": "NMJE_RelationText",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "F7ProspectiveContextTelemetry",
-        "callee_module": "M12N",
-        "callee": "NMJE_ParentText",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "F7TelemetryHeartbeat",
-        "callee_module": "M04",
-        "callee": "IsTerminalConnected",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "LatchC044Exit",
-        "callee_module": "M24",
-        "callee": "SaveC044Checkpoint",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "LatchC044Exit",
-        "callee_module": "M05",
-        "callee": "Log",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "ExecuteLatchedC044Close",
-        "callee_module": "M24",
-        "callee": "ClearC044Checkpoint",
-        "calls": 2
-      },
-      {
-        "caller_module": "M23",
-        "caller": "ExecuteLatchedC044Close",
-        "callee_module": "M05",
-        "callee": "Log",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "FreezeD1TPWLifecycle",
-        "callee_module": "M24",
-        "callee": "SaveD1TPWCheckpoint",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "FreezeD1TPWLifecycle",
-        "callee_module": "M05",
-        "callee": "Log",
-        "calls": 2
-      },
-      {
-        "caller_module": "M23",
-        "caller": "LatchD1TPWExit",
-        "callee_module": "M24",
-        "callee": "SaveD1TPWCheckpoint",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "ProcessD1TPWClosedCandle",
-        "callee_module": "M05",
-        "callee": "GetTimeframeSeconds",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "ProcessD1TPWClosedCandle",
-        "callee_module": "M04",
-        "callee": "IsCandleClosed",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "ProcessD1TPWClosedCandle",
-        "callee_module": "M06",
-        "callee": "BBMALowMA",
-        "calls": 2
-      },
-      {
-        "caller_module": "M23",
-        "caller": "ProcessD1TPWClosedCandle",
-        "callee_module": "M06",
-        "callee": "BBMAHighMA",
-        "calls": 2
-      },
-      {
-        "caller_module": "M23",
-        "caller": "ProcessD1TPWClosedCandle",
-        "callee_module": "M11J",
-        "callee": "IsD1TPWCompletionAtShift",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "ProcessD1TPWClosedCandle",
-        "callee_module": "M24",
-        "callee": "SaveD1TPWCheckpoint",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "AdvanceD1TPWLifecycleForTrade",
-        "callee_module": "M04",
-        "callee": "GetLatestClosedCandleTime",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "ExecuteLatchedD1TPWClose",
-        "callee_module": "M24",
-        "callee": "ClearD1TPWCheckpoint",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "ExecuteLatchedD1TPWClose",
-        "callee_module": "M05",
-        "callee": "Log",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "ManagePositions",
-        "callee_module": "M05",
-        "callee": "FindPairStateIndex",
-        "calls": 1
-      },
-      {
-        "caller_module": "M23",
-        "caller": "ManagePositions",
-        "callee_module": "M05",
-        "callee": "Log",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "ClearD1TPWCheckpoint",
-        "callee_module": "M05",
-        "callee": "Log",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "InitializeD1TPWTradeStateFromDecision",
-        "callee_module": "M17",
-        "callee": "IsD1TPWLifecycleIdentity",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "InitializeD1TPWTradeStateFromDecision",
-        "callee_module": "M05",
-        "callee": "FindPairStateIndex",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "InitializeD1TPWTradeStateFromDecision",
-        "callee_module": "M04",
-        "callee": "GetLatestClosedCandleTime",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "CaptureC044ReplaySeed",
-        "callee_module": "M23",
-        "callee": "GetC044OwnerReEntrySnapshot",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "CaptureC044ReplaySeed",
-        "callee_module": "M23",
-        "callee": "GetC044OwnerExtremeSnapshot",
-        "calls": 2
-      },
-      {
-        "caller_module": "M24",
-        "caller": "InitializeC044TradeStateFromDecision",
-        "callee_module": "M05",
-        "callee": "FindPairStateIndex",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "InitializeC044TradeStateFromDecision",
-        "callee_module": "M04",
-        "callee": "GetLatestClosedCandleTime",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "ClassifyH4AuthoritativeSignal",
-        "callee_module": "M12",
-        "callee": "BuildReEntryDirectionInputs",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "ClassifyH4AuthoritativeSignal",
-        "callee_module": "M10",
-        "callee": "DetectCSM",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "ClassifyH4AuthoritativeSignal",
-        "callee_module": "M10",
-        "callee": "DetectCSD",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "ClassifyH4AuthoritativeSignal",
-        "callee_module": "M10",
-        "callee": "DetectECSD",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "VerifyH4OwnerCheckpoint",
-        "callee_module": "M05",
-        "callee": "InitTimeframeData",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "VerifyH4OwnerCheckpoint",
-        "callee_module": "M06",
-        "callee": "GetDataForTimeframe",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "RecoverH4DirectionalOwnerForPair",
-        "callee_module": "M05",
-        "callee": "InitTimeframeData",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "RecoverH4DirectionalOwnerForPair",
-        "callee_module": "M06",
-        "callee": "GetDataForTimeframe",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "RecoverExistingOrders",
-        "callee_module": "M05",
-        "callee": "IsExactEAOwnedSelectedOrder",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "RecoverExistingOrders",
-        "callee_module": "M05",
-        "callee": "LoadPersistedExecutionHashForTicket",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "RecoverExistingOrders",
-        "callee_module": "M05",
-        "callee": "ExtractExecutionHash",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "RecoverExistingOrders",
-        "callee_module": "M05",
-        "callee": "SaveExecutionIdentityHash",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "RecoverExistingOrders",
-        "callee_module": "M05",
-        "callee": "ParseOrderCommentFull",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "RecoverExistingOrders",
-        "callee_module": "M05",
-        "callee": "Log",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "RecoverExistingOrders",
-        "callee_module": "M04",
-        "callee": "GetPointSize",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "RecoverExistingOrders",
-        "callee_module": "M04",
-        "callee": "GetDigits",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "RecoverExistingOrders",
-        "callee_module": "M04",
-        "callee": "GetStopLevel",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "RecoverExistingOrders",
-        "callee_module": "M04",
-        "callee": "GetFreezeLevel",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "RecoverExistingOrders",
-        "callee_module": "M05",
-        "callee": "IsValidLotStep",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "RecoverExistingOrders",
-        "callee_module": "M22",
-        "callee": "LoadNMJEShadowAttribution",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "RecoverExistingOrders",
-        "callee_module": "M22",
-        "callee": "AddToMonitoredTrades",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "RecoverExistingOrders",
-        "callee_module": "M23",
-        "callee": "F7Telemetry",
-        "calls": 1
-      },
-      {
-        "caller_module": "M24",
-        "caller": "RecoverExistingOrders",
-        "callee_module": "M05",
-        "callee": "UpsertExecutionHashTombstone",
-        "calls": 1
-      },
-      {
-        "caller_module": "M25",
-        "caller": "CountDashboardLiveEAOwnedTrades",
-        "callee_module": "M05",
-        "callee": "IsExactEAOwnedSelectedOrder",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "NormalizeRuntimeLimits",
-        "callee_module": "M05",
-        "callee": "SplitString",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "ValidateInputParameters",
-        "callee_module": "M05",
-        "callee": "SplitString",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "ValidatePairIDCollision",
-        "callee_module": "M05",
-        "callee": "Log",
-        "calls": 2
-      },
-      {
-        "caller_module": "M26",
-        "caller": "ValidateMagicCollision",
-        "callee_module": "M05",
-        "callee": "Log",
-        "calls": 2
-      },
-      {
-        "caller_module": "M26",
-        "caller": "LoadPairs",
-        "callee_module": "M05",
-        "callee": "SplitString",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "LoadPairs",
-        "callee_module": "M04",
-        "callee": "FindActualSymbol",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "LoadPairs",
-        "callee_module": "M05",
-        "callee": "Log",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "LoadPairs",
-        "callee_module": "M05",
-        "callee": "InitPairState",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "LoadPairs",
-        "callee_module": "M05",
-        "callee": "GeneratePairID",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "LoadPairs",
-        "callee_module": "M04",
-        "callee": "GetPointSize",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "LoadPairs",
-        "callee_module": "M04",
-        "callee": "GetDigits",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "LoadPairs",
-        "callee_module": "M04",
-        "callee": "GetTickValue",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "LoadPairs",
-        "callee_module": "M04",
-        "callee": "GetTickSize_Price",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "LoadPairs",
-        "callee_module": "M04",
-        "callee": "GetMinLot",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "LoadPairs",
-        "callee_module": "M04",
-        "callee": "GetMaxLot",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "LoadPairs",
-        "callee_module": "M04",
-        "callee": "GetLotStep",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "LoadPairs",
-        "callee_module": "M04",
-        "callee": "GetLotDigits",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "LoadPairs",
-        "callee_module": "M04",
-        "callee": "GetStopLevel",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "LoadPairs",
-        "callee_module": "M04",
-        "callee": "GetFreezeLevel",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "LoadPairs",
-        "callee_module": "M05",
-        "callee": "GenerateMagicNumber",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "LoadPairs",
-        "callee_module": "M04",
-        "callee": "ValidateBrokerSpecificationWithRetry",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "LoadPairs",
-        "callee_module": "M05",
-        "callee": "DetectCentAccount",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "LoadPairs",
-        "callee_module": "M05",
-        "callee": "GetCentFactor",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "InitializeEA",
-        "callee_module": "M04",
-        "callee": "IsTerminalConnected",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "InitializeEA",
-        "callee_module": "M04",
-        "callee": "GetProcessingTime",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "InitializeEA",
-        "callee_module": "M05",
-        "callee": "InitBrokerInfo",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "InitializeEA",
-        "callee_module": "M05",
-        "callee": "Log",
-        "calls": 6
-      },
-      {
-        "caller_module": "M26",
-        "caller": "InitializeEA",
-        "callee_module": "M05",
-        "callee": "GetTodayStart",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "InitializeEA",
-        "callee_module": "M24",
-        "callee": "RecoverH4DirectionalOwners",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "InitializeEA",
-        "callee_module": "M05",
-        "callee": "RebuildExecutionHistory",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "InitializeEA",
-        "callee_module": "M24",
-        "callee": "RecoverExistingOrders",
-        "calls": 1
-      },
-      {
-        "caller_module": "M26",
-        "caller": "InitializeEA",
-        "callee_module": "M22",
-        "callee": "LoadExecutionAmbiguityHold",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "IsNewCandle",
-        "callee_module": "M04",
-        "callee": "GetLatestClosedCandleTime",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "PrintSignalBottleneckDiagnostic",
-        "callee_module": "M05",
-        "callee": "ObserverPrintChanged",
-        "calls": 3
-      },
-      {
-        "caller_module": "M27",
-        "caller": "PrintSignalBottleneckDiagnostic",
-        "callee_module": "M11J",
-        "callee": "D1OpportunityFamilyText",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M05",
-        "callee": "BuildTimeframeSnapshot",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M06",
-        "callee": "GetDataForTimeframe",
-        "calls": 5
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M04",
-        "callee": "GetLatestClosedCandleTime",
-        "calls": 2
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M11",
-        "callee": "UpdateD1MajorTrendOwner",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M24",
-        "callee": "UpdateRuntimeH4DirectionalOwner",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M07",
-        "callee": "BuildBBShapeState",
-        "calls": 2
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M08",
-        "callee": "DetectExtreme",
-        "calls": 8
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M08",
-        "callee": "UpdateExtremeLifecycle",
-        "calls": 8
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M08",
-        "callee": "ResolveOppositeExtremeSupersession",
-        "calls": 4
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M08",
-        "callee": "ExportReversalConfirmedExtremeSignal",
-        "calls": 4
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M16",
-        "callee": "UpdatePersistentExtremeState",
-        "calls": 4
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M10",
-        "callee": "DetectCSD",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M10",
-        "callee": "DetectECSD",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M10",
-        "callee": "DetectCSM",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M09",
-        "callee": "UpdateCanonicalMLVState",
-        "calls": 2
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M12",
-        "callee": "UpdateReEntryState",
-        "calls": 8
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M24",
-        "callee": "NoteH4ReEntryInheritance",
-        "calls": 2
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M12N",
-        "callee": "UpdateNestedJourneyObservation",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M13",
-        "callee": "NMJE_P3_UpdateClosedM5Shadow",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M09",
-        "callee": "ExportCanonicalMHVSignal",
-        "calls": 2
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M13",
-        "callee": "CollectSignalSnapshots",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M12",
-        "callee": "ExportConfirmedReEntrySignal",
-        "calls": 2
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M13",
-        "callee": "BuildPossibleCombinations",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M15",
-        "callee": "BuildConfirmedReEntryCandidate",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M15",
-        "callee": "AppendValidatedCandidate",
-        "calls": 4
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M15",
-        "callee": "BuildStandaloneExtremeCandidate",
-        "calls": 2
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M14",
-        "callee": "ValidateSequence",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M23",
-        "callee": "AdvanceC044OwnerEventsForPair",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M23",
-        "callee": "AdvanceD1TPWLifecycleForPair",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M11J",
-        "callee": "UpdateD1OpportunityJourney",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M15",
-        "callee": "BuildD1OpportunityCandidate",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M13",
-        "callee": "NMJE_P2_PrintEqualEligibilityShadow",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M12N",
-        "callee": "NMJE_PrintStructuralDensityShadow",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M15",
-        "callee": "PriorityEngine_Atomic",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M12N",
-        "callee": "NMJE_DirText",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M05",
-        "callee": "SHORT_HASH",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M16",
-        "callee": "InvalidationEngine_Atomic",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M12N",
-        "callee": "NMJE_FreezeValidatedDecisionAttribution",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M12N",
-        "callee": "NMJE_PrintValidatedDecisionShadow",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M22",
-        "callee": "RunEntryPreflightAndExecute",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "ProcessPair",
-        "callee_module": "M25",
-        "callee": "BuildDashboardSnapshot",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "OnTickMain",
-        "callee_module": "M20",
-        "callee": "ManagePortfolio",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "OnTickMain",
-        "callee_module": "M23",
-        "callee": "ManagePositions",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "OnTickMain",
-        "callee_module": "M22",
-        "callee": "CompactMonitoredTrades",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "OnTickMain",
-        "callee_module": "M22",
-        "callee": "ReconcileExecutionAmbiguityHold",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "OnTickMain",
-        "callee_module": "M04",
-        "callee": "GetProcessingTime",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "OnTickMain",
-        "callee_module": "M25",
-        "callee": "UpdateDashboard",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "OnInit",
-        "callee_module": "M23",
-        "callee": "F7BuildIdentityTelemetry",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "OnInit",
-        "callee_module": "M26",
-        "callee": "NormalizeRuntimeLimits",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "OnInit",
-        "callee_module": "M26",
-        "callee": "ValidateInputParameters",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "OnInit",
-        "callee_module": "M05",
-        "callee": "Log",
-        "calls": 4
-      },
-      {
-        "caller_module": "M27",
-        "caller": "OnInit",
-        "callee_module": "M26",
-        "callee": "InitializeEA",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "OnDeinit",
-        "callee_module": "M05",
-        "callee": "Log",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "OnTick",
-        "callee_module": "M04",
-        "callee": "IsTerminalConnected",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "OnTimer",
-        "callee_module": "M05",
-        "callee": "CleanupSignalHistoryEntries",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "OnTimer",
-        "callee_module": "M05",
-        "callee": "CleanupGlobalSignalHistory",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "OnTimer",
-        "callee_module": "M23",
-        "callee": "F7TelemetryHeartbeat",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "OnTimer",
-        "callee_module": "M05",
-        "callee": "GetTodayStart",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "OnTimer",
-        "callee_module": "M05",
-        "callee": "Log",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "OnTimer",
-        "callee_module": "M04",
-        "callee": "IsTerminalConnected",
-        "calls": 1
-      },
-      {
-        "caller_module": "M27",
-        "caller": "OnTimer",
-        "callee_module": "M25",
-        "callee": "RefreshDashboardLiveTradeCount",
-        "calls": 1
-      }
-    ]
-  },
-  "field_access_inventory": {
-    "path": "config/bbma_field_access_inventory_build515.json",
-    "authority": {
-      "branch": "d1-owner-dev",
-      "commit": "459c0588e625d7f7630f0fb5612b7f04fda496de",
-      "blob_sha": "09de8b80fdaeeb2fd614de0a1826134e9a8b2411"
-    },
-    "modules": [
+    "source_module_headers": [
       "M01",
       "M02",
       "M03",
@@ -3752,10 +797,2966 @@
       "M26",
       "M27"
     ],
-    "struct_count": 36,
-    "declared_fields": 640,
-    "accessed_fields": 595,
-    "cross_module_fields": 338,
-    "status": "LEXICAL ACCESS VERIFIED; INTERPROCEDURAL OWNERSHIP PARTIAL"
+    "source_module_header_count": 29,
+    "function_connection_inventory": {
+      "function_definitions": 431,
+      "function_call_occurrences": 1478,
+      "cross_module_call_occurrences": 502,
+      "cross_module_module_edges": 96,
+      "cross_module_function_pairs": 364,
+      "module_edges": [
+        {
+          "edge": "M04->M05",
+          "pair_count": 1
+        },
+        {
+          "edge": "M05->M04",
+          "pair_count": 21
+        },
+        {
+          "edge": "M06->M05",
+          "pair_count": 2
+        },
+        {
+          "edge": "M06->M04",
+          "pair_count": 3
+        },
+        {
+          "edge": "M07->M06",
+          "pair_count": 1
+        },
+        {
+          "edge": "M07->M04",
+          "pair_count": 1
+        },
+        {
+          "edge": "M08->M06",
+          "pair_count": 1
+        },
+        {
+          "edge": "M09->M10",
+          "pair_count": 2
+        },
+        {
+          "edge": "M09->M08",
+          "pair_count": 6
+        },
+        {
+          "edge": "M10->M06",
+          "pair_count": 1
+        },
+        {
+          "edge": "M11->M06",
+          "pair_count": 2
+        },
+        {
+          "edge": "M11J->M06",
+          "pair_count": 4
+        },
+        {
+          "edge": "M11J->M05",
+          "pair_count": 2
+        },
+        {
+          "edge": "M11J->M10",
+          "pair_count": 3
+        },
+        {
+          "edge": "M12->M10",
+          "pair_count": 5
+        },
+        {
+          "edge": "M12->M04",
+          "pair_count": 1
+        },
+        {
+          "edge": "M12->M05",
+          "pair_count": 1
+        },
+        {
+          "edge": "M12N->M05",
+          "pair_count": 8
+        },
+        {
+          "edge": "M12N->M11J",
+          "pair_count": 3
+        },
+        {
+          "edge": "M12N->M15",
+          "pair_count": 2
+        },
+        {
+          "edge": "M13->M15",
+          "pair_count": 3
+        },
+        {
+          "edge": "M13->M12N",
+          "pair_count": 2
+        },
+        {
+          "edge": "M13->M05",
+          "pair_count": 2
+        },
+        {
+          "edge": "M13->M09",
+          "pair_count": 1
+        },
+        {
+          "edge": "M14->M05",
+          "pair_count": 1
+        },
+        {
+          "edge": "M15->M05",
+          "pair_count": 10
+        },
+        {
+          "edge": "M15->M24",
+          "pair_count": 3
+        },
+        {
+          "edge": "M15->M23",
+          "pair_count": 1
+        },
+        {
+          "edge": "M15->M17",
+          "pair_count": 3
+        },
+        {
+          "edge": "M15->M12N",
+          "pair_count": 4
+        },
+        {
+          "edge": "M16->M09",
+          "pair_count": 1
+        },
+        {
+          "edge": "M16->M15",
+          "pair_count": 2
+        },
+        {
+          "edge": "M16->M11J",
+          "pair_count": 2
+        },
+        {
+          "edge": "M16->M05",
+          "pair_count": 1
+        },
+        {
+          "edge": "M17->M05",
+          "pair_count": 4
+        },
+        {
+          "edge": "M17->M04",
+          "pair_count": 4
+        },
+        {
+          "edge": "M17->M06",
+          "pair_count": 2
+        },
+        {
+          "edge": "M19->M20",
+          "pair_count": 1
+        },
+        {
+          "edge": "M19->M05",
+          "pair_count": 2
+        },
+        {
+          "edge": "M19->M04",
+          "pair_count": 1
+        },
+        {
+          "edge": "M20->M05",
+          "pair_count": 5
+        },
+        {
+          "edge": "M20->M04",
+          "pair_count": 1
+        },
+        {
+          "edge": "M20->M19",
+          "pair_count": 1
+        },
+        {
+          "edge": "M22->M05",
+          "pair_count": 26
+        },
+        {
+          "edge": "M22->M20",
+          "pair_count": 2
+        },
+        {
+          "edge": "M22->M17",
+          "pair_count": 6
+        },
+        {
+          "edge": "M22->M04",
+          "pair_count": 7
+        },
+        {
+          "edge": "M22->M24",
+          "pair_count": 13
+        },
+        {
+          "edge": "M22->M12N",
+          "pair_count": 10
+        },
+        {
+          "edge": "M22->M15",
+          "pair_count": 2
+        },
+        {
+          "edge": "M22->M23",
+          "pair_count": 1
+        },
+        {
+          "edge": "M22->M21",
+          "pair_count": 3
+        },
+        {
+          "edge": "M22->M19",
+          "pair_count": 1
+        },
+        {
+          "edge": "M23->M24",
+          "pair_count": 10
+        },
+        {
+          "edge": "M23->M05",
+          "pair_count": 10
+        },
+        {
+          "edge": "M23->M06",
+          "pair_count": 3
+        },
+        {
+          "edge": "M23->M12",
+          "pair_count": 2
+        },
+        {
+          "edge": "M23->M08",
+          "pair_count": 3
+        },
+        {
+          "edge": "M23->M10",
+          "pair_count": 1
+        },
+        {
+          "edge": "M23->M04",
+          "pair_count": 4
+        },
+        {
+          "edge": "M23->M12N",
+          "pair_count": 4
+        },
+        {
+          "edge": "M23->M11J",
+          "pair_count": 1
+        },
+        {
+          "edge": "M24->M05",
+          "pair_count": 13
+        },
+        {
+          "edge": "M24->M17",
+          "pair_count": 1
+        },
+        {
+          "edge": "M24->M04",
+          "pair_count": 6
+        },
+        {
+          "edge": "M24->M23",
+          "pair_count": 3
+        },
+        {
+          "edge": "M24->M12",
+          "pair_count": 1
+        },
+        {
+          "edge": "M24->M10",
+          "pair_count": 3
+        },
+        {
+          "edge": "M24->M06",
+          "pair_count": 2
+        },
+        {
+          "edge": "M24->M22",
+          "pair_count": 2
+        },
+        {
+          "edge": "M25->M05",
+          "pair_count": 1
+        },
+        {
+          "edge": "M26->M05",
+          "pair_count": 15
+        },
+        {
+          "edge": "M26->M04",
+          "pair_count": 14
+        },
+        {
+          "edge": "M26->M24",
+          "pair_count": 2
+        },
+        {
+          "edge": "M26->M22",
+          "pair_count": 1
+        },
+        {
+          "edge": "M27->M04",
+          "pair_count": 5
+        },
+        {
+          "edge": "M27->M05",
+          "pair_count": 9
+        },
+        {
+          "edge": "M27->M11J",
+          "pair_count": 2
+        },
+        {
+          "edge": "M27->M06",
+          "pair_count": 1
+        },
+        {
+          "edge": "M27->M11",
+          "pair_count": 1
+        },
+        {
+          "edge": "M27->M24",
+          "pair_count": 2
+        },
+        {
+          "edge": "M27->M07",
+          "pair_count": 1
+        },
+        {
+          "edge": "M27->M08",
+          "pair_count": 4
+        },
+        {
+          "edge": "M27->M16",
+          "pair_count": 2
+        },
+        {
+          "edge": "M27->M10",
+          "pair_count": 3
+        },
+        {
+          "edge": "M27->M09",
+          "pair_count": 2
+        },
+        {
+          "edge": "M27->M12",
+          "pair_count": 2
+        },
+        {
+          "edge": "M27->M12N",
+          "pair_count": 5
+        },
+        {
+          "edge": "M27->M13",
+          "pair_count": 4
+        },
+        {
+          "edge": "M27->M15",
+          "pair_count": 5
+        },
+        {
+          "edge": "M27->M14",
+          "pair_count": 1
+        },
+        {
+          "edge": "M27->M23",
+          "pair_count": 5
+        },
+        {
+          "edge": "M27->M22",
+          "pair_count": 3
+        },
+        {
+          "edge": "M27->M25",
+          "pair_count": 3
+        },
+        {
+          "edge": "M27->M20",
+          "pair_count": 1
+        },
+        {
+          "edge": "M27->M26",
+          "pair_count": 3
+        }
+      ],
+      "function_pairs": [
+        {
+          "caller_module": "M04",
+          "caller": "GetLatestClosedCandleTime",
+          "callee_module": "M05",
+          "callee": "GetTimeframeSeconds",
+          "calls": 1
+        },
+        {
+          "caller_module": "M05",
+          "caller": "GeneratePairID",
+          "callee_module": "M04",
+          "callee": "RemoveSuffix",
+          "calls": 1
+        },
+        {
+          "caller_module": "M05",
+          "caller": "InitBrokerInfo",
+          "callee_module": "M04",
+          "callee": "GetLotDigits",
+          "calls": 1
+        },
+        {
+          "caller_module": "M05",
+          "caller": "InitBrokerInfo",
+          "callee_module": "M04",
+          "callee": "GetDigits",
+          "calls": 1
+        },
+        {
+          "caller_module": "M05",
+          "caller": "InitBrokerInfo",
+          "callee_module": "M04",
+          "callee": "GetPointSize",
+          "calls": 1
+        },
+        {
+          "caller_module": "M05",
+          "caller": "InitBrokerInfo",
+          "callee_module": "M04",
+          "callee": "GetTickValue",
+          "calls": 1
+        },
+        {
+          "caller_module": "M05",
+          "caller": "InitBrokerInfo",
+          "callee_module": "M04",
+          "callee": "GetTickSize_Price",
+          "calls": 1
+        },
+        {
+          "caller_module": "M05",
+          "caller": "InitBrokerInfo",
+          "callee_module": "M04",
+          "callee": "GetStopLevel",
+          "calls": 1
+        },
+        {
+          "caller_module": "M05",
+          "caller": "InitBrokerInfo",
+          "callee_module": "M04",
+          "callee": "GetFreezeLevel",
+          "calls": 1
+        },
+        {
+          "caller_module": "M05",
+          "caller": "IsValidLotStep",
+          "callee_module": "M04",
+          "callee": "GetLotStep",
+          "calls": 1
+        },
+        {
+          "caller_module": "M05",
+          "caller": "CalculateTradeRiskMoney",
+          "callee_module": "M04",
+          "callee": "GetTickValue",
+          "calls": 1
+        },
+        {
+          "caller_module": "M05",
+          "caller": "CalculateTradeRiskMoney",
+          "callee_module": "M04",
+          "callee": "GetTickSize_Price",
+          "calls": 1
+        },
+        {
+          "caller_module": "M05",
+          "caller": "BuildTimeframeSnapshot",
+          "callee_module": "M04",
+          "callee": "GetLatestClosedCandleTime",
+          "calls": 4
+        },
+        {
+          "caller_module": "M05",
+          "caller": "BuildTimeframeSnapshot",
+          "callee_module": "M04",
+          "callee": "IsCandleClosed",
+          "calls": 4
+        },
+        {
+          "caller_module": "M05",
+          "caller": "BuildRiskValidationSnapshot",
+          "callee_module": "M04",
+          "callee": "GetTickValue",
+          "calls": 1
+        },
+        {
+          "caller_module": "M05",
+          "caller": "BuildRiskValidationSnapshot",
+          "callee_module": "M04",
+          "callee": "GetTickSize_Price",
+          "calls": 1
+        },
+        {
+          "caller_module": "M05",
+          "caller": "BuildRiskValidationSnapshot",
+          "callee_module": "M04",
+          "callee": "GetLotStep",
+          "calls": 1
+        },
+        {
+          "caller_module": "M05",
+          "caller": "BuildRiskValidationSnapshot",
+          "callee_module": "M04",
+          "callee": "GetMinLot",
+          "calls": 1
+        },
+        {
+          "caller_module": "M05",
+          "caller": "BuildRiskValidationSnapshot",
+          "callee_module": "M04",
+          "callee": "GetMaxLot",
+          "calls": 1
+        },
+        {
+          "caller_module": "M05",
+          "caller": "BuildRiskValidationSnapshot",
+          "callee_module": "M04",
+          "callee": "GetPointSize",
+          "calls": 1
+        },
+        {
+          "caller_module": "M05",
+          "caller": "BuildRiskValidationSnapshot",
+          "callee_module": "M04",
+          "callee": "GetDigits",
+          "calls": 1
+        },
+        {
+          "caller_module": "M05",
+          "caller": "BuildRiskValidationSnapshot",
+          "callee_module": "M04",
+          "callee": "GetLotDigits",
+          "calls": 1
+        },
+        {
+          "caller_module": "M06",
+          "caller": "GetDataForTimeframe",
+          "callee_module": "M05",
+          "callee": "InitTimeframeData",
+          "calls": 1
+        },
+        {
+          "caller_module": "M06",
+          "caller": "GetDataForTimeframe",
+          "callee_module": "M04",
+          "callee": "GetPointSize",
+          "calls": 1
+        },
+        {
+          "caller_module": "M06",
+          "caller": "GetDataForTimeframe",
+          "callee_module": "M04",
+          "callee": "GetDigits",
+          "calls": 1
+        },
+        {
+          "caller_module": "M06",
+          "caller": "GetDataForTimeframe",
+          "callee_module": "M04",
+          "callee": "IsCandleClosed",
+          "calls": 1
+        },
+        {
+          "caller_module": "M06",
+          "caller": "GetDataForTimeframe",
+          "callee_module": "M05",
+          "callee": "GetTimeframeSeconds",
+          "calls": 1
+        },
+        {
+          "caller_module": "M07",
+          "caller": "BuildBBShapeState",
+          "callee_module": "M06",
+          "callee": "CalculateBollinger",
+          "calls": 1
+        },
+        {
+          "caller_module": "M07",
+          "caller": "BuildBBShapeState",
+          "callee_module": "M04",
+          "callee": "GetPointSize",
+          "calls": 1
+        },
+        {
+          "caller_module": "M08",
+          "caller": "IsExtremeMomentumInvalidation",
+          "callee_module": "M06",
+          "callee": "CalculateBollinger",
+          "calls": 1
+        },
+        {
+          "caller_module": "M09",
+          "caller": "IsMHVContinuationInvalidation",
+          "callee_module": "M10",
+          "callee": "DetectCSM",
+          "calls": 2
+        },
+        {
+          "caller_module": "M09",
+          "caller": "IsMHVLossPhaseEligible",
+          "callee_module": "M10",
+          "callee": "DetectCSM",
+          "calls": 1
+        },
+        {
+          "caller_module": "M09",
+          "caller": "InstallMHVSupersessionParent",
+          "callee_module": "M08",
+          "callee": "ResetExtremeLifecycle",
+          "calls": 1
+        },
+        {
+          "caller_module": "M09",
+          "caller": "InstallMHVSupersessionParent",
+          "callee_module": "M08",
+          "callee": "GetExtremeReversalBodyEdge",
+          "calls": 1
+        },
+        {
+          "caller_module": "M09",
+          "caller": "InstallMHVSupersessionParent",
+          "callee_module": "M08",
+          "callee": "GetExtremeRelevantMA5",
+          "calls": 1
+        },
+        {
+          "caller_module": "M09",
+          "caller": "TryAdvanceMHVSupersessionCandidate",
+          "callee_module": "M08",
+          "callee": "IsExtremeLifecycleInvalidation",
+          "calls": 2
+        },
+        {
+          "caller_module": "M09",
+          "caller": "TryAdvanceMHVSupersessionCandidate",
+          "callee_module": "M08",
+          "callee": "IsExtremeReversalDirection",
+          "calls": 1
+        },
+        {
+          "caller_module": "M09",
+          "caller": "TryAdvanceMHVSupersessionCandidate",
+          "callee_module": "M08",
+          "callee": "DetectExtreme",
+          "calls": 1
+        },
+        {
+          "caller_module": "M10",
+          "caller": "DetectCSM",
+          "callee_module": "M06",
+          "callee": "CalculateBollinger",
+          "calls": 2
+        },
+        {
+          "caller_module": "M11",
+          "caller": "M11_ClassifyD1OwnerAtShift",
+          "callee_module": "M06",
+          "callee": "EMA",
+          "calls": 2
+        },
+        {
+          "caller_module": "M11",
+          "caller": "UpdateD1MajorTrendOwner",
+          "callee_module": "M06",
+          "callee": "EMA",
+          "calls": 1
+        },
+        {
+          "caller_module": "M11J",
+          "caller": "IsD1TPWCompletionAtShift",
+          "callee_module": "M06",
+          "callee": "BBMALowMA",
+          "calls": 2
+        },
+        {
+          "caller_module": "M11J",
+          "caller": "IsD1TPWCompletionAtShift",
+          "callee_module": "M06",
+          "callee": "BBMAHighMA",
+          "calls": 2
+        },
+        {
+          "caller_module": "M11J",
+          "caller": "D1OpportunityTPWCompletedSince",
+          "callee_module": "M06",
+          "callee": "BBMALowMA",
+          "calls": 2
+        },
+        {
+          "caller_module": "M11J",
+          "caller": "D1OpportunityTPWCompletedSince",
+          "callee_module": "M06",
+          "callee": "BBMAHighMA",
+          "calls": 2
+        },
+        {
+          "caller_module": "M11J",
+          "caller": "InstallD1OpportunityJourney",
+          "callee_module": "M05",
+          "callee": "SHORT_HASH",
+          "calls": 1
+        },
+        {
+          "caller_module": "M11J",
+          "caller": "DetectD1OpportunityCSD",
+          "callee_module": "M10",
+          "callee": "DetectCSD",
+          "calls": 1
+        },
+        {
+          "caller_module": "M11J",
+          "caller": "DetectD1OpportunityECSDWatch",
+          "callee_module": "M10",
+          "callee": "DetectECSD",
+          "calls": 1
+        },
+        {
+          "caller_module": "M11J",
+          "caller": "UpdateD1OpportunityJourney",
+          "callee_module": "M05",
+          "callee": "GetTimeframeSeconds",
+          "calls": 4
+        },
+        {
+          "caller_module": "M11J",
+          "caller": "UpdateD1OpportunityJourney",
+          "callee_module": "M10",
+          "callee": "DetectCSM",
+          "calls": 2
+        },
+        {
+          "caller_module": "M12",
+          "caller": "DetectReEntryDirectionOwnerSignal",
+          "callee_module": "M10",
+          "callee": "DetectCSM",
+          "calls": 1
+        },
+        {
+          "caller_module": "M12",
+          "caller": "DetectReEntryDirectionOwnerSignal",
+          "callee_module": "M10",
+          "callee": "DetectCSD",
+          "calls": 1
+        },
+        {
+          "caller_module": "M12",
+          "caller": "DetectReEntryDirectionOwnerSignal",
+          "callee_module": "M10",
+          "callee": "DetectECSD",
+          "calls": 1
+        },
+        {
+          "caller_module": "M12",
+          "caller": "DetectReEntry_Type2",
+          "callee_module": "M04",
+          "callee": "IsNear",
+          "calls": 3
+        },
+        {
+          "caller_module": "M12",
+          "caller": "DetectReEntry_Type3",
+          "callee_module": "M10",
+          "callee": "DetectCSM",
+          "calls": 1
+        },
+        {
+          "caller_module": "M12",
+          "caller": "DetectReEntry_Type4",
+          "callee_module": "M10",
+          "callee": "DetectCSD",
+          "calls": 1
+        },
+        {
+          "caller_module": "M12",
+          "caller": "ConfirmReEntryState",
+          "callee_module": "M05",
+          "callee": "GetTimeframeSeconds",
+          "calls": 1
+        },
+        {
+          "caller_module": "M12N",
+          "caller": "NMJE_IdentityHash",
+          "callee_module": "M05",
+          "callee": "SHORT_HASH",
+          "calls": 1
+        },
+        {
+          "caller_module": "M12N",
+          "caller": "NMJE_PrintCoverageOverlay",
+          "callee_module": "M11J",
+          "callee": "D1OpportunityFamilyText",
+          "calls": 1
+        },
+        {
+          "caller_module": "M12N",
+          "caller": "NMJE_PrintP8StabilityShadow",
+          "callee_module": "M05",
+          "callee": "SHORT_HASH",
+          "calls": 5
+        },
+        {
+          "caller_module": "M12N",
+          "caller": "NMJE_PrintP8StabilityShadow",
+          "callee_module": "M05",
+          "callee": "ObserverPrintChanged",
+          "calls": 1
+        },
+        {
+          "caller_module": "M12N",
+          "caller": "NMJE_PrintStructuralDensityShadow",
+          "callee_module": "M15",
+          "callee": "IsCandidateEligible",
+          "calls": 1
+        },
+        {
+          "caller_module": "M12N",
+          "caller": "NMJE_PrintStructuralDensityShadow",
+          "callee_module": "M15",
+          "callee": "IsCandidateAllowedByD1Owner",
+          "calls": 1
+        },
+        {
+          "caller_module": "M12N",
+          "caller": "NMJE_PrintStructuralDensityShadow",
+          "callee_module": "M05",
+          "callee": "SHORT_HASH",
+          "calls": 2
+        },
+        {
+          "caller_module": "M12N",
+          "caller": "NMJE_PrintStructuralDensityShadow",
+          "callee_module": "M05",
+          "callee": "ObserverPrintChanged",
+          "calls": 1
+        },
+        {
+          "caller_module": "M12N",
+          "caller": "NMJE_FreezeValidatedDecisionAttribution",
+          "callee_module": "M05",
+          "callee": "SHORT_HASH",
+          "calls": 5
+        },
+        {
+          "caller_module": "M12N",
+          "caller": "UpdateNestedJourneyObservation",
+          "callee_module": "M05",
+          "callee": "ObserverPrintChanged",
+          "calls": 3
+        },
+        {
+          "caller_module": "M12N",
+          "caller": "NMJE_PrintValidatedDecisionShadow",
+          "callee_module": "M05",
+          "callee": "SHORT_HASH",
+          "calls": 1
+        },
+        {
+          "caller_module": "M12N",
+          "caller": "NMJE_PrintValidatedDecisionShadow",
+          "callee_module": "M11J",
+          "callee": "D1AuthorityModeText",
+          "calls": 1
+        },
+        {
+          "caller_module": "M12N",
+          "caller": "NMJE_PrintValidatedDecisionShadow",
+          "callee_module": "M11J",
+          "callee": "D1OpportunityFamilyText",
+          "calls": 1
+        },
+        {
+          "caller_module": "M13",
+          "caller": "NMJE_P2_PrintEqualEligibilityShadow",
+          "callee_module": "M15",
+          "callee": "IsCandidateEligible",
+          "calls": 3
+        },
+        {
+          "caller_module": "M13",
+          "caller": "NMJE_P2_PrintEqualEligibilityShadow",
+          "callee_module": "M15",
+          "callee": "IsCandidateAllowedByD1Owner",
+          "calls": 3
+        },
+        {
+          "caller_module": "M13",
+          "caller": "NMJE_P2_PrintEqualEligibilityShadow",
+          "callee_module": "M15",
+          "callee": "GetCandidateAnchorTime",
+          "calls": 2
+        },
+        {
+          "caller_module": "M13",
+          "caller": "NMJE_P2_PrintEqualEligibilityShadow",
+          "callee_module": "M12N",
+          "callee": "NMJE_BuildCandidateStructuralDensity",
+          "calls": 1
+        },
+        {
+          "caller_module": "M13",
+          "caller": "NMJE_P2_PrintEqualEligibilityShadow",
+          "callee_module": "M05",
+          "callee": "SHORT_HASH",
+          "calls": 1
+        },
+        {
+          "caller_module": "M13",
+          "caller": "NMJE_P2_PrintEqualEligibilityShadow",
+          "callee_module": "M12N",
+          "callee": "NMJE_DirText",
+          "calls": 1
+        },
+        {
+          "caller_module": "M13",
+          "caller": "IsCombinationMLVReady",
+          "callee_module": "M09",
+          "callee": "IsCanonicalMLVMatureState",
+          "calls": 1
+        },
+        {
+          "caller_module": "M13",
+          "caller": "FinalizeCombinationCandidate",
+          "callee_module": "M05",
+          "callee": "GenerateSequenceHash",
+          "calls": 1
+        },
+        {
+          "caller_module": "M14",
+          "caller": "PopulateValidatedCombination",
+          "callee_module": "M05",
+          "callee": "GenerateSequenceHash",
+          "calls": 1
+        },
+        {
+          "caller_module": "M15",
+          "caller": "BuildConfirmedReEntryCandidate",
+          "callee_module": "M05",
+          "callee": "SHORT_HASH",
+          "calls": 1
+        },
+        {
+          "caller_module": "M15",
+          "caller": "BuildStandaloneExtremeCandidate",
+          "callee_module": "M05",
+          "callee": "SHORT_HASH",
+          "calls": 1
+        },
+        {
+          "caller_module": "M15",
+          "caller": "OpportunityReEntryReadyTime",
+          "callee_module": "M05",
+          "callee": "GetTimeframeSeconds",
+          "calls": 1
+        },
+        {
+          "caller_module": "M15",
+          "caller": "BuildD1OpportunityCandidate",
+          "callee_module": "M05",
+          "callee": "SHORT_HASH",
+          "calls": 1
+        },
+        {
+          "caller_module": "M15",
+          "caller": "NMJE_P2_CounterfactualCandidateID",
+          "callee_module": "M05",
+          "callee": "SHORT_HASH",
+          "calls": 1
+        },
+        {
+          "caller_module": "M15",
+          "caller": "NMJE_P2_CaptureC044ReplayState",
+          "callee_module": "M24",
+          "callee": "IsValidC044OwnerTimeframe",
+          "calls": 1
+        },
+        {
+          "caller_module": "M15",
+          "caller": "NMJE_P2_RestoreC044ReplayTrade",
+          "callee_module": "M24",
+          "callee": "IsValidC044OwnerTimeframe",
+          "calls": 1
+        },
+        {
+          "caller_module": "M15",
+          "caller": "NMJE_P2_ResolveTargetlessC044Outcome",
+          "callee_module": "M05",
+          "callee": "FindPairStateIndex",
+          "calls": 1
+        },
+        {
+          "caller_module": "M15",
+          "caller": "NMJE_P2_ResolveTargetlessC044Outcome",
+          "callee_module": "M05",
+          "callee": "GetTimeframeSeconds",
+          "calls": 1
+        },
+        {
+          "caller_module": "M15",
+          "caller": "NMJE_P2_ResolveTargetlessC044Outcome",
+          "callee_module": "M23",
+          "callee": "ProcessC044OwnerClosedCandle",
+          "calls": 1
+        },
+        {
+          "caller_module": "M15",
+          "caller": "NMJE_P2_RegisterCounterfactualOpen",
+          "callee_module": "M05",
+          "callee": "SHORT_HASH",
+          "calls": 1
+        },
+        {
+          "caller_module": "M15",
+          "caller": "NMJE_P2_RegisterCounterfactualOpen",
+          "callee_module": "M17",
+          "callee": "ResolveApprovedInitialSLTP",
+          "calls": 1
+        },
+        {
+          "caller_module": "M15",
+          "caller": "NMJE_P2_RegisterCounterfactualOpen",
+          "callee_module": "M17",
+          "callee": "IsTargetlessLifecycleDecision",
+          "calls": 1
+        },
+        {
+          "caller_module": "M15",
+          "caller": "NMJE_P2_RegisterCounterfactualOpen",
+          "callee_module": "M17",
+          "callee": "ValidateDirectionalSLTPGeometry",
+          "calls": 1
+        },
+        {
+          "caller_module": "M15",
+          "caller": "NMJE_P2_RegisterCounterfactualOpen",
+          "callee_module": "M24",
+          "callee": "InitializeC044TradeStateFromDecision",
+          "calls": 1
+        },
+        {
+          "caller_module": "M15",
+          "caller": "NMJE_P2_RegisterCounterfactualOpen",
+          "callee_module": "M12N",
+          "callee": "NMJE_DirText",
+          "calls": 1
+        },
+        {
+          "caller_module": "M15",
+          "caller": "NMJE_P2_RegisterCounterfactualOpen",
+          "callee_module": "M12N",
+          "callee": "NMJE_RelationText",
+          "calls": 2
+        },
+        {
+          "caller_module": "M15",
+          "caller": "NMJE_P2_RegisterCounterfactualOpen",
+          "callee_module": "M12N",
+          "callee": "NMJE_MaturityText",
+          "calls": 1
+        },
+        {
+          "caller_module": "M15",
+          "caller": "NMJE_P2_PrintCounterfactualOutcomes",
+          "callee_module": "M12N",
+          "callee": "NMJE_DirText",
+          "calls": 1
+        },
+        {
+          "caller_module": "M15",
+          "caller": "PriorityEngine_Atomic",
+          "callee_module": "M05",
+          "callee": "GenerateDecisionID",
+          "calls": 1
+        },
+        {
+          "caller_module": "M15",
+          "caller": "PriorityEngine_Atomic",
+          "callee_module": "M05",
+          "callee": "ObserverPrintChanged",
+          "calls": 2
+        },
+        {
+          "caller_module": "M16",
+          "caller": "IsPersistentMLVComponentValid",
+          "callee_module": "M09",
+          "callee": "IsCanonicalMLVMatureState",
+          "calls": 1
+        },
+        {
+          "caller_module": "M16",
+          "caller": "ValidateDecisionD1OwnerSnapshot",
+          "callee_module": "M15",
+          "callee": "IsD1MajorTrendOwnerExecutionReady",
+          "calls": 1
+        },
+        {
+          "caller_module": "M16",
+          "caller": "ValidateDecisionD1OpportunitySnapshot",
+          "callee_module": "M15",
+          "callee": "IsD1MajorTrendOwnerExecutionReady",
+          "calls": 1
+        },
+        {
+          "caller_module": "M16",
+          "caller": "InvalidationEngine_Atomic",
+          "callee_module": "M11J",
+          "callee": "D1AuthorityModeText",
+          "calls": 1
+        },
+        {
+          "caller_module": "M16",
+          "caller": "InvalidationEngine_Atomic",
+          "callee_module": "M11J",
+          "callee": "D1OpportunityFamilyText",
+          "calls": 1
+        },
+        {
+          "caller_module": "M16",
+          "caller": "InvalidationEngine_Atomic",
+          "callee_module": "M05",
+          "callee": "ObserverPrintChanged",
+          "calls": 2
+        },
+        {
+          "caller_module": "M17",
+          "caller": "ResolveMatchingReEntryLifecycle",
+          "callee_module": "M05",
+          "callee": "FindPairStateIndex",
+          "calls": 1
+        },
+        {
+          "caller_module": "M17",
+          "caller": "ResolveSourceOwnedStructuralAnchor",
+          "callee_module": "M05",
+          "callee": "GetTimeframeSeconds",
+          "calls": 1
+        },
+        {
+          "caller_module": "M17",
+          "caller": "ResolveSourceOwnedStructuralAnchor",
+          "callee_module": "M04",
+          "callee": "IsCandleClosed",
+          "calls": 1
+        },
+        {
+          "caller_module": "M17",
+          "caller": "ResolveMatchingStandaloneExtremeLifecycle",
+          "callee_module": "M05",
+          "callee": "FindPairStateIndex",
+          "calls": 1
+        },
+        {
+          "caller_module": "M17",
+          "caller": "ResolveStandaloneExtremeStructuralAnchor",
+          "callee_module": "M05",
+          "callee": "GetTimeframeSeconds",
+          "calls": 1
+        },
+        {
+          "caller_module": "M17",
+          "caller": "ResolveStandaloneExtremeStructuralAnchor",
+          "callee_module": "M04",
+          "callee": "IsCandleClosed",
+          "calls": 1
+        },
+        {
+          "caller_module": "M17",
+          "caller": "ResolveStandaloneExtremeTPWajib",
+          "callee_module": "M06",
+          "callee": "BBMAHighMA",
+          "calls": 2
+        },
+        {
+          "caller_module": "M17",
+          "caller": "ResolveStandaloneExtremeTPWajib",
+          "callee_module": "M06",
+          "callee": "BBMALowMA",
+          "calls": 2
+        },
+        {
+          "caller_module": "M17",
+          "caller": "ResolveApprovedInitialSLTP",
+          "callee_module": "M04",
+          "callee": "GetPipValue",
+          "calls": 2
+        },
+        {
+          "caller_module": "M17",
+          "caller": "ValidateSLTP",
+          "callee_module": "M04",
+          "callee": "GetPipValue",
+          "calls": 2
+        },
+        {
+          "caller_module": "M19",
+          "caller": "CalculateBasketLossPercent_EA",
+          "callee_module": "M20",
+          "callee": "GetLiveEAOwnedPortfolioTradeState",
+          "calls": 1
+        },
+        {
+          "caller_module": "M19",
+          "caller": "CalculateTotalRisk",
+          "callee_module": "M05",
+          "callee": "FindPairStateIndex",
+          "calls": 1
+        },
+        {
+          "caller_module": "M19",
+          "caller": "CalculateTotalRisk",
+          "callee_module": "M05",
+          "callee": "CalculateTradeRiskMoney",
+          "calls": 2
+        },
+        {
+          "caller_module": "M19",
+          "caller": "CheckRiskBeforeTrade",
+          "callee_module": "M04",
+          "callee": "GetPipValue",
+          "calls": 1
+        },
+        {
+          "caller_module": "M20",
+          "caller": "GetLiveEAOwnedPortfolioTradeState",
+          "callee_module": "M05",
+          "callee": "FindPairStateIndex",
+          "calls": 1
+        },
+        {
+          "caller_module": "M20",
+          "caller": "CheckPortfolioLimits",
+          "callee_module": "M05",
+          "callee": "FindPairStateIndex",
+          "calls": 1
+        },
+        {
+          "caller_module": "M20",
+          "caller": "FinalPortfolioGuard",
+          "callee_module": "M05",
+          "callee": "FindPairStateIndex",
+          "calls": 1
+        },
+        {
+          "caller_module": "M20",
+          "caller": "BrokerConfirmsNoLiveEAOwnedOrders",
+          "callee_module": "M04",
+          "callee": "IsTerminalConnected",
+          "calls": 1
+        },
+        {
+          "caller_module": "M20",
+          "caller": "BrokerConfirmsNoLiveEAOwnedOrders",
+          "callee_module": "M05",
+          "callee": "IsExactEAOwnedSelectedOrder",
+          "calls": 1
+        },
+        {
+          "caller_module": "M20",
+          "caller": "ManagePortfolio",
+          "callee_module": "M19",
+          "callee": "CalculateBasketLossPercent_EA",
+          "calls": 1
+        },
+        {
+          "caller_module": "M20",
+          "caller": "ManagePortfolio",
+          "callee_module": "M05",
+          "callee": "Log",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "FindExistingExecutionTicket",
+          "callee_module": "M05",
+          "callee": "FindPersistedExecutionTicket",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "FindExistingExecutionTicket",
+          "callee_module": "M05",
+          "callee": "SHORT_HASH",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "IsSignalAllowed",
+          "callee_module": "M05",
+          "callee": "IsDecisionExecuted",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "IsSignalAllowed",
+          "callee_module": "M20",
+          "callee": "GetLiveEAOwnedPortfolioTradeState",
+          "calls": 2
+        },
+        {
+          "caller_module": "M22",
+          "caller": "NMJE_BuildEntryDisplacementAttribution",
+          "callee_module": "M17",
+          "callee": "IsApprovedSLTPSourceComponent",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "NMJE_BuildEntryDisplacementAttribution",
+          "callee_module": "M17",
+          "callee": "ResolveClosedSourceShift",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "NMJE_BuildEntryDisplacementAttribution",
+          "callee_module": "M04",
+          "callee": "GetPipValue",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "NMJE_BuildTradeAttribution",
+          "callee_module": "M05",
+          "callee": "SHORT_HASH",
+          "calls": 6
+        },
+        {
+          "caller_module": "M22",
+          "caller": "NMJESetAttributionGV",
+          "callee_module": "M24",
+          "callee": "SetTerminalGlobalExact",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "NMJEStoreHash16",
+          "callee_module": "M05",
+          "callee": "Hex4ToNumber",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "NMJELoadHash16",
+          "callee_module": "M05",
+          "callee": "NumberToHex4",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "ClearNMJEShadowAttribution",
+          "callee_module": "M24",
+          "callee": "DeleteTerminalGlobalExact",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "SaveNMJEShadowAttribution",
+          "callee_module": "M12N",
+          "callee": "NMJE_IsMaturityDomainValue",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "SaveNMJEShadowAttribution",
+          "callee_module": "M12N",
+          "callee": "NMJE_IsRelationDomainValue",
+          "calls": 2
+        },
+        {
+          "caller_module": "M22",
+          "caller": "SaveNMJEShadowAttribution",
+          "callee_module": "M12N",
+          "callee": "NMJE_IsStructuralDensityValid",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "LoadNMJEShadowAttribution",
+          "callee_module": "M12N",
+          "callee": "NMJE_IsRelationDomainValue",
+          "calls": 2
+        },
+        {
+          "caller_module": "M22",
+          "caller": "LoadNMJEShadowAttribution",
+          "callee_module": "M12N",
+          "callee": "NMJE_IsMaturityDomainValue",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "LoadNMJEShadowAttribution",
+          "callee_module": "M12N",
+          "callee": "NMJE_IsStructuralDensityValid",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "NMJE_PrintClosedOutcomeShadow",
+          "callee_module": "M12N",
+          "callee": "NMJE_LogIdentityToken",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "NMJE_PrintClosedOutcomeShadow",
+          "callee_module": "M12N",
+          "callee": "NMJE_RelationText",
+          "calls": 2
+        },
+        {
+          "caller_module": "M22",
+          "caller": "NMJE_PrintClosedOutcomeShadow",
+          "callee_module": "M12N",
+          "callee": "NMJE_MaturityText",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "NMJE_PrintClosedOutcomeShadow",
+          "callee_module": "M12N",
+          "callee": "NMJE_LineageClassText",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "NMJE_PrintClosedOutcomeShadow",
+          "callee_module": "M15",
+          "callee": "NMJE_P2_PrintCounterfactualOutcomes",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "CompactMonitoredTrades",
+          "callee_module": "M24",
+          "callee": "ClearC044Checkpoint",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "CompactMonitoredTrades",
+          "callee_module": "M24",
+          "callee": "ClearD1TPWCheckpoint",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "AddToMonitoredTrades",
+          "callee_module": "M05",
+          "callee": "Log",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "SaveExecutionAmbiguityHold",
+          "callee_module": "M05",
+          "callee": "Hex4ToNumber",
+          "calls": 4
+        },
+        {
+          "caller_module": "M22",
+          "caller": "SaveExecutionAmbiguityHold",
+          "callee_module": "M05",
+          "callee": "NumberToHex4",
+          "calls": 4
+        },
+        {
+          "caller_module": "M22",
+          "caller": "LoadExecutionAmbiguityHold",
+          "callee_module": "M05",
+          "callee": "NumberToHex4",
+          "calls": 4
+        },
+        {
+          "caller_module": "M22",
+          "caller": "ClearExecutionAmbiguityHold",
+          "callee_module": "M24",
+          "callee": "DeleteTerminalGlobalExact",
+          "calls": 2
+        },
+        {
+          "caller_module": "M22",
+          "caller": "LatchExecutionAmbiguity",
+          "callee_module": "M05",
+          "callee": "SHORT_HASH",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "LatchExecutionAmbiguity",
+          "callee_module": "M05",
+          "callee": "Log",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "AdoptAmbiguousExecutionTicket",
+          "callee_module": "M05",
+          "callee": "ExtractExecutionHash",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "AdoptAmbiguousExecutionTicket",
+          "callee_module": "M05",
+          "callee": "SaveExecutionIdentityHash",
+          "calls": 2
+        },
+        {
+          "caller_module": "M22",
+          "caller": "AdoptAmbiguousExecutionTicket",
+          "callee_module": "M05",
+          "callee": "UpsertExecutionHashTombstone",
+          "calls": 2
+        },
+        {
+          "caller_module": "M22",
+          "caller": "AdoptAmbiguousExecutionTicket",
+          "callee_module": "M04",
+          "callee": "GetPointSize",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "AdoptAmbiguousExecutionTicket",
+          "callee_module": "M04",
+          "callee": "GetDigits",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "AdoptAmbiguousExecutionTicket",
+          "callee_module": "M04",
+          "callee": "GetStopLevel",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "AdoptAmbiguousExecutionTicket",
+          "callee_module": "M04",
+          "callee": "GetFreezeLevel",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "AdoptAmbiguousExecutionTicket",
+          "callee_module": "M24",
+          "callee": "ResetC044TradeState",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "AdoptAmbiguousExecutionTicket",
+          "callee_module": "M24",
+          "callee": "ResetD1TPWTradeState",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "ReconcileExecutionAmbiguityHold",
+          "callee_module": "M05",
+          "callee": "Log",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "ProcessEntry",
+          "callee_module": "M17",
+          "callee": "IsTargetlessLifecycleDecision",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "ProcessEntry",
+          "callee_module": "M05",
+          "callee": "IsDecisionExecuted",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "ProcessEntry",
+          "callee_module": "M05",
+          "callee": "FindPairStateIndex",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "ProcessEntry",
+          "callee_module": "M05",
+          "callee": "Log",
+          "calls": 4
+        },
+        {
+          "caller_module": "M22",
+          "caller": "ProcessEntry",
+          "callee_module": "M05",
+          "callee": "GetAllowedExecutionDeviation",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "ProcessEntry",
+          "callee_module": "M05",
+          "callee": "CreateOrderComment",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "ProcessEntry",
+          "callee_module": "M04",
+          "callee": "GetStopLevel",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "ProcessEntry",
+          "callee_module": "M04",
+          "callee": "GetFreezeLevel",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "ProcessEntry",
+          "callee_module": "M05",
+          "callee": "SHORT_HASH",
+          "calls": 2
+        },
+        {
+          "caller_module": "M22",
+          "caller": "ProcessEntry",
+          "callee_module": "M24",
+          "callee": "ResetC044TradeState",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "ProcessEntry",
+          "callee_module": "M24",
+          "callee": "ResetD1TPWTradeState",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "ProcessEntry",
+          "callee_module": "M24",
+          "callee": "InitializeD1TPWTradeStateFromDecision",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "ProcessEntry",
+          "callee_module": "M24",
+          "callee": "InitializeC044TradeStateFromDecision",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "ProcessEntry",
+          "callee_module": "M05",
+          "callee": "SaveExecutionIdentityHash",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "ProcessEntry",
+          "callee_module": "M05",
+          "callee": "ExtractExecutionHash",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "ProcessEntry",
+          "callee_module": "M24",
+          "callee": "SaveD1TPWCheckpoint",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "ProcessEntry",
+          "callee_module": "M24",
+          "callee": "SaveC044Checkpoint",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "ProcessEntry",
+          "callee_module": "M15",
+          "callee": "NMJE_P2_RegisterCounterfactualOpen",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "ProcessEntry",
+          "callee_module": "M05",
+          "callee": "MarkDecisionExecuted",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "ProcessEntry",
+          "callee_module": "M23",
+          "callee": "F7ProspectiveContextTelemetry",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "RunEntryPreflightAndExecute",
+          "callee_module": "M05",
+          "callee": "BuildRiskValidationSnapshot",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "RunEntryPreflightAndExecute",
+          "callee_module": "M17",
+          "callee": "ResolveExecutionReferencePrice",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "RunEntryPreflightAndExecute",
+          "callee_module": "M17",
+          "callee": "ResolveApprovedInitialSLTP",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "RunEntryPreflightAndExecute",
+          "callee_module": "M17",
+          "callee": "ValidateSLTP",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "RunEntryPreflightAndExecute",
+          "callee_module": "M21",
+          "callee": "CalculateLotSize",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "RunEntryPreflightAndExecute",
+          "callee_module": "M21",
+          "callee": "DiagnoseInvalidLotReason",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "RunEntryPreflightAndExecute",
+          "callee_module": "M21",
+          "callee": "PrintInvalidLotDiagnostic",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "RunEntryPreflightAndExecute",
+          "callee_module": "M19",
+          "callee": "CheckRiskBeforeTrade",
+          "calls": 1
+        },
+        {
+          "caller_module": "M22",
+          "caller": "RunEntryPreflightAndExecute",
+          "callee_module": "M20",
+          "callee": "FinalPortfolioGuard",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "FreezeC044Lifecycle",
+          "callee_module": "M24",
+          "callee": "SaveC044Checkpoint",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "FreezeC044Lifecycle",
+          "callee_module": "M05",
+          "callee": "Log",
+          "calls": 2
+        },
+        {
+          "caller_module": "M23",
+          "caller": "ProcessC044OwnerClosedCandle",
+          "callee_module": "M24",
+          "callee": "IsValidC044OwnerTimeframe",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "ProcessC044OwnerClosedCandle",
+          "callee_module": "M05",
+          "callee": "InitTimeframeData",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "ProcessC044OwnerClosedCandle",
+          "callee_module": "M06",
+          "callee": "GetDataForTimeframe",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "ProcessC044OwnerClosedCandle",
+          "callee_module": "M12",
+          "callee": "BuildReEntryDirectionInputs",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "ProcessC044OwnerClosedCandle",
+          "callee_module": "M08",
+          "callee": "DetectExtreme",
+          "calls": 2
+        },
+        {
+          "caller_module": "M23",
+          "caller": "ProcessC044OwnerClosedCandle",
+          "callee_module": "M08",
+          "callee": "UpdateExtremeLifecycle",
+          "calls": 2
+        },
+        {
+          "caller_module": "M23",
+          "caller": "ProcessC044OwnerClosedCandle",
+          "callee_module": "M08",
+          "callee": "ResolveOppositeExtremeSupersession",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "ProcessC044OwnerClosedCandle",
+          "callee_module": "M12",
+          "callee": "UpdateReEntryState",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "ProcessC044OwnerClosedCandle",
+          "callee_module": "M24",
+          "callee": "SaveC044Checkpoint",
+          "calls": 4
+        },
+        {
+          "caller_module": "M23",
+          "caller": "ProcessC044OwnerClosedCandle",
+          "callee_module": "M10",
+          "callee": "DetectCSM",
+          "calls": 2
+        },
+        {
+          "caller_module": "M23",
+          "caller": "AdvanceC044OwnerEventOneCandle",
+          "callee_module": "M24",
+          "callee": "IsValidC044OwnerTimeframe",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "AdvanceC044OwnerEventOneCandle",
+          "callee_module": "M04",
+          "callee": "GetLatestClosedCandleTime",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "F7ProspectiveContextTelemetry",
+          "callee_module": "M12N",
+          "callee": "NMJE_LogIdentityToken",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "F7ProspectiveContextTelemetry",
+          "callee_module": "M05",
+          "callee": "SHORT_HASH",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "F7ProspectiveContextTelemetry",
+          "callee_module": "M12N",
+          "callee": "NMJE_DirText",
+          "calls": 2
+        },
+        {
+          "caller_module": "M23",
+          "caller": "F7ProspectiveContextTelemetry",
+          "callee_module": "M12N",
+          "callee": "NMJE_RelationText",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "F7ProspectiveContextTelemetry",
+          "callee_module": "M12N",
+          "callee": "NMJE_ParentText",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "F7TelemetryHeartbeat",
+          "callee_module": "M04",
+          "callee": "IsTerminalConnected",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "LatchC044Exit",
+          "callee_module": "M24",
+          "callee": "SaveC044Checkpoint",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "LatchC044Exit",
+          "callee_module": "M05",
+          "callee": "Log",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "ExecuteLatchedC044Close",
+          "callee_module": "M24",
+          "callee": "ClearC044Checkpoint",
+          "calls": 2
+        },
+        {
+          "caller_module": "M23",
+          "caller": "ExecuteLatchedC044Close",
+          "callee_module": "M05",
+          "callee": "Log",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "FreezeD1TPWLifecycle",
+          "callee_module": "M24",
+          "callee": "SaveD1TPWCheckpoint",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "FreezeD1TPWLifecycle",
+          "callee_module": "M05",
+          "callee": "Log",
+          "calls": 2
+        },
+        {
+          "caller_module": "M23",
+          "caller": "LatchD1TPWExit",
+          "callee_module": "M24",
+          "callee": "SaveD1TPWCheckpoint",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "ProcessD1TPWClosedCandle",
+          "callee_module": "M05",
+          "callee": "GetTimeframeSeconds",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "ProcessD1TPWClosedCandle",
+          "callee_module": "M04",
+          "callee": "IsCandleClosed",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "ProcessD1TPWClosedCandle",
+          "callee_module": "M06",
+          "callee": "BBMALowMA",
+          "calls": 2
+        },
+        {
+          "caller_module": "M23",
+          "caller": "ProcessD1TPWClosedCandle",
+          "callee_module": "M06",
+          "callee": "BBMAHighMA",
+          "calls": 2
+        },
+        {
+          "caller_module": "M23",
+          "caller": "ProcessD1TPWClosedCandle",
+          "callee_module": "M11J",
+          "callee": "IsD1TPWCompletionAtShift",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "ProcessD1TPWClosedCandle",
+          "callee_module": "M24",
+          "callee": "SaveD1TPWCheckpoint",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "AdvanceD1TPWLifecycleForTrade",
+          "callee_module": "M04",
+          "callee": "GetLatestClosedCandleTime",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "ExecuteLatchedD1TPWClose",
+          "callee_module": "M24",
+          "callee": "ClearD1TPWCheckpoint",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "ExecuteLatchedD1TPWClose",
+          "callee_module": "M05",
+          "callee": "Log",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "ManagePositions",
+          "callee_module": "M05",
+          "callee": "FindPairStateIndex",
+          "calls": 1
+        },
+        {
+          "caller_module": "M23",
+          "caller": "ManagePositions",
+          "callee_module": "M05",
+          "callee": "Log",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "ClearD1TPWCheckpoint",
+          "callee_module": "M05",
+          "callee": "Log",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "InitializeD1TPWTradeStateFromDecision",
+          "callee_module": "M17",
+          "callee": "IsD1TPWLifecycleIdentity",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "InitializeD1TPWTradeStateFromDecision",
+          "callee_module": "M05",
+          "callee": "FindPairStateIndex",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "InitializeD1TPWTradeStateFromDecision",
+          "callee_module": "M04",
+          "callee": "GetLatestClosedCandleTime",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "CaptureC044ReplaySeed",
+          "callee_module": "M23",
+          "callee": "GetC044OwnerReEntrySnapshot",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "CaptureC044ReplaySeed",
+          "callee_module": "M23",
+          "callee": "GetC044OwnerExtremeSnapshot",
+          "calls": 2
+        },
+        {
+          "caller_module": "M24",
+          "caller": "InitializeC044TradeStateFromDecision",
+          "callee_module": "M05",
+          "callee": "FindPairStateIndex",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "InitializeC044TradeStateFromDecision",
+          "callee_module": "M04",
+          "callee": "GetLatestClosedCandleTime",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "ClassifyH4AuthoritativeSignal",
+          "callee_module": "M12",
+          "callee": "BuildReEntryDirectionInputs",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "ClassifyH4AuthoritativeSignal",
+          "callee_module": "M10",
+          "callee": "DetectCSM",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "ClassifyH4AuthoritativeSignal",
+          "callee_module": "M10",
+          "callee": "DetectCSD",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "ClassifyH4AuthoritativeSignal",
+          "callee_module": "M10",
+          "callee": "DetectECSD",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "VerifyH4OwnerCheckpoint",
+          "callee_module": "M05",
+          "callee": "InitTimeframeData",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "VerifyH4OwnerCheckpoint",
+          "callee_module": "M06",
+          "callee": "GetDataForTimeframe",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "RecoverH4DirectionalOwnerForPair",
+          "callee_module": "M05",
+          "callee": "InitTimeframeData",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "RecoverH4DirectionalOwnerForPair",
+          "callee_module": "M06",
+          "callee": "GetDataForTimeframe",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "RecoverExistingOrders",
+          "callee_module": "M05",
+          "callee": "IsExactEAOwnedSelectedOrder",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "RecoverExistingOrders",
+          "callee_module": "M05",
+          "callee": "LoadPersistedExecutionHashForTicket",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "RecoverExistingOrders",
+          "callee_module": "M05",
+          "callee": "ExtractExecutionHash",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "RecoverExistingOrders",
+          "callee_module": "M05",
+          "callee": "SaveExecutionIdentityHash",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "RecoverExistingOrders",
+          "callee_module": "M05",
+          "callee": "ParseOrderCommentFull",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "RecoverExistingOrders",
+          "callee_module": "M05",
+          "callee": "Log",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "RecoverExistingOrders",
+          "callee_module": "M04",
+          "callee": "GetPointSize",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "RecoverExistingOrders",
+          "callee_module": "M04",
+          "callee": "GetDigits",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "RecoverExistingOrders",
+          "callee_module": "M04",
+          "callee": "GetStopLevel",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "RecoverExistingOrders",
+          "callee_module": "M04",
+          "callee": "GetFreezeLevel",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "RecoverExistingOrders",
+          "callee_module": "M05",
+          "callee": "IsValidLotStep",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "RecoverExistingOrders",
+          "callee_module": "M22",
+          "callee": "LoadNMJEShadowAttribution",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "RecoverExistingOrders",
+          "callee_module": "M22",
+          "callee": "AddToMonitoredTrades",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "RecoverExistingOrders",
+          "callee_module": "M23",
+          "callee": "F7Telemetry",
+          "calls": 1
+        },
+        {
+          "caller_module": "M24",
+          "caller": "RecoverExistingOrders",
+          "callee_module": "M05",
+          "callee": "UpsertExecutionHashTombstone",
+          "calls": 1
+        },
+        {
+          "caller_module": "M25",
+          "caller": "CountDashboardLiveEAOwnedTrades",
+          "callee_module": "M05",
+          "callee": "IsExactEAOwnedSelectedOrder",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "NormalizeRuntimeLimits",
+          "callee_module": "M05",
+          "callee": "SplitString",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "ValidateInputParameters",
+          "callee_module": "M05",
+          "callee": "SplitString",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "ValidatePairIDCollision",
+          "callee_module": "M05",
+          "callee": "Log",
+          "calls": 2
+        },
+        {
+          "caller_module": "M26",
+          "caller": "ValidateMagicCollision",
+          "callee_module": "M05",
+          "callee": "Log",
+          "calls": 2
+        },
+        {
+          "caller_module": "M26",
+          "caller": "LoadPairs",
+          "callee_module": "M05",
+          "callee": "SplitString",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "LoadPairs",
+          "callee_module": "M04",
+          "callee": "FindActualSymbol",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "LoadPairs",
+          "callee_module": "M05",
+          "callee": "Log",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "LoadPairs",
+          "callee_module": "M05",
+          "callee": "InitPairState",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "LoadPairs",
+          "callee_module": "M05",
+          "callee": "GeneratePairID",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "LoadPairs",
+          "callee_module": "M04",
+          "callee": "GetPointSize",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "LoadPairs",
+          "callee_module": "M04",
+          "callee": "GetDigits",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "LoadPairs",
+          "callee_module": "M04",
+          "callee": "GetTickValue",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "LoadPairs",
+          "callee_module": "M04",
+          "callee": "GetTickSize_Price",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "LoadPairs",
+          "callee_module": "M04",
+          "callee": "GetMinLot",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "LoadPairs",
+          "callee_module": "M04",
+          "callee": "GetMaxLot",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "LoadPairs",
+          "callee_module": "M04",
+          "callee": "GetLotStep",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "LoadPairs",
+          "callee_module": "M04",
+          "callee": "GetLotDigits",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "LoadPairs",
+          "callee_module": "M04",
+          "callee": "GetStopLevel",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "LoadPairs",
+          "callee_module": "M04",
+          "callee": "GetFreezeLevel",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "LoadPairs",
+          "callee_module": "M05",
+          "callee": "GenerateMagicNumber",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "LoadPairs",
+          "callee_module": "M04",
+          "callee": "ValidateBrokerSpecificationWithRetry",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "LoadPairs",
+          "callee_module": "M05",
+          "callee": "DetectCentAccount",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "LoadPairs",
+          "callee_module": "M05",
+          "callee": "GetCentFactor",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "InitializeEA",
+          "callee_module": "M04",
+          "callee": "IsTerminalConnected",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "InitializeEA",
+          "callee_module": "M04",
+          "callee": "GetProcessingTime",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "InitializeEA",
+          "callee_module": "M05",
+          "callee": "InitBrokerInfo",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "InitializeEA",
+          "callee_module": "M05",
+          "callee": "Log",
+          "calls": 6
+        },
+        {
+          "caller_module": "M26",
+          "caller": "InitializeEA",
+          "callee_module": "M05",
+          "callee": "GetTodayStart",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "InitializeEA",
+          "callee_module": "M24",
+          "callee": "RecoverH4DirectionalOwners",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "InitializeEA",
+          "callee_module": "M05",
+          "callee": "RebuildExecutionHistory",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "InitializeEA",
+          "callee_module": "M24",
+          "callee": "RecoverExistingOrders",
+          "calls": 1
+        },
+        {
+          "caller_module": "M26",
+          "caller": "InitializeEA",
+          "callee_module": "M22",
+          "callee": "LoadExecutionAmbiguityHold",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "IsNewCandle",
+          "callee_module": "M04",
+          "callee": "GetLatestClosedCandleTime",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "PrintSignalBottleneckDiagnostic",
+          "callee_module": "M05",
+          "callee": "ObserverPrintChanged",
+          "calls": 3
+        },
+        {
+          "caller_module": "M27",
+          "caller": "PrintSignalBottleneckDiagnostic",
+          "callee_module": "M11J",
+          "callee": "D1OpportunityFamilyText",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M05",
+          "callee": "BuildTimeframeSnapshot",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M06",
+          "callee": "GetDataForTimeframe",
+          "calls": 5
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M04",
+          "callee": "GetLatestClosedCandleTime",
+          "calls": 2
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M11",
+          "callee": "UpdateD1MajorTrendOwner",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M24",
+          "callee": "UpdateRuntimeH4DirectionalOwner",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M07",
+          "callee": "BuildBBShapeState",
+          "calls": 2
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M08",
+          "callee": "DetectExtreme",
+          "calls": 8
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M08",
+          "callee": "UpdateExtremeLifecycle",
+          "calls": 8
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M08",
+          "callee": "ResolveOppositeExtremeSupersession",
+          "calls": 4
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M08",
+          "callee": "ExportReversalConfirmedExtremeSignal",
+          "calls": 4
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M16",
+          "callee": "UpdatePersistentExtremeState",
+          "calls": 4
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M10",
+          "callee": "DetectCSD",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M10",
+          "callee": "DetectECSD",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M10",
+          "callee": "DetectCSM",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M09",
+          "callee": "UpdateCanonicalMLVState",
+          "calls": 2
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M12",
+          "callee": "UpdateReEntryState",
+          "calls": 8
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M24",
+          "callee": "NoteH4ReEntryInheritance",
+          "calls": 2
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M12N",
+          "callee": "UpdateNestedJourneyObservation",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M13",
+          "callee": "NMJE_P3_UpdateClosedM5Shadow",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M09",
+          "callee": "ExportCanonicalMHVSignal",
+          "calls": 2
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M13",
+          "callee": "CollectSignalSnapshots",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M12",
+          "callee": "ExportConfirmedReEntrySignal",
+          "calls": 2
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M13",
+          "callee": "BuildPossibleCombinations",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M15",
+          "callee": "BuildConfirmedReEntryCandidate",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M15",
+          "callee": "AppendValidatedCandidate",
+          "calls": 4
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M15",
+          "callee": "BuildStandaloneExtremeCandidate",
+          "calls": 2
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M14",
+          "callee": "ValidateSequence",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M23",
+          "callee": "AdvanceC044OwnerEventsForPair",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M23",
+          "callee": "AdvanceD1TPWLifecycleForPair",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M11J",
+          "callee": "UpdateD1OpportunityJourney",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M15",
+          "callee": "BuildD1OpportunityCandidate",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M13",
+          "callee": "NMJE_P2_PrintEqualEligibilityShadow",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M12N",
+          "callee": "NMJE_PrintStructuralDensityShadow",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M15",
+          "callee": "PriorityEngine_Atomic",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M12N",
+          "callee": "NMJE_DirText",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M05",
+          "callee": "SHORT_HASH",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M16",
+          "callee": "InvalidationEngine_Atomic",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M12N",
+          "callee": "NMJE_FreezeValidatedDecisionAttribution",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M12N",
+          "callee": "NMJE_PrintValidatedDecisionShadow",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M22",
+          "callee": "RunEntryPreflightAndExecute",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "ProcessPair",
+          "callee_module": "M25",
+          "callee": "BuildDashboardSnapshot",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "OnTickMain",
+          "callee_module": "M20",
+          "callee": "ManagePortfolio",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "OnTickMain",
+          "callee_module": "M23",
+          "callee": "ManagePositions",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "OnTickMain",
+          "callee_module": "M22",
+          "callee": "CompactMonitoredTrades",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "OnTickMain",
+          "callee_module": "M22",
+          "callee": "ReconcileExecutionAmbiguityHold",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "OnTickMain",
+          "callee_module": "M04",
+          "callee": "GetProcessingTime",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "OnTickMain",
+          "callee_module": "M25",
+          "callee": "UpdateDashboard",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "OnInit",
+          "callee_module": "M23",
+          "callee": "F7BuildIdentityTelemetry",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "OnInit",
+          "callee_module": "M26",
+          "callee": "NormalizeRuntimeLimits",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "OnInit",
+          "callee_module": "M26",
+          "callee": "ValidateInputParameters",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "OnInit",
+          "callee_module": "M05",
+          "callee": "Log",
+          "calls": 4
+        },
+        {
+          "caller_module": "M27",
+          "caller": "OnInit",
+          "callee_module": "M26",
+          "callee": "InitializeEA",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "OnDeinit",
+          "callee_module": "M05",
+          "callee": "Log",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "OnTick",
+          "callee_module": "M04",
+          "callee": "IsTerminalConnected",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "OnTimer",
+          "callee_module": "M05",
+          "callee": "CleanupSignalHistoryEntries",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "OnTimer",
+          "callee_module": "M05",
+          "callee": "CleanupGlobalSignalHistory",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "OnTimer",
+          "callee_module": "M23",
+          "callee": "F7TelemetryHeartbeat",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "OnTimer",
+          "callee_module": "M05",
+          "callee": "GetTodayStart",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "OnTimer",
+          "callee_module": "M05",
+          "callee": "Log",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "OnTimer",
+          "callee_module": "M04",
+          "callee": "IsTerminalConnected",
+          "calls": 1
+        },
+        {
+          "caller_module": "M27",
+          "caller": "OnTimer",
+          "callee_module": "M25",
+          "callee": "RefreshDashboardLiveTradeCount",
+          "calls": 1
+        }
+      ]
+    },
+    "field_access_inventory": {
+      "path": "config/bbma_field_access_inventory_build515.json",
+      "struct_count": 36,
+      "declared_struct_fields": 640,
+      "accessed_struct_fields": 595,
+      "type_field_pairs_used_in_multiple_modules": 338,
+      "unresolved_typed_member_occurrences": 0,
+      "reader_writer_status": "PARTIAL_INTERPROCEDURAL",
+      "runtime_status": "NOT_VERIFIED",
+      "tests_status": "NOT_VERIFIED"
+    },
+    "status": "STATIC_AUDIT_SNAPSHOT",
+    "limitations": [
+      "M11J is a source header and is listed in this overlay; the accepted graph's module key set remains governed by its existing schema.",
+      "Field access is lexical and type-level. Multiple modules accessing the same struct type and field does not prove that they access the same object instance.",
+      "Interprocedural by-reference/copy alias effects and field consumer ownership remain PARTIAL; no dependency absence is inferred."
+    ]
   }
 }

@@ -7,11 +7,13 @@ Scope: static producer/consumer and control-flow reconciliation. No EA source is
 
 ## Reading the edge ledger
 
-The ledger records producer/consumer handoffs and control/helper calls from the pinned source. The machine-readable graph now includes a lexical inventory of 431 detected function definitions, 96 cross-module call edges / 364 call pairs, 23 M01 input fields, 68 M01/M02 type declarations, and 37 M03 globals. It also adds the previously omitted M11J source module. These references do not fully classify nested field ownership or read/write direction; `consumer_edges` remains **PARTIAL**.
+The ledger records producer/consumer handoffs and control/helper calls from the exact Build 5.15 source snapshot. The accepted root graph and the current-owner lexical overlay are separate authorities. PR #295 merged at main commit 22b2e539a82eea768c53bd2a905dd958b6072324; the root graph remains pinned to d1-owner-dev@23def0919386263007ead1898b94637cc17f7f36, while current_owner_source_overlay is pinned to d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de and source blob 09de8b80fdaeeb2fd614de0a1826134e9a8b2411.
 
-Machine-readable detail: `config/bbma_module_graph.json` under `connection_inventory` lists the exact caller/callee pairs, input readers, type users, global identifier references and D1 owner-field handoffs. Two legacy NMJE inputs have no readers and are explicitly marked inactive in the source.
+The accepted root graph retains its existing 28-module schema. The separate current-source overlay records all 29 source headers, including M11J, and 431 function definitions, 1,478 call occurrences, 502 cross-module call occurrences, 96 distinct module edges and 364 distinct function pairs. The separate config/bbma_field_access_inventory_build515.json covers 36 structs / 640 declared fields / 595 accessed fields and 338 struct-field pairs observed in multiple modules; 0 unresolved typed-member occurrences were reported within the scanner scope. PR #295 deterministic-tooling check passed on head a9e10ae474707f9de79bb7eb14b29f6f5f951a81.
 
-D1O-01 is the approved project execution extension for M11J. The owner source writes PairState.d1_opportunity in M11J; M12N reads it as an observer overlay, while M15 builds the candidate and M16 revalidates its identity. The strategic D1 owner field remains a separate M11 producer/consumer path. No new rule or runtime claim is added.
+These are lexical and type-level measurements. Repeated struct.field access across modules does not prove the same runtime object is shared. By-reference/copy aliases and call-side mutation are not fully resolved, and no dependency absence is inferred. Therefore consumer_edges and interprocedural read/write ownership remain PARTIAL.
+
+Machine-readable detail is split between config/bbma_module_graph.json.current_owner_source_overlay and config/bbma_field_access_inventory_build515.json; the latter records direct reads, direct writes and nested traversals per module. M11J and M12N are represented in the current-source overlay and are not inserted into the accepted root graph schema.
 
 ## Main decision and execution path
 
@@ -64,7 +66,7 @@ M27 runs portfolio and position management before the new closed-M15 scan on eac
 | Module | Main output / control | Consumers or next handoff | Current gap/status |
 |---|---|---|---|
 | M01 Header & Inputs | Runtime inputs and modes | M26 validates; readers enumerated in the machine graph | 23 inputs mapped; two legacy NMJE flags are explicitly inactive and unread; no runtime input replay here |
-| M02 Enums & Structs | Shared signal, state, candidate and decision types | Modules listed in the machine graph type inventory | 68 M01/M02 declarations mapped to references; nested-field ownership remains partial |
+| M02 Enums & Structs | Shared signal, state, candidate and decision types | Modules listed in the accepted graph and current-source overlay | 338 cross-module typed struct-field pairs are inventoried separately; interprocedural ownership remains partial |
 | M03 Global Variables | PairState, owner states, monitored trades, observer state | Modules listed in the machine graph global inventory | 37 global identifiers mapped to referencing modules; read/write ownership remains partial |
 | M04 Symbol & Market Data | Candle, quote, symbol and broker properties | Direct function callers enumerated in the machine graph | Call sites mapped; shared field-level read/write ownership remains partial |
 | M05 Utility Functions | Pair lookup, time, hashes, logging, normalization | Direct function callers enumerated in the machine graph | Call sites mapped; shared helper/state ownership remains partial |
@@ -183,3 +185,10 @@ Static baseline: accepted Core V2 blob 3c450d7157db6b7a6bf53549f645bb75c88371e5 
 - Cross-module interpretation: M17 SL/TP, M18 label-only score, M19 risk, M20 portfolio, M21 sizing, M22 order side effects, M23 lifecycle, M24 recovery, M25 display, M26 initialization and M27 orchestration remain project implementation layers. Their authority is governed by project contracts and accepted mappings; they do not add universal BBMA signal rules.
 - C039/C040/C041 remain bounded context; C044 remains separately gated. D1O-01 remains a labelled project extension. No new code or Core promotion was made in CP20.
 - No new source-to-Core gap found. CP20 reuses the Q5 rebaseline and dated closure decisions; no tests, compile, Strategy Tester or broker runtime ran. Full rule-to-runtime and nested-field ownership remain PARTIAL.
+
+## CP21 — Nested typed-field inventory (2026-10-27)
+
+- The authoritative Build 5.15 source is d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de, blob 09de8b80fdaeeb2fd614de0a1826134e9a8b2411.
+- Main graph correction is merged at 22b2e539a82eea768c53bd2a905dd958b6072324: accepted graph authority remains unchanged; the current-source overlay and typed field inventory are separate artifacts.
+- CP21 adds a complete typed-member inventory for the scanner scope. It does not complete object-identity, by-reference/copy alias or call-side mutation ownership; consumer_edges remains PARTIAL_INTERPROCEDURAL.
+- No EA/Core semantics, owner source, tests, compile, Strategy Tester or broker runtime changed/ran in CP21. Qualified G40 history remains NOT VERIFIED; Strategy Tester and runtime remain NOT RUN.

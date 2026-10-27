@@ -248,3 +248,8 @@ Status: **DIRECT TYPED-FIELD INVENTORY RECORDED; INTERPROCEDURAL OWNERSHIP AND R
 - C044 helper paths are separate from PairState: replay fields can resolve either to a local counterfactual TradeInfo copy or to g_monitored_trades[i] during trade lifecycle handling. The field path stays within c044_replay_* state.
 - No EA/Core source, tests, compile, Strategy Tester, broker runtime, terminal restart or trading activation changed/ran in CP22. G40 device is online, but process/terminal state was not inspected. The last Q10 R5 runtime artifact dated 2026-09-24 lists R5-14 and R5-16 as natural broker-event blockers; current runtime is not reconfirmed here.
 - Next implementation hardening: qualify proven read-only reference parameters as const and compile the exact candidate on G40 before accepting that guard. Keep Q10 R5/R6 gates unchanged; do not manufacture broker conditions.
+
+
+## CP23 — Read-only M08 reference candidates (2026-10-27)
+
+A source-level review of the exact Build 5.23 candidate blob `be13aac3a2a0f2e2e9eeb2f5d4006eeedf7cd562` (SHA-256 `682A0F072C2A69ADF1A59FFED464E66911C62CDFB6C98C7D8E486C53DF774F5A`) proved two M08 helper inputs are read-only in their complete function bodies: `GetExtremeRelevantMA5` (8 direct callsites) and `GetExtremeReversalBodyEdge` (2 direct callsites). MQL4 documents `const` for guarding by-reference structure inputs. No source patch has been made; the prior Build 5.23 compile pass does not apply to a qualifier change. Next: prepare the minimal Build 5.24 signature-only candidate and obtain exact-source native strict compile on G40. Current terminal/process state remains NOT VERIFIED; Q10 natural R5-14/R5-16 gates and R6 predecessor rule remain unchanged.

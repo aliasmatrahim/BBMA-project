@@ -147,3 +147,12 @@ M17–M27 and M11J/M12N remain governed project implementation/observer layers. 
 Main now contains a separate lexical inventory for the exact Build 5.15 owner source: 29 source headers, 36 structs / 640 fields / 595 accessed fields, and 338 struct-field pairs observed in more than one module. The inventory records direct reads, direct writes and nested traversals per module.
 
 This closes the availability gap for direct typed access enumeration only. It does not prove same-object identity or resolve all by-reference/copy aliases and call-side mutation. Interprocedural field ownership and end-to-end traceability remain open. No code, Core semantics, test, compile, Strategy Tester or broker runtime changed/ran in CP21.
+
+
+## CP22 — Cross-module reference identity and mutation map (2026-10-27)
+
+The exact Build 5.15 source now has a machine-readable static map of 317 cross-module typed struct-by-reference callsites. The inventory resolves 90 global subobjects, 69 forwarded references, 151 local objects and 7 local copies, with 344 origin associations and no unresolved/unbound/cyclic rows. Nineteen callsites retain multiple context-insensitive origins.
+
+Static parameter-write tracing detects write paths for 122 parameters and none for 195. All 317 signatures are mutable references; a missing detected write does not establish read-only behavior. M27 producer calls can reach canonical PairState objects, M16 D1 snapshot validation uses a local PairState copy, and C044 replay can use a local counterfactual or monitored TradeInfo object. Object ownership and consumer edges therefore remain partial.
+
+CP22 changes no EA/Core source and adds no test, compile, Strategy Tester or runtime evidence. Q10's latest R5 runtime artifact remains dated 2026-09-24, with R5-14/R5-16 natural-event blockers and R6 not promoted; current terminal/process state is not reconfirmed. The next local task is to prove a minimal read-only reference candidate set from the 195 no-detected-write parameters. Any source-level `const` change requires an exact-candidate native strict compile on G40. No Q10 event is to be synthesized.

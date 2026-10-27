@@ -331,4 +331,14 @@ No destructive reset, blind recreation, automatic MT4 restart, or trading enable
 - M27's producer path reaches canonical `g_pair_states[pairIndex]` subobjects; M16's D1 snapshot validation uses a local PairState copy; C044 replay state can resolve to a local counterfactual TradeInfo or monitored trade record. Full object ownership remains PARTIAL_CONTEXT_INSENSITIVE.
 - CP22 is static/documentation evidence only: no EA/Core source, tests, compile, Strategy Tester, broker runtime or trading activation changed/ran. Qualified G40 history remains NOT VERIFIED; Strategy Tester remains NOT RUN.
 - Q10's latest runtime artifact is dated 2026-09-24: R5-14/R5-16 were natural-event blockers and R6 was not promoted. PID 2336 was running at that checkpoint; current terminal/process state is NOT VERIFIED. G40 device registry is online, which does not establish terminal/history status.
-- Next local audit action: review exact callee bodies for the 195 no-detected-write references, select only provably read-only candidates, then compile the exact candidate on G40 before accepting any `const` source change. Do not synthesize Q10 broker events or promote R6 before R5 PASS.
+- CP23 reviewed the exact Build 5.23 M08 bodies for `GetExtremeRelevantMA5(TimeframeData &data, ...)` and `GetExtremeReversalBodyEdge(TimeframeData &data, ...)`: each reads only its input fields and has 8 and 2 direct callsites respectively. These are the first two proven read-only candidate parameters; the remaining no-write paths are not yet certified.
+- Next local task: prepare a Build 5.24 candidate with `const TimeframeData &data` on those two M08 helpers and a unique left-aligned build header. Native strict compile against the exact candidate on G40 is required before acceptance. Q10's natural R5-14/R5-16 event gate remains unchanged; current terminal/process state is NOT VERIFIED, and R6 must not be promoted before R5 PASS.
+
+
+## CORE-FIDELITY-292 CP23 execution update — 2026-10-27
+
+- Exact Build 5.23 candidate source blob `be13aac3a2a0f2e2e9eeb2f5d4006eeedf7cd562` / SHA-256 `682A0F072C2A69ADF1A59FFED464E66911C62CDFB6C98C7D8E486C53DF774F5A` was reviewed.
+- `M08.GetExtremeRelevantMA5(TimeframeData &data,...)` reads only `data.ma[]`; `M08.GetExtremeReversalBodyEdge(TimeframeData &data,...)` reads only `data.open/close`. They have 8 and 2 direct callsites and no nested calls or writes to their input.
+- These two inputs are the first locally proven read-only candidates; the remaining 195 no-detected-write callsite parameters are not blanket-certified.
+- No source patch, test, compile, Strategy Tester, broker runtime or trading activation occurred in CP23. The prior Build 5.23 strict-compile PASS is for the old exact blob only.
+- Next: prepare only these two `const TimeframeData &data` signature changes in a uniquely identified Build 5.24 candidate, then native strict compile the exact source on G40. Current terminal/process state is NOT VERIFIED; Q10 R5-14/R5-16 remain natural-event blockers and R6 stays unpromoted.

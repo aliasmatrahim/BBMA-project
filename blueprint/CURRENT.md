@@ -15,8 +15,8 @@ This file is the active current-state record. The pre-2026-09-09 historical `CUR
 
 ## Core-fidelity / traceability reconciliation — 2026-10-27
 
-Status: **PARTIAL — BUILD 5.22 NATIVE STRICT COMPILE PASS; TESTER/RUNTIME AND FULL RULE MATRIX OPEN**.
-- Implementation owner remains Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`; Draft PR #293 carries the separate Build 5.22 candidate.
+Status: **PARTIAL — BUILD 5.23 FOCUSED REGRESSION + EXACT-GIT-BLOB NATIVE STRICT COMPILE PASS; TESTER/RUNTIME AND FULL RULE MATRIX OPEN**.
+- Implementation owner remains Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`; Draft PR #293 carries the separate Build 5.23 candidate; CP18 resolves the D1 TPW transition project-policy gate.
 - M06 incomplete-history repair evidence from Build 5.20 remains candidate-scoped. It does not change the owner branch.
 - Finding B was reproduced on the owner path; Build 5.21 added the current closed-source gate for Re-Entry, and Build 5.22 extends it to every frozen component in M15/M16 without a new rule or owner reset.
 - CP08 verifies G40 native strict compile of the exact Build 5.22 Git blob: MetaEditor 5.0.0.2425, 0 errors / 0 warnings. Source/log/EX4 hashes are in the current manifest.
@@ -199,3 +199,13 @@ Status: **CORE §9 STATIC MAPPING PARTIAL — D1O-TPW TRANSITION POLICY HOLD**.
 - EnableD1TPWLifecycle is OFF; M17 fails closed for that identity. Keep it OFF until the policy and required native/runtime lifecycle gates are resolved.
 - No owner/Core source, tests, compile, Tester, broker/runtime or trade changed/ran. Qualified G40 history remains NOT VERIFIED.
 - Exact next task / USER GATE: decide whether D1_TRANSITION blocks D1_OPP_EXTREME_TPW or the family receives a documented project-only exception to Core §9.2. PR #293 stays draft, open, unmerged and DO NOT MERGE.
+
+## CORE-FIDELITY-292 CP18 — 2026-10-27
+
+Status: **CP17 POLICY HOLD RESOLVED; BUILD 5.23 CANDIDATE REGRESSION + EXACT-GIT-BLOB NATIVE COMPILE PASS; RUNTIME/TESTER AND FULL RULE MATRIX OPEN**.
+- User-approved project mapping applies Core §9.2 fail-closed: D1_TRANSITION and D1_OWNER_UNRESOLVED block D1_OPP_EXTREME_TPW.
+- Build 5.23 uses the existing confirmed-D1-owner helper in M15 and M16. Counter-direction against a confirmed owner remains permitted under D1O-01's existing H4/H1 prerequisites; lifecycle gate remains OFF.
+- Five focused regression scripts passed (four new exact-source unit methods); exact source Git blob be13aac3a2a0f2e2e9eeb2f5d4006eeedf7cd562 compiled on G40 MetaEditor 5.0.0.2425 with 0 errors / 0 warnings.
+- Evidence: build523_regression_g40_20261027.log, build523_native_compile_g40_20261027.log and build523_manifest.json.
+- Owner Build 5.15 remains unchanged. PR #293 remains draft/open/unmerged and DO NOT MERGE. Qualified G40 history NOT VERIFIED; Strategy Tester, broker runtime and live execution NOT RUN. No terminal restart or trading activation.
+- Next eligible audit: accepted Core §10 static source-to-module mapping; revisit Tester only after qualified history and runtime gates are satisfied.

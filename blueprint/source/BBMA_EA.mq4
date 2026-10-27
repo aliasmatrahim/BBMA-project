@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.2.2 - All-Component Current-Source Admission Gate   |
+//| Version 5.2.3 - D1 TPW Transition Fail-Closed Gate              |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.22"
+#property version   "5.23"
 #property strict
 
-#define BBMA_BUILD_TAG      "V522_ALL_COMPONENT_CURRENT_SOURCE_ADMISSION_20261027"
-#define BBMA_SOURCE_REV_TAG "CORE_FIDELITY_292_M16_COMPONENT_SOURCE_001_20261027"
+#define BBMA_BUILD_TAG      "V523_D1_TPW_TRANSITION_FAIL_CLOSED_20261027"
+#define BBMA_SOURCE_REV_TAG "CORE_FIDELITY_292_D1_TPW_TRANSITION_GATE_001_20261027"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -6563,15 +6563,10 @@ bool IsD1OpportunityCandidateAuthorityReady(ValidatedSequenceCandidate &candidat
    if(candidate.D1OpportunitySourceCandleTime != opportunity.SourceCandleTime) return false;
    if(candidate.D1OpportunityActivationTime != opportunity.ActivationTime) return false;
 
-   // Tactical Extreme/TPW may oppose MA50 or run during a valid transition,
-   // but unresolved/malformed D1 strategic context still fails closed.
+   // Tactical Extreme/TPW may oppose a confirmed D1 owner, but not during
+   // D1_TRANSITION or when the owner inputs are unresolved.
    if(opportunity.Family == D1_OPP_EXTREME_TPW)
-   {
-      D1MajorTrendOwner owner = pairState.d1_major_trend_owner;
-      return (owner.IsValid && owner.SourceCandleTime > 0 &&
-              owner.Close1 > 0.0 && owner.MA50_1 > 0.0 && owner.MA50_2 > 0.0 &&
-              owner.State != D1_OWNER_UNRESOLVED);
-   }
+      return IsD1MajorTrendOwnerExecutionReady(pairState);
 
    if(!IsD1MajorTrendOwnerExecutionReady(pairState)) return false;
    return (candidate.Direction == pairState.d1_major_trend_owner.Direction);
@@ -8154,7 +8149,7 @@ bool ValidateDecisionD1OpportunitySnapshot(int pairIndex, BBMA_Decision &decisio
       if(!IsD1MajorTrendOwnerExecutionReady(state)) return false;
       if(decision.Direction != owner.Direction) return false;
    }
-   else if(owner.State == D1_OWNER_UNRESOLVED)
+   else if(!IsD1MajorTrendOwnerExecutionReady(state))
       return false;
 
    return true;

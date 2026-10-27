@@ -25,7 +25,7 @@ Q3 remains a separate isolated runtime-validation workstream and is environment-
 
 ## CORE-FIDELITY-292 scoped audit — 2026-10-27
 
-Status: **PARTIAL — BUILD 5.22 NATIVE STRICT COMPILE PASS; HISTORY/RUNTIME AND FULL RULE MATRIX OPEN**. Baseline: Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`; candidate: Draft PR #293 / Build 5.22.
+Status: **PARTIAL — BUILD 5.23 FOCUSED REGRESSION + EXACT-GIT-BLOB NATIVE STRICT COMPILE PASS; HISTORY/RUNTIME AND FULL RULE MATRIX OPEN**. Baseline: Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`; candidate: Draft PR #293 / Build 5.23.
 - CP03 M06 incomplete-data repair and its focused tests/native evidence remain candidate-scoped; owner branch is unchanged.
 - CP06/CP07 reproduced stale source admission, then added current closed-source checks in M15 and M16 for every frozen component. No TTL, signal formula or priority change.
 - CP08 native strict compile on G40: **PASS, 0 errors / 0 warnings** against exact source blob/SHA; log and EX4 hashes are recorded in the candidate manifest.
@@ -39,7 +39,7 @@ Status: **PARTIAL — BUILD 5.22 NATIVE STRICT COMPILE PASS; HISTORY/RUNTIME AND
 - CP15 direct primary-PDF verification: the supplied PDF SHA-256 matches SOURCE_INDEX; pp.9–10 define Re-Entry types but give no Type2/3/4 overlap priority.
 - CP16 project decision: retain the existing Type3→Type4→Type2→Type1 empty-owner order as explicit project policy. It is not a source rule and does not claim observed overlap. See blueprint/decisions/M12_REENTRY_OVERLAP_PRIORITY_POLICY_DECISION_20261027.md.
 - CP17 completed the static Core §9 hierarchy trace and found a material D1_TRANSITION / D1_OPP_EXTREME_TPW policy discrepancy. The D1 TPW lifecycle gate remains OFF and fails closed in M17.
-- Exact next action / USER GATE: decide whether D1_TRANSITION blocks D1_OPP_EXTREME_TPW or whether that family is an explicit project-only exception to Core §9.2. No activation, Core edit or owner-code change until the policy is explicit. Qualified G40 history remains NOT VERIFIED; Strategy Tester and broker/runtime remain NOT RUN. No merge, terminal restart or trading activation.
+- CP18 resolves the policy as a strict fail-closed application of Core §9.2 to D1_OPP_EXTREME_TPW; no Core rule or owner-source change. Next eligible scoped task: continue the accepted-Core static audit at §10 and update rule-to-module links. Qualified G40 history remains NOT VERIFIED; Strategy Tester and broker/runtime remain NOT RUN. No merge, terminal restart or trading activation.
 
 ## Stage A - Source evidence / reconciliation
 
@@ -290,3 +290,11 @@ No destructive reset, blind recreation, automatic MT4 restart, or trading enable
 - Most hierarchy links map to Build 5.15; the D1 transition / D1O-TPW exception remains HOLD because Core/M15 general transition blocking and the special family authority are not reconciled.
 - D1 TPW lifecycle remains disabled and M17 fails closed. No EA/Core source, test, compile, Strategy Tester or runtime changed/ran.
 - Await explicit project policy before code changes or activation; no merge, restart or trading activation.
+
+## CORE-FIDELITY-292 CP18 execution update — 2026-10-27
+
+- Resolved CP17's policy hold: D1_TRANSITION and D1_OWNER_UNRESOLVED block D1_OPP_EXTREME_TPW under the existing Core §9.2/M15 final gate. This is project execution mapping; accepted Core is unchanged.
+- Candidate Build 5.23 applies the confirmed-owner readiness helper at M15 and M16 while preserving counter-direction eligibility against a confirmed owner under existing D1O-01 H4/H1 prerequisites.
+- Five focused regression scripts passed; exact Git-blob G40 MetaEditor compile passed with 0 errors / 0 warnings. See CP18 manifest and logs.
+- D1 TPW lifecycle remains OFF. Owner Build 5.15 is unchanged. Qualified history remains NOT VERIFIED; Strategy Tester and broker/runtime remain NOT RUN. PR #293 remains draft/unmerged and DO NOT MERGE.
+- Next eligible scoped audit: accepted Core §10 rule-to-module static mapping. No merge, terminal restart or trading activation.

@@ -236,3 +236,11 @@ Accepted Core §9.2 and this contract classify D1_TRANSITION and D1_OWNER_UNRESO
 Build 5.15 M15 code has a special D1_OPP_EXTREME_TPW authority branch that requires valid D1 snapshot values and rejects D1_OWNER_UNRESOLVED, but does not reject D1_TRANSITION. Therefore it permits this opportunity candidate during transition. The dedicated EnableD1TPWLifecycle flag is false, and M17 ResolveApprovedInitialSLTP fails closed for that identity before downstream risk/order execution. This prevents current execution but does not resolve the policy mismatch.
 
 Status: **HOLD — transition applicability for D1_OPP_EXTREME_TPW needs explicit project adjudication before lifecycle activation.** Do not alter accepted Core semantics or enable the lifecycle based on static mapping alone. See Core-fidelity CP17 and the D1O-01 / D1 TPW lifecycle contracts.
+
+## CP18 D1O-TPW transition policy resolution (2026-10-27)
+
+The project decision applies the existing Core §9.2/M15 transition block to D1_OPP_EXTREME_TPW: D1_TRANSITION and D1_OWNER_UNRESOLVED cannot pass M15 final authority. This is a deterministic project execution mapping for the D1O-01 extension, not a new source rule and not a Core edit.
+
+Draft candidate Build 5.23 uses the existing IsD1MajorTrendOwnerExecutionReady helper in both M15 admission and M16 frozen-decision revalidation. That helper admits confirmed BUY/SELL owners only. The TPW family still does not require candidate direction to equal the confirmed D1 owner, preserving D1O-01 counter-direction behavior under its existing H4/H1 prerequisites.
+
+The dedicated D1 TPW lifecycle flag remains OFF. Native compile and portable source regressions do not satisfy the separate qualified-history, Strategy Tester, broker/runtime or activation gates. See blueprint/decisions/D1_TPW_D1_TRANSITION_FAIL_CLOSED_DECISION_20261027.md and CP18 evidence.

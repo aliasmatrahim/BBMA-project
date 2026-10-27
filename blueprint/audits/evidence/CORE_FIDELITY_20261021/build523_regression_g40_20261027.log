@@ -1,0 +1,21 @@
+﻿Build 5.23 focused exact-source regression on G40
+=== blueprint/tests/test_d1_tpw_transition_gate.py ===
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.024s
+System.Management.Automation.RemoteException
+OK
+EXIT=0
+=== blueprint/tests/test_d1o_execution_identity_contract.py ===
+D1O execution identity contract drift guard: PASS
+EXIT=0
+=== blueprint/tests/test_d1o_extreme_tpw_same_identity_precedence_static.py ===
+D1O_EXTREME_TPW_PRECEDENCE_STATIC=PASS
+EXIT=0
+=== blueprint/tests/test_d1o_extreme_tpw_same_identity_precedence_model.py ===
+D1O_EXTREME_TPW_PRECEDENCE_MODEL=PASS
+EXIT=0
+=== blueprint/tests/test_d1tpw_checkpoint_atomicity_static.py ===
+D1TPW_CHECKPOINT_ATOMICITY_STATIC=PASS
+EXIT=0
+OVERALL_EXIT=0

@@ -121,3 +121,11 @@ The separate M12 invalid-refresh admission finding was reproduced against owner 
 - Immediate execution remains fail-closed: EnableD1TPWLifecycle=false; M17 ResolveApprovedInitialSLTP rejects the exact D1 TPW identity before downstream risk/order execution. This does not resolve the semantic policy gap.
 - Keep EnableD1TPWLifecycle OFF. No code or Core rule changed. No tests, compile, Strategy Tester, broker/runtime or trade occurred in CP17.
 - Exact user/project decision needed: strict transition block for this family, or an explicit project-only exception to Core §9.2. C039/C040 observer context remains separately unimplemented and is not conflated with this issue.
+
+## CP18 policy resolution — D1 TPW during D1 transition (2026-10-27)
+
+CP17's policy hold is resolved by the project decision at blueprint/decisions/D1_TPW_D1_TRANSITION_FAIL_CLOSED_DECISION_20261027.md. D1_TRANSITION and D1_OWNER_UNRESOLVED block all new D1_OPP_EXTREME_TPW entries under the accepted Core §9.2/M15 gate. This is the project's fail-closed application of the general transition gate to the D1O-01 extension, not a new BBMA source rule or an accepted-Core change.
+
+Build 5.23 candidate M15 admission and M16 revalidation now call IsD1MajorTrendOwnerExecutionReady. The extension can still oppose a confirmed D1 owner when its existing aligned/recovered H4 and fresh confirmed H1 Re-Entry prerequisites pass. No TPW direction equality was added. The D1 TPW lifecycle feature remains OFF and M17 retains its fail-closed behavior.
+
+Verification: five focused exact-source regression scripts passed, including four new transition-gate methods; exact Git-blob G40 MetaEditor 5.0.0.2425 strict compile passed with 0 errors / 0 warnings. Logs and hashes are recorded in build523_manifest.json. Strategy Tester and broker/runtime remain NOT RUN; qualified G40 history remains NOT VERIFIED.

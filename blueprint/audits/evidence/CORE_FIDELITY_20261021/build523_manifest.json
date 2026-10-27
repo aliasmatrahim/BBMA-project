@@ -1,0 +1,46 @@
+{
+    "task":  "CORE-FIDELITY-292 CP18",
+    "date":  "2026-10-27",
+    "branch":  "audit/core-fidelity-20261021",
+    "parent_checkpoint":  "289eaa0bbdb5c0cbacb5234a85c5af0d9af11bc3",
+    "owner_baseline":  "d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de",
+    "candidate_build":  "5.23",
+    "candidate_build_tag":  "V523_D1_TPW_TRANSITION_FAIL_CLOSED_20261027",
+    "candidate_source_revision":  "CORE_FIDELITY_292_D1_TPW_TRANSITION_GATE_001_20261027",
+    "source_git_blob":  "be13aac3a2a0f2e2e9eeb2f5d4006eeedf7cd562",
+    "source_sha256":  "682A0F072C2A69ADF1A59FFED464E66911C62CDFB6C98C7D8E486C53DF774F5A",
+    "compiled_input_git_blob":  "be13aac3a2a0f2e2e9eeb2f5d4006eeedf7cd562",
+    "compiled_input_sha256":  "682A0F072C2A69ADF1A59FFED464E66911C62CDFB6C98C7D8E486C53DF774F5A",
+    "native_compile":  {
+                           "status":  "PASS",
+                           "compiler":  "HFM MetaTrader 4 MetaEditor",
+                           "version":  "5.0.0.2425",
+                           "result":  "0 errors, 0 warnings, 1742 msec elapsed",
+                           "log":  "build523_native_compile_g40_20261027.log",
+                           "log_sha256":  "7EF7BE94D10A94FF37893188995FD5588D04A330F2D8CDDA16122C06CF24ABD3",
+                           "output":  "BBMA_EA.ex4 in isolated Temp compile directory; not installed or attached to a terminal",
+                           "ex4_sha256":  "66433B71CEE5471BDCFA75CBA855766318250DE247048AF4621EFBEACC3F18E9"
+                       },
+    "portable_regression":  {
+                                "status":  "PASS",
+                                "scripts":  5,
+                                "new_unittest_methods":  4,
+                                "overall_exit":  0,
+                                "log":  "build523_regression_g40_20261027.log",
+                                "log_sha256":  "D38AA9239E15AB4C6DEBC29AB9286799EE720476907B703E9F4DAD31AAEDDC5F"
+                            },
+    "runtime":  {
+                    "mt4_terminal":  "NOT_RUNNING",
+                    "strategy_tester":  "NOT_RUN",
+                    "qualified_g40_history":  "NOT_VERIFIED",
+                    "broker_runtime":  "NOT_RUN",
+                    "live_trade":  "NOT_RUN"
+                },
+    "authority":  {
+                      "accepted_core_changed":  false,
+                      "owner_build_changed":  false,
+                      "d1_tpw_lifecycle_gate":  "OFF",
+                      "merge_authorized":  false,
+                      "production_activation_authorized":  false
+                  }
+}

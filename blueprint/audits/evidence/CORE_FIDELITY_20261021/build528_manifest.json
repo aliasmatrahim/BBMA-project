@@ -1,0 +1,98 @@
+{
+  "schema": "bbma_candidate_native_compile_manifest_v1",
+  "task": "CORE-FIDELITY-292 / Issue #292 / PR #293",
+  "candidate": {
+    "build": "5.28",
+    "build_tag": "V528_M10_M11_CONST_DIRECTION_INPUTS_20261027",
+    "source_rev": "CORE_FIDELITY_292_M10_M11_CONST_DIRECTION_INPUTS_001_20261027",
+    "branch": "audit/core-fidelity-20261021",
+    "parent_commit": "02395c6db18607e8776c0d74c04ef0bac9885313",
+    "source_path": "blueprint/source/BBMA_EA.mq4",
+    "base_git_blob": "3cac5ac00d8c8241201a435e7284bd5092c847d4",
+    "source_git_blob": "388ee68b5b8071d50dcf1dab1ddcb10733a120a9",
+    "g40_staging_path": "NOT STAGED; intended path C:\\Users\\AFIQMA~1\\AppData\\Local\\Temp\\BBMA_CORE_FIDELITY_BUILD528_EXACT\\BBMA_EA.mq4",
+    "g40_raw_source_sha256": "NOT AVAILABLE",
+    "g40_source_bytes": 542962,
+    "line_endings": "Canonical Git blob LF; G40 staging not completed"
+  },
+  "change": {
+    "header": "//| Version 5.2.8 - M10/M11 Const Direction Inputs              |",
+    "const_qualified_parameters": [
+      "DetectCSD: const MovingAverage &ma, const BollingerBand &band",
+      "DetectECSD: const MovingAverage &ma",
+      "DetectD1OpportunityCSD: const BollingerBand &band",
+      "UpdateD1OpportunityJourney: const BollingerBand &d1Band"
+    ],
+    "functions_changed": 4,
+    "by_reference_parameters_constified": 5,
+    "function_bodies_changed": 0,
+    "call_sites_changed": 0,
+    "callsite_count_drift": 0
+  },
+  "static_regression": {
+    "status": "PASS",
+    "baseline": "Build 5.27 / 3cac5ac00d8c8241201a435e7284bd5092c847d4",
+    "baseline_expected": "RED: five audited read-only input refs lack const",
+    "candidate": "GREEN: all five const boundaries hold",
+    "unique_allowlisted_replacements": 8,
+    "reverse_allowlist_restores_baseline_exactly": true,
+    "direct_input_write_matches": 0,
+    "call_occurrences": {
+      "DetectCSD": 6,
+      "DetectECSD": 5,
+      "DetectD1OpportunityCSD": 3,
+      "UpdateD1OpportunityJourney": 2
+    },
+    "cross_module_call_path": "M11 d1Band -> DetectD1OpportunityCSD band -> DetectCSD band; DetectCSD/DetectECSD read MovingAverage and BollingerBand fields only"
+  },
+  "native_compile": {
+    "status": "NOT TESTED",
+    "blocker": "Desktop Commander reports monthly usage exhausted; do not retry or reconnect",
+    "compiler": "HFM MetaEditor 5.0.0.2425",
+    "strict": true,
+    "errors": null,
+    "warnings": null,
+    "elapsed_ms": null,
+    "log_path": null,
+    "log_sha256": null,
+    "ex4_path": null,
+    "ex4_sha256": null
+  },
+  "prior_findings": {
+    "m06": {
+      "status": "CANDIDATE_REPAIRED_NOT_OWNER_INTEGRATED",
+      "build": "5.20",
+      "evidence_checkpoint": "CHECKPOINT_CP03_20261022.md",
+      "focused_regression": "15 passed; m06_green.log",
+      "native_compile": "0 errors / 0 warnings; build520_manifest.json",
+      "owner_build": "5.15 retains prior behavior"
+    },
+    "m12_h4": {
+      "status": "CANDIDATE_REPAIRED_NOT_OWNER_INTEGRATED",
+      "builds": [
+        "5.21",
+        "5.22"
+      ],
+      "evidence_checkpoints": [
+        "CHECKPOINT_CP06_20261026.md",
+        "CHECKPOINT_CP07_20261027.md",
+        "CHECKPOINT_CP08_20261027.md"
+      ],
+      "build522_native_compile": "PASS"
+    }
+  },
+  "runtime": {
+    "strategy_tester": "NOT RUN",
+    "broker_runtime": "NOT RUN",
+    "live_orders": "NONE",
+    "mt4_or_metaeditor_after_compile": "NOT APPLICABLE; Build 5.28 was not staged or compiled"
+  },
+  "governance": {
+    "owner_branch": "d1-owner-dev",
+    "owner_head": "459c0588e625d7f7630f0fb5612b7f04fda496de",
+    "owner_build": "5.15",
+    "pr_number": 293,
+    "pr_state": "OPEN_DRAFT_DO_NOT_MERGE",
+    "q10_phase_l_r5": "INCOMPLETE; R5-14/R5-16 await natural broker events; no event synthesis or terminal restart"
+  }
+}

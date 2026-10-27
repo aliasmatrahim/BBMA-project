@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.2.7 - M11 Const Read-Only Owner Inputs              |
+//| Version 5.2.8 - M10/M11 Const Direction Inputs                |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.27"
+#property version   "5.28"
 #property strict
 
-#define BBMA_BUILD_TAG      "V527_M11_CONST_READONLY_OWNER_INPUTS_20261027"
-#define BBMA_SOURCE_REV_TAG "CORE_FIDELITY_292_M11_CONST_READONLY_002_20261027"
+#define BBMA_BUILD_TAG      "V528_M10_M11_CONST_DIRECTION_INPUTS_20261027"
+#define BBMA_SOURCE_REV_TAG "CORE_FIDELITY_292_M10_M11_CONST_DIRECTION_INPUTS_001_20261027"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -3565,7 +3565,7 @@ bool CandleBodyCrossesLevel(double open, double close, double level,
 }
 
 bool DetectCSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
-               MovingAverage &ma, BollingerBand &band)
+               const MovingAverage &ma, const BollingerBand &band)
 {
    double open = iOpen(pair, timeframe, shift);
    double close = iClose(pair, timeframe, shift);
@@ -3587,7 +3587,7 @@ bool DetectCSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
 }
 
 bool DetectECSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
-                MovingAverage &ma)
+                const MovingAverage &ma)
 {
    double open = iOpen(pair, timeframe, shift);
    double close = iClose(pair, timeframe, shift);
@@ -3996,7 +3996,7 @@ void InstallD1OpportunityJourney(D1OpportunityJourney &journey, string pair,
 }
 
 bool DetectD1OpportunityCSD(string pair, const TimeframeData &data,
-                            BollingerBand &band, ENUM_DIRECTION direction)
+                            const BollingerBand &band, ENUM_DIRECTION direction)
 {
    if(!data.is_valid || !data.is_closed || data.barIndex < 1) return false;
    MovingAverage ma;
@@ -4021,7 +4021,7 @@ bool DetectD1OpportunityECSDWatch(string pair, const TimeframeData &data,
    return DetectECSD(pair, PERIOD_D1, direction, data.barIndex, ma);
 }
 
-void UpdateD1OpportunityJourney(int pairIndex, BollingerBand &d1Band)
+void UpdateD1OpportunityJourney(int pairIndex, const BollingerBand &d1Band)
 {
    if(pairIndex < 0 || pairIndex >= g_pair_count) return;
    string pair = g_pair_states[pairIndex].actual_symbol;

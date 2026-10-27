@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.2.4 - M08 Const Read-Only Input Hardening             |
+//| Version 5.2.5 - M08/M09 Const Leaf Input Hardening            |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,10 +31,10 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.24"
+#property version   "5.25"
 #property strict
 
-#define BBMA_BUILD_TAG      "V524_M08_CONST_READONLY_INPUTS_20261027"
+#define BBMA_BUILD_TAG      "V525_M08_M09_CONST_LEAF_INPUTS_20261027"
 #define BBMA_SOURCE_REV_TAG "CORE_FIDELITY_292_D1_TPW_TRANSITION_GATE_001_20261027"
 
 //+------------------------------------------------------------------+
@@ -2691,7 +2691,7 @@ double GetExtremeReversalBodyEdge(const TimeframeData &data, ENUM_DIRECTION dire
    return 0.0;
 }
 
-bool IsExtremeReversalDirection(TimeframeData &data, ENUM_DIRECTION direction)
+bool IsExtremeReversalDirection(const TimeframeData &data, ENUM_DIRECTION direction)
 {
    if(data.open <= 0 || data.close <= 0) return false;
    if(direction == DIR_SELL) return (data.close < data.open);
@@ -2816,7 +2816,7 @@ void UpdateExtremeProvisionalAnchor(ExtremeLifecycleData &extreme,
       extreme.ProvisionalBodyAnchor = MathMin(extreme.ProvisionalBodyAnchor, edge);
 }
 
-bool IsExtremeRetestStart(ExtremeLifecycleData &extreme, TimeframeData &data)
+bool IsExtremeRetestStart(ExtremeLifecycleData &extreme, const TimeframeData &data)
 {
    if(extreme.PreviousClose <= 0 || data.close <= 0) return false;
    if(extreme.Direction == DIR_SELL) return (data.close > extreme.PreviousClose);
@@ -3097,7 +3097,7 @@ void MarkCanonicalMLVSuperseded(MLVData &mlv, TimeframeData &data, string reason
    mlv.Reason = reason;
 }
 
-bool IsMHVTPWajibCompleted(TimeframeData &data, ENUM_DIRECTION parentDirection)
+bool IsMHVTPWajibCompleted(const TimeframeData &data, ENUM_DIRECTION parentDirection)
 {
    if(data.high <= 0 || data.low <= 0) return false;
 
@@ -3155,7 +3155,7 @@ bool IsMHVLossPhaseEligible(string pair, ENUM_DIRECTION mhvDirection,
    return true;
 }
 
-double GetMHVBodyEdge(TimeframeData &data, ENUM_DIRECTION mhvDirection)
+double GetMHVBodyEdge(const TimeframeData &data, ENUM_DIRECTION mhvDirection)
 {
    if(data.open <= 0 || data.close <= 0) return 0.0;
    if(mhvDirection == DIR_BUY)  return MathMin(data.open, data.close); // bottom body
@@ -3176,7 +3176,7 @@ void UpdateMHVProvisionalBody(MLVData &mlv, TimeframeData &data)
       mlv.ProvisionalBodyAnchor = MathMax(mlv.ProvisionalBodyAnchor, edge);
 }
 
-bool IsMHVFormationMoveAway(MLVData &mlv, TimeframeData &data)
+bool IsMHVFormationMoveAway(MLVData &mlv, const TimeframeData &data)
 {
    if(mlv.PreviousClose <= 0 || data.close <= 0) return false;
    if(mlv.Direction == DIR_BUY)  return (data.close > mlv.PreviousClose);
@@ -3184,7 +3184,7 @@ bool IsMHVFormationMoveAway(MLVData &mlv, TimeframeData &data)
    return false;
 }
 
-bool IsMHVRetestInteraction(MLVData &mlv, TimeframeData &data)
+bool IsMHVRetestInteraction(MLVData &mlv, const TimeframeData &data)
 {
    if(mlv.FrozenMarkedBody <= 0 || data.high <= 0 || data.low <= 0) return false;
    if(mlv.Direction == DIR_BUY)  return (data.low <= mlv.FrozenMarkedBody);

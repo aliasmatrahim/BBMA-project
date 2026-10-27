@@ -1,0 +1,67 @@
+{
+  "schema": "bbma_candidate_native_compile_manifest_v1",
+  "task": "CORE-FIDELITY-292 / Issue #292 / PR #293",
+  "candidate": {
+    "build": "5.25",
+    "build_tag": "V525_M08_M09_CONST_LEAF_INPUTS_20261027",
+    "branch": "audit/core-fidelity-20261021",
+    "parent_commit": "5d4e001f18932eba02ea3c41cfc139e43e01377e",
+    "source_path": "blueprint/source/BBMA_EA.mq4",
+    "base_git_blob": "98d5403283782922ba85d1459d12eaf1ce921316",
+    "source_git_blob": "9eb016ed13d90a57a992aa14c18072a44c3c4ab2",
+    "g40_windows_staging_path": "C:\\Users\\AFIQMA~1\\AppData\\Local\\Temp\\BBMA_CORE_FIDELITY_BUILD525_EXACT\\BBMA_EA.mq4",
+    "g40_raw_source_sha256": "5C25B25FF0AD2E75E9DD84E061150F5AE35FC6835C57681678FE39661E236524",
+    "g40_source_bytes": 556829,
+    "line_endings": "LF in canonical Git blob; CRLF in Windows staging checkout"
+  },
+  "change": {
+    "signatures": [
+      "bool IsExtremeReversalDirection(const TimeframeData &data, ENUM_DIRECTION direction)",
+      "bool IsExtremeRetestStart(ExtremeLifecycleData &extreme, const TimeframeData &data)",
+      "bool IsMHVTPWajibCompleted(const TimeframeData &data, ENUM_DIRECTION parentDirection)",
+      "double GetMHVBodyEdge(const TimeframeData &data, ENUM_DIRECTION mhvDirection)",
+      "bool IsMHVFormationMoveAway(MLVData &mlv, const TimeframeData &data)",
+      "bool IsMHVRetestInteraction(MLVData &mlv, const TimeframeData &data)"
+    ],
+    "function_bodies_changed": false,
+    "static_targeted_regression": {
+      "status": "PASS",
+      "exact_eight_line_allowlist": true,
+      "callsite_counts": {
+        "IsExtremeReversalDirection": 2,
+        "IsExtremeRetestStart": 1,
+        "IsMHVTPWajibCompleted": 1,
+        "GetMHVBodyEdge": 1,
+        "IsMHVFormationMoveAway": 1,
+        "IsMHVRetestInteraction": 1
+      },
+      "function_bodies_identical_to_build_5_24": true,
+      "all_inputs_read_only": true
+    },
+    "clarification": "GetMHVBodyEdge calls MathMin/MathMax with scalar values; the TimeframeData reference is not passed onward."
+  },
+  "native_compile": {
+    "status": "PASS",
+    "compiler": "HFM MetaEditor 5.0.0.2425",
+    "strict": true,
+    "errors": 0,
+    "warnings": 0,
+    "elapsed_ms": 934,
+    "log_path": "C:\\Users\\AFIQMA~1\\AppData\\Local\\Temp\\BBMA_CORE_FIDELITY_BUILD525_EXACT\\metaeditor_build525.log",
+    "log_sha256": "A8B8AD4B10EC3926616DF97AE680711CB27087E0D68DEF3A7B1994F1C456A6B9",
+    "ex4_path": "C:\\Users\\AFIQMA~1\\AppData\\Local\\Temp\\BBMA_CORE_FIDELITY_BUILD525_EXACT\\BBMA_EA.ex4",
+    "ex4_sha256": "7E7FB5B69E6610AB20651740027C0A72B9D5B40678044AAA2D237DDC8C1945BC"
+  },
+  "runtime": {
+    "strategy_tester": "NOT RUN",
+    "broker_runtime": "NOT RUN",
+    "live_orders": "NONE"
+  },
+  "governance": {
+    "owner_branch": "d1-owner-dev",
+    "owner_head": "459c0588e625d7f7630f0fb5612b7f04fda496de",
+    "pr_number": 293,
+    "pr_state": "OPEN_DRAFT_DO_NOT_MERGE",
+    "q10_phase_l_r5": "HIGHEST_PRIORITY_GLOBAL_ACCEPTANCE; R5-14/R5-16 await natural broker events"
+  }
+}

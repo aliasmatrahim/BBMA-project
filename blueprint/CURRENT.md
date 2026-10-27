@@ -208,4 +208,12 @@ Status: **CP17 POLICY HOLD RESOLVED; BUILD 5.23 CANDIDATE REGRESSION + EXACT-GIT
 - Five focused regression scripts passed (four new exact-source unit methods); exact source Git blob be13aac3a2a0f2e2e9eeb2f5d4006eeedf7cd562 compiled on G40 MetaEditor 5.0.0.2425 with 0 errors / 0 warnings.
 - Evidence: build523_regression_g40_20261027.log, build523_native_compile_g40_20261027.log and build523_manifest.json.
 - Owner Build 5.15 remains unchanged. PR #293 remains draft/open/unmerged and DO NOT MERGE. Qualified G40 history NOT VERIFIED; Strategy Tester, broker runtime and live execution NOT RUN. No terminal restart or trading activation.
-- Next eligible audit: accepted Core §10 static source-to-module mapping; revisit Tester only after qualified history and runtime gates are satisfied.
+- CP19 verifies accepted Core §10 by reusing CP11/CP12/CP14/CP17 plus CP18 evidence; next eligible static review is Core §11 exclusions. Tester remains gated on qualified history and runtime requirements.
+
+## CORE-FIDELITY-292 CP19 — 2026-10-27
+
+Status: **CORE §10 STATIC MATURITY/SIGNATURE/GATE MAPPING VERIFIED; NO NEW MISMATCH FOUND**.
+- Reused CP11 for Extreme maturity and standalone-versus-MTF readiness; CP12 for M15 MHV/MLV formation/frozen-body maturity; CP14 for exact REM/RRE/REE signatures; CP17 for the independent M11/M15/M16 strategic gate; CP18 for D1O-TPW transition fail-closed behavior.
+- Core §10 adds no fourth D1 component to REM. RRE/REE D1 Re-Entry identity remains distinct from confirmed M11 D1 strategic ownership. M15/M16 remain final executable authority.
+- No source code, contract behavior, regression test or compile changed/ran in CP19. CP18 test/compile evidence is unchanged. Qualified G40 history remains NOT VERIFIED; Strategy Tester and broker/runtime remain NOT RUN.
+- Next eligible static review: accepted Core §11 explicit exclusions/change-control boundaries; full rule-to-runtime denominator remains PARTIAL.

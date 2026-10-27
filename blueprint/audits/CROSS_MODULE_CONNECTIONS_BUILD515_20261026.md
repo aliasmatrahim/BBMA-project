@@ -167,3 +167,11 @@ Static baseline: accepted Core V2 blob 3c450d7157db6b7a6bf53549f645bb75c88371e5 
 - Candidate Build 5.23 uses the existing M11 confirmed-owner execution helper at both gates. M11 owner production, accepted Core, component signatures and M17 lifecycle behavior are unchanged; EnableD1TPWLifecycle remains OFF.
 - Five focused portable regression scripts passed (four new exact-source unittest methods); exact Git-blob strict MetaEditor compile passed with 0 errors / 0 warnings. See build523 regression/native logs and manifest.
 - Strategy Tester, qualified-history validation and broker/runtime were NOT RUN / NOT VERIFIED. The owner remains Build 5.15; PR #293 remains draft, open, unmerged and DO NOT MERGE.
+
+## CP19 — accepted Core §10 exact MTF signatures and maturity (2026-10-27)
+
+- The accepted signatures map through M13 collection and M14 exact component/timeframe/direction validation: REM = H4 Re-Entry + H1 Extreme + M15 MHV/MLV; RRE = D1/H4 Re-Entry + H1 Extreme; REE = D1 Re-Entry + H4/H1 Extreme.
+- Component maturity is owned separately: M08 Extreme must be reversal-confirmed for REM/REE but does not need standalone RETEST_READY; M09 M15 MHV/MLV must reach formation-established plus frozen marked body for REM, with no retest prerequisite and no void/superseded cycle reuse.
+- M11 remains the D1 strategic-owner producer. M15/M16 gate executable direction independently from signature validity; D1 Re-Entry is a component identity, not a substitute for M11 owner confirmation. M12N remains observational. M27 preserves the closed-snapshot → owner/candidate → M15 → M16 → downstream sequence.
+- CP11/CP12/CP14/CP17 already provide the owner-source maturity/signature traces; CP18 resolves the separate D1O-TPW transition gate. CP19 reconciles Core §10 against those verified records without repeating their tests or compile and finds no new mismatch.
+- Static mapping only. Qualified G40 history remains NOT VERIFIED; Strategy Tester and broker/runtime remain NOT RUN. C039/C040 stays a separate scoped extension gap.

@@ -129,3 +129,9 @@ CP17's policy hold is resolved by the project decision at blueprint/decisions/D1
 Build 5.23 candidate M15 admission and M16 revalidation now call IsD1MajorTrendOwnerExecutionReady. The extension can still oppose a confirmed D1 owner when its existing aligned/recovered H4 and fresh confirmed H1 Re-Entry prerequisites pass. No TPW direction equality was added. The D1 TPW lifecycle feature remains OFF and M17 retains its fail-closed behavior.
 
 Verification: five focused exact-source regression scripts passed, including four new transition-gate methods; exact Git-blob G40 MetaEditor 5.0.0.2425 strict compile passed with 0 errors / 0 warnings. Logs and hashes are recorded in build523_manifest.json. Strategy Tester and broker/runtime remain NOT RUN; qualified G40 history remains NOT VERIFIED.
+
+## CP19 — Core §10 MTF signature and maturity reconciliation (2026-10-27)
+
+Core §10 is statically reconciled to the existing verified owner traces: M13/M14 preserve the exact REM/RRE/REE signatures; M08/M09 enforce the required Extreme and M15 MHV/MLV maturity states; M11 supplies the independent D1 owner; M15/M16 enforce final executable direction. D1 is not added as a REM component, and D1 Re-Entry inside RRE/REE does not replace M11 confirmation.
+
+No new source-to-owner mismatch was found. This conclusion reuses CP11/CP12/CP14/CP17 and CP18 evidence; CP19 added no code, test or compile. Runtime remains NOT VERIFIED, qualified G40 history remains NOT VERIFIED, Strategy Tester remains NOT RUN, and C039/C040 remains separate.

@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.2.3 - D1 TPW Transition Fail-Closed Gate              |
+//| Version 5.2.4 - M08 Const Read-Only Input Hardening             |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,10 +31,10 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.23"
+#property version   "5.24"
 #property strict
 
-#define BBMA_BUILD_TAG      "V523_D1_TPW_TRANSITION_FAIL_CLOSED_20261027"
+#define BBMA_BUILD_TAG      "V524_M08_CONST_READONLY_INPUTS_20261027"
 #define BBMA_SOURCE_REV_TAG "CORE_FIDELITY_292_D1_TPW_TRANSITION_GATE_001_20261027"
 
 //+------------------------------------------------------------------+
@@ -2677,14 +2677,14 @@ void ResetExtremeLifecycle(ExtremeLifecycleData &extreme,
    extreme.Timeframe = timeframe;
 }
 
-double GetExtremeRelevantMA5(TimeframeData &data, ENUM_DIRECTION direction)
+double GetExtremeRelevantMA5(const TimeframeData &data, ENUM_DIRECTION direction)
 {
    if(direction == DIR_SELL) return data.ma[0]; // MA5 High
    if(direction == DIR_BUY)  return data.ma[2]; // MA5 Low
    return 0.0;
 }
 
-double GetExtremeReversalBodyEdge(TimeframeData &data, ENUM_DIRECTION direction)
+double GetExtremeReversalBodyEdge(const TimeframeData &data, ENUM_DIRECTION direction)
 {
    if(direction == DIR_SELL) return MathMax(data.open, data.close);
    if(direction == DIR_BUY)  return MathMin(data.open, data.close);

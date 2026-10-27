@@ -227,3 +227,12 @@ Before M15 counts or selects a candidate, every frozen component must have a val
 ## CP08 — native compile status (2026-10-27)
 
 Build 5.22 exact-source strict native compile on G40 passed with 0 errors / 0 warnings. The Strategy Tester, broker preflight and runtime matrix remain NOT RUN under Issue #292; qualified history remains NOT VERIFIED. See `blueprint/audits/evidence/CORE_FIDELITY_20261021/CHECKPOINT_CP08_20261027.md`.
+
+
+## CP17 current-owner reconciliation — D1O-TPW during D1_TRANSITION (2026-10-27)
+
+Accepted Core §9.2 and this contract classify D1_TRANSITION and D1_OWNER_UNRESOLVED as blocking all new-entry candidates. The approved D1O-01 extension separately permits the D1_OPP_EXTREME_TPW family to oppose the strategic owner when valid/recovered H4 ownership and a fresh confirmed H1 Re-Entry exist; that decision does not explicitly state whether D1_TRANSITION is permitted.
+
+Build 5.15 M15 code has a special D1_OPP_EXTREME_TPW authority branch that requires valid D1 snapshot values and rejects D1_OWNER_UNRESOLVED, but does not reject D1_TRANSITION. Therefore it permits this opportunity candidate during transition. The dedicated EnableD1TPWLifecycle flag is false, and M17 ResolveApprovedInitialSLTP fails closed for that identity before downstream risk/order execution. This prevents current execution but does not resolve the policy mismatch.
+
+Status: **HOLD — transition applicability for D1_OPP_EXTREME_TPW needs explicit project adjudication before lifecycle activation.** Do not alter accepted Core semantics or enable the lifecycle based on static mapping alone. See Core-fidelity CP17 and the D1O-01 / D1 TPW lifecycle contracts.

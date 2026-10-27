@@ -112,3 +112,12 @@ The separate M12 invalid-refresh admission finding was reproduced against owner 
 - This resolves the project arbitration choice while preserving the source finding: primary PDF/Core/Finale do not define overlap precedence, and no predicate overlap has been demonstrated in market data.
 - Build 5.15 code already follows the selected order. No EA code or trading rule was changed; this is documentation/governance only.
 - Strategy Tester remains NOT RUN; qualified G40 history is NOT VERIFIED. CP16 does not authorize merge, restart or trading activation.
+
+
+## CP17 Core §9 MTF audit — D1 transition / D1O-TPW boundary (2026-10-27)
+
+- Static owner mapping covers M11 D1 classification, H4 recovery/ownership, M12 Re-Entry, M12N read-only context, M13/M14 fixed signatures, M15 final authority, M16 identity revalidation and M27 sequencing. The supported executable hierarchy remains D1/H4/H1/M15; M5 is shadow-only and M1 is not approved for execution.
+- **HOLD:** accepted Core §9.2 and M15 contract require D1_TRANSITION to block all new entries. D1O-01 approves the D1_OPP_EXTREME_TPW family to oppose the strategic owner but does not explicitly state that it can operate during transition. Build 5.15 M15 code permits that family when D1 state is valid and not UNRESOLVED, which includes D1_TRANSITION.
+- Immediate execution remains fail-closed: EnableD1TPWLifecycle=false; M17 ResolveApprovedInitialSLTP rejects the exact D1 TPW identity before downstream risk/order execution. This does not resolve the semantic policy gap.
+- Keep EnableD1TPWLifecycle OFF. No code or Core rule changed. No tests, compile, Strategy Tester, broker/runtime or trade occurred in CP17.
+- Exact user/project decision needed: strict transition block for this family, or an explicit project-only exception to Core §9.2. C039/C040 observer context remains separately unimplemented and is not conflated with this issue.

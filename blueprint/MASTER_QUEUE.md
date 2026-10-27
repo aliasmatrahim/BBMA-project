@@ -38,7 +38,8 @@ Status: **PARTIAL — BUILD 5.22 NATIVE STRICT COMPILE PASS; HISTORY/RUNTIME AND
 - CP14 statically completed Core §8 Re-Entry owner/consumer mapping and corrected the F6 D1O-01 EntryCandle use. No owner code changed; no CP14 test/compile/Tester/runtime ran.
 - CP15 direct primary-PDF verification: the supplied PDF SHA-256 matches SOURCE_INDEX; pp.9–10 define Re-Entry types but give no Type2/3/4 overlap priority.
 - CP16 project decision: retain the existing Type3→Type4→Type2→Type1 empty-owner order as explicit project policy. It is not a source rule and does not claim observed overlap. See blueprint/decisions/M12_REENTRY_OVERLAP_PRIORITY_POLICY_DECISION_20261027.md.
-- The M12 project-policy gate is closed. Next eligible atomic task: static mapping of accepted Core §9 MTF relationship/strategic hierarchy through M11/M11J/M12/M12N/M13/M14/M15/M16/M27. Strategy Tester remains NOT RUN until qualified G40 history is verified. No merge, terminal restart or trading activation.
+- CP17 completed the static Core §9 hierarchy trace and found a material D1_TRANSITION / D1_OPP_EXTREME_TPW policy discrepancy. The D1 TPW lifecycle gate remains OFF and fails closed in M17.
+- Exact next action / USER GATE: decide whether D1_TRANSITION blocks D1_OPP_EXTREME_TPW or whether that family is an explicit project-only exception to Core §9.2. No activation, Core edit or owner-code change until the policy is explicit. Qualified G40 history remains NOT VERIFIED; Strategy Tester and broker/runtime remain NOT RUN. No merge, terminal restart or trading activation.
 
 ## Stage A - Source evidence / reconciliation
 
@@ -279,5 +280,13 @@ No destructive reset, blind recreation, automatic MT4 restart, or trading enable
 
 - M12 arbitration policy selected: preserve Type3→Type4→Type2→Type1 on an empty owner, matching Build 5.15. The choice is project policy, not source precedence; no market overlap is claimed.
 - M12 source/contract trace now separates the direct source finding from the selected project behavior. No EA source changed.
-- Next: static audit of accepted Core §9 MTF relationship and strategic hierarchy. Qualified G40 history remains NOT VERIFIED; Strategy Tester and broker/runtime remain NOT RUN.
+- CP17 mapped Core §9 statically; the D1 transition / D1O-TPW policy remains HOLD. Keep the D1 TPW lifecycle gate OFF pending an explicit decision.
 - Overall rule-to-runtime denominator remains PARTIAL. Draft PR #293 remains unmerged and DO NOT MERGE.
+
+
+## CORE-FIDELITY-292 CP17 execution update — 2026-10-27
+
+- Static Core §9 mapping is recorded in the traceability matrix, cross-module ledger, gap register and M15 contract reconciliation.
+- Most hierarchy links map to Build 5.15; the D1 transition / D1O-TPW exception remains HOLD because Core/M15 general transition blocking and the special family authority are not reconciled.
+- D1 TPW lifecycle remains disabled and M17 fails closed. No EA/Core source, test, compile, Strategy Tester or runtime changed/ran.
+- Await explicit project policy before code changes or activation; no merge, restart or trading activation.

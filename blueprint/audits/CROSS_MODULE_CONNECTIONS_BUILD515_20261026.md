@@ -147,3 +147,15 @@ The Build 5.15 owner remains unchanged. This static trace adds no signal, priori
 - Build 5.15 owner code already follows the selected order. This decision changes documentation/governance only; it does not establish predicate mutual exclusion or an observed market overlap.
 - M12's project-policy gate is closed. Next eligible static audit: accepted Core §9 multi-timeframe relationship and strategic hierarchy through M11/M11J/M12/M12N/M13/M14/M15/M16/M27.
 - No owner/EA code, tests, compile, Strategy Tester, broker runtime or trade changed/ran. Qualified G40 history remains NOT VERIFIED; PR #293 remains draft/unmerged and DO NOT MERGE.
+
+
+## CP17 — accepted Core §9 MTF relationship / strategic hierarchy (2026-10-27)
+
+Static baseline: accepted Core V2 blob 3c450d7157db6b7a6bf53549f645bb75c88371e5 at main; Build 5.15 owner blob 09de8b80fdaeeb2fd614de0a1826134e9a8b2411 at d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de.
+
+- M27 builds closed D1/H4/H1/M15 snapshots, updates M11 D1 and the recovered H4 directional owner before M06–M12 owner processing, and calls M12N after both direction passes. M12N summarizes D1/H4/H1/M15 relations only; its contract bars creation/rejection/ranking and requires M15 to ignore nested relation for final eligibility.
+- M11 uses closed D1 Close1 and current/previous closed MA50 values. Invalid/missing inputs become D1_OWNER_UNRESOLVED; valid but unconfirmed values become D1_TRANSITION. M15 admits ordinary candidates only under a confirmed same-direction D1 owner, freezes that identity, and M16 revalidates it.
+- H4 recovery begins unresolved and requires verified checkpoint/replay provenance; runtime updates require completed recovery and a valid new closed H4 snapshot. Neutral H4 candles preserve the structural owner; ambiguous opposite events clear it. Standalone H1 Re-Entry requires active same-direction H4 plus confirmed same-direction D1.
+- M13/M14 assemble/validate only the exact REM, RRE and REE signatures. M12N metadata does not add a component or replace a timeframe. M5 data is observed for a shadow layer only; no M1 executable path is present in the approved D1/H4/H1/M15 universe.
+- **Open policy discrepancy:** Core §9.2 and M15 contract say D1_TRANSITION blocks all new entries. D1O-01 authorizes D1_OPP_EXTREME_TPW to oppose the strategic owner with H4 + fresh H1 gates, but does not explicitly authorize D1_TRANSITION. Build 5.15 M15's special D1O-TPW authority branch accepts any valid D1 state except UNRESOLVED, thus also accepts TRANSITION. The M17 D1 TPW feature flag is false; ResolveApprovedInitialSLTP rejects that identity before downstream risk/order execution. Keep this lifecycle gate OFF until the transition exception is explicitly resolved and required runtime gates pass.
+- Result: the Core §9 hierarchy maps statically, but closure is PARTIAL at the D1 transition / D1O-TPW boundary. No code, Core source, tests, compile, Strategy Tester, broker runtime or trade changed/ran. C039/C040 H4/H1 MHV observer coverage remains a separate extension gap.

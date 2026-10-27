@@ -190,3 +190,12 @@ Status: **M12 ARBITRATION POLICY DECIDED; CORE §9 STATIC AUDIT NEXT**.
 - Documentation only. No tests, compile, Strategy Tester, broker/runtime, merge, terminal restart or trading activation occurred.
 - Qualified G40 history remains NOT VERIFIED; Strategy Tester remains NOT RUN. PR #293 remains draft, open, unmerged and DO NOT MERGE.
 - Exact next task: statically map accepted Core §9 MTF relationship/strategic hierarchy through M11/M11J/M12/M12N/M13/M14/M15/M16/M27 and record any remaining source-to-owner gaps.
+
+## CORE-FIDELITY-292 CP17 — 2026-10-27
+
+Status: **CORE §9 STATIC MAPPING PARTIAL — D1O-TPW TRANSITION POLICY HOLD**.
+- Mapped M11/M11J/M12/M12N/M13/M14/M15/M16/M27 against accepted Core §9 and current Build 5.15 owner source. D1→H4→H1→M15 authority, exact signatures and M12N read-only scope are statically linked.
+- Material gap: Core §9.2/M15 contract block all new entries in D1_TRANSITION, while Build 5.15 M15 special-cases D1_OPP_EXTREME_TPW to accept valid transition state. D1O-01 authorizes opposition to the strategic owner but does not explicitly adjudicate transition.
+- EnableD1TPWLifecycle is OFF; M17 fails closed for that identity. Keep it OFF until the policy and required native/runtime lifecycle gates are resolved.
+- No owner/Core source, tests, compile, Tester, broker/runtime or trade changed/ran. Qualified G40 history remains NOT VERIFIED.
+- Exact next task / USER GATE: decide whether D1_TRANSITION blocks D1_OPP_EXTREME_TPW or the family receives a documented project-only exception to Core §9.2. PR #293 stays draft, open, unmerged and DO NOT MERGE.

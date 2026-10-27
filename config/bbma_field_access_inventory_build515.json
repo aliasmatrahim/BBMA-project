@@ -1,0 +1,11577 @@
+{
+  "schema_version": 1,
+  "artifact": "BBMA typed struct field-access inventory",
+  "authority": {
+    "repository": "aliasmatrahim/BBMA-project",
+    "branch": "d1-owner-dev",
+    "commit": "459c0588e625d7f7630f0fb5612b7f04fda496de",
+    "path": "blueprint/source/BBMA_EA.mq4",
+    "blob_sha": "09de8b80fdaeeb2fd614de0a1826134e9a8b2411",
+    "build": "5.15"
+  },
+  "method": {
+    "scope": "Direct typed struct-member access and assignment classification for the exact active owner source snapshot, across all 29 module headers.",
+    "tuple_format": "cross_module_field_accesses rows are [struct_type,field_name,value_type,{module_id:[direct_read_count,direct_write_count,nested_traversal_count]}].",
+    "limits": "Lexical access only. Does not resolve every interprocedural by-reference/copy alias, infer all callee mutation at call sites, or prove object identity for same-type objects in separate functions. No dependency absence is inferred. Use the exact source blob in authority for line-level locations."
+  },
+  "coverage": {
+    "modules": [
+      "M01",
+      "M02",
+      "M03",
+      "M04",
+      "M05",
+      "M06",
+      "M07",
+      "M08",
+      "M09",
+      "M10",
+      "M11",
+      "M11J",
+      "M12",
+      "M12N",
+      "M13",
+      "M14",
+      "M15",
+      "M16",
+      "M17",
+      "M18",
+      "M19",
+      "M20",
+      "M21",
+      "M22",
+      "M23",
+      "M24",
+      "M25",
+      "M26",
+      "M27"
+    ],
+    "module_count": 29,
+    "struct_count": 36,
+    "declared_struct_field_count": 640,
+    "accessed_struct_field_count": 595,
+    "cross_module_struct_field_count": 338,
+    "unresolved_typed_member_occurrences": 0,
+    "unresolved_samples": [],
+    "reader_writer_status": "PARTIAL_INTERPROCEDURAL",
+    "runtime_status": "NOT_VERIFIED",
+    "tests_status": "NOT_VERIFIED"
+  },
+  "module_access_totals": {
+    "M01": [
+      0,
+      0,
+      0
+    ],
+    "M02": [
+      0,
+      0,
+      0
+    ],
+    "M03": [
+      0,
+      0,
+      0
+    ],
+    "M04": [
+      0,
+      4,
+      0
+    ],
+    "M05": [
+      49,
+      150,
+      80
+    ],
+    "M06": [
+      13,
+      33,
+      0
+    ],
+    "M07": [
+      31,
+      7,
+      0
+    ],
+    "M08": [
+      183,
+      82,
+      0
+    ],
+    "M09": [
+      211,
+      121,
+      0
+    ],
+    "M10": [
+      30,
+      0,
+      0
+    ],
+    "M11": [
+      50,
+      28,
+      19
+    ],
+    "M11J": [
+      117,
+      43,
+      5
+    ],
+    "M12": [
+      179,
+      108,
+      0
+    ],
+    "M12N": [
+      518,
+      193,
+      62
+    ],
+    "M13": [
+      90,
+      47,
+      19
+    ],
+    "M14": [
+      40,
+      15,
+      24
+    ],
+    "M15": [
+      579,
+      193,
+      60
+    ],
+    "M16": [
+      178,
+      12,
+      0
+    ],
+    "M17": [
+      237,
+      9,
+      2
+    ],
+    "M18": [
+      6,
+      5,
+      1
+    ],
+    "M19": [
+      18,
+      27,
+      0
+    ],
+    "M20": [
+      20,
+      25,
+      0
+    ],
+    "M21": [
+      79,
+      0,
+      0
+    ],
+    "M22": [
+      420,
+      188,
+      82
+    ],
+    "M23": [
+      221,
+      28,
+      15
+    ],
+    "M24": [
+      313,
+      191,
+      169
+    ],
+    "M25": [
+      8,
+      0,
+      6
+    ],
+    "M26": [
+      18,
+      22,
+      0
+    ],
+    "M27": [
+      186,
+      24,
+      48
+    ]
+  },
+  "struct_schema": [
+    [
+      "ComponentIdentity",
+      [
+        [
+          "ComponentType",
+          "ENUM_SIGNAL_TYPE"
+        ],
+        [
+          "Direction",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "Timeframe",
+          "int"
+        ],
+        [
+          "CandleTime",
+          "datetime"
+        ],
+        [
+          "DecisionID",
+          "string"
+        ]
+      ]
+    ],
+    [
+      "ComponentSet",
+      [
+        [
+          "CombinationType",
+          "ENUM_SIGNAL_TYPE"
+        ],
+        [
+          "ComponentCount",
+          "int"
+        ],
+        [
+          "Comp1",
+          "ComponentIdentity"
+        ],
+        [
+          "Comp2",
+          "ComponentIdentity"
+        ],
+        [
+          "Comp3",
+          "ComponentIdentity"
+        ],
+        [
+          "SequenceStartTime",
+          "datetime"
+        ],
+        [
+          "SequenceHash",
+          "string"
+        ],
+        [
+          "SLTPSource",
+          "ENUM_SIGNAL_TYPE"
+        ]
+      ]
+    ],
+    [
+      "Candle",
+      [
+        [
+          "Open",
+          "double"
+        ],
+        [
+          "High",
+          "double"
+        ],
+        [
+          "Low",
+          "double"
+        ],
+        [
+          "Close",
+          "double"
+        ],
+        [
+          "Time",
+          "datetime"
+        ],
+        [
+          "Index",
+          "int"
+        ],
+        [
+          "Type",
+          "int"
+        ]
+      ]
+    ],
+    [
+      "BollingerBand",
+      [
+        [
+          "TOP_BB",
+          "double"
+        ],
+        [
+          "MID_BB",
+          "double"
+        ],
+        [
+          "LOW_BB",
+          "double"
+        ],
+        [
+          "Width",
+          "double"
+        ],
+        [
+          "State",
+          "ENUM_BB_STATE"
+        ]
+      ]
+    ],
+    [
+      "MovingAverage",
+      [
+        [
+          "MA5_High",
+          "double"
+        ],
+        [
+          "MA10_High",
+          "double"
+        ],
+        [
+          "MA5_Low",
+          "double"
+        ],
+        [
+          "MA10_Low",
+          "double"
+        ],
+        [
+          "EMA50",
+          "double"
+        ]
+      ]
+    ],
+    [
+      "Signal",
+      [
+        [
+          "Type",
+          "ENUM_SIGNAL_TYPE"
+        ],
+        [
+          "Direction",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "Valid",
+          "bool"
+        ],
+        [
+          "Timeframe",
+          "int"
+        ],
+        [
+          "SubType",
+          "ENUM_SIGNAL_TYPE"
+        ],
+        [
+          "Strength",
+          "double"
+        ],
+        [
+          "Reason",
+          "string"
+        ],
+        [
+          "BarIndex",
+          "int"
+        ],
+        [
+          "ExpiryBar",
+          "int"
+        ],
+        [
+          "Score",
+          "int"
+        ],
+        [
+          "Level",
+          "ENUM_SIGNAL_LEVEL"
+        ],
+        [
+          "PriorityTier",
+          "ENUM_PRIORITY_TIER"
+        ],
+        [
+          "EntryPrice",
+          "double"
+        ],
+        [
+          "StopLoss",
+          "double"
+        ],
+        [
+          "TakeProfit",
+          "double"
+        ],
+        [
+          "StopLossPoints",
+          "double"
+        ],
+        [
+          "MA5_Level",
+          "double"
+        ],
+        [
+          "MA10_Level",
+          "double"
+        ],
+        [
+          "MA50_Level",
+          "double"
+        ],
+        [
+          "MID_BB",
+          "double"
+        ],
+        [
+          "Timestamp",
+          "datetime"
+        ],
+        [
+          "CandleTime",
+          "datetime"
+        ],
+        [
+          "Close",
+          "double"
+        ]
+      ]
+    ],
+    [
+      "ExtremeLifecycleData",
+      [
+        [
+          "Maturity",
+          "ENUM_EXTREME_MATURITY"
+        ],
+        [
+          "Direction",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "Timeframe",
+          "int"
+        ],
+        [
+          "RawBar",
+          "int"
+        ],
+        [
+          "RawCandleTime",
+          "datetime"
+        ],
+        [
+          "ConfirmationBar",
+          "int"
+        ],
+        [
+          "ConfirmationCandleTime",
+          "datetime"
+        ],
+        [
+          "ConfirmationClose",
+          "double"
+        ],
+        [
+          "LastUpdateBar",
+          "int"
+        ],
+        [
+          "LastUpdateCandleTime",
+          "datetime"
+        ],
+        [
+          "PreviousClose",
+          "double"
+        ],
+        [
+          "ProvisionalBodyAnchor",
+          "double"
+        ],
+        [
+          "FrozenBodyAnchor",
+          "double"
+        ],
+        [
+          "RelevantMA5",
+          "double"
+        ],
+        [
+          "RetestStartBar",
+          "int"
+        ],
+        [
+          "RetestStartCandleTime",
+          "datetime"
+        ],
+        [
+          "RetestCompletionBar",
+          "int"
+        ],
+        [
+          "RetestCompletionCandleTime",
+          "datetime"
+        ],
+        [
+          "IsValid",
+          "bool"
+        ],
+        [
+          "Reason",
+          "string"
+        ]
+      ]
+    ],
+    [
+      "MLVData",
+      [
+        [
+          "State",
+          "ENUM_MLV_STATE"
+        ],
+        [
+          "Direction",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "ParentExtremeDirection",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "Timeframe",
+          "int"
+        ],
+        [
+          "Reason",
+          "string"
+        ],
+        [
+          "ParentRawCandleTime",
+          "datetime"
+        ],
+        [
+          "ParentConfirmationCandleTime",
+          "datetime"
+        ],
+        [
+          "TPWajibCandleTime",
+          "datetime"
+        ],
+        [
+          "ProvisionalBodyAnchor",
+          "double"
+        ],
+        [
+          "FrozenMarkedBody",
+          "double"
+        ],
+        [
+          "PreviousClose",
+          "double"
+        ],
+        [
+          "StartBar",
+          "int"
+        ],
+        [
+          "StartCandleTime",
+          "datetime"
+        ],
+        [
+          "LastUpdateBar",
+          "int"
+        ],
+        [
+          "LastUpdateCandleTime",
+          "datetime"
+        ],
+        [
+          "ConfirmationBar",
+          "int"
+        ],
+        [
+          "ConfirmationCandleTime",
+          "datetime"
+        ],
+        [
+          "ConfirmationClose",
+          "double"
+        ],
+        [
+          "RetestBar",
+          "int"
+        ],
+        [
+          "RetestCandleTime",
+          "datetime"
+        ],
+        [
+          "DirectionTakeoverBar",
+          "int"
+        ],
+        [
+          "DirectionTakeoverCandleTime",
+          "datetime"
+        ],
+        [
+          "VoidBar",
+          "int"
+        ],
+        [
+          "VoidCandleTime",
+          "datetime"
+        ],
+        [
+          "SupersededBar",
+          "int"
+        ],
+        [
+          "SupersededCandleTime",
+          "datetime"
+        ],
+        [
+          "InvalidationWindowOpen",
+          "bool"
+        ],
+        [
+          "IsValid",
+          "bool"
+        ],
+        [
+          "SupersessionCandidateActive",
+          "bool"
+        ],
+        [
+          "SupersessionRawBar",
+          "int"
+        ],
+        [
+          "SupersessionRawCandleTime",
+          "datetime"
+        ]
+      ]
+    ],
+    [
+      "ReEntryData",
+      [
+        [
+          "Type",
+          "ENUM_RE_TYPE"
+        ],
+        [
+          "State",
+          "ENUM_RE_STATE"
+        ],
+        [
+          "Direction",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "Timeframe",
+          "int"
+        ],
+        [
+          "EntryPrice",
+          "double"
+        ],
+        [
+          "StopLoss",
+          "double"
+        ],
+        [
+          "TakeProfit",
+          "double"
+        ],
+        [
+          "StopLossPoints",
+          "double"
+        ],
+        [
+          "MA5_Level",
+          "double"
+        ],
+        [
+          "MA10_Level",
+          "double"
+        ],
+        [
+          "MA50_Level",
+          "double"
+        ],
+        [
+          "MID_BB",
+          "double"
+        ],
+        [
+          "EntryCandle",
+          "datetime"
+        ],
+        [
+          "ConfirmationCandle",
+          "datetime"
+        ],
+        [
+          "StartBar",
+          "int"
+        ],
+        [
+          "StartCandleTime",
+          "datetime"
+        ],
+        [
+          "LastUpdateBar",
+          "int"
+        ],
+        [
+          "LastUpdateCandleTime",
+          "datetime"
+        ],
+        [
+          "ConfirmationBar",
+          "int"
+        ],
+        [
+          "ExpiryBar",
+          "int"
+        ],
+        [
+          "ExpiryCandleTime",
+          "datetime"
+        ],
+        [
+          "MinCandlesRequired",
+          "int"
+        ],
+        [
+          "QualifyingCandles",
+          "int"
+        ],
+        [
+          "Type1ContextState",
+          "ENUM_TYPE1_CONTEXT_STATE"
+        ],
+        [
+          "Type1OwnerSignal",
+          "ENUM_SIGNAL_TYPE"
+        ],
+        [
+          "Type1OwnerCandleTime",
+          "datetime"
+        ],
+        [
+          "Type1RangingStartCandleTime",
+          "datetime"
+        ],
+        [
+          "Type1PreviousClose",
+          "double"
+        ],
+        [
+          "IsValid",
+          "bool"
+        ],
+        [
+          "StrengthScore",
+          "double"
+        ],
+        [
+          "Reason",
+          "string"
+        ]
+      ]
+    ],
+    [
+      "H4DirectionalOwner",
+      [
+        [
+          "State",
+          "ENUM_H4_OWNER_STATE"
+        ],
+        [
+          "Direction",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "SourceSignal",
+          "ENUM_SIGNAL_TYPE"
+        ],
+        [
+          "SourceCandleTime",
+          "datetime"
+        ],
+        [
+          "LastAdvanceSignal",
+          "ENUM_SIGNAL_TYPE"
+        ],
+        [
+          "LastAdvanceCandleTime",
+          "datetime"
+        ],
+        [
+          "LastProcessedH4CandleTime",
+          "datetime"
+        ],
+        [
+          "IsValid",
+          "bool"
+        ],
+        [
+          "RecoveryComplete",
+          "bool"
+        ],
+        [
+          "RecoveredFromCheckpoint",
+          "bool"
+        ],
+        [
+          "Reason",
+          "string"
+        ]
+      ]
+    ],
+    [
+      "D1MajorTrendOwner",
+      [
+        [
+          "State",
+          "ENUM_D1_OWNER_STATE"
+        ],
+        [
+          "Direction",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "SourceCandleTime",
+          "datetime"
+        ],
+        [
+          "EpochStartCandleTime",
+          "datetime"
+        ],
+        [
+          "LastProcessedD1CandleTime",
+          "datetime"
+        ],
+        [
+          "Close1",
+          "double"
+        ],
+        [
+          "MA50_1",
+          "double"
+        ],
+        [
+          "MA50_2",
+          "double"
+        ],
+        [
+          "IsValid",
+          "bool"
+        ],
+        [
+          "Reason",
+          "string"
+        ]
+      ]
+    ],
+    [
+      "D1OpportunityJourney",
+      [
+        [
+          "Family",
+          "ENUM_D1_OPPORTUNITY_FAMILY"
+        ],
+        [
+          "Direction",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "SourceSignal",
+          "ENUM_SIGNAL_TYPE"
+        ],
+        [
+          "SourceCandleTime",
+          "datetime"
+        ],
+        [
+          "ActivationTime",
+          "datetime"
+        ],
+        [
+          "LastProcessedD1CandleTime",
+          "datetime"
+        ],
+        [
+          "CycleID",
+          "string"
+        ],
+        [
+          "Active",
+          "bool"
+        ],
+        [
+          "Tactical",
+          "bool"
+        ],
+        [
+          "TPWCompleted",
+          "bool"
+        ],
+        [
+          "Reason",
+          "string"
+        ]
+      ]
+    ],
+    [
+      "NestedTFNode",
+      [
+        [
+          "Timeframe",
+          "int"
+        ],
+        [
+          "StageType",
+          "ENUM_SIGNAL_TYPE"
+        ],
+        [
+          "Direction",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "StateCode",
+          "int"
+        ],
+        [
+          "CandleTime",
+          "datetime"
+        ],
+        [
+          "Valid",
+          "bool"
+        ],
+        [
+          "Resolved",
+          "bool"
+        ],
+        [
+          "Label",
+          "string"
+        ],
+        [
+          "CanonicalEventID",
+          "string"
+        ],
+        [
+          "ReEntryBuyState",
+          "ENUM_RE_STATE"
+        ],
+        [
+          "ReEntrySellState",
+          "ENUM_RE_STATE"
+        ],
+        [
+          "ReEntryBuyValid",
+          "bool"
+        ],
+        [
+          "ReEntrySellValid",
+          "bool"
+        ],
+        [
+          "ReEntryBuyCandleTime",
+          "datetime"
+        ],
+        [
+          "ReEntrySellCandleTime",
+          "datetime"
+        ],
+        [
+          "ExtremeBuyMaturity",
+          "ENUM_EXTREME_MATURITY"
+        ],
+        [
+          "ExtremeSellMaturity",
+          "ENUM_EXTREME_MATURITY"
+        ],
+        [
+          "ExtremeBuyValid",
+          "bool"
+        ],
+        [
+          "ExtremeSellValid",
+          "bool"
+        ],
+        [
+          "ExtremeBuyCandleTime",
+          "datetime"
+        ],
+        [
+          "ExtremeSellCandleTime",
+          "datetime"
+        ],
+        [
+          "MLVBuyState",
+          "ENUM_MLV_STATE"
+        ],
+        [
+          "MLVSellState",
+          "ENUM_MLV_STATE"
+        ],
+        [
+          "MLVBuyValid",
+          "bool"
+        ],
+        [
+          "MLVSellValid",
+          "bool"
+        ],
+        [
+          "MLVBuyCandleTime",
+          "datetime"
+        ],
+        [
+          "MLVSellCandleTime",
+          "datetime"
+        ],
+        [
+          "OverlayLabel",
+          "string"
+        ]
+      ]
+    ],
+    [
+      "NMJEStructuralDensityState",
+      [
+        [
+          "Present",
+          "bool"
+        ],
+        [
+          "Valid",
+          "bool"
+        ],
+        [
+          "StageMask",
+          "int"
+        ],
+        [
+          "PrefixMask",
+          "int"
+        ],
+        [
+          "StageCount",
+          "int"
+        ],
+        [
+          "Reason",
+          "string"
+        ]
+      ]
+    ],
+    [
+      "NMJEEntryDisplacementState",
+      [
+        [
+          "Present",
+          "bool"
+        ],
+        [
+          "SourceSignal",
+          "ENUM_SIGNAL_TYPE"
+        ],
+        [
+          "SourceTimeframe",
+          "int"
+        ],
+        [
+          "SourceCandleTime",
+          "datetime"
+        ],
+        [
+          "SourceReferencePrice",
+          "double"
+        ],
+        [
+          "PreflightReferencePrice",
+          "double"
+        ],
+        [
+          "BrokerOpenPrice",
+          "double"
+        ],
+        [
+          "SourceToPreflightPips",
+          "double"
+        ],
+        [
+          "PreflightToOpenPips",
+          "double"
+        ],
+        [
+          "SourceToOpenPips",
+          "double"
+        ]
+      ]
+    ],
+    [
+      "NMJEShadowAttributionState",
+      [
+        [
+          "Present",
+          "bool"
+        ],
+        [
+          "Durable",
+          "bool"
+        ],
+        [
+          "JourneyHash",
+          "string"
+        ],
+        [
+          "ParentEventHash",
+          "string"
+        ],
+        [
+          "Relation",
+          "ENUM_NESTED_RELATION"
+        ],
+        [
+          "StableRelation",
+          "ENUM_NESTED_RELATION"
+        ],
+        [
+          "Maturity",
+          "ENUM_NMJE_JOURNEY_MATURITY"
+        ],
+        [
+          "LineageClass",
+          "ENUM_NMJE_LINEAGE_EVENT_CLASS"
+        ],
+        [
+          "LineageRootHash",
+          "string"
+        ],
+        [
+          "PreviousLineageRootHash",
+          "string"
+        ],
+        [
+          "StructureDensity",
+          "NMJEStructuralDensityState"
+        ],
+        [
+          "EntryDisplacement",
+          "NMJEEntryDisplacementState"
+        ],
+        [
+          "M5SnapshotPresent",
+          "bool"
+        ],
+        [
+          "M5EventHash",
+          "string"
+        ],
+        [
+          "M5ClosedCandleTime",
+          "datetime"
+        ],
+        [
+          "M5SemanticResolved",
+          "bool"
+        ],
+        [
+          "M5DiagnosticRelation",
+          "ENUM_NESTED_RELATION"
+        ],
+        [
+          "M5ReasonHash",
+          "string"
+        ]
+      ]
+    ],
+    [
+      "NestedJourneyState",
+      [
+        [
+          "Pair",
+          "string"
+        ],
+        [
+          "JourneyID",
+          "string"
+        ],
+        [
+          "ParentKind",
+          "ENUM_NESTED_PARENT_KIND"
+        ],
+        [
+          "ParentTimeframe",
+          "int"
+        ],
+        [
+          "ParentSignal",
+          "ENUM_SIGNAL_TYPE"
+        ],
+        [
+          "ParentDirection",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "ParentCandleTime",
+          "datetime"
+        ],
+        [
+          "ParentEventID",
+          "string"
+        ],
+        [
+          "StrategicDirection",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "Relation",
+          "ENUM_NESTED_RELATION"
+        ],
+        [
+          "Resolved",
+          "bool"
+        ],
+        [
+          "Valid",
+          "bool"
+        ],
+        [
+          "UpdateCandleTime",
+          "datetime"
+        ],
+        [
+          "Reason",
+          "string"
+        ],
+        [
+          "P2CoherencePresent",
+          "bool"
+        ],
+        [
+          "P2EligibleCount",
+          "int"
+        ],
+        [
+          "P2CandleTime",
+          "datetime"
+        ],
+        [
+          "M5ShadowPresent",
+          "bool"
+        ],
+        [
+          "M5ShadowClosedCandleTime",
+          "datetime"
+        ],
+        [
+          "M5ShadowEventID",
+          "string"
+        ],
+        [
+          "M5ShadowDirection",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "M5ShadowReason",
+          "string"
+        ],
+        [
+          "M5SemanticResolved",
+          "bool"
+        ],
+        [
+          "M5DiagnosticRelation",
+          "ENUM_NESTED_RELATION"
+        ],
+        [
+          "M5DiagnosticReason",
+          "string"
+        ],
+        [
+          "StableRelation",
+          "ENUM_NESTED_RELATION"
+        ],
+        [
+          "RelationEvidenceID",
+          "string"
+        ],
+        [
+          "StableRelationEvidenceID",
+          "string"
+        ],
+        [
+          "ParentTransitioned",
+          "bool"
+        ],
+        [
+          "PreviousParentEventID",
+          "string"
+        ],
+        [
+          "LineageClass",
+          "ENUM_NMJE_LINEAGE_EVENT_CLASS"
+        ],
+        [
+          "LineageRootEventID",
+          "string"
+        ],
+        [
+          "PreviousLineageRootEventID",
+          "string"
+        ],
+        [
+          "LineageReason",
+          "string"
+        ],
+        [
+          "StabilityReason",
+          "string"
+        ],
+        [
+          "Maturity",
+          "ENUM_NMJE_JOURNEY_MATURITY"
+        ],
+        [
+          "D1Node",
+          "NestedTFNode"
+        ],
+        [
+          "H4Node",
+          "NestedTFNode"
+        ],
+        [
+          "H1Node",
+          "NestedTFNode"
+        ],
+        [
+          "M15Node",
+          "NestedTFNode"
+        ],
+        [
+          "D1OpportunityActive",
+          "bool"
+        ],
+        [
+          "D1OpportunityFamily",
+          "ENUM_D1_OPPORTUNITY_FAMILY"
+        ],
+        [
+          "D1OpportunityDirection",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "D1OpportunitySourceSignal",
+          "ENUM_SIGNAL_TYPE"
+        ],
+        [
+          "D1OpportunitySourceCandleTime",
+          "datetime"
+        ],
+        [
+          "D1OpportunityActivationTime",
+          "datetime"
+        ],
+        [
+          "D1OpportunityTactical",
+          "bool"
+        ],
+        [
+          "D1OpportunityTPWCompleted",
+          "bool"
+        ],
+        [
+          "D1OpportunityCycleID",
+          "string"
+        ]
+      ]
+    ],
+    [
+      "TimeframeSnapshot",
+      [
+        [
+          "ProcessingServerTime",
+          "datetime"
+        ],
+        [
+          "M15_ClosedCandleTime",
+          "datetime"
+        ],
+        [
+          "D1_CandleTime",
+          "datetime"
+        ],
+        [
+          "D1_IsClosed",
+          "bool"
+        ],
+        [
+          "H4_CandleTime",
+          "datetime"
+        ],
+        [
+          "H4_IsClosed",
+          "bool"
+        ],
+        [
+          "H1_CandleTime",
+          "datetime"
+        ],
+        [
+          "H1_IsClosed",
+          "bool"
+        ],
+        [
+          "M15_CandleTime",
+          "datetime"
+        ],
+        [
+          "M15_IsClosed",
+          "bool"
+        ]
+      ]
+    ],
+    [
+      "TimeframeData",
+      [
+        [
+          "ma",
+          "double"
+        ],
+        [
+          "bollinger",
+          "double"
+        ],
+        [
+          "trend",
+          "double"
+        ],
+        [
+          "open",
+          "double"
+        ],
+        [
+          "close",
+          "double"
+        ],
+        [
+          "high",
+          "double"
+        ],
+        [
+          "low",
+          "double"
+        ],
+        [
+          "point",
+          "double"
+        ],
+        [
+          "digits",
+          "int"
+        ],
+        [
+          "barIndex",
+          "int"
+        ],
+        [
+          "data_count",
+          "int"
+        ],
+        [
+          "candle_time",
+          "datetime"
+        ],
+        [
+          "is_valid",
+          "bool"
+        ],
+        [
+          "is_closed",
+          "bool"
+        ],
+        [
+          "timeframe",
+          "int"
+        ]
+      ]
+    ],
+    [
+      "BBMA_Decision",
+      [
+        [
+          "Valid",
+          "bool"
+        ],
+        [
+          "Direction",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "SignalType",
+          "ENUM_SIGNAL_TYPE"
+        ],
+        [
+          "PriorityTier",
+          "ENUM_PRIORITY_TIER"
+        ],
+        [
+          "ComponentCount",
+          "int"
+        ],
+        [
+          "Components",
+          "ComponentIdentity"
+        ],
+        [
+          "CandidateExpiry",
+          "datetime"
+        ],
+        [
+          "HasSLTPSourceComponent",
+          "bool"
+        ],
+        [
+          "SLTPSourceComponent",
+          "ComponentIdentity"
+        ],
+        [
+          "PatternValid",
+          "bool"
+        ],
+        [
+          "SequenceValid",
+          "bool"
+        ],
+        [
+          "ExpiryBar",
+          "int"
+        ],
+        [
+          "CandleTime",
+          "datetime"
+        ],
+        [
+          "EntryPrice",
+          "double"
+        ],
+        [
+          "StopLoss",
+          "double"
+        ],
+        [
+          "TakeProfit",
+          "double"
+        ],
+        [
+          "StopLossPoints",
+          "double"
+        ],
+        [
+          "Reason",
+          "string"
+        ],
+        [
+          "SourceSequence",
+          "string"
+        ],
+        [
+          "DecisionID",
+          "string"
+        ],
+        [
+          "SequenceHash",
+          "string"
+        ],
+        [
+          "CycleStartTime",
+          "datetime"
+        ],
+        [
+          "SLTPSource",
+          "ENUM_SIGNAL_TYPE"
+        ],
+        [
+          "Pair",
+          "string"
+        ],
+        [
+          "D1OwnerState",
+          "ENUM_D1_OWNER_STATE"
+        ],
+        [
+          "D1OwnerDirection",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "D1OwnerCandleTime",
+          "datetime"
+        ],
+        [
+          "D1OwnerClose",
+          "double"
+        ],
+        [
+          "D1OwnerMA50Current",
+          "double"
+        ],
+        [
+          "D1OwnerMA50Previous",
+          "double"
+        ],
+        [
+          "D1OwnerSnapshotValid",
+          "bool"
+        ],
+        [
+          "D1AuthorityMode",
+          "ENUM_D1_AUTHORITY_MODE"
+        ],
+        [
+          "D1OpportunityFamily",
+          "ENUM_D1_OPPORTUNITY_FAMILY"
+        ],
+        [
+          "D1OpportunityDirection",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "D1OpportunitySourceSignal",
+          "ENUM_SIGNAL_TYPE"
+        ],
+        [
+          "D1OpportunitySourceCandleTime",
+          "datetime"
+        ],
+        [
+          "D1OpportunityActivationTime",
+          "datetime"
+        ],
+        [
+          "D1OpportunityCycleID",
+          "string"
+        ],
+        [
+          "D1OpportunitySnapshotValid",
+          "bool"
+        ],
+        [
+          "NMJESnapshotPresent",
+          "bool"
+        ],
+        [
+          "NMJEJourneyID",
+          "string"
+        ],
+        [
+          "NMJEParentEventID",
+          "string"
+        ],
+        [
+          "NMJERelation",
+          "ENUM_NESTED_RELATION"
+        ],
+        [
+          "NMJEStableRelation",
+          "ENUM_NESTED_RELATION"
+        ],
+        [
+          "NMJEStableRelationEvidenceID",
+          "string"
+        ],
+        [
+          "NMJEParentTransitioned",
+          "bool"
+        ],
+        [
+          "NMJEPreviousParentEventID",
+          "string"
+        ],
+        [
+          "NMJELineageClass",
+          "ENUM_NMJE_LINEAGE_EVENT_CLASS"
+        ],
+        [
+          "NMJELineageRootEventID",
+          "string"
+        ],
+        [
+          "NMJEPreviousLineageRootEventID",
+          "string"
+        ],
+        [
+          "NMJEMaturity",
+          "ENUM_NMJE_JOURNEY_MATURITY"
+        ],
+        [
+          "NMJEStructureDensity",
+          "NMJEStructuralDensityState"
+        ],
+        [
+          "NMJEUpdateCandleTime",
+          "datetime"
+        ],
+        [
+          "NMJEM5SnapshotPresent",
+          "bool"
+        ],
+        [
+          "NMJEM5ShadowEventID",
+          "string"
+        ],
+        [
+          "NMJEM5ShadowClosedCandleTime",
+          "datetime"
+        ],
+        [
+          "NMJEM5SemanticResolved",
+          "bool"
+        ],
+        [
+          "NMJEM5DiagnosticRelation",
+          "ENUM_NESTED_RELATION"
+        ],
+        [
+          "NMJEM5DiagnosticReason",
+          "string"
+        ],
+        [
+          "C044LifecycleManaged",
+          "bool"
+        ],
+        [
+          "D1TPWLifecycleManaged",
+          "bool"
+        ],
+        [
+          "DecisionState",
+          "ENUM_DECISION_STATE"
+        ],
+        [
+          "RejectionReason",
+          "ENUM_REJECTION_REASON"
+        ]
+      ]
+    ],
+    [
+      "OppositeConflictPackage",
+      [
+        [
+          "Exists",
+          "bool"
+        ],
+        [
+          "ConflictType",
+          "ENUM_OPPOSITE_CONFLICT_TYPE"
+        ],
+        [
+          "ConflictReason",
+          "string"
+        ],
+        [
+          "BreaksSequence",
+          "bool"
+        ],
+        [
+          "LosingCandidateDirection",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "LosingCandidatePriorityTier",
+          "ENUM_PRIORITY_TIER"
+        ],
+        [
+          "LosingCandidateCandleTime",
+          "datetime"
+        ],
+        [
+          "LosingCandidateSignalType",
+          "ENUM_SIGNAL_TYPE"
+        ],
+        [
+          "FrozenSnapshotTime",
+          "datetime"
+        ]
+      ]
+    ],
+    [
+      "SignalScoreResult",
+      [
+        [
+          "Score",
+          "int"
+        ],
+        [
+          "Level",
+          "ENUM_SIGNAL_LEVEL"
+        ],
+        [
+          "ScoreBreakdown",
+          "string"
+        ]
+      ]
+    ],
+    [
+      "RiskValidationSnapshot",
+      [
+        [
+          "Bid",
+          "double"
+        ],
+        [
+          "Ask",
+          "double"
+        ],
+        [
+          "Equity",
+          "double"
+        ],
+        [
+          "Balance",
+          "double"
+        ],
+        [
+          "EntryPrice",
+          "double"
+        ],
+        [
+          "StopLoss",
+          "double"
+        ],
+        [
+          "TickValue",
+          "double"
+        ],
+        [
+          "TickSize_Price",
+          "double"
+        ],
+        [
+          "LotStep",
+          "double"
+        ],
+        [
+          "MinLot",
+          "double"
+        ],
+        [
+          "MaxLot",
+          "double"
+        ],
+        [
+          "Point",
+          "double"
+        ],
+        [
+          "StopLevel",
+          "double"
+        ],
+        [
+          "FreezeLevel",
+          "double"
+        ],
+        [
+          "Digits",
+          "int"
+        ],
+        [
+          "LotDigits",
+          "int"
+        ],
+        [
+          "CurrentSpreadPrice",
+          "double"
+        ]
+      ]
+    ],
+    [
+      "ValidatedSequenceCandidate",
+      [
+        [
+          "SequenceType",
+          "ENUM_SIGNAL_TYPE"
+        ],
+        [
+          "Direction",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "ComponentCount",
+          "int"
+        ],
+        [
+          "Components",
+          "ComponentIdentity"
+        ],
+        [
+          "SequenceStartTime",
+          "datetime"
+        ],
+        [
+          "SequenceHash",
+          "string"
+        ],
+        [
+          "Expiry",
+          "datetime"
+        ],
+        [
+          "SLTPSource",
+          "ENUM_SIGNAL_TYPE"
+        ],
+        [
+          "Valid",
+          "bool"
+        ],
+        [
+          "PriorityTier",
+          "ENUM_PRIORITY_TIER"
+        ],
+        [
+          "RequirementCompleteness",
+          "int"
+        ],
+        [
+          "SequenceCompleteness",
+          "int"
+        ],
+        [
+          "PatternStrength",
+          "double"
+        ],
+        [
+          "UsesD1Opportunity",
+          "bool"
+        ],
+        [
+          "D1OpportunityFamily",
+          "ENUM_D1_OPPORTUNITY_FAMILY"
+        ],
+        [
+          "D1OpportunityDirection",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "D1OpportunitySourceSignal",
+          "ENUM_SIGNAL_TYPE"
+        ],
+        [
+          "D1OpportunitySourceCandleTime",
+          "datetime"
+        ],
+        [
+          "D1OpportunityActivationTime",
+          "datetime"
+        ],
+        [
+          "D1OpportunityCycleID",
+          "string"
+        ]
+      ]
+    ],
+    [
+      "PairState",
+      [
+        [
+          "base_symbol",
+          "string"
+        ],
+        [
+          "actual_symbol",
+          "string"
+        ],
+        [
+          "pair_id",
+          "int"
+        ],
+        [
+          "point",
+          "double"
+        ],
+        [
+          "tick_value",
+          "double"
+        ],
+        [
+          "tick_size_price",
+          "double"
+        ],
+        [
+          "min_lot",
+          "double"
+        ],
+        [
+          "max_lot",
+          "double"
+        ],
+        [
+          "lot_step",
+          "double"
+        ],
+        [
+          "lot_digits",
+          "int"
+        ],
+        [
+          "cent_factor",
+          "int"
+        ],
+        [
+          "digits",
+          "int"
+        ],
+        [
+          "stop_level",
+          "int"
+        ],
+        [
+          "freeze_level",
+          "int"
+        ],
+        [
+          "is_cent_account",
+          "bool"
+        ],
+        [
+          "pair_enabled",
+          "bool"
+        ],
+        [
+          "is_processing",
+          "bool"
+        ],
+        [
+          "d1_data",
+          "TimeframeData"
+        ],
+        [
+          "h4_data",
+          "TimeframeData"
+        ],
+        [
+          "h1_data",
+          "TimeframeData"
+        ],
+        [
+          "m15_data",
+          "TimeframeData"
+        ],
+        [
+          "m5_data",
+          "TimeframeData"
+        ],
+        [
+          "last_3_candles",
+          "Candle"
+        ],
+        [
+          "last_5_candles",
+          "Candle"
+        ],
+        [
+          "last_20_candles",
+          "Candle"
+        ],
+        [
+          "last_3_count",
+          "int"
+        ],
+        [
+          "last_5_count",
+          "int"
+        ],
+        [
+          "last_20_count",
+          "int"
+        ],
+        [
+          "prev_bollinger",
+          "BollingerBand"
+        ],
+        [
+          "current_bollinger",
+          "BollingerBand"
+        ],
+        [
+          "mlv_buy_state",
+          "MLVData"
+        ],
+        [
+          "mlv_sell_state",
+          "MLVData"
+        ],
+        [
+          "re_h1_buy_state",
+          "ReEntryData"
+        ],
+        [
+          "re_h1_sell_state",
+          "ReEntryData"
+        ],
+        [
+          "re_h4_buy_state",
+          "ReEntryData"
+        ],
+        [
+          "re_h4_sell_state",
+          "ReEntryData"
+        ],
+        [
+          "re_d1_buy_state",
+          "ReEntryData"
+        ],
+        [
+          "re_d1_sell_state",
+          "ReEntryData"
+        ],
+        [
+          "re_m15_buy_state",
+          "ReEntryData"
+        ],
+        [
+          "re_m15_sell_state",
+          "ReEntryData"
+        ],
+        [
+          "h4_direction_owner",
+          "H4DirectionalOwner"
+        ],
+        [
+          "d1_major_trend_owner",
+          "D1MajorTrendOwner"
+        ],
+        [
+          "d1_opportunity",
+          "D1OpportunityJourney"
+        ],
+        [
+          "prev_ema50",
+          "double"
+        ],
+        [
+          "current_ema50",
+          "double"
+        ],
+        [
+          "prev_daily_ema50",
+          "double"
+        ],
+        [
+          "current_daily_ema50",
+          "double"
+        ],
+        [
+          "extreme_h1_buy_lifecycle",
+          "ExtremeLifecycleData"
+        ],
+        [
+          "extreme_h1_sell_lifecycle",
+          "ExtremeLifecycleData"
+        ],
+        [
+          "extreme_h4_buy_lifecycle",
+          "ExtremeLifecycleData"
+        ],
+        [
+          "extreme_h4_sell_lifecycle",
+          "ExtremeLifecycleData"
+        ],
+        [
+          "extreme_d1_buy_lifecycle",
+          "ExtremeLifecycleData"
+        ],
+        [
+          "extreme_d1_sell_lifecycle",
+          "ExtremeLifecycleData"
+        ],
+        [
+          "extreme_m15_buy_lifecycle",
+          "ExtremeLifecycleData"
+        ],
+        [
+          "extreme_m15_sell_lifecycle",
+          "ExtremeLifecycleData"
+        ],
+        [
+          "extreme_h1_buy_state",
+          "Signal"
+        ],
+        [
+          "extreme_h1_sell_state",
+          "Signal"
+        ],
+        [
+          "extreme_h4_buy_state",
+          "Signal"
+        ],
+        [
+          "extreme_h4_sell_state",
+          "Signal"
+        ],
+        [
+          "last_signal",
+          "Signal"
+        ],
+        [
+          "last_decision",
+          "BBMA_Decision"
+        ],
+        [
+          "last_trade_bar",
+          "int"
+        ],
+        [
+          "trade_tickets",
+          "int"
+        ],
+        [
+          "trade_count",
+          "int"
+        ],
+        [
+          "tf_snapshot",
+          "TimeframeSnapshot"
+        ],
+        [
+          "magic_number",
+          "int"
+        ],
+        [
+          "broker_retry_count",
+          "int"
+        ],
+        [
+          "broker_spec_valid",
+          "bool"
+        ]
+      ]
+    ],
+    [
+      "TradeInfo",
+      [
+        [
+          "ticket",
+          "int"
+        ],
+        [
+          "magic_number",
+          "int"
+        ],
+        [
+          "pair",
+          "string"
+        ],
+        [
+          "direction",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "signal_type",
+          "ENUM_SIGNAL_TYPE"
+        ],
+        [
+          "initial_entry_price",
+          "double"
+        ],
+        [
+          "initial_stop_loss",
+          "double"
+        ],
+        [
+          "initial_take_profit",
+          "double"
+        ],
+        [
+          "initial_lot",
+          "double"
+        ],
+        [
+          "initial_risk_price_distance",
+          "double"
+        ],
+        [
+          "entry_price",
+          "double"
+        ],
+        [
+          "current_sl",
+          "double"
+        ],
+        [
+          "current_tp",
+          "double"
+        ],
+        [
+          "lot",
+          "double"
+        ],
+        [
+          "remaining_lot",
+          "double"
+        ],
+        [
+          "partial_closed",
+          "bool"
+        ],
+        [
+          "partial_available",
+          "bool"
+        ],
+        [
+          "partial_attempted",
+          "bool"
+        ],
+        [
+          "breakeven_set",
+          "bool"
+        ],
+        [
+          "be_attempted",
+          "bool"
+        ],
+        [
+          "be_last_attempt_time",
+          "datetime"
+        ],
+        [
+          "partial_last_attempt_time",
+          "datetime"
+        ],
+        [
+          "open_time",
+          "datetime"
+        ],
+        [
+          "point",
+          "double"
+        ],
+        [
+          "digits",
+          "int"
+        ],
+        [
+          "stop_level",
+          "int"
+        ],
+        [
+          "freeze_level",
+          "int"
+        ],
+        [
+          "decision_id",
+          "string"
+        ],
+        [
+          "execution_hash",
+          "string"
+        ],
+        [
+          "sequence_hash_short",
+          "string"
+        ],
+        [
+          "entry_displacement",
+          "NMJEEntryDisplacementState"
+        ],
+        [
+          "nmje_attribution",
+          "NMJEShadowAttributionState"
+        ],
+        [
+          "c044_lifecycle_managed",
+          "bool"
+        ],
+        [
+          "c044_owner_timeframe",
+          "int"
+        ],
+        [
+          "c044_owner_reentry_candle",
+          "datetime"
+        ],
+        [
+          "c044_epoch_anchor_candle",
+          "datetime"
+        ],
+        [
+          "c044_last_processed_owner_candle",
+          "datetime"
+        ],
+        [
+          "c044_state",
+          "ENUM_C044_LIFECYCLE_STATE"
+        ],
+        [
+          "c044_exit_reason",
+          "ENUM_C044_EXIT_REASON"
+        ],
+        [
+          "c044_exit_latched_candle",
+          "datetime"
+        ],
+        [
+          "c044_replay_seed_valid",
+          "bool"
+        ],
+        [
+          "c044_shadow_replay",
+          "bool"
+        ],
+        [
+          "c044_replay_reentry",
+          "ReEntryData"
+        ],
+        [
+          "c044_replay_extreme_buy",
+          "ExtremeLifecycleData"
+        ],
+        [
+          "c044_replay_extreme_sell",
+          "ExtremeLifecycleData"
+        ],
+        [
+          "d1_tpw_lifecycle_managed",
+          "bool"
+        ],
+        [
+          "d1_tpw_extreme_candle",
+          "datetime"
+        ],
+        [
+          "d1_tpw_last_processed_d1_candle",
+          "datetime"
+        ],
+        [
+          "d1_tpw_exit_latched",
+          "bool"
+        ],
+        [
+          "d1_tpw_exit_latched_candle",
+          "datetime"
+        ],
+        [
+          "d1_tpw_frozen",
+          "bool"
+        ],
+        [
+          "recovery_state",
+          "ENUM_RECOVERY_STATE"
+        ]
+      ]
+    ],
+    [
+      "PendingExecutionAmbiguity",
+      [
+        [
+          "Active",
+          "bool"
+        ],
+        [
+          "PersistenceValid",
+          "bool"
+        ],
+        [
+          "DecisionID",
+          "string"
+        ],
+        [
+          "ExecutionHash",
+          "string"
+        ],
+        [
+          "Pair",
+          "string"
+        ],
+        [
+          "Direction",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "MagicNumber",
+          "int"
+        ],
+        [
+          "LatchedTime",
+          "datetime"
+        ]
+      ]
+    ],
+    [
+      "RiskStatus",
+      [
+        [
+          "allowed",
+          "bool"
+        ],
+        [
+          "reason",
+          "string"
+        ],
+        [
+          "rejection_reason",
+          "ENUM_REJECTION_REASON"
+        ]
+      ]
+    ],
+    [
+      "PortfolioStatus",
+      [
+        [
+          "total_profit",
+          "double"
+        ],
+        [
+          "total_risk",
+          "double"
+        ],
+        [
+          "basket_profit_percent",
+          "double"
+        ],
+        [
+          "basket_loss_percent",
+          "double"
+        ],
+        [
+          "drawdown_percent",
+          "double"
+        ],
+        [
+          "active_pairs",
+          "int"
+        ],
+        [
+          "total_trades",
+          "int"
+        ],
+        [
+          "trades_per_pair",
+          "int"
+        ],
+        [
+          "allowed",
+          "bool"
+        ],
+        [
+          "reason",
+          "string"
+        ]
+      ]
+    ],
+    [
+      "BrokerInfo",
+      [
+        [
+          "is_cent_account",
+          "bool"
+        ],
+        [
+          "cent_factor",
+          "int"
+        ],
+        [
+          "account_currency",
+          "string"
+        ],
+        [
+          "account_leverage",
+          "int"
+        ],
+        [
+          "contract_size",
+          "double"
+        ],
+        [
+          "min_lot",
+          "double"
+        ],
+        [
+          "max_lot",
+          "double"
+        ],
+        [
+          "lot_step",
+          "double"
+        ],
+        [
+          "lot_digits",
+          "int"
+        ],
+        [
+          "digits",
+          "int"
+        ],
+        [
+          "point",
+          "double"
+        ],
+        [
+          "tick_value",
+          "double"
+        ],
+        [
+          "tick_size_price",
+          "double"
+        ],
+        [
+          "stop_level",
+          "int"
+        ],
+        [
+          "freeze_level",
+          "int"
+        ]
+      ]
+    ],
+    [
+      "SignalHistoryEntry",
+      [
+        [
+          "DecisionID",
+          "string"
+        ],
+        [
+          "ExecutionHash",
+          "string"
+        ],
+        [
+          "Pair",
+          "string"
+        ],
+        [
+          "Direction",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "SignalType",
+          "ENUM_SIGNAL_TYPE"
+        ],
+        [
+          "CandleTime",
+          "datetime"
+        ],
+        [
+          "SequenceHash",
+          "string"
+        ],
+        [
+          "Expiry",
+          "datetime"
+        ],
+        [
+          "Executed",
+          "bool"
+        ],
+        [
+          "CreatedTime",
+          "datetime"
+        ],
+        [
+          "TicketNumber",
+          "int"
+        ]
+      ]
+    ],
+    [
+      "NMJECounterfactualPendingCandidate",
+      [
+        [
+          "Present",
+          "bool"
+        ],
+        [
+          "Candidate",
+          "ValidatedSequenceCandidate"
+        ],
+        [
+          "ParentMatch",
+          "bool"
+        ],
+        [
+          "StructureMask",
+          "int"
+        ]
+      ]
+    ],
+    [
+      "NMJECounterfactualPendingSet",
+      [
+        [
+          "Present",
+          "bool"
+        ],
+        [
+          "Pair",
+          "string"
+        ],
+        [
+          "SetID",
+          "string"
+        ],
+        [
+          "M15CandleTime",
+          "datetime"
+        ],
+        [
+          "EligibleCount",
+          "int"
+        ],
+        [
+          "Count",
+          "int"
+        ],
+        [
+          "Relation",
+          "ENUM_NESTED_RELATION"
+        ],
+        [
+          "StableRelation",
+          "ENUM_NESTED_RELATION"
+        ],
+        [
+          "Maturity",
+          "ENUM_NMJE_JOURNEY_MATURITY"
+        ],
+        [
+          "M5SnapshotPresent",
+          "bool"
+        ],
+        [
+          "M5SemanticResolved",
+          "bool"
+        ],
+        [
+          "Candidates",
+          "NMJECounterfactualPendingCandidate"
+        ]
+      ]
+    ],
+    [
+      "NMJECounterfactualC044ReplayState",
+      [
+        [
+          "Present",
+          "bool"
+        ],
+        [
+          "OwnerTimeframe",
+          "int"
+        ],
+        [
+          "OwnerReEntryCandle",
+          "datetime"
+        ],
+        [
+          "EpochAnchorCandle",
+          "datetime"
+        ],
+        [
+          "LastProcessedOwnerCandle",
+          "datetime"
+        ],
+        [
+          "State",
+          "ENUM_C044_LIFECYCLE_STATE"
+        ],
+        [
+          "ExitReason",
+          "ENUM_C044_EXIT_REASON"
+        ],
+        [
+          "ExitLatchedCandle",
+          "datetime"
+        ],
+        [
+          "ReplaySeedValid",
+          "bool"
+        ],
+        [
+          "ReplayReEntry",
+          "ReEntryData"
+        ],
+        [
+          "ReplayExtremeBuy",
+          "ExtremeLifecycleData"
+        ],
+        [
+          "ReplayExtremeSell",
+          "ExtremeLifecycleData"
+        ]
+      ]
+    ],
+    [
+      "NMJECounterfactualOutcomeCandidate",
+      [
+        [
+          "Present",
+          "bool"
+        ],
+        [
+          "CandidateID",
+          "string"
+        ],
+        [
+          "Selected",
+          "bool"
+        ],
+        [
+          "SignalType",
+          "ENUM_SIGNAL_TYPE"
+        ],
+        [
+          "Direction",
+          "ENUM_DIRECTION"
+        ],
+        [
+          "SequenceHash",
+          "string"
+        ],
+        [
+          "AnchorTime",
+          "datetime"
+        ],
+        [
+          "SequenceStartTime",
+          "datetime"
+        ],
+        [
+          "EntryProxy",
+          "double"
+        ],
+        [
+          "StopLoss",
+          "double"
+        ],
+        [
+          "TakeProfit",
+          "double"
+        ],
+        [
+          "SLTPResolved",
+          "bool"
+        ],
+        [
+          "Targetless",
+          "bool"
+        ],
+        [
+          "BaseGeometryMatch",
+          "bool"
+        ],
+        [
+          "FrozenSpreadPrice",
+          "double"
+        ],
+        [
+          "SLTPSourceType",
+          "ENUM_SIGNAL_TYPE"
+        ],
+        [
+          "SLTPSourceTimeframe",
+          "int"
+        ],
+        [
+          "SLTPSourceCandleTime",
+          "datetime"
+        ],
+        [
+          "ParentMatch",
+          "bool"
+        ],
+        [
+          "StructureMask",
+          "int"
+        ],
+        [
+          "C044SeedMatch",
+          "bool"
+        ],
+        [
+          "C044Replay",
+          "NMJECounterfactualC044ReplayState"
+        ]
+      ]
+    ],
+    [
+      "NMJECounterfactualTradeSet",
+      [
+        [
+          "Active",
+          "bool"
+        ],
+        [
+          "Ticket",
+          "int"
+        ],
+        [
+          "Pair",
+          "string"
+        ],
+        [
+          "SetID",
+          "string"
+        ],
+        [
+          "BaselineDecisionHash",
+          "string"
+        ],
+        [
+          "OpenTime",
+          "datetime"
+        ],
+        [
+          "Count",
+          "int"
+        ],
+        [
+          "Candidates",
+          "NMJECounterfactualOutcomeCandidate"
+        ]
+      ]
+    ]
+  ],
+  "cross_module_field_accesses": [
+    [
+      "PairState",
+      "lot_digits",
+      "int",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M26": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "cent_factor",
+      "int",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M26": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "digits",
+      "int",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M26": [
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "d1_data",
+      "TimeframeData",
+      {
+        "M05": [
+          1,
+          0,
+          0
+        ],
+        "M11": [
+          0,
+          0,
+          19
+        ],
+        "M11J": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          8,
+          0,
+          3
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "h4_data",
+      "TimeframeData",
+      {
+        "M05": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          2,
+          0,
+          9
+        ],
+        "M27": [
+          9,
+          0,
+          3
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "h1_data",
+      "TimeframeData",
+      {
+        "M05": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          9,
+          0,
+          3
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "m15_data",
+      "TimeframeData",
+      {
+        "M05": [
+          1,
+          0,
+          0
+        ],
+        "M12N": [
+          0,
+          0,
+          1
+        ],
+        "M13": [
+          0,
+          0,
+          2
+        ],
+        "M15": [
+          0,
+          0,
+          1
+        ],
+        "M27": [
+          10,
+          0,
+          15
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "mlv_buy_state",
+      "MLVData",
+      {
+        "M05": [
+          0,
+          0,
+          4
+        ],
+        "M12N": [
+          8,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          4,
+          0,
+          1
+        ]
+      }
+    ],
+    [
+      "MLVData",
+      "State",
+      "ENUM_MLV_STATE",
+      {
+        "M05": [
+          0,
+          2,
+          0
+        ],
+        "M09": [
+          35,
+          9,
+          0
+        ],
+        "M12N": [
+          11,
+          0,
+          0
+        ],
+        "M13": [
+          1,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "MLVData",
+      "Direction",
+      "ENUM_DIRECTION",
+      {
+        "M05": [
+          0,
+          2,
+          0
+        ],
+        "M09": [
+          15,
+          1,
+          0
+        ],
+        "M12N": [
+          5,
+          0,
+          0
+        ],
+        "M13": [
+          2,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "MLVData",
+      "ParentExtremeDirection",
+      "ENUM_DIRECTION",
+      {
+        "M05": [
+          0,
+          2,
+          0
+        ],
+        "M09": [
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "MLVData",
+      "Timeframe",
+      "int",
+      {
+        "M05": [
+          0,
+          2,
+          0
+        ],
+        "M09": [
+          3,
+          1,
+          0
+        ],
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M13": [
+          1,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "mlv_sell_state",
+      "MLVData",
+      {
+        "M05": [
+          0,
+          0,
+          4
+        ],
+        "M12N": [
+          8,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          4,
+          0,
+          1
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "extreme_m15_buy_lifecycle",
+      "ExtremeLifecycleData",
+      {
+        "M05": [
+          0,
+          0,
+          3
+        ],
+        "M12N": [
+          6,
+          0,
+          0
+        ],
+        "M23": [
+          2,
+          0,
+          0
+        ],
+        "M27": [
+          3,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "ExtremeLifecycleData",
+      "Maturity",
+      "ENUM_EXTREME_MATURITY",
+      {
+        "M05": [
+          0,
+          4,
+          0
+        ],
+        "M08": [
+          22,
+          8,
+          0
+        ],
+        "M09": [
+          3,
+          1,
+          0
+        ],
+        "M11J": [
+          3,
+          0,
+          0
+        ],
+        "M12N": [
+          11,
+          0,
+          0
+        ],
+        "M15": [
+          1,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          7,
+          0,
+          0
+        ],
+        "M24": [
+          2,
+          2,
+          0
+        ],
+        "M27": [
+          4,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "ExtremeLifecycleData",
+      "Direction",
+      "ENUM_DIRECTION",
+      {
+        "M05": [
+          0,
+          4,
+          0
+        ],
+        "M08": [
+          10,
+          2,
+          0
+        ],
+        "M09": [
+          0,
+          1,
+          0
+        ],
+        "M11J": [
+          4,
+          0,
+          0
+        ],
+        "M12N": [
+          5,
+          0,
+          0
+        ],
+        "M15": [
+          6,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          8,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "ExtremeLifecycleData",
+      "Timeframe",
+      "int",
+      {
+        "M05": [
+          0,
+          4,
+          0
+        ],
+        "M08": [
+          5,
+          2,
+          0
+        ],
+        "M09": [
+          1,
+          1,
+          0
+        ],
+        "M11J": [
+          1,
+          0,
+          0
+        ],
+        "M12N": [
+          2,
+          0,
+          0
+        ],
+        "M15": [
+          1,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          8,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "extreme_m15_sell_lifecycle",
+      "ExtremeLifecycleData",
+      {
+        "M05": [
+          0,
+          0,
+          3
+        ],
+        "M12N": [
+          6,
+          0,
+          0
+        ],
+        "M23": [
+          2,
+          0,
+          0
+        ],
+        "M27": [
+          3,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "extreme_d1_buy_lifecycle",
+      "ExtremeLifecycleData",
+      {
+        "M05": [
+          0,
+          0,
+          3
+        ],
+        "M11J": [
+          2,
+          0,
+          0
+        ],
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "extreme_d1_sell_lifecycle",
+      "ExtremeLifecycleData",
+      {
+        "M05": [
+          0,
+          0,
+          3
+        ],
+        "M11J": [
+          2,
+          0,
+          0
+        ],
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "re_h1_buy_state",
+      "ReEntryData",
+      {
+        "M05": [
+          0,
+          0,
+          3
+        ],
+        "M12N": [
+          9,
+          0,
+          0
+        ],
+        "M15": [
+          1,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          2,
+          0,
+          0
+        ],
+        "M27": [
+          3,
+          0,
+          1
+        ]
+      }
+    ],
+    [
+      "ReEntryData",
+      "State",
+      "ENUM_RE_STATE",
+      {
+        "M05": [
+          0,
+          8,
+          0
+        ],
+        "M11J": [
+          1,
+          0,
+          0
+        ],
+        "M12": [
+          19,
+          4,
+          0
+        ],
+        "M12N": [
+          6,
+          0,
+          0
+        ],
+        "M15": [
+          3,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          2,
+          0,
+          0
+        ],
+        "M24": [
+          2,
+          1,
+          0
+        ],
+        "M27": [
+          8,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "ReEntryData",
+      "Direction",
+      "ENUM_DIRECTION",
+      {
+        "M05": [
+          0,
+          8,
+          0
+        ],
+        "M11J": [
+          3,
+          0,
+          0
+        ],
+        "M12": [
+          3,
+          2,
+          0
+        ],
+        "M12N": [
+          12,
+          0,
+          0
+        ],
+        "M15": [
+          11,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          5,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "ReEntryData",
+      "Timeframe",
+      "int",
+      {
+        "M05": [
+          0,
+          8,
+          0
+        ],
+        "M11J": [
+          1,
+          0,
+          0
+        ],
+        "M12": [
+          2,
+          2,
+          0
+        ],
+        "M12N": [
+          2,
+          0,
+          0
+        ],
+        "M15": [
+          8,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          5,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "re_h1_sell_state",
+      "ReEntryData",
+      {
+        "M05": [
+          0,
+          0,
+          3
+        ],
+        "M12N": [
+          9,
+          0,
+          0
+        ],
+        "M15": [
+          1,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          2,
+          0,
+          0
+        ],
+        "M27": [
+          3,
+          0,
+          1
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "re_h4_buy_state",
+      "ReEntryData",
+      {
+        "M05": [
+          0,
+          0,
+          3
+        ],
+        "M12N": [
+          4,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          3,
+          0,
+          1
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "re_h4_sell_state",
+      "ReEntryData",
+      {
+        "M05": [
+          0,
+          0,
+          3
+        ],
+        "M12N": [
+          4,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          3,
+          0,
+          1
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "re_d1_buy_state",
+      "ReEntryData",
+      {
+        "M05": [
+          0,
+          0,
+          3
+        ],
+        "M11J": [
+          2,
+          0,
+          0
+        ],
+        "M12N": [
+          3,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          3,
+          0,
+          1
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "re_d1_sell_state",
+      "ReEntryData",
+      {
+        "M05": [
+          0,
+          0,
+          3
+        ],
+        "M11J": [
+          2,
+          0,
+          0
+        ],
+        "M12N": [
+          3,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          3,
+          0,
+          1
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "re_m15_buy_state",
+      "ReEntryData",
+      {
+        "M05": [
+          0,
+          0,
+          3
+        ],
+        "M12N": [
+          6,
+          0,
+          0
+        ],
+        "M15": [
+          1,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          1,
+          0,
+          1
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "re_m15_sell_state",
+      "ReEntryData",
+      {
+        "M05": [
+          0,
+          0,
+          3
+        ],
+        "M12N": [
+          6,
+          0,
+          0
+        ],
+        "M15": [
+          1,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          1,
+          0,
+          1
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "h4_direction_owner",
+      "H4DirectionalOwner",
+      {
+        "M05": [
+          0,
+          0,
+          7
+        ],
+        "M12N": [
+          2,
+          0,
+          18
+        ],
+        "M15": [
+          0,
+          0,
+          4
+        ],
+        "M24": [
+          7,
+          0,
+          54
+        ],
+        "M27": [
+          3,
+          0,
+          2
+        ]
+      }
+    ],
+    [
+      "H4DirectionalOwner",
+      "State",
+      "ENUM_H4_OWNER_STATE",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M12N": [
+          5,
+          0,
+          0
+        ],
+        "M15": [
+          4,
+          0,
+          0
+        ],
+        "M24": [
+          5,
+          3,
+          0
+        ],
+        "M27": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "H4DirectionalOwner",
+      "Direction",
+      "ENUM_DIRECTION",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M12N": [
+          10,
+          0,
+          0
+        ],
+        "M15": [
+          4,
+          0,
+          0
+        ],
+        "M24": [
+          6,
+          3,
+          0
+        ],
+        "M27": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "H4DirectionalOwner",
+      "SourceSignal",
+      "ENUM_SIGNAL_TYPE",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M12N": [
+          4,
+          0,
+          0
+        ],
+        "M24": [
+          4,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "H4DirectionalOwner",
+      "LastAdvanceSignal",
+      "ENUM_SIGNAL_TYPE",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          0,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "H4DirectionalOwner",
+      "IsValid",
+      "bool",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M12N": [
+          3,
+          0,
+          0
+        ],
+        "M15": [
+          4,
+          0,
+          0
+        ],
+        "M24": [
+          5,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "H4DirectionalOwner",
+      "RecoveryComplete",
+      "bool",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M15": [
+          4,
+          0,
+          0
+        ],
+        "M24": [
+          2,
+          4,
+          0
+        ]
+      }
+    ],
+    [
+      "H4DirectionalOwner",
+      "RecoveredFromCheckpoint",
+      "bool",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          0,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "d1_major_trend_owner",
+      "D1MajorTrendOwner",
+      {
+        "M05": [
+          0,
+          0,
+          10
+        ],
+        "M11": [
+          3,
+          2,
+          0
+        ],
+        "M11J": [
+          0,
+          0,
+          5
+        ],
+        "M12N": [
+          3,
+          0,
+          15
+        ],
+        "M15": [
+          5,
+          0,
+          3
+        ],
+        "M16": [
+          2,
+          0,
+          0
+        ],
+        "M27": [
+          0,
+          0,
+          1
+        ]
+      }
+    ],
+    [
+      "D1MajorTrendOwner",
+      "State",
+      "ENUM_D1_OWNER_STATE",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M11": [
+          6,
+          2,
+          0
+        ],
+        "M11J": [
+          2,
+          0,
+          0
+        ],
+        "M12N": [
+          9,
+          0,
+          0
+        ],
+        "M15": [
+          6,
+          0,
+          0
+        ],
+        "M16": [
+          3,
+          0,
+          0
+        ],
+        "M27": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "D1MajorTrendOwner",
+      "Direction",
+      "ENUM_DIRECTION",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M11": [
+          4,
+          2,
+          0
+        ],
+        "M11J": [
+          1,
+          0,
+          0
+        ],
+        "M12N": [
+          4,
+          0,
+          0
+        ],
+        "M15": [
+          8,
+          0,
+          0
+        ],
+        "M16": [
+          4,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "D1MajorTrendOwner",
+      "SourceCandleTime",
+      "datetime",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M11": [
+          4,
+          2,
+          0
+        ],
+        "M11J": [
+          1,
+          0,
+          0
+        ],
+        "M12N": [
+          2,
+          0,
+          0
+        ],
+        "M15": [
+          6,
+          0,
+          0
+        ],
+        "M16": [
+          3,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "D1MajorTrendOwner",
+      "EpochStartCandleTime",
+      "datetime",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M11": [
+          2,
+          4,
+          0
+        ],
+        "M12N": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "D1MajorTrendOwner",
+      "LastProcessedD1CandleTime",
+      "datetime",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M11": [
+          0,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "D1MajorTrendOwner",
+      "Close1",
+      "double",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M11": [
+          3,
+          2,
+          0
+        ],
+        "M15": [
+          6,
+          0,
+          0
+        ],
+        "M16": [
+          3,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "D1MajorTrendOwner",
+      "MA50_1",
+      "double",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M11": [
+          4,
+          2,
+          0
+        ],
+        "M15": [
+          6,
+          0,
+          0
+        ],
+        "M16": [
+          3,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "D1MajorTrendOwner",
+      "MA50_2",
+      "double",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M11": [
+          4,
+          2,
+          0
+        ],
+        "M15": [
+          6,
+          0,
+          0
+        ],
+        "M16": [
+          3,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "D1MajorTrendOwner",
+      "IsValid",
+      "bool",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M11": [
+          1,
+          2,
+          0
+        ],
+        "M11J": [
+          1,
+          0,
+          0
+        ],
+        "M12N": [
+          3,
+          0,
+          0
+        ],
+        "M15": [
+          4,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "D1MajorTrendOwner",
+      "Reason",
+      "string",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M11": [
+          0,
+          4,
+          0
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "d1_opportunity",
+      "D1OpportunityJourney",
+      {
+        "M05": [
+          0,
+          0,
+          7
+        ],
+        "M11J": [
+          1,
+          2,
+          0
+        ],
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M15": [
+          2,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          0,
+          0,
+          3
+        ]
+      }
+    ],
+    [
+      "D1OpportunityJourney",
+      "Family",
+      "ENUM_D1_OPPORTUNITY_FAMILY",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M11J": [
+          5,
+          2,
+          0
+        ],
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M15": [
+          5,
+          0,
+          0
+        ],
+        "M16": [
+          2,
+          0,
+          0
+        ],
+        "M27": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "D1OpportunityJourney",
+      "Direction",
+      "ENUM_DIRECTION",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M11J": [
+          7,
+          2,
+          0
+        ],
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M15": [
+          12,
+          0,
+          0
+        ],
+        "M16": [
+          2,
+          0,
+          0
+        ],
+        "M27": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "D1OpportunityJourney",
+      "SourceSignal",
+      "ENUM_SIGNAL_TYPE",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M11J": [
+          0,
+          2,
+          0
+        ],
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M15": [
+          1,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "D1OpportunityJourney",
+      "Active",
+      "bool",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M11J": [
+          6,
+          8,
+          0
+        ],
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M15": [
+          2,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "D1OpportunityJourney",
+      "Tactical",
+      "bool",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M11J": [
+          2,
+          2,
+          0
+        ],
+        "M12N": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "D1OpportunityJourney",
+      "TPWCompleted",
+      "bool",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M11J": [
+          2,
+          3,
+          0
+        ],
+        "M12N": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "D1OpportunityJourney",
+      "Reason",
+      "string",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M11J": [
+          1,
+          8,
+          0
+        ]
+      }
+    ],
+    [
+      "TimeframeData",
+      "ma",
+      "double",
+      {
+        "M05": [
+          1,
+          0,
+          0
+        ],
+        "M06": [
+          0,
+          5,
+          0
+        ],
+        "M08": [
+          6,
+          0,
+          0
+        ],
+        "M09": [
+          4,
+          0,
+          0
+        ],
+        "M11": [
+          3,
+          0,
+          0
+        ],
+        "M11J": [
+          10,
+          0,
+          0
+        ],
+        "M12": [
+          17,
+          0,
+          0
+        ],
+        "M27": [
+          5,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "TimeframeData",
+      "bollinger",
+      "double",
+      {
+        "M05": [
+          1,
+          0,
+          0
+        ],
+        "M06": [
+          0,
+          3,
+          0
+        ],
+        "M07": [
+          3,
+          0,
+          0
+        ],
+        "M12": [
+          8,
+          0,
+          0
+        ],
+        "M27": [
+          12,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "TimeframeData",
+      "trend",
+      "double",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M06": [
+          0,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "TimeframeData",
+      "open",
+      "double",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M06": [
+          0,
+          1,
+          0
+        ],
+        "M08": [
+          5,
+          0,
+          0
+        ],
+        "M09": [
+          3,
+          0,
+          0
+        ],
+        "M23": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "TimeframeData",
+      "close",
+      "double",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M06": [
+          2,
+          1,
+          0
+        ],
+        "M08": [
+          23,
+          0,
+          0
+        ],
+        "M09": [
+          27,
+          0,
+          0
+        ],
+        "M11": [
+          3,
+          0,
+          0
+        ],
+        "M12": [
+          22,
+          0,
+          0
+        ],
+        "M23": [
+          2,
+          0,
+          0
+        ],
+        "M27": [
+          3,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "TimeframeData",
+      "high",
+      "double",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M06": [
+          0,
+          1,
+          0
+        ],
+        "M08": [
+          3,
+          0,
+          0
+        ],
+        "M09": [
+          5,
+          0,
+          0
+        ],
+        "M12": [
+          5,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "TimeframeData",
+      "low",
+      "double",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M06": [
+          0,
+          1,
+          0
+        ],
+        "M08": [
+          3,
+          0,
+          0
+        ],
+        "M09": [
+          5,
+          0,
+          0
+        ],
+        "M12": [
+          5,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "TimeframeData",
+      "point",
+      "double",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M06": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TimeframeData",
+      "digits",
+      "int",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M06": [
+          0,
+          1,
+          0
+        ],
+        "M11": [
+          3,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "TimeframeData",
+      "barIndex",
+      "int",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M06": [
+          0,
+          1,
+          0
+        ],
+        "M07": [
+          2,
+          0,
+          0
+        ],
+        "M08": [
+          15,
+          0,
+          0
+        ],
+        "M09": [
+          24,
+          0,
+          0
+        ],
+        "M11": [
+          2,
+          0,
+          0
+        ],
+        "M11J": [
+          9,
+          0,
+          0
+        ],
+        "M12": [
+          20,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          4,
+          0,
+          0
+        ],
+        "M27": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "TimeframeData",
+      "data_count",
+      "int",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M06": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TimeframeData",
+      "candle_time",
+      "datetime",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M06": [
+          0,
+          1,
+          0
+        ],
+        "M08": [
+          19,
+          0,
+          0
+        ],
+        "M09": [
+          31,
+          0,
+          0
+        ],
+        "M11": [
+          5,
+          0,
+          0
+        ],
+        "M11J": [
+          8,
+          0,
+          0
+        ],
+        "M12": [
+          19,
+          0,
+          0
+        ],
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M13": [
+          5,
+          0,
+          0
+        ],
+        "M15": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          11,
+          0,
+          0
+        ],
+        "M27": [
+          3,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "TimeframeData",
+      "is_valid",
+      "bool",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M06": [
+          0,
+          1,
+          0
+        ],
+        "M07": [
+          1,
+          0,
+          0
+        ],
+        "M08": [
+          3,
+          0,
+          0
+        ],
+        "M09": [
+          1,
+          0,
+          0
+        ],
+        "M11": [
+          1,
+          0,
+          0
+        ],
+        "M11J": [
+          4,
+          0,
+          0
+        ],
+        "M12": [
+          5,
+          0,
+          0
+        ],
+        "M13": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          4,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "TimeframeData",
+      "is_closed",
+      "bool",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M06": [
+          0,
+          1,
+          0
+        ],
+        "M07": [
+          1,
+          0,
+          0
+        ],
+        "M08": [
+          3,
+          0,
+          0
+        ],
+        "M09": [
+          1,
+          0,
+          0
+        ],
+        "M11": [
+          1,
+          0,
+          0
+        ],
+        "M11J": [
+          4,
+          0,
+          0
+        ],
+        "M12": [
+          5,
+          0,
+          0
+        ],
+        "M13": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          4,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "TimeframeData",
+      "timeframe",
+      "int",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M06": [
+          0,
+          1,
+          0
+        ],
+        "M07": [
+          1,
+          0,
+          0
+        ],
+        "M08": [
+          9,
+          0,
+          0
+        ],
+        "M09": [
+          6,
+          0,
+          0
+        ],
+        "M11": [
+          1,
+          0,
+          0
+        ],
+        "M11J": [
+          2,
+          0,
+          0
+        ],
+        "M12": [
+          18,
+          0,
+          0
+        ],
+        "M13": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "ComponentSet",
+      "CombinationType",
+      "ENUM_SIGNAL_TYPE",
+      {
+        "M05": [
+          1,
+          0,
+          0
+        ],
+        "M13": [
+          0,
+          1,
+          0
+        ],
+        "M14": [
+          4,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "ComponentSet",
+      "ComponentCount",
+      "int",
+      {
+        "M05": [
+          1,
+          0,
+          0
+        ],
+        "M13": [
+          0,
+          1,
+          0
+        ],
+        "M14": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "ComponentSet",
+      "Comp1",
+      "ComponentIdentity",
+      {
+        "M05": [
+          0,
+          0,
+          4
+        ],
+        "M13": [
+          3,
+          0,
+          1
+        ],
+        "M14": [
+          2,
+          0,
+          9
+        ]
+      }
+    ],
+    [
+      "ComponentIdentity",
+      "ComponentType",
+      "ENUM_SIGNAL_TYPE",
+      {
+        "M05": [
+          3,
+          0,
+          0
+        ],
+        "M12N": [
+          4,
+          0,
+          0
+        ],
+        "M13": [
+          0,
+          1,
+          0
+        ],
+        "M14": [
+          10,
+          0,
+          0
+        ],
+        "M15": [
+          8,
+          3,
+          0
+        ],
+        "M16": [
+          3,
+          0,
+          0
+        ],
+        "M17": [
+          6,
+          0,
+          0
+        ],
+        "M22": [
+          2,
+          0,
+          0
+        ],
+        "M24": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "ComponentIdentity",
+      "Direction",
+      "ENUM_DIRECTION",
+      {
+        "M05": [
+          3,
+          0,
+          0
+        ],
+        "M13": [
+          0,
+          1,
+          0
+        ],
+        "M14": [
+          7,
+          0,
+          0
+        ],
+        "M15": [
+          5,
+          3,
+          0
+        ],
+        "M16": [
+          20,
+          0,
+          0
+        ],
+        "M17": [
+          15,
+          0,
+          0
+        ],
+        "M22": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "ComponentIdentity",
+      "Timeframe",
+      "int",
+      {
+        "M05": [
+          3,
+          0,
+          0
+        ],
+        "M12N": [
+          2,
+          0,
+          0
+        ],
+        "M13": [
+          0,
+          1,
+          0
+        ],
+        "M14": [
+          10,
+          0,
+          0
+        ],
+        "M15": [
+          8,
+          3,
+          0
+        ],
+        "M16": [
+          17,
+          0,
+          0
+        ],
+        "M17": [
+          35,
+          0,
+          0
+        ],
+        "M18": [
+          1,
+          0,
+          0
+        ],
+        "M22": [
+          3,
+          0,
+          0
+        ],
+        "M24": [
+          3,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "ComponentIdentity",
+      "CandleTime",
+      "datetime",
+      {
+        "M05": [
+          3,
+          0,
+          0
+        ],
+        "M13": [
+          3,
+          1,
+          0
+        ],
+        "M14": [
+          1,
+          0,
+          0
+        ],
+        "M15": [
+          12,
+          3,
+          0
+        ],
+        "M16": [
+          4,
+          0,
+          0
+        ],
+        "M17": [
+          7,
+          0,
+          0
+        ],
+        "M22": [
+          2,
+          0,
+          0
+        ],
+        "M24": [
+          4,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "ComponentSet",
+      "Comp2",
+      "ComponentIdentity",
+      {
+        "M05": [
+          0,
+          0,
+          4
+        ],
+        "M13": [
+          3,
+          0,
+          1
+        ],
+        "M14": [
+          2,
+          0,
+          8
+        ]
+      }
+    ],
+    [
+      "ComponentSet",
+      "Comp3",
+      "ComponentIdentity",
+      {
+        "M05": [
+          0,
+          0,
+          4
+        ],
+        "M13": [
+          3,
+          0,
+          1
+        ],
+        "M14": [
+          2,
+          0,
+          7
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "magic_number",
+      "int",
+      {
+        "M05": [
+          2,
+          0,
+          0
+        ],
+        "M19": [
+          1,
+          0,
+          0
+        ],
+        "M20": [
+          1,
+          0,
+          0
+        ],
+        "M22": [
+          2,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M26": [
+          2,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "actual_symbol",
+      "string",
+      {
+        "M05": [
+          2,
+          0,
+          0
+        ],
+        "M11J": [
+          1,
+          0,
+          0
+        ],
+        "M12N": [
+          21,
+          0,
+          0
+        ],
+        "M13": [
+          5,
+          0,
+          0
+        ],
+        "M15": [
+          3,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ],
+        "M22": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          4,
+          0,
+          0
+        ],
+        "M24": [
+          16,
+          0,
+          0
+        ],
+        "M25": [
+          1,
+          0,
+          0
+        ],
+        "M26": [
+          0,
+          1,
+          0
+        ],
+        "M27": [
+          3,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "DecisionState",
+      "ENUM_DECISION_STATE",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M12N": [
+          3,
+          0,
+          0
+        ],
+        "M15": [
+          0,
+          1,
+          0
+        ],
+        "M16": [
+          2,
+          6,
+          0
+        ],
+        "M20": [
+          1,
+          5,
+          0
+        ],
+        "M21": [
+          2,
+          0,
+          0
+        ],
+        "M22": [
+          5,
+          21,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M25": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          4,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "RejectionReason",
+      "ENUM_REJECTION_REASON",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M16": [
+          3,
+          6,
+          0
+        ],
+        "M20": [
+          0,
+          5,
+          0
+        ],
+        "M22": [
+          1,
+          22,
+          0
+        ],
+        "M25": [
+          2,
+          0,
+          0
+        ],
+        "M27": [
+          3,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "TimeframeSnapshot",
+      "D1_CandleTime",
+      "datetime",
+      {
+        "M05": [
+          1,
+          1,
+          0
+        ],
+        "M27": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "TimeframeSnapshot",
+      "H4_CandleTime",
+      "datetime",
+      {
+        "M05": [
+          1,
+          1,
+          0
+        ],
+        "M27": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "TimeframeSnapshot",
+      "H1_CandleTime",
+      "datetime",
+      {
+        "M05": [
+          1,
+          1,
+          0
+        ],
+        "M27": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "TimeframeSnapshot",
+      "M15_CandleTime",
+      "datetime",
+      {
+        "M05": [
+          1,
+          1,
+          0
+        ],
+        "M27": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "EntryPrice",
+      "double",
+      {
+        "M05": [
+          1,
+          0,
+          0
+        ],
+        "M15": [
+          0,
+          1,
+          0
+        ],
+        "M17": [
+          14,
+          1,
+          0
+        ],
+        "M19": [
+          1,
+          0,
+          0
+        ],
+        "M21": [
+          8,
+          0,
+          0
+        ],
+        "M22": [
+          9,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "StopLoss",
+      "double",
+      {
+        "M05": [
+          1,
+          0,
+          0
+        ],
+        "M15": [
+          2,
+          0,
+          0
+        ],
+        "M17": [
+          15,
+          1,
+          0
+        ],
+        "M19": [
+          1,
+          0,
+          0
+        ],
+        "M21": [
+          8,
+          0,
+          0
+        ],
+        "M22": [
+          6,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "RiskValidationSnapshot",
+      "Bid",
+      "double",
+      {
+        "M05": [
+          1,
+          1,
+          0
+        ],
+        "M17": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "RiskValidationSnapshot",
+      "Ask",
+      "double",
+      {
+        "M05": [
+          1,
+          1,
+          0
+        ],
+        "M17": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "RiskValidationSnapshot",
+      "Equity",
+      "double",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M19": [
+          1,
+          0,
+          0
+        ],
+        "M21": [
+          5,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "RiskValidationSnapshot",
+      "EntryPrice",
+      "double",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M15": [
+          0,
+          1,
+          0
+        ],
+        "M17": [
+          1,
+          1,
+          0
+        ],
+        "M21": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "RiskValidationSnapshot",
+      "StopLoss",
+      "double",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M21": [
+          2,
+          0,
+          0
+        ],
+        "M22": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "RiskValidationSnapshot",
+      "TickValue",
+      "double",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M21": [
+          5,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "RiskValidationSnapshot",
+      "TickSize_Price",
+      "double",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M15": [
+          2,
+          0,
+          0
+        ],
+        "M17": [
+          7,
+          0,
+          0
+        ],
+        "M21": [
+          5,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "RiskValidationSnapshot",
+      "LotStep",
+      "double",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M21": [
+          8,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "RiskValidationSnapshot",
+      "MinLot",
+      "double",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M21": [
+          11,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "RiskValidationSnapshot",
+      "MaxLot",
+      "double",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M21": [
+          8,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "RiskValidationSnapshot",
+      "Point",
+      "double",
+      {
+        "M05": [
+          1,
+          1,
+          0
+        ],
+        "M17": [
+          7,
+          0,
+          0
+        ],
+        "M21": [
+          5,
+          0,
+          0
+        ],
+        "M22": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "RiskValidationSnapshot",
+      "StopLevel",
+      "double",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M17": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "RiskValidationSnapshot",
+      "FreezeLevel",
+      "double",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M17": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "RiskValidationSnapshot",
+      "Digits",
+      "int",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M15": [
+          4,
+          0,
+          0
+        ],
+        "M17": [
+          8,
+          0,
+          0
+        ],
+        "M21": [
+          2,
+          0,
+          0
+        ],
+        "M22": [
+          7,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "RiskValidationSnapshot",
+      "LotDigits",
+      "int",
+      {
+        "M05": [
+          0,
+          1,
+          0
+        ],
+        "M21": [
+          5,
+          0,
+          0
+        ],
+        "M22": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "RiskValidationSnapshot",
+      "CurrentSpreadPrice",
+      "double",
+      {
+        "M05": [
+          1,
+          1,
+          0
+        ],
+        "M15": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          2,
+          0,
+          0
+        ],
+        "M19": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BollingerBand",
+      "MID_BB",
+      "double",
+      {
+        "M06": [
+          1,
+          1,
+          0
+        ],
+        "M07": [
+          6,
+          1,
+          0
+        ],
+        "M08": [
+          5,
+          0,
+          0
+        ],
+        "M10": [
+          6,
+          0,
+          0
+        ],
+        "M12": [
+          0,
+          1,
+          0
+        ],
+        "M27": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "BollingerBand",
+      "TOP_BB",
+      "double",
+      {
+        "M06": [
+          2,
+          1,
+          0
+        ],
+        "M07": [
+          5,
+          1,
+          0
+        ],
+        "M08": [
+          9,
+          0,
+          0
+        ],
+        "M09": [
+          4,
+          0,
+          0
+        ],
+        "M10": [
+          3,
+          0,
+          0
+        ],
+        "M12": [
+          1,
+          1,
+          0
+        ],
+        "M27": [
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "BollingerBand",
+      "LOW_BB",
+      "double",
+      {
+        "M06": [
+          2,
+          1,
+          0
+        ],
+        "M07": [
+          5,
+          1,
+          0
+        ],
+        "M08": [
+          9,
+          0,
+          0
+        ],
+        "M09": [
+          4,
+          0,
+          0
+        ],
+        "M10": [
+          3,
+          0,
+          0
+        ],
+        "M12": [
+          1,
+          1,
+          0
+        ],
+        "M27": [
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "BollingerBand",
+      "Width",
+      "double",
+      {
+        "M06": [
+          0,
+          1,
+          0
+        ],
+        "M07": [
+          6,
+          1,
+          0
+        ],
+        "M08": [
+          4,
+          0,
+          0
+        ],
+        "M10": [
+          2,
+          0,
+          0
+        ],
+        "M12": [
+          0,
+          1,
+          0
+        ],
+        "M27": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "BollingerBand",
+      "State",
+      "ENUM_BB_STATE",
+      {
+        "M06": [
+          0,
+          1,
+          0
+        ],
+        "M07": [
+          1,
+          3,
+          0
+        ],
+        "M27": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "MovingAverage",
+      "MA5_High",
+      "double",
+      {
+        "M06": [
+          1,
+          1,
+          0
+        ],
+        "M10": [
+          4,
+          0,
+          0
+        ],
+        "M11J": [
+          0,
+          2,
+          0
+        ],
+        "M12": [
+          0,
+          1,
+          0
+        ],
+        "M27": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "MovingAverage",
+      "MA10_High",
+      "double",
+      {
+        "M06": [
+          1,
+          1,
+          0
+        ],
+        "M10": [
+          4,
+          0,
+          0
+        ],
+        "M11J": [
+          0,
+          2,
+          0
+        ],
+        "M12": [
+          0,
+          1,
+          0
+        ],
+        "M27": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "MovingAverage",
+      "MA5_Low",
+      "double",
+      {
+        "M06": [
+          1,
+          1,
+          0
+        ],
+        "M10": [
+          4,
+          0,
+          0
+        ],
+        "M11J": [
+          0,
+          2,
+          0
+        ],
+        "M12": [
+          0,
+          1,
+          0
+        ],
+        "M27": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "MovingAverage",
+      "MA10_Low",
+      "double",
+      {
+        "M06": [
+          1,
+          1,
+          0
+        ],
+        "M10": [
+          4,
+          0,
+          0
+        ],
+        "M11J": [
+          0,
+          2,
+          0
+        ],
+        "M12": [
+          0,
+          1,
+          0
+        ],
+        "M27": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "MovingAverage",
+      "EMA50",
+      "double",
+      {
+        "M06": [
+          2,
+          1,
+          0
+        ],
+        "M11J": [
+          0,
+          2,
+          0
+        ],
+        "M12": [
+          0,
+          1,
+          0
+        ],
+        "M27": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "ExtremeLifecycleData",
+      "IsValid",
+      "bool",
+      {
+        "M08": [
+          2,
+          5,
+          0
+        ],
+        "M09": [
+          1,
+          1,
+          0
+        ],
+        "M11J": [
+          1,
+          0,
+          0
+        ],
+        "M12N": [
+          5,
+          0,
+          0
+        ],
+        "M15": [
+          1,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          2,
+          0,
+          0
+        ],
+        "M24": [
+          2,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "ExtremeLifecycleData",
+      "LastUpdateBar",
+      "int",
+      {
+        "M08": [
+          0,
+          8,
+          0
+        ],
+        "M09": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          2,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "ExtremeLifecycleData",
+      "LastUpdateCandleTime",
+      "datetime",
+      {
+        "M08": [
+          2,
+          8,
+          0
+        ],
+        "M09": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          2,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "ExtremeLifecycleData",
+      "PreviousClose",
+      "double",
+      {
+        "M08": [
+          3,
+          8,
+          0
+        ],
+        "M09": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          2,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "ExtremeLifecycleData",
+      "Reason",
+      "string",
+      {
+        "M08": [
+          1,
+          7,
+          0
+        ],
+        "M09": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "ExtremeLifecycleData",
+      "ConfirmationCandleTime",
+      "datetime",
+      {
+        "M08": [
+          12,
+          1,
+          0
+        ],
+        "M09": [
+          4,
+          1,
+          0
+        ],
+        "M11J": [
+          10,
+          0,
+          0
+        ],
+        "M12N": [
+          4,
+          0,
+          0
+        ],
+        "M23": [
+          3,
+          0,
+          0
+        ],
+        "M24": [
+          2,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "ExtremeLifecycleData",
+      "ProvisionalBodyAnchor",
+      "double",
+      {
+        "M08": [
+          4,
+          4,
+          0
+        ],
+        "M09": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          2,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "ExtremeLifecycleData",
+      "FrozenBodyAnchor",
+      "double",
+      {
+        "M08": [
+          3,
+          1,
+          0
+        ],
+        "M24": [
+          2,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "ExtremeLifecycleData",
+      "RelevantMA5",
+      "double",
+      {
+        "M08": [
+          1,
+          7,
+          0
+        ],
+        "M09": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          2,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "ExtremeLifecycleData",
+      "RawBar",
+      "int",
+      {
+        "M08": [
+          0,
+          1,
+          0
+        ],
+        "M09": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          2,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "ExtremeLifecycleData",
+      "RawCandleTime",
+      "datetime",
+      {
+        "M08": [
+          0,
+          1,
+          0
+        ],
+        "M09": [
+          1,
+          1,
+          0
+        ],
+        "M12N": [
+          4,
+          0,
+          0
+        ],
+        "M15": [
+          4,
+          0,
+          0
+        ],
+        "M16": [
+          2,
+          0,
+          0
+        ],
+        "M17": [
+          3,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          2,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "ExtremeLifecycleData",
+      "ConfirmationBar",
+      "int",
+      {
+        "M08": [
+          1,
+          1,
+          0
+        ],
+        "M09": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          2,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "ExtremeLifecycleData",
+      "ConfirmationClose",
+      "double",
+      {
+        "M08": [
+          1,
+          1,
+          0
+        ],
+        "M09": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          2,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "ExtremeLifecycleData",
+      "RetestStartBar",
+      "int",
+      {
+        "M08": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          2,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "ExtremeLifecycleData",
+      "RetestStartCandleTime",
+      "datetime",
+      {
+        "M08": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          2,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "ExtremeLifecycleData",
+      "RetestCompletionBar",
+      "int",
+      {
+        "M08": [
+          0,
+          2,
+          0
+        ],
+        "M24": [
+          2,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "ExtremeLifecycleData",
+      "RetestCompletionCandleTime",
+      "datetime",
+      {
+        "M08": [
+          0,
+          2,
+          0
+        ],
+        "M15": [
+          4,
+          0,
+          0
+        ],
+        "M16": [
+          3,
+          0,
+          0
+        ],
+        "M17": [
+          4,
+          0,
+          0
+        ],
+        "M24": [
+          2,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "Signal",
+      "Type",
+      "ENUM_SIGNAL_TYPE",
+      {
+        "M08": [
+          0,
+          1,
+          0
+        ],
+        "M09": [
+          0,
+          1,
+          0
+        ],
+        "M12": [
+          0,
+          1,
+          0
+        ],
+        "M13": [
+          1,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "Signal",
+      "Direction",
+      "ENUM_DIRECTION",
+      {
+        "M08": [
+          0,
+          1,
+          0
+        ],
+        "M09": [
+          0,
+          1,
+          0
+        ],
+        "M12": [
+          0,
+          1,
+          0
+        ],
+        "M13": [
+          11,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "Signal",
+      "Valid",
+      "bool",
+      {
+        "M08": [
+          0,
+          1,
+          0
+        ],
+        "M09": [
+          0,
+          1,
+          0
+        ],
+        "M12": [
+          0,
+          1,
+          0
+        ],
+        "M13": [
+          3,
+          1,
+          0
+        ],
+        "M16": [
+          2,
+          0,
+          0
+        ],
+        "M27": [
+          2,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "Signal",
+      "Timeframe",
+      "int",
+      {
+        "M08": [
+          0,
+          1,
+          0
+        ],
+        "M09": [
+          0,
+          1,
+          0
+        ],
+        "M12": [
+          0,
+          1,
+          0
+        ],
+        "M13": [
+          1,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "Signal",
+      "BarIndex",
+      "int",
+      {
+        "M08": [
+          0,
+          1,
+          0
+        ],
+        "M09": [
+          0,
+          1,
+          0
+        ],
+        "M12": [
+          0,
+          1,
+          0
+        ],
+        "M27": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "Signal",
+      "ExpiryBar",
+      "int",
+      {
+        "M08": [
+          0,
+          1,
+          0
+        ],
+        "M12": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "Signal",
+      "Timestamp",
+      "datetime",
+      {
+        "M08": [
+          0,
+          1,
+          0
+        ],
+        "M09": [
+          0,
+          1,
+          0
+        ],
+        "M12": [
+          0,
+          1,
+          0
+        ],
+        "M27": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "Signal",
+      "CandleTime",
+      "datetime",
+      {
+        "M08": [
+          0,
+          1,
+          0
+        ],
+        "M09": [
+          0,
+          1,
+          0
+        ],
+        "M12": [
+          0,
+          1,
+          0
+        ],
+        "M13": [
+          11,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "Signal",
+      "Close",
+      "double",
+      {
+        "M08": [
+          0,
+          1,
+          0
+        ],
+        "M09": [
+          0,
+          1,
+          0
+        ],
+        "M12": [
+          0,
+          1,
+          0
+        ],
+        "M27": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "Signal",
+      "MA5_Level",
+      "double",
+      {
+        "M08": [
+          0,
+          1,
+          0
+        ],
+        "M12": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "Signal",
+      "Reason",
+      "string",
+      {
+        "M08": [
+          0,
+          1,
+          0
+        ],
+        "M09": [
+          0,
+          1,
+          0
+        ],
+        "M12": [
+          0,
+          1,
+          0
+        ],
+        "M13": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "MLVData",
+      "ParentRawCandleTime",
+      "datetime",
+      {
+        "M09": [
+          0,
+          1,
+          0
+        ],
+        "M12N": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "MLVData",
+      "ParentConfirmationCandleTime",
+      "datetime",
+      {
+        "M09": [
+          2,
+          1,
+          0
+        ],
+        "M12N": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "MLVData",
+      "LastUpdateCandleTime",
+      "datetime",
+      {
+        "M09": [
+          1,
+          12,
+          0
+        ],
+        "M12N": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "MLVData",
+      "IsValid",
+      "bool",
+      {
+        "M09": [
+          1,
+          7,
+          0
+        ],
+        "M12N": [
+          5,
+          0,
+          0
+        ],
+        "M13": [
+          1,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "MLVData",
+      "FrozenMarkedBody",
+      "double",
+      {
+        "M09": [
+          4,
+          1,
+          0
+        ],
+        "M13": [
+          1,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "MLVData",
+      "ConfirmationCandleTime",
+      "datetime",
+      {
+        "M09": [
+          6,
+          1,
+          0
+        ],
+        "M12N": [
+          4,
+          0,
+          0
+        ],
+        "M13": [
+          2,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "ReEntryData",
+      "IsValid",
+      "bool",
+      {
+        "M11J": [
+          1,
+          0,
+          0
+        ],
+        "M12": [
+          1,
+          4,
+          0
+        ],
+        "M12N": [
+          5,
+          0,
+          0
+        ],
+        "M15": [
+          3,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          2,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "ReEntryData",
+      "ConfirmationCandle",
+      "datetime",
+      {
+        "M11J": [
+          5,
+          0,
+          0
+        ],
+        "M12": [
+          3,
+          2,
+          0
+        ],
+        "M12N": [
+          7,
+          0,
+          0
+        ],
+        "M15": [
+          12,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          4,
+          0,
+          0
+        ],
+        "M23": [
+          2,
+          0,
+          0
+        ],
+        "M24": [
+          3,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "D1OpportunityJourney",
+      "SourceCandleTime",
+      "datetime",
+      {
+        "M11J": [
+          7,
+          1,
+          0
+        ],
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M15": [
+          2,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "D1OpportunityJourney",
+      "ActivationTime",
+      "datetime",
+      {
+        "M11J": [
+          1,
+          1,
+          0
+        ],
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M15": [
+          5,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "D1OpportunityJourney",
+      "CycleID",
+      "string",
+      {
+        "M11J": [
+          1,
+          1,
+          0
+        ],
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M15": [
+          4,
+          0,
+          0
+        ],
+        "M16": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "ReEntryData",
+      "EntryCandle",
+      "datetime",
+      {
+        "M11J": [
+          2,
+          0,
+          0
+        ],
+        "M12": [
+          0,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "ReEntryData",
+      "Type",
+      "ENUM_RE_TYPE",
+      {
+        "M12": [
+          5,
+          3,
+          0
+        ],
+        "M12N": [
+          2,
+          0,
+          0
+        ],
+        "M15": [
+          2,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "ReEntryData",
+      "Type1ContextState",
+      "ENUM_TYPE1_CONTEXT_STATE",
+      {
+        "M12": [
+          2,
+          3,
+          0
+        ],
+        "M24": [
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "ReEntryData",
+      "Type1OwnerSignal",
+      "ENUM_SIGNAL_TYPE",
+      {
+        "M12": [
+          0,
+          2,
+          0
+        ],
+        "M24": [
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "ReEntryData",
+      "ConfirmationBar",
+      "int",
+      {
+        "M12": [
+          1,
+          2,
+          0
+        ],
+        "M24": [
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "ReEntryData",
+      "LastUpdateBar",
+      "int",
+      {
+        "M12": [
+          0,
+          11,
+          0
+        ],
+        "M24": [
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "ReEntryData",
+      "LastUpdateCandleTime",
+      "datetime",
+      {
+        "M12": [
+          2,
+          11,
+          0
+        ],
+        "M24": [
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "ReEntryData",
+      "Type1OwnerCandleTime",
+      "datetime",
+      {
+        "M12": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "ReEntryData",
+      "Type1PreviousClose",
+      "double",
+      {
+        "M12": [
+          3,
+          5,
+          0
+        ],
+        "M24": [
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "ReEntryData",
+      "StartBar",
+      "int",
+      {
+        "M12": [
+          0,
+          2,
+          0
+        ],
+        "M24": [
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "ReEntryData",
+      "StartCandleTime",
+      "datetime",
+      {
+        "M12": [
+          0,
+          2,
+          0
+        ],
+        "M12N": [
+          4,
+          0,
+          0
+        ],
+        "M17": [
+          3,
+          0,
+          0
+        ],
+        "M24": [
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "ReEntryData",
+      "ExpiryBar",
+      "int",
+      {
+        "M12": [
+          1,
+          2,
+          0
+        ],
+        "M24": [
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "ReEntryData",
+      "ExpiryCandleTime",
+      "datetime",
+      {
+        "M12": [
+          0,
+          2,
+          0
+        ],
+        "M24": [
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "ReEntryData",
+      "MinCandlesRequired",
+      "int",
+      {
+        "M12": [
+          1,
+          4,
+          0
+        ],
+        "M24": [
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "ReEntryData",
+      "QualifyingCandles",
+      "int",
+      {
+        "M12": [
+          2,
+          3,
+          0
+        ],
+        "M24": [
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "ReEntryData",
+      "Type1RangingStartCandleTime",
+      "datetime",
+      {
+        "M12": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "H4DirectionalOwner",
+      "SourceCandleTime",
+      "datetime",
+      {
+        "M12N": [
+          4,
+          0,
+          0
+        ],
+        "M24": [
+          3,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "extreme_h4_buy_lifecycle",
+      "ExtremeLifecycleData",
+      {
+        "M12N": [
+          3,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          3,
+          0,
+          1
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "extreme_h4_sell_lifecycle",
+      "ExtremeLifecycleData",
+      {
+        "M12N": [
+          3,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          3,
+          0,
+          1
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "extreme_h1_buy_lifecycle",
+      "ExtremeLifecycleData",
+      {
+        "M12N": [
+          8,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          4,
+          0,
+          1
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "extreme_h1_sell_lifecycle",
+      "ExtremeLifecycleData",
+      {
+        "M12N": [
+          8,
+          0,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          4,
+          0,
+          1
+        ]
+      }
+    ],
+    [
+      "NestedJourneyState",
+      "Relation",
+      "ENUM_NESTED_RELATION",
+      {
+        "M12N": [
+          11,
+          14,
+          0
+        ],
+        "M13": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "NestedJourneyState",
+      "ParentKind",
+      "ENUM_NESTED_PARENT_KIND",
+      {
+        "M12N": [
+          9,
+          2,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "NestedJourneyState",
+      "JourneyID",
+      "string",
+      {
+        "M12N": [
+          16,
+          1,
+          0
+        ],
+        "M23": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "NestedJourneyState",
+      "StableRelation",
+      "ENUM_NESTED_RELATION",
+      {
+        "M12N": [
+          4,
+          2,
+          0
+        ],
+        "M13": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "NestedJourneyState",
+      "Maturity",
+      "ENUM_NMJE_JOURNEY_MATURITY",
+      {
+        "M12N": [
+          2,
+          1,
+          0
+        ],
+        "M13": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "NMJEStructuralDensityState",
+      "Present",
+      "bool",
+      {
+        "M12N": [
+          1,
+          1,
+          0
+        ],
+        "M22": [
+          4,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "NMJEStructuralDensityState",
+      "Valid",
+      "bool",
+      {
+        "M12N": [
+          1,
+          1,
+          0
+        ],
+        "M22": [
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "NMJEStructuralDensityState",
+      "StageMask",
+      "int",
+      {
+        "M12N": [
+          6,
+          1,
+          0
+        ],
+        "M13": [
+          2,
+          0,
+          0
+        ],
+        "M22": [
+          4,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "NMJEStructuralDensityState",
+      "PrefixMask",
+      "int",
+      {
+        "M12N": [
+          5,
+          1,
+          0
+        ],
+        "M22": [
+          3,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "NMJEStructuralDensityState",
+      "StageCount",
+      "int",
+      {
+        "M12N": [
+          2,
+          1,
+          0
+        ],
+        "M22": [
+          3,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "NestedJourneyState",
+      "ParentDirection",
+      "ENUM_DIRECTION",
+      {
+        "M12N": [
+          3,
+          2,
+          0
+        ],
+        "M13": [
+          3,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "NMJEStructuralDensityState",
+      "Reason",
+      "string",
+      {
+        "M12N": [
+          0,
+          3,
+          0
+        ],
+        "M22": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "ValidatedSequenceCandidate",
+      "Valid",
+      "bool",
+      {
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M14": [
+          0,
+          2,
+          0
+        ],
+        "M15": [
+          2,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "ValidatedSequenceCandidate",
+      "ComponentCount",
+      "int",
+      {
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M14": [
+          0,
+          1,
+          0
+        ],
+        "M15": [
+          8,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "ValidatedSequenceCandidate",
+      "Components",
+      "ComponentIdentity",
+      {
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M14": [
+          0,
+          3,
+          0
+        ],
+        "M15": [
+          7,
+          0,
+          23
+        ]
+      }
+    ],
+    [
+      "ValidatedSequenceCandidate",
+      "Direction",
+      "ENUM_DIRECTION",
+      {
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M13": [
+          1,
+          0,
+          0
+        ],
+        "M14": [
+          0,
+          1,
+          0
+        ],
+        "M15": [
+          19,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "Valid",
+      "bool",
+      {
+        "M12N": [
+          3,
+          0,
+          0
+        ],
+        "M15": [
+          1,
+          2,
+          0
+        ],
+        "M18": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M25": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          4,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "ComponentCount",
+      "int",
+      {
+        "M12N": [
+          2,
+          0,
+          0
+        ],
+        "M15": [
+          1,
+          2,
+          0
+        ],
+        "M16": [
+          3,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "Components",
+      "ComponentIdentity",
+      {
+        "M12N": [
+          1,
+          0,
+          3
+        ],
+        "M15": [
+          0,
+          2,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "Direction",
+      "ENUM_DIRECTION",
+      {
+        "M12N": [
+          2,
+          0,
+          0
+        ],
+        "M15": [
+          5,
+          2,
+          0
+        ],
+        "M16": [
+          3,
+          0,
+          0
+        ],
+        "M17": [
+          25,
+          0,
+          0
+        ],
+        "M18": [
+          1,
+          0,
+          0
+        ],
+        "M22": [
+          20,
+          0,
+          0
+        ],
+        "M23": [
+          3,
+          0,
+          0
+        ],
+        "M24": [
+          2,
+          0,
+          0
+        ],
+        "M25": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          3,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "NMJESnapshotPresent",
+      "bool",
+      {
+        "M12N": [
+          0,
+          1,
+          0
+        ],
+        "M22": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "NMJEJourneyID",
+      "string",
+      {
+        "M12N": [
+          0,
+          1,
+          0
+        ],
+        "M22": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "NMJEParentEventID",
+      "string",
+      {
+        "M12N": [
+          0,
+          1,
+          0
+        ],
+        "M22": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "NMJERelation",
+      "ENUM_NESTED_RELATION",
+      {
+        "M12N": [
+          1,
+          1,
+          0
+        ],
+        "M22": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "NMJEStableRelation",
+      "ENUM_NESTED_RELATION",
+      {
+        "M12N": [
+          1,
+          1,
+          0
+        ],
+        "M22": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "NMJELineageClass",
+      "ENUM_NMJE_LINEAGE_EVENT_CLASS",
+      {
+        "M12N": [
+          1,
+          1,
+          0
+        ],
+        "M22": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "NMJELineageRootEventID",
+      "string",
+      {
+        "M12N": [
+          2,
+          1,
+          0
+        ],
+        "M22": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "NMJEPreviousLineageRootEventID",
+      "string",
+      {
+        "M12N": [
+          2,
+          1,
+          0
+        ],
+        "M22": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "NMJEMaturity",
+      "ENUM_NMJE_JOURNEY_MATURITY",
+      {
+        "M12N": [
+          1,
+          1,
+          0
+        ],
+        "M22": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "NMJEM5SnapshotPresent",
+      "bool",
+      {
+        "M12N": [
+          1,
+          1,
+          0
+        ],
+        "M22": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "NMJEM5ShadowEventID",
+      "string",
+      {
+        "M12N": [
+          0,
+          1,
+          0
+        ],
+        "M22": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "NMJEM5ShadowClosedCandleTime",
+      "datetime",
+      {
+        "M12N": [
+          0,
+          1,
+          0
+        ],
+        "M22": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "NMJEM5SemanticResolved",
+      "bool",
+      {
+        "M12N": [
+          1,
+          1,
+          0
+        ],
+        "M22": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "NMJEM5DiagnosticRelation",
+      "ENUM_NESTED_RELATION",
+      {
+        "M12N": [
+          0,
+          1,
+          0
+        ],
+        "M22": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "NMJEM5DiagnosticReason",
+      "string",
+      {
+        "M12N": [
+          0,
+          1,
+          0
+        ],
+        "M22": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "NMJEStructureDensity",
+      "NMJEStructuralDensityState",
+      {
+        "M12N": [
+          1,
+          0,
+          1
+        ],
+        "M22": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "Pair",
+      "string",
+      {
+        "M12N": [
+          2,
+          0,
+          0
+        ],
+        "M15": [
+          5,
+          1,
+          0
+        ],
+        "M16": [
+          3,
+          0,
+          0
+        ],
+        "M17": [
+          9,
+          0,
+          0
+        ],
+        "M19": [
+          2,
+          0,
+          0
+        ],
+        "M20": [
+          1,
+          0,
+          0
+        ],
+        "M21": [
+          3,
+          0,
+          0
+        ],
+        "M22": [
+          6,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          4,
+          0,
+          0
+        ],
+        "M27": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "DecisionID",
+      "string",
+      {
+        "M12N": [
+          3,
+          0,
+          0
+        ],
+        "M15": [
+          3,
+          1,
+          0
+        ],
+        "M16": [
+          6,
+          0,
+          0
+        ],
+        "M22": [
+          20,
+          0,
+          0
+        ],
+        "M23": [
+          2,
+          0,
+          0
+        ],
+        "M27": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "NestedJourneyState",
+      "M5ShadowPresent",
+      "bool",
+      {
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M13": [
+          2,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "NestedJourneyState",
+      "M5ShadowEventID",
+      "string",
+      {
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M13": [
+          0,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "NestedJourneyState",
+      "M5ShadowClosedCandleTime",
+      "datetime",
+      {
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M13": [
+          0,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "NestedJourneyState",
+      "M5SemanticResolved",
+      "bool",
+      {
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M13": [
+          1,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "NestedJourneyState",
+      "M5DiagnosticRelation",
+      "ENUM_NESTED_RELATION",
+      {
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M13": [
+          0,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "NestedJourneyState",
+      "M5DiagnosticReason",
+      "string",
+      {
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M13": [
+          0,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "pair_enabled",
+      "bool",
+      {
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          1,
+          0,
+          0
+        ],
+        "M25": [
+          1,
+          0,
+          0
+        ],
+        "M26": [
+          2,
+          6,
+          0
+        ],
+        "M27": [
+          3,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "D1AuthorityMode",
+      "ENUM_D1_AUTHORITY_MODE",
+      {
+        "M12N": [
+          2,
+          0,
+          0
+        ],
+        "M15": [
+          1,
+          4,
+          0
+        ],
+        "M16": [
+          4,
+          0,
+          0
+        ],
+        "M17": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "SignalType",
+      "ENUM_SIGNAL_TYPE",
+      {
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M15": [
+          4,
+          2,
+          0
+        ],
+        "M16": [
+          2,
+          0,
+          0
+        ],
+        "M17": [
+          10,
+          0,
+          0
+        ],
+        "M18": [
+          1,
+          0,
+          0
+        ],
+        "M22": [
+          6,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M25": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          3,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "D1OpportunityFamily",
+      "ENUM_D1_OPPORTUNITY_FAMILY",
+      {
+        "M12N": [
+          1,
+          0,
+          0
+        ],
+        "M15": [
+          1,
+          2,
+          0
+        ],
+        "M16": [
+          2,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "D1OpportunityCycleID",
+      "string",
+      {
+        "M12N": [
+          2,
+          0,
+          0
+        ],
+        "M15": [
+          1,
+          2,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "SequenceHash",
+      "string",
+      {
+        "M12N": [
+          2,
+          0,
+          0
+        ],
+        "M15": [
+          2,
+          2,
+          0
+        ],
+        "M22": [
+          2,
+          0,
+          0
+        ],
+        "M27": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "ValidatedSequenceCandidate",
+      "SequenceType",
+      "ENUM_SIGNAL_TYPE",
+      {
+        "M13": [
+          2,
+          0,
+          0
+        ],
+        "M14": [
+          0,
+          1,
+          0
+        ],
+        "M15": [
+          19,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "ValidatedSequenceCandidate",
+      "UsesD1Opportunity",
+      "bool",
+      {
+        "M13": [
+          1,
+          0,
+          0
+        ],
+        "M15": [
+          15,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "ValidatedSequenceCandidate",
+      "D1OpportunityFamily",
+      "ENUM_D1_OPPORTUNITY_FAMILY",
+      {
+        "M13": [
+          1,
+          0,
+          0
+        ],
+        "M15": [
+          9,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "ValidatedSequenceCandidate",
+      "SequenceHash",
+      "string",
+      {
+        "M13": [
+          1,
+          0,
+          0
+        ],
+        "M14": [
+          0,
+          1,
+          0
+        ],
+        "M15": [
+          13,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "ValidatedSequenceCandidate",
+      "SequenceStartTime",
+      "datetime",
+      {
+        "M13": [
+          1,
+          0,
+          0
+        ],
+        "M14": [
+          0,
+          1,
+          0
+        ],
+        "M15": [
+          10,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "NMJECounterfactualPendingSet",
+      "Present",
+      "bool",
+      {
+        "M13": [
+          0,
+          1,
+          0
+        ],
+        "M15": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "NMJECounterfactualPendingSet",
+      "Pair",
+      "string",
+      {
+        "M13": [
+          1,
+          1,
+          0
+        ],
+        "M15": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "NMJECounterfactualPendingSet",
+      "M15CandleTime",
+      "datetime",
+      {
+        "M13": [
+          1,
+          1,
+          0
+        ],
+        "M15": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "NMJECounterfactualPendingSet",
+      "Relation",
+      "ENUM_NESTED_RELATION",
+      {
+        "M13": [
+          0,
+          1,
+          0
+        ],
+        "M15": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "NMJECounterfactualPendingSet",
+      "StableRelation",
+      "ENUM_NESTED_RELATION",
+      {
+        "M13": [
+          0,
+          1,
+          0
+        ],
+        "M15": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "NMJECounterfactualPendingSet",
+      "Maturity",
+      "ENUM_NMJE_JOURNEY_MATURITY",
+      {
+        "M13": [
+          0,
+          1,
+          0
+        ],
+        "M15": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "NMJECounterfactualPendingSet",
+      "M5SemanticResolved",
+      "bool",
+      {
+        "M13": [
+          0,
+          1,
+          0
+        ],
+        "M15": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "NMJECounterfactualPendingSet",
+      "Count",
+      "int",
+      {
+        "M13": [
+          7,
+          1,
+          0
+        ],
+        "M15": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "NMJECounterfactualPendingSet",
+      "Candidates",
+      "NMJECounterfactualPendingCandidate",
+      {
+        "M13": [
+          0,
+          0,
+          8
+        ],
+        "M15": [
+          0,
+          0,
+          4
+        ]
+      }
+    ],
+    [
+      "NMJECounterfactualPendingCandidate",
+      "Candidate",
+      "ValidatedSequenceCandidate",
+      {
+        "M13": [
+          1,
+          2,
+          0
+        ],
+        "M15": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "NMJECounterfactualPendingCandidate",
+      "ParentMatch",
+      "bool",
+      {
+        "M13": [
+          0,
+          2,
+          0
+        ],
+        "M15": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "NMJECounterfactualPendingCandidate",
+      "StructureMask",
+      "int",
+      {
+        "M13": [
+          0,
+          2,
+          0
+        ],
+        "M15": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "NMJECounterfactualPendingCandidate",
+      "Present",
+      "bool",
+      {
+        "M13": [
+          0,
+          1,
+          0
+        ],
+        "M15": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "NMJECounterfactualPendingSet",
+      "SetID",
+      "string",
+      {
+        "M13": [
+          2,
+          1,
+          0
+        ],
+        "M15": [
+          3,
+          0,
+          0
+        ],
+        "M27": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "m5_data",
+      "TimeframeData",
+      {
+        "M13": [
+          0,
+          0,
+          6
+        ],
+        "M27": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "ComponentSet",
+      "SequenceStartTime",
+      "datetime",
+      {
+        "M13": [
+          0,
+          1,
+          0
+        ],
+        "M14": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "ValidatedSequenceCandidate",
+      "SLTPSource",
+      "ENUM_SIGNAL_TYPE",
+      {
+        "M14": [
+          0,
+          1,
+          0
+        ],
+        "M15": [
+          0,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "ValidatedSequenceCandidate",
+      "PriorityTier",
+      "ENUM_PRIORITY_TIER",
+      {
+        "M14": [
+          0,
+          1,
+          0
+        ],
+        "M15": [
+          0,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "ValidatedSequenceCandidate",
+      "RequirementCompleteness",
+      "int",
+      {
+        "M14": [
+          0,
+          1,
+          0
+        ],
+        "M15": [
+          0,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "ValidatedSequenceCandidate",
+      "SequenceCompleteness",
+      "int",
+      {
+        "M14": [
+          0,
+          1,
+          0
+        ],
+        "M15": [
+          0,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "ValidatedSequenceCandidate",
+      "PatternStrength",
+      "double",
+      {
+        "M14": [
+          0,
+          1,
+          0
+        ],
+        "M15": [
+          0,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "D1OwnerState",
+      "ENUM_D1_OWNER_STATE",
+      {
+        "M15": [
+          2,
+          3,
+          0
+        ],
+        "M16": [
+          3,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "D1OwnerDirection",
+      "ENUM_DIRECTION",
+      {
+        "M15": [
+          0,
+          3,
+          0
+        ],
+        "M16": [
+          3,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "D1OwnerCandleTime",
+      "datetime",
+      {
+        "M15": [
+          2,
+          3,
+          0
+        ],
+        "M16": [
+          3,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "D1OwnerClose",
+      "double",
+      {
+        "M15": [
+          0,
+          3,
+          0
+        ],
+        "M16": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "D1OwnerMA50Current",
+      "double",
+      {
+        "M15": [
+          0,
+          3,
+          0
+        ],
+        "M16": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "D1OwnerMA50Previous",
+      "double",
+      {
+        "M15": [
+          0,
+          3,
+          0
+        ],
+        "M16": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "D1OwnerSnapshotValid",
+      "bool",
+      {
+        "M15": [
+          0,
+          3,
+          0
+        ],
+        "M16": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "D1OpportunitySnapshotValid",
+      "bool",
+      {
+        "M15": [
+          1,
+          4,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "D1OpportunityDirection",
+      "ENUM_DIRECTION",
+      {
+        "M15": [
+          1,
+          2,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "D1OpportunitySourceSignal",
+      "ENUM_SIGNAL_TYPE",
+      {
+        "M15": [
+          1,
+          2,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "D1OpportunitySourceCandleTime",
+      "datetime",
+      {
+        "M15": [
+          1,
+          2,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          5,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "D1OpportunityActivationTime",
+      "datetime",
+      {
+        "M15": [
+          1,
+          2,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "CandidateExpiry",
+      "datetime",
+      {
+        "M15": [
+          0,
+          2,
+          0
+        ],
+        "M16": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "CandleTime",
+      "datetime",
+      {
+        "M15": [
+          3,
+          2,
+          0
+        ],
+        "M16": [
+          2,
+          0,
+          0
+        ],
+        "M22": [
+          5,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "HasSLTPSourceComponent",
+      "bool",
+      {
+        "M15": [
+          1,
+          2,
+          0
+        ],
+        "M17": [
+          2,
+          0,
+          0
+        ],
+        "M18": [
+          1,
+          0,
+          0
+        ],
+        "M22": [
+          2,
+          0,
+          0
+        ],
+        "M24": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "SLTPSourceComponent",
+      "ComponentIdentity",
+      {
+        "M15": [
+          3,
+          0,
+          0
+        ],
+        "M17": [
+          6,
+          0,
+          2
+        ],
+        "M18": [
+          0,
+          0,
+          1
+        ],
+        "M22": [
+          1,
+          0,
+          4
+        ],
+        "M24": [
+          0,
+          0,
+          9
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "c044_lifecycle_managed",
+      "bool",
+      {
+        "M15": [
+          2,
+          1,
+          0
+        ],
+        "M22": [
+          2,
+          0,
+          0
+        ],
+        "M23": [
+          8,
+          0,
+          0
+        ],
+        "M24": [
+          3,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "c044_replay_seed_valid",
+      "bool",
+      {
+        "M15": [
+          3,
+          1,
+          0
+        ],
+        "M23": [
+          2,
+          0,
+          0
+        ],
+        "M24": [
+          2,
+          4,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "c044_owner_timeframe",
+      "int",
+      {
+        "M15": [
+          7,
+          1,
+          0
+        ],
+        "M23": [
+          12,
+          0,
+          0
+        ],
+        "M24": [
+          15,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "c044_owner_reentry_candle",
+      "datetime",
+      {
+        "M15": [
+          2,
+          1,
+          0
+        ],
+        "M23": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          2,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "c044_epoch_anchor_candle",
+      "datetime",
+      {
+        "M15": [
+          2,
+          1,
+          0
+        ],
+        "M23": [
+          4,
+          1,
+          0
+        ],
+        "M24": [
+          2,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "c044_last_processed_owner_candle",
+      "datetime",
+      {
+        "M15": [
+          5,
+          1,
+          0
+        ],
+        "M23": [
+          6,
+          1,
+          0
+        ],
+        "M24": [
+          2,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "c044_state",
+      "ENUM_C044_LIFECYCLE_STATE",
+      {
+        "M15": [
+          4,
+          1,
+          0
+        ],
+        "M23": [
+          16,
+          4,
+          0
+        ],
+        "M24": [
+          5,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "c044_exit_reason",
+      "ENUM_C044_EXIT_REASON",
+      {
+        "M15": [
+          2,
+          1,
+          0
+        ],
+        "M23": [
+          3,
+          4,
+          0
+        ],
+        "M24": [
+          1,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "c044_exit_latched_candle",
+      "datetime",
+      {
+        "M15": [
+          1,
+          1,
+          0
+        ],
+        "M23": [
+          0,
+          4,
+          0
+        ],
+        "M24": [
+          1,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "c044_replay_reentry",
+      "ReEntryData",
+      {
+        "M15": [
+          1,
+          1,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          5
+        ],
+        "M24": [
+          3,
+          0,
+          46
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "c044_replay_extreme_buy",
+      "ExtremeLifecycleData",
+      {
+        "M15": [
+          1,
+          1,
+          0
+        ],
+        "M23": [
+          2,
+          0,
+          5
+        ],
+        "M24": [
+          4,
+          0,
+          25
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "c044_replay_extreme_sell",
+      "ExtremeLifecycleData",
+      {
+        "M15": [
+          1,
+          1,
+          0
+        ],
+        "M23": [
+          2,
+          0,
+          5
+        ],
+        "M24": [
+          4,
+          0,
+          25
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "pair",
+      "string",
+      {
+        "M15": [
+          5,
+          2,
+          0
+        ],
+        "M19": [
+          2,
+          0,
+          0
+        ],
+        "M20": [
+          2,
+          0,
+          0
+        ],
+        "M22": [
+          10,
+          3,
+          0
+        ],
+        "M23": [
+          23,
+          0,
+          0
+        ],
+        "M24": [
+          4,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "direction",
+      "ENUM_DIRECTION",
+      {
+        "M15": [
+          0,
+          2,
+          0
+        ],
+        "M22": [
+          1,
+          2,
+          0
+        ],
+        "M23": [
+          15,
+          0,
+          0
+        ],
+        "M24": [
+          14,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "open_time",
+      "datetime",
+      {
+        "M15": [
+          4,
+          2,
+          0
+        ],
+        "M22": [
+          6,
+          2,
+          0
+        ],
+        "M24": [
+          9,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "c044_shadow_replay",
+      "bool",
+      {
+        "M15": [
+          0,
+          2,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "recovery_state",
+      "ENUM_RECOVERY_STATE",
+      {
+        "M15": [
+          0,
+          1,
+          0
+        ],
+        "M22": [
+          2,
+          5,
+          0
+        ],
+        "M23": [
+          8,
+          2,
+          0
+        ],
+        "M24": [
+          4,
+          14,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "ticket",
+      "int",
+      {
+        "M15": [
+          4,
+          0,
+          0
+        ],
+        "M19": [
+          1,
+          0,
+          0
+        ],
+        "M20": [
+          1,
+          0,
+          0
+        ],
+        "M22": [
+          17,
+          3,
+          0
+        ],
+        "M23": [
+          15,
+          0,
+          0
+        ],
+        "M24": [
+          17,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "initial_entry_price",
+      "double",
+      {
+        "M15": [
+          4,
+          0,
+          0
+        ],
+        "M22": [
+          5,
+          2,
+          0
+        ],
+        "M24": [
+          7,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "execution_hash",
+      "string",
+      {
+        "M15": [
+          2,
+          0,
+          0
+        ],
+        "M22": [
+          6,
+          3,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "initial_stop_loss",
+      "double",
+      {
+        "M15": [
+          1,
+          0,
+          0
+        ],
+        "M22": [
+          4,
+          2,
+          0
+        ],
+        "M24": [
+          5,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "initial_take_profit",
+      "double",
+      {
+        "M15": [
+          1,
+          0,
+          0
+        ],
+        "M22": [
+          2,
+          2,
+          0
+        ],
+        "M24": [
+          4,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "TakeProfit",
+      "double",
+      {
+        "M15": [
+          2,
+          0,
+          0
+        ],
+        "M17": [
+          13,
+          1,
+          0
+        ],
+        "M22": [
+          5,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "C044LifecycleManaged",
+      "bool",
+      {
+        "M15": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          2,
+          1,
+          0
+        ],
+        "M22": [
+          1,
+          0,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "D1TPWLifecycleManaged",
+      "bool",
+      {
+        "M15": [
+          1,
+          0,
+          0
+        ],
+        "M17": [
+          2,
+          1,
+          0
+        ],
+        "M22": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "BBMA_Decision",
+      "SLTPSource",
+      "ENUM_SIGNAL_TYPE",
+      {
+        "M15": [
+          0,
+          1,
+          0
+        ],
+        "M17": [
+          1,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "OppositeConflictPackage",
+      "Exists",
+      "bool",
+      {
+        "M15": [
+          0,
+          1,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "OppositeConflictPackage",
+      "ConflictType",
+      "ENUM_OPPOSITE_CONFLICT_TYPE",
+      {
+        "M15": [
+          0,
+          1,
+          0
+        ],
+        "M16": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "extreme_h1_buy_state",
+      "Signal",
+      {
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "extreme_h1_sell_state",
+      "Signal",
+      {
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "extreme_h4_buy_state",
+      "Signal",
+      {
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "extreme_h4_sell_state",
+      "Signal",
+      {
+        "M16": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "magic_number",
+      "int",
+      {
+        "M19": [
+          1,
+          0,
+          0
+        ],
+        "M20": [
+          1,
+          0,
+          0
+        ],
+        "M22": [
+          6,
+          3,
+          0
+        ],
+        "M23": [
+          5,
+          0,
+          0
+        ],
+        "M24": [
+          8,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "remaining_lot",
+      "double",
+      {
+        "M19": [
+          2,
+          0,
+          0
+        ],
+        "M22": [
+          0,
+          2,
+          0
+        ],
+        "M23": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          0,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "entry_price",
+      "double",
+      {
+        "M19": [
+          2,
+          0,
+          0
+        ],
+        "M22": [
+          0,
+          2,
+          0
+        ],
+        "M23": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "current_sl",
+      "double",
+      {
+        "M19": [
+          3,
+          0,
+          0
+        ],
+        "M22": [
+          0,
+          2,
+          0
+        ],
+        "M23": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "RiskStatus",
+      "allowed",
+      "bool",
+      {
+        "M19": [
+          0,
+          9,
+          0
+        ],
+        "M22": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "RiskStatus",
+      "rejection_reason",
+      "ENUM_REJECTION_REASON",
+      {
+        "M19": [
+          0,
+          9,
+          0
+        ],
+        "M22": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "nmje_attribution",
+      "NMJEShadowAttributionState",
+      {
+        "M22": [
+          6,
+          3,
+          12
+        ],
+        "M24": [
+          0,
+          0,
+          1
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "entry_displacement",
+      "NMJEEntryDisplacementState",
+      {
+        "M22": [
+          2,
+          0,
+          2
+        ],
+        "M24": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "NMJEShadowAttributionState",
+      "EntryDisplacement",
+      "NMJEEntryDisplacementState",
+      {
+        "M22": [
+          2,
+          1,
+          43
+        ],
+        "M24": [
+          1,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "decision_id",
+      "string",
+      {
+        "M22": [
+          2,
+          3,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "d1_tpw_lifecycle_managed",
+      "bool",
+      {
+        "M22": [
+          2,
+          0,
+          0
+        ],
+        "M23": [
+          7,
+          0,
+          0
+        ],
+        "M24": [
+          2,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "PendingExecutionAmbiguity",
+      "Active",
+      "bool",
+      {
+        "M22": [
+          6,
+          2,
+          0
+        ],
+        "M26": [
+          1,
+          0,
+          0
+        ],
+        "M27": [
+          2,
+          0,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "signal_type",
+      "ENUM_SIGNAL_TYPE",
+      {
+        "M22": [
+          0,
+          2,
+          0
+        ],
+        "M24": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "initial_lot",
+      "double",
+      {
+        "M22": [
+          0,
+          2,
+          0
+        ],
+        "M24": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "initial_risk_price_distance",
+      "double",
+      {
+        "M22": [
+          0,
+          2,
+          0
+        ],
+        "M24": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "current_tp",
+      "double",
+      {
+        "M22": [
+          0,
+          2,
+          0
+        ],
+        "M23": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "lot",
+      "double",
+      {
+        "M22": [
+          0,
+          2,
+          0
+        ],
+        "M23": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "point",
+      "double",
+      {
+        "M22": [
+          0,
+          2,
+          0
+        ],
+        "M24": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "digits",
+      "int",
+      {
+        "M22": [
+          0,
+          2,
+          0
+        ],
+        "M23": [
+          1,
+          0,
+          0
+        ],
+        "M24": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "stop_level",
+      "int",
+      {
+        "M22": [
+          0,
+          2,
+          0
+        ],
+        "M24": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "freeze_level",
+      "int",
+      {
+        "M22": [
+          0,
+          2,
+          0
+        ],
+        "M24": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "sequence_hash_short",
+      "string",
+      {
+        "M22": [
+          0,
+          2,
+          0
+        ],
+        "M24": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "partial_closed",
+      "bool",
+      {
+        "M22": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          0,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "partial_available",
+      "bool",
+      {
+        "M22": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          0,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "partial_attempted",
+      "bool",
+      {
+        "M22": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          0,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "breakeven_set",
+      "bool",
+      {
+        "M22": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          0,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "be_attempted",
+      "bool",
+      {
+        "M22": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          0,
+          2,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "be_last_attempt_time",
+      "datetime",
+      {
+        "M22": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "partial_last_attempt_time",
+      "datetime",
+      {
+        "M22": [
+          0,
+          1,
+          0
+        ],
+        "M24": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "d1_tpw_frozen",
+      "bool",
+      {
+        "M23": [
+          6,
+          1,
+          0
+        ],
+        "M24": [
+          2,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "d1_tpw_exit_latched",
+      "bool",
+      {
+        "M23": [
+          6,
+          2,
+          0
+        ],
+        "M24": [
+          1,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "d1_tpw_exit_latched_candle",
+      "datetime",
+      {
+        "M23": [
+          2,
+          2,
+          0
+        ],
+        "M24": [
+          1,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "d1_tpw_extreme_candle",
+      "datetime",
+      {
+        "M23": [
+          2,
+          0,
+          0
+        ],
+        "M24": [
+          3,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "TradeInfo",
+      "d1_tpw_last_processed_d1_candle",
+      "datetime",
+      {
+        "M23": [
+          3,
+          1,
+          0
+        ],
+        "M24": [
+          2,
+          3,
+          0
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "base_symbol",
+      "string",
+      {
+        "M24": [
+          1,
+          0,
+          0
+        ],
+        "M26": [
+          0,
+          1,
+          0
+        ]
+      }
+    ],
+    [
+      "PairState",
+      "last_decision",
+      "BBMA_Decision",
+      {
+        "M25": [
+          0,
+          0,
+          6
+        ],
+        "M27": [
+          0,
+          1,
+          0
+        ]
+      }
+    ]
+  ]
+}

@@ -53,6 +53,12 @@ M27 runs portfolio and position management before the new closed-M15 scan on eac
 - M11J D1O-01 consumes D1 EntryCandle as ActivationTime and requires fresh LTF Re-Entry readiness strictly after activation. This is limited to the approved D1 opportunity freshness gate; the ordinary M27→M15/M16→M22 path has no extra full-candle timer.
 - M27 feeds closed D1/H4/H1/M15 owners; M13/M14 form/check exact signatures; M15 makes the final candidate decision; M16 revalidates identity; M17/risk/M22 remain downstream. Static trace only: no tests, compile, Tester or broker runtime were run in CP14.
 
+### CP15 — direct primary PDF overlap check (2026-10-27)
+
+- The supplied primary PDF pages 9–10 were read as text and rendered for visual inspection. Its SHA-256 `3e6065dd97c20951bd8af96bc81b81ca138800184be6fc4740a32aa4ab0a9c9c` matches the primary PDF hash recorded in SOURCE_INDEX.
+- Page 10 lists the separate Type2, Type3 and Type4 formations and retraces but does not set overlap precedence, a tie-break, or mutual exclusivity. Page 9 defines Type1 range context; it does not add Type2/3/4 arbitration.
+- This direct evidence confirms the M12 arbitration gap is not resolved by the primary PDF. Current Type3→Type4→Type2 ordering remains implementation behavior only; preserve it unchanged pending an explicit project policy. No code/test/compile/Tester/runtime changed or ran.
+
 ## Module connection ledger
 
 | Module | Main output / control | Consumers or next handoff | Current gap/status |
@@ -69,7 +75,7 @@ M27 runs portfolio and position management before the new closed-M15 scan on eac
 | M10 CSM/CSD/eCSD | Closed-candle direction and Momentum predicates | M08 local invalidation parity; M12 Type1/3/4; M12N read-only; M13 same-candle precedence; M27 H4 owner/M15 snapshots; M11J D1 CSD context | CP13 maps Core §7; body-cross formula is an engineering interpretation. M12 priority is CSM > CSD > eCSD; M13 suppresses same-candle duplicate eCSD. Focused tests/runtime remain NOT VERIFIED |
 | M11 Trend Functions | Atomic closed-D1 major-trend owner | M11J, M12, M12N, M15, M16, M27 | Static implementation present; D1 owner field handoff is inventoried; runtime remains unverified |
 | M11J D1 Opportunity Journey | D1 CSD/Re-Entry/Momentum opportunity context; separate gated D1 Extreme-TPW journey | M12N overlay; M15 fresh-LTF-RE candidate construction/final authority; M16 revalidation; M23 TPW lifecycle; M27 update | D1O-01: D1 CSD is context aligned with D1 strategic owner and requires fresh LTF Re-Entry; EntryCandle sets ActivationTime; eCSD watch-only. D1 TPW gate remains OFF. Runtime unverified |
-| M12 Re-Entry Engine | Persistent Type1/2/3/4 Re-Entry owners; M10 signal classification | M12N, M13, M15, M17, M23 replay, M27 | CP13 maps M10 precedence and Type3/4 later-retrace confirmation. CP14 maps Core §8; Type3→Type4→Type2 start order is current implementation only, with overlap precedence unresolved by source. Build 5.22 candidate freshness repair remains unmerged; owner unchanged; runtime open |
+| M12 Re-Entry Engine | Persistent Type1/2/3/4 Re-Entry owners; M10 signal classification | M12N, M13, M15, M17, M23 replay, M27 | CP13 maps M10 precedence and Type3/4 later-retrace confirmation. CP14 maps Core §8; CP15 verified primary PDF pp.9–10 directly against SOURCE_INDEX hash and found no Type2/3/4 overlap precedence. Type3→Type4→Type2 remains implementation behavior only. Build 5.22 candidate freshness repair remains unmerged; owner unchanged; runtime open |
 | M12N Nested MTF Journey | Read-only lineage and journey context; M15 MLV overlay | M11J D1 opportunity overlay; M13; M15/M22/M23 telemetry; M27 observer update | No create/reject/rank/execute authority. Build 5.15 has no H4/H1 MHV watch/context state; C039/C040 implementation requires a separate scoped contract/task |
 | M13 Combination Engine | Collects REM/RRE/REE and per-cycle direction snapshots; REM includes mature M15 MLV | M14; M27 orchestration | CP12 maps REM maturity; CP13 verifies same-direction/same-candle CSD suppresses duplicate eCSD. Candidate regression/runtime coverage remains partial |
 | M14 Sequence Engine | Validates exact REM/RRE/REE component/timeframe signatures | M15; M27 orchestration | CP12 maps REM's M15 MLV component to Core §6; full signature regression matrix absent |

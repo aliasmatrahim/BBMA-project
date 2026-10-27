@@ -97,3 +97,10 @@ The separate M12 invalid-refresh admission finding was reproduced against owner 
 - The empty-owner start sequence is Type3→Type4→Type2→Type1. The reviewed PDF/Core/Finale/contract evidence does not define Type2/3/4 overlap precedence, and the code does not prove mutual exclusion. This is UNRESOLVED, not a confirmed runtime overlap; do not alter arbitration without authoritative evidence or an explicit project decision.
 - F6 audit correction: M11J D1O-01 uses D1 EntryCandle as ActivationTime, then requires fresh lower-timeframe Re-Entry readiness strictly after activation. This is not a general order timer and does not add an ordinary entry candle wait.
 - M27 → M13/M14 → M15/M16 → M17/risk/M22 handoffs were statically traced. No test, compile, Strategy Tester or broker/runtime was run for CP14. Qualified G40 history remains NOT VERIFIED.
+
+
+## CP15 source verification — primary PDF pages 9–10 (2026-10-27)
+
+- The supplied primary PDF SHA-256 `3e6065dd97c20951bd8af96bc81b81ca138800184be6fc4740a32aa4ab0a9c9c` matches the value recorded in SOURCE_INDEX. Pages 9–10 were checked in extracted text and rendered visual form.
+- Page 10 defines Type2, Type3 and Type4 individually but contains no precedence/tie-break or mutual-exclusion instruction. Page 9 covers Type1 ranging and also does not arbitrate the other types.
+- Therefore the CP14 M12 overlap question remains a project-policy gate. No strategy rule was inferred and no EA code changed. CP15 is source verification only; no test, compile, Strategy Tester or runtime ran.

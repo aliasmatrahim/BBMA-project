@@ -3757,6 +3757,24 @@
       "M11J is a source header and is listed in this overlay; the accepted graph's module key set remains governed by its existing schema.",
       "Field access is lexical and type-level. Multiple modules accessing the same struct type and field does not prove that they access the same object instance.",
       "Interprocedural by-reference/copy alias effects and field consumer ownership remain PARTIAL; no dependency absence is inferred."
-    ]
+    ],
+    "reference_identity_inventory": {
+      "path": "config/bbma_reference_identity_inventory_build515.json",
+      "blob_sha": "a4a159631e6021598a000d454abca9b5f9979ab1",
+      "callsite_count": 317,
+      "root_kind_counts": {
+        "forwarded-reference": 51,
+        "local-object": 151,
+        "member-of-reference-param": 18,
+        "local-copy": 7,
+        "global-subobject": 90
+      },
+      "resolved_origin_associations": 344,
+      "unresolved_or_cyclic_or_unbound_origin_rows": 0,
+      "transitive_write_effect_call_parameters": 122,
+      "no_detected_parameter_write_effect_call_parameters": 195,
+      "status": "PARTIAL_CONTEXT_INSENSITIVE",
+      "limitations": "Context alternatives and non-parameter side effects remain open; see inventory method."
+    }
   }
 }

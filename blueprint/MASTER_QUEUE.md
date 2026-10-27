@@ -312,3 +312,11 @@ No destructive reset, blind recreation, automatic MT4 restart, or trading enable
 - The implementation modules remain project plumbing under their contracts; semantic classification is not trade-entry or runtime proof.
 - CP20 changes no EA code and runs no tests, compile, Tester or broker runtime. Qualified history remains NOT VERIFIED; full rule-to-runtime and nested-field ownership are PARTIAL.
 - Next eligible scoped task: complete M01–M27/M11J/M12N shared nested-field read/write ownership and consumer-edge mapping.
+
+## CORE-FIDELITY-292 CP21 execution update — 2026-10-27
+
+- Main@22b2e539a82eea768c53bd2a905dd958b6072324 contains the separate typed-field inventory and current-source overlay; deterministic-tooling passed for PR #295 head a9e10ae474707f9de79bb7eb14b29f6f5f951a81.
+- Direct lexical access is inventoried across 29 source headers, including reads, writes and nested traversals. The inventory records 338 type-field pairs accessed in multiple modules.
+- This does not settle by-reference/copy aliases, actual object identity or call-side mutation. Consumer ownership and full rule-to-runtime remain PARTIAL.
+- Next scoped action: resolve those remaining interprocedural ownership paths. Q10 Phase L R5 remains the highest-priority global final-acceptance workstream on frozen Build 5.11.
+- No code, tests, compile, Tester or broker/runtime changed/ran. Qualified history remains NOT VERIFIED; Strategy Tester remains NOT RUN; PR #293 remains DO NOT MERGE.

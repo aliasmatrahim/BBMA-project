@@ -204,3 +204,10 @@ Static baseline: accepted Core V2 blob 3c450d7157db6b7a6bf53549f645bb75c88371e5 
 - C044 helper paths are separate from PairState: replay fields can resolve either to a local counterfactual TradeInfo copy or to g_monitored_trades[i] during trade lifecycle handling. The field path stays within c044_replay_* state.
 - No EA/Core source, tests, compile, Strategy Tester, broker runtime, terminal restart or trading activation changed/ran in CP22. G40 device is online, but process/terminal state was not inspected. The last Q10 R5 runtime artifact dated 2026-09-24 lists R5-14 and R5-16 as natural broker-event blockers; current runtime is not reconfirmed here.
 - Next implementation hardening: qualify proven read-only reference parameters as const and compile the exact candidate on G40 before accepting that guard. Keep Q10 R5/R6 gates unchanged; do not manufacture broker conditions.
+
+
+## CP23 — Read-only M08 helper inputs (2026-10-27)
+
+Reviewing the exact Build 5.23 candidate source (blob `be13aac3a2a0f2e2e9eeb2f5d4006eeedf7cd562`, SHA-256 `682A0F072C2A69ADF1A59FFED464E66911C62CDFB6C98C7D8E486C53DF774F5A`) found two leaf M08 readers suitable for const-candidate evaluation: `GetExtremeRelevantMA5(TimeframeData &data,...)` reads only MA values and has 8 direct callsites; `GetExtremeReversalBodyEdge(TimeframeData &data,...)` reads only open/close and has 2 direct callsites. Neither body writes the struct or calls another function. The existing Build 5.23 compile result is valid for its exact old blob only; no source edit/compile was performed in CP23. Other no-detected-write references remain unproven.
+
+MQL4 documents that structure parameters are passed by reference and that `const` prevents parameter modification ([Passing Parameters](https://docs.mql4.com/basis/function/parameterpass)). Next scoped source task: qualify only these two inputs as `const TimeframeData &data`, assign a new Build 5.24 header identifier, then compile the exact candidate in strict mode on G40. Current terminal/process state is NOT VERIFIED; Q10 R5-14/R5-16 remain natural-event blockers, and R6 stays unpromoted.

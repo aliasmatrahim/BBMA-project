@@ -1,0 +1,124 @@
+# Core fidelity traceability — task #292 (incremental, not full coverage)
+
+Owner baseline: `459c0588e625d7f7630f0fb5612b7f04fda496de`, Build 5.15.
+Retrieval authority: `docs/references/SOURCE_INDEX.md` at this same SHA; CP01 source recovery reused.
+The rows below cover the current atomic task only. F1–F6 tooling and 49/49 historical family closure are not the denominator of executable rules.
+
+| ID | Source rule / authority class | Contract → module → exact code | Test case / evidence | Classification and verification |
+|---|---|---|---|---|
+| A-BB20 | EXPLICIT SOURCE: primary PDF p1, Rule Index p1. ACCEPTED CORE: Core V2 §2, BB20 / deviation2 / Close. | M06 MA Source Contract, Bollinger section → M06 `SMA`, `StandardDeviation`, `CalculateBollinger` | `test_m06_data_validity.py`: complete population-SD control; short19/missing/nonfinite close cases. `m06_red.log` | CONFIRMED BUG: unavailable closes are skipped and divisor reduced; result is not BB20. Portable exact-body behavior VERIFIED; native/live impact NOT TESTED. |
+| A-SNAPSHOT | ACCEPTED CORE: same indicator set, closed source data. ENGINEERING MAPPING: period availability, finite positive input/output and internally consistent OHLC required before snapshot validity; these are data-integrity checks, not Oma Ally entry rules. | M06 MA Source Contract; M27 frozen-source ordering; M11 missing-history fail-closed → M06 `GetDataForTimeframe` | Same test: insufficient50, missing input, invalid OHLC, zero/NaN native-output fixture; boundary50 and flat controls | CONFIRMED BUG: `is_valid=true` before history/indicator checks. Terminal API fixtures isolate consumer logic; do not certify native iMA calculations. |
+| B-FRESHNESS | ACCEPTED CORE: M15 closed-candle processing and persistent source-owned structure; ENGINEERING SAFEGUARD: every selected component must match its valid, closed current source-timeframe snapshot for admission and revalidation. This adds no setup formula, owner reset or age expiry. | M12 `UpdateReEntryState` / H4 owner -> M15 `IsCurrentClosedSourceSnapshot` + `IsCandidateSourceSnapshotReady` -> M16 `IsDecisionSourceSnapshotReady` + `ValidateDecisionOwnerSnapshot` -> existing M17/preflight path | Build 5.21: `test_m12_stale_owner_refresh.py` (4 methods). Build 5.22: `test_candidate_component_source_snapshots.py` (2 methods: stale H1 Extreme, M15 MLV, H4 Extreme rejected; valid control admitted); CP06/07/08; exact source blob `205d4540eb5893c8cf7bfa9dd150f92c89ffbe97`. | **OWNER DEFECT CONFIRMED; BUILD 5.22 PORTABLE PROBE + STRICT NATIVE COMPILE PASS.** G40 MetaEditor 0 errors / 0 warnings. Strategy Tester and broker/runtime remain NOT RUN; owner Build 5.15 unchanged. |
+| A-BBSTATE | ACCEPTED CORE: Core V2 §4 distinguishes expanding/directional BB from flat/horizontal context; secondary BBMA technique pp.18–19 and Finale V02 OA-F-V02-001/002/003 corroborate that an outside close in flat BB is not Momentum. | M06 BB values → M07 `BuildBBShapeState` / `DetectBBState` → M27 H1/H4 snapshot storage. M10 `DetectCSM` independently reads BB geometry and does not consume the M07 enum. | CP10 static scan of owner Build 5.15; no dedicated M07 test or runtime was run. `BB_*` labels and `current_bollinger` have no downstream reader in the pinned source. | M07 contract added. Shape labels remain auxiliary/write-only; one-point flat tolerance and 0.9/1.1 width bands are engineering classifications, not source rules. No active signal mismatch confirmed. |
+| A-MOMENTUM-CSM-EXTREME | ACCEPTED CORE: Core V2 §§4 and 5.3; primary PDF pp.2, 5–6; secondary PDF pp.18–19; Finale V02 timestamps; residual HOLD closure decision. | M06 `CalculateBollinger` → M10 `DetectCSM` → M12 `DetectReEntry_Type3` / `DetectReEntryDirectionOwnerSignal`; M27 orchestrates closed-candle owners. M08 `UpdateExtremeLifecycle` → `IsExtremeLifecycleInvalidation` → local `IsExtremeMomentumInvalidation`. | CP10 exact owner-source static trace; M08 uses the same valid-data expansion/directional outside-close geometry as M10, but does not call `DetectCSM`. No focused helper-parity test or attributable runtime evidence in this task. | STATIC LINK MAPPED; M08/M10 test/runtime parity NOT VERIFIED. Preserve local owner separation and do not route M07 state into M10. No strategy rule or code behavior changed. |
+| A-EXTREME-F2 | ACCEPTED CORE: Core V2 §§5.1–5.4; primary PDF pp.2, 5–6; Finale V04/V05; F2 maturity decision; CF-02/03/04 closure. Exact candle Boolean/phase mapping is project inference per §5.4. | M06 closed OHLC/MA/BB → M08 RAW/lifecycle; M27 updates D1/M15/H1/H4 and resolves opposite supersession. M09 consumes reversal-confirmed M15 parent for separate TPW→MHV/MLV. M12N observes read-only. M13 consumes reversal-confirmed H1/H4 snapshots. M15 standalone H1 requires Mode 2 + RETEST_READY + active same-direction H4; M11 D1 gate applies. M16 revalidates exact M08 identity and frozen D1 authority. M17 maps Q5 H1 structural-wick SL / normal opposite-MA TPW. M11J D1O TPW is separate; gate OFF, M17 fails closed and M23 lifecycle is gated. | CP11 static trace of exact Build 5.15 owner at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`; source map/Core/decision/contract comparison. No CP11 tests or runtime run. | Static owner/Core path mapped; no new behavior mismatch confirmed. Focused F2/TPW parity and attributable runtime NOT VERIFIED; Strategy Tester NOT RUN.
+| A-MHV-MLV-F1 | ACCEPTED CORE: Core V2 §6.1–6.8; primary PDF pp.2, 7–8; Finale V05 00:18:07–00:28:12 / V01 00:59:18–01:00:05; user-approved F1 lifecycle mapping. Candle/state transitions are project mapping, not verbatim source formula. | M08 reversal-confirmed M15 Extreme → M09 canonical M15 TP-Wajib → post-TP loss → most-extreme body accumulation/freeze → later retest / same-cycle direction takeover / pre-takeover invalidation / opposite-cycle supersession. M27 updates M08 M15 before M09 in both directions. M13 exports M15 MHV; REM remains H4 RE + H1 Extreme + M15 MHV/MLV; M14 validates exact signature. M16 revalidates exact M15 MLV identity. M12N observes M15 MLV read-only; no H4/H1 MHV owner is present. | CP12 static owner trace at Build 5.15 SHA `459c0588e625d7f7630f0fb5612b7f04fda496de`; Core/F1/F2, PDF-derived rule index, Finale records, M13/M14/M16/M27 and C039/C040 scope compared. CP07 candidate freshness probe covers stale MLV admission only, not lifecycle parity. | **STATIC M15 CORE §6 MAPPING ALIGNS; no direct M09 mismatch confirmed.** Historical IG-01–IG-03 are stale, not patch items. No dedicated M09 contract; C039/C040 observer context is absent from owner; their decisions do not alone authorize MQL4 changes, so implementation needs a separate scoped contract/task. Focused parity/runtime NOT VERIFIED; Strategy Tester NOT RUN.
+| A-DIRECTION-CSD-ECSD | ACCEPTED CORE: Core V2 §7.1–7.3; primary PDF p.8; Finale V05 OA-F-V05-010–013, V06 OA-F-V06-002/004, V03 OA-F-V03-001/002/004. Direction/momentum roles are source rules; closed-body crossing and directional MA pairing are explicit project mappings, not verbatim PDF formulas. | M06 closed OHLC/MA/BB → M10 `DetectECSD`/`DetectCSD`/`DetectCSM`; raw `DetectECSD` is an inclusive MA-pair predicate that may overlap with same-direction CSD, while M12 and M27 normalize CSM > CSD > eCSD and M13 suppresses same-candle duplicates. M12 starts Type 3/4 candidates that require later retrace; M27 classifies H4 owner and freezes M15 signals, with M09 using CSD/eCSD as MHV direction takeover. M11J D1 CSD is context only and needs aligned D1 owner + fresh LTF Re-Entry; its eCSD watcher is raw/watch-only. M15 final authority, M16 exact revalidation. | CP13 static trace at owner Build 5.15 SHA `459c0588e625d7f7630f0fb5612b7f04fda496de`; Core/PDF index/Finale/M10/M12/M13/M12N/D1O-01/owner code compared. No focused precedence, retrace-parity or runtime test was run. | **STATIC CORE §7 MAPPING ALIGNS; no direct raw CSD/eCSD entry path found.** Same-candle precedence exists; D1 eCSD remains a raw watch diagnostic. M10 body-cross mapping remains an engineering interpretation. The known M06 incomplete-history defect still applies to owner Build 5.15; repair is candidate-scoped. Focused tests/runtime NOT VERIFIED. M08 uses a separate CSM-equivalent invalidation helper (CP10); direct helper parity/runtime remains NOT VERIFIED.
+
+| A-MTF-HIERARCHY | ACCEPTED CORE: §§9.0–10; primary PDF pp.1, 10, 12–13; Finale V05/V06 corroborate the higher-to-lower relationship; reconciled D1/MA50 decisions and F1/F2 maturity mappings. Exact D1 transition software state and H4 recovery are approved project mappings. | M27 closed D1/H4/H1/M15 snapshots → M11 D1 strategic owner + recovered H4 → M06–M12 child owners → M12N read-only relation → M13/M14 collect and validate exact REM/RRE/REE signatures → M15 separate confirmed-D1 entry gate → M16 identity revalidation → M17/M22. REM = H4 RE + H1 Extreme + M15 MHV/MLV; RRE = D1/H4 RE + H1 Extreme; REE = D1 RE + H4/H1 Extreme. MTF Extreme requires reversal confirmation but not standalone RETEST_READY; REM MHV/MLV requires formation plus frozen marked body but not retest. | CP11/CP12/CP14 static maturity/signature traces; CP17 Core §9/owner-gate trace; CP18 Build 5.23 D1O-TPW transition regression and exact-blob native compile. Core V2 blob e3a5a97d1a0a76dc9aaef51701e74ec5bd6b5f84 and retained PDF/Finale/F1/F2/D1-MA50 evidence compared. No new test/compile in CP19; runtime remains NOT VERIFIED. | **CORE §10 STATIC MAPPING VERIFIED; NO NEW SOURCE-TO-OWNER MISMATCH FOUND.** The exact MTF signatures and maturity boundaries remain unchanged. D1 is a separate M15/M16 strategic gate: REM has no fourth D1 component, and a D1 Re-Entry component in RRE/REE does not substitute for confirmed M11 ownership. Valid structures may remain observable upstream while M15/M16 block execution for opposite, transition or unresolved D1 ownership. CP18 candidate Build 5.23 also blocks the separate D1O-TPW extension during transition/unresolved without changing its confirmed-owner counter-direction allowance. D1 TPW lifecycle remains OFF; C039/C040 and runtime remain separate open gaps. |
+| A-REENTRY | ACCEPTED CORE: §§8.1–8.6; primary PDF pp.9–10 / Rule Index pp.9–10; Finale V05/V06. Type-specific forms are source-backed; Type1 geometry, IsNear < 2 points, and exact Boolean timing are project/engineering mappings. | M06 closed OHLC/MA/BB → M10 CSM/CSD direction precursors → M12 Type1–4 persistent owners; M27 updates D1/H4/H1/M15 closed snapshots → M13/M14 exact REM/RRE/REE collection/validation → M15 candidate/final authority → M16 owner revalidation → M17/risk/M22 live-price execution. M11J D1O-01 separately uses D1 EntryCandle as activation and requires fresh LTF RE after it. | CP14 exact Build 5.15 static trace: M12 TryStartSpecificReEntry, ConfirmReEntryState, M11J UpdateD1OpportunityJourney / IsFreshOpportunityReEntry, M13/M14, M15/M16, M27. CP15 directly inspected primary PDF pp.9–10 in text and rendered form; attachment SHA-256 matches SOURCE_INDEX (`3e6065dd97c20951bd8af96bc81b81ca138800184be6fc4740a32aa4ab0a9c9c`). No runtime/test/compile run; G40 qualified history NOT VERIFIED. | STATIC §8 PATH MAPPED; CP15 confirms sources set no Type2/3/4 overlap priority. CP16 records the approved project policy to retain Type3→Type4→Type2→Type1 on an empty owner, matching Build 5.15; this is not a source rule and does not claim an observed overlap. No code or runtime changed; focused parity/runtime NOT VERIFIED.
+
+| A-CORE-EXCLUSIONS | ACCEPTED CORE §11; current Q5 rebaseline; explicit closure decisions. Personal workflow/claims and EA machinery are not universal BBMA Strategy-Core rules. | Source classification → M01–M27/M11J/M12N: M17 SL/TP, M18 label-only scoring, M19 risk, M20 portfolio, M21 sizing, M22 broker execution, M23 lifecycle, M24 recovery, M25 display, M26 init and M27 orchestration remain project implementation layers, not Core signal rules. C039/C040/C041 stay bounded context; D1O-01 is a labelled project extension. | Core §11, SOURCE_INDEX, 49-family rebaseline 12d052a9563e1da9c1492192a381e5966eebf15c and closure decisions 6ac361e12c4deefd5d37f92c7550a6e12076534e/e06ae1bcbc3a2facf6a4824133fe8f6114687e64/334de51769ea5b73e005f7e09c668179e9aadadf. CP20 static check only; no tests/runtime. | 49/49 families explicitly classified; 0 unresolved Core semantic HOLDs. Classification completeness does not mean 49 executable entries or runtime certification. H4-only preference, win-rate samples, personal risk/leverage/lot/portfolio rules, MA10+allowance SL method, psychology, guarantees and EA plumbing remain excluded from universal Core. |
+
+Scope exclusions: HOLD/source-conflict rules remain non-executable. No indicator period/method, entry signature, expiry, exit, risk, execution or M12N-policy change is authorized by these findings.
+
+CP03 update: A-BB20 and A-SNAPSHOT repaired in Build 5.20 (`V520_M06_COMPLETE_DATA_20261022`). Full-period input checks and post-calculation validity now reject the failing fixtures. Exact-body tests 15/15; complete repository pytest 87/87; native strict compile 0 errors / 0 warnings. See `build520_manifest.json`. Both rows remain **NOT RUNTIME VERIFIED**; no eligible historical Strategy Tester or end-to-end order replay has certified the repair. B-FRESHNESS is unchanged and still pending reproduction.
+
+Atomic repair exit: expected failing probes become green on the smallest source change, complete-data controls remain unchanged, unique build identity, native strict compile and scope regression evidence captured. Qualified Strategy Tester and source-to-runtime validation remain separate mandatory gates; a blocked gate is not PASS.
+
+## CP06 — B-FRESHNESS candidate result (2026-10-26)
+
+Owner Build 5.15 reproduction: an unreadable H1 refresh leaves the confirmed M12 owner intact; an unreadable H4 refresh leaves the active H4 directional owner intact. In both cases the old standalone H1 Re-Entry candidate is admitted by M15 and exact-owner revalidated by M16. The M27 decision-state branch then dispatches to `RunEntryPreflightAndExecute`.
+
+Candidate Build 5.21 change: M15 checks that each Re-Entry component's timeframe data is valid, closed and matches the current `TimeframeSnapshot`; H1 standalone Re-Entry/Extreme and H4-aligned opportunity paths also require the current same-direction H4 owner. M16 repeats the snapshot check before setting `DEC_VALIDATED`. Persistent owners are retained and no age TTL is added.
+
+Evidence: `blueprint/tests/test_m12_stale_owner_refresh.py` executed exact production bodies with terminal/logging/preflight stubs. RED: invalid-H1 and invalid-H4 scenarios reached M15/M16 and the preflight boundary; forced M16 cases also passed. GREEN on Build 5.21: those invalid-source paths fail closed, owner states remain, forced M16 decisions reject, and valid H1/H4 control still reaches the preflight stub. M17/risk/portfolio ordering is statically checked; those broker-dependent gates were not executed.
+
+Classification: **owner bug reproduced; candidate fix VERIFIED by portable exact-source tests; native/runtime NOT TESTED**. The live owner branch is unchanged. G40 qualified-history gate and overall rule-to-runtime audit remain open.
+
+## CP08 — all-component freshness and native compile (2026-10-27)
+
+Build 5.22 extends the M15/M16 data-integrity gate from Re-Entry-only components to every frozen candidate/decision component: Re-Entry, Extreme, MHV and MLV. Exact source functions are `IsCurrentClosedSourceSnapshot`, `IsCandidateSourceSnapshotReady` and `IsDecisionSourceSnapshotReady`; M16 calls the revalidation before setting `DEC_VALIDATED`. Owner identities remain stored.
+
+The two Build 5.22 portable test methods reject three stale-component cases and admit the valid control. Exact-source strict MetaEditor compile on G40 passed with **0 errors / 0 warnings**. Evidence: `build522_native_compile_g40_20261027.log`; source, log and EX4 hashes are in `build522_manifest.json`.
+
+This compile does not certify live runtime. The qualified-history gate remains **NOT VERIFIED**, Strategy Tester is **NOT RUN**, and the M06 Build 5.20 row-level runtime impact remains unverified.
+
+## CP30 — Accepted Core pseudocode audit: Re-Entry path (2026-10-28)
+
+Status: **STATIC CORE-TO-OWNER COMPARISON COMPLETE / ORDINARY ENTRY TIMING NOT RUNTIME VERIFIED**. This section extends the existing fidelity matrix; it does not add a BBMA rule or duplicate the earlier CP14 source/consumer audit.
+
+### Authority and scope
+
+- Retrieval followed the live `docs/references/SOURCE_INDEX.md` at audit branch blob `54ec43b6d0f73c9da66e9061481f18deef1ee515`, then accepted Core V2 blob `e3a5a97d1a0a76dc9aaef51701e74ec5bd6b5f84` (§§8.1–8.6, 9.3 and 10), M12 contract blob `6d9f50ae07aec988de346ffb2cc66ed1a90e2559`, and the existing CP14/CP16/F6 evidence.
+- Live implementation baseline is `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`, Build 5.15, source blob `09de8b80fdaeeb2fd614de0a1826134e9a8b2411`. Build 5.28 on PR #293 is an audit candidate, not the active owner.
+- This pass covers M12 Type 1–4 lifecycle, the closed-candle/next-candle timing boundary, and the M13/M14/M15/M16 consumers needed to decide whether a confirmed Re-Entry can become a decision. It does not re-run CP14 or earlier exact-source probes.
+
+### Pseudocode derived from accepted Core
+
+```text
+ON M27 M15-owned processing pass:
+  build the latest closed D1, H4, H1, and M15 snapshots
+  for each source timeframe and direction:
+    if the current source snapshot is invalid, unclosed, or has no candle time:
+      retain the structural M12 owner, mark this source refresh unusable
+      do not admit a new decision that depends on the unreadable snapshot
+    else if this source candle was already processed:
+      do nothing
+    else:
+      classify same-candle direction/momentum context using current project precedence
+      if an opposite valid direction/momentum owner supersedes this direction:
+        clear this direction candidate/confirmed owner
+      else if the active Re-Entry has structurally failed its MA5/MA10 close side:
+        clear it
+      else if no Re-Entry owner exists:
+        if CSM precursor: start Type 3 candidate
+        else if CSD precursor: start Type 4 candidate
+        else if MA5/MA10 collide with Mid BB: start Type 2 candidate at candle 1
+        else if valid direction/momentum owner exists: retain Type 1 direction context
+      else if Type 1 direction context exists:
+        require pause plus positive retrace/cluster evidence; do not use absence of CSM alone
+        when the relevant MA5/MA10 cluster is reached and the close remains on the valid side:
+          confirm Type 1
+      else if Type 2 candidate exists:
+        reset if collision breaks; otherwise count distinct consecutive closed candles
+        after at least 3 qualifying candles, require valid MA5/MA10 retest to confirm
+      else if Type 3 candidate exists:
+        only a later closed candle reaching MA5 or MA50 on the valid side can confirm
+      else if Type 4 candidate exists:
+        only a later closed candle reaching MA5/MA10 on the valid side can confirm
+      on confirmation:
+        ConfirmationCandle = the fully closed source candle that validated the setup
+        EntryCandle = metadata for the immediately following live source candle
+        export only the confirmed owner; M12 itself does not place an order
+      keep the owner until structural invalidation/transfer; do not apply generic candle TTL
+
+  collect the exact MTF signatures; preserve M15 final selection and M16 revalidation
+  apply H4/D1 owner and current-source gates before downstream preflight/execution
+```
+
+### Static crosswalk to Build 5.15
+
+| Core expectation | Exact owner implementation | Audit result |
+|---|---|---|
+| Closed source candles only; duplicate candle is not processed twice | `UpdateReEntryState` rejects invalid/unclosed inputs and ignores `candle_time <= LastUpdateCandleTime` (source lines 4508–4520); M27 updates each D1/H4/H1/M15 owner from its timeframe snapshot (13502–13530) | **STATIC MATCH** |
+| Type 1 requires prior valid direction, structural pause/retrace, and MA5/10 support/resistance; no arbitrary count or TTL | `DetectReEntryDirectionOwnerSignal`, `AdoptType1DirectionOwner`, `IsType1StructuralRetraceEvidence`, `BeginType1RangingCandidate`, and Type 1 confirmation (4254–4271, 4359–4372, 4390–4430, 4594–4639, 4651–4685) | **MATCH AT PROJECT-MAPPING LEVEL**; exact ranging geometry is an engineering mapping, not verbatim source formula |
+| Type 2 uses MA5/10 + Mid BB collision, MA50 as stronger confluence, and at least three candles | `DetectReEntry_Type2` uses `IsNear`; `StartSpecificReEntryCandidate` sets 3; candidate processing counts distinct qualifying closes before confirming (4273–4289, 4453–4459, 4692–4716) | **STATIC MATCH**; numeric `IsNear` tolerance remains project configuration |
+| Type 3 is CSM then later MA5/MA50 retrace; Type 4 is CSD then later MA5/10 retrace | `DetectReEntry_Type3/4`, `TryStartSpecificReEntry`, and later-candle candidate handling (4291–4306, 4472–4495, 4719–4734) | **STATIC MATCH**; empty-owner order is project policy Type3→Type4→Type2→Type1, approved in CP16, not source precedence |
+| Confirmed signal is setup identity; M15/M16 remain final authority; standalone H1 needs same-direction active H4 owner | `ExportConfirmedReEntrySignal`, `BuildConfirmedReEntryCandidate`, M27 assembly (4750–4771, 6639–6685, 13591–13630) | **STATIC PATH MAPPED**; see confirmed freshness defect below |
+| Confirmation uses a fully closed validation candle; eligibility begins in the immediately following live source candle, with no extra full-candle delay | `ConfirmReEntryState` stores `ConfirmationCandle=data.candle_time` and `EntryCandle=data.candle_time+timeframe seconds` (4330–4348); F6 maps the ordinary path through same-pass M15/M16/preflight but still requires an `OrderOpenTime` trace | **STATIC ONLY / RUNTIME NOT VERIFIED** |
+
+### Findings and limits
+
+1. **Confirmed owner-side stale-source admission defect (already reproduced; not re-tested).** Build 5.15 retains a structural Re-Entry/H4 owner when an H1/H4 refresh is unreadable. The owner path can still admit the stale H1 candidate through M15/M16 to preflight. CP06 records the exact-source reproduction; candidate Build 5.22 adds current closed-snapshot checks for every decision component and passed its portable probe plus native strict compile in CP08. Owner Build 5.15 is unchanged; the candidate is not promoted.
+2. **Confirmed upstream data-validity defect (already audited; not re-tested).** Build 5.15 M06 can accept incomplete BB20/indicator history after skipping unavailable closes. That makes Re-Entry inputs unreliable on incomplete history. The Build 5.20 repair remains candidate-scoped; current owner is unchanged.
+3. **Timing is not closed by static code.** The metadata formula `ConfirmationCandle + period seconds` is a nominal next-period boundary. It is not proof that M22 sent or filled inside the immediately following actual source candle. At a weekend/session gap, compare against the next actual source-bar timestamp rather than assuming the arithmetic timestamp is an existing candle. This edge is especially relevant to D1O-01 because that separate opportunity path consumes `EntryCandle` as `ActivationTime`; the ordinary standalone path uses the live M15 decision/preflight flow.
+4. No new Type 1–4 strategy mismatch was confirmed by this pseudocode pass. Type 1 geometry, collision tolerance, same-candle signal precedence, and Type 2/3/4 arbitration remain explicit project mappings/policy; no fixed expiry, extra candle wait, or new entry authority was added.
+
+### Required timing trace before any PASS claim
+
+Capture one isolated Strategy Tester or already-authorized runtime event on the exact candidate/build and record, in the same broker-server time basis: symbol; source timeframe; `ConfirmationCandle`; computed `EntryCandle`; actual next source-bar `iTime` and its close; M15 processing-cycle timestamp; M15 decision ID/time; M16 validation time/state; M22 `OrderSend` request time; ticket and broker `OrderOpenTime`; source-snapshot validity/identity; and any gate rejection reason.
+
+Expected result: the validation candle is closed before the M15/M16 decision, the first eligibility window is the immediately following actual live source candle, and no extra full source-timeframe close is required. If a gate delays the decision, retain its reason and classify the observed timing; do not infer PASS from `EntryCandle` alone. Include a contiguous-bar case and a session-gap case. Qualified history and tester prerequisites must pass first.
+
+Validation in CP30: static repository comparison only. No test, compile, Strategy Tester, broker runtime, order, source change, merge, terminal restart, or trading activation was run.

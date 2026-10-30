@@ -1,7 +1,7 @@
 # CORE-V2-F6 — Re-Entry Validation-Candle / Entry-Candle Timing Verification
 
 Date: 2026-08-22
-Status: **STATIC TIMING VERIFIED / METADATA CORRECTED — NO EXTRA ENTRY DELAY ADDED; NATIVE METAEDITOR + RUNTIME ORDER-TIME TRACE STILL REQUIRED**
+Status: **STATIC ORDINARY-ENTRY TIMING MAPPED / D1O-01 ACTIVATION USE VERIFIED; NO EXTRA ORDINARY ENTRY DELAY; NATIVE + RUNTIME TRACE REQUIRED**
 Branch: `blueprint-dev`
 
 ## Question
@@ -20,17 +20,21 @@ Therefore the existing closed-candle architecture already maps the source wordin
 
 Adding another mandatory full-candle wait would create a third-candle execution and would be an unsupported extra delay.
 
-## Metadata correction
-`ReEntryData.EntryCandle` previously equalled `ConfirmationCandle`, which was misleading even though runtime execution timing was already next-candle. F6 changes **metadata only**:
+## EntryCandle timestamp correction
+`ReEntryData.EntryCandle` previously equalled `ConfirmationCandle`, which was misleading even though ordinary order timing is already next-candle after closed-source processing. F6 corrects the source-timeframe timestamp:
 - `ConfirmationCandle = data.candle_time`;
 - `EntryCandle = data.candle_time + source timeframe seconds`.
 
-`EntryCandle` is not consumed by strategy eligibility or execution authority elsewhere, so this correction does not alter signal qualification, ordering, SL/TP, lot, risk or OrderSend timing.
+`EntryCandle` is not a general broker-order timestamp and does not schedule the normal standalone Re-Entry order. **CP14 correction:** the approved M11J D1O-01 path does consume it for D1 Re-Entry opportunity eligibility. When a confirmed D1 Re-Entry installs that opportunity, `UpdateD1OpportunityJourney()` uses `d1RE.EntryCandle` as `ActivationTime`; `BuildD1OpportunityCandidate()` then requires confirmed H1/M15 Re-Entry readiness to be strictly later than activation. The corrected timestamp therefore sets the D1O freshness boundary, consistent with D1O-01's post-activation rule. The previous statement that it was unused by all strategy eligibility was overbroad. This does not add a later full-candle wait to the normal M12/M15 broker-order path.
+
+## CP14 current-owner correction — D1O-01 consumes EntryCandle (2026-10-26)
+
+The Build 5.15 owner code confirms the downstream use: `UpdateD1OpportunityJourney()` sets the D1 RE activation boundary from `EntryCandle` (with the existing source-duration fallback), while `IsFreshOpportunityReEntry()` compares each lower-timeframe RE ready time strictly against that boundary. This affects only the approved D1 opportunity freshness gate. M15 remains final authority, M16 revalidates, and the ordinary order path still uses live broker price after closed-candle processing.
 
 ## Classification
 - first validation / second entry wording: **DIRECT FINALE CLARIFICATION**;
 - proof that current architecture already satisfies it: **PROJECT STATIC EXECUTION-MAPPING VERIFICATION**;
-- EntryCandle timestamp correction: **OBSERVABILITY/METADATA REPAIR ONLY**.
+- EntryCandle timestamp correction: **OBSERVABILITY + approved D1O activation-boundary mapping; not a broker-order delay**.
 
 ## Remaining verification
 1. Native MetaEditor compile: **0 errors / 0 warnings** for integrated F1-F6 source.

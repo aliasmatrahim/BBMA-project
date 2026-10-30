@@ -1,0 +1,81 @@
+{
+  "schema": "bbma_candidate_native_compile_manifest_v1",
+  "task": "CORE-FIDELITY-292 / Issue #292 / PR #293",
+  "candidate": {
+    "build": "5.27",
+    "build_tag": "V527_M11_CONST_READONLY_OWNER_INPUTS_20261027",
+    "source_rev": "CORE_FIDELITY_292_M11_CONST_READONLY_002_20261027",
+    "branch": "audit/core-fidelity-20261021",
+    "parent_commit": "98a7a0eacb18ad5301ab6b9bd9396cef67d6054e",
+    "source_path": "blueprint/source/BBMA_EA.mq4",
+    "base_git_blob": "f134ff476a16b5834798fff9b3de90bfafbeb495",
+    "source_git_blob": "3cac5ac00d8c8241201a435e7284bd5092c847d4",
+    "g40_staging_path": "C:\\Users\\AFIQMA~1\\AppData\\Local\\Temp\\BBMA_CORE_FIDELITY_BUILD527_EXACT\\BBMA_EA.mq4",
+    "g40_raw_source_sha256": "D1E687DDFEBB19FA0020A46D28954E00D4E0D47A0F91A2D33437FAF036F43D37",
+    "g40_source_bytes": 542921,
+    "line_endings": "LF in canonical Git blob and G40 staging; git hash-object matches candidate blob"
+  },
+  "change": {
+    "header": "//| Version 5.2.7 - M11 Const Read-Only Owner Inputs             |",
+    "const_qualified_parameters": [
+      "M11_ResolveD1OwnerEpochStart: const D1MajorTrendOwner &owner",
+      "TraceD1MajorTrendOwner: const PairState &state",
+      "D1OpportunityIsConfirmedRE: const ReEntryData &reEntry",
+      "SelectConfirmedD1OpportunityRE: const ReEntryData &buyState, const ReEntryData &sellState",
+      "D1OpportunityExtremeMature: const ExtremeLifecycleData &extreme",
+      "SelectMatureD1OpportunityExtreme: const ExtremeLifecycleData &buyState, const ExtremeLifecycleData &sellState",
+      "D1OpportunityTPWCompletedSince: const ExtremeLifecycleData &extreme"
+    ],
+    "functions_changed": 7,
+    "by_reference_parameters_constified": 9,
+    "function_bodies_changed": 0,
+    "call_sites_changed": 0,
+    "callsite_count_drift": 0
+  },
+  "static_regression": {
+    "status": "PASS",
+    "baseline": "Build 5.26 / f134ff476a16b5834798fff9b3de90bfafbeb495",
+    "baseline_expected": "RED: nine read-only inputs lack const",
+    "candidate": "GREEN: all nine const-boundary invariants hold",
+    "unique_allowlisted_replacements": 11,
+    "reverse_allowlist_restores_baseline_exactly": true,
+    "direct_input_write_matches": 0,
+    "call_occurrences": {
+      "M11_ResolveD1OwnerEpochStart": 2,
+      "TraceD1MajorTrendOwner": 5,
+      "D1OpportunityIsConfirmedRE": 4,
+      "SelectConfirmedD1OpportunityRE": 2,
+      "D1OpportunityExtremeMature": 5,
+      "SelectMatureD1OpportunityExtreme": 2,
+      "D1OpportunityTPWCompletedSince": 3
+    }
+  },
+  "native_compile": {
+    "status": "PASS",
+    "compiler": "HFM MetaEditor 5.0.0.2425",
+    "strict": true,
+    "errors": 0,
+    "warnings": 0,
+    "elapsed_ms": 954,
+    "log_path": "C:\\Users\\AFIQMA~1\\AppData\\Local\\Temp\\BBMA_CORE_FIDELITY_BUILD527_EXACT\\metaeditor_build527.log",
+    "log_sha256": "2130A74B495035C8AC215DB51F9946985CEAF8EF0230C2B196C3E97B454CBF2B",
+    "ex4_path": "C:\\Users\\AFIQMA~1\\AppData\\Local\\Temp\\BBMA_CORE_FIDELITY_BUILD527_EXACT\\BBMA_EA.ex4",
+    "ex4_sha256": "0734C90F4DFAFA54357C4C9282DA88CC53DF64CD4AA1ED595AEE7087E351140C",
+    "ex4_bytes": 777206
+  },
+  "runtime": {
+    "strategy_tester": "NOT RUN",
+    "broker_runtime": "NOT RUN",
+    "live_orders": "NONE",
+    "mt4_or_metaeditor_after_compile": "NOT RUNNING"
+  },
+  "governance": {
+    "owner_branch": "d1-owner-dev",
+    "owner_head": "459c0588e625d7f7630f0fb5612b7f04fda496de",
+    "owner_build": "5.15",
+    "current_queue_reported_owner_head": "0034f31aced4e630d0b76ce64009a41078ba7cb3",
+    "pr_number": 293,
+    "pr_state": "OPEN_DRAFT_DO_NOT_MERGE",
+    "q10_phase_l_r5": "INCOMPLETE; R5-14/R5-16 await natural broker events; no event synthesis or terminal restart"
+  }
+}

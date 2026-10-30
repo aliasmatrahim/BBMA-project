@@ -33,35 +33,37 @@ Where Finale merely confirms a rule already present in the current Core, it is c
 
 **Decision:** **KEEP.** No Strategy-Core change required here. Flat/expanding BB remains an important semantic distinction.
 
-## 3. Extreme — KEEP / CLARIFY, with unresolved exceptions
+## 3. Extreme — KEEP / CLARIFY; accepted F2 lifecycle
+
 ### Normal/basic Extreme lifecycle
-1. Relevant MA5 or MA5/MA10 extends outside the appropriate outer BB.
-2. Reversal candle confirms the Extreme context.
-3. Retest is the point of standalone Extreme entry.
-4. Finale clarifies that the retest may take more than one candle and that condition 1 alone is not an entry.
-5. A later outside-BB close / momentum condition voids the Extreme context.
+1. The relevant MA5 or MA5/MA10 extends outside the appropriate outer BB under the strict Core detector.
+2. A reversal candle confirms the Extreme context.
+3. A later retest is the standalone Extreme entry stage; the retest may span multiple candles.
+4. A later accepted outside-BB/Momentum invalidation voids the lifecycle before maturity promotion.
 
 **Finale evidence:** V04 00:27:23–00:31:55; 00:37:27–00:40:53; V05 00:07:05–00:08:22.
 
-**Current-Core comparison:** The existing M08 contract already records Extreme as a signal, reversal confirmation, and the retest candle as entry. The current EA intentionally keeps standalone Extreme non-executable because the earlier sources did not provide a sufficiently deterministic universal reversal/retest algorithm. Finale strengthens and clarifies this lifecycle but still introduces unresolved exceptions, so it does not yet justify enabling standalone Extreme in Mode 2.
+**Current-Core / owner-code comparison (CP11, 2026-10-26):** Core V2 §5.4 and the user-approved F2 decision now provide a deterministic project mapping. Build 5.15 contains the M08 RAW → REVERSAL_CONFIRMED → RETEST_READY lifecycle. Reversal-confirmed H1/H4 snapshots feed M13's unchanged REM/RRE/REE signatures. Standalone H1 Extreme is eligible only in Mode 2 from exact RETEST_READY state, with M15's same-direction active H4 and M11 D1 gates, M16 exact-identity revalidation, and M17's approved SL/TP mapping. RAW and reversal-only standalone signals remain non-executable.
+
+This is a static owner mapping, not a claim of focused lifecycle tests, broker/runtime verification or production readiness. The exact close-progression/body-edge/first-touch formulas are the minimal project mapping in Core V2 §5.4, not verbatim Oma Ally formulas.
 
 ### Normal Extreme TP Wajib
-- Extreme SELL: opposite MA5/MA10 Low area is taught as TP Wajib.
-- Extreme BUY: opposite MA5/MA10 High area is taught as TP Wajib.
-- Mid BB is presented as a farther/maximum possibility rather than the sole first mandatory target.
+- Extreme SELL: the opposite MA5/MA10 Low area is the normal first TP-Wajib area.
+- Extreme BUY: the opposite MA5/MA10 High area is the normal first TP-Wajib area.
+- Mid BB is farther/maximum context, not a required extension after first valid opposite-MA completion.
+- M17's exact H1 zone-edge coordinate on the RETEST completion candle is the separate, approved Q5 project execution mapping. It does not alter the source-owned TP-Wajib area.
+- M11J's D1 `D1_OPP_EXTREME_TPW` route is a distinct project extension; it is not the standalone H1 path. Its dedicated lifecycle feature gate is currently OFF and M17 fails closed rather than substituting a legacy TP.
 
-**Finale evidence:** V04 00:41:02–00:42:42; V05 00:16:41–00:18:02.
+**Finale evidence:** V04 00:41:02–00:42:42; V05 00:16:41–00:18:02. Core basis: §5.2 and residual HOLD closure decision.
 
-**Current-Core comparison:** The existing digest already says mandatory profit-taking after Extreme is toward MA5/MA10 or Mid BB. Finale makes the normal first target more explicit. This currently affects only the dormant/non-executable standalone Extreme contract; executable Mode 1/Mode 2 trades obtain TP from their validated Re-Entry source component.
+### Exception disposition
+- **CF-02:** touch-only MA5 does not create a canonical Extreme; strict outside-BB remains.
+- **CF-03:** no universal close-inside-BB rule and no blanket outside-BB reversal exception; accepted invalidation keeps precedence.
+- **CF-04:** advanced repeated-LTF Extreme without a fresh local TPW/MHV is bounded by its independently valid immediate HTF parent; it does not apply to D1.
 
-### Unresolved Extreme exceptions
-- V05 says MA5 merely touching the outer BB may sometimes qualify, although outside is preferred.
-- V05 says a reversal candle may sometimes remain outside BB if it has returned inside MA5.
-- V04/V05 mention advanced/higher-TF-context Extremes without the normal TP Wajib.
+**Decision:** Keep the accepted normal lifecycle and bounded §5.3 exceptions. Do not reinstate the old claim that standalone Mode 2 Extreme is wholly non-executable; do not expand beyond the approved mappings.
 
-**Decision:** **KEEP/CLARIFY** the normal Extreme lifecycle and TP interpretation. **HOLD** all three exceptions. Do not relax the current stricter detector or enable standalone Extreme until these exceptions have deterministic source resolution.
-
-## 4. MHV / MLV — KEEP / CLARIFY at Core level; implementation audit required
+## 4. MHV / MLV — KEEP / CLARIFY; Build 5.15 owner mapping reconciled statically
 ### Terminology
 Finale repeatedly uses **MHV = Market Hilang Volume**. The primary summary PDF uses `MLV`; the historical technique PDF uses `MHV`.
 
@@ -77,7 +79,9 @@ Finale repeatedly uses **MHV = Market Hilang Volume**. The primary summary PDF u
 
 **Finale evidence:** V05 00:18:07–00:28:12; V01 00:59:18–01:00:05.
 
-**Current-Core comparison:** The PDF-derived Core already contains the outer-BB void rule, body marking/retest, and double/triple morphology. Finale mostly corroborates and expands the visual explanation. However, the active M09 implementation does not fully represent that Core contract; this is tracked separately in `BBMA_FINALE_CORE_IMPLEMENTATION_GAP_REGISTER.md`.
+**Current-Core / owner comparison (CP12, 2026-10-26):** The Build 5.15 M09 owner statically maps the accepted §6 lifecycle on M15: reversal-confirmed Extreme parent, normal TP-Wajib, post-TP loss phase, body reference freeze, retest, invalidation before same-cycle direction takeover, and opposite-cycle supersession. M13/M14 preserve the exact REM signature and accept a mature frozen M15 MHV without requiring retest; M16 validates the exact component identity. M12N remains a read-only M15 overlay. No direct canonical M09 mismatch was confirmed. Focused parity/runtime remains NOT VERIFIED.
+
+The M09 contract is not separately documented. Higher-timeframe MHV watch/context behavior in C039/C040 is also absent from the pinned owner (no H4/H1 MHV state or `H4_MHV_WATCH` was found); track it as separate extension coverage requiring its own scoped contract/task; the decisions do not authorize an MQL4 change by themselves, and the absence is not a Core §6 M09 mismatch.
 
 **Decision:** **KEEP/CLARIFY** at Strategy-Core level. H&S-like appearance remains non-mandatory.
 
@@ -95,9 +99,11 @@ Candle direction is a **signal**, not the entry setup. Wait for Re-Entry.
 
 **Current-Core comparison:** These semantics already exist in the M10 contract and current Mode 1/Mode 2 eligibility design.
 
+**Current-owner trace (CP13, 2026-10-26):** `DetectECSD` is the inclusive raw MA-pair predicate; normalized M12/H4 classification is CSM > CSD > eCSD and M13 suppresses a same-direction same-candle eCSD duplicate under CSD. The M27 M15 input is selected from the latest-closed source and M09 validates closed data before direction takeover. CSD/eCSD remain context signals; the M11J D1 CSD opportunity path requires a fresh LTF Re-Entry and remains subject to M15/M16 authority. The D1 eCSD logger is raw/watch-only. M06 incomplete-history input quality remains a separate owner Build 5.15 defect with candidate-only repair. Static mapping only; focused tests/runtime remain NOT VERIFIED.
+
 **Decision:** **KEEP.** No raw eCSD/CSD execution.
 
-## 6. Re-Entry — KEEP / CLARIFY, with one timing semantic to verify
+## 6. Re-Entry — KEEP / CLARIFY, static owner map complete; runtime timing pending
 ### Entry zone and MA5/MA10 validity
 - Re-Entry follows direction/momentum and is the actual setup/entry zone.
 - MA5 is the main retest area and MA10 confluence strengthens context.
@@ -113,9 +119,11 @@ Candle direction is a **signal**, not the entry setup. Wait for Re-Entry.
 
 **Finale evidence:** V06 00:30:46–00:31:06; 00:52:48–00:56:27.
 
-**Current-Core comparison:** M12 confirms only from a fully closed source candle. The EA then makes the decision/execution after that candle has closed, which operationally can place execution at the beginning/current price of the next candle. Therefore the Finale wording may already match the runtime architecture rather than require an additional one-full-candle delay. The current data field names (`ConfirmationCandle`, `EntryCandle`, `EntryPrice`) blur this distinction because confirmation metadata is stored from the closed validation candle while broker execution uses the later live market price.
+**Current-Core comparison:** M12 confirms only from a fully closed source candle. M27 can pass the candidate to the normal live-price execution path in that same closed-M15 processing pass; this statically maps to the immediately following source-TF candle, without an added full-candle wait. Runtime order-time confirmation remains pending.
 
-**Decision:** **CLARIFY / VERIFY SEMANTICS**, not an automatic code correction. Do **not** add another candle delay until the exact intended mapping is proven against chart/audio examples and runtime timestamps.
+**CP14 owner trace:** M11J D1O-01 also consumes D1 `EntryCandle` as the opportunity `ActivationTime`; fresh H1/M15 Re-Entry readiness must be strictly later. This is a D1 opportunity freshness boundary, not a general broker-order timer. The earlier F6 statement that `EntryCandle` is unused by eligibility was overbroad.
+
+**Decision:** **STATIC MAPPING RECORDED; RUNTIME TRACE PENDING.** Do not add another full-candle delay to ordinary Re-Entry execution without contradictory timestamp evidence. D1O-01's post-activation freshness rule remains a separate approved project extension.
 
 ## 7. Powerful Re-Entry / Type 2 — KEEP
 - MA5 + MA10 + Mid BB confluence is Powerful Re-Entry.
@@ -162,10 +170,10 @@ BBMA Finale does **not create a new BBMA strategy**. Relative to the current pro
 
 The strongest post-Finale gains are:
 1. stronger source confidence in the current expanding-BB momentum rule;
-2. clearer standalone Extreme reversal/retest lifecycle and TP Wajib interpretation, while still withholding ambiguous exceptions;
+2. clearer standalone Extreme reversal/retest lifecycle and TP Wajib interpretation; Core §5.3 resolves the touch-only and reversal-position conflicts and bounds the repeated-LTF exception;
 3. richer MHV/MLV retest/morphology explanation;
 4. stronger confirmation that eCSD/CSD are direction signals and Re-Entry is the entry setup;
 5. a useful first-candle-validation / second-candle-entry teaching phrase that must be mapped carefully to the existing closed-candle execution architecture;
 6. stronger higher-TF ownership/context for lower-TF signals.
 
-The most important practical finding is not that the current Core specification is broadly wrong, but that **some active implementation details—especially M09 MHV/MLV—do not fully express the already-supported source semantics**. Those are separated into the implementation gap register so source changes are not confused with coding fixes.
+The current Build 5.15 owner has a canonical M09 MHV/MLV lifecycle; CP12 records its static Core §6 owner/consumer mapping. Historical IG-01–IG-03 are stale against this owner and must not be treated as patch instructions. The standalone M09 contract and C039/C040 HTF observer extension remain documentation/coverage gaps; runtime verification remains separate. CP14 statically maps Core §8 Re-Entry through M12 and downstream M13/M14/M15/M16/M27 paths, and corrects the F6 finding that EntryCandle was unused by eligibility: approved M11J D1O-01 consumes it as the D1 activation boundary. M12's Type3→Type4→Type2 empty-owner start order remains implementation detail because reviewed sources assign no Type2/3/4 overlap precedence. CP15 directly confirmed against the supplied primary PDF (hash verified to SOURCE_INDEX) that pp.9–10 do not establish Type2/3/4 overlap priority. CP16 records the selected Type3→Type4→Type2→Type1 empty-owner order as project policy, without changing Core or claiming source precedence. CP17 statically mapped Core §9; CP18 resolves the project execution mapping so D1_TRANSITION and D1_OWNER_UNRESOLVED block D1_OPP_EXTREME_TPW. Its dedicated lifecycle gate remains OFF pending separate native/runtime prerequisites. CP19 statically reconciles accepted Core §10 exact REM/RRE/REE signatures, M08/M09 component maturity and the separate M11→M15/M16 D1 strategic gate using prior verified owner traces; no new source-to-owner mismatch was found and runtime remains unverified. CP20 revalidates Core §11 exclusions and the 49/49 semantic classification boundary; project risk, execution, lifecycle and dashboard modules remain implementation layers rather than universal BBMA signal rules.

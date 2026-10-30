@@ -1,8 +1,8 @@
 # BBMA Current Project State
 
-Updated: **2026-09-25**
+Updated: **2026-10-30**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`0034f31aced4e630d0b76ce64009a41078ba7cb3`**
+Owner head at reconciliation: **`459c0588e625d7f7630f0fb5612b7f04fda496de`**
 
 This file is the active current-state record. The pre-2026-09-09 historical `CURRENT.md` is preserved byte-for-byte at `blueprint/archive/CURRENT_pre_20260909.md`.
 
@@ -10,8 +10,37 @@ This file is the active current-state record. The pre-2026-09-09 historical `CUR
 - GitHub `aliasmatrahim/BBMA-project` is authoritative for live project state.
 - Strategy/source semantics are routed through `docs/references/SOURCE_INDEX.md` and the accepted Core/source evidence chain.
 - Canonical active EA path: `blueprint/source/BBMA_EA.mq4`.
-- Canonical owner candidate in this update: Build `5.14` / `V514_NMJE_P2_COUNTERFACTUAL_SHADOW_20260925`, source rev `NMJE_P2_COUNTERFACTUAL_SHADOW_004_20260925`; raw MQ4 SHA-256 `6C375BC36C5971097DE69B12586B1DD50F1445BE5E10D293A4D87CDCFC62C4EC`. This is tester-only/shadow research; P2 ordering remains HOLD. Q10 remains separately bound to its frozen exact Build 5.11 final-acceptance candidate.
+- Canonical active owner baseline: Build `5.15` / `V515_NMJE_P2_TARGETLESS_REPLAY_20260925`, source rev `NMJE_P2_TARGETLESS_REPLAY_001_20260925`, at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`. Build 5.14 and Build 5.11 references below are historical/shadow or frozen Q10 evidence, not the active owner source.
 - Q7/Q8 Build 4.86 artifacts remain historical verified integration/regression evidence. Q10 is bound to the later exact Build 5.11 final integration candidate; this is still not a production-readiness claim.
+
+## Core-fidelity current status — 2026-10-30
+
+Status: **PARTIAL — Build 5.28 targeted source regression PASS and exact-candidate native strict compile PASS (0 errors / 0 warnings); qualified history, Strategy Tester/runtime, and full Core-rule matrix remain open.**
+- Active owner baseline: Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`; PR #293 remains open/Draft/DO NOT MERGE.
+- Latest audit source candidate: Build 5.28 / `V528_M10_M11_CONST_DIRECTION_INPUTS_20261027`, exact Git blob `388ee68b5b8071d50dcf1dab1ddcb10733a120a9`; CP28–CP31 are on `audit/core-fidelity-20261021`.
+- At CP28/CP29, Desktop Commander quota blocked Build 5.28 staging, so the native compile was not yet tested. CP31 records exact G40 staging/hash verification and native strict compile PASS.
+- CP29 statically inventories 16 M11 functions with by-reference parameters. All read-only inputs are const-qualified; remaining mutable references are classifier/selector outputs or owner/journey state. CP29 makes no source change.
+- CP30 adds the accepted Core §8 Re-Entry pseudocode crosswalk to the existing source-fidelity matrix. Build 5.15 Type 1–4 mapping is static; stale-source admission and incomplete M06 history remain candidate-only repairs. No ordinary `OrderOpenTime` timing trace exists; session-gap `EntryCandle` mapping remains unverified.
+- CP31 verifies exact Build 5.28 staging (`388ee68b5b8071d50dcf1dab1ddcb10733a120a9`), raw SHA-256, and HFM MetaEditor strict compile PASS (0 errors / 0 warnings). No EA source or owner build changed.
+- Q10 Phase L R5 remains the highest-priority global acceptance task; R5-14/R5-16 require natural broker events. The last verified runtime checkpoint is dated 2026-09-24. CP31's post-compile G40 process snapshot showed no MT4, MetaEditor, or Strategy Tester process.
+- Remaining gate: establish a qualified history manifest for the Re-Entry trace. CP30's history gate remains NOT VERIFIED. Per `D:\BBMA\AGENTS.md`, CP31 read the shared `D:\MARKET_DATA_INDEX.md/.json`; its XAUUSD/GBPUSD research gate remains BLOCKED with `strategy_test_authorized=false` and does not qualify BBMA history for this trace. After the gate passes, capture an isolated tester trace with confirmation candle, actual next source bar (including a session gap), M15/M16, `OrderSend`, and `OrderOpenTime`. No merge, terminal restart, or trading activation.
+
+## Historical core-fidelity / traceability reconciliation through CP25 — 2026-10-27
+
+Status at CP15: **PARTIAL — BUILD 5.23 FOCUSED REGRESSION + EXACT-GIT-BLOB NATIVE STRICT COMPILE PASS; TESTER/RUNTIME AND FULL RULE MATRIX OPEN**.
+- Implementation owner remains Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`; Draft PR #293 carries the separate Build 5.23 candidate; CP18 resolves the D1 TPW transition project-policy gate.
+- M06 incomplete-history repair evidence from Build 5.20 remains candidate-scoped. It does not change the owner branch.
+- Finding B was reproduced on the owner path; Build 5.21 added the current closed-source gate for Re-Entry, and Build 5.22 extends it to every frozen component in M15/M16 without a new rule or owner reset.
+- CP08 verifies G40 native strict compile of the exact Build 5.22 Git blob: MetaEditor 5.0.0.2425, 0 errors / 0 warnings. Source/log/EX4 hashes are in the current manifest.
+- At CP08, G40 was online. The qualified-history gate was **NOT VERIFIED**: no `MARKET_DATA_INDEX*` was found in inspected BBMA roots, and the wider profile search hit its 3-second cap. Strategy Tester remained NOT RUN.
+- Static inventory remains lexical: 29 source headers, 431 functions, 1,478 calls, 502 cross-module call occurrences, 96 module edges and 364 function pairs. The main graph now links 338 typed cross-module fields and 317 struct-by-reference callsites. Static propagation resolved 344 context-insensitive origins with no unresolved/unbound/cyclic rows; 19 callsites carry multiple legitimate local/global or timeframe/direction origins. Ownership, const enforcement, full rule-to-runtime coverage and runtime remain PARTIAL.
+- No owner/production artifact, live order, terminal restart or trading activation changed.
+- CP10 maps accepted Core §4 across M06/M07/M08/M10/M12/M27. M07 shape labels are currently write-only; M10 CSM feeds M12 Type-3, while M08 checks a local CSM-equivalent predicate. Static trace only; focused parity/runtime remains NOT VERIFIED.
+- CP11 statically maps Core §5.1–5.4 through M06/M08/M09/M11J/M13/M15/M16/M17/M23/M27. The owner implements the accepted M08 maturity path; Mode-2 standalone H1 requires exact RETEST_READY plus owner gates. D1O TPW is separate and its lifecycle gate remains OFF/fail-closed. The stale Finale standalone status is corrected; no code, test or runtime state changed in CP11.
+- CP12 maps accepted Core §6 through the M08 M15 parent → M09 M15 MHV/MLV → M13/M14 REM → M16 identity path; M12N is read-only with an M15 overlay. IG-01–IG-03 are stale against Build 5.15. No direct M09/Core §6 mismatch was confirmed by static trace; standalone M09 contract and the C039/C040 HTF observer feature (which needs a separately scoped contract/task) remain open. No tests/runtime ran in CP12.
+- CP13 maps accepted Core §7 through M10 → M12/M13/M27 and the M11J D1CSD context handoff. Raw eCSD may overlap same-candle CSD, while M12/M27 precedence and M13 suppression normalize classification; D1 eCSD remains raw/watch-only. D1 CSD requires a fresh LTF Re-Entry; M15/M16 retain final authority. The stale M10 collector note is corrected. M06 incomplete-history quality remains a separate Build 5.15 owner defect with candidate-only repair. No owner code changed; focused parity/runtime remains NOT VERIFIED.
+- CP14 maps accepted Core §8 from M06/M10/M11J/M12 through M27, M13/M14, M15/M16 and downstream M17/risk/M22. M12's current Type3→Type4→Type2 start order is not assigned by reviewed sources; overlap precedence remains UNRESOLVED and no owner code changed. F6 audit now records D1O-01's EntryCandle activation use. Static only; no CP14 test/compile/Tester/runtime ran.
+- CP15 reopened primary PDF pp.9–10 from the supplied artifact and verified its SHA-256 matches SOURCE_INDEX. The PDF lists Type2/3/4 forms but supplies no overlap priority or mutual-exclusion rule; the M12 project-policy gate remains unresolved. No source code or runtime state changed.
 
 ## Current active workstreams / integrated state
 
@@ -132,3 +161,134 @@ Status: **BUILD 5.15 P2 TARGETLESS C044 REPLAY VALIDATED / P2 ORDERING HOLD / P5
 - PR #140 and #142 are already merged into the verified lineage; PR #131 remains gated by its exact C10 runtime acceptance.
 - Do not invent a Strategy-Core rule to fill source uncertainty or improve historical profitability.
 - Every EA source change requires a unique visible build identity and attributable native compile/runtime evidence.
+
+## CORE-FIDELITY-292 CP06 — 2026-10-26
+
+Status: **OWNER REPRODUCTION CONFIRMED; BUILD 5.21 CANDIDATE PORTABLE FIX VERIFIED; NATIVE/RUNTIME GATES OPEN**.
+
+- Owner baseline remains Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`. No owner branch or production artifact changed.
+- Exact-source reproduction confirmed that an unreadable H1 or H4 refresh preserves its structural owner, yet Build 5.15 still lets the old H1 Re-Entry candidate pass M15 and M16 to the preflight dispatch.
+- Draft PR #293 now carries a Build 5.21 candidate. M15 requires each Re-Entry component's exact latest closed timeframe snapshot; H1 standalone candidates also require readable H4 data and the active same-direction H4 owner. M16 repeats the source check before validation.
+- The M12/H4 owner remains stored through an unreadable refresh. There is no age-based expiry or lifecycle reset.
+- Portable exact-source regression probe: four test methods pass, covering unreadable H1, unreadable H4, forced M16 revalidation, a valid-data control and the static M17/risk/portfolio preflight order. The preflight stub stops before broker or order calls.
+- Build 5.21 native strict compile and Strategy Tester are **NOT TESTED**. The qualified G40 data gate remains blocked; there is no runtime, order or live-trading claim. Overall Core audit remains PARTIAL.
+
+
+## CORE-FIDELITY-292 CP07 — 2026-10-27
+
+Status: **BUILD 5.22 PORTABLE ALL-COMPONENT SOURCE GATE VERIFIED; NATIVE/RUNTIME GATES OPEN**.
+
+- Owner Build 5.15 remains unchanged. Draft PR #293 carries candidate Build 5.22.
+- A second stale-admission gap was reproduced: Build 5.21 checked current source snapshots only for Re-Entry components. Stale H1 Extreme, M15 MLV and H4 Extreme components could still pass M15/M16 identity gates.
+- Build 5.22 checks every candidate component against a valid, closed current source snapshot in M15 and repeats the check in M16. Owner persistence, no-age-expiry semantics, H4 alignment and signal/priority rules are preserved.
+- Two portable exact-source unittest methods pass across three stale-source cases and a valid control. Probe stops before broker APIs; no order/runtime execution occurred.
+- Native strict compile and Strategy Tester remain **NOT TESTED**. G40 compile/data gates are unavailable; overall Core audit remains PARTIAL.
+
+## CORE-FIDELITY-292 CP09 — 2026-10-27
+
+Status: **PARTIAL — CURRENT-SNAPSHOT SOURCE/CONTRACT LINKS RECONCILED; FULL RULE DENOMINATOR OPEN**.
+- Updated the incremental traceability row to map the Build 5.22 all-component source gate through M12/H4 → M15 → M16 → M17/preflight.
+- M15/M16 current-snapshot contract text now covers Re-Entry, Extreme, MHV and MLV; persistent owners and H4 dependency remain intact.
+- CP08 native compile remains PASS; qualified G40 history remains NOT VERIFIED and tester/runtime remain NOT RUN.
+- Local attachment copies for Core V2, Finale Master Index and implementation-gap register differ from live GitHub blobs; live GitHub sources were used.
+
+
+## CORE-FIDELITY-292 CP16 — 2026-10-27
+
+Status: **M12 ARBITRATION POLICY DECIDED; CORE §9 STATIC AUDIT NEXT**.
+- The requester approved the existing Build 5.15 empty-owner order Type3→Type4→Type2→Type1 as explicit project policy.
+- Primary PDF pp.9–10 and reviewed Core/Finale sources still assign no overlap priority. The selected order is not represented as source-derived and no actual predicate overlap is claimed.
+- Build 5.15 code already follows this order; no EA source change was needed. Decision and contract links are in the M12 decision record and source contract.
+- Documentation only. No tests, compile, Strategy Tester, broker/runtime, merge, terminal restart or trading activation occurred.
+- Qualified G40 history remains NOT VERIFIED; Strategy Tester remains NOT RUN. PR #293 remains draft, open, unmerged and DO NOT MERGE.
+- Exact next task: statically map accepted Core §9 MTF relationship/strategic hierarchy through M11/M11J/M12/M12N/M13/M14/M15/M16/M27 and record any remaining source-to-owner gaps.
+
+## CORE-FIDELITY-292 CP17 — 2026-10-27
+
+Status: **CORE §9 STATIC MAPPING PARTIAL — D1O-TPW TRANSITION POLICY HOLD**.
+- Mapped M11/M11J/M12/M12N/M13/M14/M15/M16/M27 against accepted Core §9 and current Build 5.15 owner source. D1→H4→H1→M15 authority, exact signatures and M12N read-only scope are statically linked.
+- Material gap: Core §9.2/M15 contract block all new entries in D1_TRANSITION, while Build 5.15 M15 special-cases D1_OPP_EXTREME_TPW to accept valid transition state. D1O-01 authorizes opposition to the strategic owner but does not explicitly adjudicate transition.
+- EnableD1TPWLifecycle is OFF; M17 fails closed for that identity. Keep it OFF until the policy and required native/runtime lifecycle gates are resolved.
+- No owner/Core source, tests, compile, Tester, broker/runtime or trade changed/ran. Qualified G40 history remains NOT VERIFIED.
+- Exact next task / USER GATE: decide whether D1_TRANSITION blocks D1_OPP_EXTREME_TPW or the family receives a documented project-only exception to Core §9.2. PR #293 stays draft, open, unmerged and DO NOT MERGE.
+
+## CORE-FIDELITY-292 CP18 — 2026-10-27
+
+Status: **CP17 POLICY HOLD RESOLVED; BUILD 5.23 CANDIDATE REGRESSION + EXACT-GIT-BLOB NATIVE COMPILE PASS; RUNTIME/TESTER AND FULL RULE MATRIX OPEN**.
+- User-approved project mapping applies Core §9.2 fail-closed: D1_TRANSITION and D1_OWNER_UNRESOLVED block D1_OPP_EXTREME_TPW.
+- Build 5.23 uses the existing confirmed-D1-owner helper in M15 and M16. Counter-direction against a confirmed owner remains permitted under D1O-01's existing H4/H1 prerequisites; lifecycle gate remains OFF.
+- Five focused regression scripts passed (four new exact-source unit methods); exact source Git blob be13aac3a2a0f2e2e9eeb2f5d4006eeedf7cd562 compiled on G40 MetaEditor 5.0.0.2425 with 0 errors / 0 warnings.
+- Evidence: build523_regression_g40_20261027.log, build523_native_compile_g40_20261027.log and build523_manifest.json.
+- Owner Build 5.15 remains unchanged. PR #293 remains draft/open/unmerged and DO NOT MERGE. Qualified G40 history NOT VERIFIED; Strategy Tester, broker runtime and live execution NOT RUN. No terminal restart or trading activation.
+- CP19 verifies accepted Core §10 by reusing CP11/CP12/CP14/CP17 plus CP18 evidence; next eligible static review is Core §11 exclusions. Tester remains gated on qualified history and runtime requirements.
+
+## CORE-FIDELITY-292 CP19 — 2026-10-27
+
+Status: **CORE §10 STATIC MATURITY/SIGNATURE/GATE MAPPING VERIFIED; NO NEW MISMATCH FOUND**.
+- Reused CP11 for Extreme maturity and standalone-versus-MTF readiness; CP12 for M15 MHV/MLV formation/frozen-body maturity; CP14 for exact REM/RRE/REE signatures; CP17 for the independent M11/M15/M16 strategic gate; CP18 for D1O-TPW transition fail-closed behavior.
+- Core §10 adds no fourth D1 component to REM. RRE/REE D1 Re-Entry identity remains distinct from confirmed M11 D1 strategic ownership. M15/M16 remain final executable authority.
+- No source code, contract behavior, regression test or compile changed/ran in CP19. CP18 test/compile evidence is unchanged. Qualified G40 history remains NOT VERIFIED; Strategy Tester and broker/runtime remain NOT RUN.
+- CP20 confirms Core §11 exclusions and reuses the 49/49 source classification. Next eligible task: complete the shared M01–M27/M11J/M12N nested-field read/write ownership graph and rule-to-runtime denominator.
+
+## CORE-FIDELITY-292 CP20 — 2026-10-27
+
+Status: **CORE §11 EXCLUSION BOUNDARY REVALIDATED; NO NEW CORE SEMANTIC GAP**.
+- Accepted Core §11 explicitly excludes personal workflow/statistics, personal money-management/SL preferences, literal guarantees and EA implementation mechanisms from universal Strategy-Core.
+- The 49-family rebaseline and dated decisions classify 49/49 families with zero unresolved semantic holds. This remains semantic coverage, not executable or runtime proof.
+- M17–M27 and M11J/M12N remain project implementation/observer layers under their separate contracts; no excluded personal claim or plumbing mechanism is promoted to a BBMA signal rule.
+- No code, test, compile or runtime changed/ran in CP20. Qualified history remains NOT VERIFIED; Strategy Tester and broker/runtime remain NOT RUN. Full rule-to-runtime and nested-field ownership remain PARTIAL.
+- CP22 maps 317 cross-module typed-reference callsites and their direct/transitive parameter-write paths. Remaining limits are context-sensitive call alternatives, mutable signatures on reader paths, opaque builtin/global effects and runtime behavior. Full rule-to-runtime coverage remains PARTIAL.
+
+## CORE-FIDELITY-292 CP21 — 2026-10-27
+
+Status: **DIRECT TYPED-FIELD INVENTORY RECORDED; INTERPROCEDURAL OWNERSHIP AND RUNTIME PARTIAL**.
+- The exact Build 5.15 owner source remains d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de, blob 09de8b80fdaeeb2fd614de0a1826134e9a8b2411.
+- PR #295 merged at main@22b2e539a82eea768c53bd2a905dd958b6072324. It preserves the accepted root graph authority and adds a separate current-owner overlay plus config/bbma_field_access_inventory_build515.json.
+- Inventory scope: 29 source headers; 431 function definitions; 1,478 call occurrences; 502 cross-module call occurrences; 96 module edges; 364 function pairs; 36 structs; 640 declared fields; 595 fields with typed accesses; 338 multi-module type-field pairs; zero unresolved typed-member occurrences within scanner scope.
+- Direct typed reads/writes/traversals and their per-module totals are recorded in the machine-readable inventory. This does not prove object identity across functions or resolve every by-reference/copy alias and callee mutation.
+- No EA/Core source, tests, compile, Strategy Tester, broker runtime, terminal restart or trade activation changed/ran. G40 device is online; qualified history remains NOT VERIFIED and Strategy Tester/runtime remain NOT RUN.
+- Next scoped action: resolve remaining alias/reference/call-side mutation and shared-object identity edges. Q10 Phase L R5 remains the highest-priority global final-acceptance item on its separate frozen Build 5.11 scope.
+
+## CP22 — Cross-module reference identity and mutation map (2026-10-27)
+
+- PR #296 merged at main@7fb1cfdbb0fb2d7e30fe75e382e176199199416f. The exact PR head fe021e2b424b1e2866fe328be618f0de86a28e3a passed deterministic-tooling.
+- Machine inventory: config/bbma_reference_identity_inventory_build515.json, blob a4a159631e6021598a000d454abca9b5f9979ab1. Accepted root graph authority remains 23def0919386263007ead1898b94637cc17f7f36; current source overlay remains owner Build 5.15 commit 459c0588e625d7f7630f0fb5612b7f04fda496de / source blob 09de8b80fdaeeb2fd614de0a1826134e9a8b2411.
+- Parser counts again match the accepted source overlay: 431 functions, 1,478 calls, 502 cross-module call occurrences, 96 module edges and 364 function pairs. The inventory resolves 317 cross-module struct-by-reference call arguments into 90 global subobjects, 69 forwarded references (51 whole-param / 18 nested-member), 151 local objects and 7 local copies.
+- Interprocedural propagation records 344 origin associations across those 317 callsites, with zero unresolved, unbound or cyclic rows. Nineteen callsites have multiple origins because the same helper is reached with different local/global or timeframe/direction objects; identity is therefore PARTIAL_CONTEXT_INSENSITIVE, not one object per function.
+- Static parameter-write tracing finds 122 callsite parameters with direct/transitive write paths and 195 with no detected parameter write path. All 317 target parameters are mutable references; “no detected write” is not a const/read-only guarantee and does not cover opaque builtin or direct global side effects.
+- Canonical owner path: M27 passes g_pair_states[pairIndex] and nested timeframe/lifecycle/re-entry subobjects to M06/M08/M09/M11/M12. M11 writes the D1 owner; M08/M09/M12 update their respective persistent state paths. M27 passes the same PairState root to M13/M12N/M15; no PairState parameter write paths were detected through those observer/final-gate calls. M16 D1 snapshot helpers pass a local PairState copy loaded from the global array.
+- C044 helper paths are separate from PairState: replay fields can resolve either to a local counterfactual TradeInfo copy or to g_monitored_trades[i] during trade lifecycle handling. The field path stays within c044_replay_* state.
+- No EA/Core source, tests, compile, Strategy Tester, broker runtime, terminal restart or trading activation changed/ran in CP22. G40 device is online, but process/terminal state was not inspected. The last Q10 R5 runtime artifact dated 2026-09-24 lists R5-14 and R5-16 as natural broker-event blockers; current runtime is not reconfirmed here.
+- Next implementation hardening: qualify proven read-only reference parameters as const and compile the exact candidate on G40 before accepting that guard. Keep Q10 R5/R6 gates unchanged; do not manufacture broker conditions.
+
+
+## CP23 — Read-only M08 reference candidates (2026-10-27)
+
+A source-level review of the exact Build 5.23 candidate blob `be13aac3a2a0f2e2e9eeb2f5d4006eeedf7cd562` (SHA-256 `682A0F072C2A69ADF1A59FFED464E66911C62CDFB6C98C7D8E486C53DF774F5A`) proved two M08 helper inputs are read-only in their complete function bodies: `GetExtremeRelevantMA5` (8 direct callsites) and `GetExtremeReversalBodyEdge` (2 direct callsites). MQL4 documents `const` for guarding by-reference structure inputs. No source patch has been made; the prior Build 5.23 compile pass does not apply to a qualifier change. Next: prepare the minimal Build 5.24 signature-only candidate and obtain exact-source native strict compile on G40. Current terminal/process state remains NOT VERIFIED; Q10 natural R5-14/R5-16 gates and R6 predecessor rule remain unchanged.
+
+## CP24 — M08 const read-only input hardening (2026-10-27)
+
+Task: Issue #292 / Draft PR #293. Phase: **Build 5.24 static regression and exact-candidate native strict compile PASS; runtime NOT RUN**.
+Branch: `audit/core-fidelity-20261021`; parent/head before this checkpoint: `913e7eaafcf564a763c7a4093d7475be16b3d2be`.
+Owner remains `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de` / Build 5.15. Draft PR #293 remains DO NOT MERGE.
+
+- Candidate: Build 5.24 / `V524_M08_CONST_READONLY_INPUTS_20261027`; canonical Git blob `98d5403283782922ba85d1459d12eaf1ce921316`; G40 Windows staging SHA-256 `A251BBECCD4DF59B28C4A1E429DACF6EC68417B85F04405192E828CFDE8C5937`.
+- Scope: added `const` to the `TimeframeData &data` inputs of `GetExtremeRelevantMA5` and `GetExtremeReversalBodyEdge`; updated the unique version/header/build tag. No helper body or caller changed.
+- Static targeted regression PASS: normalized source diff is limited to those five lines; both helper bodies are byte-identical to Build 5.23; callsite counts remain 8 and 2.
+- Clarification to CP23 wording: `GetExtremeReversalBodyEdge` calls built-in `MathMax/MathMin` with scalar open/close values. It does not pass the `TimeframeData` reference onward or mutate it.
+- HFM MetaEditor 5.0.0.2425 strict compile: **PASS — 0 errors / 0 warnings, 1081 ms**. G40 log SHA-256: `46BDD47820011E2A72C8403F2243BC6C4F952FB84249666033B2D7C82732ACB0`; EX4 SHA-256: `053DAE5F4D844229639856C2B7C8BF97627B7C43C3A024BCA9BE1860CEA0DFDE`. Manifest: `build524_manifest.json`.
+- After compile, no MT4 terminal or MetaEditor process remained. Strategy Tester, broker/runtime and orders were NOT RUN. No owner source, release state or live trading changed.
+- Q10 Phase L R5 remains the global acceptance priority; the live queue gates R5-14/R5-16 on natural broker events. G40's inspected `Q10_109/STATE.json` is dated 2026-09-23 and reports `DEMO_LOG_MISSING`; it is older than the 2026-10-27 queue reconciliation and does not replace the queue's R3/R4 PASS / R5 pending record. No event was synthesized.
+- Next safe action: continue body-and-callee review of remaining no-write reference parameters. Do not infer read-only status from the analyzer alone; compile any new candidate against its exact Git blob.
+
+## CP25 — M08/M09 leaf input const hardening (2026-10-27)
+
+Task: Issue #292 / Draft PR #293. Phase: **Build 5.25 static regression and exact-candidate native strict compile PASS; runtime NOT RUN**.
+Branch: `audit/core-fidelity-20261021`; parent: `5d4e001f18932eba02ea3c41cfc139e43e01377e` (CP24). Owner remains `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de` / Build 5.15.
+
+- Candidate: Build 5.25 / `V525_M08_M09_CONST_LEAF_INPUTS_20261027`; canonical Git blob `9eb016ed13d90a57a992aa14c18072a44c3c4ab2`; G40 staging SHA-256 `5C25B25FF0AD2E75E9DD84E061150F5AE35FC6835C57681678FE39661E236524`.
+- Added `const TimeframeData &data` to six audited leaf helpers: `IsExtremeReversalDirection` (2 callsites), `IsExtremeRetestStart` (1), `IsMHVTPWajibCompleted` (1), `GetMHVBodyEdge` (1), `IsMHVFormationMoveAway` (1), and `IsMHVRetestInteraction` (1).
+- Complete bodies are unchanged and contain no writes to the `TimeframeData` input. Five are direct read-only predicates; `GetMHVBodyEdge` calls `MathMin/MathMax` with scalar open/close values only. All six callsite counts are unchanged.
+- HFM MetaEditor 5.0.0.2425 strict compile: **PASS — 0 errors / 0 warnings, 934 ms**. G40 log SHA-256: `A8B8AD4B10EC3926616DF97AE680711CB27087E0D68DEF3A7B1994F1C456A6B9`; EX4 SHA-256: `7E7FB5B69E6610AB20651740027C0A72B9D5B40678044AAA2D237DDC8C1945BC`. Manifest: `build525_manifest.json`.
+- Strategy Tester, broker/runtime and orders were NOT RUN. Owner source and release state are unchanged; PR #293 remains Draft/DO NOT MERGE.
+- Q10 Phase L R5 remains highest-priority global acceptance, gated on natural R5-14/R5-16 events. No Q10 event was generated. Next safe action: continue auditing remaining by-reference bodies and call paths; only qualify inputs whose complete read-only behavior is proven.

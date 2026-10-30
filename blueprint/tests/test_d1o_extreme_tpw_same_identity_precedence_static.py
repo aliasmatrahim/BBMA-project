@@ -37,6 +37,10 @@ def main():
          '#property version   "5.06"',
          "V506_F05_SELECTION_UNCERTAINTY_FAIL_CLOSED_20260922",
          "F05_SELECTION_UNCERTAINTY_FAIL_CLOSED_226_20260922"),
+        ("Version 5.2.3 - D1 TPW Transition Fail-Closed Gate",
+         '#property version   "5.23"',
+         "V523_D1_TPW_TRANSITION_FAIL_CLOSED_20261027",
+         "CORE_FIDELITY_292_D1_TPW_TRANSITION_GATE_001_20261027"),
     )
     assert any(all(marker in SRC for marker in markers) for markers in identities)
 

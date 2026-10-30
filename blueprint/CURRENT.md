@@ -1,6 +1,6 @@
 # BBMA Current Project State
 
-Updated: **2026-10-28**
+Updated: **2026-10-30**
 Status owner: **`d1-owner-dev`**
 Owner head at reconciliation: **`459c0588e625d7f7630f0fb5612b7f04fda496de`**
 
@@ -13,16 +13,17 @@ This file is the active current-state record. The pre-2026-09-09 historical `CUR
 - Canonical active owner baseline: Build `5.15` / `V515_NMJE_P2_TARGETLESS_REPLAY_20260925`, source rev `NMJE_P2_TARGETLESS_REPLAY_001_20260925`, at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`. Build 5.14 and Build 5.11 references below are historical/shadow or frozen Q10 evidence, not the active owner source.
 - Q7/Q8 Build 4.86 artifacts remain historical verified integration/regression evidence. Q10 is bound to the later exact Build 5.11 final integration candidate; this is still not a production-readiness claim.
 
-## Core-fidelity current status — 2026-10-28
+## Core-fidelity current status — 2026-10-30
 
-Status: **PARTIAL — Build 5.28 targeted source regression PASS; exact-candidate native strict compile NOT TESTED; qualified history, Strategy Tester/runtime, and full Core-rule matrix remain open.**
+Status: **PARTIAL — Build 5.28 targeted source regression PASS and exact-candidate native strict compile PASS (0 errors / 0 warnings); qualified history, Strategy Tester/runtime, and full Core-rule matrix remain open.**
 - Active owner baseline: Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`; PR #293 remains open/Draft/DO NOT MERGE.
-- Latest audit source candidate: Build 5.28 / `V528_M10_M11_CONST_DIRECTION_INPUTS_20261027`, exact Git blob `388ee68b5b8071d50dcf1dab1ddcb10733a120a9`; CP28–CP30 are on `audit/core-fidelity-20261021`.
-- CP28 records source regression PASS but no G40 staging, compile log, or EX4. Desktop Commander reports monthly usage exhausted and instructs not to retry or reconnect; native strict compile remains NOT TESTED.
+- Latest audit source candidate: Build 5.28 / `V528_M10_M11_CONST_DIRECTION_INPUTS_20261027`, exact Git blob `388ee68b5b8071d50dcf1dab1ddcb10733a120a9`; CP28–CP31 are on `audit/core-fidelity-20261021`.
+- At CP28/CP29, Desktop Commander quota blocked Build 5.28 staging, so the native compile was not yet tested. CP31 records exact G40 staging/hash verification and native strict compile PASS.
 - CP29 statically inventories 16 M11 functions with by-reference parameters. All read-only inputs are const-qualified; remaining mutable references are classifier/selector outputs or owner/journey state. CP29 makes no source change.
 - CP30 adds the accepted Core §8 Re-Entry pseudocode crosswalk to the existing source-fidelity matrix. Build 5.15 Type 1–4 mapping is static; stale-source admission and incomplete M06 history remain candidate-only repairs. No ordinary `OrderOpenTime` timing trace exists; session-gap `EntryCandle` mapping remains unverified.
-- Q10 Phase L R5 remains the highest-priority global acceptance task; R5-14/R5-16 require natural broker events. The last verified runtime checkpoint is dated 2026-09-24; current terminal/process state was not rechecked in this continuation.
-- Next action after Desktop Commander access is restored: stage exact blob `388ee68b5b8071d50dcf1dab1ddcb10733a120a9`, verify its raw hash, then run HFM MetaEditor strict compile. After the qualified-history gate passes, capture the pending Re-Entry candle/OrderOpenTime tester trace. No merge, terminal restart, or trading activation.
+- CP31 verifies exact Build 5.28 staging (`388ee68b5b8071d50dcf1dab1ddcb10733a120a9`), raw SHA-256, and HFM MetaEditor strict compile PASS (0 errors / 0 warnings). No EA source or owner build changed.
+- Q10 Phase L R5 remains the highest-priority global acceptance task; R5-14/R5-16 require natural broker events. The last verified runtime checkpoint is dated 2026-09-24. CP31's post-compile G40 process snapshot showed no MT4, MetaEditor, or Strategy Tester process.
+- Remaining gate: establish a qualified history manifest for the Re-Entry trace. CP30's history gate remains NOT VERIFIED; the shared G40 market-data index is still blocked for strategy testing and does not establish qualified BBMA history. After the gate passes, capture an isolated tester trace with confirmation candle, actual next source bar (including a session gap), M15/M16, `OrderSend`, and `OrderOpenTime`. No merge, terminal restart, or trading activation.
 
 ## Historical core-fidelity / traceability reconciliation through CP25 — 2026-10-27
 

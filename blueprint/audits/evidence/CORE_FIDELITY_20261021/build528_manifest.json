@@ -10,10 +10,10 @@
     "source_path": "blueprint/source/BBMA_EA.mq4",
     "base_git_blob": "3cac5ac00d8c8241201a435e7284bd5092c847d4",
     "source_git_blob": "388ee68b5b8071d50dcf1dab1ddcb10733a120a9",
-    "g40_staging_path": "NOT STAGED; intended path C:\\Users\\AFIQMA~1\\AppData\\Local\\Temp\\BBMA_CORE_FIDELITY_BUILD528_EXACT\\BBMA_EA.mq4",
-    "g40_raw_source_sha256": "NOT AVAILABLE",
+    "g40_staging_path": "C:\\Users\\AFIQMA~1\\AppData\\Local\\Temp\\BBMA_CORE_FIDELITY_BUILD528_EXACT\\BBMA_EA.mq4",
+    "g40_raw_source_sha256": "CF63E3A4F40C55470B393317CF3EF43A062CF11DE402A5C8181DA9BCA671D4CB",
     "g40_source_bytes": 542962,
-    "line_endings": "Canonical Git blob LF; G40 staging not completed"
+    "line_endings": "Canonical Git blob LF; G40 staged bytes verified with git hash-object --no-filters"
   },
   "change": {
     "header": "//| Version 5.2.8 - M10/M11 Const Direction Inputs              |",
@@ -46,17 +46,18 @@
     "cross_module_call_path": "M11 d1Band -> DetectD1OpportunityCSD band -> DetectCSD band; DetectCSD/DetectECSD read MovingAverage and BollingerBand fields only"
   },
   "native_compile": {
-    "status": "NOT TESTED",
-    "blocker": "Desktop Commander reports monthly usage exhausted; do not retry or reconnect",
+    "status": "PASS",
+    "blocker": null,
     "compiler": "HFM MetaEditor 5.0.0.2425",
     "strict": true,
-    "errors": null,
-    "warnings": null,
-    "elapsed_ms": null,
-    "log_path": null,
-    "log_sha256": null,
-    "ex4_path": null,
-    "ex4_sha256": null
+    "errors": 0,
+    "warnings": 0,
+    "elapsed_ms": 1209,
+    "log_path": "C:\\Users\\AFIQMA~1\\AppData\\Local\\Temp\\BBMA_CORE_FIDELITY_BUILD528_EXACT\\metaeditor_build528.log",
+    "log_sha256": "BA82D0599FF2701E53679DE2735E3700FA0726B5EE8ADC736D638614D434E7AB",
+    "ex4_path": "C:\\Users\\AFIQMA~1\\AppData\\Local\\Temp\\BBMA_CORE_FIDELITY_BUILD528_EXACT\\BBMA_EA.ex4",
+    "ex4_sha256": "968CF867B7FFE880201F02F740ADC4FF4EE2FBF9594A252E71E92A52279A2D45",
+    "ex4_bytes": 777902
   },
   "prior_findings": {
     "m06": {
@@ -82,10 +83,10 @@
     }
   },
   "runtime": {
-    "strategy_tester": "NOT RUN",
+    "strategy_tester": "NOT RUN; qualified-history gate remains NOT VERIFIED (see CP31)",
     "broker_runtime": "NOT RUN",
     "live_orders": "NONE",
-    "mt4_or_metaeditor_after_compile": "NOT APPLICABLE; Build 5.28 was not staged or compiled"
+    "mt4_or_metaeditor_after_compile": "No MT4, MetaEditor, or Strategy Tester process remained after isolated compile"
   },
   "governance": {
     "owner_branch": "d1-owner-dev",

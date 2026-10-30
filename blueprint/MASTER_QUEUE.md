@@ -1,6 +1,6 @@
 # BBMA Active Master Queue
 
-Reconciled: **2026-10-28**
+Reconciled: **2026-10-30**
 Status owner: **`d1-owner-dev`**
 Owner head at reconciliation: **`459c0588e625d7f7630f0fb5612b7f04fda496de`**
 
@@ -25,7 +25,7 @@ Q3 remains a separate isolated runtime-validation workstream and is environment-
 
 ## CORE-FIDELITY-292 scoped audit — 2026-10-27
 
-Status: **PARTIAL — BUILD 5.28 TARGETED SOURCE REGRESSION PASS; EXACT-CANDIDATE NATIVE STRICT COMPILE NOT TESTED; HISTORY/RUNTIME AND FULL RULE MATRIX OPEN**. Baseline: Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`; candidate: Draft PR #293 / Build 5.28.
+Status: **PARTIAL — Build 5.28 targeted source regression PASS; exact-candidate native strict compile PASS (0 errors / 0 warnings); qualified history, Strategy Tester/runtime and full rule matrix remain open.** Baseline: Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`; candidate: Draft PR #293 / Build 5.28.
 - CP03 M06 incomplete-data repair and its focused tests/native evidence remain candidate-scoped; owner branch is unchanged.
 - CP06/CP07 reproduced stale source admission, then added current closed-source checks in M15 and M16 for every frozen component. No TTL, signal formula or priority change.
 - CP08 native strict compile on G40: **PASS, 0 errors / 0 warnings** against exact source blob/SHA; log and EX4 hashes are recorded in the candidate manifest.
@@ -46,10 +46,10 @@ Status: **PARTIAL — BUILD 5.28 TARGETED SOURCE REGRESSION PASS; EXACT-CANDIDAT
 - CP25 records six additional read-only M08/M09 leaf signatures and exact-candidate G40 strict compile PASS. No helper bodies or call sites changed; Strategy Tester and runtime remain NOT RUN.
 - CP26 records the Build 5.26 M11 snapshot const boundary and exact-candidate native strict compile PASS; Strategy Tester/runtime remained NOT RUN.
 - CP27 records nine proven read-only M11 owner/predicate inputs const-qualified in Build 5.27, with exact-candidate native strict compile PASS.
-- CP28 records Build 5.28's five M10/M11 read-only input qualifiers and targeted source regression PASS. Native strict compile is NOT TESTED: G40 monthly usage is exhausted; no staging, log, or EX4 exists.
+- CP28 records Build 5.28's five M10/M11 read-only input qualifiers and targeted source regression PASS. At that checkpoint, G40 monthly usage was exhausted and no staging/log/EX4 existed; CP31 supersedes the compile status.
 - CP29 records a read-only inventory of 16 M11 functions with by-reference parameters in exact source blob `388ee68b5b8071d50dcf1dab1ddcb10733a120a9`. Remaining mutable references are outputs/state owners; all read-only inputs in this M11 scope are const. No code/test/runtime changed.
 - CP30 adds an accepted Core §8 Re-Entry pseudocode crosswalk to the existing source-fidelity matrix. Build 5.15 Type 1–4 logic is statically mapped; stale-source admission and M06 incomplete-history defects remain candidate-only repairs. `OrderOpenTime` timing and session-gap `EntryCandle` behavior are NOT VERIFIED.
-- Current gate: do not retry or reconnect Desktop Commander. After access is restored, stage exact Build 5.28 blob `388ee68b5b8071d50dcf1dab1ddcb10733a120a9`, verify its raw hash, and run HFM MetaEditor strict compile. After qualified history passes, capture the pending Re-Entry candle/OrderOpenTime Strategy Tester trace. Strategy Tester/runtime remain NOT RUN; no merge, terminal restart, or trading activation.
+- CP31 records exact Build 5.28 staging, source/hash verification, and HFM MetaEditor strict compile PASS (0 errors / 0 warnings). G40 is online under the correct account; compile ran in an isolated temp directory. The shared market-data index still reports blocked strategy-test authorization, so the Re-Entry qualified-history gate remains NOT VERIFIED and Strategy Tester/runtime remain NOT RUN. Next: establish an approved qualified-history manifest, then capture the isolated Re-Entry candle/`OrderOpenTime` trace. No merge, terminal restart, or trading activation.
 - Q10 Phase L R5 remains the highest-priority global acceptance task. R5-14/R5-16 require natural broker events; do not synthesize them. The last verified runtime checkpoint is 2026-09-24, and current terminal/process state is not reverified by this continuation.
 
 ## Stage A - Source evidence / reconciliation

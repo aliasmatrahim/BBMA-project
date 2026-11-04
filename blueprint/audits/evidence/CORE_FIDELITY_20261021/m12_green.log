@@ -1,0 +1,16 @@
+POST-PATCH GREEN — Build 5.21 source commit 9414608844874af4b6613783316fd8ccd5ce0a52
+Command: python3 blueprint/tests/test_m12_stale_owner_refresh.py
+Output:
+....
+Ran 4 tests in 0.403s
+
+OK
+
+Exact-source scenario outputs:
+invalid_h1: retained=1 h4_retained=1 candidate=1 m15=0 m16=0 preflight=0 forced_m16=0
+invalid_h4: retained=1 h4_retained=1 candidate=1 m15=0 m16=0 preflight=0 forced_m16=0
+valid:      retained=1 h4_retained=1 candidate=1 m15=1 m16=1 preflight=1 forced_m16=-1
+
+The portable harness compiles extracted production M12/H4/M15/M16 bodies with deterministic data/logging stubs. The preflight sink is a counter; it does not execute M17/risk/portfolio broker functions or any order API. Their call order is verified statically.
+Native strict compile: NOT TESTED.
+Strategy Tester: NOT TESTED; qualified data gate remains blocked.

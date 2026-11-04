@@ -1,0 +1,173 @@
+.FFFFFFFFFFFF..                                                          [100%]
+=================================== FAILURES ===================================
+_____________ test_incomplete_bb20_does_not_emit_a_band[short_bb] ______________
+
+probe = <function probe.<locals>.run at 0x7f837810c180>, scenario = 'short_bb'
+
+    @pytest.mark.parametrize("scenario", ["short_bb", "missing_close", "nan_close"])
+    def test_incomplete_bb20_does_not_emit_a_band(probe, scenario):
+        middle, width, valid = probe(scenario)
+>       assert (middle, width) == (0, 0), f"{scenario}: partial/nonfinite BB20 was emitted"
+E       AssertionError: short_bb: partial/nonfinite BB20 was emitted
+E       assert (1.1, 0.21908902300206634) == (0, 0)
+E         
+E         At index 0 diff: 1.1 != 0
+E         Use -v to get more diff
+
+blueprint/tests/test_m06_data_validity.py:126: AssertionError
+___________ test_incomplete_bb20_does_not_emit_a_band[missing_close] ___________
+
+probe = <function probe.<locals>.run at 0x7f837810c180>
+scenario = 'missing_close'
+
+    @pytest.mark.parametrize("scenario", ["short_bb", "missing_close", "nan_close"])
+    def test_incomplete_bb20_does_not_emit_a_band(probe, scenario):
+        middle, width, valid = probe(scenario)
+>       assert (middle, width) == (0, 0), f"{scenario}: partial/nonfinite BB20 was emitted"
+E       AssertionError: missing_close: partial/nonfinite BB20 was emitted
+E       assert (1.1052631578...5963637404006) == (0, 0)
+E         
+E         At index 0 diff: 1.105263157894737 != 0
+E         Use -v to get more diff
+
+blueprint/tests/test_m06_data_validity.py:126: AssertionError
+_____________ test_incomplete_bb20_does_not_emit_a_band[nan_close] _____________
+
+probe = <function probe.<locals>.run at 0x7f837810c180>, scenario = 'nan_close'
+
+    @pytest.mark.parametrize("scenario", ["short_bb", "missing_close", "nan_close"])
+    def test_incomplete_bb20_does_not_emit_a_band(probe, scenario):
+        middle, width, valid = probe(scenario)
+>       assert (middle, width) == (0, 0), f"{scenario}: partial/nonfinite BB20 was emitted"
+E       AssertionError: nan_close: partial/nonfinite BB20 was emitted
+E       assert (1.1052631578...5963637404006) == (0, 0)
+E         
+E         At index 0 diff: 1.105263157894737 != 0
+E         Use -v to get more diff
+
+blueprint/tests/test_m06_data_validity.py:126: AssertionError
+____ test_unavailable_indicator_inputs_cannot_mark_snapshot_valid[short_bb] ____
+
+probe = <function probe.<locals>.run at 0x7f837810c180>, scenario = 'short_bb'
+
+    @pytest.mark.parametrize("scenario", ["short_bb", "short_ema", "missing_close",
+        "missing_ema_close", "missing_high", "bad_ohlc", "missing_ma", "nan_ma", "nan_close"])
+    def test_unavailable_indicator_inputs_cannot_mark_snapshot_valid(probe, scenario):
+>       assert not probe(scenario)[2], f"{scenario}: invalid history/snapshot marked valid"
+E       AssertionError: short_bb: invalid history/snapshot marked valid
+E       assert not True
+
+blueprint/tests/test_m06_data_validity.py:133: AssertionError
+___ test_unavailable_indicator_inputs_cannot_mark_snapshot_valid[short_ema] ____
+
+probe = <function probe.<locals>.run at 0x7f837810c180>, scenario = 'short_ema'
+
+    @pytest.mark.parametrize("scenario", ["short_bb", "short_ema", "missing_close",
+        "missing_ema_close", "missing_high", "bad_ohlc", "missing_ma", "nan_ma", "nan_close"])
+    def test_unavailable_indicator_inputs_cannot_mark_snapshot_valid(probe, scenario):
+>       assert not probe(scenario)[2], f"{scenario}: invalid history/snapshot marked valid"
+E       AssertionError: short_ema: invalid history/snapshot marked valid
+E       assert not True
+
+blueprint/tests/test_m06_data_validity.py:133: AssertionError
+_ test_unavailable_indicator_inputs_cannot_mark_snapshot_valid[missing_close] __
+
+probe = <function probe.<locals>.run at 0x7f837810c180>
+scenario = 'missing_close'
+
+    @pytest.mark.parametrize("scenario", ["short_bb", "short_ema", "missing_close",
+        "missing_ema_close", "missing_high", "bad_ohlc", "missing_ma", "nan_ma", "nan_close"])
+    def test_unavailable_indicator_inputs_cannot_mark_snapshot_valid(probe, scenario):
+>       assert not probe(scenario)[2], f"{scenario}: invalid history/snapshot marked valid"
+E       AssertionError: missing_close: invalid history/snapshot marked valid
+E       assert not True
+
+blueprint/tests/test_m06_data_validity.py:133: AssertionError
+_ test_unavailable_indicator_inputs_cannot_mark_snapshot_valid[missing_ema_close] _
+
+probe = <function probe.<locals>.run at 0x7f837810c180>
+scenario = 'missing_ema_close'
+
+    @pytest.mark.parametrize("scenario", ["short_bb", "short_ema", "missing_close",
+        "missing_ema_close", "missing_high", "bad_ohlc", "missing_ma", "nan_ma", "nan_close"])
+    def test_unavailable_indicator_inputs_cannot_mark_snapshot_valid(probe, scenario):
+>       assert not probe(scenario)[2], f"{scenario}: invalid history/snapshot marked valid"
+E       AssertionError: missing_ema_close: invalid history/snapshot marked valid
+E       assert not True
+
+blueprint/tests/test_m06_data_validity.py:133: AssertionError
+__ test_unavailable_indicator_inputs_cannot_mark_snapshot_valid[missing_high] __
+
+probe = <function probe.<locals>.run at 0x7f837810c180>
+scenario = 'missing_high'
+
+    @pytest.mark.parametrize("scenario", ["short_bb", "short_ema", "missing_close",
+        "missing_ema_close", "missing_high", "bad_ohlc", "missing_ma", "nan_ma", "nan_close"])
+    def test_unavailable_indicator_inputs_cannot_mark_snapshot_valid(probe, scenario):
+>       assert not probe(scenario)[2], f"{scenario}: invalid history/snapshot marked valid"
+E       AssertionError: missing_high: invalid history/snapshot marked valid
+E       assert not True
+
+blueprint/tests/test_m06_data_validity.py:133: AssertionError
+____ test_unavailable_indicator_inputs_cannot_mark_snapshot_valid[bad_ohlc] ____
+
+probe = <function probe.<locals>.run at 0x7f837810c180>, scenario = 'bad_ohlc'
+
+    @pytest.mark.parametrize("scenario", ["short_bb", "short_ema", "missing_close",
+        "missing_ema_close", "missing_high", "bad_ohlc", "missing_ma", "nan_ma", "nan_close"])
+    def test_unavailable_indicator_inputs_cannot_mark_snapshot_valid(probe, scenario):
+>       assert not probe(scenario)[2], f"{scenario}: invalid history/snapshot marked valid"
+E       AssertionError: bad_ohlc: invalid history/snapshot marked valid
+E       assert not True
+
+blueprint/tests/test_m06_data_validity.py:133: AssertionError
+___ test_unavailable_indicator_inputs_cannot_mark_snapshot_valid[missing_ma] ___
+
+probe = <function probe.<locals>.run at 0x7f837810c180>, scenario = 'missing_ma'
+
+    @pytest.mark.parametrize("scenario", ["short_bb", "short_ema", "missing_close",
+        "missing_ema_close", "missing_high", "bad_ohlc", "missing_ma", "nan_ma", "nan_close"])
+    def test_unavailable_indicator_inputs_cannot_mark_snapshot_valid(probe, scenario):
+>       assert not probe(scenario)[2], f"{scenario}: invalid history/snapshot marked valid"
+E       AssertionError: missing_ma: invalid history/snapshot marked valid
+E       assert not True
+
+blueprint/tests/test_m06_data_validity.py:133: AssertionError
+_____ test_unavailable_indicator_inputs_cannot_mark_snapshot_valid[nan_ma] _____
+
+probe = <function probe.<locals>.run at 0x7f837810c180>, scenario = 'nan_ma'
+
+    @pytest.mark.parametrize("scenario", ["short_bb", "short_ema", "missing_close",
+        "missing_ema_close", "missing_high", "bad_ohlc", "missing_ma", "nan_ma", "nan_close"])
+    def test_unavailable_indicator_inputs_cannot_mark_snapshot_valid(probe, scenario):
+>       assert not probe(scenario)[2], f"{scenario}: invalid history/snapshot marked valid"
+E       AssertionError: nan_ma: invalid history/snapshot marked valid
+E       assert not True
+
+blueprint/tests/test_m06_data_validity.py:133: AssertionError
+___ test_unavailable_indicator_inputs_cannot_mark_snapshot_valid[nan_close] ____
+
+probe = <function probe.<locals>.run at 0x7f837810c180>, scenario = 'nan_close'
+
+    @pytest.mark.parametrize("scenario", ["short_bb", "short_ema", "missing_close",
+        "missing_ema_close", "missing_high", "bad_ohlc", "missing_ma", "nan_ma", "nan_close"])
+    def test_unavailable_indicator_inputs_cannot_mark_snapshot_valid(probe, scenario):
+>       assert not probe(scenario)[2], f"{scenario}: invalid history/snapshot marked valid"
+E       AssertionError: nan_close: invalid history/snapshot marked valid
+E       assert not True
+
+blueprint/tests/test_m06_data_validity.py:133: AssertionError
+=========================== short test summary info ============================
+FAILED blueprint/tests/test_m06_data_validity.py::test_incomplete_bb20_does_not_emit_a_band[short_bb]
+FAILED blueprint/tests/test_m06_data_validity.py::test_incomplete_bb20_does_not_emit_a_band[missing_close]
+FAILED blueprint/tests/test_m06_data_validity.py::test_incomplete_bb20_does_not_emit_a_band[nan_close]
+FAILED blueprint/tests/test_m06_data_validity.py::test_unavailable_indicator_inputs_cannot_mark_snapshot_valid[short_bb]
+FAILED blueprint/tests/test_m06_data_validity.py::test_unavailable_indicator_inputs_cannot_mark_snapshot_valid[short_ema]
+FAILED blueprint/tests/test_m06_data_validity.py::test_unavailable_indicator_inputs_cannot_mark_snapshot_valid[missing_close]
+FAILED blueprint/tests/test_m06_data_validity.py::test_unavailable_indicator_inputs_cannot_mark_snapshot_valid[missing_ema_close]
+FAILED blueprint/tests/test_m06_data_validity.py::test_unavailable_indicator_inputs_cannot_mark_snapshot_valid[missing_high]
+FAILED blueprint/tests/test_m06_data_validity.py::test_unavailable_indicator_inputs_cannot_mark_snapshot_valid[bad_ohlc]
+FAILED blueprint/tests/test_m06_data_validity.py::test_unavailable_indicator_inputs_cannot_mark_snapshot_valid[missing_ma]
+FAILED blueprint/tests/test_m06_data_validity.py::test_unavailable_indicator_inputs_cannot_mark_snapshot_valid[nan_ma]
+FAILED blueprint/tests/test_m06_data_validity.py::test_unavailable_indicator_inputs_cannot_mark_snapshot_valid[nan_close]
+12 failed, 3 passed in 0.57s

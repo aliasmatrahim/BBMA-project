@@ -1,0 +1,10 @@
+PRE-PATCH RED — Build 5.20 candidate at branch head 6d81e240e1aac48ab5a5642a18581c57e2e1ad58
+Command: python3 blueprint/tests/test_m12_stale_owner_refresh.py
+Result: 4 test methods ran; 4 expected-failure assertions exposed stale admission.
+- invalid_h1: M15 decision was created (expected no decision).
+- invalid_h4: M15 decision was created (expected no decision).
+- invalid_h1 forced decision: M16 marked it validated (expected rejection).
+- invalid_h4 forced decision: M16 marked it validated (expected rejection).
+- Valid closed H1/H4 control passed.
+- Static check confirmed M27 dispatches DEC_VALIDATED to RunEntryPreflightAndExecute and that M17, risk and portfolio gates are downstream.
+No broker API, OrderSend, Strategy Tester, or live trade ran.

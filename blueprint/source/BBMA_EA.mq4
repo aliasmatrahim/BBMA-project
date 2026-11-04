@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.1.5 - NMJE P2 Targetless Lifecycle Replay         |
+//| Version 5.2.8 - M10/M11 Const Direction Inputs                |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.15"
+#property version   "5.28"
 #property strict
 
-#define BBMA_BUILD_TAG      "V515_NMJE_P2_TARGETLESS_REPLAY_20260925"
-#define BBMA_SOURCE_REV_TAG "NMJE_P2_TARGETLESS_REPLAY_001_20260925"
+#define BBMA_BUILD_TAG      "V528_M10_M11_CONST_DIRECTION_INPUTS_20261027"
+#define BBMA_SOURCE_REV_TAG "CORE_FIDELITY_292_M10_M11_CONST_DIRECTION_INPUTS_001_20261027"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -2404,64 +2404,77 @@ double GetAllowedExecutionDeviation(string pair, RiskValidationSnapshot &snapsho
 //| LEVEL: INTERMEDIATE                                              |
 //+------------------------------------------------------------------+
 
-double SMA(string pair, int timeframe, int period, int shift)
+bool IsBBMAHistoryReady(string pair, int timeframe, int period, int shift,
+                        int appliedPrice)
 {
-   double sum = 0;
-   int count = 0;
+   if(period <= 0 || shift < 0 || iBars(pair, timeframe) - shift < period)
+      return false;
    for(int i = 0; i < period; i++)
    {
       double price = iClose(pair, timeframe, shift + i);
-      if(price > 0)
-      {
-         sum += price;
-         count++;
-      }
+      if(appliedPrice == PRICE_HIGH) price = iHigh(pair, timeframe, shift + i);
+      else if(appliedPrice == PRICE_LOW) price = iLow(pair, timeframe, shift + i);
+      if(!MathIsValidNumber(price) || price <= 0) return false;
    }
-   if(count == 0) return 0;
-   return sum / count;
+   return true;
+}
+
+double SMA(string pair, int timeframe, int period, int shift)
+{
+   if(!IsBBMAHistoryReady(pair, timeframe, period, shift, PRICE_CLOSE)) return 0;
+   double sum = 0;
+   for(int i = 0; i < period; i++)
+   {
+      double price = iClose(pair, timeframe, shift + i);
+      if(!MathIsValidNumber(price) || price <= 0) return 0;
+      sum += price;
+   }
+   return sum / period;
 }
 
 double BBMAHighMA(string pair, int timeframe, int period, int shift)
 {
-   if(period <= 0 || shift < 0) return 0;
+   if(!IsBBMAHistoryReady(pair, timeframe, period, shift, PRICE_HIGH)) return 0;
    return iMA(pair, timeframe, period, 0, MODE_LWMA, PRICE_HIGH, shift);
 }
 
 double BBMALowMA(string pair, int timeframe, int period, int shift)
 {
-   if(period <= 0 || shift < 0) return 0;
+   if(!IsBBMAHistoryReady(pair, timeframe, period, shift, PRICE_LOW)) return 0;
    return iMA(pair, timeframe, period, 0, MODE_LWMA, PRICE_LOW, shift);
 }
 
 double EMA(string pair, int timeframe, int period, int shift)
 {
-   if(period <= 0 || shift < 0) return 0;
+   if(!IsBBMAHistoryReady(pair, timeframe, period, shift, PRICE_CLOSE)) return 0;
    return iMA(pair, timeframe, period, 0, MODE_EMA, PRICE_CLOSE, shift);
 }
 
 double StandardDeviation(string pair, int timeframe, int period, int shift)
 {
    double mean = SMA(pair, timeframe, period, shift);
-   if(mean == 0) return 0;
+   // Negative denotes unavailable history; zero is a valid flat-price deviation.
+   if(!MathIsValidNumber(mean) || mean <= 0) return -1;
    double sum = 0;
-   int count = 0;
    for(int i = 0; i < period; i++)
    {
       double price = iClose(pair, timeframe, shift + i);
-      if(price > 0)
-      {
-         sum += MathPow(price - mean, 2);
-         count++;
-      }
+      if(!MathIsValidNumber(price) || price <= 0) return -1;
+      sum += MathPow(price - mean, 2);
    }
-   if(count == 0) return 0;
-   return MathSqrt(sum / count);
+   return MathSqrt(sum / period);
 }
 
 void CalculateBollinger(string pair, int timeframe, int shift, BollingerBand &band)
 {
    double middle = SMA(pair, timeframe, BB_PERIOD, shift);
    double stdDev = StandardDeviation(pair, timeframe, BB_PERIOD, shift);
+   if(!MathIsValidNumber(middle) || middle <= 0 ||
+      !MathIsValidNumber(stdDev) || stdDev < 0)
+   {
+      middle = 0;
+      stdDev = 0;
+   }
    band.MID_BB = middle;
    band.TOP_BB = middle + BB_DEVIATION * stdDev;
    band.LOW_BB = middle - BB_DEVIATION * stdDev;
@@ -2496,9 +2509,14 @@ void GetDataForTimeframe(string pair, int timeframe, datetime targetTime, Timefr
    data.barIndex = shift;
    data.point = GetPointSize(pair);
    data.digits = GetDigits(pair);
-   data.is_valid = true;
    data.is_closed = IsCandleClosed(candleTime, GetTimeframeSeconds(timeframe));
    data.data_count = iBars(pair, timeframe);
+
+   if(!MathIsValidNumber(data.open) || !MathIsValidNumber(data.high) ||
+      !MathIsValidNumber(data.low) || !MathIsValidNumber(data.close) ||
+      data.open <= 0 || data.close <= 0 || data.low <= 0 ||
+      data.high < MathMax(data.open, data.close) ||
+      data.low > MathMin(data.open, data.close)) return;
    
    BollingerBand band;
    CalculateBollinger(pair, timeframe, shift, band);
@@ -2513,6 +2531,12 @@ void GetDataForTimeframe(string pair, int timeframe, datetime targetTime, Timefr
    data.ma[2] = ma.MA5_Low;
    data.ma[3] = ma.MA10_Low;
    data.ma[4] = ma.EMA50;
+
+   for(int b = 0; b < 3; b++)
+      if(!MathIsValidNumber(data.bollinger[b]) || data.bollinger[b] <= 0) return;
+   for(int m = 0; m < 5; m++)
+      if(!MathIsValidNumber(data.ma[m]) || data.ma[m] <= 0) return;
+   data.is_valid = true;
    
    double ema50 = ma.EMA50;
    if(data.close > ema50) data.trend = 1.0;
@@ -2653,21 +2677,21 @@ void ResetExtremeLifecycle(ExtremeLifecycleData &extreme,
    extreme.Timeframe = timeframe;
 }
 
-double GetExtremeRelevantMA5(TimeframeData &data, ENUM_DIRECTION direction)
+double GetExtremeRelevantMA5(const TimeframeData &data, ENUM_DIRECTION direction)
 {
    if(direction == DIR_SELL) return data.ma[0]; // MA5 High
    if(direction == DIR_BUY)  return data.ma[2]; // MA5 Low
    return 0.0;
 }
 
-double GetExtremeReversalBodyEdge(TimeframeData &data, ENUM_DIRECTION direction)
+double GetExtremeReversalBodyEdge(const TimeframeData &data, ENUM_DIRECTION direction)
 {
    if(direction == DIR_SELL) return MathMax(data.open, data.close);
    if(direction == DIR_BUY)  return MathMin(data.open, data.close);
    return 0.0;
 }
 
-bool IsExtremeReversalDirection(TimeframeData &data, ENUM_DIRECTION direction)
+bool IsExtremeReversalDirection(const TimeframeData &data, ENUM_DIRECTION direction)
 {
    if(data.open <= 0 || data.close <= 0) return false;
    if(direction == DIR_SELL) return (data.close < data.open);
@@ -2792,7 +2816,7 @@ void UpdateExtremeProvisionalAnchor(ExtremeLifecycleData &extreme,
       extreme.ProvisionalBodyAnchor = MathMin(extreme.ProvisionalBodyAnchor, edge);
 }
 
-bool IsExtremeRetestStart(ExtremeLifecycleData &extreme, TimeframeData &data)
+bool IsExtremeRetestStart(ExtremeLifecycleData &extreme, const TimeframeData &data)
 {
    if(extreme.PreviousClose <= 0 || data.close <= 0) return false;
    if(extreme.Direction == DIR_SELL) return (data.close > extreme.PreviousClose);
@@ -3073,7 +3097,7 @@ void MarkCanonicalMLVSuperseded(MLVData &mlv, TimeframeData &data, string reason
    mlv.Reason = reason;
 }
 
-bool IsMHVTPWajibCompleted(TimeframeData &data, ENUM_DIRECTION parentDirection)
+bool IsMHVTPWajibCompleted(const TimeframeData &data, ENUM_DIRECTION parentDirection)
 {
    if(data.high <= 0 || data.low <= 0) return false;
 
@@ -3131,7 +3155,7 @@ bool IsMHVLossPhaseEligible(string pair, ENUM_DIRECTION mhvDirection,
    return true;
 }
 
-double GetMHVBodyEdge(TimeframeData &data, ENUM_DIRECTION mhvDirection)
+double GetMHVBodyEdge(const TimeframeData &data, ENUM_DIRECTION mhvDirection)
 {
    if(data.open <= 0 || data.close <= 0) return 0.0;
    if(mhvDirection == DIR_BUY)  return MathMin(data.open, data.close); // bottom body
@@ -3152,7 +3176,7 @@ void UpdateMHVProvisionalBody(MLVData &mlv, TimeframeData &data)
       mlv.ProvisionalBodyAnchor = MathMax(mlv.ProvisionalBodyAnchor, edge);
 }
 
-bool IsMHVFormationMoveAway(MLVData &mlv, TimeframeData &data)
+bool IsMHVFormationMoveAway(MLVData &mlv, const TimeframeData &data)
 {
    if(mlv.PreviousClose <= 0 || data.close <= 0) return false;
    if(mlv.Direction == DIR_BUY)  return (data.close > mlv.PreviousClose);
@@ -3160,7 +3184,7 @@ bool IsMHVFormationMoveAway(MLVData &mlv, TimeframeData &data)
    return false;
 }
 
-bool IsMHVRetestInteraction(MLVData &mlv, TimeframeData &data)
+bool IsMHVRetestInteraction(MLVData &mlv, const TimeframeData &data)
 {
    if(mlv.FrozenMarkedBody <= 0 || data.high <= 0 || data.low <= 0) return false;
    if(mlv.Direction == DIR_BUY)  return (data.low <= mlv.FrozenMarkedBody);
@@ -3541,7 +3565,7 @@ bool CandleBodyCrossesLevel(double open, double close, double level,
 }
 
 bool DetectCSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
-               MovingAverage &ma, BollingerBand &band)
+               const MovingAverage &ma, const BollingerBand &band)
 {
    double open = iOpen(pair, timeframe, shift);
    double close = iClose(pair, timeframe, shift);
@@ -3563,7 +3587,7 @@ bool DetectCSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
 }
 
 bool DetectECSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
-                MovingAverage &ma)
+                const MovingAverage &ma)
 {
    double open = iOpen(pair, timeframe, shift);
    double close = iClose(pair, timeframe, shift);
@@ -3641,7 +3665,7 @@ bool M11_ClassifyD1OwnerAtShift(string pair, int shift,
 
 // Reconstructs the exact contiguous owner epoch after restart/recovery.
 // If history cannot prove the older boundary, provenance stays unresolved.
-bool M11_ResolveD1OwnerEpochStart(string pair, D1MajorTrendOwner &owner,
+bool M11_ResolveD1OwnerEpochStart(string pair, const D1MajorTrendOwner &owner,
                                   datetime &epochStart)
 {
    epochStart = 0;
@@ -3692,7 +3716,7 @@ void SetD1OwnerUnresolved(PairState &state, string reason)
    state.d1_major_trend_owner = owner;
 }
 
-void TraceD1MajorTrendOwner(string pair, PairState &state)
+void TraceD1MajorTrendOwner(string pair, const PairState &state)
 {
    if(DebugLevel < DBG_SIGNAL) return;
 
@@ -3824,14 +3848,14 @@ void ResetD1OpportunityJourney(D1OpportunityJourney &journey, string reason)
    journey.Reason = reason;
 }
 
-bool D1OpportunityIsConfirmedRE(ReEntryData &reEntry)
+bool D1OpportunityIsConfirmedRE(const ReEntryData &reEntry)
 {
    return (reEntry.State == RE_STATE_CONFIRMED && reEntry.IsValid &&
            (reEntry.Direction == DIR_BUY || reEntry.Direction == DIR_SELL) &&
            reEntry.Timeframe == PERIOD_D1 && reEntry.ConfirmationCandle > 0);
 }
 
-bool SelectConfirmedD1OpportunityRE(ReEntryData &buyState, ReEntryData &sellState,
+bool SelectConfirmedD1OpportunityRE(const ReEntryData &buyState, const ReEntryData &sellState,
                                     ReEntryData &selected, bool &ambiguous)
 {
    ZeroMemory(selected);
@@ -3843,7 +3867,7 @@ bool SelectConfirmedD1OpportunityRE(ReEntryData &buyState, ReEntryData &sellStat
    return true;
 }
 
-bool D1OpportunityExtremeMature(ExtremeLifecycleData &extreme)
+bool D1OpportunityExtremeMature(const ExtremeLifecycleData &extreme)
 {
    if(!extreme.IsValid || extreme.Timeframe != PERIOD_D1 ||
       extreme.ConfirmationCandleTime <= 0) return false;
@@ -3852,8 +3876,8 @@ bool D1OpportunityExtremeMature(ExtremeLifecycleData &extreme)
            extreme.Maturity == EXT_MAT_RETEST_READY);
 }
 
-bool SelectMatureD1OpportunityExtreme(ExtremeLifecycleData &buyState,
-                                      ExtremeLifecycleData &sellState,
+bool SelectMatureD1OpportunityExtreme(const ExtremeLifecycleData &buyState,
+                                      const ExtremeLifecycleData &sellState,
                                       ExtremeLifecycleData &selected,
                                       bool &ambiguous)
 {
@@ -3903,8 +3927,8 @@ bool IsD1TPWCompletionAtShift(string pair, ENUM_DIRECTION direction, int shift)
    return false;
 }
 
-bool D1OpportunityTPWCompletedSince(string pair, ExtremeLifecycleData &extreme,
-                                    TimeframeData &latestClosedD1)
+bool D1OpportunityTPWCompletedSince(string pair, const ExtremeLifecycleData &extreme,
+                                    const TimeframeData &latestClosedD1)
 {
    if(!D1OpportunityExtremeMature(extreme)) return true;
    if(!latestClosedD1.is_valid || !latestClosedD1.is_closed ||
@@ -3971,8 +3995,8 @@ void InstallD1OpportunityJourney(D1OpportunityJourney &journey, string pair,
    journey.Reason = reason;
 }
 
-bool DetectD1OpportunityCSD(string pair, TimeframeData &data,
-                            BollingerBand &band, ENUM_DIRECTION direction)
+bool DetectD1OpportunityCSD(string pair, const TimeframeData &data,
+                            const BollingerBand &band, ENUM_DIRECTION direction)
 {
    if(!data.is_valid || !data.is_closed || data.barIndex < 1) return false;
    MovingAverage ma;
@@ -3984,7 +4008,7 @@ bool DetectD1OpportunityCSD(string pair, TimeframeData &data,
    return DetectCSD(pair, PERIOD_D1, direction, data.barIndex, ma, band);
 }
 
-bool DetectD1OpportunityECSDWatch(string pair, TimeframeData &data,
+bool DetectD1OpportunityECSDWatch(string pair, const TimeframeData &data,
                                   ENUM_DIRECTION direction)
 {
    if(!data.is_valid || !data.is_closed || data.barIndex < 1) return false;
@@ -3997,7 +4021,7 @@ bool DetectD1OpportunityECSDWatch(string pair, TimeframeData &data,
    return DetectECSD(pair, PERIOD_D1, direction, data.barIndex, ma);
 }
 
-void UpdateD1OpportunityJourney(int pairIndex, BollingerBand &d1Band)
+void UpdateD1OpportunityJourney(int pairIndex, const BollingerBand &d1Band)
 {
    if(pairIndex < 0 || pairIndex >= g_pair_count) return;
    string pair = g_pair_states[pairIndex].actual_symbol;
@@ -6539,15 +6563,10 @@ bool IsD1OpportunityCandidateAuthorityReady(ValidatedSequenceCandidate &candidat
    if(candidate.D1OpportunitySourceCandleTime != opportunity.SourceCandleTime) return false;
    if(candidate.D1OpportunityActivationTime != opportunity.ActivationTime) return false;
 
-   // Tactical Extreme/TPW may oppose MA50 or run during a valid transition,
-   // but unresolved/malformed D1 strategic context still fails closed.
+   // Tactical Extreme/TPW may oppose a confirmed D1 owner, but not during
+   // D1_TRANSITION or when the owner inputs are unresolved.
    if(opportunity.Family == D1_OPP_EXTREME_TPW)
-   {
-      D1MajorTrendOwner owner = pairState.d1_major_trend_owner;
-      return (owner.IsValid && owner.SourceCandleTime > 0 &&
-              owner.Close1 > 0.0 && owner.MA50_1 > 0.0 && owner.MA50_2 > 0.0 &&
-              owner.State != D1_OWNER_UNRESOLVED);
-   }
+      return IsD1MajorTrendOwnerExecutionReady(pairState);
 
    if(!IsD1MajorTrendOwnerExecutionReady(pairState)) return false;
    return (candidate.Direction == pairState.d1_major_trend_owner.Direction);
@@ -6635,6 +6654,111 @@ bool IsCandidateEligible(ValidatedSequenceCandidate &candidate)
    if(candidate.Expiry > 0 && candidate.Expiry < g_processing_time) return false;
    return true;
 }
+
+// M15/M16 execution gate: retain persistent BBMA owners on a failed read,
+// but require exact, readable latest closed source snapshots for new entries.
+bool IsCurrentClosedSourceSnapshot(PairState &pairState, int timeframe)
+{
+   if(timeframe == PERIOD_D1)
+      return (pairState.tf_snapshot.D1_IsClosed &&
+              pairState.tf_snapshot.D1_CandleTime > 0 &&
+              pairState.d1_data.timeframe == PERIOD_D1 &&
+              pairState.d1_data.is_valid && pairState.d1_data.is_closed &&
+              pairState.d1_data.candle_time == pairState.tf_snapshot.D1_CandleTime);
+   if(timeframe == PERIOD_H4)
+      return (pairState.tf_snapshot.H4_IsClosed &&
+              pairState.tf_snapshot.H4_CandleTime > 0 &&
+              pairState.h4_data.timeframe == PERIOD_H4 &&
+              pairState.h4_data.is_valid && pairState.h4_data.is_closed &&
+              pairState.h4_data.candle_time == pairState.tf_snapshot.H4_CandleTime);
+   if(timeframe == PERIOD_H1)
+      return (pairState.tf_snapshot.H1_IsClosed &&
+              pairState.tf_snapshot.H1_CandleTime > 0 &&
+              pairState.h1_data.timeframe == PERIOD_H1 &&
+              pairState.h1_data.is_valid && pairState.h1_data.is_closed &&
+              pairState.h1_data.candle_time == pairState.tf_snapshot.H1_CandleTime);
+   if(timeframe == PERIOD_M15)
+      return (pairState.tf_snapshot.M15_IsClosed &&
+              pairState.tf_snapshot.M15_CandleTime > 0 &&
+              pairState.m15_data.timeframe == PERIOD_M15 &&
+              pairState.m15_data.is_valid && pairState.m15_data.is_closed &&
+              pairState.m15_data.candle_time == pairState.tf_snapshot.M15_CandleTime);
+   return false;
+}
+
+bool IsCandidateSourceSnapshotReady(ValidatedSequenceCandidate &candidate,
+                                    PairState &pairState)
+{
+   bool requireH4Owner = false;
+   for(int i = 0; i < candidate.ComponentCount && i < 3; i++)
+   {
+      ComponentIdentity component = candidate.Components[i];
+      // Validate source readability for every selected component. Owner identity
+      // remains persistent; this admission gate adds no age-based expiry.
+      if(!IsCurrentClosedSourceSnapshot(pairState, component.Timeframe))
+         return false;
+      if(component.ComponentType == SIGNAL_RE_ENTRY &&
+         candidate.UsesD1Opportunity && component.Timeframe == PERIOD_M15)
+         requireH4Owner = true;
+   }
+
+   // Standalone H1 Re-Entry and Extreme depend on the immediate H4 owner.
+   if(candidate.ComponentCount == 1 &&
+      candidate.Components[0].Timeframe == PERIOD_H1 &&
+      ((candidate.SequenceType == SIGNAL_RE_ENTRY &&
+        !candidate.UsesD1Opportunity) ||
+       candidate.SequenceType == SIGNAL_EXTREME))
+      requireH4Owner = true;
+
+   // Tactical D1 Extreme/TPW and M15-only opportunity paths require the H4
+   // alignment used during candidate construction.
+   if(candidate.UsesD1Opportunity &&
+      candidate.D1OpportunityFamily == D1_OPP_EXTREME_TPW)
+      requireH4Owner = true;
+
+   if(!requireH4Owner) return true;
+   H4DirectionalOwner owner = pairState.h4_direction_owner;
+   return (IsCurrentClosedSourceSnapshot(pairState, PERIOD_H4) &&
+           owner.RecoveryComplete && owner.IsValid &&
+           owner.State == H4_OWNER_ACTIVE &&
+           owner.Direction == candidate.Direction);
+}
+
+bool IsDecisionSourceSnapshotReady(BBMA_Decision &decision,
+                                   PairState &pairState)
+{
+   bool requireH4Owner = false;
+   for(int i = 0; i < decision.ComponentCount && i < 3; i++)
+   {
+      ComponentIdentity component = decision.Components[i];
+      // Recheck every frozen component source at M16 before validation.
+      if(!IsCurrentClosedSourceSnapshot(pairState, component.Timeframe))
+         return false;
+      if(component.ComponentType == SIGNAL_RE_ENTRY &&
+         decision.D1AuthorityMode == D1_AUTH_OPPORTUNITY &&
+         component.Timeframe == PERIOD_M15)
+         requireH4Owner = true;
+   }
+
+   if(decision.ComponentCount == 1 &&
+      decision.Components[0].Timeframe == PERIOD_H1 &&
+      ((decision.SignalType == SIGNAL_RE_ENTRY &&
+        decision.D1AuthorityMode == D1_AUTH_STRATEGIC_OWNER) ||
+       decision.SignalType == SIGNAL_EXTREME))
+      requireH4Owner = true;
+
+   if(decision.D1AuthorityMode == D1_AUTH_OPPORTUNITY &&
+      decision.D1OpportunityFamily == D1_OPP_EXTREME_TPW)
+      requireH4Owner = true;
+
+   if(!requireH4Owner) return true;
+   H4DirectionalOwner owner = pairState.h4_direction_owner;
+   return (IsCurrentClosedSourceSnapshot(pairState, PERIOD_H4) &&
+           owner.RecoveryComplete && owner.IsValid &&
+           owner.State == H4_OWNER_ACTIVE &&
+           owner.Direction == decision.Direction);
+}
+
 
 void BuildConfirmedReEntryCandidate(ReEntryData &reEntry,
                                     H4DirectionalOwner &h4Owner,
@@ -7717,7 +7841,9 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
 {
    int structurallyEligible = 0;
    for(int i = 0; i < count; i++)
-      if(IsCandidateEligible(candidates[i])) structurallyEligible++;
+      if(IsCandidateEligible(candidates[i]) &&
+         IsCandidateSourceSnapshotReady(candidates[i], pairState))
+         structurallyEligible++;
 
    // D1O-02: authority is evaluated per candidate. Legacy candidates remain
    // MA50-strategic gated; only explicit Mode-2 D1 opportunity candidates may
@@ -7727,7 +7853,8 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
 
    for(int i = 0; i < count; i++)
    {
-      if(!IsCandidateEligible(candidates[i])) continue;
+      if(!IsCandidateEligible(candidates[i]) ||
+         !IsCandidateSourceSnapshotReady(candidates[i], pairState)) continue;
       if(!IsCandidateAllowedByD1Owner(candidates[i], pairState)) continue;
       if(candidates[i].Direction == DIR_BUY) buyCount++;
       else if(candidates[i].Direction == DIR_SELL) sellCount++;
@@ -7761,7 +7888,8 @@ void PriorityEngine_Atomic(ValidatedSequenceCandidate &candidates[], int count,
    int canonicalIdx = -1;
    for(int i = 0; i < count; i++)
    {
-      if(!IsCandidateEligible(candidates[i])) continue;
+      if(!IsCandidateEligible(candidates[i]) ||
+         !IsCandidateSourceSnapshotReady(candidates[i], pairState)) continue;
       if(!IsCandidateAllowedByD1Owner(candidates[i], pairState)) continue;
       if(candidates[i].Direction != targetDirection) continue;
 
@@ -8021,7 +8149,7 @@ bool ValidateDecisionD1OpportunitySnapshot(int pairIndex, BBMA_Decision &decisio
       if(!IsD1MajorTrendOwnerExecutionReady(state)) return false;
       if(decision.Direction != owner.Direction) return false;
    }
-   else if(owner.State == D1_OWNER_UNRESOLVED)
+   else if(!IsD1MajorTrendOwnerExecutionReady(state))
       return false;
 
    return true;
@@ -8042,6 +8170,8 @@ bool ValidateDecisionOwnerSnapshot(int pairIndex, BBMA_Decision &decision,
    expired = false;
    if(pairIndex < 0 || pairIndex >= g_pair_count) return false;
    if(decision.ComponentCount < 1 || decision.ComponentCount > 3) return false;
+   if(!IsDecisionSourceSnapshotReady(decision, g_pair_states[pairIndex]))
+      return false;
 
    for(int i = 0; i < decision.ComponentCount; i++)
    {
@@ -11167,7 +11297,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.15 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.20 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);

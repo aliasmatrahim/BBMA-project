@@ -118,6 +118,12 @@ Freshness ownership remains:
 
 D1 strategic validity is a separate M11 snapshot and must be current for the same processing decision.
 
+### Current source snapshot admission
+
+Before candidate counts or canonical selection, M15 requires every frozen component of each candidate to have a valid, closed snapshot on its exact source timeframe whose candle time matches the current processing snapshot. This applies to Re-Entry, Extreme, MHV and MLV. The existing H4 dependency remains for standalone H1 Re-Entry/Extreme and D1 opportunity paths whose construction used H4 alignment. An unreadable snapshot blocks that candidate for the cycle but does not erase owner state or add age expiry. This is an EA data-integrity gate, not a new BBMA setup rule.
+
+An unreadable snapshot blocks the decision for that cycle but does not erase the persistent M12 owner or add a candle-age TTL. This is EA data-integrity policy; it does not change BBMA setup definitions.
+
 ## D1 snapshot in decision payload
 When M15 creates a decision, it must preserve enough frozen M11 identity for downstream M16 verification.
 
@@ -177,12 +183,15 @@ M15 does not own:
 - lot/risk;
 - position lifecycle / broker close.
 
-## Current implementation gap
-The active EA still reflects the earlier H4-only standalone-H1 gate and does not yet consume a canonical M11 D1 owner snapshot.
+## Current owner implementation status — reconciled 2026-10-26
+The previous implementation-gap statement is superseded for static status by owner Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`.
 
-Therefore the 2026-08-24 D1 portion of this contract is **SPECIFICATION-ONLY / NOT IMPLEMENTED** while the P3 runtime candidate remains frozen.
+- M15 consumes M11 D1 owner state and applies the D1 eligibility gate before final candidate selection.
+- M15 remains the sole final new-entry authority; M27 calls its priority engine only after candidate assembly.
+- M15 freezes the selected D1 owner identity for M16 revalidation.
+- Exact REM/RRE/REE signatures remain unchanged.
 
-Previous Step 6 implementation records remain historical evidence for the atomic M15 architecture, but they do not prove implementation of the newly reconciled D1 strategic gate.
+Classification: **STATIC IMPLEMENTATION PRESENT / COMBINED REGRESSION PARTIAL / RUNTIME NOT VERIFIED**. No runtime compliance claim is made by this reconciliation.
 
 ## Implementation record — historical Step 6 baseline
 Patch:
@@ -209,3 +218,29 @@ The 2026-08-24 D1 strategic gate is implemented on isolated `d1-owner-dev` as bu
 
 ## D1-03 atomic snapshot ownership overlay
 M15 continues the D1-02 gate order, but its frozen D1 identity now comes exclusively from the M11-owned `D1MajorTrendOwner` atomic snapshot (`state`, `direction`, closed-D1 candle, `Close1`, `MA50_1`, `MA50_2`). M15 no longer mixes raw `d1_data` fields with separate PairState MA mirrors when freezing a decision. Strategy semantics and candidate signatures are unchanged.
+
+
+## CP07 candidate component source-admission delta — Build 5.22
+
+Before M15 counts or selects a candidate, every frozen component must have a valid, closed source-timeframe snapshot whose candle time matches the latest closed processing snapshot. This covers Re-Entry, Extreme and MHV/MLV components. Persistent component owners remain stored across unreadable refreshes; the M15 gate excludes the candidate until its required source snapshots are readable again. This is an admission safeguard only: it adds no age TTL, detection rule, priority change or execution authority. Native/runtime validation remains pending under Issue #292.
+
+## CP08 — native compile status (2026-10-27)
+
+Build 5.22 exact-source strict native compile on G40 passed with 0 errors / 0 warnings. The Strategy Tester, broker preflight and runtime matrix remain NOT RUN under Issue #292; qualified history remains NOT VERIFIED. See `blueprint/audits/evidence/CORE_FIDELITY_20261021/CHECKPOINT_CP08_20261027.md`.
+
+
+## CP17 current-owner reconciliation — D1O-TPW during D1_TRANSITION (2026-10-27)
+
+Accepted Core §9.2 and this contract classify D1_TRANSITION and D1_OWNER_UNRESOLVED as blocking all new-entry candidates. The approved D1O-01 extension separately permits the D1_OPP_EXTREME_TPW family to oppose the strategic owner when valid/recovered H4 ownership and a fresh confirmed H1 Re-Entry exist; that decision does not explicitly state whether D1_TRANSITION is permitted.
+
+Build 5.15 M15 code has a special D1_OPP_EXTREME_TPW authority branch that requires valid D1 snapshot values and rejects D1_OWNER_UNRESOLVED, but does not reject D1_TRANSITION. Therefore it permits this opportunity candidate during transition. The dedicated EnableD1TPWLifecycle flag is false, and M17 ResolveApprovedInitialSLTP fails closed for that identity before downstream risk/order execution. This prevents current execution but does not resolve the policy mismatch.
+
+Status: **HOLD — transition applicability for D1_OPP_EXTREME_TPW needs explicit project adjudication before lifecycle activation.** Do not alter accepted Core semantics or enable the lifecycle based on static mapping alone. See Core-fidelity CP17 and the D1O-01 / D1 TPW lifecycle contracts.
+
+## CP18 D1O-TPW transition policy resolution (2026-10-27)
+
+The project decision applies the existing Core §9.2/M15 transition block to D1_OPP_EXTREME_TPW: D1_TRANSITION and D1_OWNER_UNRESOLVED cannot pass M15 final authority. This is a deterministic project execution mapping for the D1O-01 extension, not a new source rule and not a Core edit.
+
+Draft candidate Build 5.23 uses the existing IsD1MajorTrendOwnerExecutionReady helper in both M15 admission and M16 frozen-decision revalidation. That helper admits confirmed BUY/SELL owners only. The TPW family still does not require candidate direction to equal the confirmed D1 owner, preserving D1O-01 counter-direction behavior under its existing H4/H1 prerequisites.
+
+The dedicated D1 TPW lifecycle flag remains OFF. Native compile and portable source regressions do not satisfy the separate qualified-history, Strategy Tester, broker/runtime or activation gates. See blueprint/decisions/D1_TPW_D1_TRANSITION_FAIL_CLOSED_DECISION_20261027.md and CP18 evidence.

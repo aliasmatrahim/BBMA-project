@@ -45,35 +45,37 @@ Step 3D removes these old M08 gates because they are not part of the supplied Ex
 
 BB shape can still be auxiliary classification data because the source describes multiple Extreme types, including sideways/momentum variants, but BB shape is not a universal prerequisite for existence of an Extreme signal.
 
-## Source rules intentionally not invented inside M08
+## Accepted reversal and retest lifecycle (Core V2 §5.4; CP11)
 
-### Reversal candle and retest entry
-The primary reference says:
-- reversal candle(s) confirm the Extreme;
-- the reversal may involve more than one candle;
-- the retest candle is the point of entry.
+The primary PDF identifies reversal-candle confirmation and later retest entry. The deterministic lifecycle below is the user-approved project mapping in Core V2 §5.4 and `blueprint/decisions/CORE_V2_F2_EXTREME_MATURITY_DECISION.md`; its Boolean candle-direction and phase triggers are not verbatim source formulas.
 
-The supplied references do not define a deterministic candle-pattern algorithm precise enough to encode a universal reversal-candle lifecycle without interpretation. Step 3D therefore does not silently invent one.
+- `DetectExtreme()` identifies only a strict MA5/MA10 outside-band RAW candidate on valid closed data. RAW alone is neither an MTF component nor entry authority.
+- `UpdateExtremeLifecycle()` checks accepted invalidation before each maturity promotion. The first subsequent closed source-timeframe reversal-direction candle promotes to `REVERSAL_CONFIRMED`. It adds no fixed candle/session expiry, named pattern or universal close-inside-BB gate.
+- During continued reversal, the provisional body edge may update. The first close progression back toward the prior close starts retest and freezes the body reference: SELL `CurrentClose > PreviousClose`; BUY `CurrentClose < PreviousClose`.
+- The retest-start candle is excluded from the body anchor but may itself complete the retest. The first valid range/wick interaction with the frozen body anchor **or** relevant MA5 yields `RETEST_READY`; there is no mandatory dual touch or reference hierarchy.
+- `REVERSAL_CONFIRMED` (including retest-phase/ready) is the F2 decision's source-inferred maturity for REM/REE Extreme components. Standalone H1 Extreme entry requires exact `RETEST_READY`.
+- CF-02/03/04 are handled by Core V2 §5.3: strict outside remains; there is no universal inside-close gate or blanket outside-BB reversal exception; the repeated-LTF no-TPW case remains bounded and is excluded from D1.
 
-This means:
-- Extreme may remain a valid BBMA **signal/component** for source-defined combinations such as REM/REE;
-- Extreme must not become a standalone trade merely because `DetectExtreme()` returned true;
-- final standalone Extreme entry eligibility must remain separate from raw signal validity.
+### CSM invalidation dependency — current-owner reconciliation (CP10, 2026-10-27)
+The accepted source rule remains: a later source-valid Momentum/CSM context invalidates the Extreme lifecycle; an outside close through the original Extreme-side outer BB also remains a separate source invalidation.
 
-### CSM invalidation dependency
-The primary reference states that Extreme is no longer valid in the presence of CSM, regardless of MA5 position outside the BB.
+The older Step 3D statement that this temporal link awaited M10 source alignment is superseded by the current Build 5.15 source. `UpdateExtremeLifecycle` calls `IsExtremeLifecycleInvalidation` before maturity promotion; that helper calls the M08-local `IsExtremeMomentumInvalidation` predicate. For valid closed BB inputs, its geometry matches the M10 CSM definition: width increases, Mid and the relevant outer band move in the same direction, and close is outside that outer band.
 
-M08 does not own CSM detection. M10 owns CSM. Because M10 is still awaiting its own source-alignment audit, Step 3D does not hard-wire the current unaudited M10 result into M08.
-
-The CSM invalidation rule remains a required downstream dependency and must be connected after M10 CSM is source-aligned.
+This is a static behavioral mapping, not a direct call to M10 `DetectCSM`. M08 remains the Extreme lifecycle owner and M10 remains the CSM signal owner. No focused M08/M10 parity test or attributable runtime proof was run; that status remains NOT VERIFIED. Do not route the M07 enum into M10 or infer a new source rule from this mapping.
 
 ## Ownership rule
-- M06 owns MA/BB numeric production.
-- M07 may classify BB shape as auxiliary context.
-- M08 owns Extreme signal detection semantics.
-- M10 owns CSM production.
-- M13 collects immutable signal snapshots; it must not redefine Extreme.
-- M15/final eligibility decides whether a source-valid Extreme is actually an entry opportunity.
+- M06 owns closed-candle OHLC and numeric MA/BB production; incomplete-history validity is tracked separately under Issue #292.
+- M07 may classify BB shape as auxiliary context; it is not an M08/M10 signal gate.
+- M08 owns RAW detection, maturity, invalidation, supersession and retest lifecycle.
+- M09 consumes a reversal-confirmed M15 Extreme as the parent of its separate TP-Wajib/MHV-MLV lifecycle.
+- M10 owns CSM production; M08's current invalidation helper is a local equivalent predicate, not a direct call to M10.
+- M12N observes Extreme state as read-only lineage only.
+- M13 collects reversal-confirmed H1/H4 Extreme snapshots for the exact REM/RRE/REE signatures; it does not redetect Extreme.
+- M15 permits standalone H1 Extreme only at RETEST_READY under Mode 2 plus the active same-direction H4 and M11 D1 gates.
+- M16 revalidates the frozen exact M08 lifecycle identity; it does not promote maturity.
+- M17 maps standalone H1 Extreme to the approved structural-wick SL and normal TP-Wajib area. The exact H1 broker mapping is project execution policy.
+- M11J's D1 Extreme TP-Wajib opportunity is a separate project extension. Its dedicated lifecycle gate is OFF; M17 fails closed for that identity while OFF, and M23's D1 TPW lifecycle remains gated.
+- M23 C044 replay uses private M08 state copies; M27 owns closed-snapshot call order and downstream handoffs.
 
 ## Implementation record
 Patch:

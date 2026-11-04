@@ -54,6 +54,8 @@ The current approved D1 Opportunity entry rules remain:
 
 No entry condition is added by this lifecycle contract.
 
+D1 owner gate inheritance: this D1 opportunity extension does not bypass the M11/M15 strategic-owner gate. D1_TRANSITION and D1_OWNER_UNRESOLVED block this family from new-entry authority. Counter-direction against the strategic owner remains possible only while the D1 owner is confirmed and the existing aligned/recovered H4 plus fresh confirmed H1 Re-Entry prerequisites pass. This is the project execution mapping recorded in blueprint/decisions/D1_TPW_D1_TRANSITION_FAIL_CLOSED_DECISION_20261027.md; it does not add or claim a source-defined BBMA rule.
+
 ## 4. Normal D1 TP-Wajib completion
 
 The semantic event is evaluated from fully closed D1 candles after the frozen D1 Extreme confirmation/source candle.

@@ -1,0 +1,61 @@
+{
+  "schema": "bbma_candidate_native_compile_manifest_v1",
+  "task": "CORE-FIDELITY-292 / Issue #292 / PR #293",
+  "candidate": {
+    "build": "5.24",
+    "build_tag": "V524_M08_CONST_READONLY_INPUTS_20261027",
+    "branch": "audit/core-fidelity-20261021",
+    "parent_commit": "913e7eaafcf564a763c7a4093d7475be16b3d2be",
+    "source_path": "blueprint/source/BBMA_EA.mq4",
+    "source_git_blob": "98d5403283782922ba85d1459d12eaf1ce921316",
+    "base_git_blob": "be13aac3a2a0f2e2e9eeb2f5d4006eeedf7cd562",
+    "g40_windows_staging_path": "C:\\Users\\AFIQMA~1\\AppData\\Local\\Temp\\BBMA_CORE_FIDELITY_BUILD524_EXACT\\BBMA_EA.mq4",
+    "g40_raw_source_sha256": "A251BBECCD4DF59B28C4A1E429DACF6EC68417B85F04405192E828CFDE8C5937",
+    "g40_source_bytes": 556795,
+    "line_endings": "LF in canonical Git blob; CRLF in Windows staging checkout"
+  },
+  "change": {
+    "signatures": [
+      "double GetExtremeRelevantMA5(const TimeframeData &data, ENUM_DIRECTION direction)",
+      "double GetExtremeReversalBodyEdge(const TimeframeData &data, ENUM_DIRECTION direction)"
+    ],
+    "helper_bodies_changed": false,
+    "callsites_changed": false,
+    "version_property": "5.24",
+    "header_line": "//| Version 5.2.4 - M08 Const Read-Only Input Hardening             |",
+    "static_targeted_regression": {
+      "status": "PASS",
+      "exact_five_line_allowlist": true,
+      "GetExtremeRelevantMA5_callsites": 8,
+      "GetExtremeReversalBodyEdge_callsites": 2,
+      "helper_bodies_identical_to_build_5_23": true
+    },
+    "clarification": "GetExtremeReversalBodyEdge calls MathMax/MathMin with scalar open/close values; it does not forward the TimeframeData reference."
+  },
+  "native_compile": {
+    "status": "PASS",
+    "compiler": "HFM MetaEditor 5.0.0.2425",
+    "strict": true,
+    "errors": 0,
+    "warnings": 0,
+    "elapsed_ms": 1081,
+    "log_path": "C:\\Users\\AFIQMA~1\\AppData\\Local\\Temp\\BBMA_CORE_FIDELITY_BUILD524_EXACT\\metaeditor_build524.log",
+    "log_sha256": "46BDD47820011E2A72C8403F2243BC6C4F952FB84249666033B2D7C82732ACB0",
+    "ex4_path": "C:\\Users\\AFIQMA~1\\AppData\\Local\\Temp\\BBMA_CORE_FIDELITY_BUILD524_EXACT\\BBMA_EA.ex4",
+    "ex4_sha256": "053DAE5F4D844229639856C2B7C8BF97627B7C43C3A024BCA9BE1860CEA0DFDE"
+  },
+  "runtime": {
+    "mt4_terminal": "NOT RUNNING after compile",
+    "metaeditor": "NOT RUNNING after compile",
+    "strategy_tester": "NOT RUN",
+    "broker_runtime": "NOT RUN",
+    "orders_or_live_trade": "NONE"
+  },
+  "governance": {
+    "owner_branch": "d1-owner-dev",
+    "owner_head": "459c0588e625d7f7630f0fb5612b7f04fda496de",
+    "pr_number": 293,
+    "pr_state": "OPEN_DRAFT_DO_NOT_MERGE",
+    "q10_phase_l_r5": "HIGHEST_PRIORITY_GLOBAL_ACCEPTANCE; R5-14/R5-16 await natural broker events"
+  }
+}

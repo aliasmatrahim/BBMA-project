@@ -1,0 +1,10 @@
+Build 5.21 RED — exact production helper bodies
+Source blob: 313247e0fec1fa905a4928d5baa715d801a66ef6
+Test: test_candidate_component_source_snapshots.py
+Command: python3 -m unittest discover -v -s blueprint/tests -p test_candidate_component_source_snapshots.py
+Result: FAIL (3 stale-component subcases; valid control passed)
+stale_h1_extreme: M15=1 M16=1 preflight=1
+stale_m15_mlv: M15=1 M16=1 preflight=1
+stale_h4_extreme: M15=1 M16=1 preflight=1
+valid: M15=1 M16=1 preflight=1
+Diagnosis: only SIGNAL_RE_ENTRY components were freshness-checked.

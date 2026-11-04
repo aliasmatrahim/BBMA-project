@@ -105,6 +105,12 @@ Valid only when the matching H1/H4/D1 M12 slot remains:
 - same confirmation-candle identity;
 - still source-valid under the M12 structural owner contract; no generic fixed-age TTL is added by M16.
 
+### Current source snapshot revalidation
+
+Before marking a decision validated, M16 independently requires every frozen decision component's exact-timeframe snapshot to be valid, closed and equal to the latest closed processing-snapshot candle. This applies to Re-Entry, Extreme, MHV and MLV components. It also rechecks a same-direction active H4 owner and current H4 snapshot for the standalone H1 paths and D1 opportunity paths that were admitted using H4 alignment.
+
+If the required snapshot is unreadable or mismatched, the pending decision fails closed. M12/H4 structural state remains intact for a later readable cycle; no age expiry is introduced. This is an EA data-integrity safeguard, not a new BBMA setup or signal rule.
+
 ### MHV/MLV component
 Valid only when the matching M09 owner state remains at the required maturity/identity for the selected decision.
 
@@ -139,12 +145,14 @@ M16 does not own:
 - broker execution/recovery;
 - live-position strategy close.
 
-## Current implementation gap
-The active EA does not yet carry/verify the canonical M11 D1 strategic-owner snapshot through M15 -> M16.
+## Current owner implementation status — reconciled 2026-10-26
+The previous implementation-gap statement is superseded for static status by owner Build 5.15 at `d1-owner-dev@459c0588e625d7f7630f0fb5612b7f04fda496de`.
 
-Therefore the 2026-08-24 D1-owner revalidation portion is **SPECIFICATION-ONLY / NOT IMPLEMENTED** while the P3 runtime candidate remains frozen.
+- M16 consumes a decision created by M15 and revalidates the frozen M11 D1 snapshot before downstream execution.
+- M16 does not reproduce the D1 price/MA50 slope formula.
+- D1 transition or identity failure blocks the pending entry; it does not create a live-position close rule.
 
-Historical Step 7 implementation remains valid for the existing component/Extreme invalidation architecture but is not proof of D1 gate implementation.
+Classification: **STATIC IMPLEMENTATION PRESENT / COMBINED REGRESSION PARTIAL / RUNTIME NOT VERIFIED**.
 
 ## Historical implementation record
 Patch:
@@ -170,3 +178,12 @@ The 2026-08-24 D1 owner revalidation is implemented on isolated `d1-owner-dev` a
 
 ## D1-03 atomic snapshot ownership overlay
 M16 continues to revalidate D1 before structural component freshness, but the comparison now uses only the current M11-owned atomic D1 snapshot. It no longer compares frozen decision identity against split raw `d1_data` / PairState MA mirror fields. No D1 trend formula is duplicated and no live-position exit authority is added.
+
+
+## CP07 candidate component source revalidation — Build 5.22
+
+Immediately before M16 marks a decision validated, it repeats the current closed-source snapshot check for every frozen component, then applies the existing persistent owner-identity checks. Any unreadable, invalid, wrong-timeframe or non-current component snapshot invalidates the pending decision before M17. Owner lifecycle state is not erased and no generic age expiry or live-position close authority is introduced. Portable helper-level regression passes; Build 5.22 native strict compile is PASS (0 errors / 0 warnings) under CP08. Strategy Tester and broker/runtime validation remain NOT TESTED under Issue #292.
+
+## CP08 — native compile status (2026-10-27)
+
+Build 5.22 exact-source strict native compile on G40 passed with 0 errors / 0 warnings. The Strategy Tester, broker preflight and runtime matrix remain NOT RUN under Issue #292; qualified history remains NOT VERIFIED. See `blueprint/audits/evidence/CORE_FIDELITY_20261021/CHECKPOINT_CP08_20261027.md`.

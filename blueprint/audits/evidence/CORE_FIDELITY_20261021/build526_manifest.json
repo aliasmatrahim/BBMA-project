@@ -1,0 +1,69 @@
+{
+  "schema": "bbma_candidate_native_compile_manifest_v1",
+  "task": "CORE-FIDELITY-292 / Issue #292 / PR #293",
+  "candidate": {
+    "build": "5.26",
+    "build_tag": "V526_M11_CONST_READONLY_SNAPSHOT_INPUTS_20261027",
+    "source_rev": "CORE_FIDELITY_292_M11_CONST_READONLY_001_20261027",
+    "branch": "audit/core-fidelity-20261021",
+    "parent_commit": "2c5299f6409b610bbedf463253fc65dee3566e78",
+    "source_path": "blueprint/source/BBMA_EA.mq4",
+    "base_git_blob": "9eb016ed13d90a57a992aa14c18072a44c3c4ab2",
+    "source_git_blob": "f134ff476a16b5834798fff9b3de90bfafbeb495",
+    "g40_staging_path": "C:\\Users\\AFIQMA~1\\AppData\\Local\\Temp\\BBMA_CORE_FIDELITY_BUILD526_EXACT\\BBMA_EA.mq4",
+    "g40_raw_source_sha256": "5360330D8B57CFB8DE5BAF12824CA18095D446E5CDD2D59D1E82A1920419AF9B",
+    "g40_source_bytes": 542870,
+    "line_endings": "LF in canonical Git blob and G40 staging; git hash-object matches candidate blob"
+  },
+  "change": {
+    "header": "//| Version 5.2.6 - M11 Const Read-Only Snapshot Inputs           |",
+    "signatures": [
+      "bool D1OpportunityTPWCompletedSince(string pair, ExtremeLifecycleData &extreme, const TimeframeData &latestClosedD1)",
+      "bool DetectD1OpportunityCSD(string pair, const TimeframeData &data, BollingerBand &band, ENUM_DIRECTION direction)",
+      "bool DetectD1OpportunityECSDWatch(string pair, const TimeframeData &data, ENUM_DIRECTION direction)"
+    ],
+    "function_bodies_changed": false,
+    "callsite_counts": {
+      "D1OpportunityTPWCompletedSince": 2,
+      "DetectD1OpportunityCSD": 2,
+      "DetectD1OpportunityECSDWatch": 2
+    },
+    "all_snapshot_inputs_have_direct_writes": false,
+    "data_forwarded_by_reference": false,
+    "exact_reverse_allowlist_reproduces_base": true,
+    "static_targeted_regression": {
+      "status": "PASS",
+      "baseline_red_missing_const_signatures": 3,
+      "candidate_green_signatures": 3,
+      "build_metadata_unique": true,
+      "left_aligned_header": true,
+      "body_write_checks": 3,
+      "callsite_count_drift": 0
+    }
+  },
+  "native_compile": {
+    "status": "PASS",
+    "compiler": "HFM MetaEditor 5.0.0.2425",
+    "strict": true,
+    "errors": 0,
+    "warnings": 0,
+    "elapsed_ms": 981,
+    "log_path": "C:\\Users\\AFIQMA~1\\AppData\\Local\\Temp\\BBMA_CORE_FIDELITY_BUILD526_EXACT\\metaeditor_build526.log",
+    "log_sha256": "142692ADC5EBEEE4D04DAD67E6A9661ACA8F5E66A28D94FC510D9C758867337D",
+    "ex4_path": "C:\\Users\\AFIQMA~1\\AppData\\Local\\Temp\\BBMA_CORE_FIDELITY_BUILD526_EXACT\\BBMA_EA.ex4",
+    "ex4_sha256": "9C4A2C0D3717416BDBCFE18F0061D6D0F45CFE2422956D022A3E6E84CEE50192"
+  },
+  "runtime": {
+    "strategy_tester": "NOT RUN",
+    "broker_runtime": "NOT RUN",
+    "live_orders": "NONE",
+    "mt4_or_metaeditor_after_compile": "NOT RUNNING"
+  },
+  "governance": {
+    "owner_branch": "d1-owner-dev",
+    "owner_head": "459c0588e625d7f7630f0fb5612b7f04fda496de",
+    "pr_number": 293,
+    "pr_state": "OPEN_DRAFT_DO_NOT_MERGE",
+    "q10_phase_l_r5": "INCOMPLETE; R5-14/R5-16 await natural broker events; no terminal restart or event synthesis"
+  }
+}

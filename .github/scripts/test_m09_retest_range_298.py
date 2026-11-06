@@ -1,4 +1,4 @@
-"""Source-level MHV retest and tester symbol-resolution regression."""
+"""Source-level MHV retest and Strategy Tester runtime regression."""
 from pathlib import Path
 import re
 
@@ -18,6 +18,48 @@ assert re.search(
     r"\s*return\s+Symbol\s*\(\s*\)\s*;",
     symbol_match.group(1),
 ), "Strategy Tester current-symbol fallback missing"
+
+connection_guard = re.search(
+    r"bool IsTerminalConnected\(\)\s*\{(.*?)\n\}",
+    source,
+    re.S,
+)
+assert connection_guard and re.search(
+    r"return\s*\(\s*IsTesting\(\)\s*\|\|\s*IsConnected\(\)\s*\)\s*;",
+    connection_guard.group(1),
+), "tester simulated-connection allowance missing"
+
+init_guard = re.search(
+    r"int OnInit\(\)\s*\{(.*?)\n\}",
+    source,
+    re.S,
+)
+assert init_guard and re.search(
+    r"if\s*\(\s*!IsTesting\(\)\s*\)\s*\{\s*ResetLastError\(\);"
+    r"\s*if\s*\(\s*!EventSetTimer\(1\)\s*\)",
+    init_guard.group(1),
+), "live timer registration must be skipped only in Strategy Tester"
+
+deinit_guard = re.search(
+    r"void OnDeinit\(const int reason\)\s*\{(.*?)\n\}",
+    source,
+    re.S,
+)
+assert deinit_guard and re.search(
+    r"if\s*\(\s*!IsTesting\(\)\s*\)\s*EventKillTimer\(\)\s*;",
+    deinit_guard.group(1),
+), "timer cleanup must be skipped only in Strategy Tester"
+
+tick_handler = re.search(
+    r"void OnTick\(\)\s*\{(.*?)\n\}",
+    source,
+    re.S,
+)
+assert tick_handler and re.search(
+    r"if\s*\(\s*!IsTerminalConnected\(\)\s*\)\s*return\s*;\s*"
+    r"OnTickMain\(\)\s*;",
+    tick_handler.group(1),
+), "tester and live ticks must share the same controller"
 
 match = re.search(
     r"bool IsMHVRetestInteraction\(MLVData &mlv, TimeframeData &data\)\s*"
@@ -136,5 +178,5 @@ for name, state, candle_time, confirmation_time, touches, expected in lifecycle_
 
 print(
     "PASS 16 directional boundary cases, 8 invalid-direction cases, "
-    "7 lifecycle transition cases"
+    "7 lifecycle transition cases, tester runtime guards"
 )

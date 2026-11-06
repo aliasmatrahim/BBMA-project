@@ -109,8 +109,8 @@ Classification: **DIRECT SOURCE MARKED-BODY / RETEST CONCEPT + MINIMAL FIXED-REF
 The project adopts **first valid price-range interaction with the frozen marked body as the minimum deterministic retest-completion rule**.
 
 Locked semantics:
-- bottom-side MHV retest: later candle `Low <= FrozenMarkedBody`;
-- top-side MHV retest: later candle `High >= FrozenMarkedBody`;
+- bottom-side MHV retest: later candle `Low <= FrozenMarkedBody <= High`;
+- top-side MHV retest: later candle `Low <= FrozenMarkedBody <= High`;
 - range/wick interaction is sufficient; no universal body-close-at-line rule is added;
 - no extra close-away confirmation, named pattern, mandatory second/third touch, exact double/triple morphology or eCSD/CSD prerequisite is added merely to complete retest;
 - formation-establishing move-away candle cannot simultaneously count as the later retest candle;
@@ -260,3 +260,6 @@ Next engineering work:
 - compile/regression/runtime validation after implementation.
 
 No EA code change is authorized by this review record alone.
+
+## User decision 2026-11-06 — MHV retest range intersection (#298)
+A valid later candle must include the frozen marked-body price in its actual low-high range. A gap entirely beyond the reference does not prove contact. This deterministic project mapping supersedes the former one-sided inequality; it does not alter formation, invalidation, REM maturity, or entry authority. Native runtime validation remains required.

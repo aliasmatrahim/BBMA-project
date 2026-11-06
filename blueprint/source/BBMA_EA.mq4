@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.1.5 - NMJE P2 Targetless Lifecycle Replay         |
+//| Version 5.98 - M09 Retest Range Issue 298                      |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.15"
+#property version   "5.98"
 #property strict
 
-#define BBMA_BUILD_TAG      "V515_NMJE_P2_TARGETLESS_REPLAY_20260925"
-#define BBMA_SOURCE_REV_TAG "NMJE_P2_TARGETLESS_REPLAY_001_20260925"
+#define BBMA_BUILD_TAG      "V598_M09_RETEST_RANGE_298_20261106"
+#define BBMA_SOURCE_REV_TAG "M09_RETEST_RANGE_298_001_20261106"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -3163,8 +3163,8 @@ bool IsMHVFormationMoveAway(MLVData &mlv, TimeframeData &data)
 bool IsMHVRetestInteraction(MLVData &mlv, TimeframeData &data)
 {
    if(mlv.FrozenMarkedBody <= 0 || data.high <= 0 || data.low <= 0) return false;
-   if(mlv.Direction == DIR_BUY)  return (data.low <= mlv.FrozenMarkedBody);
-   if(mlv.Direction == DIR_SELL) return (data.high >= mlv.FrozenMarkedBody);
+   if(mlv.Direction == DIR_BUY || mlv.Direction == DIR_SELL)
+      return (data.low <= mlv.FrozenMarkedBody && data.high >= mlv.FrozenMarkedBody);
    return false;
 }
 

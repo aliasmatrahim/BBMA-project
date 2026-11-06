@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.98 - M09 Retest Range Issue 298                      |
+//| Version 5.99 - M09 Retest Tester Support                      |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.98"
+#property version   "5.99"
 #property strict
 
-#define BBMA_BUILD_TAG      "V598_M09_RETEST_RANGE_298_20261106"
-#define BBMA_SOURCE_REV_TAG "M09_RETEST_RANGE_298_001_20261106"
+#define BBMA_BUILD_TAG      "V599_M09_RETEST_RANGE_298_TESTER_SYMBOL_20261106"
+#define BBMA_SOURCE_REV_TAG "M09_RETEST_RANGE_298_002_20261106"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -1322,6 +1322,10 @@ string FindActualSymbol(string symbol)
 {
    string requested = StringTrimLeft(StringTrimRight(symbol));
    if(requested == "") return "";
+
+   // Strategy Tester already owns the current test symbol; SymbolSelect is
+   // prohibited there (runtime error 4059).
+   if(IsTesting() && requested == Symbol()) return Symbol();
 
    // 1) Exact broker symbol wins when it exists and can be selected.
    int totalAll = SymbolsTotal(false);
@@ -11167,7 +11171,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.15 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.99 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);

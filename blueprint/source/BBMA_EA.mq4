@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 6.00 - M09 Retest Tester Runtime                       |
+//| Version 6.01 - M09 Retest Tester Maintenance                  |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "6.00"
+#property version   "6.01"
 #property strict
 
-#define BBMA_BUILD_TAG      "V600_M09_RETEST_RANGE_298_TESTER_RUNTIME_20261106"
-#define BBMA_SOURCE_REV_TAG "M09_RETEST_RANGE_298_003_20261106"
+#define BBMA_BUILD_TAG      "V601_M09_RETEST_RANGE_298_TESTER_MAINTENANCE_20261106"
+#define BBMA_SOURCE_REV_TAG "M09_RETEST_RANGE_298_004_20261106"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -11172,7 +11172,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=6.00 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=6.01 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -13821,11 +13821,47 @@ void OnDeinit(const int reason)
 //+------------------------------------------------------------------+
 //| EXPERT TICK FUNCTION                                             |
 //+------------------------------------------------------------------+
+void ResetDailyProtectionIfNewDay()
+{
+   datetime todayStart = GetTodayStart();
+   if(todayStart > g_last_reset_date)
+   {
+      double resetEquity = AccountEquity();
+      if(resetEquity > 0)
+         g_protection_reference_equity = resetEquity;
+      g_last_reset_date = todayStart;
+      g_last_daily_profit = 0;
+      Log(DBG_FULL, "Daily reset: protection reference = " + DoubleToString(g_protection_reference_equity, 2));
+   }
+}
+
+void RunTesterTimerMaintenance()
+{
+   if(!IsTesting()) return;
+
+   // Timer events are unavailable in Strategy Tester. Reproduce only the
+   // time-based state housekeeping once per simulated second; signal work
+   // remains owned by OnTickMain's existing M15 closed-candle gate.
+   static datetime lastMaintenanceTime = 0;
+   datetime currentTime = GetProcessingTime();
+   if(currentTime <= 0 || currentTime == lastMaintenanceTime) return;
+
+   lastMaintenanceTime = currentTime;
+   datetime previousProcessingTime = g_processing_time;
+   g_processing_time = currentTime;
+   CleanupSignalHistoryEntries();
+   CleanupGlobalSignalHistory();
+   g_processing_time = previousProcessingTime;
+   ResetDailyProtectionIfNewDay();
+}
+
 void OnTick()
 {
    if(!g_is_initialized) return;
    if(!IsTerminalConnected()) return;
+   if(IsTesting()) RunTesterTimerMaintenance();
    OnTickMain();
+   if(IsTesting()) RefreshDashboardLiveTradeCount();
 }
 
 //+------------------------------------------------------------------+
@@ -13839,16 +13875,7 @@ void OnTimer()
    CleanupGlobalSignalHistory();
    F7TelemetryHeartbeat();
 
-   datetime todayStart = GetTodayStart();
-   if(todayStart > g_last_reset_date)
-   {
-      double resetEquity = AccountEquity();
-      if(resetEquity > 0)
-         g_protection_reference_equity = resetEquity;
-      g_last_reset_date = todayStart;
-      g_last_daily_profit = 0;
-      Log(DBG_FULL, "Daily reset: protection reference = " + DoubleToString(g_protection_reference_equity, 2));
-   }
+   ResetDailyProtectionIfNewDay();
 
    if(!IsTerminalConnected()) return;
    OnTickMain();

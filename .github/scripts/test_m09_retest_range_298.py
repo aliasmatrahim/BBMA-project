@@ -57,9 +57,67 @@ tick_handler = re.search(
 )
 assert tick_handler and re.search(
     r"if\s*\(\s*!IsTerminalConnected\(\)\s*\)\s*return\s*;\s*"
+    r"if\s*\(\s*IsTesting\(\)\s*\)\s*RunTesterTimerMaintenance\(\)\s*;\s*"
     r"OnTickMain\(\)\s*;",
     tick_handler.group(1),
-), "tester and live ticks must share the same controller"
+), "tester maintenance must precede the shared tick controller"
+
+daily_reset = re.search(
+    r"void ResetDailyProtectionIfNewDay\(\)\s*\{(.*?)\n\}",
+    source,
+    re.S,
+)
+assert daily_reset, "shared daily protection reset helper missing"
+assert re.search(
+    r"datetime\s+todayStart\s*=\s*GetTodayStart\(\);"
+    r".*?if\s*\(\s*todayStart\s*>\s*g_last_reset_date\s*\)"
+    r".*?double\s+resetEquity\s*=\s*AccountEquity\(\);"
+    r".*?g_last_reset_date\s*=\s*todayStart\s*;"
+    r".*?g_last_daily_profit\s*=\s*0\s*;",
+    daily_reset.group(1),
+    re.S,
+), "daily reset must use simulated day boundary and preserve equity guard"
+
+tester_maintenance = re.search(
+    r"void RunTesterTimerMaintenance\(\)\s*\{(.*?)\n\}",
+    source,
+    re.S,
+)
+assert tester_maintenance, "tester timer-maintenance adapter missing"
+assert re.search(
+    r"datetime\s+currentTime\s*=\s*GetProcessingTime\(\);"
+    r".*?if\s*\(\s*currentTime\s*<=\s*0\s*\|\|"
+    r"\s*currentTime\s*==\s*lastMaintenanceTime\s*\)\s*return\s*;"
+    r".*?lastMaintenanceTime\s*=\s*currentTime\s*;"
+    r".*?datetime\s+previousProcessingTime\s*=\s*g_processing_time\s*;"
+    r".*?g_processing_time\s*=\s*currentTime\s*;"
+    r".*?CleanupSignalHistoryEntries\(\);"
+    r".*?CleanupGlobalSignalHistory\(\);"
+    r".*?g_processing_time\s*=\s*previousProcessingTime\s*;"
+    r".*?ResetDailyProtectionIfNewDay\(\);",
+    tester_maintenance.group(1),
+    re.S,
+), "tester housekeeping must run once per simulated second with current simulated time"
+
+assert re.search(
+    r"if\s*\(\s*IsTesting\(\)\s*\)\s*"
+    r"RunTesterTimerMaintenance\(\)\s*;\s*OnTickMain\(\)\s*;"
+    r".*?if\s*\(\s*IsTesting\(\)\s*\)\s*"
+    r"RefreshDashboardLiveTradeCount\(\)\s*;",
+    tick_handler.group(1),
+    re.S,
+), "tester maintenance and dashboard refresh must wrap the shared tick controller"
+
+timer_handler = re.search(
+    r"void OnTimer\(\)\s*\{(.*?)\n\}",
+    source,
+    re.S,
+)
+assert timer_handler and re.search(
+    r"CleanupSignalHistoryEntries\(\);\s*CleanupGlobalSignalHistory\(\);"
+    r"\s*F7TelemetryHeartbeat\(\);\s*ResetDailyProtectionIfNewDay\(\);",
+    timer_handler.group(1),
+), "live timer must keep shared maintenance and live heartbeat"
 
 match = re.search(
     r"bool IsMHVRetestInteraction\(MLVData &mlv, TimeframeData &data\)\s*"
@@ -178,5 +236,5 @@ for name, state, candle_time, confirmation_time, touches, expected in lifecycle_
 
 print(
     "PASS 16 directional boundary cases, 8 invalid-direction cases, "
-    "7 lifecycle transition cases, tester runtime guards"
+    "7 lifecycle transition cases, tester runtime and maintenance guards"
 )

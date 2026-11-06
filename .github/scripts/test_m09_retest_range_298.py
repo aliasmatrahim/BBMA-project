@@ -1,4 +1,4 @@
-"""Source-level MHV retest regression; MT4 runtime is tested separately."""
+"""Source-level MHV retest and tester symbol-resolution regression."""
 from pathlib import Path
 import re
 
@@ -6,6 +6,18 @@ import re
 source = (
     Path(__file__).resolve().parents[2] / "blueprint/source/BBMA_EA.mq4"
 ).read_text(encoding="utf-8-sig")
+
+symbol_match = re.search(
+    r"string FindActualSymbol\(string symbol\)\s*\{(.*?)\n\}",
+    source,
+    re.S,
+)
+assert symbol_match, "production symbol resolver missing"
+assert re.search(
+    r"if\s*\(\s*IsTesting\(\)\s*&&\s*requested\s*==\s*Symbol\(\)\s*\)"
+    r"\s*return\s+Symbol\s*\(\s*\)\s*;",
+    symbol_match.group(1),
+), "Strategy Tester current-symbol fallback missing"
 
 match = re.search(
     r"bool IsMHVRetestInteraction\(MLVData &mlv, TimeframeData &data\)\s*"

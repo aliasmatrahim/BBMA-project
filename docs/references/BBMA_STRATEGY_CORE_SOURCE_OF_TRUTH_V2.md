@@ -221,8 +221,8 @@ Frozen reference:
 Later candles cannot drag/recalculate the frozen reference merely because a new body extreme appears.
 
 Retest completion:
-- bottom-side MHV: a later source-timeframe candle with `Low <= FrozenMarkedBody`;
-- top-side MHV: a later source-timeframe candle with `High >= FrozenMarkedBody`.
+- bottom-side MHV: a later source-timeframe candle with `Low <= FrozenMarkedBody <= High`;
+- top-side MHV: a later source-timeframe candle with `Low <= FrozenMarkedBody <= High`.
 
 Price-range/wick interaction is sufficient for the project deterministic retest mapping. No universal body-close-at-line, extra close-away confirmation, named reversal pattern, mandatory double/triple touch or eCSD/CSD prerequisite is added merely to complete retest.
 
@@ -591,3 +591,6 @@ Relative to the earlier Core, accepted material now includes these specific clar
 - SL/TP items without universal BBMA broker formulas are explicitly classified as Core, lifecycle principle, context, or project/EA-safety mapping rather than left as undefined Core obligations.
 
 **Current unresolved BBMA Core semantic HOLD count: 0.**
+
+## User decision 2026-11-06 — MHV retest range intersection (#298)
+A valid later candle must include the frozen marked-body price in its actual low-high range. A gap entirely beyond the reference does not prove contact. This deterministic project mapping supersedes the former one-sided inequality; it does not alter formation, invalidation, REM maturity, or entry authority. Native runtime validation remains required.

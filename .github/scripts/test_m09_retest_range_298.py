@@ -1,0 +1,240 @@
+"""Source-level MHV retest and Strategy Tester runtime regression."""
+from pathlib import Path
+import re
+
+
+source = (
+    Path(__file__).resolve().parents[2] / "blueprint/source/BBMA_EA.mq4"
+).read_text(encoding="utf-8-sig")
+
+symbol_match = re.search(
+    r"string FindActualSymbol\(string symbol\)\s*\{(.*?)\n\}",
+    source,
+    re.S,
+)
+assert symbol_match, "production symbol resolver missing"
+assert re.search(
+    r"if\s*\(\s*IsTesting\(\)\s*&&\s*requested\s*==\s*Symbol\(\)\s*\)"
+    r"\s*return\s+Symbol\s*\(\s*\)\s*;",
+    symbol_match.group(1),
+), "Strategy Tester current-symbol fallback missing"
+
+connection_guard = re.search(
+    r"bool IsTerminalConnected\(\)\s*\{(.*?)\n\}",
+    source,
+    re.S,
+)
+assert connection_guard and re.search(
+    r"return\s*\(\s*IsTesting\(\)\s*\|\|\s*IsConnected\(\)\s*\)\s*;",
+    connection_guard.group(1),
+), "tester simulated-connection allowance missing"
+
+init_guard = re.search(
+    r"int OnInit\(\)\s*\{(.*?)\n\}",
+    source,
+    re.S,
+)
+assert init_guard and re.search(
+    r"if\s*\(\s*!IsTesting\(\)\s*\)\s*\{\s*ResetLastError\(\);"
+    r"\s*if\s*\(\s*!EventSetTimer\(1\)\s*\)",
+    init_guard.group(1),
+), "live timer registration must be skipped only in Strategy Tester"
+
+deinit_guard = re.search(
+    r"void OnDeinit\(const int reason\)\s*\{(.*?)\n\}",
+    source,
+    re.S,
+)
+assert deinit_guard and re.search(
+    r"if\s*\(\s*!IsTesting\(\)\s*\)\s*EventKillTimer\(\)\s*;",
+    deinit_guard.group(1),
+), "timer cleanup must be skipped only in Strategy Tester"
+
+tick_handler = re.search(
+    r"void OnTick\(\)\s*\{(.*?)\n\}",
+    source,
+    re.S,
+)
+assert tick_handler and re.search(
+    r"if\s*\(\s*!IsTerminalConnected\(\)\s*\)\s*return\s*;\s*"
+    r"if\s*\(\s*IsTesting\(\)\s*\)\s*RunTesterTimerMaintenance\(\)\s*;\s*"
+    r"OnTickMain\(\)\s*;",
+    tick_handler.group(1),
+), "tester maintenance must precede the shared tick controller"
+
+daily_reset = re.search(
+    r"void ResetDailyProtectionIfNewDay\(\)\s*\{(.*?)\n\}",
+    source,
+    re.S,
+)
+assert daily_reset, "shared daily protection reset helper missing"
+assert re.search(
+    r"datetime\s+todayStart\s*=\s*GetTodayStart\(\);"
+    r".*?if\s*\(\s*todayStart\s*>\s*g_last_reset_date\s*\)"
+    r".*?double\s+resetEquity\s*=\s*AccountEquity\(\);"
+    r".*?g_last_reset_date\s*=\s*todayStart\s*;"
+    r".*?g_last_daily_profit\s*=\s*0\s*;",
+    daily_reset.group(1),
+    re.S,
+), "daily reset must use simulated day boundary and preserve equity guard"
+
+tester_maintenance = re.search(
+    r"void RunTesterTimerMaintenance\(\)\s*\{(.*?)\n\}",
+    source,
+    re.S,
+)
+assert tester_maintenance, "tester timer-maintenance adapter missing"
+assert re.search(
+    r"datetime\s+currentTime\s*=\s*GetProcessingTime\(\);"
+    r".*?if\s*\(\s*currentTime\s*<=\s*0\s*\|\|"
+    r"\s*currentTime\s*==\s*lastMaintenanceTime\s*\)\s*return\s*;"
+    r".*?lastMaintenanceTime\s*=\s*currentTime\s*;"
+    r".*?datetime\s+previousProcessingTime\s*=\s*g_processing_time\s*;"
+    r".*?g_processing_time\s*=\s*currentTime\s*;"
+    r".*?CleanupSignalHistoryEntries\(\);"
+    r".*?CleanupGlobalSignalHistory\(\);"
+    r".*?g_processing_time\s*=\s*previousProcessingTime\s*;"
+    r".*?ResetDailyProtectionIfNewDay\(\);",
+    tester_maintenance.group(1),
+    re.S,
+), "tester housekeeping must run once per simulated second with current simulated time"
+
+assert re.search(
+    r"if\s*\(\s*IsTesting\(\)\s*\)\s*"
+    r"RunTesterTimerMaintenance\(\)\s*;\s*OnTickMain\(\)\s*;"
+    r".*?if\s*\(\s*IsTesting\(\)\s*\)\s*"
+    r"RefreshDashboardLiveTradeCount\(\)\s*;",
+    tick_handler.group(1),
+    re.S,
+), "tester maintenance and dashboard refresh must wrap the shared tick controller"
+
+timer_handler = re.search(
+    r"void OnTimer\(\)\s*\{(.*?)\n\}",
+    source,
+    re.S,
+)
+assert timer_handler and re.search(
+    r"CleanupSignalHistoryEntries\(\);\s*CleanupGlobalSignalHistory\(\);"
+    r"\s*F7TelemetryHeartbeat\(\);\s*ResetDailyProtectionIfNewDay\(\);",
+    timer_handler.group(1),
+), "live timer must keep shared maintenance and live heartbeat"
+
+match = re.search(
+    r"bool IsMHVRetestInteraction\(MLVData &mlv, TimeframeData &data\)\s*"
+    r"\{(.*?)\n\}",
+    source,
+    re.S,
+)
+assert match, "production retest interaction function missing"
+function = match.group(1)
+
+assert re.search(
+    r"if\s*\(\s*mlv\.FrozenMarkedBody\s*<=\s*0\s*\|\|"
+    r"\s*data\.high\s*<=\s*0\s*\|\|"
+    r"\s*data\.low\s*<=\s*0\s*\)\s*return\s+false\s*;",
+    function,
+), "production invalid-price guard missing"
+assert re.search(
+    r"if\s*\(\s*mlv\.Direction\s*==\s*DIR_BUY\s*\|\|"
+    r"\s*mlv\.Direction\s*==\s*DIR_SELL\s*\)",
+    function,
+), "production direction guard missing"
+
+predicate = re.search(
+    r"return\s*\((data\.low\s*<=\s*mlv\.FrozenMarkedBody"
+    r"\s*&&\s*data\.high\s*>=\s*mlv\.FrozenMarkedBody)\);",
+    function,
+)
+assert predicate, "production range-intersection predicate missing"
+expression = (
+    predicate.group(1)
+    .replace("data.low", "low")
+    .replace("data.high", "high")
+    .replace("mlv.FrozenMarkedBody", "body")
+    .replace("&&", "and")
+)
+
+
+def interaction(direction, low, high, body):
+    if body <= 0 or high <= 0 or low <= 0:
+        return False
+    if direction not in ("buy", "sell"):
+        return False
+    return bool(
+        eval(
+            expression,
+            {"__builtins__": {}},
+            {"low": low, "high": high, "body": body},
+        )
+    )
+
+
+boundary_cases = [
+    (99, 101, 100, True),   # range crosses the frozen body
+    (100, 101, 100, True),  # low touches the body
+    (99, 100, 100, True),   # high touches the body
+    (98, 99, 100, False),   # gap entirely below
+    (101, 102, 100, False), # gap entirely above
+    (99, 101, 0, False),    # invalid frozen reference
+    (99, 0, 100, False),    # invalid high
+    (0, 101, 100, False),   # invalid low
+]
+for direction in ("buy", "sell"):
+    for low, high, body, expected in boundary_cases:
+        actual = interaction(direction, low, high, body)
+        assert actual == expected, (direction, low, high, body, expected, actual)
+for low, high, body, _expected in boundary_cases:
+    assert not interaction("none", low, high, body), (
+        "invalid direction must not complete retest",
+        low,
+        high,
+        body,
+    )
+
+lifecycle_gate = re.search(
+    r"if\s*\(\s*mlv\.State\s*==\s*MLV_FORMATION_ESTABLISHED\s*&&"
+    r"\s*data\.candle_time\s*>\s*mlv\.ConfirmationCandleTime\s*&&"
+    r"\s*IsMHVRetestInteraction\(mlv,\s*data\)\s*\)\s*"
+    r"\{\s*mlv\.State\s*=\s*MLV_RETEST_COMPLETE\s*;"
+    r"\s*mlv\.RetestBar\s*=\s*data\.barIndex\s*;"
+    r"\s*mlv\.RetestCandleTime\s*=\s*data\.candle_time\s*;",
+    source,
+    re.S,
+)
+assert lifecycle_gate, "production later-candle retest transition missing"
+
+
+def transition(state, candle_time, confirmation_time, touches):
+    if (
+        state == "MLV_FORMATION_ESTABLISHED"
+        and candle_time > confirmation_time
+        and touches
+    ):
+        return "MLV_RETEST_COMPLETE"
+    return state
+
+
+lifecycle_cases = [
+    ("same confirmation candle", "MLV_FORMATION_ESTABLISHED", 10, 10, True,
+     "MLV_FORMATION_ESTABLISHED"),
+    ("earlier candle", "MLV_FORMATION_ESTABLISHED", 9, 10, True,
+     "MLV_FORMATION_ESTABLISHED"),
+    ("later gap below", "MLV_FORMATION_ESTABLISHED", 11, 10, False,
+     "MLV_FORMATION_ESTABLISHED"),
+    ("later gap above", "MLV_FORMATION_ESTABLISHED", 11, 10, False,
+     "MLV_FORMATION_ESTABLISHED"),
+    ("later buy-side touch", "MLV_FORMATION_ESTABLISHED", 11, 10, True,
+     "MLV_RETEST_COMPLETE"),
+    ("later sell-side touch", "MLV_FORMATION_ESTABLISHED", 11, 10, True,
+     "MLV_RETEST_COMPLETE"),
+    ("wrong prior state", "MLV_LOSS_OF_MOMENTUM", 11, 10, True,
+     "MLV_LOSS_OF_MOMENTUM"),
+]
+for name, state, candle_time, confirmation_time, touches, expected in lifecycle_cases:
+    actual = transition(state, candle_time, confirmation_time, touches)
+    assert actual == expected, (name, expected, actual)
+
+print(
+    "PASS 16 directional boundary cases, 8 invalid-direction cases, "
+    "7 lifecycle transition cases, tester runtime and maintenance guards"
+)

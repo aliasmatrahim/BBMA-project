@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.1.5 - NMJE P2 Targetless Lifecycle Replay         |
+//| Version 6.01 - M09 Retest Tester Maintenance                  |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.15"
+#property version   "6.01"
 #property strict
 
-#define BBMA_BUILD_TAG      "V515_NMJE_P2_TARGETLESS_REPLAY_20260925"
-#define BBMA_SOURCE_REV_TAG "NMJE_P2_TARGETLESS_REPLAY_001_20260925"
+#define BBMA_BUILD_TAG      "V601_M09_RETEST_RANGE_298_TESTER_MAINTENANCE_20261106"
+#define BBMA_SOURCE_REV_TAG "M09_RETEST_RANGE_298_004_20261106"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -1323,6 +1323,10 @@ string FindActualSymbol(string symbol)
    string requested = StringTrimLeft(StringTrimRight(symbol));
    if(requested == "") return "";
 
+   // Strategy Tester already owns the current test symbol; SymbolSelect is
+   // prohibited there (runtime error 4059).
+   if(IsTesting() && requested == Symbol()) return Symbol();
+
    // 1) Exact broker symbol wins when it exists and can be selected.
    int totalAll = SymbolsTotal(false);
    for(int i = 0; i < totalAll; i++)
@@ -1429,7 +1433,8 @@ double RoundDownToLotStep(double lot, string pair)
 
 bool IsTerminalConnected()
 {
-   return IsConnected();
+   // Strategy Tester uses simulated ticks without a live server connection.
+   return (IsTesting() || IsConnected());
 }
 
 bool ValidateBrokerSpecification(string pair)
@@ -3163,8 +3168,8 @@ bool IsMHVFormationMoveAway(MLVData &mlv, TimeframeData &data)
 bool IsMHVRetestInteraction(MLVData &mlv, TimeframeData &data)
 {
    if(mlv.FrozenMarkedBody <= 0 || data.high <= 0 || data.low <= 0) return false;
-   if(mlv.Direction == DIR_BUY)  return (data.low <= mlv.FrozenMarkedBody);
-   if(mlv.Direction == DIR_SELL) return (data.high >= mlv.FrozenMarkedBody);
+   if(mlv.Direction == DIR_BUY || mlv.Direction == DIR_SELL)
+      return (data.low <= mlv.FrozenMarkedBody && data.high >= mlv.FrozenMarkedBody);
    return false;
 }
 
@@ -11167,7 +11172,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.15 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=6.01 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -13778,13 +13783,18 @@ int OnInit()
       return INIT_FAILED;
    }
 
-   ResetLastError();
-   if(!EventSetTimer(1))
+   // MT4 Strategy Tester does not process timer events; OnTick still calls
+   // the M15-gated controller for each simulated tick.
+   if(!IsTesting())
    {
-      int timerError = GetLastError();
-      g_is_initialized = false;
-      Log(DBG_ERROR, "Failed to register EA timer, error=" + IntegerToString(timerError));
-      return INIT_FAILED;
+      ResetLastError();
+      if(!EventSetTimer(1))
+      {
+         int timerError = GetLastError();
+         g_is_initialized = false;
+         Log(DBG_ERROR, "Failed to register EA timer, error=" + IntegerToString(timerError));
+         return INIT_FAILED;
+      }
    }
    
    Log(DBG_FULL, "BBMA EA " + string(BBMA_BUILD_TAG) + " initialized successfully");
@@ -13796,7 +13806,8 @@ int OnInit()
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
 {
-   EventKillTimer();
+   if(!IsTesting())
+      EventKillTimer();
 
    g_is_initialized = false;
    g_is_scanning = false;
@@ -13810,11 +13821,47 @@ void OnDeinit(const int reason)
 //+------------------------------------------------------------------+
 //| EXPERT TICK FUNCTION                                             |
 //+------------------------------------------------------------------+
+void ResetDailyProtectionIfNewDay()
+{
+   datetime todayStart = GetTodayStart();
+   if(todayStart > g_last_reset_date)
+   {
+      double resetEquity = AccountEquity();
+      if(resetEquity > 0)
+         g_protection_reference_equity = resetEquity;
+      g_last_reset_date = todayStart;
+      g_last_daily_profit = 0;
+      Log(DBG_FULL, "Daily reset: protection reference = " + DoubleToString(g_protection_reference_equity, 2));
+   }
+}
+
+void RunTesterTimerMaintenance()
+{
+   if(!IsTesting()) return;
+
+   // Timer events are unavailable in Strategy Tester. Reproduce only the
+   // time-based state housekeeping once per simulated second; signal work
+   // remains owned by OnTickMain's existing M15 closed-candle gate.
+   static datetime lastMaintenanceTime = 0;
+   datetime currentTime = GetProcessingTime();
+   if(currentTime <= 0 || currentTime == lastMaintenanceTime) return;
+
+   lastMaintenanceTime = currentTime;
+   datetime previousProcessingTime = g_processing_time;
+   g_processing_time = currentTime;
+   CleanupSignalHistoryEntries();
+   CleanupGlobalSignalHistory();
+   g_processing_time = previousProcessingTime;
+   ResetDailyProtectionIfNewDay();
+}
+
 void OnTick()
 {
    if(!g_is_initialized) return;
    if(!IsTerminalConnected()) return;
+   if(IsTesting()) RunTesterTimerMaintenance();
    OnTickMain();
+   if(IsTesting()) RefreshDashboardLiveTradeCount();
 }
 
 //+------------------------------------------------------------------+
@@ -13828,16 +13875,7 @@ void OnTimer()
    CleanupGlobalSignalHistory();
    F7TelemetryHeartbeat();
 
-   datetime todayStart = GetTodayStart();
-   if(todayStart > g_last_reset_date)
-   {
-      double resetEquity = AccountEquity();
-      if(resetEquity > 0)
-         g_protection_reference_equity = resetEquity;
-      g_last_reset_date = todayStart;
-      g_last_daily_profit = 0;
-      Log(DBG_FULL, "Daily reset: protection reference = " + DoubleToString(g_protection_reference_equity, 2));
-   }
+   ResetDailyProtectionIfNewDay();
 
    if(!IsTerminalConnected()) return;
    OnTickMain();

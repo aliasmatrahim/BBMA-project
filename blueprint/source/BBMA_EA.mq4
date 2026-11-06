@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.99 - M09 Retest Tester Support                      |
+//| Version 6.00 - M09 Retest Tester Runtime                       |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.99"
+#property version   "6.00"
 #property strict
 
-#define BBMA_BUILD_TAG      "V599_M09_RETEST_RANGE_298_TESTER_SYMBOL_20261106"
-#define BBMA_SOURCE_REV_TAG "M09_RETEST_RANGE_298_002_20261106"
+#define BBMA_BUILD_TAG      "V600_M09_RETEST_RANGE_298_TESTER_RUNTIME_20261106"
+#define BBMA_SOURCE_REV_TAG "M09_RETEST_RANGE_298_003_20261106"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -1433,7 +1433,8 @@ double RoundDownToLotStep(double lot, string pair)
 
 bool IsTerminalConnected()
 {
-   return IsConnected();
+   // Strategy Tester uses simulated ticks without a live server connection.
+   return (IsTesting() || IsConnected());
 }
 
 bool ValidateBrokerSpecification(string pair)
@@ -11171,7 +11172,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.99 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=6.00 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -13782,13 +13783,18 @@ int OnInit()
       return INIT_FAILED;
    }
 
-   ResetLastError();
-   if(!EventSetTimer(1))
+   // MT4 Strategy Tester does not process timer events; OnTick still calls
+   // the M15-gated controller for each simulated tick.
+   if(!IsTesting())
    {
-      int timerError = GetLastError();
-      g_is_initialized = false;
-      Log(DBG_ERROR, "Failed to register EA timer, error=" + IntegerToString(timerError));
-      return INIT_FAILED;
+      ResetLastError();
+      if(!EventSetTimer(1))
+      {
+         int timerError = GetLastError();
+         g_is_initialized = false;
+         Log(DBG_ERROR, "Failed to register EA timer, error=" + IntegerToString(timerError));
+         return INIT_FAILED;
+      }
    }
    
    Log(DBG_FULL, "BBMA EA " + string(BBMA_BUILD_TAG) + " initialized successfully");
@@ -13800,7 +13806,8 @@ int OnInit()
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
 {
-   EventKillTimer();
+   if(!IsTesting())
+      EventKillTimer();
 
    g_is_initialized = false;
    g_is_scanning = false;

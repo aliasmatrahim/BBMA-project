@@ -56,3 +56,21 @@ def test_specific_reentry_retains_structural_invalidation():
     assert "reEntry.State == RE_STATE_CANDIDATE" in update
     assert "reEntry.State == RE_STATE_CONFIRMED" in update
     assert "IsReEntryMAClusterCloseSideFailure" in update
+
+
+def test_standalone_reentry_eligibility_is_limited_to_entry_candle():
+    build = function_body("BuildConfirmedReEntryCandidate")
+    process_pair = function_body("ProcessPair")
+
+    assert "BuildConfirmedReEntryCandidate(string pair," in SRC
+    assert "BuildConfirmedReEntryCandidate(\n         actual, reEntry," in process_pair
+    assert "datetime currentEntryCandle = iTime(pair, reEntry.Timeframe, 0);" in build
+    assert "reEntry.EntryCandle <= 0" in build
+    assert "currentEntryCandle <= 0" in build
+    assert "currentEntryCandle != reEntry.EntryCandle" in build
+    assert build.index("currentEntryCandle != reEntry.EntryCandle") < build.index("candidate.Valid = true;")
+
+    # Eligibility expires at the event window; the structural M12 owner does not.
+    assert "candidate.Expiry = 0; // structural owner lifetime; no generic Re-Entry TTL" in build
+    assert "reEntry.State = RE_STATE" not in build
+    assert "reEntry.IsValid = true" not in build

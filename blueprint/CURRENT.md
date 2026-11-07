@@ -1,8 +1,8 @@
 # BBMA Current Project State
 
-Updated: **2026-09-25**
+Updated: **2026-11-07 (owner snapshot + Issue #300; other workstream evidence remains dated at each entry)**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`0034f31aced4e630d0b76ce64009a41078ba7cb3`**
+Owner head at reconciliation: **`459c0588e625d7f7630f0fb5612b7f04fda496de`**
 
 This file is the active current-state record. The pre-2026-09-09 historical `CURRENT.md` is preserved byte-for-byte at `blueprint/archive/CURRENT_pre_20260909.md`.
 
@@ -10,8 +10,17 @@ This file is the active current-state record. The pre-2026-09-09 historical `CUR
 - GitHub `aliasmatrahim/BBMA-project` is authoritative for live project state.
 - Strategy/source semantics are routed through `docs/references/SOURCE_INDEX.md` and the accepted Core/source evidence chain.
 - Canonical active EA path: `blueprint/source/BBMA_EA.mq4`.
-- Canonical owner candidate in this update: Build `5.14` / `V514_NMJE_P2_COUNTERFACTUAL_SHADOW_20260925`, source rev `NMJE_P2_COUNTERFACTUAL_SHADOW_004_20260925`; raw MQ4 SHA-256 `6C375BC36C5971097DE69B12586B1DD50F1445BE5E10D293A4D87CDCFC62C4EC`. This is tester-only/shadow research; P2 ordering remains HOLD. Q10 remains separately bound to its frozen exact Build 5.11 final-acceptance candidate.
+- Canonical active EA at the reconciled owner head: Build `5.15` / `V515_NMJE_P2_TARGETLESS_REPLAY_20260925`, source rev `NMJE_P2_TARGETLESS_REPLAY_001_20260925`; raw MQ4 SHA-256 `49DA4FBF9AAE347530DD45D47902F81E422600825438B62B80757435D69F8504`. Q10 remains separately bound to its frozen exact Build 5.11 final-acceptance candidate.
 - Q7/Q8 Build 4.86 artifacts remain historical verified integration/regression evidence. Q10 is bound to the later exact Build 5.11 final integration candidate; this is still not a production-readiness claim.
+
+## Recent scoped implementation change — Issue #300 / PR #301
+
+Status: **PATCH VERIFIED / DRAFT REVIEW / NOT MERGED**.
+- `d1-owner-dev` remains on Build `5.15` at owner head `459c0588e625d7f7630f0fb5612b7f04fda496de`.
+- Build `5.16` / `V516_M12_ENTRYCANDLE_GATE_20261107` is a review candidate on `fix/m12-entry-candle-window-20261107`; PR #301 targets `d1-owner-dev`.
+- Standalone H1 Re-Entry eligibility is limited to its recorded `EntryCandle`; structural M12 invalidation/ownership lifecycle is unchanged and no generic TTL is added.
+- Verification for Build 5.16 implementation commit `1af2583871b2d67ac119e7fac3a565d763517b9b` is recorded in `blueprint/CORE_V2_F6_TIMING_VERIFICATION_AUDIT.md`: 73 Python tests passed, MetaEditor 5.0.0.2425 compile 0 errors/0 warnings, isolated tester positive/late-window controls passed. Tester Model 0 is based on available M1 data and is not live or tick-accurate evidence.
+- Next step: review Draft PR #301. No merge or production activation is authorized by this record.
 
 ## Current active workstreams / integrated state
 

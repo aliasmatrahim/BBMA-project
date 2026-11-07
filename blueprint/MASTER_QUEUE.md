@@ -1,8 +1,8 @@
 # BBMA Active Master Queue
 
-Reconciled: **2026-09-25**
+Reconciled: **2026-11-07 (owner snapshot + Issue #300 status; remaining queue items retain their recorded evidence dates)**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`0034f31aced4e630d0b76ce64009a41078ba7cb3`**
+Owner head at reconciliation: **`459c0588e625d7f7630f0fb5612b7f04fda496de`**
 
 This file is the active queue. The pre-2026-09-09 historical queue is preserved byte-for-byte at `blueprint/archive/MASTER_QUEUE_pre_20260909.md`.
 
@@ -12,6 +12,14 @@ This file is the active queue. The pre-2026-09-09 historical queue is preserved 
 - `docs/references/SOURCE_INDEX.md` routes Strategy-Core evidence.
 - Do not create a new trading rule merely to close a gap or improve past performance.
 - No primary MT4 restart, trading enablement, or production activation is implied by queue progression.
+
+## Scoped owner patch under review — Issue #300 / Draft PR #301
+
+Status: **PATCH VERIFIED / DRAFT REVIEW / NOT MERGED**.
+- Live owner remains Build `5.15` at `459c0588e625d7f7630f0fb5612b7f04fda496de`; Build `5.16` is only the candidate on `fix/m12-entry-candle-window-20261107`.
+- PR #301 gates standalone H1 Re-Entry eligibility to the recorded `EntryCandle`; it preserves structural M12 invalidation/ownership transfer and keeps `candidate.Expiry = 0` without a generic TTL.
+- Evidence is recorded in `blueprint/CORE_V2_F6_TIMING_VERIFICATION_AUDIT.md`: 73 Python tests, native MetaEditor compile, and isolated tester positive/late-window checks for the Build 5.16 implementation. The tester uses Model 0 from M1 history, not raw ticks or live runtime.
+- Next step: review PR #301. Merge requires explicit authorization. This scoped patch does not change the queue dependency order; Q10 Phase L R5 remains the highest-priority active final-acceptance task.
 
 ## Execution order / dependency path
 Stable Q IDs are preserved. The active dependency order is:

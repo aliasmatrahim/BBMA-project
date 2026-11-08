@@ -1,0 +1,9 @@
+{
+  "build": "5.97",
+  "command": "PYTHONPATH=/workspace/scratch/f5ddfbd6f6f6/pytest-deps python3 -m pytest -q",
+  "pytest_version": "9.1.1",
+  "result": "72 passed in 1.03s",
+  "exit_code": 0,
+  "source_sha256_lf_utf8": "ec2206836c289d52bad076826bca12f52f6ae37deb0d8ec379b3034e62fd9885",
+  "environment": "full-history local checkout, isolated pytest dependency target, g++ available"
+}

@@ -18,16 +18,26 @@ struct CustomSlotConfig
  CustomFormula context;
  CustomFormula trigger;
 };
-int CustomTFIndex(int tf)
+int CustomTFValue(int index)
 {
  int values[7]={PERIOD_M1,PERIOD_M5,PERIOD_M15,PERIOD_M30,PERIOD_H1,PERIOD_H4,PERIOD_D1};
- for(int i=0;i<7;i++)if(values[i]==tf)return i;
+ if(index<0 || index>=7)return 0;
+ return values[index];
+}
+int CustomTFIndex(int tf)
+{
+ for(int i=0;i<7;i++)if(CustomTFValue(i)==tf)return i;
  return -1;
+}
+string CustomSignalValue(int index)
+{
+ string values[11]={"RE","RE1","RE2","RE3","RE4","EXT","MHV","MLV","CSA","CSAK","MOM"};
+ if(index<0 || index>=11)return "";
+ return values[index];
 }
 int CustomSignalIndex(string s)
 {
- string values[11]={"RE","RE1","RE2","RE3","RE4","EXT","MHV","MLV","CSA","CSAK","MOM"};
- for(int i=0;i<11;i++)if(values[i]==s)return i;
+ for(int i=0;i<11;i++)if(CustomSignalValue(i)==s)return i;
  return -1;
 }
 bool CustomCheckUse(CustomFormula &formula,CustomUseMatrix &matrix,string &reason)

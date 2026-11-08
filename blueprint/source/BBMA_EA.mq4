@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.9.6 - Custom PairState Binding         |
+//| Version 5.9.7 - Custom Closed Bar Observation         |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,13 +31,14 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.96"
+#property version   "5.97"
 #property strict
 #include "custom_mtf/CustomInputs.mqh"
 #include "custom_mtf/CustomPairBinding.mqh"
+#include "custom_mtf/CustomClock.mqh"
 
-#define BBMA_BUILD_TAG      "V596_CUSTOM_PAIR_BINDING_20261108"
-#define BBMA_SOURCE_REV_TAG "CUSTOM_PAIR_BINDING_001_20261108"
+#define BBMA_BUILD_TAG      "V597_CUSTOM_CLOSED_BAR_20261109"
+#define BBMA_SOURCE_REV_TAG "CUSTOM_CLOSED_BAR_001_20261109"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -1028,6 +1029,8 @@ struct PairState
    bool                 broker_spec_valid;
 };
 
+#include "custom_mtf/CustomOwners.mqh"
+
 struct TradeInfo
 {
    int                  ticket;
@@ -1255,6 +1258,8 @@ datetime             g_processed_candle_time[MAX_PAIRS];
 int                  g_pair_count;
 bool                 g_pair_canonical_scope[MAX_PAIRS];
 int                  g_custom_pair_indices[];
+CustomClockState     g_custom_clock_states[MAX_PAIRS];
+CustomOwnerFrame     g_custom_owner_frames[MAX_PAIRS];
 int                  g_effective_max_active_pair;
 bool                 g_max_active_pair_sanitized;
 bool                 g_pair_list_truncated;
@@ -11179,7 +11184,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.96 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.97 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -13096,6 +13101,13 @@ void LoadPairs()
    g_pair_count = 0;
    ArrayInitialize(g_pair_canonical_scope,false);
    ArrayResize(g_custom_pair_indices,0);
+   for(int resetClock=0;resetClock<MAX_PAIRS;resetClock++)
+   {
+      ZeroMemory(g_custom_clock_states[resetClock]);
+      g_custom_owner_frames[resetClock].viewCount=0;
+      g_custom_owner_frames[resetClock].observedAt=0;
+      g_custom_owner_frames[resetClock].symbol="";
+   }
    
    for(int i = 0; i < ArraySize(pairs); i++)
    {
@@ -13804,6 +13816,96 @@ void ProcessPair(int pairIndex)
    g_pair_states[pairIndex].is_processing = false;
 }
 
+bool ReadCustomOwnerView(int pairIndex,int tf,string signal,ENUM_DIRECTION direction,datetime latest,CustomOwnerView &view)
+{
+   ZeroMemory(view);view.signal=signal;view.timeframe=tf;view.direction=(int)direction;
+   if(pairIndex<0 || pairIndex>=g_pair_count || (direction!=DIR_BUY && direction!=DIR_SELL))
+   {view.reason="INVALID_OWNER_KEY";return false;}
+   view.symbol=g_pair_states[pairIndex].actual_symbol;
+   if(StringLen(view.symbol)==0){view.reason="WAIT_SYMBOL_BINDING";return false;}
+   int kind=CustomSignalIndex(signal);
+   if(kind<0 || kind>5){view.reason="OWNER_MAPPING_UNAVAILABLE";return false;}
+   TimeframeData data;ReEntryData re;ExtremeLifecycleData extreme;
+   if(tf==PERIOD_D1)
+   {
+      data=g_pair_states[pairIndex].d1_data;
+      re=(direction==DIR_BUY)?g_pair_states[pairIndex].re_d1_buy_state:g_pair_states[pairIndex].re_d1_sell_state;
+      extreme=(direction==DIR_BUY)?g_pair_states[pairIndex].extreme_d1_buy_lifecycle:g_pair_states[pairIndex].extreme_d1_sell_lifecycle;
+   }
+   else if(tf==PERIOD_H4)
+   {
+      data=g_pair_states[pairIndex].h4_data;
+      re=(direction==DIR_BUY)?g_pair_states[pairIndex].re_h4_buy_state:g_pair_states[pairIndex].re_h4_sell_state;
+      extreme=(direction==DIR_BUY)?g_pair_states[pairIndex].extreme_h4_buy_lifecycle:g_pair_states[pairIndex].extreme_h4_sell_lifecycle;
+   }
+   else if(tf==PERIOD_H1)
+   {
+      data=g_pair_states[pairIndex].h1_data;
+      re=(direction==DIR_BUY)?g_pair_states[pairIndex].re_h1_buy_state:g_pair_states[pairIndex].re_h1_sell_state;
+      extreme=(direction==DIR_BUY)?g_pair_states[pairIndex].extreme_h1_buy_lifecycle:g_pair_states[pairIndex].extreme_h1_sell_lifecycle;
+   }
+   else if(tf==PERIOD_M15)
+   {
+      data=g_pair_states[pairIndex].m15_data;
+      re=(direction==DIR_BUY)?g_pair_states[pairIndex].re_m15_buy_state:g_pair_states[pairIndex].re_m15_sell_state;
+      extreme=(direction==DIR_BUY)?g_pair_states[pairIndex].extreme_m15_buy_lifecycle:g_pair_states[pairIndex].extreme_m15_sell_lifecycle;
+   }
+   else {view.reason="TF_OWNER_UNWIRED";return false;}
+   if(kind==5)return ProjectCustomExtremeView(view.symbol,tf,direction,latest,data,extreme,view);
+   return ProjectCustomReEntryView(view.symbol,tf,signal,direction,latest,data,re,view);
+}
+
+void ObserveCustomClosedBars(int pairIndex)
+{
+   if(pairIndex<0 || pairIndex>=g_pair_count)return;
+   bool mapped=false;
+   for(int map=0;map<ArraySize(g_custom_pair_indices);map++)
+      if(g_custom_pair_indices[map]==pairIndex){mapped=true;break;}
+   if(!mapped)return;
+   string actual=g_pair_states[pairIndex].actual_symbol;
+   CustomClosedObservation obs[7];
+   for(int i=0;i<7;i++)
+   {
+      obs[i].timeframe=CustomTFValue(i);obs[i].requested=false;
+      for(int signal=0;signal<11;signal++)
+         if(g_custom_use.tfEnabled[i] && g_custom_use.signalEnabled[i*11+signal]){obs[i].requested=true;break;}
+      obs[i].currentOpen=0;obs[i].closedOpen=0;obs[i].barReady=false;
+      if(!obs[i].requested)continue;
+      obs[i].currentOpen=iTime(actual,obs[i].timeframe,0);
+      obs[i].closedOpen=GetLatestClosedCandleTime(actual,obs[i].timeframe);
+      obs[i].barReady=(obs[i].currentOpen>0 && obs[i].closedOpen>0);
+   }
+   CustomEventBatch batch;string reason;
+   datetime quote=(datetime)MarketInfo(actual,MODE_TIME);
+   if(!BeginCustomClosedBatch(actual,g_processing_time,quote,obs,g_custom_clock_states[pairIndex],batch,reason))
+   {
+      // Never retain an apparently current frame through a failed observation.
+      g_custom_owner_frames[pairIndex].viewCount=0;return;
+   }
+   if(batch.eventCount>0)
+   {
+      CustomOwnerFrame frame;frame.symbol=actual;frame.observedAt=batch.observedAt;frame.viewCount=0;
+      // Read existing owners only after the canonical cycle has refreshed them.
+      // No detector/lifecycle is called here; unsupported rows remain unavailable.
+      for(int tfIndex=6;tfIndex>=0;tfIndex--)
+      {
+         if(!obs[tfIndex].requested)continue;
+         for(int sig=0;sig<11;sig++)
+         {
+            if(!g_custom_use.signalEnabled[tfIndex*11+sig])continue;
+            for(int dir=0;dir<2;dir++)
+            {
+               CustomOwnerView view;
+               ReadCustomOwnerView(pairIndex,obs[tfIndex].timeframe,CustomSignalValue(sig),dir==0?DIR_BUY:DIR_SELL,obs[tfIndex].closedOpen,view);
+               frame.views[frame.viewCount++]=view;
+            }
+         }
+      }
+      g_custom_owner_frames[pairIndex]=frame;
+   }
+   CompleteCustomClosedBatch(g_custom_clock_states[pairIndex],batch,true);
+}
+
 void OnTickMain()
 {
    if(!g_is_initialized) return;
@@ -13835,12 +13937,12 @@ void OnTickMain()
    {
       if(g_execution_ambiguity.Active) break;
       if(!g_pair_states[i].pair_enabled) continue;
-      if(!g_pair_canonical_scope[i]) continue; // custom owner scheduling is connected separately
       if(g_pair_states[i].is_processing) continue;
-      if(IsNewCandle(g_pair_states[i].actual_symbol, i))
+      if(g_pair_canonical_scope[i] && IsNewCandle(g_pair_states[i].actual_symbol, i))
       {
          ProcessPair(i);
       }
+      ObserveCustomClosedBars(i);
    }
    
    if(g_dashboard_needs_update)

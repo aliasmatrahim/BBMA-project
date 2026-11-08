@@ -1,0 +1,64 @@
+{
+  "build": "5.93",
+  "source_sha256_lf_utf8": "fd27f10c1c71491cf8c976c71b952388ac7f15a7827ec1a2fe6c72721dc9cabe",
+  "ex4_sha256": "b3052fd606adb0a09f6cc08e84db982871a0c61769a825ea0d6931b073a72bb2",
+  "cases": [
+    {
+      "case": "defaults",
+      "expected_init": true,
+      "initialized": false,
+      "input_rejected": true,
+      "status": "VERIFICATION_REQUIRED",
+      "rows": [
+        "0\t23:17:05.133\t2026.08.03 00:00:01  BBMA_Custom593_Startup GBPUSD,M15: [F7-BUILD] EA=BBMA_EA Build=5.93 BuildTag=V593_CUSTOM_SYMBOL_CONFIG_20261108 SourceRev=CUSTOM_SYMBOL_CONFIG_001_20261108 InitTime=2026.08.03 00:00:01",
+        "0\t23:17:05.135\t2026.08.03 00:00:01  BBMA_Custom593_Startup GBPUSD,M15: 2026.08.03 00:00 [1] SYMBOL_UNRESOLVED:GBPUSD",
+        "0\t23:17:05.135\t2026.08.03 00:00:01  BBMA_Custom593_Startup GBPUSD,M15: 2026.08.03 00:00 [1] Input parameter validation failed",
+        "3\t23:17:05.135\t2026.08.03 00:00:01  BBMA_Custom593_Startup GBPUSD,M15: initialization failed (32767)",
+        "0\t23:17:05.135\t2026.08.03 00:00:01  BBMA_Custom593_Startup GBPUSD,M15: 2026.08.03 00:00 [4] EA deinitialized, reason: 8"
+      ]
+    },
+    {
+      "case": "changed_inputs",
+      "expected_init": true,
+      "initialized": false,
+      "input_rejected": true,
+      "status": "VERIFICATION_REQUIRED",
+      "rows": [
+        "0\t23:17:26.767\t2026.08.03 00:00:01  BBMA_Custom593_Startup GBPUSD,M15: [F7-BUILD] EA=BBMA_EA Build=5.93 BuildTag=V593_CUSTOM_SYMBOL_CONFIG_20261108 SourceRev=CUSTOM_SYMBOL_CONFIG_001_20261108 InitTime=2026.08.03 00:00:01",
+        "0\t23:17:26.768\t2026.08.03 00:00:01  BBMA_Custom593_Startup GBPUSD,M15: 2026.08.03 00:00 [1] SYMBOL_UNRESOLVED:GBPUSD",
+        "0\t23:17:26.768\t2026.08.03 00:00:01  BBMA_Custom593_Startup GBPUSD,M15: 2026.08.03 00:00 [1] Input parameter validation failed",
+        "3\t23:17:26.768\t2026.08.03 00:00:01  BBMA_Custom593_Startup GBPUSD,M15: initialization failed (32767)",
+        "0\t23:17:26.768\t2026.08.03 00:00:01  BBMA_Custom593_Startup GBPUSD,M15: 2026.08.03 00:00 [4] EA deinitialized, reason: 8"
+      ]
+    },
+    {
+      "case": "invalid_formula",
+      "expected_init": false,
+      "initialized": false,
+      "input_rejected": true,
+      "status": "PASS",
+      "rows": [
+        "0\t23:17:47.159\t2026.08.03 00:00:01  BBMA_Custom593_Startup GBPUSD,M15: [F7-BUILD] EA=BBMA_EA Build=5.93 BuildTag=V593_CUSTOM_SYMBOL_CONFIG_20261108 SourceRev=CUSTOM_SYMBOL_CONFIG_001_20261108 InitTime=2026.08.03 00:00:01",
+        "0\t23:17:47.161\t2026.08.03 00:00:01  BBMA_Custom593_Startup GBPUSD,M15: 2026.08.03 00:00 [1] CUSTOM_SLOT_1:CONTEXT:UNKNOWN_TIMEFRAME@0",
+        "0\t23:17:47.161\t2026.08.03 00:00:01  BBMA_Custom593_Startup GBPUSD,M15: 2026.08.03 00:00 [1] Input parameter validation failed",
+        "3\t23:17:47.161\t2026.08.03 00:00:01  BBMA_Custom593_Startup GBPUSD,M15: initialization failed (32767)",
+        "0\t23:17:47.161\t2026.08.03 00:00:01  BBMA_Custom593_Startup GBPUSD,M15: 2026.08.03 00:00 [4] EA deinitialized, reason: 8"
+      ]
+    },
+    {
+      "case": "unavailable",
+      "expected_init": false,
+      "initialized": false,
+      "input_rejected": true,
+      "status": "PASS",
+      "rows": [
+        "0\t23:18:06.578\t2026.08.03 00:00:01  BBMA_Custom593_Startup GBPUSD,M15: [F7-BUILD] EA=BBMA_EA Build=5.93 BuildTag=V593_CUSTOM_SYMBOL_CONFIG_20261108 SourceRev=CUSTOM_SYMBOL_CONFIG_001_20261108 InitTime=2026.08.03 00:00:01",
+        "0\t23:18:06.580\t2026.08.03 00:00:01  BBMA_Custom593_Startup GBPUSD,M15: 2026.08.03 00:00 [1] CUSTOM_SLOT_1:SIGNAL_UNAVAILABLE",
+        "0\t23:18:06.580\t2026.08.03 00:00:01  BBMA_Custom593_Startup GBPUSD,M15: 2026.08.03 00:00 [1] Input parameter validation failed",
+        "3\t23:18:06.580\t2026.08.03 00:00:01  BBMA_Custom593_Startup GBPUSD,M15: initialization failed (32767)",
+        "0\t23:18:06.580\t2026.08.03 00:00:01  BBMA_Custom593_Startup GBPUSD,M15: 2026.08.03 00:00 [4] EA deinitialized, reason: 8"
+      ]
+    }
+  ],
+  "scope": "actual EA OnInit/offline Strategy Tester; not live terminal reattachment, recovery, profitability or custom execution"
+}

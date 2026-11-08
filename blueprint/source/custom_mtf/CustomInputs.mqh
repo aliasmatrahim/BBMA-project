@@ -35,6 +35,7 @@ CustomSlotConfig g_custom_slots[CUSTOM_SLOT_COUNT];
 CustomUseMatrix g_custom_use;
 string g_custom_config_payload="";
 string g_custom_config_hash="";
+#include "CustomSymbolInputs.mqh"
 bool CustomInputTFEnabled(int index)
 {
  if(index==0)return CustomTF_M1;
@@ -60,6 +61,7 @@ string CustomInputSignalList(int index)
 bool InitializeCustomInputs(string &reason)
 {
  reason="";g_custom_config_payload="";g_custom_config_hash="";
+ ResetCustomSymbolInputs();
  for(int reset=0;reset<CUSTOM_SLOT_COUNT;reset++)
  {
   g_custom_slots[reset].context.atomCount=0;g_custom_slots[reset].context.groupCount=0;
@@ -70,12 +72,12 @@ bool InitializeCustomInputs(string &reason)
   g_custom_use.tfEnabled[i]=CustomInputTFEnabled(i);
   for(int j=0;j<11;j++){g_custom_use.signalEnabled[i*11+j]=false;g_custom_use.available[i*11+j]=false;}
   string list=CustomInputSignalList(i);StringToUpper(list);
-  StringTrimLeft(list);StringTrimRight(list);
+  list=StringTrimLeft(StringTrimRight(list));
   if(list=="")continue;
   string tokens[];int count=StringSplit(list,44,tokens);
   for(int k=0;k<count;k++)
   {
-   string token=tokens[k];StringTrimLeft(token);StringTrimRight(token);
+   string token=tokens[k];token=StringTrimLeft(StringTrimRight(token));
    int signal=CustomSignalIndex(token);
    if(signal<0){reason="INVALID_SIGNAL_LIST:"+IntegerToString(i);return false;}
    g_custom_use.signalEnabled[i*11+signal]=true;
@@ -96,7 +98,10 @@ bool InitializeCustomInputs(string &reason)
   if(!ValidateCustomSlot(g_custom_slots[n],g_custom_use,reason))
   {reason="CUSTOM_SLOT_"+IntegerToString(n+1)+":"+reason;return false;}
  }
- g_custom_config_payload=BuildCustomConfigurationPayload(g_custom_slots,g_custom_use);
+ if(!InitializeCustomSymbolInputs(reason))return false;
+ g_custom_config_payload=BuildCustomConfigurationPayload(g_custom_slots,g_custom_use)+"U:"+CustomResolvedSymbolIdentity(g_custom_universe)+"|";
+ for(int slot=0;slot<CUSTOM_SLOT_COUNT;slot++)
+  g_custom_config_payload+="S"+IntegerToString(slot+1)+":"+CustomResolvedSymbolIdentity(g_custom_slot_symbols[slot].actual)+"|";
  return true;
 }
 #endif

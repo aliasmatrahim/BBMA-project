@@ -1,4 +1,10 @@
 #property strict
+// Broker catalog fixture; canonical resolver body is extracted by runner.
+string catalog[];
+int FixtureSymbolsTotal(bool selected){return ArraySize(catalog);}
+string FixtureSymbolName(int i,bool selected){return catalog[i];}
+bool FixtureSymbolSelect(string name,bool selected){return true;}
+#include "CanonicalResolverFixture.mqh"
 #include "..\\..\\source\\custom_mtf\\CustomInputs.mqh"
 int passed=0,failed=0;
 void Check(string name,bool value){if(value)passed++;else failed++;Print("[CONFIG-ID] ",name," ",value?"PASS":"FAIL");}
@@ -13,6 +19,7 @@ string Payload(CustomSlotConfig &slots[],CustomUseMatrix &matrix)
 }
 int OnInit()
 {
+ StringSplit(Symbol()+",XAUUSD,EURUSD",44,catalog);
  CustomSlotConfig slots[5];CustomUseMatrix matrix;string reason;
  for(int i=0;i<7;i++)matrix.tfEnabled[i]=true;
  for(int j=0;j<77;j++){matrix.signalEnabled[j]=true;matrix.available[j]=true;}

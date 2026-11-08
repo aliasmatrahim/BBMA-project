@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.9.2 - Custom Configuration Identity         |
+//| Version 5.9.3 - Custom Symbol Configuration         |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,12 +31,12 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.92"
+#property version   "5.93"
 #property strict
 #include "custom_mtf/CustomInputs.mqh"
 
-#define BBMA_BUILD_TAG      "V592_CUSTOM_CONFIG_IDENTITY_20261108"
-#define BBMA_SOURCE_REV_TAG "CUSTOM_CONFIG_IDENTITY_001_20261108"
+#define BBMA_BUILD_TAG      "V593_CUSTOM_SYMBOL_CONFIG_20261108"
+#define BBMA_SOURCE_REV_TAG "CUSTOM_SYMBOL_CONFIG_001_20261108"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -11172,7 +11172,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.92 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.93 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -12944,6 +12944,12 @@ bool ValidateInputParameters()
    if(!InitializeCustomInputs(customReason))
    {
       Log(DBG_ERROR, customReason);
+      return false;
+   }
+   if(ArraySize(g_custom_universe) > MAX_PAIRS)
+   {
+      Log(DBG_ERROR, "CUSTOM_UNIVERSE_EXCEEDS_PAIR_CAPACITY");
+      g_custom_config_payload = "";
       return false;
    }
    g_custom_config_hash = SHORT_HASH(g_custom_config_payload, 16);

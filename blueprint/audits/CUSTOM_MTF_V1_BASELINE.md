@@ -22,3 +22,10 @@ Bind isolated native compiler/tester command and process/ownership inventory; co
 
 ## Exact next action
 Reuse baseline.json and this branch. Finish native runner binding without restarting the primary MT4 or changing historical checkout; then execute T02 native parser cases against production MQL4. Do not duplicate completed baseline hashes/audits. T02–T12 PENDING; no EA source changes, no activation, no native custom runtime proof.
+
+## Native parser continuation — 2026-11-08
+Dedicated root D:\BBMA\MT4_CustomMTF_302_Unit created from existing native binaries and copied history; no primary terminal restart, no account opened, offline proxy retained, ExpertsTrades=false. First launch was blocked by the account wizard and missing symbol metadata; dismissing initialization dialogs and supplying the existing MetaQuotes-Demo server metadata allowed the pure harness to run. Compiler 5.0.0.2425; terminal 1492.
+
+Parser helper compiled 0E/0W, native 30/30 syntax cases PASS. Red phase was a test-only missing-capability adapter (17 rejected-input cases trivially pass, 6 accepted-input cases fail), not a production-core regression. Green phase uses the exact new header, with native/local file hashes matched. The canonical EA remains byte-identical. T02 is not complete: schema, aggregate Context+Trigger bounds, enable matrices and EA integration are pending.
+
+Stored evidence excludes account/authentication log rows. Bar history only hosts the unit harness; no data coverage/profitability or broker-execution claim follows.

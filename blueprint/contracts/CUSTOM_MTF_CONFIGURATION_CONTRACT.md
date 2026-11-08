@@ -27,3 +27,7 @@ Custom universe capacity is checked against canonical `MAX_PAIRS` without trunca
 ## Validation
 
 Native pure helper suites exercise parser, slot admission, canonicalized identity, symbol resolution with broker-I/O fixtures and repeated helper initialization. Resolver fixture text is extracted from the current EA by the runner; it is not a second production resolver. Fresh log markers and assertion results determine PASS; process termination alone is insufficient. Full EA compile and full EA tester startup are distinct evidence scopes. Multi-symbol broker execution and terminal detach/attach recovery are not established by helper tests.
+
+## Tester startup compatibility inherited in Build 5.95
+
+Native MT4 tester rejected SymbolSelect and EventSetTimer with error 4059. The canonical resolver now admits only its catalog-confirmed exact chart symbol in testing mode when Point is positive; all broker-spec checks remain. Timer registration/cancellation remains active outside testing mode. The tester startup adapter does not establish OnTimer housekeeping parity, new signal evaluation, live parameter-change reattachment or trade execution. Final OnInit success plus absence of initialization failure is required; the internal InitializeEA success message alone is insufficient.

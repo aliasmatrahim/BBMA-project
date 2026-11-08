@@ -12,7 +12,7 @@ p.add_argument('--repo',type=Path,required=True)
 p.add_argument('--only-reinit',action='store_true')
 a=p.parse_args(); root=a.root; repo=a.repo
 source=repo/'blueprint/source/BBMA_EA.mq4'; text=source.read_text()
-tests=repo/'blueprint/tests/custom_mtf'; evidence=root/'evidence/config593';evidence.mkdir(parents=True,exist_ok=True)
+tests=repo/'blueprint/tests/custom_mtf'; evidence=root/'evidence/config595';evidence.mkdir(parents=True,exist_ok=True)
 start=text.index('string RemoveSuffix(');end=text.index('\ndouble GetPointSize(',start)
 resolver=text[start:end]
 (tests/'CanonicalNativeResolver.mqh').write_text(resolver)
@@ -26,7 +26,7 @@ def compile_file(path,name):
  print(name,line,flush=True);assert '0 errors, 0 warnings' in line,s
  compiled[name]={'result':line,'compiler_process_exit':process.returncode,'source_sha256_lf_utf8':hashlib.sha256(path.read_text().encode()).hexdigest(),'ex4_sha256':hashlib.sha256(path.with_suffix('.ex4').read_bytes()).hexdigest()}
  return path.with_suffix('.ex4')
-if not a.only_reinit:compile_file(source,'full593')
+if not a.only_reinit:compile_file(source,'full595')
 def run(name,params,marker,expected_reason=None):
  defaults={'ExpectedValid':'true','CustomSymbolMode':'0','CustomSymbolList':''}
  for tf in ['M1','M5','M15','M30','H1','H4','D1']:defaults['CustomTF_'+tf]='true';defaults['CustomSignals_'+tf]=''
@@ -61,5 +61,5 @@ for current,marker in [('CustomFormulaHarness','[CUSTOM-PARSER-SUMMARY]'),('Cust
   ('unavailable','ExpectedValid=false\nCustom1_Enable=true\nCustom1_Context=D1:RE\nCustom1_Trigger=M1:MOM\nCustomSignals_D1=RE\nCustomSignals_M1=MOM\n','CUSTOM_SLOT_1:SIGNAL_UNAVAILABLE'),
   ('bad_universe','ExpectedValid=false\nCustomSymbolMode=2\nCustomSymbolList=GOLDTYPO\n','SYMBOL_UNRESOLVED:GOLDTYPO'),
   ('explicit_universe','ExpectedValid=true\nCustomSymbolMode=2\nCustomSymbolList=GBPUSD, GBPUSD\n','')]:run(name,params,marker,expected_reason)
-manifest={'build':'5.93','compiled':compiled,'runtime':results,'scope':'configuration helpers only; not full EA runtime/order execution'}
+manifest={'build':'5.95','compiled':compiled,'runtime':results,'scope':'configuration helpers only; not full EA runtime/order execution'}
 (evidence/('manifest_reinit.json' if a.only_reinit else 'manifest.json')).write_text(json.dumps(manifest,indent=2)+'\n');print('CONFIGURATION_NATIVE_PASS',flush=True)

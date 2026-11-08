@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.9.3 - Custom Symbol Configuration         |
+//| Version 5.9.5 - Tester Startup Compatibility         |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,12 +31,12 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.93"
+#property version   "5.95"
 #property strict
 #include "custom_mtf/CustomInputs.mqh"
 
-#define BBMA_BUILD_TAG      "V593_CUSTOM_SYMBOL_CONFIG_20261108"
-#define BBMA_SOURCE_REV_TAG "CUSTOM_SYMBOL_CONFIG_001_20261108"
+#define BBMA_BUILD_TAG      "V595_TESTER_TIMER_INIT_20261108"
+#define BBMA_SOURCE_REV_TAG "TESTER_TIMER_INIT_001_20261108"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -1330,6 +1330,10 @@ string FindActualSymbol(string symbol)
    {
       string name = SymbolName(i, false);
       if(name != requested) continue;
+      // MT4 tester rejects SymbolSelect (4059). Its exact chart symbol is
+      // already supplied by the tester; retain all downstream broker checks.
+      if(IsTesting() && name == Symbol() && MarketInfo(name, MODE_POINT) > 0)
+         return name;
       if(SymbolSelect(name, true)) return name;
       return "";
    }
@@ -11172,7 +11176,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.93 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.95 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -13797,7 +13801,9 @@ int OnInit()
    }
 
    ResetLastError();
-   if(!EventSetTimer(1))
+   // MT4 Strategy Tester rejects timer registration (4059). This startup
+   // adapter does not claim timer-housekeeping or trading parity.
+   if(!IsTesting() && !EventSetTimer(1))
    {
       int timerError = GetLastError();
       g_is_initialized = false;
@@ -13814,7 +13820,7 @@ int OnInit()
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
 {
-   EventKillTimer();
+   if(!IsTesting()) EventKillTimer();
 
    g_is_initialized = false;
    g_is_scanning = false;

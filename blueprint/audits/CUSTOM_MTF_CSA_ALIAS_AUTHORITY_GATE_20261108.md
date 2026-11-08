@@ -1,3 +1,5 @@
+> STATUS UPDATE: blanket SOURCE CONFLICT diagnosis superseded by `CUSTOM_MTF_M10_DIRECTION_RECONCILIATION_20261108.md`. Terminology alone is not a source contradiction. CSA/CSAK executable alias mapping remains VERIFICATION REQUIRED; unaffected work may proceed. Historical gate text retained below for provenance.
+
 # Custom MTF v1 — direction alias authority gate
 
 Status: SOURCE CONFLICT / NOT EXECUTABLE for CSA/CSAK mapping.

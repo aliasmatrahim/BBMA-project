@@ -1,6 +1,6 @@
 #ifndef BBMA_CUSTOM_INPUTS_V1
 #define BBMA_CUSTOM_INPUTS_V1
-#include "CustomSlot.mqh"
+#include "CustomIdentity.mqh"
 // Configuration admission only. Custom execution availability defaults closed.
 input bool CustomTF_M1=true;
 input string CustomSignals_M1=""; // enabled shortforms, comma separated
@@ -33,6 +33,8 @@ input string Custom5_Context="";
 input string Custom5_Trigger="";
 CustomSlotConfig g_custom_slots[CUSTOM_SLOT_COUNT];
 CustomUseMatrix g_custom_use;
+string g_custom_config_payload="";
+string g_custom_config_hash="";
 bool CustomInputTFEnabled(int index)
 {
  if(index==0)return CustomTF_M1;
@@ -57,7 +59,12 @@ string CustomInputSignalList(int index)
 }
 bool InitializeCustomInputs(string &reason)
 {
- reason="";
+ reason="";g_custom_config_payload="";g_custom_config_hash="";
+ for(int reset=0;reset<CUSTOM_SLOT_COUNT;reset++)
+ {
+  g_custom_slots[reset].context.atomCount=0;g_custom_slots[reset].context.groupCount=0;
+  g_custom_slots[reset].trigger.atomCount=0;g_custom_slots[reset].trigger.groupCount=0;
+ }
  for(int i=0;i<7;i++)
  {
   g_custom_use.tfEnabled[i]=CustomInputTFEnabled(i);
@@ -89,6 +96,7 @@ bool InitializeCustomInputs(string &reason)
   if(!ValidateCustomSlot(g_custom_slots[n],g_custom_use,reason))
   {reason="CUSTOM_SLOT_"+IntegerToString(n+1)+":"+reason;return false;}
  }
+ g_custom_config_payload=BuildCustomConfigurationPayload(g_custom_slots,g_custom_use);
  return true;
 }
 #endif

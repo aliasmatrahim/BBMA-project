@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.1.5 - NMJE P2 Targetless Lifecycle Replay         |
+//| Version 5.9.0 - M10 Shared Direction Pair Mapping         |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.15"
+#property version   "5.90"
 #property strict
 
-#define BBMA_BUILD_TAG      "V515_NMJE_P2_TARGETLESS_REPLAY_20260925"
-#define BBMA_SOURCE_REV_TAG "NMJE_P2_TARGETLESS_REPLAY_001_20260925"
+#define BBMA_BUILD_TAG      "V590_M10_SHARED_PAIR_20261108"
+#define BBMA_SOURCE_REV_TAG "M10_SHARED_PAIR_001_20261108"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -3540,6 +3540,14 @@ bool CandleBodyCrossesLevel(double open, double close, double level,
    return false;
 }
 
+bool M10_CandleBodyCrossesMAPair(double open, double close, double ma5, double ma10,
+                                ENUM_DIRECTION direction)
+{
+   // Shared engineering body-cross mapping; no standalone entry authority.
+   return CandleBodyCrossesLevel(open, close, ma5, direction) &&
+          CandleBodyCrossesLevel(open, close, ma10, direction);
+}
+
 bool DetectCSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
                MovingAverage &ma, BollingerBand &band)
 {
@@ -3551,14 +3559,12 @@ bool DetectCSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
    if(direction == DIR_BUY)
    {
       if(ma.MA5_High <= 0 || ma.MA10_High <= 0) return false;
-      return CandleBodyCrossesLevel(open, close, ma.MA5_High, direction) &&
-             CandleBodyCrossesLevel(open, close, ma.MA10_High, direction) &&
+      return M10_CandleBodyCrossesMAPair(open, close, ma.MA5_High, ma.MA10_High, direction) &&
              CandleBodyCrossesLevel(open, close, band.MID_BB, direction);
    }
 
    if(ma.MA5_Low <= 0 || ma.MA10_Low <= 0) return false;
-   return CandleBodyCrossesLevel(open, close, ma.MA5_Low, direction) &&
-          CandleBodyCrossesLevel(open, close, ma.MA10_Low, direction) &&
+   return M10_CandleBodyCrossesMAPair(open, close, ma.MA5_Low, ma.MA10_Low, direction) &&
           CandleBodyCrossesLevel(open, close, band.MID_BB, direction);
 }
 
@@ -3573,13 +3579,11 @@ bool DetectECSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
    if(direction == DIR_BUY)
    {
       if(ma.MA5_High <= 0 || ma.MA10_High <= 0) return false;
-      return CandleBodyCrossesLevel(open, close, ma.MA5_High, direction) &&
-             CandleBodyCrossesLevel(open, close, ma.MA10_High, direction);
+      return M10_CandleBodyCrossesMAPair(open, close, ma.MA5_High, ma.MA10_High, direction);
    }
 
    if(ma.MA5_Low <= 0 || ma.MA10_Low <= 0) return false;
-   return CandleBodyCrossesLevel(open, close, ma.MA5_Low, direction) &&
-          CandleBodyCrossesLevel(open, close, ma.MA10_Low, direction);
+   return M10_CandleBodyCrossesMAPair(open, close, ma.MA5_Low, ma.MA10_Low, direction);
 }
 
 //+------------------------------------------------------------------+
@@ -11167,7 +11171,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.15 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.90 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);

@@ -10,7 +10,7 @@
 
 **Spec:** [Approved Design v1](https://chatgpt.com/library?file_id=libfile_0f6f7b676384819198c7e68a3424ed56&account_id=personal). Filename `BBMA_Custom_MTF_Design_Draft_v1_2026-11-07.md`; kandungan v1 diluluskan dalam chat, walaupun header asal masih DRAFT. Laluan repo yang dicadangkan: `docs/superpowers/specs/2026-11-07-custom-mtf-autoentry-design.md`.
 
-**Status:** IMPLEMENTING on `feat/custom-mtf-v1-20261108`, Draft PR #303 / Issue #302. T01–T03 remain partial pending their full exit criteria; configuration milestones include Builds 5.91–5.95. Current evidence and exact remaining work: `blueprint/runtime/custom_mtf/progress.md`. T04–T12 remain pending. No merge, release or trading activation implied.
+**Status:** IMPLEMENTING on `feat/custom-mtf-v1-20261108`, Draft PR #303 / Issue #302. T01–T03 remain partial pending their full exit criteria; configuration milestones include Builds 5.91–5.96. Current evidence and exact remaining work: `blueprint/runtime/custom_mtf/progress.md`. T04–T12 remain pending. No merge, release or trading activation implied.
 
 ## Global Constraints
 

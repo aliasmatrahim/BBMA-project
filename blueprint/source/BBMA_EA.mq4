@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.9.5 - Tester Startup Compatibility         |
+//| Version 5.9.6 - Custom PairState Binding         |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,12 +31,13 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.95"
+#property version   "5.96"
 #property strict
 #include "custom_mtf/CustomInputs.mqh"
+#include "custom_mtf/CustomPairBinding.mqh"
 
-#define BBMA_BUILD_TAG      "V595_TESTER_TIMER_INIT_20261108"
-#define BBMA_SOURCE_REV_TAG "TESTER_TIMER_INIT_001_20261108"
+#define BBMA_BUILD_TAG      "V596_CUSTOM_PAIR_BINDING_20261108"
+#define BBMA_SOURCE_REV_TAG "CUSTOM_PAIR_BINDING_001_20261108"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -1252,6 +1253,8 @@ PairState            g_pair_states[MAX_PAIRS];
 NestedJourneyState   g_nested_journeys[MAX_PAIRS]; // N1 observation only; never entry authority
 datetime             g_processed_candle_time[MAX_PAIRS];
 int                  g_pair_count;
+bool                 g_pair_canonical_scope[MAX_PAIRS];
+int                  g_custom_pair_indices[];
 int                  g_effective_max_active_pair;
 bool                 g_max_active_pair_sanitized;
 bool                 g_pair_list_truncated;
@@ -11176,7 +11179,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.95 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.96 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -13036,11 +13039,63 @@ bool ValidateMagicCollision()
    return true;
 }
 
+bool LoadPairStateAtIndex(string pair,string actual,int index,bool canonicalScope)
+{
+   if(index<0 || index>=MAX_PAIRS) return false;
+   g_pair_names[index] = pair;
+   InitPairState(g_pair_states[index]);
+   g_pair_states[index].base_symbol = pair;
+   g_pair_states[index].actual_symbol = actual;
+   g_pair_states[index].pair_id = GeneratePairID(pair);
+   g_pair_states[index].point = GetPointSize(actual);
+   g_pair_states[index].digits = GetDigits(actual);
+   g_pair_states[index].tick_value = GetTickValue(actual);
+   g_pair_states[index].tick_size_price = GetTickSize_Price(actual);
+   g_pair_states[index].min_lot = GetMinLot(actual);
+   g_pair_states[index].max_lot = GetMaxLot(actual);
+   g_pair_states[index].lot_step = GetLotStep(actual);
+   g_pair_states[index].lot_digits = GetLotDigits(actual);
+   g_pair_states[index].stop_level = GetStopLevel(actual);
+   g_pair_states[index].freeze_level = GetFreezeLevel(actual);
+   g_pair_states[index].magic_number = GenerateMagicNumber(StrategyID, InstanceID, g_pair_states[index].pair_id);
+
+   if(ValidateBrokerSpecificationWithRetry(actual, g_pair_states[index]))
+   {
+      g_pair_states[index].pair_enabled = true;
+      Print("[P3S1][PASS] Broker spec ", actual,
+            " PID=", IntegerToString(g_pair_states[index].pair_id),
+            " Magic=", IntegerToString(g_pair_states[index].magic_number));
+   }
+   else
+   {
+      g_pair_states[index].pair_enabled = false;
+      Print("[P3S1][FAIL] Broker spec ", actual,
+            " Point=", DoubleToString(g_pair_states[index].point, 8),
+            " Digits=", IntegerToString(g_pair_states[index].digits),
+            " TickValue=", DoubleToString(g_pair_states[index].tick_value, 8),
+            " TickSize=", DoubleToString(g_pair_states[index].tick_size_price, 8),
+            " MinLot=", DoubleToString(g_pair_states[index].min_lot, 4),
+            " MaxLot=", DoubleToString(g_pair_states[index].max_lot, 4),
+            " LotStep=", DoubleToString(g_pair_states[index].lot_step, 4),
+            " StopLevel=", IntegerToString(g_pair_states[index].stop_level),
+            " FreezeLevel=", IntegerToString(g_pair_states[index].freeze_level));
+   }
+
+   g_pair_states[index].is_cent_account = DetectCentAccount();
+   g_pair_states[index].cent_factor = GetCentFactor();
+
+   g_processed_candle_time[index] = 0;
+   g_pair_canonical_scope[index]=canonicalScope;
+   return g_pair_states[index].pair_enabled;
+}
+
 void LoadPairs()
 {
    string pairs[];
    SplitString(PairList, ",", pairs);
    g_pair_count = 0;
+   ArrayInitialize(g_pair_canonical_scope,false);
+   ArrayResize(g_custom_pair_indices,0);
    
    for(int i = 0; i < ArraySize(pairs); i++)
    {
@@ -13063,51 +13118,59 @@ void LoadPairs()
 
       Print("[P3S1] Symbol resolved ", pair, " -> ", actual);
       
-      g_pair_names[g_pair_count] = pair;
-      InitPairState(g_pair_states[g_pair_count]);
-      g_pair_states[g_pair_count].base_symbol = pair;
-      g_pair_states[g_pair_count].actual_symbol = actual;
-      g_pair_states[g_pair_count].pair_id = GeneratePairID(pair);
-      g_pair_states[g_pair_count].point = GetPointSize(actual);
-      g_pair_states[g_pair_count].digits = GetDigits(actual);
-      g_pair_states[g_pair_count].tick_value = GetTickValue(actual);
-      g_pair_states[g_pair_count].tick_size_price = GetTickSize_Price(actual);
-      g_pair_states[g_pair_count].min_lot = GetMinLot(actual);
-      g_pair_states[g_pair_count].max_lot = GetMaxLot(actual);
-      g_pair_states[g_pair_count].lot_step = GetLotStep(actual);
-      g_pair_states[g_pair_count].lot_digits = GetLotDigits(actual);
-      g_pair_states[g_pair_count].stop_level = GetStopLevel(actual);
-      g_pair_states[g_pair_count].freeze_level = GetFreezeLevel(actual);
-      g_pair_states[g_pair_count].magic_number = GenerateMagicNumber(StrategyID, InstanceID, g_pair_states[g_pair_count].pair_id);
-      
-      if(ValidateBrokerSpecificationWithRetry(actual, g_pair_states[g_pair_count]))
-      {
-         g_pair_states[g_pair_count].pair_enabled = true;
-         Print("[P3S1][PASS] Broker spec ", actual,
-               " PID=", IntegerToString(g_pair_states[g_pair_count].pair_id),
-               " Magic=", IntegerToString(g_pair_states[g_pair_count].magic_number));
-      }
-      else
-      {
-         g_pair_states[g_pair_count].pair_enabled = false;
-         Print("[P3S1][FAIL] Broker spec ", actual,
-               " Point=", DoubleToString(g_pair_states[g_pair_count].point, 8),
-               " Digits=", IntegerToString(g_pair_states[g_pair_count].digits),
-               " TickValue=", DoubleToString(g_pair_states[g_pair_count].tick_value, 8),
-               " TickSize=", DoubleToString(g_pair_states[g_pair_count].tick_size_price, 8),
-               " MinLot=", DoubleToString(g_pair_states[g_pair_count].min_lot, 4),
-               " MaxLot=", DoubleToString(g_pair_states[g_pair_count].max_lot, 4),
-               " LotStep=", DoubleToString(g_pair_states[g_pair_count].lot_step, 4),
-               " StopLevel=", IntegerToString(g_pair_states[g_pair_count].stop_level),
-               " FreezeLevel=", IntegerToString(g_pair_states[g_pair_count].freeze_level));
-      }
-      
-      g_pair_states[g_pair_count].is_cent_account = DetectCentAccount();
-      g_pair_states[g_pair_count].cent_factor = GetCentFactor();
-      
-      g_processed_candle_time[g_pair_count] = 0;
+      LoadPairStateAtIndex(pair,actual,g_pair_count,true);
       g_pair_count++;
    }
+}
+
+void RollbackCustomPairAppend(int first,int end)
+{
+   for(int i=first;i<end;i++)
+   {
+      InitPairState(g_pair_states[i]);
+      g_pair_names[i]="";g_pair_canonical_scope[i]=false;g_processed_candle_time[i]=0;
+   }
+}
+
+bool BindCustomPairStates(string &reason)
+{
+   reason="";ArrayResize(g_custom_pair_indices,0);
+   bool active=false;
+   for(int slot=0;slot<CUSTOM_SLOT_COUNT;slot++)
+      if(g_custom_slots[slot].enabled){active=true;break;}
+   if(!active) return true;
+
+   string actual[];int ids[],magics[];bool ready[];
+   ArrayResize(actual,g_pair_count);ArrayResize(ids,g_pair_count);
+   ArrayResize(magics,g_pair_count);ArrayResize(ready,g_pair_count);
+   for(int p=0;p<g_pair_count;p++)
+   {
+      actual[p]=g_pair_states[p].actual_symbol;ids[p]=g_pair_states[p].pair_id;
+      magics[p]=g_pair_states[p].magic_number;
+      ready[p]=g_pair_states[p].pair_enabled && g_pair_states[p].broker_spec_valid;
+   }
+   CustomPairBinding plan[];
+   if(!BuildCustomPairBindingPlan(g_custom_universe,actual,ids,magics,ready,StrategyID,InstanceID,MAX_PAIRS,plan,reason)) return false;
+   int first=g_pair_count,end=first;
+   for(int i=0;i<ArraySize(plan);i++)
+   {
+      if(!plan[i].append) continue;
+      end=plan[i].pairIndex+1;
+      if(!LoadPairStateAtIndex(plan[i].actual,plan[i].actual,plan[i].pairIndex,false))
+      {
+         reason="CUSTOM_PAIR_BROKER_SPEC_NOT_READY:"+plan[i].actual;
+         RollbackCustomPairAppend(first,end);return false;
+      }
+   }
+   int count=ArraySize(plan);
+   if(ArrayResize(g_custom_pair_indices,count)!=count)
+   {
+      reason="CUSTOM_BINDING_ALLOCATION_FAILED";RollbackCustomPairAppend(first,end);
+      ArrayResize(g_custom_pair_indices,0);return false;
+   }
+   for(int j=0;j<count;j++)g_custom_pair_indices[j]=plan[j].pairIndex;
+   g_pair_count=end;
+   return true;
 }
 
 int InitializeEA()
@@ -13138,6 +13201,13 @@ int InitializeEA()
       return INIT_FAILED;
    }
    
+   string customBindingReason;
+   if(!BindCustomPairStates(customBindingReason))
+   {
+      Log(DBG_ERROR,customBindingReason);
+      return INIT_PARAMETERS_INCORRECT;
+   }
+
    if(!ValidatePairIDCollision())
    {
       Print("[P3S1][FAIL] PairID validation failed");
@@ -13765,6 +13835,7 @@ void OnTickMain()
    {
       if(g_execution_ambiguity.Active) break;
       if(!g_pair_states[i].pair_enabled) continue;
+      if(!g_pair_canonical_scope[i]) continue; // custom owner scheduling is connected separately
       if(g_pair_states[i].is_processing) continue;
       if(IsNewCandle(g_pair_states[i].actual_symbol, i))
       {

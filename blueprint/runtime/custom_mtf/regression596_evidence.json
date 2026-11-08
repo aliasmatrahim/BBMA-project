@@ -1,0 +1,22 @@
+{
+  "scope": "whole checkout pytest collection",
+  "source_sha256_lf_utf8": "16c34434dc83c7fccffef25ed2c0787160bd76cfc0ba2dc1fd450f96cb13637c",
+  "command": "PYTHONPATH=/tmp/bbma-pytest python3 -m pytest -q",
+  "pytest_version": "9.1.1",
+  "exit_code": 0,
+  "result": "72 passed in 0.35s",
+  "environment": "local full-history implementation checkout; g++ available; pytest installed into isolated temporary target",
+  "earlier_g40_attempts": [
+    {
+      "result": "collection error",
+      "test": "blueprint/tests/custom_mtf/test_m10_shared_pair.py",
+      "reason": "g++ not installed on G40"
+    },
+    {
+      "result": "1 failed, 71 passed",
+      "test": "blueprint/tests/test_q10_demo_acceptance.py::test_frozen_candidate_identity_is_exact",
+      "reason": "shallow G40 clone lacks pinned historical commit c1da06ea15e6cc31d097765043fba26899090b7e"
+    }
+  ],
+  "resolution": "Full bare pytest suite executed locally with full Git history and compiler; both tests pass in the 72-case suite. No production rule changed to satisfy environment failures."
+}

@@ -1,0 +1,31 @@
+{
+  "scope": "actual broker API rejection/rollback; controller not started",
+  "phase": "green",
+  "compiled": {
+    "CustomStateBindingHarness": {
+      "result": "Result: 0 errors, 0 warnings, 646 msec elapsed",
+      "compiler_exit": 1,
+      "source_sha256_lf_utf8": "96bdec8db93aefeff6a846ff9fa57623b019532be7617774eef11244f8634b7b",
+      "ex4_sha256": "6f42ad18da91bc68a2c46f8414dc33557365617751cd35864b64c6ac99079fc1"
+    }
+  },
+  "rows": [
+    "0\t00:09:04.281\t2026.08.03 00:00:01  CustomStateBindingHarness GBPUSD,M15: [STATE-BINDING] all_off_preserves_pool PASS",
+    "0\t00:09:04.281\t2026.08.03 00:00:01  CustomStateBindingHarness GBPUSD,M15: [STATE-BINDING] reuse_exact_state PASS",
+    "0\t00:09:04.281\t2026.08.03 00:00:01  CustomStateBindingHarness GBPUSD,M15: [STATE-BINDING] real_nonchart_spec_rejected PASS",
+    "0\t00:09:04.281\t2026.08.03 00:00:01  CustomStateBindingHarness GBPUSD,M15: [STATE-BINDING] real_failed_append_rolled_back PASS",
+    "0\t00:09:04.281\t2026.08.03 00:00:01  CustomStateBindingHarness GBPUSD,M15: [STATE-BINDING-SUMMARY] passed=4 failed=0"
+  ],
+  "expected": "passed=4 failed=0",
+  "passed": true,
+  "source_sha256_lf_utf8": "16c34434dc83c7fccffef25ed2c0787160bd76cfc0ba2dc1fd450f96cb13637c",
+  "headers": {
+    "blueprint/source/custom_mtf/CustomFormula.mqh": "891beea1605278a0d072a9d54cc305d75b7c180918679197e5bb82cd436fa92b",
+    "blueprint/source/custom_mtf/CustomIdentity.mqh": "58357dc65c07a684ca14291c9933f7b7880c82f332880f2fd190a3b69b6095e9",
+    "blueprint/source/custom_mtf/CustomInputs.mqh": "2e4cd80bd66e0cfd7255ea643b343a6c08f91b406b1278e772c82ec86f3b8eb2",
+    "blueprint/source/custom_mtf/CustomPairBinding.mqh": "58cc864aecb8c228f7da8fa51a4e0363e1625aa750c6cf1356b2e6e02cd98da2",
+    "blueprint/source/custom_mtf/CustomSlot.mqh": "deaa605a6149fd4a2d1b73516403d799481f7887fb53e5999a7b8adc15c4845c",
+    "blueprint/source/custom_mtf/CustomSymbolInputs.mqh": "ac2d8fd5500269cd3821838d56456b2bd857a205545e58c7b307ad57453e35fe",
+    "blueprint/source/custom_mtf/CustomSymbols.mqh": "709aaff7fe4d0a4d24206c7a0d55456ba4b339e63dfc16219321e0b0a91a1630"
+  }
+}

@@ -29,3 +29,5 @@ Implemented CustomSlotConfig, IDs 1–5, aggregate Context+Trigger <=7, nonempty
 Fresh review: no important correctness bug. Per-cell indexing/output publication reviewed statically; native harness asserts return values only.
 T02 remains PARTIAL: EA input integration/config hash/initialization regression not complete. Core EA unchanged and auto-entry OFF.
 Exact next action: integrate five-slot inputs with canonical initializer under a unique EA build identity; availability remains fail-closed until owner mappings verified.
+
+M10 reconciliation checkpoint: Build 5.90 shared MA-pair helper now applied on custom branch. Numeric equivalence 19683/19683; full native compile 0E0W, 999ms; independent review no new fix required. Native EA runtime NOT RUN. CSA must not alias eCSD; source terminology findings and consumer map: CUSTOM_MTF_M10_DIRECTION_RECONCILIATION_20261108.md. Prior blanket source-conflict diagnosis superseded by alias verification scope. T02 input integration and T03–T12 remain pending/partial. No merge or trading activation.

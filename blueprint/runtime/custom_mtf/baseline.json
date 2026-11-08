@@ -15,19 +15,20 @@
   "g40_worktree_mutated": false,
   "native_compiler_observed": "D:\\BBMA\\MT4_ReEntryTiming_515_20261107\\metaeditor.exe",
   "native_compiler_version": "5.0.0.2425",
-  "native_custom_compile": "NOT_RUN",
-  "native_custom_runtime": "NOT_RUN",
+  "native_custom_compile": "PARSER_HARNESS_PASS_0E0W",
+  "native_custom_runtime": "PARSER_ONLY_30_PASS_0_FAIL",
   "source_changed": false,
   "merge_or_trading_activation": false,
   "baseline_tests": {
     "pytest": "NOT_RUN: No module named pytest in cloud Python",
     "c044_generation_model": "PASS: normal_ops=145 frozen_ops=85 normal_failure_points=145 frozen_failure_points=85"
   },
-  "pending_native_binding": "Select isolated native runner, bind compile/tester command and exact deployment identity before harness execution",
+  "pending_native_binding": "Resolved for pure parser harness only; EA runtime/deployment identity remains separate",
   "dependency_prs": [
     301,
     299,
     293,
     282
-  ]
+  ],
+  "isolated_native_root": "D:\\BBMA\\MT4_CustomMTF_302_Unit"
 }

@@ -23,3 +23,9 @@ Full local pytest cannot run (module unavailable); C044 generation model PASS; n
 Exact next action: add aggregate Context+Trigger seven-atom validation, fixed five-slot schema and per-TF/signal availability checks, with native RED/GREEN tests, then integrate inputs under a new EA build identity.
 
 Fresh parser review: no confirmed parser bugs; seven structural/state assertions added and run native, final 30/30 PASS. Full feature still incomplete.
+
+Slot schema milestone: native 11/11 PASS, compile 0E/0W (MetaEditor 2425, MT4 1492). Missing-capability adapter baseline 8 pass/3 fail.
+Implemented CustomSlotConfig, IDs 1–5, aggregate Context+Trigger <=7, nonempty enabled fields, disabled-empty acceptance, TF/signal/user-enable and semantic availability matrix rejection. Parsed fields staged locally and committed only on full validation.
+Fresh review: no important correctness bug. Per-cell indexing/output publication reviewed statically; native harness asserts return values only.
+T02 remains PARTIAL: EA input integration/config hash/initialization regression not complete. Core EA unchanged and auto-entry OFF.
+Exact next action: integrate five-slot inputs with canonical initializer under a unique EA build identity; availability remains fail-closed until owner mappings verified.

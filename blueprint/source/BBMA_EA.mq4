@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.9.0 - M10 Shared Direction Pair Mapping         |
+//| Version 5.9.1 - Custom Input Admission         |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,12 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.90"
+#property version   "5.91"
 #property strict
+#include "custom_mtf/CustomInputs.mqh"
 
-#define BBMA_BUILD_TAG      "V590_M10_SHARED_PAIR_20261108"
-#define BBMA_SOURCE_REV_TAG "M10_SHARED_PAIR_001_20261108"
+#define BBMA_BUILD_TAG      "V591_CUSTOM_INPUT_ADMISSION_20261108"
+#define BBMA_SOURCE_REV_TAG "CUSTOM_INPUT_ADMISSION_001_20261108"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -11171,7 +11172,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.90 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.91 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -12939,6 +12940,12 @@ void NormalizeRuntimeLimits()
 
 bool ValidateInputParameters()
 {
+   string customReason;
+   if(!InitializeCustomInputs(customReason))
+   {
+      Log(DBG_ERROR, customReason);
+      return false;
+   }
    if(MaxRetry <= 0) return false;
    if(Slippage < 0 || AllowedExecutionDeviation_MinPoints < 0) return false;
    if(TradeLockMode < LOCK_OFF || TradeLockMode > LOCK_ONE_POSITION) return false;

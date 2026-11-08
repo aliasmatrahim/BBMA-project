@@ -13,5 +13,13 @@
     "Custom availability deliberately closed until owners implemented",
     "No trade activation",
     "Full global pytest not available"
-  ]
+  ],
+  "hash_binding": {
+    "source_sha256_lf_utf8": "88d8819e6c0de3b1b7e7a604581db4b3972774173511d68ae7ebd8e0b10a872c",
+    "source_ex4_sha256": "85054d37c57abc6c70930a0920bef1389031c1993f912d79cb286d78e21f9aef",
+    "inputs_sha256_lf_utf8": "a05859a7ca22b7ee0e8ab92e78952bd05bbbd5222b31dc7ddbfaf311de86ea3c",
+    "harness_sha256_lf_utf8": "60966a9798e1eb3ce9050f619fb50c4703bbf2660d77a984efe58874c5762d81",
+    "harness_ex4_sha256": "2407444999a6f5dd177d9a6f745a6abfcf133a329da5dd5d4859f31d632f63d2",
+    "source_and_inputs_local_match": true
+  }
 }

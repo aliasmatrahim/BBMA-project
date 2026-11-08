@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.9.8 - Custom Auxiliary Owner Producers         |
+//| Version 5.9.9 - Custom Anchored Owner Replay         |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,14 +31,14 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.98"
+#property version   "5.99"
 #property strict
 #include "custom_mtf/CustomInputs.mqh"
 #include "custom_mtf/CustomPairBinding.mqh"
 #include "custom_mtf/CustomClock.mqh"
 
-#define BBMA_BUILD_TAG      "V598_CUSTOM_AUX_OWNERS_20261109"
-#define BBMA_SOURCE_REV_TAG "CUSTOM_AUX_OWNERS_001_20261109"
+#define BBMA_BUILD_TAG      "V599_CUSTOM_OWNER_REPLAY_20261109"
+#define BBMA_SOURCE_REV_TAG "CUSTOM_OWNER_REPLAY_001_20261109"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -959,6 +959,9 @@ struct CustomAuxLifecycle
    ExtremeLifecycleData extremeBuy; ExtremeLifecycleData extremeSell;
    datetime lastClosed;
    bool recoveryRequired;
+   datetime contextOnlyThrough;
+   int lastReplayBars;
+   string recoveryReason;
 };
 
 struct PairState
@@ -11199,7 +11202,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.98 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.99 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -13831,21 +13834,23 @@ void ProcessPair(int pairIndex)
    g_pair_states[pairIndex].is_processing = false;
 }
 
-// Data-readiness gate only, not a new signal rule or structural expiry.
-bool RefreshCustomAuxOwnerSource(string symbol,int tf,datetime latest,TimeframeData &data,CustomAuxLifecycle &owner)
+// Engineering work bound per observation, never an owner expiry/TTL.
+#define CUSTOM_REPLAY_BARS_PER_PASS 256
+
+bool ReadCustomAuxClosedData(string symbol,int tf,datetime candle,TimeframeData &next)
 {
-   if(latest<=0 || latest!=GetLatestClosedCandleTime(symbol,tf))return false;
-   if(owner.recoveryRequired)return false;
-   if(owner.lastClosed==latest)return data.is_valid && data.is_closed && data.candle_time==latest;
-   if(owner.lastClosed>0 && latest!=owner.lastClosed+GetTimeframeSeconds(tf))
-   {owner.recoveryRequired=true;return false;}
-   TimeframeData next;GetDataForTimeframe(symbol,tf,latest,next);
-   if(!next.is_valid || !next.is_closed || next.barIndex<1 || next.candle_time!=latest ||
+   GetDataForTimeframe(symbol,tf,candle,next);
+   if(!next.is_valid || !next.is_closed || next.barIndex<1 || next.candle_time!=candle ||
       next.timeframe!=tf || next.data_count<next.barIndex+51 || next.point<=0 ||
       next.open<=0 || next.high<=0 || next.low<=0 || next.close<=0)return false;
    for(int ma=0;ma<5;ma++)if(next.ma[ma]<=0 || !MathIsValidNumber(next.ma[ma]))return false;
    for(int bb=0;bb<3;bb++)if(next.bollinger[bb]<=0 || !MathIsValidNumber(next.bollinger[bb]))return false;
-   if(next.bollinger[0]<=next.bollinger[1] || next.bollinger[1]<=next.bollinger[2])return false;
+   return next.bollinger[0]>next.bollinger[1] && next.bollinger[1]>next.bollinger[2];
+}
+
+// The same source engines serve ordinary advancement and historical replay.
+void AdvanceCustomAuxLifecycle(string symbol,TimeframeData &next,CustomAuxLifecycle &owner)
+{
    BollingerBand band;ZeroMemory(band);
    band.TOP_BB=next.bollinger[0];band.MID_BB=next.bollinger[1];band.LOW_BB=next.bollinger[2];
    band.Width=band.TOP_BB-band.LOW_BB;
@@ -13856,7 +13861,59 @@ bool RefreshCustomAuxOwnerSource(string symbol,int tf,datetime latest,TimeframeD
    ResolveOppositeExtremeSupersession(owner.extremeBuy,owner.extremeSell,next);
    UpdateReEntryState(owner.reBuy,symbol,DIR_BUY,next);
    UpdateReEntryState(owner.reSell,symbol,DIR_SELL,next);
-   data=next;owner.lastClosed=latest;
+   owner.lastClosed=next.candle_time;
+}
+
+bool ReplayCustomAuxOwnerSource(string symbol,int tf,datetime latest,TimeframeData &data,CustomAuxLifecycle &owner)
+{
+   if(owner.reBuy.LastUpdateCandleTime>owner.lastClosed || owner.reSell.LastUpdateCandleTime>owner.lastClosed ||
+      owner.extremeBuy.LastUpdateCandleTime>owner.lastClosed || owner.extremeSell.LastUpdateCandleTime>owner.lastClosed)
+   {owner.recoveryReason="WAIT_REPLAY_OWNER_ANCHOR";return false;}
+   int anchor=iBarShift(symbol,tf,owner.lastClosed,true);
+   int target=iBarShift(symbol,tf,latest,true);
+   if(anchor<1 || target<1 || anchor<=target ||
+      iTime(symbol,tf,anchor)!=owner.lastClosed || iTime(symbol,tf,target)!=latest)
+   {owner.recoveryReason="WAIT_REPLAY_EXACT_ANCHOR";return false;}
+   CustomAuxLifecycle staged=owner;TimeframeData stagedData=data;
+   int count=0;
+   for(int shift=anchor-1;shift>=target && count<CUSTOM_REPLAY_BARS_PER_PASS;shift--)
+   {
+      datetime candle=iTime(symbol,tf,shift);
+      // Actual history must prove every intervening nominal source candle.
+      // Session/weekend gaps stay HOLD until their coverage is separately resolved.
+      if(candle<=0 || candle!=staged.lastClosed+GetTimeframeSeconds(tf))
+      {owner.recoveryReason="WAIT_REPLAY_HISTORY_CONTINUITY";return false;}
+      TimeframeData next;
+      if(!ReadCustomAuxClosedData(symbol,tf,candle,next))
+      {owner.recoveryReason="WAIT_REPLAY_CLOSED_DATA";return false;}
+      AdvanceCustomAuxLifecycle(symbol,next,staged);stagedData=next;count++;
+   }
+   // Commit only a complete validated chunk. No half-chunk lifecycle is visible.
+   staged.lastReplayBars+=count;staged.contextOnlyThrough=staged.lastClosed;
+   staged.recoveryRequired=(staged.lastClosed!=latest);
+   staged.recoveryReason=staged.recoveryRequired?"WAIT_REPLAY_NEXT_CHUNK":"";
+   owner=staged;data=stagedData;
+   return !owner.recoveryRequired;
+}
+
+// Data/readiness and replay admission, not a new signal rule or structural expiry.
+bool RefreshCustomAuxOwnerSource(string symbol,int tf,datetime latest,TimeframeData &data,CustomAuxLifecycle &owner)
+{
+   if(latest<=0 || latest!=GetLatestClosedCandleTime(symbol,tf))return false;
+   if(owner.lastClosed>latest)
+   {owner.recoveryRequired=true;owner.recoveryReason="WAIT_REPLAY_CLOCK_ROLLBACK";return false;}
+   if(owner.lastClosed==latest && !owner.recoveryRequired)
+      return data.is_valid && data.is_closed && data.candle_time==latest;
+   if(owner.recoveryRequired || (owner.lastClosed>0 && latest!=owner.lastClosed+GetTimeframeSeconds(tf)))
+   {
+      if(!owner.recoveryRequired)owner.lastReplayBars=0;
+      owner.recoveryRequired=true;
+      return ReplayCustomAuxOwnerSource(symbol,tf,latest,data,owner);
+   }
+   TimeframeData next;if(!ReadCustomAuxClosedData(symbol,tf,latest,next))return false;
+   bool cold=(owner.lastClosed==0);
+   AdvanceCustomAuxLifecycle(symbol,next,owner);data=next;
+   if(cold)owner.contextOnlyThrough=latest;
    return true;
 }
 
@@ -13886,6 +13943,7 @@ bool ReadCustomOwnerView(int pairIndex,int tf,string signal,ENUM_DIRECTION direc
       return ProjectCustomMHVView(view.symbol,tf,direction,latest,g_pair_states[pairIndex].m15_data,mlv,view);
    }
    if(kind<0 || kind>5){view.reason="OWNER_MAPPING_UNAVAILABLE";return false;}
+   bool contextOnly=false;
    TimeframeData data;ReEntryData re;ExtremeLifecycleData extreme;
    if(tf==PERIOD_D1)
    {
@@ -13914,6 +13972,7 @@ bool ReadCustomOwnerView(int pairIndex,int tf,string signal,ENUM_DIRECTION direc
    else if(tf==PERIOD_M1 || tf==PERIOD_M5 || tf==PERIOD_M30)
    {
       int slot=tf==PERIOD_M1?0:(tf==PERIOD_M5?1:2);
+      contextOnly=(g_pair_states[pairIndex].custom_aux[slot].contextOnlyThrough==latest);
       if(g_pair_states[pairIndex].custom_aux[slot].recoveryRequired)
       {view.reason="WAIT_OWNER_RECOVERY";return false;}
       if(tf==PERIOD_M1)data=g_pair_states[pairIndex].m1_data;
@@ -13923,9 +13982,11 @@ bool ReadCustomOwnerView(int pairIndex,int tf,string signal,ENUM_DIRECTION direc
       extreme=(direction==DIR_BUY)?g_pair_states[pairIndex].custom_aux[slot].extremeBuy:g_pair_states[pairIndex].custom_aux[slot].extremeSell;
    }
    else {view.reason="TF_OWNER_UNWIRED";return false;}
-   if(kind==5)return ProjectCustomExtremeView(view.symbol,tf,direction,latest,data,extreme,view);
-   bool readable=ProjectCustomReEntryView(view.symbol,tf,signal,direction,latest,data,re,view);
-   view.entryWindowOpen=readable && view.structuralValid && CustomReEntryWindowOpen(re,tf,iTime(view.symbol,tf,0));
+   bool readable;
+   if(kind==5)readable=ProjectCustomExtremeView(view.symbol,tf,direction,latest,data,extreme,view);
+   else readable=ProjectCustomReEntryView(view.symbol,tf,signal,direction,latest,data,re,view);
+   view.recoveryOnly=contextOnly;
+   view.entryWindowOpen=kind<=4 && !contextOnly && readable && view.structuralValid && CustomReEntryWindowOpen(re,tf,iTime(view.symbol,tf,0));
    return readable;
 }
 

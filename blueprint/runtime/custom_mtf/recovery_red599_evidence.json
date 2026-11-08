@@ -1,0 +1,52 @@
+{
+  "build": "5.98 baseline",
+  "scope": "native baseline sticky-HOLD behavior; no replay implementation or trading controller",
+  "source_sha256_lf_utf8": "e56e6350a82d792b4ee06324fa63f114280edabf6731af88e5629f453940b352",
+  "compiled": {
+    "CustomRecoveryHarness": {
+      "result": "Result: 0 errors, 0 warnings, 419 msec elapsed",
+      "source_sha256_lf_utf8": "1dd973e20a0913c680fadb91ef0010f768981f83984b78575f8c5548d1caf773",
+      "ex4_sha256": "8053abd46b164459a97f92b7ab0c78615a269dfb0d5e5d74e974b4a9fc5fe32e"
+    }
+  },
+  "rows": [
+    "0\t07:34:16.548\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] seed_1 PASS",
+    "0\t07:34:16.550\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] continuous_control_1 PASS",
+    "0\t07:34:16.550\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] replay_catches_up_1 FAIL",
+    "0\t07:34:16.550\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] all_owner_fields_match_control_1 FAIL",
+    "0\t07:34:16.550\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] duplicate_does_not_replay_1 FAIL",
+    "0\t07:34:16.550\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] replay_is_context_only_1 FAIL",
+    "0\t07:34:16.550\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] next_genuine_bar_resumes_1 FAIL",
+    "0\t07:34:19.852\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] seed_5 PASS",
+    "0\t07:34:19.854\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] continuous_control_5 PASS",
+    "0\t07:34:19.854\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] replay_catches_up_5 FAIL",
+    "0\t07:34:19.854\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] all_owner_fields_match_control_5 FAIL",
+    "0\t07:34:19.854\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] duplicate_does_not_replay_5 FAIL",
+    "0\t07:34:19.854\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] replay_is_context_only_5 FAIL",
+    "0\t07:34:19.854\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] next_genuine_bar_resumes_5 FAIL",
+    "0\t07:34:23.034\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] seed_30 PASS",
+    "0\t07:34:23.035\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] continuous_control_30 PASS",
+    "0\t07:34:23.035\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] replay_catches_up_30 FAIL",
+    "0\t07:34:23.035\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] all_owner_fields_match_control_30 FAIL",
+    "0\t07:34:23.035\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] duplicate_does_not_replay_30 FAIL",
+    "0\t07:34:23.035\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] replay_is_context_only_30 FAIL",
+    "0\t07:34:23.035\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] next_genuine_bar_resumes_30 FAIL",
+    "0\t07:34:23.035\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] missing_exact_anchor_holds PASS",
+    "0\t07:34:23.035\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] failed_recovery_preserves_structural_owner PASS",
+    "0\t07:34:23.035\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY-SUMMARY] passed=8 failed=15"
+  ],
+  "expected": "passed=8 failed=15",
+  "passed": true,
+  "headers": {
+    "blueprint/source/custom_mtf/CustomClock.mqh": "a012146ba0e863acc324d53bba041f24ac9ddf81486bdeee3f7b3d1f99df1261",
+    "blueprint/source/custom_mtf/CustomFormula.mqh": "891beea1605278a0d072a9d54cc305d75b7c180918679197e5bb82cd436fa92b",
+    "blueprint/source/custom_mtf/CustomIdentity.mqh": "58357dc65c07a684ca14291c9933f7b7880c82f332880f2fd190a3b69b6095e9",
+    "blueprint/source/custom_mtf/CustomInputs.mqh": "2e4cd80bd66e0cfd7255ea643b343a6c08f91b406b1278e772c82ec86f3b8eb2",
+    "blueprint/source/custom_mtf/CustomOwners.mqh": "df1f74532eba166f5a36dabdc7ae58fd72e8301ef0c2e2682b2c75a320a18a36",
+    "blueprint/source/custom_mtf/CustomPairBinding.mqh": "58cc864aecb8c228f7da8fa51a4e0363e1625aa750c6cf1356b2e6e02cd98da2",
+    "blueprint/source/custom_mtf/CustomSlot.mqh": "a3fffe0a3d8da7076f952a755d7060c6e8b4fc34e3a7445c14852aba71fa56f3",
+    "blueprint/source/custom_mtf/CustomSymbolInputs.mqh": "ac2d8fd5500269cd3821838d56456b2bd857a205545e58c7b307ad57453e35fe",
+    "blueprint/source/custom_mtf/CustomSymbols.mqh": "709aaff7fe4d0a4d24206c7a0d55456ba4b339e63dfc16219321e0b0a91a1630"
+  },
+  "phase": "RED baseline: expected 8 passing and 15 failing assertions reproduced"
+}

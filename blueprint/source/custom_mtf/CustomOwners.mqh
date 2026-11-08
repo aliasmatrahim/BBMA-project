@@ -6,7 +6,7 @@ struct CustomOwnerView
  string symbol;string signal;string eventId;string reason;
  int timeframe;int direction;int ownerState;
  datetime sourceBar;datetime confirmation;datetime entryCandle;
- bool readable;bool structuralValid;bool entryWindowOpen;bool entryEligible;bool executionAvailable;
+ bool readable;bool structuralValid;bool recoveryOnly;bool entryWindowOpen;bool entryEligible;bool executionAvailable;
 };
 // Diagnostic counterpart of accepted Core 8.6 / PR301 EntryCandle equality.
 // This does not change canonical candidates or grant custom eligibility.
@@ -21,7 +21,7 @@ bool CustomReEntryWindowOpen(ReEntryData &source,int tf,datetime currentOpen)
 struct CustomOwnerFrame {string symbol;datetime observedAt;int viewCount;CustomOwnerView views[CUSTOM_OWNER_VIEW_CAP];};
 bool ProjectCustomReEntryView(string symbol,int tf,string signal,ENUM_DIRECTION direction,datetime latest,TimeframeData &data,ReEntryData &source,CustomOwnerView &view)
 {
- view.entryWindowOpen=false;view.readable=false;view.structuralValid=false;view.entryEligible=false;view.executionAvailable=false;view.eventId="";
+ view.recoveryOnly=false;view.entryWindowOpen=false;view.readable=false;view.structuralValid=false;view.entryEligible=false;view.executionAvailable=false;view.eventId="";
  view.ownerState=(int)source.State;view.entryCandle=source.EntryCandle;
  if(!data.is_valid || !data.is_closed || data.barIndex<1 || data.timeframe!=tf || data.candle_time!=latest || latest<=0)
  {view.reason="WAIT_OWNER_DATA";return false;}
@@ -45,7 +45,7 @@ bool ProjectCustomReEntryView(string symbol,int tf,string signal,ENUM_DIRECTION 
 }
 bool ProjectCustomExtremeView(string symbol,int tf,ENUM_DIRECTION direction,datetime latest,TimeframeData &data,ExtremeLifecycleData &source,CustomOwnerView &view)
 {
- view.entryWindowOpen=false;view.readable=false;view.structuralValid=false;view.entryEligible=false;view.executionAvailable=false;view.eventId="";
+ view.recoveryOnly=false;view.entryWindowOpen=false;view.readable=false;view.structuralValid=false;view.entryEligible=false;view.executionAvailable=false;view.eventId="";
  view.ownerState=(int)source.Maturity;view.entryCandle=source.RetestCompletionCandleTime;
  if(!data.is_valid || !data.is_closed || data.barIndex<1 || data.timeframe!=tf || data.candle_time!=latest || latest<=0)
  {view.reason="WAIT_OWNER_DATA";return false;}
@@ -64,7 +64,7 @@ bool ProjectCustomExtremeView(string symbol,int tf,ENUM_DIRECTION direction,date
 // MHV and MLV are views of the same canonical M09 owner, never independent signals.
 bool ProjectCustomMHVView(string symbol,int tf,ENUM_DIRECTION direction,datetime latest,TimeframeData &data,MLVData &source,CustomOwnerView &view)
 {
- view.entryWindowOpen=false;view.readable=false;view.structuralValid=false;
+ view.recoveryOnly=false;view.entryWindowOpen=false;view.readable=false;view.structuralValid=false;
  view.entryEligible=false;view.executionAvailable=false;view.eventId="";
  view.ownerState=(int)source.State;
  if(tf!=PERIOD_M15){view.reason="TF_OWNER_UNWIRED";return false;}

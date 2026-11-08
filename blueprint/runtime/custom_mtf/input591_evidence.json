@@ -1,0 +1,17 @@
+{
+  "build": "5.91",
+  "scope": "INPUT_VALIDATION_ONLY",
+  "native_full_compile": "0 errors, 0 warnings, 1077 msec",
+  "native_harness_compile": "0 errors, 0 warnings, 329 msec",
+  "cases": [
+    "0\t22:28:13.238\t2026.08.03 00:00:01  CustomInputHarness GBPUSD,M15: [INPUT_ADMISSION] expected=true actual=true reason= passed=true",
+    "0\t22:28:34.054\t2026.08.03 00:00:01  CustomInputHarness GBPUSD,M15: [INPUT_ADMISSION] expected=false actual=false reason=CUSTOM_SLOT_1:CONTEXT:UNKNOWN_TIMEFRAME@0 passed=true",
+    "0\t22:28:51.037\t2026.08.03 00:00:01  CustomInputHarness GBPUSD,M15: [INPUT_ADMISSION] expected=false actual=false reason=CUSTOM_SLOT_1:SIGNAL_UNAVAILABLE passed=true"
+  ],
+  "limitations": [
+    "Full EA runtime not run",
+    "Custom availability deliberately closed until owners implemented",
+    "No trade activation",
+    "Full global pytest not available"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "issue": 302,
+  "status": "T01_PARTIAL",
+  "owner_branch": "d1-owner-dev",
+  "owner_sha": "459c0588e625d7f7630f0fb5612b7f04fda496de",
+  "source_path": "blueprint/source/BBMA_EA.mq4",
+  "build": "5.15",
+  "git_lf_sha256": "49da4fbf9aae347530dd45d47902f81e422600825438b62b80757435d69f8504",
+  "windows_crlf_sha256": "b9f3876f61645b2f98009a4251a4142edc7644ed728e41edeca245ff1e243c45",
+  "historical_compile_manifest_matches_after_crlf_conversion": true,
+  "g40_checkout": "D:\\BBMA\\GitHub_BBMA-project",
+  "g40_checkout_branch": "b1-3-p3-sol-high-latest-evidence-consolidated-handoff-savepoint-20260913",
+  "g40_checkout_dirty": true,
+  "g40_worktree_mutated": false,
+  "native_compiler_observed": "D:\\BBMA\\MT4_ReEntryTiming_515_20261107\\metaeditor.exe",
+  "native_compiler_version": "5.0.0.2425",
+  "native_custom_compile": "NOT_RUN",
+  "native_custom_runtime": "NOT_RUN",
+  "source_changed": false,
+  "merge_or_trading_activation": false,
+  "baseline_tests": {
+    "pytest": "NOT_RUN: No module named pytest in cloud Python",
+    "c044_generation_model": "PASS: normal_ops=145 frozen_ops=85 normal_failure_points=145 frozen_failure_points=85"
+  },
+  "pending_native_binding": "Select isolated native runner, bind compile/tester command and exact deployment identity before harness execution",
+  "dependency_prs": [
+    301,
+    299,
+    293,
+    282
+  ]
+}

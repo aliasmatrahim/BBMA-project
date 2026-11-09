@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 6.0.3 - Shared M09 Producer and Replay         |
+//| Version 6.0.4 - Canonical M09 Read Only Parent Boundary         |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,14 +31,14 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "6.03"
+#property version   "6.04"
 #property strict
 #include "custom_mtf/CustomInputs.mqh"
 #include "custom_mtf/CustomPairBinding.mqh"
 #include "custom_mtf/CustomClock.mqh"
 
-#define BBMA_BUILD_TAG      "V603_M09_PRODUCER_REPLAY_20261109"
-#define BBMA_SOURCE_REV_TAG "M09_PRODUCER_REPLAY_001_20261109"
+#define BBMA_BUILD_TAG      "V604_M09_CANONICAL_MONITOR_20261109"
+#define BBMA_SOURCE_REV_TAG "M09_CANONICAL_MONITOR_001_20261109"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -1013,6 +1013,7 @@ struct PairState
    M10MomentumSnapshot m10_momentum[14]; // Seven current + seven historical queries, symbol isolated
    MLVData custom_higher_mhv_buy[3]; // D1 / H4 / H1, custom-only monitor owners
    MLVData custom_higher_mhv_sell[3];
+   bool canonical_mhv_observed[3]; // Verified monitor producer stamp; not entry authority
    CustomSourceProgress custom_canonical[4]; // D1 / H4 / H1 / M15; no duplicate lifecycle
    // Shared M06 M5 snapshot; NMJE remains M15-cadence/read-only.
    TimeframeData        m5_data;
@@ -11267,7 +11268,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=6.03 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=6.04 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -13902,15 +13903,33 @@ void ProcessPair(int pairIndex)
 // Engineering work bound per observation, never an owner expiry/TTL.
 #define CUSTOM_REPLAY_BARS_PER_PASS 256
 
-bool ReadCustomAuxClosedData(string symbol,int tf,datetime candle,TimeframeData &next)
+bool IsCustomClosedSourceReady(TimeframeData &next,int tf,datetime candle)
 {
-   GetDataForTimeframe(symbol,tf,candle,next);
    if(!next.is_valid || !next.is_closed || next.barIndex<1 || next.candle_time!=candle ||
       next.timeframe!=tf || next.data_count<next.barIndex+51 || next.point<=0 ||
       next.open<=0 || next.high<=0 || next.low<=0 || next.close<=0)return false;
    for(int ma=0;ma<5;ma++)if(next.ma[ma]<=0 || !MathIsValidNumber(next.ma[ma]))return false;
    for(int bb=0;bb<3;bb++)if(next.bollinger[bb]<=0 || !MathIsValidNumber(next.bollinger[bb]))return false;
    return next.bollinger[0]>next.bollinger[1] && next.bollinger[1]>next.bollinger[2];
+}
+
+bool ReadCustomAuxClosedData(string symbol,int tf,datetime candle,TimeframeData &next)
+{
+   GetDataForTimeframe(symbol,tf,candle,next);
+   return IsCustomClosedSourceReady(next,tf,candle);
+}
+
+void AdvanceMHVSourceOwners(string symbol,TimeframeData &next,BollingerBand &band,
+                            ExtremeLifecycleData &extremeBuy,ExtremeLifecycleData &extremeSell,
+                            MLVData &mhvBuy,MLVData &mhvSell)
+{
+   MovingAverage ma;
+   ma.MA5_High=next.ma[0];ma.MA10_High=next.ma[1];ma.MA5_Low=next.ma[2];ma.MA10_Low=next.ma[3];ma.EMA50=next.ma[4];
+   bool directionBuy=DetectCSD(symbol,next.timeframe,DIR_BUY,next.barIndex,ma,band) || DetectECSD(symbol,next.timeframe,DIR_BUY,next.barIndex,ma);
+   bool directionSell=DetectCSD(symbol,next.timeframe,DIR_SELL,next.barIndex,ma,band) || DetectECSD(symbol,next.timeframe,DIR_SELL,next.barIndex,ma);
+   // The canonical M09 engine owns both aliases; no second MHV detector.
+   UpdateCanonicalMLVState(mhvBuy,symbol,DIR_BUY,next,band,extremeSell,directionBuy);
+   UpdateCanonicalMLVState(mhvSell,symbol,DIR_SELL,next,band,extremeBuy,directionSell);
 }
 
 // The same source engines serve ordinary advancement and historical replay.
@@ -13924,13 +13943,7 @@ void AdvanceCustomAuxLifecycle(string symbol,TimeframeData &next,CustomAuxLifecy
    UpdateExtremeLifecycle(owner.extremeBuy,symbol,DIR_BUY,next,band,rawBuy);
    UpdateExtremeLifecycle(owner.extremeSell,symbol,DIR_SELL,next,band,rawSell);
    ResolveOppositeExtremeSupersession(owner.extremeBuy,owner.extremeSell,next);
-   MovingAverage ma;
-   ma.MA5_High=next.ma[0];ma.MA10_High=next.ma[1];ma.MA5_Low=next.ma[2];ma.MA10_Low=next.ma[3];ma.EMA50=next.ma[4];
-   bool directionBuy=DetectCSD(symbol,next.timeframe,DIR_BUY,next.barIndex,ma,band) || DetectECSD(symbol,next.timeframe,DIR_BUY,next.barIndex,ma);
-   bool directionSell=DetectCSD(symbol,next.timeframe,DIR_SELL,next.barIndex,ma,band) || DetectECSD(symbol,next.timeframe,DIR_SELL,next.barIndex,ma);
-   // The canonical M09 engine owns both aliases; no second MHV detector.
-   UpdateCanonicalMLVState(owner.mhvBuy,symbol,DIR_BUY,next,band,owner.extremeSell,directionBuy);
-   UpdateCanonicalMLVState(owner.mhvSell,symbol,DIR_SELL,next,band,owner.extremeBuy,directionSell);
+   AdvanceMHVSourceOwners(symbol,next,band,owner.extremeBuy,owner.extremeSell,owner.mhvBuy,owner.mhvSell);
    UpdateReEntryState(owner.reBuy,symbol,DIR_BUY,next);
    UpdateReEntryState(owner.reSell,symbol,DIR_SELL,next);
    owner.lastClosed=next.candle_time;
@@ -14140,6 +14153,77 @@ bool RefreshCustomCanonicalOwners(int pairIndex,int tf,datetime latest)
    return ready;
 }
 
+bool SameExtremeOwnerSnapshot(ExtremeLifecycleData &a,ExtremeLifecycleData &b)
+{
+   return a.Maturity==b.Maturity &&
+          a.Direction==b.Direction &&
+          a.Timeframe==b.Timeframe &&
+          a.RawBar==b.RawBar &&
+          a.RawCandleTime==b.RawCandleTime &&
+          a.ConfirmationBar==b.ConfirmationBar &&
+          a.ConfirmationCandleTime==b.ConfirmationCandleTime &&
+          a.ConfirmationClose==b.ConfirmationClose &&
+          a.LastUpdateBar==b.LastUpdateBar &&
+          a.LastUpdateCandleTime==b.LastUpdateCandleTime &&
+          a.PreviousClose==b.PreviousClose &&
+          a.ProvisionalBodyAnchor==b.ProvisionalBodyAnchor &&
+          a.FrozenBodyAnchor==b.FrozenBodyAnchor &&
+          a.RelevantMA5==b.RelevantMA5 &&
+          a.RetestStartBar==b.RetestStartBar &&
+          a.RetestStartCandleTime==b.RetestStartCandleTime &&
+          a.RetestCompletionBar==b.RetestCompletionBar &&
+          a.RetestCompletionCandleTime==b.RetestCompletionCandleTime &&
+          a.IsValid==b.IsValid &&
+          a.Reason==b.Reason;
+}
+
+// True means the source observation is handled; a HELD owner stays unavailable.
+// Only new M09 state/progress can commit. Canonical M08/M12 state is read-only.
+bool ObserveCanonicalMHVSource(int pairIndex,int tf,datetime latest)
+{
+   int slot=CustomCanonicalTFIndex(tf);
+   if(pairIndex<0 || pairIndex>=g_pair_count || slot<0 || slot>=3 || !g_pair_canonical_scope[pairIndex])return false;
+   bool wasObserved=g_pair_states[pairIndex].canonical_mhv_observed[slot];
+   g_pair_states[pairIndex].canonical_mhv_observed[slot]=false;
+   string symbol=g_pair_states[pairIndex].actual_symbol;
+   if(StringLen(symbol)==0 || latest<=0 || latest!=GetLatestClosedCandleTime(symbol,tf))return false;
+   TimeframeData data;CustomAuxLifecycle owner;
+   if(!LoadCustomCanonicalSource(pairIndex,tf,data,owner) || !IsCustomClosedSourceReady(data,tf,latest))return false;
+   datetime canonicalCycle=GetLatestClosedCandleTime(symbol,PERIOD_M15);
+   if(canonicalCycle<=0 || g_processed_candle_time[pairIndex]!=canonicalCycle)return false;
+   if(owner.extremeBuy.Timeframe!=tf || owner.extremeBuy.Direction!=DIR_BUY ||
+      owner.extremeSell.Timeframe!=tf || owner.extremeSell.Direction!=DIR_SELL)return false;
+   if(owner.recoveryRequired)return true;
+   string hold="";
+   if(owner.mhvBuy.LastUpdateCandleTime>latest || owner.mhvSell.LastUpdateCandleTime>latest || owner.lastClosed>latest)
+      hold="WAIT_CANONICAL_M09_OWNER_ANCHOR";
+   else if(owner.extremeBuy.LastUpdateCandleTime>latest || owner.extremeSell.LastUpdateCandleTime>latest)
+      hold="WAIT_CANONICAL_M09_PARENT_ANCHOR";
+   else if(owner.lastClosed>0 && owner.lastClosed!=latest && latest!=owner.lastClosed+GetTimeframeSeconds(tf))
+      hold="WAIT_CANONICAL_M09_RECOVERY";
+   if(StringLen(hold)>0)
+   {
+      g_pair_states[pairIndex].custom_canonical[slot].recoveryRequired=true;
+      g_pair_states[pairIndex].custom_canonical[slot].recoveryReason=hold;return true;
+   }
+   if(wasObserved && owner.lastClosed==latest)
+   {g_pair_states[pairIndex].canonical_mhv_observed[slot]=true;return true;}
+   ExtremeLifecycleData parentBuy=owner.extremeBuy,parentSell=owner.extremeSell;
+   BollingerBand band;ZeroMemory(band);band.TOP_BB=data.bollinger[0];band.MID_BB=data.bollinger[1];band.LOW_BB=data.bollinger[2];band.Width=band.TOP_BB-band.LOW_BB;
+   AdvanceMHVSourceOwners(symbol,data,band,owner.extremeBuy,owner.extremeSell,owner.mhvBuy,owner.mhvSell);
+   if(!SameExtremeOwnerSnapshot(parentBuy,owner.extremeBuy) || !SameExtremeOwnerSnapshot(parentSell,owner.extremeSell))
+   {
+      g_pair_states[pairIndex].custom_canonical[slot].recoveryRequired=true;
+      g_pair_states[pairIndex].custom_canonical[slot].recoveryReason="WAIT_CANONICAL_M09_PARENT_HANDOVER";return true;
+   }
+   g_pair_states[pairIndex].custom_higher_mhv_buy[slot]=owner.mhvBuy;
+   g_pair_states[pairIndex].custom_higher_mhv_sell[slot]=owner.mhvSell;
+   if(owner.lastClosed==0)g_pair_states[pairIndex].custom_canonical[slot].contextOnlyThrough=latest;
+   g_pair_states[pairIndex].custom_canonical[slot].lastClosed=latest;
+   g_pair_states[pairIndex].custom_canonical[slot].recoveryReason="";
+   g_pair_states[pairIndex].canonical_mhv_observed[slot]=true;return true;
+}
+
 bool RefreshCustomRequestedOwners(int pairIndex,int tf,datetime latest)
 {
    if(pairIndex<0 || pairIndex>=g_pair_count)return false;
@@ -14177,7 +14261,11 @@ bool ReadCustomOwnerView(int pairIndex,int tf,string signal,ENUM_DIRECTION direc
    }
    if((kind==6 || kind==7) && g_pair_canonical_scope[pairIndex] &&
       CustomCanonicalTFIndex(tf)>=0 && tf!=PERIOD_M15)
-   {view.reason="TF_OWNER_UNWIRED";return false;}
+   {
+      int slot=CustomCanonicalTFIndex(tf);
+      if(!g_pair_states[pairIndex].canonical_mhv_observed[slot])
+      {view.reason=g_pair_states[pairIndex].custom_canonical[slot].recoveryRequired?g_pair_states[pairIndex].custom_canonical[slot].recoveryReason:"WAIT_CANONICAL_M09_OBSERVATION";return false;}
+   }
    if(kind<0 || kind>7){view.reason="OWNER_MAPPING_UNAVAILABLE";return false;}
    bool contextOnly=false;
    TimeframeData data;ReEntryData re;ExtremeLifecycleData extreme;MLVData mhv;
@@ -14185,7 +14273,7 @@ bool ReadCustomOwnerView(int pairIndex,int tf,string signal,ENUM_DIRECTION direc
    {
       CustomAuxLifecycle owner;
       if(!LoadCustomCanonicalSource(pairIndex,tf,data,owner))return false;
-      if(!g_pair_canonical_scope[pairIndex])
+      if(!g_pair_canonical_scope[pairIndex] || ((kind==6 || kind==7) && tf!=PERIOD_M15))
       {
          if(owner.recoveryRequired){view.reason="WAIT_OWNER_RECOVERY";return false;}
          contextOnly=(owner.contextOnlyThrough==latest);
@@ -14264,6 +14352,13 @@ void ObserveCustomClosedBars(int pairIndex)
       }
       if(!needsLifecycle)continue;
       if(!RefreshCustomRequestedOwners(pairIndex,tf,obs[producer].closedOpen))
+      {
+         g_custom_owner_frames[pairIndex].viewCount=0;
+         CompleteCustomClosedBatch(g_custom_clock_states[pairIndex],batch,false);return;
+      }
+      if(g_pair_canonical_scope[pairIndex] && CustomCanonicalTFIndex(tf)>=0 && tf!=PERIOD_M15 &&
+         (g_custom_use.signalEnabled[producer*11+6] || g_custom_use.signalEnabled[producer*11+7]) &&
+         !ObserveCanonicalMHVSource(pairIndex,tf,obs[producer].closedOpen))
       {
          g_custom_owner_frames[pairIndex].viewCount=0;
          CompleteCustomClosedBatch(g_custom_clock_states[pairIndex],batch,false);return;

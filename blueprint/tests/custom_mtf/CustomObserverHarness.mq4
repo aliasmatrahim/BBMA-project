@@ -1,10 +1,12 @@
 #property strict
+input bool ObserverM09=false;
 // Broker bar/quote fixtures only; call the actual observer and owner projection.
 datetime simulatedNow=D'2026.08.03 10:00';datetime simulatedQuote=simulatedNow;datetime m1Open=simulatedNow;
 datetime ObserverTime(string symbol,int timeframe,int shift)
 {
  if(shift>1)return 0;
  if(timeframe==PERIOD_M1)return shift==0?m1Open:m1Open-60;
+ if(timeframe==PERIOD_M15)return shift==0?D'2026.08.03 10:00':D'2026.08.03 09:45';
  if(timeframe==PERIOD_H1)return shift==0?D'2026.08.03 10:00':D'2026.08.03 09:00';
  return 0;
 }
@@ -37,6 +39,21 @@ int OnInit()
  g_custom_use.tfEnabled[0]=true;g_custom_use.tfEnabled[4]=true;g_custom_use.signalEnabled[8]=true;g_custom_use.signalEnabled[44]=true;
  g_pair_states[0].h1_data.timeframe=PERIOD_H1;g_pair_states[0].h1_data.barIndex=1;g_pair_states[0].h1_data.is_valid=true;g_pair_states[0].h1_data.is_closed=true;g_pair_states[0].h1_data.candle_time=simulatedNow-3600;
  ReEntryData re;ZeroMemory(re);re.Timeframe=PERIOD_H1;re.Direction=DIR_BUY;re.State=RE_STATE_CONFIRMED;re.Type=RE_TYPE_1;re.IsValid=true;re.EntryPrice=1.2;re.ConfirmationCandle=simulatedNow-7200;re.StartCandleTime=simulatedNow-10800;re.LastUpdateCandleTime=simulatedNow-3600;re.EntryCandle=simulatedNow-3600;g_pair_states[0].re_h1_buy_state=re;
+ if(ObserverM09)
+ {
+  g_custom_use.signalEnabled[44]=false;g_custom_use.signalEnabled[50]=true;
+  TimeframeData data=g_pair_states[0].h1_data;data.open=1.4;data.close=1.5;data.low=1.3;data.high=1.7;data.point=0.00001;data.data_count=1001;
+  data.ma[0]=1.7;data.ma[1]=1.8;data.ma[2]=1.3;data.ma[3]=1.2;data.ma[4]=1.5;data.bollinger[0]=2;data.bollinger[1]=1.5;data.bollinger[2]=1;
+  CustomAuxLifecycle owner;ZeroMemory(owner);
+  owner.extremeBuy.Direction=DIR_BUY;owner.extremeBuy.Timeframe=PERIOD_H1;owner.extremeBuy.Maturity=EXT_MAT_REVERSAL_CONFIRMED;owner.extremeBuy.IsValid=true;
+  owner.extremeBuy.RawCandleTime=simulatedNow-4*3600;owner.extremeBuy.ConfirmationCandleTime=simulatedNow-3*3600;owner.extremeBuy.LastUpdateCandleTime=data.candle_time;
+  owner.extremeSell=owner.extremeBuy;owner.extremeSell.Direction=DIR_SELL;
+  owner.mhvBuy.Direction=DIR_BUY;owner.mhvBuy.ParentExtremeDirection=DIR_SELL;owner.mhvBuy.Timeframe=PERIOD_H1;owner.mhvBuy.State=MLV_DIRECTION_TAKEN;owner.mhvBuy.IsValid=true;
+  owner.mhvBuy.ParentRawCandleTime=owner.extremeSell.RawCandleTime;owner.mhvBuy.ParentConfirmationCandleTime=owner.extremeSell.ConfirmationCandleTime;
+  owner.mhvBuy.StartCandleTime=simulatedNow-3*3600;owner.mhvBuy.ConfirmationCandleTime=simulatedNow-2*3600;owner.mhvBuy.LastUpdateCandleTime=simulatedNow-2*3600;owner.mhvBuy.FrozenMarkedBody=1.2;owner.mhvBuy.PreviousClose=1.4;
+  owner.mhvSell=owner.mhvBuy;owner.mhvSell.Direction=DIR_SELL;owner.mhvSell.ParentExtremeDirection=DIR_BUY;
+  StoreCustomCanonicalSource(0,PERIOD_H1,data,owner);g_processed_candle_time[0]=simulatedNow-900;
+ }
  g_processing_time=simulatedNow;ObserveCustomClosedBars(0);Check("driver_primes_without_historical_frame",g_custom_owner_frames[0].viewCount==0 && g_custom_clock_states[0].primed[0]);
  simulatedNow+=60;simulatedQuote=simulatedNow;m1Open=simulatedNow;g_processing_time=simulatedNow;ObserveCustomClosedBars(0);
  bool frameReady=g_custom_owner_frames[0].viewCount==4;

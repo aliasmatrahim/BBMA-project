@@ -1,7 +1,7 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 6.0.5 - Canonical M09 Stage Telemetry Guard         |
-//|                                           CODE-READY              |
+//| Version 6.0.6 - Canonical M09 Pre-Freeze Transaction        |
+//|                         WIP - NATIVE VALIDATION PENDING            |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
 //|                    CODING COMPLEXITY LIMITER                       |
@@ -31,14 +31,14 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "6.05"
+#property version   "6.06"
 #property strict
 #include "custom_mtf/CustomInputs.mqh"
 #include "custom_mtf/CustomPairBinding.mqh"
 #include "custom_mtf/CustomClock.mqh"
 
-#define BBMA_BUILD_TAG      "V605_M09_STAGE_TELEMETRY_20261109"
-#define BBMA_SOURCE_REV_TAG "M09_STAGE_TELEMETRY_001_20261109"
+#define BBMA_BUILD_TAG      "V606_M09_PREFREEZE_TRANSACTION_20261109"
+#define BBMA_SOURCE_REV_TAG "M09_PREFREEZE_TRANSACTION_001_20261109"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -11268,7 +11268,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=6.05 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=6.06 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -13599,6 +13599,12 @@ void ProcessPair(int pairIndex)
                                       g_pair_states[pairIndex].extreme_h4_sell_lifecycle,
                                       g_pair_states[pairIndex].h4_data);
 
+   // Canonical M09 owns its parent transaction before persistent exports and
+   // frozen consumers. Diagnostic requests never control canonical production.
+   AdvanceCanonicalMHVBeforeFreeze(pairIndex,PERIOD_D1,g_pair_states[pairIndex].tf_snapshot.D1_CandleTime);
+   AdvanceCanonicalMHVBeforeFreeze(pairIndex,PERIOD_H4,g_pair_states[pairIndex].tf_snapshot.H4_CandleTime);
+   AdvanceCanonicalMHVBeforeFreeze(pairIndex,PERIOD_H1,g_pair_states[pairIndex].tf_snapshot.H1_CandleTime);
+
    Signal resolvedH1BuyExtreme, resolvedH1SellExtreme, resolvedH4BuyExtreme, resolvedH4SellExtreme;
    ZeroMemory(resolvedH1BuyExtreme); ZeroMemory(resolvedH1SellExtreme);
    ZeroMemory(resolvedH4BuyExtreme); ZeroMemory(resolvedH4SellExtreme);
@@ -14178,8 +14184,9 @@ bool SameExtremeOwnerSnapshot(ExtremeLifecycleData &a,ExtremeLifecycleData &b)
 }
 
 // True means the source observation is handled; a HELD owner stays unavailable.
-// Only new M09 state/progress can commit. Canonical M08/M12 state is read-only.
-bool ObserveCanonicalMHVSource(int pairIndex,int tf,datetime latest)
+// Parent handover commits only in the canonical pre-freeze processing phase.
+// The post-cycle observer retains its parent-read-only transaction guard.
+bool UpdateCanonicalMHVSource(int pairIndex,int tf,datetime latest,bool beforeFreeze)
 {
    int slot=CustomCanonicalTFIndex(tf);
    if(pairIndex<0 || pairIndex>=g_pair_count || slot<0 || slot>=3 || !g_pair_canonical_scope[pairIndex])return false;
@@ -14190,7 +14197,13 @@ bool ObserveCanonicalMHVSource(int pairIndex,int tf,datetime latest)
    TimeframeData data;CustomAuxLifecycle owner;
    if(!LoadCustomCanonicalSource(pairIndex,tf,data,owner) || !IsCustomClosedSourceReady(data,tf,latest))return false;
    datetime canonicalCycle=GetLatestClosedCandleTime(symbol,PERIOD_M15);
-   if(canonicalCycle<=0 || g_processed_candle_time[pairIndex]!=canonicalCycle)return false;
+   if(canonicalCycle<=0)return false;
+   if(beforeFreeze)
+   {
+      if(!g_pair_states[pairIndex].is_processing ||
+         g_pair_states[pairIndex].tf_snapshot.M15_CandleTime!=canonicalCycle)return false;
+   }
+   else if(g_processed_candle_time[pairIndex]!=canonicalCycle)return false;
    if(owner.extremeBuy.Timeframe!=tf || owner.extremeBuy.Direction!=DIR_BUY ||
       owner.extremeSell.Timeframe!=tf || owner.extremeSell.Direction!=DIR_SELL)return false;
    if(owner.recoveryRequired)return true;
@@ -14211,17 +14224,28 @@ bool ObserveCanonicalMHVSource(int pairIndex,int tf,datetime latest)
    ExtremeLifecycleData parentBuy=owner.extremeBuy,parentSell=owner.extremeSell;
    BollingerBand band;ZeroMemory(band);band.TOP_BB=data.bollinger[0];band.MID_BB=data.bollinger[1];band.LOW_BB=data.bollinger[2];band.Width=band.TOP_BB-band.LOW_BB;
    AdvanceMHVSourceOwners(symbol,data,band,owner.extremeBuy,owner.extremeSell,owner.mhvBuy,owner.mhvSell,false);
-   if(!SameExtremeOwnerSnapshot(parentBuy,owner.extremeBuy) || !SameExtremeOwnerSnapshot(parentSell,owner.extremeSell))
+   if(!beforeFreeze && (!SameExtremeOwnerSnapshot(parentBuy,owner.extremeBuy) || !SameExtremeOwnerSnapshot(parentSell,owner.extremeSell)))
    {
       g_pair_states[pairIndex].custom_canonical[slot].recoveryRequired=true;
       g_pair_states[pairIndex].custom_canonical[slot].recoveryReason="WAIT_CANONICAL_M09_PARENT_HANDOVER";return true;
    }
-   g_pair_states[pairIndex].custom_higher_mhv_buy[slot]=owner.mhvBuy;
-   g_pair_states[pairIndex].custom_higher_mhv_sell[slot]=owner.mhvSell;
-   if(owner.lastClosed==0)g_pair_states[pairIndex].custom_canonical[slot].contextOnlyThrough=latest;
-   g_pair_states[pairIndex].custom_canonical[slot].lastClosed=latest;
-   g_pair_states[pairIndex].custom_canonical[slot].recoveryReason="";
+   if(owner.lastClosed==0)owner.contextOnlyThrough=latest;
+   owner.lastClosed=latest;
+   owner.recoveryReason="";
+   // One staged owner contains both directions. RE/data are unchanged copies;
+   // no private parent or second M08/M12 lifecycle update is introduced.
+   StoreCustomCanonicalSource(pairIndex,tf,data,owner);
    g_pair_states[pairIndex].canonical_mhv_observed[slot]=true;return true;
+}
+
+bool AdvanceCanonicalMHVBeforeFreeze(int pairIndex,int tf,datetime latest)
+{
+   return UpdateCanonicalMHVSource(pairIndex,tf,latest,true);
+}
+
+bool ObserveCanonicalMHVSource(int pairIndex,int tf,datetime latest)
+{
+   return UpdateCanonicalMHVSource(pairIndex,tf,latest,false);
 }
 
 bool RefreshCustomRequestedOwners(int pairIndex,int tf,datetime latest)

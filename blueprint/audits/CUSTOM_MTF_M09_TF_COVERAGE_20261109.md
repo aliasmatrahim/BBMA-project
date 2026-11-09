@@ -39,3 +39,10 @@ The accepted monitor boundary now stages canonical D1/H4/H1 M09 only from curren
 Build6.03 missing-feature baseline29 pass/18 fail; observer baseline3 pass/1 fail. Build6.04 state47/47 and observer4/4 passed, but an added log probe reproduced3 uncommitted MLV_SUPERSEDE events alongside3 direct canonical default-control events. That candidate is preserved as WIP, not accepted. The cause was callee logging before caller commit/discard. Build6.05 adds default-preserving internal telemetry policy and disables emission only during the guarded temporary stage. Detailed final evidence is recorded in *605_evidence.json after native acceptance.
 
 Full T04-E remains PARTIAL: unrestricted canonical parent installation, historical session/owner-epoch reconstruction and final executable admission are not proved by trusted source/owner/producer-stamp fixtures. Auto-entry remains OFF.
+
+
+## User C+1 / T04-E/4 — Build6.06 WIP, NOT NATIVE VERIFIED
+
+The user authorized preparing the shared parent transaction before frozen M13 consumers. ProcessPair now calls D1/H4/H1 advancement after the canonical M08 updates and before persistent Extreme exports. One shared transaction validates phase/source/anchors, stages both directions and commits existing canonical owner slots; late observations keep the6.05 parent-read-only guard. No requested-signal flag gates canonical advancement; M15 is excluded from this additional producer. Existing gap/epoch HOLD is not lifted.
+
+Cloud transaction tests use actual extracted transaction logic with explicit M09-stage/platform fixtures: baseline timing and missing-wiring checks RED, candidate2/2 GREEN with12 behavior assertions; full pytest75/75. The prepared native harness expects61 assertions on trusted trajectories across both directions/D1/H4/H1, but none ran because G40 is offline. Full strict compile, actual ProcessPair request ON/OFF decision parity, old/new canonical differences, native regression and startup remain NOT VERIFIED. This code is a reviewable candidate, not E/4 acceptance, deployment or permission to activate trading.

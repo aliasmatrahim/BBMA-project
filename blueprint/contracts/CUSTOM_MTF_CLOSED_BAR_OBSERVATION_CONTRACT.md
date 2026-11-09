@@ -114,3 +114,8 @@ Ruling: bounded read-only-parent observation replaces the earlier blanket higher
 Build6.04's state mechanics passed, but its stage could emit canonical M09 logs before the parent-write guard discarded the attempt. Build6.05 carries explicit internal emitTelemetry policy through the same M09 functions; existing canonical callers default true, guarded temporary evaluation passes false. Numeric/state behavior and canonical default event logs are preserved. This flag is not a product input or execution gate.
 
 All semantic input availability and entry/execution flags remain OFF. Fixture mechanics/telemetry proof is not live canonical-controller, arbitrary cold-start, full timer delivery or multi-symbol trading acceptance.
+
+
+## C+1 pre-freeze candidate — Build6.06 (validation pending)
+
+User-selected integration extends canonical D1/H4/H1 M09 parent installation into ProcessPair before persistent Extreme exports and frozen M13 consumers. The shared transaction requires active canonical processing and the matching current M15 source snapshot; post-cycle observation retains the parent-read-only guard. Both directions share one staged commit into the existing owner slots. Diagnostic selection never controls canonical production. This may alter canonical parent/candidate history compared with6.05 and requires explicit native controller/parity characterization. Gaps, unknown epochs and executable admission remain gated. No native6.06 validation or deployment is claimed.

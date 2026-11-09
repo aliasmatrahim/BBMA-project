@@ -1,0 +1,53 @@
+{
+  "task": "T04-E/4 pre-freeze transaction",
+  "status": "WIP_NOT_NATIVE_VERIFIED",
+  "base_remote": "fa96ba43014a4f55610bca0f47dedd6abfa3d4fe",
+  "build": "6.06",
+  "source_tag": "V606_M09_PREFREEZE_TRANSACTION_20261109",
+  "source_lf_sha256": "0266fb3318348ae64b7bbbb52a1b30a0e79994df64979377cd14c1ba877c666e",
+  "red": {
+    "target_command": "python3 -m pytest blueprint/tests/custom_mtf/test_canonical_m09_prefreeze.py -q",
+    "result": "2 failed in 0.36s",
+    "failures": [
+      "pre-freeze runs before completed-cycle stamp",
+      "D1 requires one canonical pre-freeze producer"
+    ],
+    "scope": "first transaction fixture compiler adapter error corrected before recorded RED; final baseline compiled and failed behavior as intended"
+  },
+  "green": {
+    "target_result": "2 passed in 0.37s",
+    "transaction_fixture_checks": 12,
+    "full_command": "PYTHONPATH=/workspace/scratch/f5ddfbd6f6f6/pytest-deps python3 -m pytest -q",
+    "full_result": "75 passed in 0.73s",
+    "python_runners_py_compile": true,
+    "diff_check": true,
+    "source_diff_check": "13 protected engine/detector/owner-load-store function bodies unchanged from base; canonical scheduling/transaction permission intentionally changes"
+  },
+  "test_limits": "Actual extracted transaction body; explicit stage/owner/broker fixtures replace M09 engine and platform I/O. Source-order check verifies call placement. Not MQL4 compile or actual ProcessPair/decision parity.",
+  "native": {
+    "compile": "NOT_RUN_G40_OFFLINE",
+    "harness": "CustomPreFreezeHarness.mq4 prepared; expected61 assertions, none executed",
+    "target_command": "python blueprint/tests/custom_mtf/run_clock_owner_native.py --root D:\\BBMA\\MT4_CustomMTF_302_Unit --repo D:\\BBMA\\MT4_CustomMTF_302_Unit\\597-stage --kind prefreeze",
+    "actual_ProcessPair_monitor_ON_OFF_parity": "NOT_VERIFIED",
+    "startup": "NOT_RUN",
+    "regression": "NOT_RUN"
+  },
+  "deployment": false,
+  "custom_auto_entry": false,
+  "availability_changed": false,
+  "unchanged_protected_functions": {
+    "UpdateCanonicalMLVState": "1318ae1a7275e7a30fb08835d36b5dcde42ad595b4ccffb6ef84feeb3c80994f",
+    "TryAdvanceMHVSupersessionCandidate": "9e93c2b1085fbe396206efdecb0af34bb08ecde13e6accd4c6667ce64307524e",
+    "InstallMHVSupersessionParent": "afec092f648d3afbfee1fd0560adc737ea5af07cfaef733408717ad01f044a0e",
+    "AdvanceMHVSourceOwners": "13b4872911881242c647d183671740218d46d4e30c7c7b89540228fabc034d6f",
+    "UpdateExtremeLifecycle": "f694da93fe74eaac37e8ee4ff42036aadb19b3347862af618acaf64cfec60051",
+    "UpdateReEntryState": "df2a99578cd5fcf8360aca26615f9ac279a25cccb53a990099fda6e3d78c1177",
+    "DetectCSD": "a06c1654e62f161bd9d4d945819525b1a6a3cc57ee63a46226eeded62fe19b33",
+    "DetectECSD": "0d5648427b63d391e4c8dc143847b79c232990581f37db25ca6265320b78a4a5",
+    "DetectCSM": "58c111d9f95632299e672bd72b668e125396e030f3c55a81301b0c8cf8e84719",
+    "LoadCustomCanonicalSource": "a814f9eb639e3d888f3cba0b1048efec6519861dc3199d986c0ced10a169ecef",
+    "StoreCustomCanonicalSource": "f3ddd6511ba99fdfb18fec922616807af648917782ab421eab3ef04571ae49e9",
+    "RefreshCustomCanonicalOwners": "55766b2721fe746b800390ced8fdee279eb1d2791cf98b7e76da19e1d29a8bcd",
+    "SameExtremeOwnerSnapshot": "eb3eb4ae75b24c9a3d4b6ba7d813beb896f88d6a5a952a258bf7eabff8f12373"
+  }
+}

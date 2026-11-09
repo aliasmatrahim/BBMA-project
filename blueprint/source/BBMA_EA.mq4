@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 6.0.1 - Shared M10 Momentum Monitor Snapshots         |
+//| Version 6.0.2 - M09 Source Timeframe Identity         |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,14 +31,14 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "6.01"
+#property version   "6.02"
 #property strict
 #include "custom_mtf/CustomInputs.mqh"
 #include "custom_mtf/CustomPairBinding.mqh"
 #include "custom_mtf/CustomClock.mqh"
 
-#define BBMA_BUILD_TAG      "V601_M10_MOMENTUM_SNAPSHOT_20261109"
-#define BBMA_SOURCE_REV_TAG "M10_MOMENTUM_SNAPSHOT_001_20261109"
+#define BBMA_BUILD_TAG      "V602_M09_SOURCE_TF_20261109"
+#define BBMA_SOURCE_REV_TAG "M09_SOURCE_TF_001_20261109"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -3057,10 +3057,11 @@ ENUM_DIRECTION GetMHVParentExtremeDirection(ENUM_DIRECTION mhvDirection)
    return DIR_NONE;
 }
 
-bool IsMHVParentExtremeMature(ExtremeLifecycleData &parent)
+bool IsMHVParentExtremeMature(ExtremeLifecycleData &parent,int timeframe=PERIOD_M15)
 {
    if(!parent.IsValid) return false;
-   if(parent.ConfirmationCandleTime <= 0 || parent.Timeframe != PERIOD_M15)
+   if(parent.ConfirmationCandleTime <= 0 || parent.Timeframe != timeframe ||
+      timeframe>PERIOD_D1 || GetTimeframeSeconds(timeframe)<=0)
       return false;
 
    return (parent.Maturity == EXT_MAT_REVERSAL_CONFIRMED ||
@@ -3075,20 +3076,20 @@ bool IsCanonicalMLVMatureState(ENUM_MLV_STATE state)
            state == MLV_DIRECTION_TAKEN);
 }
 
-void ResetMLVState(MLVData &mlv, ENUM_DIRECTION direction)
+void ResetMLVState(MLVData &mlv, ENUM_DIRECTION direction,int timeframe=PERIOD_M15)
 {
    ZeroMemory(mlv);
    mlv.State = MLV_NONE;
    mlv.Direction = direction;
    mlv.ParentExtremeDirection = GetMHVParentExtremeDirection(direction);
-   mlv.Timeframe = PERIOD_M15;
+   mlv.Timeframe = timeframe;
 }
 
 void AttachCanonicalMHVParent(MLVData &mlv, ENUM_DIRECTION direction,
                               ExtremeLifecycleData &parent,
                               TimeframeData &data)
 {
-   ResetMLVState(mlv, direction);
+   ResetMLVState(mlv, direction,data.timeframe);
    mlv.State = MLV_PARENT_READY;
    mlv.ParentRawCandleTime = parent.RawCandleTime;
    mlv.ParentConfirmationCandleTime = parent.ConfirmationCandleTime;
@@ -3096,7 +3097,7 @@ void AttachCanonicalMHVParent(MLVData &mlv, ENUM_DIRECTION direction,
    mlv.LastUpdateCandleTime = data.candle_time;
    mlv.PreviousClose = data.close;
    mlv.IsValid = false;
-   mlv.Reason = "Canonical MHV parent attached: reversal-confirmed M15 Extreme";
+   mlv.Reason = data.timeframe==PERIOD_M15?"Canonical MHV parent attached: reversal-confirmed M15 Extreme":"Canonical MHV parent attached: reversal-confirmed source-TF Extreme";
 }
 
 void MarkCanonicalMLVVoid(MLVData &mlv, TimeframeData &data, string reason)
@@ -3243,7 +3244,7 @@ void InstallMHVSupersessionParent(MLVData &mlv,
    parent.ProvisionalBodyAnchor = GetExtremeReversalBodyEdge(data, parentDirection);
    parent.RelevantMA5 = GetExtremeRelevantMA5(data, parentDirection);
    parent.IsValid = true;
-   parent.Reason = "Reversal-confirmed M15 Extreme installed by F1 cycle supersession";
+   parent.Reason = data.timeframe==PERIOD_M15?"Reversal-confirmed M15 Extreme installed by F1 cycle supersession":"Reversal-confirmed source-TF Extreme installed by F1 cycle supersession";
 }
 
 bool TryAdvanceMHVSupersessionCandidate(MLVData &mlv, string pair,
@@ -3312,12 +3313,14 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
 {
    if(!EnableMLVStateEngine) return MLV_NONE;
    if(direction != DIR_BUY && direction != DIR_SELL) return MLV_NONE;
-   if(!data.is_valid || !data.is_closed || data.candle_time <= 0) return mlv.State;
+   if(!data.is_valid || !data.is_closed || data.candle_time <= 0 ||
+      data.timeframe>PERIOD_D1 || GetTimeframeSeconds(data.timeframe)<=0) return mlv.State;
 
    if(mlv.Direction != direction || mlv.Timeframe != data.timeframe)
-      ResetMLVState(mlv, direction);
+      ResetMLVState(mlv, direction,data.timeframe);
 
-   bool parentMature = IsMHVParentExtremeMature(parent);
+   bool parentMature = IsMHVParentExtremeMature(parent,data.timeframe) &&
+                       parent.Direction==GetMHVParentExtremeDirection(direction);
 
    if(mlv.State == MLV_NONE)
    {
@@ -3519,12 +3522,12 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
    return mlv.State;
 }
 
-bool ExportCanonicalMHVSignal(MLVData &mlv, Signal &signal)
+bool ExportSourceMHVSignal(MLVData &mlv, Signal &signal)
 {
    ZeroMemory(signal);
    if(!IsCanonicalMLVMatureState(mlv.State) || !mlv.IsValid) return false;
    if(mlv.Direction != DIR_BUY && mlv.Direction != DIR_SELL) return false;
-   if(mlv.Timeframe != PERIOD_M15 || mlv.ConfirmationCandleTime <= 0) return false;
+   if(mlv.Timeframe>PERIOD_D1 || GetTimeframeSeconds(mlv.Timeframe)<=0 || mlv.ConfirmationCandleTime <= 0) return false;
    if(mlv.FrozenMarkedBody <= 0) return false;
 
    signal.Type = SIGNAL_MHV;
@@ -3537,6 +3540,14 @@ bool ExportCanonicalMHVSignal(MLVData &mlv, Signal &signal)
    signal.Close = mlv.ConfirmationClose;
    signal.Reason = mlv.Reason;
    return true;
+}
+
+// Locked REM/canonical consumers retain their exact M15 component signature.
+bool ExportCanonicalMHVSignal(MLVData &mlv,Signal &signal)
+{
+   ZeroMemory(signal);
+   if(mlv.Timeframe!=PERIOD_M15)return false;
+   return ExportSourceMHVSignal(mlv,signal);
 }
 
 //+------------------------------------------------------------------+
@@ -11253,7 +11264,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=6.01 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=6.02 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);

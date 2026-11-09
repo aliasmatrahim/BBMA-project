@@ -67,13 +67,13 @@ bool ProjectCustomMHVView(string symbol,int tf,ENUM_DIRECTION direction,datetime
  view.recoveryOnly=false;view.entryWindowOpen=false;view.readable=false;view.structuralValid=false;
  view.entryEligible=false;view.executionAvailable=false;view.eventId="";
  view.ownerState=(int)source.State;
- if(tf!=PERIOD_M15){view.reason="TF_OWNER_UNWIRED";return false;}
+ if(CustomTFIndex(tf)<0){view.reason="TF_OWNER_UNWIRED";return false;}
  if(!data.is_valid || !data.is_closed || data.barIndex<1 || data.timeframe!=tf || data.candle_time!=latest || latest<=0)
  {view.reason="WAIT_OWNER_DATA";return false;}
  if(source.Timeframe!=tf || source.Direction!=direction || source.LastUpdateCandleTime!=latest)
  {view.reason="WAIT_OWNER_REFRESH";return false;}
  view.readable=true;view.sourceBar=latest;
- Signal exported;view.structuralValid=ExportCanonicalMHVSignal(source,exported);
+ Signal exported;view.structuralValid=ExportSourceMHVSignal(source,exported);
  if(view.structuralValid && exported.CandleTime>latest)view.structuralValid=false;
  if(view.structuralValid)
  {

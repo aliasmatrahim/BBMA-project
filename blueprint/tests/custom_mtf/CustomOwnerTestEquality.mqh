@@ -57,8 +57,42 @@ bool SameExtremeLifecycleData(ExtremeLifecycleData &a,ExtremeLifecycleData &b)
         a.IsValid==b.IsValid &&
         a.Reason==b.Reason;
 }
+bool SameMLVData(MLVData &a,MLVData &b)
+{
+ return a.State==b.State &&
+        a.Direction==b.Direction &&
+        a.ParentExtremeDirection==b.ParentExtremeDirection &&
+        a.Timeframe==b.Timeframe &&
+        a.Reason==b.Reason &&
+        a.ParentRawCandleTime==b.ParentRawCandleTime &&
+        a.ParentConfirmationCandleTime==b.ParentConfirmationCandleTime &&
+        a.TPWajibCandleTime==b.TPWajibCandleTime &&
+        a.ProvisionalBodyAnchor==b.ProvisionalBodyAnchor &&
+        a.FrozenMarkedBody==b.FrozenMarkedBody &&
+        a.PreviousClose==b.PreviousClose &&
+        a.StartBar==b.StartBar &&
+        a.StartCandleTime==b.StartCandleTime &&
+        a.LastUpdateBar==b.LastUpdateBar &&
+        a.LastUpdateCandleTime==b.LastUpdateCandleTime &&
+        a.ConfirmationBar==b.ConfirmationBar &&
+        a.ConfirmationCandleTime==b.ConfirmationCandleTime &&
+        a.ConfirmationClose==b.ConfirmationClose &&
+        a.RetestBar==b.RetestBar &&
+        a.RetestCandleTime==b.RetestCandleTime &&
+        a.DirectionTakeoverBar==b.DirectionTakeoverBar &&
+        a.DirectionTakeoverCandleTime==b.DirectionTakeoverCandleTime &&
+        a.VoidBar==b.VoidBar &&
+        a.VoidCandleTime==b.VoidCandleTime &&
+        a.SupersededBar==b.SupersededBar &&
+        a.SupersededCandleTime==b.SupersededCandleTime &&
+        a.InvalidationWindowOpen==b.InvalidationWindowOpen &&
+        a.IsValid==b.IsValid &&
+        a.SupersessionCandidateActive==b.SupersessionCandidateActive &&
+        a.SupersessionRawBar==b.SupersessionRawBar &&
+        a.SupersessionRawCandleTime==b.SupersessionRawCandleTime;
+}
 bool SameOwners(CustomAuxLifecycle &a,CustomAuxLifecycle &b)
 {
- return a.lastClosed==b.lastClosed && SameReEntryData(a.reBuy,b.reBuy) && SameReEntryData(a.reSell,b.reSell) && SameExtremeLifecycleData(a.extremeBuy,b.extremeBuy) && SameExtremeLifecycleData(a.extremeSell,b.extremeSell);
+ return a.lastClosed==b.lastClosed && SameMLVData(a.mhvBuy,b.mhvBuy) && SameMLVData(a.mhvSell,b.mhvSell) && SameReEntryData(a.reBuy,b.reBuy) && SameReEntryData(a.reSell,b.reSell) && SameExtremeLifecycleData(a.extremeBuy,b.extremeBuy) && SameExtremeLifecycleData(a.extremeSell,b.extremeSell);
 }
 #endif

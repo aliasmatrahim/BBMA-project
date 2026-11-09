@@ -11,6 +11,7 @@
 #undef OnTick
 #undef OnTimer
 #include "CustomOwnerTestEquality.mqh"
+input bool FlowOnlyM09M1=false; // Prove M09-only request drives its shared producer.
 input bool FlowExpectMomentum=false;
 input bool FlowExpectHigher=false; // Capability expectation for the tested source revision.
 input int FlowStartHour=2; // Chosen by read-only source-history preflight.
@@ -27,6 +28,7 @@ int OnInit()
  ZeroMemory(g_custom_use);
  int indexes[3]={0,1,3};
  for(int i=0;i<3;i++){int t=indexes[i];g_custom_use.tfEnabled[t]=true;g_custom_use.signalEnabled[t*11]=true;g_custom_use.signalEnabled[t*11+5]=true;}
+ if(FlowOnlyM09M1){g_custom_use.signalEnabled[0]=false;g_custom_use.signalEnabled[5]=false;g_custom_use.signalEnabled[6]=true;g_custom_use.signalEnabled[7]=true;}
  g_custom_use.tfEnabled[4]=true;g_custom_use.signalEnabled[44]=true; // H1 custom-only producer is still unavailable.
  g_custom_use.signalEnabled[10]=true; // Shared M10 diagnostic snapshot expected only on supported revision.
  startAt=StringToTime(TimeToString(TimeCurrent(),TIME_DATE))+FlowStartHour*3600;endAt=startAt+7200;
@@ -44,7 +46,7 @@ void Finish()
  Check("simultaneous_frame_high_to_low",simultaneous>0 && orderOK);
  Check("only_matching_closed_snapshots",closedOK && frames>=100);
  Check("duplicate_tick_timer_state_stable",duplicatesOK && frames>=100);
- Check("MOM_and_H1_capability_scope",unavailableOK && frames>=100);
+ Check("M09_MOM_H1_capability_scope",unavailableOK && frames>=100);
  Check("no_entry_or_execution_authority",flagsOK && frames>=100);
  Check("custom_only_never_canonical_dispatch",canonicalExcluded && g_processed_candle_time[0]==0);
  Check("no_broker_orders",OrdersTotal()==0 && OrdersHistoryTotal()==0);
@@ -77,6 +79,9 @@ void OnTick()
    if(!g_pair_states[0].h1_data.is_valid || g_pair_states[0].h1_data.candle_time!=GetLatestClosedCandleTime(Symbol(),PERIOD_H1))unavailableOK=false;
   }
   else if(frame.views[0].readable || frame.views[1].readable)unavailableOK=false;
+  if(FlowOnlyM09M1 && (frame.views[10].signal!="MHV" || frame.views[12].signal!="MLV" ||
+     g_pair_states[0].custom_aux[0].mhvBuy.Timeframe!=PERIOD_M1 || g_pair_states[0].custom_aux[0].mhvSell.Timeframe!=PERIOD_M1 ||
+     g_pair_states[0].custom_aux[0].mhvBuy.Direction!=DIR_BUY || g_pair_states[0].custom_aux[0].mhvSell.Direction!=DIR_SELL))unavailableOK=false;
   if(frame.views[14].readable!=FlowExpectMomentum || frame.views[15].readable!=FlowExpectMomentum)unavailableOK=false;
   for(int v=0;v<frame.viewCount;v++)if(frame.views[v].entryEligible || frame.views[v].executionAvailable)flagsOK=false;
  }

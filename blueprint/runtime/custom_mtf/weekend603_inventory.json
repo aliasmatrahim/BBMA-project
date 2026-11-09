@@ -1,0 +1,106 @@
+{
+  "task": "T04-B",
+  "status": "HOLD",
+  "symbol": "GBPUSD",
+  "scope": "read-only installed HST inventory; labels are source/chart time, not authenticated UTC broker sessions",
+  "date_window": [
+    "2026-08-01",
+    "2026-08-03"
+  ],
+  "historical_broker_session_metadata": "not established by this inventory",
+  "cold_start_owner_epoch_proof": "not established by this inventory",
+  "ruling": "HST timestamps prove observed source bars, not that missing intervals were closed sessions; no fill/skip or fresh-trigger authority",
+  "rows": [
+    {
+      "tf_minutes": 1,
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD1.hst",
+      "sha256": "f931fef6b0d9a829de421c497af8691de48ba74cc9db68d29c50d852de6f1310",
+      "period_header": 1,
+      "last_before_gap_source_time": "2026-07-31 23:59:00",
+      "first_after_gap_source_time": "2026-08-03 00:02:00",
+      "before_raw_hst_time": 1785542340,
+      "after_raw_hst_time": 1785715320,
+      "nominal_seconds": 60,
+      "observed_delta_seconds": 172980,
+      "source_kind": "installed broker-format HST; historical session provenance not established"
+    },
+    {
+      "tf_minutes": 5,
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD5.hst",
+      "sha256": "418440bf35ac6b436361987f3f3deb1beb101ec3a36a3f6c298f338b1e188713",
+      "period_header": 5,
+      "last_before_gap_source_time": "2026-07-31 23:55:00",
+      "first_after_gap_source_time": "2026-08-03 00:00:00",
+      "before_raw_hst_time": 1785542100,
+      "after_raw_hst_time": 1785715200,
+      "nominal_seconds": 300,
+      "observed_delta_seconds": 173100,
+      "source_kind": "installed broker-format HST; historical session provenance not established"
+    },
+    {
+      "tf_minutes": 15,
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD15.hst",
+      "sha256": "74db0196f4d77fc66548cd41614adfdde9ca96f9e2da91daebcd17e304c5e7b5",
+      "period_header": 15,
+      "last_before_gap_source_time": "2026-07-31 23:45:00",
+      "first_after_gap_source_time": "2026-08-03 00:00:00",
+      "before_raw_hst_time": 1785541500,
+      "after_raw_hst_time": 1785715200,
+      "nominal_seconds": 900,
+      "observed_delta_seconds": 173700,
+      "source_kind": "installed broker-format HST; historical session provenance not established"
+    },
+    {
+      "tf_minutes": 30,
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD30.hst",
+      "sha256": "d9668038ebc635225534d683ea34b60805915d92510be2b58b6584b8fbbde0d7",
+      "period_header": 30,
+      "last_before_gap_source_time": "2026-07-31 23:30:00",
+      "first_after_gap_source_time": "2026-08-03 01:00:00",
+      "before_raw_hst_time": 1785540600,
+      "after_raw_hst_time": 1785718800,
+      "nominal_seconds": 1800,
+      "observed_delta_seconds": 178200,
+      "source_kind": "derived complete-bucket OHLC fixture"
+    },
+    {
+      "tf_minutes": 60,
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD60.hst",
+      "sha256": "566762b35fce7ef2dcb5985a57dac6bc5d0476a6a76ddef2d680ef0905632389",
+      "period_header": 60,
+      "last_before_gap_source_time": "2026-07-31 23:00:00",
+      "first_after_gap_source_time": "2026-08-03 00:00:00",
+      "before_raw_hst_time": 1785538800,
+      "after_raw_hst_time": 1785715200,
+      "nominal_seconds": 3600,
+      "observed_delta_seconds": 176400,
+      "source_kind": "installed broker-format HST; historical session provenance not established"
+    },
+    {
+      "tf_minutes": 240,
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD240.hst",
+      "sha256": "aa58b7e1114d20b135573168fd414db7f210ab260427c8596cadfb8052e5015f",
+      "period_header": 240,
+      "last_before_gap_source_time": "2026-07-31 20:00:00",
+      "first_after_gap_source_time": "2026-08-03 00:00:00",
+      "before_raw_hst_time": 1785528000,
+      "after_raw_hst_time": 1785715200,
+      "nominal_seconds": 14400,
+      "observed_delta_seconds": 187200,
+      "source_kind": "installed broker-format HST; historical session provenance not established"
+    },
+    {
+      "tf_minutes": 1440,
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD1440.hst",
+      "sha256": "6ee8ded5b0027a2340d15196f34da603899d648a772919af6facd156f81800ac",
+      "period_header": 1440,
+      "last_before_gap_source_time": "2026-07-31 00:00:00",
+      "first_after_gap_source_time": "2026-08-03 00:00:00",
+      "before_raw_hst_time": 1785456000,
+      "after_raw_hst_time": 1785715200,
+      "nominal_seconds": 86400,
+      "observed_delta_seconds": 259200,
+      "source_kind": "installed broker-format HST; historical session provenance not established"
+    }
+  ]
+}

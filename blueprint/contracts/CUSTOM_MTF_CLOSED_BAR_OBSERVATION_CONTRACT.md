@@ -81,3 +81,23 @@ ResetMLVState and IsMHVParentExtremeMature accept an explicit source TF with M15
 ExportSourceMHVSignal projects mature source identity. ExportCanonicalMHVSignal is a wrapper that rejects non-M15 before delegating; locked canonical REM signatures and all current callers retain their M15 boundary. There is one M09 state machine, no second MHV detector, no new lifecycle clock, no TTL, no risk or order authority.
 
 This atomic foundation does not admit additional custom MHV/MLV rows. ProjectCustomMHVView and its current M15-only admission remain unchanged. Additional producer/storage/replay wiring and per-row source-chain proof are still required under T04-E/2; fixture engine success is not historical owner recovery or trading acceptance.
+
+## Build6.03 — T04-E/2 shared M09 producer/replay monitor boundary
+
+The shared source updater advances M08 → M09 → M12 for auxiliary TFs and custom-only canonical TFs. M09 calls the same UpdateCanonicalMLVState engine, using existing M10 CSD/eCSD calculations solely for stage takeover. No CSA alias is inferred. Ordinary source advancement and staged chronological replay call the same updater.
+
+| Symbol scope | TF | M09 state/producer |
+|---|---|---|
+| Auxiliary monitor, either symbol scope | M1/M5/M30 | Buy/sell MLVData reside in the existing symbol-local auxiliary lifecycle record. |
+| Custom-only symbol | D1/H4/H1 | Exactly one additional buy/sell M09 owner pair per source TF. |
+| Custom-only symbol | M15 | Reuse existing mlv_buy_state/mlv_sell_state through temporary stage copies. |
+| Canonical symbol | M15 | Existing ProcessPair M09 remains the producer; observer only reads it. |
+| Canonical symbol | D1/H4/H1 | UNAVAILABLE: no observer-side M08/M12 advancement or new parent-handover authority. |
+
+Temporary staged copies commit M09 together with the original M08/M12 slots and progress metadata. A child M09 watermark beyond the replay anchor rejects recovery without clearing state. Incomplete/failed replay hides M09 views. Trusted cold/replayed snapshots retain context-only metadata; MHV/MLV entryWindowOpen/entryEligible/executionAvailable remain false. If no refreshed same-TF canonical M09 owner exists, the projection remains unavailable.
+
+MHV and MLV project the same owner/event identity via ExportSourceMHVSignal. ExportCanonicalMHVSignal remains M15-only. The observer recognizes MHV/MLV requests as requiring the shared source pipeline even when RE/EXT request flags are false.
+
+Ruling: canonical-symbol higher-TF M09 remains unavailable at this boundary because M09 supersession can install a parent Extreme. Adding that write from a post-controller observer would alter shared canonical ownership after snapshots/decisions were frozen. A later scoped canonical-pipeline integration must settle ordering/parent ownership before admission. Cost: incomplete higher-TF M09 monitor coverage for canonical-scope symbols; no substitute state or execution authority is created.
+
+Mechanics proof is separate from source-epoch/session proof. Trusted completed-owner fixtures test transport/replay, not historical formation or arbitrary cold-start reconstruction. T04-B, broader T04-E acceptance and all later executable gates remain open.

@@ -120,6 +120,8 @@ Checkpoint fields: task ID, issue/PR, owner/base SHA, branch/head SHA, source SH
 
 ## T04 — Closed-bar scheduler dan peluasan canonical owners
 
+Approved subtask queue/status: `blueprint/runtime/custom_mtf/task_queue.md`. T04-A monitor integration verified; T04-B recovery gate HOLD; continue only eligible independent work. Full T04 remains PARTIAL.
+
 **Files:** MQ4 M06/M07/M08/M09/M10/M11/M12/M27 sections; M15 clock addendum; `blueprint/tests/custom_mtf/CustomClockHarness.mq4`, `blueprint/tests/custom_mtf/clock_expected.json`.
 
 **Interfaces:** `bool BuildCustomEventBatch(int pairIndex, CustomEventBatch &batch, string &reason)`; `void UpdateCustomOwners(const CustomEventBatch &batch)`; outputs `CustomOwnerView` for T05. Existing owners remain source of view.

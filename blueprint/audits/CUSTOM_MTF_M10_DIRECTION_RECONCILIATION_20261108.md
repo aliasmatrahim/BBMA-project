@@ -39,3 +39,10 @@ No new CSA predicate, signal enum, lifecycle or executable alias is added. Candl
 - Full EA Strategy Tester/runtime NOT RUN. Full pytest suite remains unavailable in cloud Python; no full regression PASS or Core-compliance claim.
 
 Next: validate shared detector outputs in native targeted runtime, resolve CSA alias entry eligibility separately, and continue unaffected custom input integration. Existing parser and slot proofs are unchanged but not rerun in this patch.
+
+
+## 2026-11-09 mapping sensitivity — no alias admission
+
+Four hypothetical closed-candle fixtures were evaluated by extracting the actual canonical DetectCSD/body-cross predicates and compiling them as C++. When open is already beyond Mid BB but crosses the MA pair before close, canonical body-span CSD and a close-side reading disagree; mirrored BUY/SELL examples reproduce that difference. Full-span examples agree. Evidence m10_mapping_sensitivity604_evidence.json is bound to frozen intermediate Build6.04. This is numeric diagnostic evidence, not native MT4/source adjudication or trading evidence.
+
+The experiment does not choose a new formula, rewrite the canonical contract, or admit CSA/CSAK. Their exact alias/maturity/admission reconciliation remains required; MOM's verified shared CSM path is unaffected.

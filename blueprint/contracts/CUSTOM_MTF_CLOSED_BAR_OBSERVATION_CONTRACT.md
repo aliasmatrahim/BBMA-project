@@ -101,3 +101,16 @@ MHV and MLV project the same owner/event identity via ExportSourceMHVSignal. Exp
 Ruling: canonical-symbol higher-TF M09 remains unavailable at this boundary because M09 supersession can install a parent Extreme. Adding that write from a post-controller observer would alter shared canonical ownership after snapshots/decisions were frozen. A later scoped canonical-pipeline integration must settle ordering/parent ownership before admission. Cost: incomplete higher-TF M09 monitor coverage for canonical-scope symbols; no substitute state or execution authority is created.
 
 Mechanics proof is separate from source-epoch/session proof. Trusted completed-owner fixtures test transport/replay, not historical formation or arbitrary cold-start reconstruction. T04-B, broader T04-E acceptance and all later executable gates remain open.
+
+
+## Build6.05 — guarded canonical higher-TF M09 monitor (T04-E/3)
+
+D1/H4/H1 canonical-scope M09 can be observed only after the canonical M15 cycle stamp is current and its cached closed M06 source data passes the shared readiness check. M08 owner TF/direction identities must match. The monitor does not call ProcessPair or advance canonical M08/M12/decision/processing-clock state.
+
+M09 runs through the same source helper on temporary parent/MLV snapshots. All20 Extreme fields must remain unchanged before only the higher-TF M09 owner pair and its progress/proof stamp can commit. A parent-install request discards both tentative M09 directions and resolves to WAIT_CANONICAL_M09_PARENT_HANDOVER; future owner/parent anchors and non-contiguous canonical observations remain HOLD. No private persistent parent or guessed canonical-history replay is introduced. Unobserved, waiting or held rows remain unavailable. Source-observed HOLD is distinct from root data/cycle WAIT, which retries the unconsumed observation batch.
+
+Ruling: bounded read-only-parent observation replaces the earlier blanket higher-TF canonical monitor unavailability, while unrestricted parent installation still requires proper pre-freeze ownership integration — cost: canonical M09 views can become unavailable at unresolved handovers/gaps; no trade or substitute parent authority is created. M15's existing producer and canonical REM exporter remain unchanged.
+
+Build6.04's state mechanics passed, but its stage could emit canonical M09 logs before the parent-write guard discarded the attempt. Build6.05 carries explicit internal emitTelemetry policy through the same M09 functions; existing canonical callers default true, guarded temporary evaluation passes false. Numeric/state behavior and canonical default event logs are preserved. This flag is not a product input or execution gate.
+
+All semantic input availability and entry/execution flags remain OFF. Fixture mechanics/telemetry proof is not live canonical-controller, arbitrary cold-start, full timer delivery or multi-symbol trading acceptance.

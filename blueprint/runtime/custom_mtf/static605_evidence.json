@@ -1,0 +1,25 @@
+{
+  "files": {
+    "blueprint/source/BBMA_EA.mq4": {
+      "sha256_lf_utf8": "4247b5aa6babc62d7680fcb71e8859a74452638ba60c9c0fa084fae7f6f78415",
+      "git_blob_sha1": "0e183a3c7a3d5845490a817e70bc2da992cbc3ca",
+      "length": 570018
+    },
+    "blueprint/tests/custom_mtf/run_clock_owner_native.py": {
+      "sha256_lf_utf8": "99d00bf6e851f821e9eca7d374c0fe9dc4c2d562d74f54ccd9f7544d4f1d948f",
+      "git_blob_sha1": "ab6583265eb06ee626c057a8d8a23543ba208792",
+      "length": 9335
+    },
+    "blueprint/tests/custom_mtf/run_startup_native.py": {
+      "sha256_lf_utf8": "23b3d5ecd81309cf74a1feccfc7acdef1911311b6f6926af5ccb4efe7b2db864",
+      "git_blob_sha1": "8befd30490df54e57ce44328849ee4ccc2b06b53",
+      "length": 3926
+    }
+  },
+  "all_field_coverage": {
+    "MLVData": 31,
+    "ReEntryData": 31,
+    "ExtremeLifecycleData": 20
+  },
+  "parent_compare_fields": 20
+}

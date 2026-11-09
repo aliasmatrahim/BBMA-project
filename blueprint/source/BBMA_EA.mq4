@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 6.0.4 - Canonical M09 Read Only Parent Boundary         |
+//| Version 6.0.5 - Canonical M09 Stage Telemetry Guard         |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,14 +31,14 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "6.04"
+#property version   "6.05"
 #property strict
 #include "custom_mtf/CustomInputs.mqh"
 #include "custom_mtf/CustomPairBinding.mqh"
 #include "custom_mtf/CustomClock.mqh"
 
-#define BBMA_BUILD_TAG      "V604_M09_CANONICAL_MONITOR_20261109"
-#define BBMA_SOURCE_REV_TAG "M09_CANONICAL_MONITOR_001_20261109"
+#define BBMA_BUILD_TAG      "V605_M09_STAGE_TELEMETRY_20261109"
+#define BBMA_SOURCE_REV_TAG "M09_STAGE_TELEMETRY_001_20261109"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -3253,7 +3253,7 @@ void InstallMHVSupersessionParent(MLVData &mlv,
 
 bool TryAdvanceMHVSupersessionCandidate(MLVData &mlv, string pair,
                                         TimeframeData &data, BollingerBand &band,
-                                        ExtremeLifecycleData &parent)
+                                        ExtremeLifecycleData &parent,bool emitTelemetry=true)
 {
    ENUM_DIRECTION parentDirection = GetMHVParentExtremeDirection(mlv.Direction);
    if(parentDirection == DIR_NONE) return false;
@@ -3276,7 +3276,7 @@ bool TryAdvanceMHVSupersessionCandidate(MLVData &mlv, string pair,
          MarkCanonicalMLVSuperseded(
             mlv, data,
             "Old MHV/MLV cycle superseded by opposite reversal-confirmed Extreme");
-         if(EntryMode == 2)
+         if(emitTelemetry && EntryMode == 2)
             Print("[P3M2][MLV_SUPERSEDE] MLVDir=", EnumToString(mlv.Direction),
                   " NewExtremeDir=", EnumToString(parentDirection),
                   " Raw=", TimeToString(mlv.SupersessionRawCandleTime),
@@ -3301,7 +3301,7 @@ bool TryAdvanceMHVSupersessionCandidate(MLVData &mlv, string pair,
    mlv.SupersessionCandidateActive = true;
    mlv.SupersessionRawBar = data.barIndex;
    mlv.SupersessionRawCandleTime = data.candle_time;
-   if(EntryMode == 2)
+   if(emitTelemetry && EntryMode == 2)
       Print("[P3M2][MLV_SUPER_CAND] MLVDir=", EnumToString(mlv.Direction),
             " ExtremeDir=", EnumToString(parentDirection),
             " Raw=", TimeToString(data.candle_time));
@@ -3313,7 +3313,7 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
                                        TimeframeData &data,
                                        BollingerBand &band,
                                        ExtremeLifecycleData &parent,
-                                       bool sameDirectionSignal)
+                                       bool sameDirectionSignal,bool emitTelemetry=true)
 {
    if(!EnableMLVStateEngine) return MLV_NONE;
    if(direction != DIR_BUY && direction != DIR_SELL) return MLV_NONE;
@@ -3457,7 +3457,7 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
          return mlv.State;
       }
 
-      if(TryAdvanceMHVSupersessionCandidate(mlv, pair, data, band, parent))
+      if(TryAdvanceMHVSupersessionCandidate(mlv, pair, data, band, parent,emitTelemetry))
          return mlv.State;
 
       if(mlv.State == MLV_FORMATION_ESTABLISHED &&
@@ -3494,7 +3494,7 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
       mlv.InvalidationWindowOpen = false;
       mlv.IsValid = true;
 
-      if(TryAdvanceMHVSupersessionCandidate(mlv, pair, data, band, parent))
+      if(TryAdvanceMHVSupersessionCandidate(mlv, pair, data, band, parent,emitTelemetry))
          return mlv.State;
 
       mlv.LastUpdateBar = data.barIndex;
@@ -3507,7 +3507,7 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
    {
       // VOID remains non-authoritative. A later RAW opposite-cycle Extreme is
       // only a candidate; a reversal-confirmed Extreme installs the new parent.
-      TryAdvanceMHVSupersessionCandidate(mlv, pair, data, band, parent);
+      TryAdvanceMHVSupersessionCandidate(mlv, pair, data, band, parent,emitTelemetry);
       mlv.LastUpdateBar = data.barIndex;
       mlv.LastUpdateCandleTime = data.candle_time;
       mlv.PreviousClose = data.close;
@@ -11268,7 +11268,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=6.04 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=6.05 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -13921,15 +13921,15 @@ bool ReadCustomAuxClosedData(string symbol,int tf,datetime candle,TimeframeData 
 
 void AdvanceMHVSourceOwners(string symbol,TimeframeData &next,BollingerBand &band,
                             ExtremeLifecycleData &extremeBuy,ExtremeLifecycleData &extremeSell,
-                            MLVData &mhvBuy,MLVData &mhvSell)
+                            MLVData &mhvBuy,MLVData &mhvSell,bool emitTelemetry=true)
 {
    MovingAverage ma;
    ma.MA5_High=next.ma[0];ma.MA10_High=next.ma[1];ma.MA5_Low=next.ma[2];ma.MA10_Low=next.ma[3];ma.EMA50=next.ma[4];
    bool directionBuy=DetectCSD(symbol,next.timeframe,DIR_BUY,next.barIndex,ma,band) || DetectECSD(symbol,next.timeframe,DIR_BUY,next.barIndex,ma);
    bool directionSell=DetectCSD(symbol,next.timeframe,DIR_SELL,next.barIndex,ma,band) || DetectECSD(symbol,next.timeframe,DIR_SELL,next.barIndex,ma);
    // The canonical M09 engine owns both aliases; no second MHV detector.
-   UpdateCanonicalMLVState(mhvBuy,symbol,DIR_BUY,next,band,extremeSell,directionBuy);
-   UpdateCanonicalMLVState(mhvSell,symbol,DIR_SELL,next,band,extremeBuy,directionSell);
+   UpdateCanonicalMLVState(mhvBuy,symbol,DIR_BUY,next,band,extremeSell,directionBuy,emitTelemetry);
+   UpdateCanonicalMLVState(mhvSell,symbol,DIR_SELL,next,band,extremeBuy,directionSell,emitTelemetry);
 }
 
 // The same source engines serve ordinary advancement and historical replay.
@@ -14210,7 +14210,7 @@ bool ObserveCanonicalMHVSource(int pairIndex,int tf,datetime latest)
    {g_pair_states[pairIndex].canonical_mhv_observed[slot]=true;return true;}
    ExtremeLifecycleData parentBuy=owner.extremeBuy,parentSell=owner.extremeSell;
    BollingerBand band;ZeroMemory(band);band.TOP_BB=data.bollinger[0];band.MID_BB=data.bollinger[1];band.LOW_BB=data.bollinger[2];band.Width=band.TOP_BB-band.LOW_BB;
-   AdvanceMHVSourceOwners(symbol,data,band,owner.extremeBuy,owner.extremeSell,owner.mhvBuy,owner.mhvSell);
+   AdvanceMHVSourceOwners(symbol,data,band,owner.extremeBuy,owner.extremeSell,owner.mhvBuy,owner.mhvSell,false);
    if(!SameExtremeOwnerSnapshot(parentBuy,owner.extremeBuy) || !SameExtremeOwnerSnapshot(parentSell,owner.extremeSell))
    {
       g_pair_states[pairIndex].custom_canonical[slot].recoveryRequired=true;

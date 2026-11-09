@@ -151,3 +151,32 @@ Exact next action: Build6.05 — add explicit internal telemetry emission policy
 ## T04-D mapping sensitivity — diagnostic only
 
 Actual current DetectCSD numeric predicate was extracted and compiled as C++ on4 hypothetical closed-candle fixtures. Two agree with a close-side reading; two differ when open is already beyond Mid BB but the body crosses the MA pair. This is not source adjudication or native MT4 evidence. It demonstrates why CSA/CSAK cannot be silently relabeled to fit an existing body-cross classifier. Neither predicate is changed or admitted; aliases remain unavailable. Evidence m10_mapping_sensitivity604_evidence.json, bound to this exact intermediate source. The current SOURCE_INDEX/Core/M10 contract and routed source evidence still require explicit alias/maturity/admission reconciliation.
+
+
+## T04-E/3 bounded monitor ACCEPTED — Build6.05, 2026-11-09
+
+Atomic read-only monitor stage and its log boundary VERIFIED; overall T04-E remains PARTIAL. Branch feat/custom-mtf-v1-20261108; parent frozen WIP e569340b8b90cb289f1db98f108f8a424486990b preserves Build6.04 and the failing telemetry probe. Previous verified E/2 checkpoint c3179b1a0eedce5115a459d6feff7d40131dffff is unchanged. Final implementation commit SHA is recorded in Draft PR303. BuildTag V605_M09_STAGE_TELEMETRY_20261109 / SourceRev M09_STAGE_TELEMETRY_001_20261109; source LF SHA256 4247b5aa6babc62d7680fcb71e8859a74452638ba60c9c0fa084fae7f6f78415.
+
+Canonical higher-TF M09 now observes current closed cached source data only after a completed canonical M15 cycle. All20 parent Extreme fields must stay unchanged during temporary M09 evaluation. Commit writes only M09 owner/progress/proof fields; M08/M12, decision and M15 processing stamps are unchanged. Missing/current-cycle data WAIT retries the batch. Future anchors, non-contiguous canonical observations and requested parent installation become HOLD/unavailable, preserving both old M09 directions and parent state. A producer-proof stamp prevents borrowed/unobserved higher-TF state from being read. M15 canonical producer/REM wrapper are unchanged.
+
+Ruling: accept the bounded read-only-parent monitor rather than grant post-controller parent-install authority — it closes canonical higher-TF observation where the existing parent is sufficient and refuses the rest atomically — cost is intentionally unavailable canonical M09 at unresolved parent handovers/gaps. This is not unrestricted canonical lifecycle/recovery acceptance and never grants trade authority.
+
+Confirmed log bug and fix: Build6.04 produced3 uncommitted MLV_SUPERSEDE records while its state guard correctly discarded those stages. The source callee logged before caller commit/discard. Build6.05 threads an internal emitTelemetry flag (default true) through the same M09 functions; guarded temporary evaluation alone passes false. Native RED→GREEN proof: uncommitted events3→0; direct default-canonical control events remain3; all47 state assertions remain green. No numeric predicate/state/entry rule changed in the fix. Existing canonical callers retain default logging.
+
+Native6.05 results: canonical monitor47/47 plus log gate0 uncommitted/3 default-canonical controls; canonical H1 observer4/4; moving callback/M27 M1 MHV/MLV/MOM-only integration12/12; M09 producer52/52; seven-TF trusted-anchor replay57/57; auxiliary producer22/22; original replay27/27; higher source23/23; owner10/10; M10 snapshot55/55; M09 structural trajectories238/238; original observer4/4; M15 MHV8/8; clock14/14; isolated actual startup4/4. Full native strict EA compile0 errors/0 warnings. Full cloud pytest73/73 ran after the6.05 patch before the local environment became unavailable; no subsequent source change was made. Final verification continued on G40/GitHub without restarting a primary terminal or duplicating native runs.
+
+All normalized source/include/test-helper/compiled-harness hashes match G40 stage files. Final actual EA EX4 matches final clock compile and startup binary. GitHub candidate blobs for EA and both native runners match independently computed G40 Git blob SHA1; full source SHA256 matches every native manifest. Binding evidence: static605_evidence.json and bindings605_evidence.json. No local6.05 Git commit is fabricated: the local environment became unavailable at local HEAD5b4cb42 with the6.05 patch already tested; final publication is bound directly to G40 artifacts and GitHub. A future recovery must reconcile/fetch the live feature branch rather than overwrite unrelated local changes.
+
+### Remaining boundaries and exact next action
+
+| Scope | Status after6.05 |
+|---|---|
+| E/1 source-TF engine; E/2 auxiliary/custom-only staged M09; E/3 canonical read-only-parent monitor | VERIFIED only in documented mechanics/fixture scopes. |
+| Unrestricted canonical higher-TF parent installation / historical replay | HOLD: needs canonical pre-freeze ownership integration and valid parent/owner history; guarded monitor refuses those writes. |
+| T04-B session/weekend and cold-start owner epoch | HOLD; installed HST inventory does not authenticate historical broker sessions or distinguish all no-quote vs missing-data intervals. |
+| T04-D CSA/CSAK | ALIAS/IMPLEMENTATION VERIFICATION REQUIRED; body-span and close-side sensitivity is recorded without choosing/admitting an alternative. |
+| T04-F / T05–T12 | Dependency-gated; not advanced or marked complete. |
+
+Exact next action: obtain/resolve source-bound session and owner-epoch evidence for T04-B, reconcile CSA/CSAK alias/maturity/admission through SOURCE_INDEX, and settle canonical parent-handover/recovery ownership before final T04-F acceptance. No downstream executable task may bypass those gates. No new rule, duplicate parent, generic structural TTL or historical fresh trigger is substituted for missing proof.
+
+All custom semantic availability and entry/execution flags remain OFF. No merge/activation, live reinit/full wall-clock timer proof, positive multi-symbol broker execution, custom-order runtime, profitability or production-readiness claim. Source/owner fixtures and M30 derived OHLC remain explicitly scoped; no code-release promotion is performed.

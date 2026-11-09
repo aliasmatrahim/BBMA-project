@@ -1,0 +1,39 @@
+{
+  "task": "C+1 follow-up; T04-D source frames and T04-E/4 native readiness",
+  "base_remote": "6fa4aafa8fa8b4ad0b193a4af89d1ea04f2e932f",
+  "base_tree": "40c20edb00b782762740928914c7a3e3f352c8aa",
+  "ea_build": "6.06",
+  "source_sha256": "0266fb3318348ae64b7bbbb52a1b30a0e79994df64979377cd14c1ba877c666e",
+  "source_changed": false,
+  "g40_probe": {
+    "result": "No Desktop Commander device is currently online",
+    "last_seen_report": "4h ago",
+    "native_command_started": false
+  },
+  "browser_source_attempt": {
+    "observed_url": "https://www.youtube.com/watch?v=oiJpOXh0UtY&t=1207s",
+    "observed_title": "BBMA Finale - Video 6 - YouTube",
+    "channel_label": "SYFX Channel",
+    "ui_seek_position": "20:07 / 1:01:41",
+    "initial_visual": "generic poster showing an MHV flipchart, not a decoded time-aligned frame",
+    "playback_attempt": "Play control and one ordinary reload; spinner remained",
+    "video_dom_observation": {
+      "currentTime": 0,
+      "duration_seconds": 3701,
+      "readyState": 0,
+      "paused": false,
+      "error": null
+    },
+    "finding": "UI timestamp and poster do not establish that the requested frame loaded; no candle open/close/MA/Mid geometry can be authenticated from this attempt",
+    "bot_detection_claim": false,
+    "formula_authority": "NONE"
+  },
+  "status": {
+    "CSA_CSAK": "VERIFICATION_REQUIRED; C chosen, no A/B formula choice",
+    "M09_E4": "WIP_NOT_NATIVE_VERIFIED",
+    "T04_F": "BLOCKED",
+    "custom_auto_entry": "OFF"
+  },
+  "verification_scope": "Evidence-only follow-up; no EA edits or repeated cloud/native suites. Previous75/75 cloud evidence remains bound to unchanged source; no fresh native result claimed.",
+  "exact_next_action": "Bring G40 Desktop Commander Remote online, stage exact6.06 in isolated Unit, native compile/prefreeze61/affected regressions/startup and actual controller monitor ON/OFF parity. Retrieve original/local V05/V06 source frames and verify alignment before alias mapping. Do not restart primary MT4, merge or activate trading."
+}

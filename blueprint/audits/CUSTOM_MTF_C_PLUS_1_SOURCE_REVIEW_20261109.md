@@ -21,3 +21,6 @@ M09 ownership is a separate accepted integration task under C+1. The F1 Decision
 
 
 Public-source fallback also located candidate YouTube items H61M3mppMiI (V05) and oiJpOXh0UtY (V06) from discovery links. V06's public landing title was retrieved; V05 retrieval failed with DisabledError. Neither route returned time-aligned video frames or verified a match to the archived SRT. These are discovery leads only, not accepted new Core evidence. Candidate frame targets: https://www.youtube.com/watch?v=H61M3mppMiI&t=1798s and https://www.youtube.com/watch?v=oiJpOXh0UtY&t=1207s.
+
+
+Subsequent browser follow-up reached the V06 watch page and displayed a20:07 seek position, but not the corresponding decoded video frame. The initial image was a generic MHV poster. Play and one ordinary reload left buffering; the video DOM remained currentTime0/readyState0. Therefore no candle geometry, SRT timing match or A/B discriminator is accepted from that image. See cplus1_followup606_evidence.json. G40 was also still offline. The source gate remains unchanged.

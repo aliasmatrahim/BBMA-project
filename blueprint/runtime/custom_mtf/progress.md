@@ -208,3 +208,14 @@ G40 Desktop Commander returned no online device (last seen2h ago). Native MQL4 c
 Material boundary: canonical higher-TF advancement is deliberately independent of monitor settings. Its newly admitted pre-freeze parent writes can affect legacy combination candidates compared with6.05; do not claim unchanged legacy decisions. Candidate monitor ON/OFF parity and expected old/new differences must be measured before acceptance. Shared parent installation is not an execution decision, and custom auto-entry/availability remain OFF. No merge/activation.
 
 Exact next action: when G40 reconnects, stage this exact candidate into the isolated CustomMTF Unit workspace; run full strict compile and prefreeze native61 checks, original canonical47/observer4/M09 producer52/replay57 plus affected regressions/startup, then an actual ProcessPair monitor ON/OFF decision comparison. Bind all results to the exact6.06 source/EX4. Separately inspect original V05/V06 chart frames for CSA/CSAK open-side examples; no A/B formula selection is implied by C. Draft PR records publication SHA; the local/remote trees must match.
+
+
+## C+1 resumed — native/media environment gate rechecked, 2026-11-09
+
+GitHub PR303 still Draft/unmerged at6fa4aafa8fa8b4ad0b193a4af89d1ea04f2e932f; local base tree40c20edb00b782762740928914c7a3e3f352c8aa matches. EA remains unchanged6.06/SHA0266fb3318348ae64b7bbbb52a1b30a0e79994df64979377cd14c1ba877c666e. No VERIFIED task or test was repeated.
+
+Fresh G40 probe: Desktop Commander reports no online device, last seen4h ago; no native process started. Browser fallback reached the public V06 page at20:07. The initial image was a generic MHV poster; playback and one reload left a spinner. Read-only video DOM remained currentTime0/readyState0 with no media error. A visible20:07 seek position is not a decoded frame or proof of candle geometry. This is a media-load limitation, not a claim of bot detection, source absence or accepted new rule. Evidence: cplus1_followup606_evidence.json.
+
+C mapping remains verification required; T04-E/4 remains WIP/native NOT VERIFIED; F and downstream dependencies unchanged. No source change/compile/test rerun was necessary for this evidence-only checkpoint. Previous75/75 cloud results are historical exact-source proof, not a fresh native result. Auto-entry OFF; no merge/deployment/primary MT4 restart.
+
+Exact next action: make G40 Desktop Commander Remote available, then stage the frozen6.06 candidate in the isolated Unit and run native compile/prefreeze61/affected regressions/startup plus actual ProcessPair monitor ON/OFF parity. Inspect time-aligned original/local V05/V06 chart frames before deciding CSA/CSAK open-side mapping. No further formula approval is being requested. Publication SHA is recorded in Draft PR303.

@@ -180,3 +180,14 @@ All normalized source/include/test-helper/compiled-harness hashes match G40 stag
 Exact next action: obtain/resolve source-bound session and owner-epoch evidence for T04-B, reconcile CSA/CSAK alias/maturity/admission through SOURCE_INDEX, and settle canonical parent-handover/recovery ownership before final T04-F acceptance. No downstream executable task may bypass those gates. No new rule, duplicate parent, generic structural TTL or historical fresh trigger is substituted for missing proof.
 
 All custom semantic availability and entry/execution flags remain OFF. No merge/activation, live reinit/full wall-clock timer proof, positive multi-symbol broker execution, custom-order runtime, profitability or production-readiness claim. Source/owner fixtures and M30 derived OHLC remain explicitly scoped; no code-release promotion is performed.
+
+
+## T04-B provenance / T04-D native characterization follow-up — 2026-11-09
+
+Remote base3018af9b2bfe403ba3e1ec9cf6030fd22c3b7b43, feature branch feat/custom-mtf-v1-20261108. Exact605 tree2d5bcd4cdaf895fcac5ec4310951265dca1a7289 restored locally as ca95799; no uncommitted source work was lost. EA unchanged Build6.05/SHA4247b5aa6babc62d7680fcb71e8859a74452638ba60c9c0fa084fae7f6f78415. Publication commit SHA is recorded in Draft PR303; local/remote tree equality is required.
+
+Completed subtasks only: four existing G40 provenance metadata records retrieved/hashed; native actual M10 CSD/eCSD synthetic-read characterization141/141 across seven TF arguments. Native full EA and harness compile0 errors/0 warnings; isolated tester PID20264 exited0; full cloud pytest73/73. Manifest source/harness/include hash bindings verified. Evidence: provenance_review605_evidence.json, direction605_evidence.json. No new EA build, detector, alias or availability.
+
+Full T04-B remains HOLD: fitted MetaQuotes timezone and Dukascopy session-derived manifests explicitly lack broker-canonical authority for installed HST. T04-D remains PARTIAL: native output proves body-span mapping, not which CSA/CSAK interpretation is source-accepted. T04-E remains PARTIAL: canonical parent installation changes M08 owners consumed by frozen M13 snapshots; the post-cycle guard remains necessary. Detailed findings, rulings, costs and exit audit: blueprint/audits/CUSTOM_MTF_REMAINING_GATE_REVIEW_20261109.md. No VERIFIED task repeated or regraded.
+
+Exact next action: same-feed historical session/quote provenance bound to installed GBPUSD HST gap and trusted owner epoch; accepted CSA/CSAK body-cross-vs-close-side reconciliation; then pre-freeze canonical parent transaction with legacy-decision parity evidence. T04-F and T05–T12 remain dependency-blocked/pending, not silently bypassed. Auto-entry/availability OFF; no merge/activation or primary-terminal changes. Existing frozen startup artifacts remain historical exact-binary proofs, not a fresh startup claim for today's compile.

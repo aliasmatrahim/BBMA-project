@@ -1,0 +1,231 @@
+{
+  "task": "T04-B/provenance-review",
+  "base_commit": "3018af9b2bfe403ba3e1ec9cf6030fd22c3b7b43",
+  "ea_lf_sha256": "4247b5aa6babc62d7680fcb71e8859a74452638ba60c9c0fa084fae7f6f78415",
+  "files": [
+    {
+      "path": "D:\\BBMA\\HistoricalData\\validation\\metaquotes_demo_timezone_audit.json",
+      "bytes": 980,
+      "sha256": "8d882db272571b46a86b3f79de9dae32365fcb95980e0645e88d9352637dc63e",
+      "metadata": {
+        "schemaVersion": 1,
+        "classification": "REFERENCE_SERVER_MAPPING_ONLY_NOT_DEPLOYMENT_CANONICAL",
+        "server": "MetaQuotes-Demo",
+        "status": "HISTORICAL_POLICY_NON_STATIONARY",
+        "liveEvidence": {
+          "pcTimezone": "Singapore Standard Time",
+          "pcOffset": "+08:00",
+          "eaLoggerClock": "TimeCurrent()",
+          "observed2026SepOffsetHours": 2,
+          "m1PriceCorrelation2026AugBestOffsetHours": 2
+        },
+        "h1Correlation": {
+          "coverage": "2024-01 through 2026-08 sampled winter/summer/transition months",
+          "result": "all sampled months best-fit UTC+2"
+        },
+        "h4HistoricalSamples": [
+          [
+            "2010-01",
+            1
+          ],
+          [
+            "2010-07",
+            2
+          ],
+          [
+            "2012-01",
+            1
+          ],
+          [
+            "2012-07",
+            2
+          ],
+          [
+            "2022-01",
+            2
+          ],
+          [
+            "2022-07",
+            3
+          ],
+          [
+            "2024-01",
+            2
+          ],
+          [
+            "2024-07",
+            2
+          ],
+          [
+            "2026-01",
+            2
+          ],
+          [
+            "2026-07",
+            2
+          ]
+        ],
+        "conclusion": "MetaQuotes-Demo server-time policy changed across historical eras. Do not extrapolate one UTC/DST rule across 2006-2026. Keep deployment broker-time canonical mapping unresolved.",
+        "canonicalStrategyRule": false
+      }
+    },
+    {
+      "path": "D:\\BBMA\\HistoricalData\\manifests\\native_repaired_session_reference\\BUILD_SUMMARY.json",
+      "bytes": 869,
+      "sha256": "53e395963de7b56866e1b515b075e67d5789f862e237f4cc8195bb9e82182b54",
+      "metadata": {
+        "status": "COMPLETE",
+        "classification": "NATIVE_REPAIRED_DUKASCOPY_SESSION_REFERENCE_ATOMIC_NATIVE_REPAIR_CONFLICT_EXCLUDED_NOT_BROKER_CANONICAL",
+        "generatedUTC": "2026-09-09T13:30:05.342Z",
+        "repairOverlaySha256": "29b9aeeceed26ca5ba1776dbdce86e1bbabd20f7a17a2b88c2295235da07f280",
+        "tickEmptyH1ConflictRegisterSha256": "11375a43cd2ef08da861f27ba274b4f7f0378694c7426216adadc684cfdd6557",
+        "tickEmptyH1ConflictHours": 32,
+        "results": [
+          {
+            "pair": "GBPUSD",
+            "side": "ASK",
+            "m1Records": 7471334,
+            "repairOverlayMinutesApplied": 5144,
+            "outsideSessionBars": 1362,
+            "holidayExcludedBars": 1358,
+            "conflictBaseMinutesExcluded": 180,
+            "nativeRepairBaseMinutesExcluded": 3781,
+            "derivedFiles": 126,
+            "manifest": "D:/BBMA/HistoricalData/manifests/native_repaired_session_reference/GBPUSD_ASK.json"
+          }
+        ]
+      }
+    },
+    {
+      "path": "D:\\BBMA\\HistoricalData\\manifests\\acquisition_policy.json",
+      "bytes": 766,
+      "sha256": "7b7ee536920845227c2533ab209f3a8097ac4d11b78ae37221a6c75337abdcbc",
+      "metadata": {
+        "schemaVersion": 1,
+        "source": "Dukascopy datafeed",
+        "rawFormat": "hourly .bi5",
+        "archivePlan": "monthly tar of untouched hourly .bi5 artifacts",
+        "pairCount": 3,
+        "canonicalPairs": [
+          "EURUSD",
+          "GBPUSD",
+          "USDJPY"
+        ],
+        "targetYears": 20,
+        "plannedEndExclusiveUTC": "2026-09-01T00:00:00.000Z",
+        "derivedTimeframes": [
+          "M1",
+          "M5",
+          "M15",
+          "H1",
+          "H4",
+          "D1"
+        ],
+        "strategyProcessingClock": "M15",
+        "maxConcurrentRequests": 1,
+        "requestDelayMs": 1000,
+        "retryCount": 8,
+        "retryBackoffMs": 3000,
+        "minimumFreeSpaceGB": 120,
+        "resumeExistingCompleteArchives": true,
+        "hashAlgorithm": "SHA256",
+        "completenessPolicy": "NO_SILENT_GAPS",
+        "validationRequired": true,
+        "activeMT4HistoryWriteAllowed": false,
+        "metaQuotesDemoRole": "SECONDARY_REFERENCE_ONLY"
+      }
+    },
+    {
+      "path": "D:\\BBMA\\HistoricalData\\manifests\\native_repaired_session_reference\\GBPUSD_BID.json",
+      "bytes": 43645,
+      "sha256": "a7b17639e53b21a2f109935f94c70f764eee11539a48d13bfeaea40b6e86a92b",
+      "metadata": {
+        "schemaVersion": 4,
+        "classification": "NATIVE_REPAIRED_DUKASCOPY_SESSION_REFERENCE_ATOMIC_NATIVE_REPAIR_CONFLICT_EXCLUDED_NOT_BROKER_CANONICAL",
+        "pair": "GBPUSD",
+        "side": "BID",
+        "sourceCoverage": {
+          "from": "2006-09-01T00:00:00.000Z",
+          "till": "2026-09-01T00:00:00.000Z"
+        },
+        "sessionTimezone": "America/New_York",
+        "sessionAnchor": "17:00 local previous day -> 17:00 trading day",
+        "m1Records": 7471334,
+        "repairOverlayMinutesApplied": 5144,
+        "repairOverlaySha256": "29b9aeeceed26ca5ba1776dbdce86e1bbabd20f7a17a2b88c2295235da07f280",
+        "tickEmptyH1ConflictRegisterSha256": "11375a43cd2ef08da861f27ba274b4f7f0378694c7426216adadc684cfdd6557",
+        "tickEmptyH1ConflictHours": 32,
+        "outsideSessionBars": 1362,
+        "holidayExcludedBars": 1358,
+        "conflictBaseMinutesExcluded": 180,
+        "nativeRepairBaseMinutesExcluded": 3781
+      },
+      "year2026": [
+        {
+          "timeframe": "M1",
+          "year": 2026,
+          "path": "derived/native_repaired_session_reference/M1/GBPUSD/BID/2026.csv.gz",
+          "records": 246674,
+          "firstTime": 1767304800000,
+          "lastTime": 1788220740000,
+          "bytes": 3000579,
+          "sha256": "049598a4031b22e78e127ac34e871cd071952cf8257a85ae4c8fd764111f5c70"
+        },
+        {
+          "timeframe": "M5",
+          "year": 2026,
+          "path": "derived/native_repaired_session_reference/M5/GBPUSD/BID/2026.csv.gz",
+          "records": 49569,
+          "firstTime": 1767304800000,
+          "lastTime": 1788220500000,
+          "bytes": 700069,
+          "sha256": "b4f90f984f2d9fe29baaaa6093f1aeb549b701ec01aaaa22fe5bbc0f1a209e9e"
+        },
+        {
+          "timeframe": "M15",
+          "year": 2026,
+          "path": "derived/native_repaired_session_reference/M15/GBPUSD/BID/2026.csv.gz",
+          "records": 16524,
+          "firstTime": 1767304800000,
+          "lastTime": 1788219900000,
+          "bytes": 257036,
+          "sha256": "c7729d1b1eb94cbf396ec5d787d635207497ad093ccf871aee3eae9ee6ef36c3"
+        },
+        {
+          "timeframe": "H1",
+          "year": 2026,
+          "path": "derived/native_repaired_session_reference/H1/GBPUSD/BID/2026.csv.gz",
+          "records": 4131,
+          "firstTime": 1767304800000,
+          "lastTime": 1788217200000,
+          "bytes": 70098,
+          "sha256": "fd4ab12f97d716a8378c66683a00daf220856f650ececf46cef2d6228a9b7de9"
+        },
+        {
+          "timeframe": "H4",
+          "year": 2026,
+          "path": "derived/native_repaired_session_reference/H4/GBPUSD/BID/2026.csv.gz",
+          "records": 1032,
+          "firstTime": 1767304800000,
+          "lastTime": 1788195600000,
+          "bytes": 19026,
+          "sha256": "78631e3e133ace70a227aef0278ca1c6a0041d1f04a66c47a89241b16cff7b65"
+        },
+        {
+          "timeframe": "D1",
+          "year": 2026,
+          "path": "derived/native_repaired_session_reference/D1/GBPUSD/BID/2026.csv.gz",
+          "records": 172,
+          "firstTime": 1767304800000,
+          "lastTime": 1788123600000,
+          "bytes": 3471,
+          "sha256": "ae8110628cadd2ec83013a324ed08f9faf70369fce796030c686dde2e751cd19"
+        }
+      ]
+    }
+  ],
+  "result": "HOLD",
+  "scope": "Read-only existing metadata retrieval, not session authentication or bar/tick validation",
+  "ruling": "Historical MetaQuotes clock fit and Dukascopy session-derived reference do not authenticate the installed MetaQuotes HST weekend gaps. No calendar or owner reset admitted."
+}
+

@@ -1,0 +1,20 @@
+{
+  "task": "T04-D/native-characterization",
+  "base_remote_commit": "3018af9b2bfe403ba3e1ec9cf6030fd22c3b7b43",
+  "cloud_command": "PYTHONPATH=/workspace/scratch/f5ddfbd6f6f6/pytest-deps python3 -m pytest -q",
+  "cloud_result": "73 passed in 0.90s",
+  "cloud_exit_code": 0,
+  "runner_py_compile": true,
+  "existing_runner_paths_textually_unchanged_after_removing_new_direction_entries": true,
+  "native_command": "python D:\\BBMA\\MT4_CustomMTF_302_Unit\\597-stage\\blueprint\\tests\\custom_mtf\\run_clock_owner_native.py --root D:\\BBMA\\MT4_CustomMTF_302_Unit --repo D:\\BBMA\\MT4_CustomMTF_302_Unit\\597-stage --kind direction",
+  "native_process_pid": 20264,
+  "native_exit_code": 0,
+  "native_result": "passed=141 failed=0",
+  "ea_changed": false,
+  "hashes": {
+    "blueprint/source/BBMA_EA.mq4": "4247b5aa6babc62d7680fcb71e8859a74452638ba60c9c0fa084fae7f6f78415",
+    "blueprint/tests/custom_mtf/CustomDirectionHarness.mq4": "97e7d3a9f1647001b5f9291b9c46c2f347614901a2ca174137f486f41db1b7ce",
+    "blueprint/tests/custom_mtf/run_clock_owner_native.py": "c27adc785b9d727550a4c12f907ea03df7daf00fb39c4dd1d008b4e473a257ad"
+  },
+  "scope": "additional native characterization and existing-metadata retrieval only; no CSA/CSAK admission or T04 acceptance"
+}

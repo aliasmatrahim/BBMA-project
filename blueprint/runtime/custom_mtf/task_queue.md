@@ -20,3 +20,5 @@ Authority: user approved continuous execution with checkpoint after each task. T
 | T12 | Integrated acceptance / documentation / handoff | PENDING. |
 
 Do not redo VERIFIED work. If a task is HOLD, continue only an independent eligible portion; do not silently bypass that dependency at acceptance. Every task records source commit, evidence, remaining work and exact next action in progress.md and the Draft PR.
+
+Follow-up evidence: `CUSTOM_MTF_REMAINING_GATE_REVIEW_20261109.md`; four G40 provenance metadata records hashed, native M10 characterization141/141, fresh full EA/harness compile0/0 and cloud regression73/73. These subtasks do not close B/D/E or advance F. Next required inputs are same-feed historical session/owner epoch and exact CSA/CSAK mapping; guarded canonical parent handover remains unchanged.

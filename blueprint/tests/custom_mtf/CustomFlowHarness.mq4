@@ -11,6 +11,7 @@
 #undef OnTick
 #undef OnTimer
 #include "CustomOwnerTestEquality.mqh"
+input bool FlowExpectMomentum=false;
 input bool FlowExpectHigher=false; // Capability expectation for the tested source revision.
 input int FlowStartHour=2; // Chosen by read-only source-history preflight.
 int passed=0,failed=0,ticks=0,advances[3],tickAdvances=0,timerAdvances=0,nonM15=0,simultaneous=0,frames=0;
@@ -27,7 +28,7 @@ int OnInit()
  int indexes[3]={0,1,3};
  for(int i=0;i<3;i++){int t=indexes[i];g_custom_use.tfEnabled[t]=true;g_custom_use.signalEnabled[t*11]=true;g_custom_use.signalEnabled[t*11+5]=true;}
  g_custom_use.tfEnabled[4]=true;g_custom_use.signalEnabled[44]=true; // H1 custom-only producer is still unavailable.
- g_custom_use.signalEnabled[10]=true; // MOM remains unavailable.
+ g_custom_use.signalEnabled[10]=true; // Shared M10 diagnostic snapshot expected only on supported revision.
  startAt=StringToTime(TimeToString(TimeCurrent(),TIME_DATE))+FlowStartHour*3600;endAt=startAt+7200;
  Print("[CUSTOM-FLOW-INIT] start=",startAt," connected=",IsConnected()," testing=",IsTesting()," chartTF=",Period()," quote=",(datetime)MarketInfo(Symbol(),MODE_TIME));
  return INIT_SUCCEEDED;
@@ -43,7 +44,7 @@ void Finish()
  Check("simultaneous_frame_high_to_low",simultaneous>0 && orderOK);
  Check("only_matching_closed_snapshots",closedOK && frames>=100);
  Check("duplicate_tick_timer_state_stable",duplicatesOK && frames>=100);
- Check("unsupported_MOM_and_H1_scope",unavailableOK && frames>=100);
+ Check("MOM_and_H1_capability_scope",unavailableOK && frames>=100);
  Check("no_entry_or_execution_authority",flagsOK && frames>=100);
  Check("custom_only_never_canonical_dispatch",canonicalExcluded && g_processed_candle_time[0]==0);
  Check("no_broker_orders",OrdersTotal()==0 && OrdersHistoryTotal()==0);
@@ -76,7 +77,7 @@ void OnTick()
    if(!g_pair_states[0].h1_data.is_valid || g_pair_states[0].h1_data.candle_time!=GetLatestClosedCandleTime(Symbol(),PERIOD_H1))unavailableOK=false;
   }
   else if(frame.views[0].readable || frame.views[1].readable)unavailableOK=false;
-  if(frame.views[14].readable || frame.views[15].readable)unavailableOK=false;
+  if(frame.views[14].readable!=FlowExpectMomentum || frame.views[15].readable!=FlowExpectMomentum)unavailableOK=false;
   for(int v=0;v<frame.viewCount;v++)if(frame.views[v].entryEligible || frame.views[v].executionAvailable)flagsOK=false;
  }
  else if(ticks>1)closedOK=false;

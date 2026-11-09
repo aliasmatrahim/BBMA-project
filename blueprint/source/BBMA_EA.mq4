@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 6.0.0 - Custom Canonical TF Monitor Producers         |
+//| Version 6.0.1 - Shared M10 Momentum Monitor Snapshots         |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,14 +31,14 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "6.00"
+#property version   "6.01"
 #property strict
 #include "custom_mtf/CustomInputs.mqh"
 #include "custom_mtf/CustomPairBinding.mqh"
 #include "custom_mtf/CustomClock.mqh"
 
-#define BBMA_BUILD_TAG      "V600_CUSTOM_CANONICAL_TF_20261109"
-#define BBMA_SOURCE_REV_TAG "CUSTOM_CANONICAL_TF_001_20261109"
+#define BBMA_BUILD_TAG      "V601_M10_MOMENTUM_SNAPSHOT_20261109"
+#define BBMA_SOURCE_REV_TAG "M10_MOMENTUM_SNAPSHOT_001_20261109"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -445,6 +445,15 @@ struct BollingerBand
    double   LOW_BB;
    double   Width;
    ENUM_BB_STATE State;
+};
+
+// M10 source result cache. No maturity, candidate or execution authority.
+struct M10MomentumSnapshot
+{
+   string symbol;int timeframe;datetime sourceBar;
+   datetime times[BB_PERIOD+1];double closes[BB_PERIOD+1];
+   BollingerBand currentBand;BollingerBand previousBand;
+   bool ready;bool buy;bool sell;
 };
 
 struct MovingAverage
@@ -1000,6 +1009,7 @@ struct PairState
    TimeframeData        m1_data;
    TimeframeData        m30_data;
    CustomAuxLifecycle   custom_aux[3]; // M1 / M5 / M30; symbol-local lifecycle
+   M10MomentumSnapshot m10_momentum[14]; // Seven current + seven historical queries, symbol isolated
    CustomSourceProgress custom_canonical[4]; // D1 / H4 / H1 / M15; no duplicate lifecycle
    // Shared M06 M5 snapshot; NMJE remains M15-cadence/read-only.
    TimeframeData        m5_data;
@@ -3534,38 +3544,68 @@ bool ExportCanonicalMHVSignal(MLVData &mlv, Signal &signal)
 //| LEVEL: INTERMEDIATE                                              |
 //+------------------------------------------------------------------+
 
-bool DetectCSM(string pair, int timeframe, ENUM_DIRECTION direction, int shift)
+bool M10_ClassifyMomentum(double close,BollingerBand &currentBand,BollingerBand &previousBand,
+                          ENUM_DIRECTION direction)
 {
-   if(direction != DIR_BUY && direction != DIR_SELL) return false;
-   if(shift < 1) return false;
+   if(direction!=DIR_BUY && direction!=DIR_SELL)return false;
+   if(close<=0 || currentBand.TOP_BB<=0 || currentBand.MID_BB<=0 ||
+      currentBand.LOW_BB<=0 || currentBand.Width<=0 ||
+      previousBand.TOP_BB<=0 || previousBand.MID_BB<=0 ||
+      previousBand.LOW_BB<=0 || previousBand.Width<=0)return false;
+   if(!(currentBand.Width>previousBand.Width))return false;
+   if(direction==DIR_BUY)
+      return currentBand.MID_BB>previousBand.MID_BB && currentBand.TOP_BB>previousBand.TOP_BB && close>currentBand.TOP_BB;
+   return currentBand.MID_BB<previousBand.MID_BB && currentBand.LOW_BB<previousBand.LOW_BB && close<currentBand.LOW_BB;
+}
 
-   double close = iClose(pair, timeframe, shift);
-   if(close <= 0) return false;
-
-   BollingerBand currentBand, previousBand;
-   ZeroMemory(currentBand);
-   ZeroMemory(previousBand);
-   CalculateBollinger(pair, timeframe, shift, currentBand);
-   CalculateBollinger(pair, timeframe, shift + 1, previousBand);
-
-   if(currentBand.TOP_BB <= 0 || currentBand.MID_BB <= 0 ||
-      currentBand.LOW_BB <= 0 || currentBand.Width <= 0 ||
-      previousBand.TOP_BB <= 0 || previousBand.MID_BB <= 0 ||
-      previousBand.LOW_BB <= 0 || previousBand.Width <= 0)
-      return false;
-
-   bool bbExpanding = (currentBand.Width > previousBand.Width);
-
-   if(direction == DIR_BUY)
+void ReadM10MomentumInputs(string pair,int timeframe,int shift,M10MomentumSnapshot &snapshot)
+{
+   ZeroMemory(snapshot);snapshot.symbol=pair;snapshot.timeframe=timeframe;
+   if(shift<1)return;
+   snapshot.sourceBar=iTime(pair,timeframe,shift);
+   snapshot.ready=snapshot.sourceBar>0 && iTime(pair,timeframe,0)>snapshot.sourceBar && iBars(pair,timeframe)>=shift+BB_PERIOD;
+   for(int i=0;i<=BB_PERIOD;i++)
    {
-      bool bbDirectional = (currentBand.MID_BB > previousBand.MID_BB &&
-                            currentBand.TOP_BB > previousBand.TOP_BB);
-      return (bbExpanding && bbDirectional && close > currentBand.TOP_BB);
+      snapshot.times[i]=iTime(pair,timeframe,shift+i);
+      snapshot.closes[i]=iClose(pair,timeframe,shift+i);
+      if(snapshot.times[i]<=0 || snapshot.closes[i]<=0 || !MathIsValidNumber(snapshot.closes[i]) ||
+         (i>0 && snapshot.times[i]>=snapshot.times[i-1]))snapshot.ready=false;
    }
+}
 
-   bool bbDirectional = (currentBand.MID_BB < previousBand.MID_BB &&
-                         currentBand.LOW_BB < previousBand.LOW_BB);
-   return (bbExpanding && bbDirectional && close < currentBand.LOW_BB);
+bool SameM10MomentumInputs(M10MomentumSnapshot &a,M10MomentumSnapshot &b)
+{
+   if(!a.ready || !b.ready || a.symbol!=b.symbol || a.timeframe!=b.timeframe || a.sourceBar!=b.sourceBar)return false;
+   for(int i=0;i<=BB_PERIOD;i++)if(a.times[i]!=b.times[i] || a.closes[i]!=b.closes[i])return false;
+   return true;
+}
+
+bool ReadM10MomentumSnapshot(string pair,int timeframe,int shift,M10MomentumSnapshot &snapshot)
+{
+   ReadM10MomentumInputs(pair,timeframe,shift,snapshot);
+   if(shift<1 || snapshot.closes[0]<=0)return false;
+   int slot=CustomTFIndex(timeframe);int pairIndex=-1;
+   for(int i=0;i<g_pair_count;i++)if(g_pair_states[i].actual_symbol==pair){pairIndex=i;break;}
+   if(slot>=0 && shift>1)slot+=7;
+   if(pairIndex>=0 && slot>=0 && SameM10MomentumInputs(snapshot,g_pair_states[pairIndex].m10_momentum[slot]))
+   {snapshot=g_pair_states[pairIndex].m10_momentum[slot];return true;}
+   CalculateBollinger(pair,timeframe,shift,snapshot.currentBand);
+   CalculateBollinger(pair,timeframe,shift+1,snapshot.previousBand);
+   snapshot.buy=M10_ClassifyMomentum(snapshot.closes[0],snapshot.currentBand,snapshot.previousBand,DIR_BUY);
+   snapshot.sell=M10_ClassifyMomentum(snapshot.closes[0],snapshot.currentBand,snapshot.previousBand,DIR_SELL);
+   // Fence history revisions during the read; incomplete results are never cached.
+   M10MomentumSnapshot after;ReadM10MomentumInputs(pair,timeframe,shift,after);
+   snapshot.ready=SameM10MomentumInputs(snapshot,after);
+   if(snapshot.ready && pairIndex>=0 && slot>=0)g_pair_states[pairIndex].m10_momentum[slot]=snapshot;
+   return snapshot.ready;
+}
+
+bool DetectCSM(string pair,int timeframe,ENUM_DIRECTION direction,int shift)
+{
+   if((direction!=DIR_BUY && direction!=DIR_SELL) || shift<1)return false;
+   M10MomentumSnapshot snapshot;ReadM10MomentumSnapshot(pair,timeframe,shift,snapshot);
+   // Preserve canonical numeric behavior even when custom history provenance is unready.
+   return direction==DIR_BUY?snapshot.buy:snapshot.sell;
 }
 
 bool CandleBodyCrossesLevel(double open, double close, double level,
@@ -11213,7 +11253,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=6.00 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=6.01 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -14077,6 +14117,22 @@ bool ReadCustomOwnerView(int pairIndex,int tf,string signal,ENUM_DIRECTION direc
    view.symbol=g_pair_states[pairIndex].actual_symbol;
    if(StringLen(view.symbol)==0){view.reason="WAIT_SYMBOL_BINDING";return false;}
    int kind=CustomSignalIndex(signal);
+   if(kind==10)
+   {
+      int slot=CustomTFIndex(tf);
+      if(slot<0){view.reason="TF_OWNER_UNWIRED";return false;}
+      M10MomentumSnapshot mom=g_pair_states[pairIndex].m10_momentum[slot];
+      if(!mom.ready || mom.symbol!=view.symbol || mom.timeframe!=tf || mom.sourceBar!=latest || latest<=0)
+      {view.reason="WAIT_M10_SNAPSHOT";return false;}
+      view.readable=true;view.sourceBar=latest;view.recoveryOnly=true;
+      view.structuralValid=direction==DIR_BUY?mom.buy:mom.sell;
+      if(view.structuralValid)
+      {
+         view.confirmation=latest;
+         view.eventId=IntegerToString(StringLen(view.symbol))+":"+view.symbol+"|MOM|"+IntegerToString(tf)+"|"+IntegerToString(direction)+"|"+IntegerToString(latest);
+      }
+      view.reason="READ_ONLY_M10_SNAPSHOT";return true;
+   }
    if(kind==6 || kind==7)
    {
       if(tf!=PERIOD_M15){view.reason="TF_OWNER_UNWIRED";return false;}
@@ -14155,6 +14211,15 @@ void ObserveCustomClosedBars(int pairIndex)
       bool needsLifecycle=false;
       for(int supported=0;supported<=5;supported++)
          if(g_custom_use.signalEnabled[producer*11+supported]){needsLifecycle=true;break;}
+      if(g_custom_use.signalEnabled[producer*11+10])
+      {
+         M10MomentumSnapshot momentum;
+         if(!ReadM10MomentumSnapshot(actual,tf,1,momentum) || momentum.sourceBar!=obs[producer].closedOpen)
+         {
+            g_custom_owner_frames[pairIndex].viewCount=0;
+            CompleteCustomClosedBatch(g_custom_clock_states[pairIndex],batch,false);return;
+         }
+      }
       if(!needsLifecycle)continue;
       if(!RefreshCustomRequestedOwners(pairIndex,tf,obs[producer].closedOpen))
       {

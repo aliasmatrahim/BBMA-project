@@ -1,0 +1,39 @@
+{
+  "build": "6.01",
+  "scope": "canonical M09 projection with owner fixtures; no detector/controller invoked",
+  "source_sha256_lf_utf8": "932239b8ec3989aeb396fa2ed6aff5b81206ab033afe4f5e05d2fc372a056dc5",
+  "compiled": {
+    "CustomMHVViewHarness": {
+      "result": "Result: 0 errors, 0 warnings, 653 msec elapsed",
+      "source_sha256_lf_utf8": "c62c4dea867c11cc77a069189461953c0b39411b8d9555a27d8729250ac21103",
+      "ex4_sha256": "126771c02fd091aa0568ebdb55b3496aaa915665fc338fdc4e27be70ec298956"
+    }
+  },
+  "rows": [
+    "0\t09:43:28.070\t2026.08.03 00:00:01  CustomMHVViewHarness GBPUSD,M15: [CUSTOM-MHV] mature_MHV_source_projection PASS",
+    "0\t09:43:28.070\t2026.08.03 00:00:01  CustomMHVViewHarness GBPUSD,M15: [CUSTOM-MHV] MLV_same_canonical_owner PASS",
+    "0\t09:43:28.070\t2026.08.03 00:00:01  CustomMHVViewHarness GBPUSD,M15: [CUSTOM-MHV] unconfirmed_loss_not_mature PASS",
+    "0\t09:43:28.070\t2026.08.03 00:00:01  CustomMHVViewHarness GBPUSD,M15: [CUSTOM-MHV] void_owner_not_valid PASS",
+    "0\t09:43:28.070\t2026.08.03 00:00:01  CustomMHVViewHarness GBPUSD,M15: [CUSTOM-MHV] stale_owner_rejected PASS",
+    "0\t09:43:28.070\t2026.08.03 00:00:01  CustomMHVViewHarness GBPUSD,M15: [CUSTOM-MHV] other_TF_stays_unavailable PASS",
+    "0\t09:43:28.070\t2026.08.03 00:00:01  CustomMHVViewHarness GBPUSD,M15: [CUSTOM-MHV] no_new_direction_alias PASS",
+    "0\t09:43:28.070\t2026.08.03 00:00:01  CustomMHVViewHarness GBPUSD,M15: [CUSTOM-MHV] projection_does_not_mutate PASS",
+    "0\t09:43:28.070\t2026.08.03 00:00:01  CustomMHVViewHarness GBPUSD,M15: [CUSTOM-MHV-SUMMARY] passed=8 failed=0"
+  ],
+  "expected": "passed=8 failed=0",
+  "passed": true,
+  "headers": {
+    "blueprint/source/custom_mtf/CustomClock.mqh": "a012146ba0e863acc324d53bba041f24ac9ddf81486bdeee3f7b3d1f99df1261",
+    "blueprint/source/custom_mtf/CustomFormula.mqh": "891beea1605278a0d072a9d54cc305d75b7c180918679197e5bb82cd436fa92b",
+    "blueprint/source/custom_mtf/CustomIdentity.mqh": "58357dc65c07a684ca14291c9933f7b7880c82f332880f2fd190a3b69b6095e9",
+    "blueprint/source/custom_mtf/CustomInputs.mqh": "2e4cd80bd66e0cfd7255ea643b343a6c08f91b406b1278e772c82ec86f3b8eb2",
+    "blueprint/source/custom_mtf/CustomOwners.mqh": "4851eb723355a806d7ecc7b1522c83897ba6751e4c77030379b2faa384172fd0",
+    "blueprint/source/custom_mtf/CustomPairBinding.mqh": "58cc864aecb8c228f7da8fa51a4e0363e1625aa750c6cf1356b2e6e02cd98da2",
+    "blueprint/source/custom_mtf/CustomSlot.mqh": "a3fffe0a3d8da7076f952a755d7060c6e8b4fc34e3a7445c14852aba71fa56f3",
+    "blueprint/source/custom_mtf/CustomSymbolInputs.mqh": "ac2d8fd5500269cd3821838d56456b2bd857a205545e58c7b307ad57453e35fe",
+    "blueprint/source/custom_mtf/CustomSymbols.mqh": "709aaff7fe4d0a4d24206c7a0d55456ba4b339e63dfc16219321e0b0a91a1630"
+  },
+  "test_headers": {
+    "blueprint/tests/custom_mtf/CustomOwnerTestEquality.mqh": "4d5639b69c9844bc80ada3ce445ab22279999375d88f91338c1cea1ac308a287"
+  }
+}

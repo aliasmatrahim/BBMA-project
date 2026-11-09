@@ -34,7 +34,7 @@ int OnInit()
 {
  g_pair_count=1;InitPairState(g_pair_states[0]);g_pair_states[0].actual_symbol="GBPUSD";g_pair_canonical_scope[0]=true; // Prevalidated canonical H1 owner fixture.
  ArrayResize(g_custom_pair_indices,1);g_custom_pair_indices[0]=0;ZeroMemory(g_custom_use);
- g_custom_use.tfEnabled[0]=true;g_custom_use.tfEnabled[4]=true;g_custom_use.signalEnabled[10]=true;g_custom_use.signalEnabled[44]=true;
+ g_custom_use.tfEnabled[0]=true;g_custom_use.tfEnabled[4]=true;g_custom_use.signalEnabled[8]=true;g_custom_use.signalEnabled[44]=true;
  g_pair_states[0].h1_data.timeframe=PERIOD_H1;g_pair_states[0].h1_data.barIndex=1;g_pair_states[0].h1_data.is_valid=true;g_pair_states[0].h1_data.is_closed=true;g_pair_states[0].h1_data.candle_time=simulatedNow-3600;
  ReEntryData re;ZeroMemory(re);re.Timeframe=PERIOD_H1;re.Direction=DIR_BUY;re.State=RE_STATE_CONFIRMED;re.Type=RE_TYPE_1;re.IsValid=true;re.EntryPrice=1.2;re.ConfirmationCandle=simulatedNow-7200;re.StartCandleTime=simulatedNow-10800;re.LastUpdateCandleTime=simulatedNow-3600;re.EntryCandle=simulatedNow-3600;g_pair_states[0].re_h1_buy_state=re;
  g_processing_time=simulatedNow;ObserveCustomClosedBars(0);Check("driver_primes_without_historical_frame",g_custom_owner_frames[0].viewCount==0 && g_custom_clock_states[0].primed[0]);

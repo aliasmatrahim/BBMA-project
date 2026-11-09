@@ -1,0 +1,35 @@
+{
+  "build": "6.01",
+  "source_sha256_lf_utf8": "932239b8ec3989aeb396fa2ed6aff5b81206ab033afe4f5e05d2fc372a056dc5",
+  "full_local_pytest": {
+    "passed": 73,
+    "failed": 0,
+    "command": "PYTHONPATH=/workspace/scratch/f5ddfbd6f6f6/pytest-deps python3 -m pytest -q"
+  },
+  "predicate_equivalence_cpp": 13125,
+  "native_frozen600_comparisons": 1400,
+  "positive_original_samples": 88,
+  "native_results": {
+    "momentum": 55,
+    "flow": 12,
+    "producer": 22,
+    "recovery": 27,
+    "higher": 23,
+    "owner": 10,
+    "clock": 14,
+    "observer": 4,
+    "mhv": 8,
+    "startup": 4
+  },
+  "compile": "native full EA 0 errors / 0 warnings",
+  "binding": "all source/include/test helper LF hashes matched; momentum/flow harness hashes matched; final clock EX4 equals startup EX4",
+  "initial_runner_failure": "startup runner stale V601_CUSTOM_CANONICAL_TF tag assertion; fixed to V601_M10_MOMENTUM_SNAPSHOT and all four startup cases rerun PASS",
+  "limits": [
+    "M30 remains derived OHLC fixture",
+    "No live reinit/EventSetTimer delivery proof",
+    "No positive two-symbol broker execution",
+    "No custom order activation",
+    "T04-D PARTIAL: CSA/CSAK alias/admission mapping unresolved",
+    "T04-E extra TF M09 producer/replay coverage unavailable"
+  ]
+}

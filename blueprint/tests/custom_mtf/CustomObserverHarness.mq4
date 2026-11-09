@@ -32,7 +32,7 @@ int passed=0,failed=0;
 void Check(string name,bool ok){if(ok)passed++;else failed++;Print("[CUSTOM-OBSERVER] ",name," ",ok?"PASS":"FAIL");}
 int OnInit()
 {
- g_pair_count=1;InitPairState(g_pair_states[0]);g_pair_states[0].actual_symbol="GBPUSD";
+ g_pair_count=1;InitPairState(g_pair_states[0]);g_pair_states[0].actual_symbol="GBPUSD";g_pair_canonical_scope[0]=true; // Prevalidated canonical H1 owner fixture.
  ArrayResize(g_custom_pair_indices,1);g_custom_pair_indices[0]=0;ZeroMemory(g_custom_use);
  g_custom_use.tfEnabled[0]=true;g_custom_use.tfEnabled[4]=true;g_custom_use.signalEnabled[10]=true;g_custom_use.signalEnabled[44]=true;
  g_pair_states[0].h1_data.timeframe=PERIOD_H1;g_pair_states[0].h1_data.barIndex=1;g_pair_states[0].h1_data.is_valid=true;g_pair_states[0].h1_data.is_closed=true;g_pair_states[0].h1_data.candle_time=simulatedNow-3600;

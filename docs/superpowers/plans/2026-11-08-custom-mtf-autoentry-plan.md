@@ -10,7 +10,7 @@
 
 **Spec:** [Approved Design v1](https://chatgpt.com/library?file_id=libfile_0f6f7b676384819198c7e68a3424ed56&account_id=personal). Filename `BBMA_Custom_MTF_Design_Draft_v1_2026-11-07.md`; kandungan v1 diluluskan dalam chat, walaupun header asal masih DRAFT. Laluan repo yang dicadangkan: `docs/superpowers/specs/2026-11-07-custom-mtf-autoentry-design.md`.
 
-**Status:** IMPLEMENTING on `feat/custom-mtf-v1-20261108`, Draft PR #303 / Issue #302. T01–T03 remain partial pending their full exit criteria; configuration milestones include Builds 5.91–5.99. Current evidence and exact remaining work: `blueprint/runtime/custom_mtf/progress.md`. T04 owners/replay/projections are partial; T05–T12 remain pending. No merge, release or trading activation implied.
+**Status:** IMPLEMENTING on `feat/custom-mtf-v1-20261108`, Draft PR #303 / Issue #302. T01–T03 remain partial pending their full exit criteria; configuration milestones include Builds 5.91–6.00. Current evidence and exact remaining work: `blueprint/runtime/custom_mtf/progress.md`. T04 owners/replay/projections are partial; T05–T12 remain pending. No merge, release or trading activation implied.
 
 ## Global Constraints
 
@@ -120,7 +120,7 @@ Checkpoint fields: task ID, issue/PR, owner/base SHA, branch/head SHA, source SH
 
 ## T04 — Closed-bar scheduler dan peluasan canonical owners
 
-Approved subtask queue/status: `blueprint/runtime/custom_mtf/task_queue.md`. T04-A monitor integration verified; T04-B recovery gate HOLD; continue only eligible independent work. Full T04 remains PARTIAL.
+Approved subtask queue/status: `blueprint/runtime/custom_mtf/task_queue.md`. T04-A monitor integration and T04-C requested canonical-TF monitor producers verified; T04-B recovery gate HOLD; continue only eligible independent work. Full T04 remains PARTIAL.
 
 **Files:** MQ4 M06/M07/M08/M09/M10/M11/M12/M27 sections; M15 clock addendum; `blueprint/tests/custom_mtf/CustomClockHarness.mq4`, `blueprint/tests/custom_mtf/clock_expected.json`.
 

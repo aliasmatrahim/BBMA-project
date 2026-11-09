@@ -1,0 +1,8 @@
+{
+  "task": "T04-C requested monitor wiring",
+  "build": "6.00",
+  "command": "PYTHONPATH=/workspace/scratch/f5ddfbd6f6f6/pytest-deps python3 -m pytest -q",
+  "result": "72 passed",
+  "source_sha256_lf_utf8": "9f189bee1d7b0c8520b47e4f3c8ab96c7ebdcb2c0ce8a360b902041eb7e8d0c2",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]"
+}

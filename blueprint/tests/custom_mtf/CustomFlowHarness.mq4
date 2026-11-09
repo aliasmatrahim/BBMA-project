@@ -11,6 +11,7 @@
 #undef OnTick
 #undef OnTimer
 #include "CustomOwnerTestEquality.mqh"
+input bool FlowExpectHigher=false; // Capability expectation for the tested source revision.
 input int FlowStartHour=2; // Chosen by read-only source-history preflight.
 int passed=0,failed=0,ticks=0,advances[3],tickAdvances=0,timerAdvances=0,nonM15=0,simultaneous=0,frames=0;
 bool initialized=false,printed=false,closedOK=true,duplicatesOK=true,orderOK=true,flagsOK=true,unavailableOK=true,canonicalExcluded=true;
@@ -42,7 +43,7 @@ void Finish()
  Check("simultaneous_frame_high_to_low",simultaneous>0 && orderOK);
  Check("only_matching_closed_snapshots",closedOK && frames>=100);
  Check("duplicate_tick_timer_state_stable",duplicatesOK && frames>=100);
- Check("unsupported_and_custom_H1_unavailable",unavailableOK && frames>=100);
+ Check("unsupported_MOM_and_H1_scope",unavailableOK && frames>=100);
  Check("no_entry_or_execution_authority",flagsOK && frames>=100);
  Check("custom_only_never_canonical_dispatch",canonicalExcluded && g_processed_candle_time[0]==0);
  Check("no_broker_orders",OrdersTotal()==0 && OrdersHistoryTotal()==0);
@@ -70,7 +71,12 @@ void OnTick()
  {
   frames++;
   if(frame.views[0].timeframe!=PERIOD_H1 || frame.views[2].timeframe!=PERIOD_M30 || frame.views[6].timeframe!=PERIOD_M5 || frame.views[10].timeframe!=PERIOD_M1)orderOK=false;
-  if(frame.views[0].readable || frame.views[1].readable || frame.views[14].readable || frame.views[15].readable)unavailableOK=false;
+  if(FlowExpectHigher)
+  {
+   if(!g_pair_states[0].h1_data.is_valid || g_pair_states[0].h1_data.candle_time!=GetLatestClosedCandleTime(Symbol(),PERIOD_H1))unavailableOK=false;
+  }
+  else if(frame.views[0].readable || frame.views[1].readable)unavailableOK=false;
+  if(frame.views[14].readable || frame.views[15].readable)unavailableOK=false;
   for(int v=0;v<frame.viewCount;v++)if(frame.views[v].entryEligible || frame.views[v].executionAvailable)flagsOK=false;
  }
  else if(ticks>1)closedOK=false;

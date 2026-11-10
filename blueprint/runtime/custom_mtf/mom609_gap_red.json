@@ -1,0 +1,9 @@
+{
+  "source_sha256_lf": "d74f41d0c85e8ec5e4afdd58728c4cfcaae5765adc128f4aefa849edbfb04c25",
+  "harness_sha256_lf": "5fad9b25d0b1dd4e82a6fc879c5cb270e5193512b514e7f43fe65270e5af3aa8",
+  "rows": [
+    "0\t20:36:49.435\t2026.08.03 00:00:01  CustomMomentumGapHarness GBPUSD,M15: [MOM-GAP-DIAG] ready=false raw=true buy=true currentMid=100.4210526315789 previousMid=99.94736842105263 currentWidth=9.825062643855176 previousWidth=3.994455991791625",
+    "0\t20:36:49.435\t2026.08.03 00:00:01  CustomMomentumGapHarness GBPUSD,M15: [MOM-GAP-SUMMARY] FAIL missing_required_close_rejects_raw_signal"
+  ],
+  "compile": "0 errors / 0 warnings"
+}

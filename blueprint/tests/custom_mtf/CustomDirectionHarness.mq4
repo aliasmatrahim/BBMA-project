@@ -1,5 +1,5 @@
 #property strict
-// Characterization only: synthetic OHLC reads, actual canonical detector bodies.
+// Accepted Close-only characterization: synthetic OHLC, actual canonical detector bodies.
 double fixtureOpen=99,fixtureClose=102;
 double DirectionFixtureOpen(string symbol,int tf,int shift){return fixtureOpen;}
 double DirectionFixtureClose(string symbol,int tf,int shift){return fixtureClose;}
@@ -24,7 +24,7 @@ int OnInit()
  double closes[10]={102,102,100.5,102,100,98,98,99.5,100,102};
  double ma5[10]={101,101,101,101,99.2,99,99,99,100.8,101};
  double ma10[10]={101.5,101.5,101.5,103,99.5,98.5,98.5,98.5,100.5,101.5};
- bool csd[10]={true,false,false,false,false,true,false,false,false,false};
+ bool csd[10]={true,true,false,false,false,true,true,false,false,false};
  bool ecsd[10]={true,true,false,false,true,true,true,false,true,false};
  string names[10]={"buy_full_span","buy_open_above_mid","buy_mid_only","buy_incomplete_ma_pair","buy_close_at_mid","sell_full_span","sell_open_below_mid","sell_mid_only","sell_close_at_mid","invalid_direction"};
  for(int t=0;t<7;t++)for(int c=0;c<10;c++)

@@ -40,3 +40,7 @@ Earlier audits and arithmetic results remain historical evidence of the old impl
 5. Complete the per-signal/per-TF acceptance matrix and integrated T04-F only after dependencies pass. Monitor wiring is not executable availability.
 
 These are implementation/runtime evidence gaps, not a request for the user to re-decide Open. No other new signal-definition conflict is established by this checkpoint. All77 custom semantic availability cells and custom auto-entry remain OFF. No merge, deployment or trading activation.
+
+## Scoped implementation acceptance — 2026-11-10
+
+The baseline implementation-gap statements above describe6.06. SIG-01 eCSD6.07, SIG-02 CSA6.08 and SIG-03 CSAK/CSD6.09 now have bounded predicate/consumer/read-only source acceptance on feat/custom-mtf-v1-20261108. See their dedicated acceptance records and exact hashes/native/controller evidence. The active owner has not been merged/deployed by these tasks. Custom Context/Trigger/physical identity/admission, session/owner-epoch recovery and final execution gates remain pending; all77 availability/custom auto-entry OFF. Do not treat the historical Open ambiguity or6.06 body mapping as an unresolved new source decision.

@@ -2,7 +2,7 @@
 
 ## Active direction decision — 2026-11-10
 
-`../decisions/M10_DIRECTION_CLOSE_ONLY_USER_DECISION_20261110.md` supersedes the historical open-to-close body-span interpretation below. Direction admission uses valid closed price beyond the relevant MA pair, MidBB or both; Open is not a criterion. Implementation is pending: Build6.06 still uses the old body predicates. This is an explicit user semantic decision, not a newly authenticated founder quote. Do not reopen the Open ambiguity or remove unrelated Extreme/MHV body-anchor calculations. MOM and raw-signal/no-direct-entry authority remain unchanged.
+`../decisions/M10_DIRECTION_CLOSE_ONLY_USER_DECISION_20261110.md` supersedes the historical open-to-close body-span interpretation below. Direction admission uses valid closed price beyond the relevant MA pair, MidBB or both; Open is not a criterion. Scoped candidate Build6.09 implements the Close-only direction predicates; active-owner integration and full Custom MTF execution acceptance remain pending. Historical Build6.06 used the old body predicates. This is an explicit user semantic decision, not a newly authenticated founder quote. Do not reopen the Open ambiguity or remove unrelated Extreme/MHV body-anchor calculations. MOM and raw-signal/no-direct-entry authority remain unchanged.
 
 The sections below preserve historical Step3E provenance; their Open/body-span details are not the active target. Follow the linked decision and current task queue for pending implementation/verification.
 
@@ -132,3 +132,7 @@ SIG-01 update2026-11-10: eCSD canonical Close-only implementation accepted in bo
 ## SIG-02 CSA source/context — Build6.08
 
 The user MidBB CSA uses one shared M10 closed-input/fingerprint reader and classifier: BUY Close>MidBB, SELL Close<MidBB. Open/MA/expansion are not criteria;20 valid finalized inputs suffice. Requested read-only snapshots carry symbol/TF/direction/source-candle identity and stay recoveryOnly/non-executable. eCSD is not aliased. Native154/154 and actual-controller210 views accepted in CUSTOM_MTF_CSA_SIGNAL_ACCEPTANCE_20261110.md. CSD/CSAK retains historical body predicate until SIG-03. This is not full M10 or execution acceptance.
+
+## SIG-03 CSAK/CSD source/context — Build6.09 rev002
+
+Canonical DetectCSD now composes the existing Close-pair and MidBB helpers; its signature/consumer ordering stay unchanged. Obsolete direction-body helpers are removed. ReadM10CSAKSnapshot reuses finalized M10 MidBB inputs, existing M06 MA functions and the canonical CSD predicate, fencing20 closes/times and10 High/Low inputs. Its projections remain read-only/recoveryOnly with no entry/trigger/execution authority. Canonical211, context189, characterization141 and bounded actual-controller evidence accepted in CUSTOM_MTF_CSAK_SIGNAL_ACCEPTANCE_20261110.md. This does not complete custom availability/trigger/recovery or integrate/deploy the scoped candidate.

@@ -1,6 +1,6 @@
 # Signal-by-signal acceptance — 2026-11-10
 
-User instruction: finish one signal before moving to the next; do no unrelated task. SIG-01 eCSD is accepted. SIG-02 CSA source/context acceptance is now verified below; SIG-03 CSAK/CSD becomes eligible only after this publication is verified. Shared-consumer regression is part of SIG-01, not development of another signal. Base328d33a0dd4824f4ff3dcb2a2b2823a69e12bc9b / Draft PR303 / feat/custom-mtf-v1-20261108.
+User instruction: finish one signal before moving to the next; do no unrelated task. SIG-01 eCSD, SIG-02 CSA and SIG-03 CSAK/CSD have the bounded VERIFIED acceptances below. Current checkpoint is SIG-03 final publication; SIG-04 MOM becomes eligible only after that publication is verified. Shared-consumer regression is part of SIG-01, not development of another signal. Base328d33a0dd4824f4ff3dcb2a2b2823a69e12bc9b / Draft PR303 / feat/custom-mtf-v1-20261108.
 
 ## SIG-01 eCSD — VERIFIED (bounded canonical signal acceptance)
 
@@ -34,3 +34,7 @@ Acceptance/source lineage, retained initial controller RED, final equal-state pa
 Build6.08, source LF SHA256 f317317f2ba7145990b66340aea6022a385e464e72da4e01be2d71f1c12e7e9c. Native154/154,140 actual closed-history comparisons,210 actual-controller CSA views,14 native regression groups and0E0W compile verified. OFF/ON/baseline6.07 full12,224-row traces identical over16 cycles; no orders. Five targeted cloud functions plus import assertions/py_compile PASS; full pytest not rerun. Final source/include/harness/binary/trace bindings verified. Initial147/7 test assertion failure retained and corrected using StringLen without production changes. Acceptance: CUSTOM_MTF_CSA_SIGNAL_ACCEPTANCE_20261110.md; evidence csa608_native_evidence.json. This closes source/context only, not executable availability, physical trigger dedup or integrated T04.
 
 Next eligible after publication: SIG-03 CSAK/CSD. No later signal developed before SIG-02 closure. No merge/deployment; all77 availability/custom auto-entry OFF.
+
+## SIG-03 CSAK/CSD — VERIFIED (bounded predicate/consumer/read-only context)
+
+Build6.09 rev002, source LF SHA d74f41d0c85e8ec5e4afdd58728c4cfcaae5765adc128f4aefa849edbfb04c25. Canonical211/211, final context189/189, characterization141/141,17 native groups,0E0W. Actual-controller420 combined CSA/CSAK views,16 cycles/12224 scalar rows per case; OFF/ON exact parity. Frozen6.08 differs296 intended H4/M12 Type4 context rows and0 Decision rows; zero attempts.19 source/binary bindings and3 traces verified6212 exit0. Independent review found no material bug; explicit High-only revision test passed7TF. Six cloud test functions/import assertions/py_compile PASS; full pytest unavailable. Acceptance CUSTOM_MTF_CSAK_SIGNAL_ACCEPTANCE_20261110.md; next only SIG-04 MOM after final publication. All77/custom executable availability OFF; no merge/deployment. Historical paragraphs naming earlier active signals are retained chronology, not current scheduling authority.

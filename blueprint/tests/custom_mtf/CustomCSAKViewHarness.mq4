@@ -1,7 +1,7 @@
 #property strict
 // Real M10/observer with controlled platform series; actual history is checked separately.
 datetime fixtureNow=D'2026.08.03 10:00';int fixtureBars=40,openReads=0,closeReads=0;
-double fixtureClose=102;int missingShift=-1;double fixtureHighMA=100,fixtureLowMA=100;int missingHighShift=-1;bool badChronology=false,mutateDuringRead=false;
+double fixtureClose=102;int missingShift=-1;double fixtureHighMA=100,fixtureLowMA=100;int missingHighShift=-1;double fixtureHighValue=110;bool mutateHighDuringMA=false;bool badChronology=false,mutateDuringRead=false;
 bool IsCSAFixture(string s){return s=="CSA_A" || s=="CSA_B";}
 datetime CSATime(string s,int tf,int shift)
 {
@@ -21,11 +21,11 @@ double CSAClose(string s,int tf,int shift)
 int CSABars(string s,int tf){return IsCSAFixture(s)?fixtureBars:iBars(s,tf);}
 double CSAOpen(string s,int tf,int shift){if(IsCSAFixture(s)){openReads++;return 300;}return iOpen(s,tf,shift);}
 double CSAMarketInfo(string s,int mode){if(IsCSAFixture(s)&&mode==MODE_TIME)return (double)fixtureNow;return MarketInfo(s,mode);}
-double CSAHigh(string s,int tf,int shift){if(IsCSAFixture(s))return shift==missingHighShift?0:110;return iHigh(s,tf,shift);}
+double CSAHigh(string s,int tf,int shift){if(IsCSAFixture(s))return shift==missingHighShift?0:fixtureHighValue;return iHigh(s,tf,shift);}
 double CSALow(string s,int tf,int shift){if(IsCSAFixture(s))return 90;return iLow(s,tf,shift);}
 double CSAMA(string s,int tf,int period,int maShift,int method,int price,int shift)
 {
- if(IsCSAFixture(s))return price==PRICE_HIGH?fixtureHighMA:fixtureLowMA;
+ if(IsCSAFixture(s)){if(mutateHighDuringMA && price==PRICE_HIGH)fixtureHighValue=111;return price==PRICE_HIGH?fixtureHighMA:fixtureLowMA;}
  return iMA(s,tf,period,maShift,method,price,shift);
 }
 #define iHigh CSAHigh
@@ -58,7 +58,7 @@ void Check(string label,bool ok){if(ok)passed++;else failed++;Print("[CUSTOM-CSA
 void ResetSources()
 {
  for(int p=0;p<g_pair_count;p++)for(int i=0;i<14;i++){ZeroMemory(g_pair_states[p].m10_csak[i]);ZeroMemory(g_pair_states[p].m10_csa[i]);ZeroMemory(g_pair_states[p].m10_momentum[i]);}
- fixtureHighMA=100;fixtureLowMA=100;missingHighShift=-1;fixtureBars=40;fixtureClose=102;missingShift=-1;badChronology=false;mutateDuringRead=false;closeReads=0;openReads=0;
+ fixtureHighValue=110;mutateHighDuringMA=false;fixtureHighMA=100;fixtureLowMA=100;missingHighShift=-1;fixtureBars=40;fixtureClose=102;missingShift=-1;badChronology=false;mutateDuringRead=false;closeReads=0;openReads=0;
 }
 int OnInit()
 {
@@ -109,6 +109,9 @@ int OnInit()
   Check(label+"missing_high_unavailable",!ReadM10CSAKSnapshot("CSA_A",tf,1,other));
   ResetSources();fixtureHighMA=0;
   Check(label+"missing_MA_unavailable",!ReadM10CSAKSnapshot("CSA_A",tf,1,other));
+  ResetSources();
+  ResetSources();mutateHighDuringMA=true;
+  Check(label+"High_only_revision_during_MA_read_rejected",!ReadM10CSAKSnapshot("CSA_A",tf,1,other) && !g_pair_states[0].m10_csak[t].ready);
   ResetSources();
   bool ready=true,equivalent=true;int positive=0;
   for(int shift=1;shift<=10;shift++)

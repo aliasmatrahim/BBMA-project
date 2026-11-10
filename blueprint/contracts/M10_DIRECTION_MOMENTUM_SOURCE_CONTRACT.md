@@ -1,6 +1,12 @@
 # M10 BBMA Direction / Momentum Source Contract
 
-## Status
+## Active direction decision — 2026-11-10
+
+`../decisions/M10_DIRECTION_CLOSE_ONLY_USER_DECISION_20261110.md` supersedes the historical open-to-close body-span interpretation below. Direction admission uses valid closed price beyond the relevant MA pair, MidBB or both; Open is not a criterion. Implementation is pending: Build6.06 still uses the old body predicates. This is an explicit user semantic decision, not a newly authenticated founder quote. Do not reopen the Open ambiguity or remove unrelated Extreme/MHV body-anchor calculations. MOM and raw-signal/no-direct-entry authority remain unchanged.
+
+The sections below preserve historical Step3E provenance; their Open/body-span details are not the active target. Follow the linked decision and current task queue for pending implementation/verification.
+
+## Historical status
 P0 Step 3E source-alignment contract for Module 10.
 
 The user-supplied BBMA PDFs govern BBMA strategy semantics. `Oma ally BBMA - AL.pdf` is the primary operational reference; `BBMA technique.pdf` is secondary corroboration.

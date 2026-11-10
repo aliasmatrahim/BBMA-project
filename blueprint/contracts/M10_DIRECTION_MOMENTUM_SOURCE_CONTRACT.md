@@ -126,3 +126,5 @@ Do not merge to `main` until the full blueprint audit is clean and explicitly ap
 ## Sequential implementation candidate — Build6.07 / SIG-01
 
 eCSD alone now targets the accepted MA-pair Close-only predicate and rejects shift0/negative. Its raw predicate may overlap stronger direction, as before; existing collector precedence is unchanged. CSD/CSAK retains historical body code until its own sequential task. The canonical function signature is unchanged; no new custom eCSD token or executable availability is added. Source validation remains in progress until the SIG-01 acceptance checklist closes. No other signal is being migrated in this patch.
+
+SIG-01 update2026-11-10: eCSD canonical Close-only implementation accepted in bounded Build6.07 scope; see CUSTOM_MTF_ECSD_SIGNAL_ACCEPTANCE_20261110.md and exact native/controller/source proofs. CSD/CSAK and user MidBB CSA remain separate pending tasks; this is not complete M10/custom execution acceptance.

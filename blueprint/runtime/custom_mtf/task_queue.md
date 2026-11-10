@@ -1,6 +1,6 @@
 # Approved Custom MTF queue — 2026-11-10
 
-Active user sequence override2026-11-10: SIG-01 eCSD is the only development task. Finish its source/consumer/native acceptance and checkpoint before CSA, CSAK or any other signal. Affected regression belongs to SIG-01. Details: CUSTOM_MTF_SIGNAL_SERIAL_ACCEPTANCE_20261110.md.
+Active user sequence override2026-11-10: SIG-01 canonical eCSD scoped acceptance VERIFIED on Build6.07; final publication must verify before SIG-02 CSA is started. No other signal was developed before SIG-01 closure. Affected regression belongs to SIG-01. Details: CUSTOM_MTF_SIGNAL_SERIAL_ACCEPTANCE_20261110.md.
 
 Authority: user approved continuous execution with checkpoint after each task. This is a scoped workstream queue, not a replacement for the canonical MASTER_QUEUE. Source/branch authority and dependencies remain mandatory. Auto-entry/availability remain OFF; no merge or trading activation.
 
@@ -39,3 +39,5 @@ Internet2026-11-10: primary researcher formula recovered (MidBB body cross plus 
 2026-11-10 three-formula comparison completed in offline/source-review scope: current code matches locked F1; no founder-exclusive numeric open/equality decision. F2 event ambiguity and F1/F3 geometry/equality differences documented. T04-D/B/E/F statuses unchanged. See CUSTOM_MTF_THREE_FORMULA_CORE_COMPARISON_20261110.md for verified arithmetic and exact next action.
 
 2026-11-10 USER DECISION supersedes earlier Open HOLD entries: Close-only direction accepted; no more Open source search. Implementation has not yet changed. Next eligible work is the shared canonical M10 patch and affected regression, then CSA/CSAK owner/materialization acceptance. B/E session/epoch recovery and F/T05 dependencies remain gated; all77 availability/auto-entry OFF.
+
+SIG-01 acceptance2026-11-10: eCSD Close-only canonical source190 native/140 actual closed-history comparisons, native compile0/0,11 affected regressions, cloud76/76, full controller parity16 M15 cycles PASS. Current tested code3c14938; acceptance limits and initial RED in CUSTOM_MTF_ECSD_SIGNAL_ACCEPTANCE_20261110.md. Next eligible SIG-02 CSA after publication; CSD/CSAK still requires its own Close-only migration. No T04-D/F or execution availability promotion.

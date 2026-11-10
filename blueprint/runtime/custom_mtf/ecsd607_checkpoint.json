@@ -1,6 +1,6 @@
 {
   "task": "SIG-01-eCSD",
-  "status": "IN_PROGRESS",
+  "status": "VERIFIED: canonical eCSD scoped acceptance",
   "base_commit": "328d33a0dd4824f4ff3dcb2a2b2823a69e12bc9b",
   "build": "6.07",
   "source_sha256_lf": "3c2745e4fd9d0d84c66c6e5442388f0d8de05ccb211fff81bd4ed38a2e310b44",
@@ -14,8 +14,20 @@
     "M30": "derived complete-bucket OHLC fixture"
   },
   "native_regression": "11 affected groups PASS, G40 process13040 exit0",
-  "controller": "Initial OFF/ON mismatch in8 H4Owner.RecoveredFromCheckpoint fields. Case checkpoint carry-over identified; test-only isolated H4 checkpoint reset added. Final rerun pending. No field excluded or production guard altered.",
+  "controller": {
+    "parity": true,
+    "cycles_per_case": 16,
+    "rows_per_trace": 12224,
+    "valid_decisions": 0,
+    "order_attempts": 0,
+    "baseline_build": "6.06",
+    "old_new_difference_rows": 136,
+    "initial_red_mismatches": 8,
+    "root_cause": "case-to-case persisted H4 checkpoint; test-only fixture reset, production recovery unchanged",
+    "scope": "actual tester controller window, no live timer/session/cold-start or positive-entry proof"
+  },
   "auto_entry": false,
   "next_signal_started": false,
-  "next_action": "Finish current controller comparison and exact manifest/binary/trace binding before SIG-01 accepted; no other signal development."
+  "next_action": "Verify final checkpoint publication, then SIG-02 CSA user MidBB direction; no other signal development before SIG-01 closure",
+  "tested_code_commit": "3c14938b8e2c2ab79d47101e61a8d90362a94091"
 }

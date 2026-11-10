@@ -293,7 +293,7 @@ int OnInit()
  if(MonitorRequested)
  {
   g_custom_pair_indices[0]=0;
-  for(int tf=0;tf<7;tf++){g_custom_use.tfEnabled[tf]=true;g_custom_use.signalEnabled[tf*11+6]=true;g_custom_use.signalEnabled[tf*11+7]=true;g_custom_use.signalEnabled[tf*11+10]=true;g_custom_use.signalEnabled[tf*11+8]=true;}
+  for(int tf=0;tf<7;tf++){g_custom_use.tfEnabled[tf]=true;g_custom_use.signalEnabled[tf*11+6]=true;g_custom_use.signalEnabled[tf*11+7]=true;g_custom_use.signalEnabled[tf*11+10]=true;g_custom_use.signalEnabled[tf*11+8]=true;g_custom_use.signalEnabled[tf*11+9]=true;}
  }
  startAt=StringToTime(TimeToString(TimeCurrent(),TIME_DATE))+7200;endAt=startAt+14400;
  return INIT_SUCCEEDED;
@@ -325,16 +325,22 @@ void OnTick()
   int found=0;
   for(int v=0;v<g_custom_owner_frames[0].viewCount;v++)
   {
-   CustomOwnerView view=g_custom_owner_frames[0].views[v];if(view.signal!="CSA")continue;
+   CustomOwnerView view=g_custom_owner_frames[0].views[v];if(view.signal!="CSA" && view.signal!="CSAK")continue;
    found++;csaViews++;
    datetime latest=iTime(Symbol(),view.timeframe,1);
    double close=iClose(Symbol(),view.timeframe,1),mid=iMA(Symbol(),view.timeframe,20,0,MODE_SMA,PRICE_CLOSE,1);
    bool expected=view.direction==DIR_BUY?close>mid:close<mid;
+   if(view.signal=="CSAK")
+   {
+    int price=view.direction==DIR_BUY?PRICE_HIGH:PRICE_LOW;
+    double ma5=iMA(Symbol(),view.timeframe,5,0,MODE_LWMA,price,1),ma10=iMA(Symbol(),view.timeframe,10,0,MODE_LWMA,price,1);
+    expected=expected && (view.direction==DIR_BUY?(close>ma5 && close>ma10):(close<ma5 && close<ma10));
+   }
    if(!view.readable || view.sourceBar!=latest || view.structuralValid!=expected || !view.recoveryOnly || view.entryWindowOpen || view.entryEligible || view.executionAvailable || close<=0 || mid<=0)csaOK=false;
    if(expected && (view.confirmation!=latest || StringLen(view.eventId)==0))csaOK=false;
    if(!expected && (view.confirmation!=0 || StringLen(view.eventId)>0))csaOK=false;
   }
-  if(found!=14)csaOK=false;
+  if(found!=28)csaOK=false;
  }
 #endif
  TraceDecision("Decision",g_pair_states[0].last_decision);

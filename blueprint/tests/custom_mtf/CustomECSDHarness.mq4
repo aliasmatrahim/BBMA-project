@@ -43,8 +43,8 @@ int OnInit()
   fixtureClose=102;ma.MA5_High=0;Check(tag+"_missing_ma5_rejected",!DetectECSD("ECSD_FIXTURE",tf,DIR_BUY,1,ma));
   ma.MA5_High=101;ma.MA10_High=0;Check(tag+"_missing_ma10_rejected",!DetectECSD("ECSD_FIXTURE",tf,DIR_BUY,1,ma));ma.MA10_High=101.5;
   fixtureOpen=105;openReads=0;BollingerBand bb;ZeroMemory(bb);bb.MID_BB=100;
-  Check(tag+"_CSD_not_migrated",!DetectCSD("ECSD_FIXTURE",tf,DIR_BUY,1,ma,bb));
-  Check(tag+"_CSD_control_reads_open",openReads>0);
+  Check(tag+"_CSD_close_only",DetectCSD("ECSD_FIXTURE",tf,DIR_BUY,1,ma,bb));
+  Check(tag+"_CSD_control_no_open_access",openReads==0);
  }
  for(int realTF=0;realTF<7;realTF++)
  {
@@ -68,7 +68,7 @@ int OnInit()
   Print("[CUSTOM-ECSD-DATA] tf=",sourceTF," comparisons=20 positives=",positives);
  }
  TimeframeData data;ZeroMemory(data);data.is_valid=true;data.is_closed=true;data.barIndex=1;data.timeframe=PERIOD_D1;data.candle_time=D'2026.08.03 00:00';
- data.ma[0]=101;data.ma[1]=101.5;data.ma[2]=99;data.ma[3]=98.5;data.bollinger[0]=200;data.bollinger[1]=100;data.bollinger[2]=50;
+ data.ma[0]=101;data.ma[1]=101.5;data.ma[2]=99;data.ma[3]=98.5;data.bollinger[0]=200;data.bollinger[1]=103;data.bollinger[2]=50;
  fixtureOpen=105;fixtureClose=102;
  Check("D1_watch_delegates_closed_predicate",DetectD1OpportunityECSDWatch("ECSD_FIXTURE",data,DIR_BUY));
  data.timeframe=PERIOD_M15;

@@ -10,7 +10,7 @@ def test_ecsd_close_only_and_closed_shift():
   while depth:
    depth+=(s[i]=='{')-(s[i]=='}');i+=1
   return s[m.start():i]
- names=['CandleBodyCrossesLevel','M10_CandleBodyCrossesMAPair']
+ names=[]
  if 'bool M10_CandleClosesBeyondMAPair(' in s:names+=['M10_CandleClosesBeyondMAPair']
  names+=['DetectECSD']
  code='''#include <string>

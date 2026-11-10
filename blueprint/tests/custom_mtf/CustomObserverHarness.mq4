@@ -4,6 +4,7 @@ input bool ObserverM09=false;
 datetime simulatedNow=D'2026.08.03 10:00';datetime simulatedQuote=simulatedNow;datetime m1Open=simulatedNow;
 datetime ObserverTime(string symbol,int timeframe,int shift)
 {
+ if(timeframe==PERIOD_M1 && shift>=0 && shift<51)return m1Open-shift*60;
  if(shift>1)return 0;
  if(timeframe==PERIOD_M1)return shift==0?m1Open:m1Open-60;
  if(timeframe==PERIOD_M15)return shift==0?D'2026.08.03 10:00':D'2026.08.03 09:45';
@@ -11,6 +12,16 @@ datetime ObserverTime(string symbol,int timeframe,int shift)
  return 0;
 }
 double ObserverMarketInfo(string symbol,int mode){if(mode==MODE_TIME)return (double)simulatedQuote;return 0;}
+int ObserverBars(string symbol,int tf){return tf==PERIOD_M1?51:iBars(symbol,tf);}
+double ObserverClose(string symbol,int tf,int shift){return tf==PERIOD_M1?1.5:iClose(symbol,tf,shift);}
+double ObserverHigh(string symbol,int tf,int shift){return tf==PERIOD_M1?1.6:iHigh(symbol,tf,shift);}
+double ObserverLow(string symbol,int tf,int shift){return tf==PERIOD_M1?1.4:iLow(symbol,tf,shift);}
+double ObserverMA(string symbol,int tf,int period,int offset,int method,int price,int shift){if(tf==PERIOD_M1)return price==PRICE_HIGH?1.6:(price==PRICE_LOW?1.4:1.5);return iMA(symbol,tf,period,offset,method,price,shift);}
+#define iBars ObserverBars
+#define iClose ObserverClose
+#define iHigh ObserverHigh
+#define iLow ObserverLow
+#define iMA ObserverMA
 #define iTime ObserverTime
 #define MarketInfo ObserverMarketInfo
 #define OnInit CanonicalOnInit
@@ -18,6 +29,11 @@ double ObserverMarketInfo(string symbol,int mode){if(mode==MODE_TIME)return (dou
 #define OnTick CanonicalOnTick
 #define OnTimer CanonicalOnTimer
 #include "..\\..\\source\\BBMA_EA.mq4"
+#undef iBars
+#undef iClose
+#undef iHigh
+#undef iLow
+#undef iMA
 #undef iTime
 #undef MarketInfo
 #undef OnInit
@@ -57,7 +73,7 @@ int OnInit()
  g_processing_time=simulatedNow;ObserveCustomClosedBars(0);Check("driver_primes_without_historical_frame",g_custom_owner_frames[0].viewCount==0 && g_custom_clock_states[0].primed[0]);
  simulatedNow+=60;simulatedQuote=simulatedNow;m1Open=simulatedNow;g_processing_time=simulatedNow;ObserveCustomClosedBars(0);
  bool frameReady=g_custom_owner_frames[0].viewCount==4;
- Check("M1_event_projects_current_H1_owner",frameReady && g_custom_owner_frames[0].observedAt==simulatedNow && g_custom_owner_frames[0].views[0].timeframe==PERIOD_H1 && g_custom_owner_frames[0].views[0].structuralValid && !g_custom_owner_frames[0].views[0].entryEligible && !g_custom_owner_frames[0].views[2].readable);
+ Check("M1_event_projects_current_H1_owner",frameReady && g_custom_owner_frames[0].observedAt==simulatedNow && g_custom_owner_frames[0].views[0].timeframe==PERIOD_H1 && g_custom_owner_frames[0].views[0].structuralValid && !g_custom_owner_frames[0].views[0].entryEligible && g_custom_owner_frames[0].views[2].readable && !g_custom_owner_frames[0].views[2].structuralValid && !g_custom_owner_frames[0].views[2].entryEligible);
  datetime epoch=g_custom_owner_frames[0].observedAt;simulatedNow++;simulatedQuote=simulatedNow;g_processing_time=simulatedNow;ObserveCustomClosedBars(0);
  Check("duplicate_does_not_relabel_snapshot",g_custom_owner_frames[0].viewCount==4 && g_custom_owner_frames[0].observedAt==epoch);
  simulatedQuote=D'2026.08.03 09:59';ObserveCustomClosedBars(0);

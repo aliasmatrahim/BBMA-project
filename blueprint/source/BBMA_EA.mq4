@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 6.0.8 - CSA MidBB Source View        |
+//| Version 6.0.9 - CSAK Close-Only Direction     |
 //| SIGNAL VALIDATION IN PROGRESS - CUSTOM ORDERS OFF          |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,14 +31,14 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "6.08"
+#property version   "6.09"
 #property strict
 #include "custom_mtf/CustomInputs.mqh"
 #include "custom_mtf/CustomPairBinding.mqh"
 #include "custom_mtf/CustomClock.mqh"
 
-#define BBMA_BUILD_TAG      "V608_CSA_MIDBB_SOURCE_20261110"
-#define BBMA_SOURCE_REV_TAG "CSA_MIDBB_SOURCE_001_20261110"
+#define BBMA_BUILD_TAG      "V609_CSAK_CLOSE_ONLY_20261110"
+#define BBMA_SOURCE_REV_TAG "CSAK_CLOSE_ONLY_002_20261110"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -1014,6 +1014,7 @@ struct PairState
    CustomAuxLifecycle   custom_aux[3]; // M1 / M5 / M30; symbol-local lifecycle
    M10MomentumSnapshot m10_momentum[14]; // Seven current + seven historical queries, symbol isolated
    M10MomentumSnapshot m10_csa[14]; // Same M10 input/fingerprint machinery; MidBB-only source results
+   M10MomentumSnapshot m10_csak[14]; // Read-only result of the canonical CSD predicate
    MLVData custom_higher_mhv_buy[3]; // D1 / H4 / H1, custom-only monitor owners
    MLVData custom_higher_mhv_sell[3];
    bool canonical_mhv_observed[3]; // Verified monitor producer stamp; not entry authority
@@ -3674,48 +3675,6 @@ bool ReadM10CSASnapshot(string pair,int timeframe,int shift,M10MomentumSnapshot 
    return true;
 }
 
-bool CandleBodyCrossesLevel(double open, double close, double level,
-                            ENUM_DIRECTION direction)
-{
-   if(open <= 0 || close <= 0 || level <= 0) return false;
-
-   if(direction == DIR_BUY)
-      return (open <= level && close > level);
-
-   if(direction == DIR_SELL)
-      return (open >= level && close < level);
-
-   return false;
-}
-
-bool M10_CandleBodyCrossesMAPair(double open, double close, double ma5, double ma10,
-                                ENUM_DIRECTION direction)
-{
-   // Shared engineering body-cross mapping; no standalone entry authority.
-   return CandleBodyCrossesLevel(open, close, ma5, direction) &&
-          CandleBodyCrossesLevel(open, close, ma10, direction);
-}
-
-bool DetectCSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
-               MovingAverage &ma, BollingerBand &band)
-{
-   double open = iOpen(pair, timeframe, shift);
-   double close = iClose(pair, timeframe, shift);
-   if(open <= 0 || close <= 0 || band.MID_BB <= 0) return false;
-   if(direction != DIR_BUY && direction != DIR_SELL) return false;
-
-   if(direction == DIR_BUY)
-   {
-      if(ma.MA5_High <= 0 || ma.MA10_High <= 0) return false;
-      return M10_CandleBodyCrossesMAPair(open, close, ma.MA5_High, ma.MA10_High, direction) &&
-             CandleBodyCrossesLevel(open, close, band.MID_BB, direction);
-   }
-
-   if(ma.MA5_Low <= 0 || ma.MA10_Low <= 0) return false;
-   return M10_CandleBodyCrossesMAPair(open, close, ma.MA5_Low, ma.MA10_Low, direction) &&
-          CandleBodyCrossesLevel(open, close, band.MID_BB, direction);
-}
-
 bool M10_CandleClosesBeyondMAPair(double close, double ma5, double ma10,
                                   ENUM_DIRECTION direction)
 {
@@ -3723,6 +3682,21 @@ bool M10_CandleClosesBeyondMAPair(double close, double ma5, double ma10,
    if(direction == DIR_BUY) return (close > ma5 && close > ma10);
    if(direction == DIR_SELL) return (close < ma5 && close < ma10);
    return false;
+}
+
+bool DetectCSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
+               MovingAverage &ma, BollingerBand &band)
+{
+   if(shift < 1 || (direction != DIR_BUY && direction != DIR_SELL)) return false;
+   double close = iClose(pair, timeframe, shift);
+   if(!M10_CandleClosesBeyondMid(close, band.MID_BB, direction)) return false;
+   if(direction == DIR_BUY)
+   {
+      if(!MathIsValidNumber(ma.MA5_High) || !MathIsValidNumber(ma.MA10_High)) return false;
+      return M10_CandleClosesBeyondMAPair(close, ma.MA5_High, ma.MA10_High, direction);
+   }
+   if(!MathIsValidNumber(ma.MA5_Low) || !MathIsValidNumber(ma.MA10_Low)) return false;
+   return M10_CandleClosesBeyondMAPair(close, ma.MA5_Low, ma.MA10_Low, direction);
 }
 
 bool DetectECSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
@@ -3733,6 +3707,40 @@ bool DetectECSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
    if(direction == DIR_BUY)
       return M10_CandleClosesBeyondMAPair(close, ma.MA5_High, ma.MA10_High, direction);
    return M10_CandleClosesBeyondMAPair(close, ma.MA5_Low, ma.MA10_Low, direction);
+}
+
+bool ReadM10CSAKSnapshot(string pair,int timeframe,int shift,M10MomentumSnapshot &snapshot)
+{
+   // M10 owns classification; reuse its finalized MidBB inputs and M06 MA functions.
+   if(!ReadM10CSASnapshot(pair,timeframe,shift,snapshot)) return false;
+   double highs[10]={0},lows[10]={0};
+   for(int i=0;i<10;i++)
+   {
+      highs[i]=iHigh(pair,timeframe,shift+i);lows[i]=iLow(pair,timeframe,shift+i);
+      if(highs[i]<=0 || lows[i]<=0 || !MathIsValidNumber(highs[i]) ||
+         !MathIsValidNumber(lows[i]) || highs[i]<lows[i])
+      {snapshot.ready=false;return false;}
+   }
+   MovingAverage ma;ZeroMemory(ma);
+   ma.MA5_High=BBMAHighMA(pair,timeframe,MA5_HIGH_PERIOD,shift);
+   ma.MA10_High=BBMAHighMA(pair,timeframe,MA10_HIGH_PERIOD,shift);
+   ma.MA5_Low=BBMALowMA(pair,timeframe,MA5_LOW_PERIOD,shift);
+   ma.MA10_Low=BBMALowMA(pair,timeframe,MA10_LOW_PERIOD,shift);
+   if(ma.MA5_High<=0 || ma.MA10_High<=0 || ma.MA5_Low<=0 || ma.MA10_Low<=0 ||
+      !MathIsValidNumber(ma.MA5_High) || !MathIsValidNumber(ma.MA10_High) ||
+      !MathIsValidNumber(ma.MA5_Low) || !MathIsValidNumber(ma.MA10_Low))
+   {snapshot.ready=false;return false;}
+   snapshot.buy=DetectCSD(pair,timeframe,DIR_BUY,shift,ma,snapshot.currentBand);
+   snapshot.sell=DetectCSD(pair,timeframe,DIR_SELL,shift,ma,snapshot.currentBand);
+   M10MomentumSnapshot after;ReadM10ClosedInputs(pair,timeframe,shift,BB_PERIOD,after);
+   snapshot.ready=SameM10ClosedInputs(snapshot,after);
+   for(int j=0;j<10;j++)
+      if(highs[j]!=iHigh(pair,timeframe,shift+j) || lows[j]!=iLow(pair,timeframe,shift+j))snapshot.ready=false;
+   if(!snapshot.ready)return false;
+   int slot=CustomTFIndex(timeframe);if(shift>1)slot+=7;
+   for(int p=0;p<g_pair_count;p++)
+      if(g_pair_states[p].actual_symbol==pair){g_pair_states[p].m10_csak[slot]=snapshot;break;}
+   return true;
 }
 
 //+------------------------------------------------------------------+
@@ -11320,7 +11328,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=6.08 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=6.09 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -14319,21 +14327,23 @@ bool ReadCustomOwnerView(int pairIndex,int tf,string signal,ENUM_DIRECTION direc
    view.symbol=g_pair_states[pairIndex].actual_symbol;
    if(StringLen(view.symbol)==0){view.reason="WAIT_SYMBOL_BINDING";return false;}
    int kind=CustomSignalIndex(signal);
-   if(kind==8)
+   if(kind==8 || kind==9)
    {
       int slot=CustomTFIndex(tf);
       if(slot<0){view.reason="TF_OWNER_UNWIRED";return false;}
-      M10MomentumSnapshot csa=g_pair_states[pairIndex].m10_csa[slot];
+      M10MomentumSnapshot csa;
+      if(kind==8)csa=g_pair_states[pairIndex].m10_csa[slot];
+      else csa=g_pair_states[pairIndex].m10_csak[slot];
       if(!csa.ready || csa.symbol!=view.symbol || csa.timeframe!=tf || csa.sourceBar!=latest || latest<=0)
-      {view.reason="WAIT_M10_CSA_SNAPSHOT";return false;}
+      {view.reason=kind==8?"WAIT_M10_CSA_SNAPSHOT":"WAIT_M10_CSAK_SNAPSHOT";return false;}
       view.readable=true;view.sourceBar=latest;view.recoveryOnly=true;
       view.structuralValid=direction==DIR_BUY?csa.buy:csa.sell;
       if(view.structuralValid)
       {
          view.confirmation=latest;
-         view.eventId=IntegerToString(StringLen(view.symbol))+":"+view.symbol+"|CSA|"+IntegerToString(tf)+"|"+IntegerToString(direction)+"|"+IntegerToString(latest);
+         view.eventId=IntegerToString(StringLen(view.symbol))+":"+view.symbol+"|"+signal+"|"+IntegerToString(tf)+"|"+IntegerToString(direction)+"|"+IntegerToString(latest);
       }
-      view.reason="READ_ONLY_M10_CSA_SNAPSHOT";return true;
+      view.reason=kind==8?"READ_ONLY_M10_CSA_SNAPSHOT":"READ_ONLY_M10_CSAK_SNAPSHOT";return true;
    }
    if(kind==10)
    {
@@ -14437,6 +14447,15 @@ void ObserveCustomClosedBars(int pairIndex)
       {
          M10MomentumSnapshot csa;
          if(!ReadM10CSASnapshot(actual,tf,1,csa) || csa.sourceBar!=obs[producer].closedOpen)
+         {
+            g_custom_owner_frames[pairIndex].viewCount=0;
+            CompleteCustomClosedBatch(g_custom_clock_states[pairIndex],batch,false);return;
+         }
+      }
+      if(g_custom_use.signalEnabled[producer*11+9])
+      {
+         M10MomentumSnapshot csak;
+         if(!ReadM10CSAKSnapshot(actual,tf,1,csak) || csak.sourceBar!=obs[producer].closedOpen)
          {
             g_custom_owner_frames[pairIndex].viewCount=0;
             CompleteCustomClosedBatch(g_custom_clock_states[pairIndex],batch,false);return;

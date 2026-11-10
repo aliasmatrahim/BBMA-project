@@ -1,0 +1,17 @@
+{
+  "task": "SIG-03-CSAK-CSD",
+  "status": "IN_PROGRESS regression/controller running; not final acceptance",
+  "base_commit": "2a5ed3113cb76cddaedebaca48183139a21da623",
+  "build": "6.09",
+  "source_rev": "CSAK_CLOSE_ONLY_002_20261110",
+  "source_sha256_lf": "d74f41d0c85e8ec5e4afdd58728c4cfcaae5765adc128f4aefa849edbfb04c25",
+  "canonical_native": 211,
+  "context_native": 182,
+  "native_compile": "0 errors / 0 warnings",
+  "cloud": "6 targeted functions/import assertions/py_compile PASS; full pytest unavailable",
+  "driver_pid": 5580,
+  "driver_path": "D:/BBMA/MT4_CustomMTF_302_Unit/regression_csak609.py",
+  "state_path": "D:/BBMA/MT4_CustomMTF_302_Unit/csak609_regression_state.json",
+  "next_action": "Read existing driver state/logs; do not duplicate. Finish consumer/controller parity and source/hash bindings. No next signal until SIG-03 closure.",
+  "auto_entry": false
+}

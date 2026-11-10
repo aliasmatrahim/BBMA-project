@@ -4,6 +4,11 @@ double fixtureOpen=105,fixtureClose=102;
 int openReads=0;
 double ECSDOpen(string symbol,int tf,int shift){if(symbol=="ECSD_FIXTURE"){openReads++;return fixtureOpen;}return iOpen(symbol,tf,shift);}
 double ECSDClose(string symbol,int tf,int shift){if(symbol=="ECSD_FIXTURE")return fixtureClose;return iClose(symbol,tf,shift);}
+datetime ECSDSourceNow=D'2026.08.03 00:00';
+datetime ECSDTime(string symbol,int tf,int shift){if(symbol=="ECSD_FIXTURE")return shift>=0 && shift<64?ECSDSourceNow-shift*tf*60:0;return iTime(symbol,tf,shift);}
+int ECSDBars(string symbol,int tf){return symbol=="ECSD_FIXTURE"?64:iBars(symbol,tf);}
+#define iTime ECSDTime
+#define iBars ECSDBars
 #define iOpen ECSDOpen
 #define iClose ECSDClose
 #define OnInit CanonicalOnInit
@@ -15,6 +20,8 @@ double ECSDClose(string symbol,int tf,int shift){if(symbol=="ECSD_FIXTURE")retur
 #undef OnDeinit
 #undef OnTick
 #undef OnTimer
+#undef iTime
+#undef iBars
 #undef iOpen
 #undef iClose
 int passed=0,failed=0;
@@ -67,23 +74,23 @@ int OnInit()
   Check(IntegerToString(sourceTF)+"_actual_20_closed_comparisons",equivalent && ready);
   Print("[CUSTOM-ECSD-DATA] tf=",sourceTF," comparisons=20 positives=",positives);
  }
- TimeframeData data;ZeroMemory(data);data.is_valid=true;data.is_closed=true;data.barIndex=1;data.timeframe=PERIOD_D1;data.candle_time=D'2026.08.03 00:00';
+ TimeframeData data;ZeroMemory(data);data.is_valid=true;data.is_closed=true;data.barIndex=1;data.timeframe=PERIOD_D1;data.candle_time=ECSDTime("ECSD_FIXTURE",PERIOD_D1,1);data.close=102;
  data.ma[0]=101;data.ma[1]=101.5;data.ma[2]=99;data.ma[3]=98.5;data.bollinger[0]=200;data.bollinger[1]=103;data.bollinger[2]=50;
  fixtureOpen=105;fixtureClose=102;
  Check("D1_watch_delegates_closed_predicate",DetectD1OpportunityECSDWatch("ECSD_FIXTURE",data,DIR_BUY));
- data.timeframe=PERIOD_M15;
+ data.timeframe=PERIOD_M15;data.candle_time=ECSDTime("ECSD_FIXTURE",PERIOD_M15,1);
  Check("M12_precursor_delegates",DetectReEntryDirectionOwnerSignal("ECSD_FIXTURE",DIR_BUY,data)==SIGNAL_ECSD);
- data.timeframe=PERIOD_H4;
+ data.timeframe=PERIOD_H4;data.candle_time=ECSDTime("ECSD_FIXTURE",PERIOD_H4,1);
  ENUM_SIGNAL_TYPE signal=ClassifyH4AuthoritativeSignal("ECSD_FIXTURE",DIR_BUY,data);
  Check("M11_classification_delegates",signal==SIGNAL_ECSD);
  data.is_closed=false;
  Check("D1_watch_live_data_rejected",!DetectD1OpportunityECSDWatch("ECSD_FIXTURE",data,DIR_BUY));
  Check("M11_live_data_rejected",ClassifyH4AuthoritativeSignal("ECSD_FIXTURE",DIR_BUY,data)==SIGNAL_NONE);
  PairState state;InitPairState(state);
- ApplyH4AuthoritativeEvent(state,DIR_BUY,signal,D'2026.08.03 00:00',false);
- Check("M11_owner_identity",state.h4_direction_owner.SourceSignal==SIGNAL_ECSD && state.h4_direction_owner.Direction==DIR_BUY && state.h4_direction_owner.SourceCandleTime==D'2026.08.03 00:00');
- ApplyH4AuthoritativeEvent(state,DIR_BUY,signal,D'2026.08.03 00:00',false);
- Check("same_candle_owner_identity_stable",state.h4_direction_owner.SourceCandleTime==D'2026.08.03 00:00' && state.h4_direction_owner.Direction==DIR_BUY);
+ ApplyH4AuthoritativeEvent(state,DIR_BUY,signal,data.candle_time,false);
+ Check("M11_owner_identity",state.h4_direction_owner.SourceSignal==SIGNAL_ECSD && state.h4_direction_owner.Direction==DIR_BUY && state.h4_direction_owner.SourceCandleTime==data.candle_time);
+ ApplyH4AuthoritativeEvent(state,DIR_BUY,signal,data.candle_time,false);
+ Check("same_candle_owner_identity_stable",state.h4_direction_owner.SourceCandleTime==data.candle_time && state.h4_direction_owner.Direction==DIR_BUY);
  Check("no_orders",OrdersTotal()==0 && OrdersHistoryTotal()==0);
  Print("[CUSTOM-ECSD-SUMMARY] passed=",passed," failed=",failed);
  return failed==0?INIT_SUCCEEDED:INIT_FAILED;

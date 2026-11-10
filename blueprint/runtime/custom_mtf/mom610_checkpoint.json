@@ -1,0 +1,15 @@
+{
+  "task": "SIG-04-MOM",
+  "status": "IN_PROGRESS: readiness167 verified; affected regression/controller running",
+  "build": "6.10",
+  "source_rev": "MOMENTUM_READINESS_003_20261110",
+  "source_sha256_lf": "ebe3e4155b0ae5211432957ed999e04b58bc0a043b40a23ce76d24257346baae",
+  "base_commit": "3258f00b8df01cbb29018fac22274a65424ce177",
+  "native_readiness": 167,
+  "native_compile": "0 errors / 0 warnings",
+  "driver_pid": 4376,
+  "driver": "D:/BBMA/MT4_CustomMTF_302_Unit/run_mom610_regression.py",
+  "state_path": "D:/BBMA/MT4_CustomMTF_302_Unit/mom610_regression_state.json",
+  "remaining": "Affected regression, controller parity, final source/header/harness/binary/trace bindings; no Extreme or later signal until acceptance",
+  "auto_entry": false
+}

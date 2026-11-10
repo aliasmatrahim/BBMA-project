@@ -34,6 +34,7 @@ template<class T>void ZeroMemory(T &value){value=T();}
 const int PERIOD_M15=15,DIR_BUY=1,DIR_SELL=2;
 struct TimeframeData {int timeframe=60;double bollinger[3]={2,1.5,1};};
 struct BollingerBand {double TOP_BB,MID_BB,LOW_BB,Width;};
+struct M10MomentumSnapshot {};
 struct ExtremeLifecycleData {int Timeframe=60,Direction=1,id=7;datetime LastUpdateCandleTime=36000;};
 struct MLVData {datetime LastUpdateCandleTime=32400;int version=4;};
 struct Progress {datetime lastClosed=0,contextOnlyThrough=0;bool recoveryRequired=false;string recoveryReason;};
@@ -49,7 +50,8 @@ bool IsCustomClosedSourceReady(TimeframeData &d,int tf,datetime latest){return s
 bool LoadCustomCanonicalSource(int p,int tf,TimeframeData &d,CustomAuxLifecycle &o){o=persisted[p];Progress &r=g_pair_states[p].custom_canonical[2];o.recoveryRequired=r.recoveryRequired;o.recoveryReason=r.recoveryReason;return true;}
 void StoreCustomCanonicalSource(int p,int tf,TimeframeData &d,CustomAuxLifecycle &o){stores++;persisted[p]=o;g_pair_states[p].custom_canonical[2]=o;g_pair_states[p].custom_higher_mhv_buy[2]=o.mhvBuy;g_pair_states[p].custom_higher_mhv_sell[2]=o.mhvSell;}
 bool SameExtremeOwnerSnapshot(ExtremeLifecycleData &a,ExtremeLifecycleData &b){return a.id==b.id;}
-void AdvanceMHVSourceOwners(string s,TimeframeData &d,BollingerBand &b,ExtremeLifecycleData &buy,ExtremeLifecycleData &sell,MLVData &mb,MLVData &ms,bool log){updates++;if(mutate){buy.id=19;sell.id=23;}mb.version++;ms.version++;}
+bool ReadM10MomentumSource(string s,TimeframeData &d,M10MomentumSnapshot &m){return sourceReady;}
+bool AdvanceMHVSourceOwners(string s,TimeframeData &d,BollingerBand &b,ExtremeLifecycleData &buy,ExtremeLifecycleData &sell,MLVData &mb,MLVData &ms,bool log){updates++;if(mutate){buy.id=19;sell.id=23;}mb.version++;ms.version++;return true;}
 void reset(){for(int p=0;p<2;p++){g_pair_states[p]=Pair();persisted[p]=CustomAuxLifecycle();persisted[p].extremeSell.Direction=DIR_SELL;g_processed_candle_time[p]=0;}sourceReady=true;mutate=true;updates=0;stores=0;}
 int checks=0;bool check(bool ok,const char* label){checks++;if(!ok)std::cerr<<label<<" failed\n";return ok;}
 '''

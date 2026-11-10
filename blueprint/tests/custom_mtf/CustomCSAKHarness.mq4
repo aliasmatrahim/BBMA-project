@@ -4,6 +4,11 @@ double fixtureOpen=105,fixtureClose=102;
 int openReads=0;
 double CSAKOpen(string symbol,int tf,int shift){if(symbol=="CSAK_FIXTURE"){openReads++;return fixtureOpen;}return iOpen(symbol,tf,shift);}
 double CSAKClose(string symbol,int tf,int shift){if(symbol=="CSAK_FIXTURE")return fixtureClose;return iClose(symbol,tf,shift);}
+datetime CSAKSourceNow=D'2026.08.03 00:00';
+datetime CSAKTime(string symbol,int tf,int shift){if(symbol=="CSAK_FIXTURE")return shift>=0 && shift<64?CSAKSourceNow-shift*tf*60:0;return iTime(symbol,tf,shift);}
+int CSAKBars(string symbol,int tf){return symbol=="CSAK_FIXTURE"?64:iBars(symbol,tf);}
+#define iTime CSAKTime
+#define iBars CSAKBars
 #define iOpen CSAKOpen
 #define iClose CSAKClose
 #define OnInit CanonicalOnInit
@@ -15,6 +20,8 @@ double CSAKClose(string symbol,int tf,int shift){if(symbol=="CSAK_FIXTURE")retur
 #undef OnDeinit
 #undef OnTick
 #undef OnTimer
+#undef iTime
+#undef iBars
 #undef iOpen
 #undef iClose
 int passed=0,failed=0;
@@ -74,23 +81,23 @@ int OnInit()
   Check(IntegerToString(sourceTF)+"_actual_20_closed_comparisons",equivalent && ready);
   Print("[CUSTOM-CSAK-DATA] tf=",sourceTF," comparisons=20 positives=",positives);
  }
- TimeframeData data;ZeroMemory(data);data.is_valid=true;data.is_closed=true;data.barIndex=1;data.timeframe=PERIOD_D1;data.candle_time=D'2026.08.03 00:00';
+ TimeframeData data;ZeroMemory(data);data.is_valid=true;data.is_closed=true;data.barIndex=1;data.timeframe=PERIOD_D1;data.candle_time=CSAKTime("CSAK_FIXTURE",PERIOD_D1,1);data.close=102;
  data.ma[0]=101;data.ma[1]=101.5;data.ma[2]=99;data.ma[3]=98.5;data.bollinger[0]=200;data.bollinger[1]=100;data.bollinger[2]=50;
  fixtureOpen=105;fixtureClose=102;BollingerBand d1Band;ZeroMemory(d1Band);d1Band.MID_BB=100;
  Check("D1_watch_delegates_closed_predicate",DetectD1OpportunityCSD("CSAK_FIXTURE",data,d1Band,DIR_BUY));
- data.timeframe=PERIOD_M15;
+ data.timeframe=PERIOD_M15;data.candle_time=CSAKTime("CSAK_FIXTURE",PERIOD_M15,1);
  Check("M12_precursor_delegates",DetectReEntryDirectionOwnerSignal("CSAK_FIXTURE",DIR_BUY,data)==SIGNAL_CSD);
- data.timeframe=PERIOD_H4;
+ data.timeframe=PERIOD_H4;data.candle_time=CSAKTime("CSAK_FIXTURE",PERIOD_H4,1);
  ENUM_SIGNAL_TYPE signal=ClassifyH4AuthoritativeSignal("CSAK_FIXTURE",DIR_BUY,data);
  Check("M11_classification_delegates",signal==SIGNAL_CSD);
  data.is_closed=false;
  Check("D1_watch_live_data_rejected",!DetectD1OpportunityCSD("CSAK_FIXTURE",data,d1Band,DIR_BUY));
  Check("M11_live_data_rejected",ClassifyH4AuthoritativeSignal("CSAK_FIXTURE",DIR_BUY,data)==SIGNAL_NONE);
  PairState state;InitPairState(state);
- ApplyH4AuthoritativeEvent(state,DIR_BUY,signal,D'2026.08.03 00:00',false);
- Check("M11_owner_identity",state.h4_direction_owner.SourceSignal==SIGNAL_CSD && state.h4_direction_owner.Direction==DIR_BUY && state.h4_direction_owner.SourceCandleTime==D'2026.08.03 00:00');
- ApplyH4AuthoritativeEvent(state,DIR_BUY,signal,D'2026.08.03 00:00',false);
- Check("same_candle_owner_identity_stable",state.h4_direction_owner.SourceCandleTime==D'2026.08.03 00:00' && state.h4_direction_owner.Direction==DIR_BUY);
+ ApplyH4AuthoritativeEvent(state,DIR_BUY,signal,data.candle_time,false);
+ Check("M11_owner_identity",state.h4_direction_owner.SourceSignal==SIGNAL_CSD && state.h4_direction_owner.Direction==DIR_BUY && state.h4_direction_owner.SourceCandleTime==data.candle_time);
+ ApplyH4AuthoritativeEvent(state,DIR_BUY,signal,data.candle_time,false);
+ Check("same_candle_owner_identity_stable",state.h4_direction_owner.SourceCandleTime==data.candle_time && state.h4_direction_owner.Direction==DIR_BUY);
  Check("no_orders",OrdersTotal()==0 && OrdersHistoryTotal()==0);
  Print("[CUSTOM-CSAK-SUMMARY] passed=",passed," failed=",failed);
  return failed==0?INIT_SUCCEEDED:INIT_FAILED;

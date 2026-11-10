@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 6.0.9 - CSAK Close-Only Direction     |
+//| Version 6.1.0 - Momentum Readiness            |
 //| SIGNAL VALIDATION IN PROGRESS - CUSTOM ORDERS OFF          |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,14 +31,14 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "6.09"
+#property version   "6.10"
 #property strict
 #include "custom_mtf/CustomInputs.mqh"
 #include "custom_mtf/CustomPairBinding.mqh"
 #include "custom_mtf/CustomClock.mqh"
 
-#define BBMA_BUILD_TAG      "V609_CSAK_CLOSE_ONLY_20261110"
-#define BBMA_SOURCE_REV_TAG "CSAK_CLOSE_ONLY_002_20261110"
+#define BBMA_BUILD_TAG      "V610_MOMENTUM_READINESS_20261110"
+#define BBMA_SOURCE_REV_TAG "MOMENTUM_READINESS_003_20261110"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -3188,7 +3188,9 @@ bool IsMHVLossPhaseEligible(string pair, ENUM_DIRECTION mhvDirection,
 
    ENUM_DIRECTION priorMoveDirection = GetMHVParentExtremeDirection(mhvDirection);
    if(priorMoveDirection == DIR_NONE) return false;
-   if(DetectCSM(pair, data.timeframe, priorMoveDirection, data.barIndex)) return false;
+   M10MomentumSnapshot momentum;
+   if(!ReadM10MomentumSource(pair,data,momentum))return false;
+   if(priorMoveDirection==DIR_BUY?momentum.buy:momentum.sell)return false;
    return true;
 }
 
@@ -3323,6 +3325,9 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
    if(direction != DIR_BUY && direction != DIR_SELL) return MLV_NONE;
    if(!data.is_valid || !data.is_closed || data.candle_time <= 0 ||
       data.timeframe>PERIOD_D1 || GetTimeframeSeconds(data.timeframe)<=0) return mlv.State;
+
+   M10MomentumSnapshot momentum;
+   if(!ReadM10MomentumSource(pair,data,momentum))return mlv.State;
 
    if(mlv.Direction != direction || mlv.Timeframe != data.timeframe)
       ResetMLVState(mlv, direction,data.timeframe);
@@ -3619,10 +3624,15 @@ bool SameM10MomentumInputs(M10MomentumSnapshot &a,M10MomentumSnapshot &b)
 bool ReadM10MomentumSnapshot(string pair,int timeframe,int shift,M10MomentumSnapshot &snapshot)
 {
    ReadM10MomentumInputs(pair,timeframe,shift,snapshot);
-   if(shift<1 || snapshot.closes[0]<=0)return false;
+   if(shift<1)return false;
    int slot=CustomTFIndex(timeframe);int pairIndex=-1;
    for(int i=0;i<g_pair_count;i++)if(g_pair_states[i].actual_symbol==pair){pairIndex=i;break;}
    if(slot>=0 && shift>1)slot+=7;
+   if(!snapshot.ready)
+   {
+      if(pairIndex>=0 && slot>=0)g_pair_states[pairIndex].m10_momentum[slot].ready=false;
+      return false;
+   }
    if(pairIndex>=0 && slot>=0 && SameM10MomentumInputs(snapshot,g_pair_states[pairIndex].m10_momentum[slot]))
    {snapshot=g_pair_states[pairIndex].m10_momentum[slot];return true;}
    CalculateBollinger(pair,timeframe,shift,snapshot.currentBand);
@@ -3632,6 +3642,12 @@ bool ReadM10MomentumSnapshot(string pair,int timeframe,int shift,M10MomentumSnap
    // Fence history revisions during the read; incomplete results are never cached.
    M10MomentumSnapshot after;ReadM10MomentumInputs(pair,timeframe,shift,after);
    snapshot.ready=SameM10MomentumInputs(snapshot,after);
+   if(!snapshot.ready)
+   {
+      snapshot.buy=false;snapshot.sell=false;
+      if(pairIndex>=0 && slot>=0)g_pair_states[pairIndex].m10_momentum[slot].ready=false;
+      return false;
+   }
    if(snapshot.ready && pairIndex>=0 && slot>=0)g_pair_states[pairIndex].m10_momentum[slot]=snapshot;
    return snapshot.ready;
 }
@@ -3639,9 +3655,19 @@ bool ReadM10MomentumSnapshot(string pair,int timeframe,int shift,M10MomentumSnap
 bool DetectCSM(string pair,int timeframe,ENUM_DIRECTION direction,int shift)
 {
    if((direction!=DIR_BUY && direction!=DIR_SELL) || shift<1)return false;
-   M10MomentumSnapshot snapshot;ReadM10MomentumSnapshot(pair,timeframe,shift,snapshot);
-   // Preserve canonical numeric behavior even when custom history provenance is unready.
+   M10MomentumSnapshot snapshot;
+   if(!ReadM10MomentumSnapshot(pair,timeframe,shift,snapshot))return false;
    return direction==DIR_BUY?snapshot.buy:snapshot.sell;
+}
+
+// Join the source result to the caller's completed M06 candle identity.
+// Unavailable is not evidence of neutral/no Momentum.
+bool ReadM10MomentumSource(string pair,TimeframeData &data,M10MomentumSnapshot &snapshot)
+{
+   ZeroMemory(snapshot);
+   if(!data.is_valid || !data.is_closed || data.barIndex<1 || data.candle_time<=0)return false;
+   return ReadM10MomentumSnapshot(pair,data.timeframe,data.barIndex,snapshot) &&
+          snapshot.sourceBar==data.candle_time && snapshot.closes[0]==data.close;
 }
 
 bool M10_CandleClosesBeyondMid(double close,double mid,ENUM_DIRECTION direction)
@@ -4419,13 +4445,16 @@ ENUM_SIGNAL_TYPE DetectReEntryDirectionOwnerSignal(string pair,
    if(direction != DIR_BUY && direction != DIR_SELL) return SIGNAL_NONE;
    if(!data.is_valid || !data.is_closed || data.barIndex < 1) return SIGNAL_NONE;
 
+   M10MomentumSnapshot momentum;
+   if(!ReadM10MomentumSource(pair,data,momentum))return SIGNAL_NONE;
+
    MovingAverage ma;
    BollingerBand band;
    BuildReEntryDirectionInputs(data, ma, band);
 
    // Momentum is the strongest same-candle classification. CSD is checked
    // before eCSD because a CSD candle also contains the eCSD MA crossing.
-   if(DetectCSM(pair, data.timeframe, direction, data.barIndex)) return SIGNAL_CSM;
+   if(direction==DIR_BUY?momentum.buy:momentum.sell)return SIGNAL_CSM;
    if(DetectCSD(pair, data.timeframe, direction, data.barIndex, ma, band)) return SIGNAL_CSD;
    if(DetectECSD(pair, data.timeframe, direction, data.barIndex, ma)) return SIGNAL_ECSD;
    return SIGNAL_NONE;
@@ -4671,6 +4700,9 @@ ENUM_RE_STATE UpdateReEntryState(ReEntryData &reEntry, string pair,
 {
    if(direction != DIR_BUY && direction != DIR_SELL) return RE_STATE_NONE;
    if(!data.is_valid || !data.is_closed || data.candle_time <= 0) return reEntry.State;
+
+   M10MomentumSnapshot momentum;
+   if(!ReadM10MomentumSource(pair,data,momentum))return reEntry.State;
 
    if(reEntry.Direction != direction || reEntry.Timeframe != data.timeframe)
       ResetReEntryState(reEntry, direction, data.timeframe);
@@ -11125,6 +11157,10 @@ bool ProcessC044OwnerClosedCandle(TradeInfo &info, int pairIndex,
       data.barIndex != shift)
       return FreezeC044Lifecycle(info, "OWNER_EVENT_CLOSED_DATA_UNAVAILABLE");
 
+   M10MomentumSnapshot momentum;
+   if(!ReadM10MomentumSource(pair,data,momentum))
+      return FreezeC044Lifecycle(info,"OWNER_EVENT_MOMENTUM_SOURCE_UNAVAILABLE");
+
    MovingAverage ma;
    BollingerBand band;
    BuildReEntryDirectionInputs(data, ma, band);
@@ -11210,10 +11246,8 @@ bool ProcessC044OwnerClosedCandle(TradeInfo &info, int pairIndex,
    }
 
    ENUM_DIRECTION oppositeDirection = (info.direction == DIR_BUY) ? DIR_SELL : DIR_BUY;
-   bool sameMomentum = DetectCSM(pair, info.c044_owner_timeframe,
-                                 info.direction, shift);
-   bool oppositeMomentum = DetectCSM(pair, info.c044_owner_timeframe,
-                                     oppositeDirection, shift);
+   bool sameMomentum = info.direction==DIR_BUY?momentum.buy:momentum.sell;
+   bool oppositeMomentum = oppositeDirection==DIR_BUY?momentum.buy:momentum.sell;
    bool reverseConfirmation = (info.direction == DIR_BUY)
       ? (data.close < data.open)
       : (data.close > data.open);
@@ -11328,7 +11362,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=6.09 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=6.10 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -12480,12 +12514,15 @@ ENUM_SIGNAL_TYPE ClassifyH4AuthoritativeSignal(string pair,
       data.barIndex < 1 || data.candle_time <= 0)
       return SIGNAL_NONE;
 
+   M10MomentumSnapshot momentum;
+   if(!ReadM10MomentumSource(pair,data,momentum))return SIGNAL_NONE;
+
    MovingAverage ma;
    BollingerBand band;
    BuildReEntryDirectionInputs(data, ma, band);
 
    // One canonical same-candle classification: Momentum > CSD > eCSD.
-   if(DetectCSM(pair, PERIOD_H4, direction, data.barIndex))
+   if(direction==DIR_BUY?momentum.buy:momentum.sell)
       return SIGNAL_CSM;
    if(DetectCSD(pair, PERIOD_H4, direction, data.barIndex, ma, band))
       return SIGNAL_CSD;
@@ -12527,28 +12564,32 @@ void ApplyH4AuthoritativeEvent(PairState &state,
 bool VerifyH4OwnerCheckpoint(PairState &state,
                              ENUM_DIRECTION direction,
                              ENUM_SIGNAL_TYPE signalType,
-                             datetime candleTime)
+                             datetime candleTime,bool &sourceUnavailable)
 {
+   sourceUnavailable=false;
    if(direction != DIR_BUY && direction != DIR_SELL) return false;
    if(signalType != SIGNAL_ECSD && signalType != SIGNAL_CSD &&
       signalType != SIGNAL_CSM) return false;
    if(candleTime <= 0 || state.actual_symbol == "") return false;
 
    int shift = iBarShift(state.actual_symbol, PERIOD_H4, candleTime, true);
-   if(shift < 1) return false; // checkpoint must reference a CLOSED H4 candle.
+   if(shift < 1){sourceUnavailable=true;return false;}
 
    TimeframeData data;
    InitTimeframeData(data);
    GetDataForTimeframe(state.actual_symbol, PERIOD_H4, candleTime, data);
-   if(!data.is_valid || !data.is_closed) return false;
+   M10MomentumSnapshot momentum;
+   if(!ReadM10MomentumSource(state.actual_symbol,data,momentum))
+   {sourceUnavailable=true;return false;}
 
    ENUM_SIGNAL_TYPE verified =
       ClassifyH4AuthoritativeSignal(state.actual_symbol, direction, data);
    return (verified == signalType);
 }
 
-bool LoadVerifiedH4OwnerCheckpoint(PairState &state)
+bool LoadVerifiedH4OwnerCheckpoint(PairState &state,bool &sourceUnavailable)
 {
+   sourceUnavailable=false;
    string base = H4OwnerGVBase(state);
    if(!GlobalVariableCheck(base + "D") ||
       !GlobalVariableCheck(base + "S") ||
@@ -12561,9 +12602,9 @@ bool LoadVerifiedH4OwnerCheckpoint(PairState &state)
       (ENUM_SIGNAL_TYPE)((int)GlobalVariableGet(base + "S"));
    datetime candleTime = (datetime)((int)GlobalVariableGet(base + "T"));
 
-   if(!VerifyH4OwnerCheckpoint(state, direction, signalType, candleTime))
+   if(!VerifyH4OwnerCheckpoint(state, direction, signalType, candleTime,sourceUnavailable))
    {
-      ClearH4OwnerCheckpoint(state);
+      if(!sourceUnavailable)ClearH4OwnerCheckpoint(state);
       return false;
    }
 
@@ -12573,8 +12614,10 @@ bool LoadVerifiedH4OwnerCheckpoint(PairState &state)
    return true;
 }
 
-void ApplyH4ReplayCandle(PairState &state, TimeframeData &data)
+bool ApplyH4ReplayCandle(PairState &state, TimeframeData &data)
 {
+   M10MomentumSnapshot momentum;
+   if(!ReadM10MomentumSource(state.actual_symbol,data,momentum))return false;
    ENUM_SIGNAL_TYPE buySignal =
       ClassifyH4AuthoritativeSignal(state.actual_symbol, DIR_BUY, data);
    ENUM_SIGNAL_TYPE sellSignal =
@@ -12588,7 +12631,7 @@ void ApplyH4ReplayCandle(PairState &state, TimeframeData &data)
       state.h4_direction_owner.Reason =
          "Ambiguous simultaneous H4 BUY/SELL authoritative events -> NO_OWNER";
       ClearH4OwnerCheckpoint(state);
-      return;
+      return true;
    }
 
    if(buySignal != SIGNAL_NONE)
@@ -12598,6 +12641,7 @@ void ApplyH4ReplayCandle(PairState &state, TimeframeData &data)
    // Neutral H4 candle intentionally preserves inherited owner.
 
    state.h4_direction_owner.LastProcessedH4CandleTime = data.candle_time;
+   return true;
 }
 
 void RecoverH4DirectionalOwnerForPair(int pairIndex)
@@ -12617,22 +12661,24 @@ void RecoverH4DirectionalOwnerForPair(int pairIndex)
       return;
    }
 
-   bool checkpointValid = LoadVerifiedH4OwnerCheckpoint(g_pair_states[pairIndex]);
-   int bars = iBars(g_pair_states[pairIndex].actual_symbol, PERIOD_H4);
-   if(bars < 3)
+   bool checkpointUnavailable=false;
+   bool checkpointValid = LoadVerifiedH4OwnerCheckpoint(g_pair_states[pairIndex],checkpointUnavailable);
+   if(checkpointUnavailable)
    {
-      if(!checkpointValid)
-      {
-         ResetH4DirectionalOwner(g_pair_states[pairIndex].h4_direction_owner,
-                                 H4_OWNER_NONE);
-         g_pair_states[pairIndex].h4_direction_owner.Reason =
-            "Insufficient closed H4 history -> NO_OWNER";
-      }
-      g_pair_states[pairIndex].h4_direction_owner.RecoveryComplete = true;
+      g_pair_states[pairIndex].h4_direction_owner.Reason="WAIT_M10_MOMENTUM_HISTORY: checkpoint source unavailable";
+      return;
+   }
+   int bars = iBars(g_pair_states[pairIndex].actual_symbol, PERIOD_H4);
+   if(bars < BB_PERIOD+2)
+   {
+      g_pair_states[pairIndex].h4_direction_owner.RecoveryComplete = false;
+      g_pair_states[pairIndex].h4_direction_owner.Reason =
+         "WAIT_M10_MOMENTUM_HISTORY: insufficient closed H4 inputs";
       return;
    }
 
-   int startShift = bars - 2;
+   // Skip only the indicator warm-up prefix, never an interior unavailable candle.
+   int startShift = bars - (BB_PERIOD+1);
    if(checkpointValid)
    {
       int checkpointShift = iBarShift(
@@ -12645,7 +12691,7 @@ void RecoverH4DirectionalOwnerForPair(int pairIndex)
          ResetH4DirectionalOwner(g_pair_states[pairIndex].h4_direction_owner,
                                  H4_OWNER_NONE);
          checkpointValid = false;
-         startShift = bars - 2;
+         startShift = bars - (BB_PERIOD+1);
       }
    }
 
@@ -12653,15 +12699,23 @@ void RecoverH4DirectionalOwnerForPair(int pairIndex)
    {
       datetime candleTime =
          iTime(g_pair_states[pairIndex].actual_symbol, PERIOD_H4, shift);
-      if(candleTime <= 0) continue;
+      if(candleTime <= 0)
+      {
+         ResetH4DirectionalOwner(g_pair_states[pairIndex].h4_direction_owner,H4_OWNER_RECOVERY_UNRESOLVED);
+         g_pair_states[pairIndex].h4_direction_owner.Reason="WAIT_M10_MOMENTUM_HISTORY: missing H4 replay candle";
+         return;
+      }
 
       TimeframeData data;
       InitTimeframeData(data);
       GetDataForTimeframe(g_pair_states[pairIndex].actual_symbol,
                           PERIOD_H4, candleTime, data);
-      if(!data.is_valid || !data.is_closed) continue;
-
-      ApplyH4ReplayCandle(g_pair_states[pairIndex], data);
+      if(!ApplyH4ReplayCandle(g_pair_states[pairIndex], data))
+      {
+         ResetH4DirectionalOwner(g_pair_states[pairIndex].h4_direction_owner,H4_OWNER_RECOVERY_UNRESOLVED);
+         g_pair_states[pairIndex].h4_direction_owner.Reason="WAIT_M10_MOMENTUM_HISTORY: unavailable H4 replay inputs";
+         return;
+      }
    }
 
    g_pair_states[pairIndex].h4_direction_owner.RecoveryComplete = true;
@@ -12690,7 +12744,11 @@ void UpdateRuntimeH4DirectionalOwner(int pairIndex)
 {
    if(pairIndex < 0 || pairIndex >= g_pair_count) return;
 
-   if(!g_pair_states[pairIndex].h4_direction_owner.RecoveryComplete) return;
+   if(!g_pair_states[pairIndex].h4_direction_owner.RecoveryComplete)
+   {
+      RecoverH4DirectionalOwnerForPair(pairIndex);
+      if(!g_pair_states[pairIndex].h4_direction_owner.RecoveryComplete)return;
+   }
    if(!g_pair_states[pairIndex].h4_data.is_valid ||
       !g_pair_states[pairIndex].h4_data.is_closed ||
       g_pair_states[pairIndex].h4_data.timeframe != PERIOD_H4 ||
@@ -12699,6 +12757,10 @@ void UpdateRuntimeH4DirectionalOwner(int pairIndex)
    if(g_pair_states[pairIndex].h4_data.candle_time ==
       g_pair_states[pairIndex].h4_direction_owner.LastProcessedH4CandleTime)
       return;
+
+   M10MomentumSnapshot momentum;
+   if(!ReadM10MomentumSource(g_pair_states[pairIndex].actual_symbol,
+                            g_pair_states[pairIndex].h4_data,momentum))return;
 
    ENUM_SIGNAL_TYPE buySignal = ClassifyH4AuthoritativeSignal(
       g_pair_states[pairIndex].actual_symbol, DIR_BUY,
@@ -13559,6 +13621,16 @@ void ProcessPair(int pairIndex)
                        GetLatestClosedCandleTime(actual, PERIOD_M5),
                        g_pair_states[pairIndex].m5_data);
 
+   M10MomentumSnapshot momentum;
+   if(!ReadM10MomentumSource(actual,g_pair_states[pairIndex].d1_data,momentum) ||
+      !ReadM10MomentumSource(actual,g_pair_states[pairIndex].h4_data,momentum) ||
+      !ReadM10MomentumSource(actual,g_pair_states[pairIndex].h1_data,momentum) ||
+      !ReadM10MomentumSource(actual,g_pair_states[pairIndex].m15_data,momentum))
+   {
+      // Retry this same M15 cycle after data recovery; no owner or cursor consumed.
+      g_pair_states[pairIndex].is_processing=false;return;
+   }
+
    // D1-01: classify strategic D1/MA50 owner from fully closed D1 data.
    // Producer only in this step; M15/M16 consumption is intentionally later.
    UpdateD1MajorTrendOwner(actual, g_pair_states[pairIndex]);
@@ -13982,13 +14054,17 @@ bool IsCustomClosedSourceReady(TimeframeData &next,int tf,datetime candle)
 bool ReadCustomAuxClosedData(string symbol,int tf,datetime candle,TimeframeData &next)
 {
    GetDataForTimeframe(symbol,tf,candle,next);
-   return IsCustomClosedSourceReady(next,tf,candle);
+   if(!IsCustomClosedSourceReady(next,tf,candle))return false;
+   M10MomentumSnapshot momentum;
+   return ReadM10MomentumSource(symbol,next,momentum);
 }
 
-void AdvanceMHVSourceOwners(string symbol,TimeframeData &next,BollingerBand &band,
+bool AdvanceMHVSourceOwners(string symbol,TimeframeData &next,BollingerBand &band,
                             ExtremeLifecycleData &extremeBuy,ExtremeLifecycleData &extremeSell,
                             MLVData &mhvBuy,MLVData &mhvSell,bool emitTelemetry=true)
 {
+   M10MomentumSnapshot momentum;
+   if(!ReadM10MomentumSource(symbol,next,momentum))return false;
    MovingAverage ma;
    ma.MA5_High=next.ma[0];ma.MA10_High=next.ma[1];ma.MA5_Low=next.ma[2];ma.MA10_Low=next.ma[3];ma.EMA50=next.ma[4];
    bool directionBuy=DetectCSD(symbol,next.timeframe,DIR_BUY,next.barIndex,ma,band) || DetectECSD(symbol,next.timeframe,DIR_BUY,next.barIndex,ma);
@@ -13996,23 +14072,28 @@ void AdvanceMHVSourceOwners(string symbol,TimeframeData &next,BollingerBand &ban
    // The canonical M09 engine owns both aliases; no second MHV detector.
    UpdateCanonicalMLVState(mhvBuy,symbol,DIR_BUY,next,band,extremeSell,directionBuy,emitTelemetry);
    UpdateCanonicalMLVState(mhvSell,symbol,DIR_SELL,next,band,extremeBuy,directionSell,emitTelemetry);
+   return true;
 }
 
 // The same source engines serve ordinary advancement and historical replay.
-void AdvanceCustomAuxLifecycle(string symbol,TimeframeData &next,CustomAuxLifecycle &owner)
+bool AdvanceCustomAuxLifecycle(string symbol,TimeframeData &next,CustomAuxLifecycle &owner)
 {
+   M10MomentumSnapshot momentum;
+   if(!ReadM10MomentumSource(symbol,next,momentum))return false;
+   CustomAuxLifecycle staged=owner;
    BollingerBand band;ZeroMemory(band);
    band.TOP_BB=next.bollinger[0];band.MID_BB=next.bollinger[1];band.LOW_BB=next.bollinger[2];
    band.Width=band.TOP_BB-band.LOW_BB;
    bool rawBuy=DetectExtreme(symbol,DIR_BUY,next,band);
    bool rawSell=DetectExtreme(symbol,DIR_SELL,next,band);
-   UpdateExtremeLifecycle(owner.extremeBuy,symbol,DIR_BUY,next,band,rawBuy);
-   UpdateExtremeLifecycle(owner.extremeSell,symbol,DIR_SELL,next,band,rawSell);
-   ResolveOppositeExtremeSupersession(owner.extremeBuy,owner.extremeSell,next);
-   AdvanceMHVSourceOwners(symbol,next,band,owner.extremeBuy,owner.extremeSell,owner.mhvBuy,owner.mhvSell);
-   UpdateReEntryState(owner.reBuy,symbol,DIR_BUY,next);
-   UpdateReEntryState(owner.reSell,symbol,DIR_SELL,next);
-   owner.lastClosed=next.candle_time;
+   UpdateExtremeLifecycle(staged.extremeBuy,symbol,DIR_BUY,next,band,rawBuy);
+   UpdateExtremeLifecycle(staged.extremeSell,symbol,DIR_SELL,next,band,rawSell);
+   ResolveOppositeExtremeSupersession(staged.extremeBuy,staged.extremeSell,next);
+   if(!AdvanceMHVSourceOwners(symbol,next,band,staged.extremeBuy,staged.extremeSell,staged.mhvBuy,staged.mhvSell))return false;
+   UpdateReEntryState(staged.reBuy,symbol,DIR_BUY,next);
+   UpdateReEntryState(staged.reSell,symbol,DIR_SELL,next);
+   staged.lastClosed=next.candle_time;
+   owner=staged;return true;
 }
 
 bool ReplayCustomAuxOwnerSource(string symbol,int tf,datetime latest,TimeframeData &data,CustomAuxLifecycle &owner)
@@ -14038,7 +14119,8 @@ bool ReplayCustomAuxOwnerSource(string symbol,int tf,datetime latest,TimeframeDa
       TimeframeData next;
       if(!ReadCustomAuxClosedData(symbol,tf,candle,next))
       {owner.recoveryReason="WAIT_REPLAY_CLOSED_DATA";return false;}
-      AdvanceCustomAuxLifecycle(symbol,next,staged);stagedData=next;count++;
+      if(!AdvanceCustomAuxLifecycle(symbol,next,staged))return false;
+      stagedData=next;count++;
    }
    // Commit only a complete validated chunk. No half-chunk lifecycle is visible.
    staged.lastReplayBars+=count;staged.contextOnlyThrough=staged.lastClosed;
@@ -14064,7 +14146,8 @@ bool RefreshCustomAuxOwnerSource(string symbol,int tf,datetime latest,TimeframeD
    }
    TimeframeData next;if(!ReadCustomAuxClosedData(symbol,tf,latest,next))return false;
    bool cold=(owner.lastClosed==0);
-   AdvanceCustomAuxLifecycle(symbol,next,owner);data=next;
+   if(!AdvanceCustomAuxLifecycle(symbol,next,owner))return false;
+   data=next;
    if(cold)owner.contextOnlyThrough=latest;
    return true;
 }
@@ -14256,6 +14339,8 @@ bool UpdateCanonicalMHVSource(int pairIndex,int tf,datetime latest,bool beforeFr
    if(StringLen(symbol)==0 || latest<=0 || latest!=GetLatestClosedCandleTime(symbol,tf))return false;
    TimeframeData data;CustomAuxLifecycle owner;
    if(!LoadCustomCanonicalSource(pairIndex,tf,data,owner) || !IsCustomClosedSourceReady(data,tf,latest))return false;
+   M10MomentumSnapshot momentum;
+   if(!ReadM10MomentumSource(symbol,data,momentum))return false;
    datetime canonicalCycle=GetLatestClosedCandleTime(symbol,PERIOD_M15);
    if(canonicalCycle<=0)return false;
    if(beforeFreeze)
@@ -14283,7 +14368,7 @@ bool UpdateCanonicalMHVSource(int pairIndex,int tf,datetime latest,bool beforeFr
    {g_pair_states[pairIndex].canonical_mhv_observed[slot]=true;return true;}
    ExtremeLifecycleData parentBuy=owner.extremeBuy,parentSell=owner.extremeSell;
    BollingerBand band;ZeroMemory(band);band.TOP_BB=data.bollinger[0];band.MID_BB=data.bollinger[1];band.LOW_BB=data.bollinger[2];band.Width=band.TOP_BB-band.LOW_BB;
-   AdvanceMHVSourceOwners(symbol,data,band,owner.extremeBuy,owner.extremeSell,owner.mhvBuy,owner.mhvSell,false);
+   if(!AdvanceMHVSourceOwners(symbol,data,band,owner.extremeBuy,owner.extremeSell,owner.mhvBuy,owner.mhvSell,false))return false;
    if(!beforeFreeze && (!SameExtremeOwnerSnapshot(parentBuy,owner.extremeBuy) || !SameExtremeOwnerSnapshot(parentSell,owner.extremeSell)))
    {
       g_pair_states[pairIndex].custom_canonical[slot].recoveryRequired=true;

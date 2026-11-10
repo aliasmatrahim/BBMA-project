@@ -1,9 +1,20 @@
 #property strict
+// Complete flat M10 input history for these synthetic structural-M09 trajectories.
+datetime StructuralTime=0;int StructuralTF=0;double StructuralClose=0;
+datetime StructuralITime(string s,int tf,int shift){if(s=="M09_STRUCTURAL_FIXTURE" && tf==StructuralTF)return shift>=0 && shift<64?StructuralTime+(1-shift)*tf*60:0;return iTime(s,tf,shift);}
+int StructuralIBars(string s,int tf){return s=="M09_STRUCTURAL_FIXTURE"?64:iBars(s,tf);}
+double StructuralIClose(string s,int tf,int shift){return s=="M09_STRUCTURAL_FIXTURE" && tf==StructuralTF?StructuralClose:iClose(s,tf,shift);}
+#define iTime StructuralITime
+#define iBars StructuralIBars
+#define iClose StructuralIClose
 #define OnInit CanonicalOnInit
 #define OnDeinit CanonicalOnDeinit
 #define OnTick CanonicalOnTick
 #define OnTimer CanonicalOnTimer
 #include "..\\..\\source\\BBMA_EA.mq4"
+#undef iTime
+#undef iBars
+#undef iClose
 #undef OnInit
 #undef OnDeinit
 #undef OnTick
@@ -18,6 +29,7 @@ void StepData(TimeframeData &data,int tf,datetime time,ENUM_DIRECTION direction,
  ZeroMemory(data);data.timeframe=tf;data.candle_time=time;data.barIndex=1;data.is_closed=true;data.is_valid=true;
  data.open=direction==DIR_BUY?open:3-open;data.close=direction==DIR_BUY?close:3-close;
  data.low=direction==DIR_BUY?low:3-high;data.high=direction==DIR_BUY?high:3-low;
+ StructuralTime=data.candle_time;StructuralTF=tf;StructuralClose=data.close;
  data.ma[0]=1.7;data.ma[1]=1.8;data.ma[2]=1.3;data.ma[3]=1.2;
 }
 int OnInit()

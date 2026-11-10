@@ -50,3 +50,8 @@ Build6.11 rev003, source LF SHA a62672ae1874fcbf61c671af01da09ef45ffe6972abd998e
 ## SIG-06 MHV — IN_PROGRESS / historical evidence HOLD
 
 Accepted Core/F1 and current exact6.11 mechanics reviewed/reused. Fresh G40 check6256 exit0:4 provenance metadata files unchanged/reference-only; current controller first cycle has56 zero M08/M09 anchor fields, not authenticated NONE. Source-proven same-feed Extreme/TPW origin and session/UTC recovery evidence remain required before full MHV acceptance. No code change/new native PASS/alias activation. Current blockers and exact next action: CUSTOM_MTF_MHV_SIGNAL_PREFLIGHT_20261110.md. Do not advance to SIG-07 MLV or Re-Entry.
+
+
+### SIG06 milestone — 2026-11-11 (still PARTIAL)
+
+Natural-history diagnostic4200 bars/57 candidates/23 four-hypothesis convergences. Strong reset/origin witness plus physical isolated terminal restart passes M1/M5/M15/H1:136 checks,96 post-reload bars/102 fields perstate,8 processes,0E0W; all source/HST/snapshot hashes bound4500 exit0. First inadequate M15 candidate retained as RED, no criterion weakened. This is not global source-epoch/session acceptance. M30/H4/D1 remain HOLD; no MLV/Re-Entry. Details CUSTOM_MTF_MHV_NATURAL_ORIGIN_RESTART_20261111.md; mhv611_natural_origin_restart_summary.json.

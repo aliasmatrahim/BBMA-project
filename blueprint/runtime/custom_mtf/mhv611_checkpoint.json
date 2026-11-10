@@ -1,13 +1,32 @@
 {
   "task": "SIG-06-MHV",
-  "status": "IN_PROGRESS / HOLD-UNRESOLVED actual historical origin/session evidence",
-  "base_commit": "d2e7e85c3f9fd0d2620361c175dbe0b71cea5fa7",
+  "status": "PARTIAL — bounded natural-history restart PASS M1/M5/M15/H1; global origin/session HOLD",
+  "base_commit": "91ab4d28f51c7bb9648f8e757ee22a9eb70592ff",
   "source_sha256_lf": "a62672ae1874fcbf61c671af01da09ef45ffe6972abd998ec70c5f9a74c238cb",
-  "completed": "Core/F1 reconciliation preflight; current exact6.11 mechanical native proofs reused; G40 metadata/trace check6256 exit0",
-  "metadata_files_unchanged": 4,
-  "first_cycle_zero_anchor_rows": 56,
-  "pending": "authenticated same-feed history/session record and source-proven M08/M09 origin/checkpoint, then continuous-vs-recovered owner equality",
-  "blocked": "full natural-history/cold-start/noncontiguous MHV acceptance",
-  "next": "Remain on SIG-06; acquire or construct source-proven epoch on authenticated history; no SIG07/RE",
+  "production_source_changed": false,
+  "inventory": {
+    "closed_bars": 4200,
+    "candidates": 57,
+    "converged_candidates": 23
+  },
+  "bounded_restart_TFs": [
+    "M1",
+    "M5",
+    "M15",
+    "H1"
+  ],
+  "native_assertions": 136,
+  "post_reload_source_bars": 96,
+  "fields_per_state": 102,
+  "terminal_processes": 8,
+  "collector_pid": 4500,
+  "collector_exit": 0,
+  "remaining_TFs": [
+    "M30",
+    "H4",
+    "D1"
+  ],
+  "pending": "same-feed authenticated boundary/session provenance and source-origin proof beyond the bounded hypotheses, then full continuous/recovered comparison across non-nominal boundaries",
+  "next": "Remain SIG06; qualify a concrete M30/H4/D1 boundary using source evidence tied to current HST hashes; no SIG07/RE",
   "auto_entry": false
 }

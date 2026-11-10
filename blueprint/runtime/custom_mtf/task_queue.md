@@ -33,3 +33,5 @@ C+1 follow-up: user selected source-example verification and pre-freeze M09 inte
 2026-11-10 source/epoch retrieval: new V05 frame/candidate inventory records added; no source-discriminating candle or trusted M08/M09 historical epoch accepted. M11 epoch/Q10 validation snapshot excluded for wrong owner/build. B/D/E statuses unchanged; no dependency promotion. See CUSTOM_MTF_SOURCE_EPOCH_RETRIEVAL_20261110.md for exact next action.
 
 Internet2026-11-10: primary researcher formula recovered (MidBB body cross plus MA close-side). Third-party implementation only; T04-D remains VERIFICATION REQUIRED, B/E recovery HOLD. Details in CUSTOM_MTF_INTERNET_DIRECTION_EVIDENCE_20261110.md.
+
+2026-11-10 three-formula comparison completed in offline/source-review scope: current code matches locked F1; no founder-exclusive numeric open/equality decision. F2 event ambiguity and F1/F3 geometry/equality differences documented. T04-D/B/E/F statuses unchanged. See CUSTOM_MTF_THREE_FORMULA_CORE_COMPARISON_20261110.md for verified arithmetic and exact next action.

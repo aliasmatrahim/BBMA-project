@@ -128,3 +128,7 @@ Do not merge to `main` until the full blueprint audit is clean and explicitly ap
 eCSD alone now targets the accepted MA-pair Close-only predicate and rejects shift0/negative. Its raw predicate may overlap stronger direction, as before; existing collector precedence is unchanged. CSD/CSAK retains historical body code until its own sequential task. The canonical function signature is unchanged; no new custom eCSD token or executable availability is added. Source validation remains in progress until the SIG-01 acceptance checklist closes. No other signal is being migrated in this patch.
 
 SIG-01 update2026-11-10: eCSD canonical Close-only implementation accepted in bounded Build6.07 scope; see CUSTOM_MTF_ECSD_SIGNAL_ACCEPTANCE_20261110.md and exact native/controller/source proofs. CSD/CSAK and user MidBB CSA remain separate pending tasks; this is not complete M10/custom execution acceptance.
+
+## SIG-02 CSA source/context — Build6.08
+
+The user MidBB CSA uses one shared M10 closed-input/fingerprint reader and classifier: BUY Close>MidBB, SELL Close<MidBB. Open/MA/expansion are not criteria;20 valid finalized inputs suffice. Requested read-only snapshots carry symbol/TF/direction/source-candle identity and stay recoveryOnly/non-executable. eCSD is not aliased. Native154/154 and actual-controller210 views accepted in CUSTOM_MTF_CSA_SIGNAL_ACCEPTANCE_20261110.md. CSD/CSAK retains historical body predicate until SIG-03. This is not full M10 or execution acceptance.

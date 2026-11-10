@@ -1,6 +1,6 @@
 # Signal-by-signal acceptance — 2026-11-10
 
-User instruction: finish one signal before moving to the next; do no unrelated task. The active task is SIG-01, canonical eCSD / MA5-MA10 early-direction predicate. Shared-consumer regression is part of SIG-01, not development of another signal. Base328d33a0dd4824f4ff3dcb2a2b2823a69e12bc9b / Draft PR303 / feat/custom-mtf-v1-20261108.
+User instruction: finish one signal before moving to the next; do no unrelated task. SIG-01 eCSD is accepted. SIG-02 CSA source/context acceptance is now verified below; SIG-03 CSAK/CSD becomes eligible only after this publication is verified. Shared-consumer regression is part of SIG-01, not development of another signal. Base328d33a0dd4824f4ff3dcb2a2b2823a69e12bc9b / Draft PR303 / feat/custom-mtf-v1-20261108.
 
 ## SIG-01 eCSD — VERIFIED (bounded canonical signal acceptance)
 
@@ -28,3 +28,9 @@ SIG-02 CSA (user MidBB direction) -> SIG-03 CSAK/CSD (MA pair+MidBB) -> MOM -> E
 No unrelated queue task, merge, deployment or trading activation. All77 semantic availability cells/custom auto-entry OFF. Native/market-history scope limitations must be retained rather than promoted to universal seven-TF or execution acceptance.
 
 Acceptance/source lineage, retained initial controller RED, final equal-state parity and limits: CUSTOM_MTF_ECSD_SIGNAL_ACCEPTANCE_20261110.md. Tested code commit3c14938b8e2c2ab79d47101e61a8d90362a94091; final publication SHA recorded in Draft PR303. SIG-02 not started before this publication.
+
+## SIG-02 CSA — VERIFIED (bounded read-only source/context)
+
+Build6.08, source LF SHA256 f317317f2ba7145990b66340aea6022a385e464e72da4e01be2d71f1c12e7e9c. Native154/154,140 actual closed-history comparisons,210 actual-controller CSA views,14 native regression groups and0E0W compile verified. OFF/ON/baseline6.07 full12,224-row traces identical over16 cycles; no orders. Five targeted cloud functions plus import assertions/py_compile PASS; full pytest not rerun. Final source/include/harness/binary/trace bindings verified. Initial147/7 test assertion failure retained and corrected using StringLen without production changes. Acceptance: CUSTOM_MTF_CSA_SIGNAL_ACCEPTANCE_20261110.md; evidence csa608_native_evidence.json. This closes source/context only, not executable availability, physical trigger dedup or integrated T04.
+
+Next eligible after publication: SIG-03 CSAK/CSD. No later signal developed before SIG-02 closure. No merge/deployment; all77 availability/custom auto-entry OFF.

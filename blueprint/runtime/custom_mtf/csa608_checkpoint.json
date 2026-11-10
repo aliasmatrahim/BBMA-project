@@ -1,0 +1,17 @@
+{
+  "task": "SIG-02-CSA",
+  "status": "VERIFIED bounded read-only M10/observer source acceptance",
+  "base_commit": "fb4779b92ddff09f3b913c00701305b37ac8e363",
+  "build": "6.08",
+  "source_sha256_lf": "f317317f2ba7145990b66340aea6022a385e464e72da4e01be2d71f1c12e7e9c",
+  "native_checks": 154,
+  "actual_closed_history_comparisons": 140,
+  "controller_csa_views": 210,
+  "controller_rows_each": 12224,
+  "controller_cycles_each": 16,
+  "native_regression_groups": 14,
+  "cloud": "5 targeted test functions plus import assertions and py_compile PASS; full pytest not rerun (pytest unavailable)",
+  "auto_entry": false,
+  "execution_available": false,
+  "next_action": "SIG-03 CSAK/CSD Close-only migration only after verifying this publication"
+}

@@ -366,3 +366,17 @@ Tested code3c14938b8e2c2ab79d47101e61a8d90362a94091 / local e7b8704, Build6.07 L
 Initial controller OFF/ON RED differed in8 recovered-origin flags because cases inherited persisted H4 fixture state. Exact tester-only Strategy/Instance82/GBPUSD checkpoint-key reset before canonical init made all three starts equal; no field excluded and no production recovery change. Final full candidate OFF/ON traces identical12224 rows over16 M15 cycles. Frozen6.06 comparison136 rows differ only in H4 owner/H4 SELL M12 Type1 context lineage; no final decision fields differ in this window. Valid decisions0 and captured order attempts0 for all profiles. Rerun/collector6836 exit0. Initial RED manifest/differences retained; adapter count/write failures started no extra native cases. Prior native190/11-regression runs reused.
 
 SIG-01 canonical eCSD accepted only in documented scope; custom eCSD input is not added, no CSA alias, no seven-TF market-coverage/epoch or positive-entry/live-timer claim. SIG-02 CSA is next eligible after final publication; no other signal was developed before this closure. Overall T04-D remains PARTIAL, session/epoch and later execution acceptance gated; all77 availability/custom entry OFF. No merge/deployment. Final evidence commit and identical local/remote tree recorded in Draft PR303.
+
+
+## SIG-02 CSA recovered and VERIFIED — 2026-11-10
+
+# SIG-02 CSA acceptance — 2026-11-10
+
+Status: VERIFIED for bounded read-only M10 MidBB source, observer materialization and native/controller evidence below. Execution/trigger admission and integrated T04 remain pending.
+
+Base fb4779b92ddff09f3b913c00701305b37ac8e363; branch feat/custom-mtf-v1-20261108; Draft PR #303.
+Build 6.08 / V608_CSA_MIDBB_SOURCE_20261110 / CSA_MIDBB_SOURCE_001_20261110.
+Source LF SHA256 f317317f2ba7145990b66340aea6022a385e464e72da4e01be2d71f1c12e7e9c. Publication commit is recorded in PR #303.
+
+
+Recovered completed Build6.08 G40 native/controller work without duplicating processes.154 CSA checks,14 native groups,210 controller CSA views,16 cycles/12224 rows per case;OFF/ON/6.07 parity and zero attempts. Final verifier11780 exit0; source/includes/harnesses/binaries/traces rebound. Five targeted cloud functions plus import assertions/py_compile PASS; full pytest unavailable, not claimed. Initial147/7 false-empty assertion root cause retained; corrected StringLen assertion only. See acceptance and csa608_native_evidence.json for limits. SIG-03 CSAK/CSD becomes eligible after publication verification. All77 availability/auto-entry OFF; no merge/deployment.

@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 6.0.7 - eCSD Close-Only Signal        |
+//| Version 6.0.8 - CSA MidBB Source View        |
 //| SIGNAL VALIDATION IN PROGRESS - CUSTOM ORDERS OFF          |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,14 +31,14 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "6.07"
+#property version   "6.08"
 #property strict
 #include "custom_mtf/CustomInputs.mqh"
 #include "custom_mtf/CustomPairBinding.mqh"
 #include "custom_mtf/CustomClock.mqh"
 
-#define BBMA_BUILD_TAG      "V607_ECSD_CLOSE_ONLY_20261110"
-#define BBMA_SOURCE_REV_TAG "ECSD_CLOSE_ONLY_001_20261110"
+#define BBMA_BUILD_TAG      "V608_CSA_MIDBB_SOURCE_20261110"
+#define BBMA_SOURCE_REV_TAG "CSA_MIDBB_SOURCE_001_20261110"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -448,9 +448,11 @@ struct BollingerBand
 };
 
 // M10 source result cache. No maturity, candidate or execution authority.
+// inputCount distinguishes the current BB window (CSA) from two BB windows (MOM).
 struct M10MomentumSnapshot
 {
    string symbol;int timeframe;datetime sourceBar;
+   int inputCount;
    datetime times[BB_PERIOD+1];double closes[BB_PERIOD+1];
    BollingerBand currentBand;BollingerBand previousBand;
    bool ready;bool buy;bool sell;
@@ -1011,6 +1013,7 @@ struct PairState
    TimeframeData        m30_data;
    CustomAuxLifecycle   custom_aux[3]; // M1 / M5 / M30; symbol-local lifecycle
    M10MomentumSnapshot m10_momentum[14]; // Seven current + seven historical queries, symbol isolated
+   M10MomentumSnapshot m10_csa[14]; // Same M10 input/fingerprint machinery; MidBB-only source results
    MLVData custom_higher_mhv_buy[3]; // D1 / H4 / H1, custom-only monitor owners
    MLVData custom_higher_mhv_sell[3];
    bool canonical_mhv_observed[3]; // Verified monitor producer stamp; not entry authority
@@ -3573,13 +3576,14 @@ bool M10_ClassifyMomentum(double close,BollingerBand &currentBand,BollingerBand 
    return currentBand.MID_BB<previousBand.MID_BB && currentBand.LOW_BB<previousBand.LOW_BB && close<currentBand.LOW_BB;
 }
 
-void ReadM10MomentumInputs(string pair,int timeframe,int shift,M10MomentumSnapshot &snapshot)
+void ReadM10ClosedInputs(string pair,int timeframe,int shift,int inputCount,M10MomentumSnapshot &snapshot)
 {
    ZeroMemory(snapshot);snapshot.symbol=pair;snapshot.timeframe=timeframe;
-   if(shift<1)return;
+   if(shift<1 || inputCount<1 || inputCount>BB_PERIOD+1)return;
+   snapshot.inputCount=inputCount;
    snapshot.sourceBar=iTime(pair,timeframe,shift);
-   snapshot.ready=snapshot.sourceBar>0 && iTime(pair,timeframe,0)>snapshot.sourceBar && iBars(pair,timeframe)>=shift+BB_PERIOD;
-   for(int i=0;i<=BB_PERIOD;i++)
+   snapshot.ready=snapshot.sourceBar>0 && iTime(pair,timeframe,0)>snapshot.sourceBar && iBars(pair,timeframe)>=shift+inputCount-1;
+   for(int i=0;i<inputCount;i++)
    {
       snapshot.times[i]=iTime(pair,timeframe,shift+i);
       snapshot.closes[i]=iClose(pair,timeframe,shift+i);
@@ -3588,11 +3592,27 @@ void ReadM10MomentumInputs(string pair,int timeframe,int shift,M10MomentumSnapsh
    }
 }
 
-bool SameM10MomentumInputs(M10MomentumSnapshot &a,M10MomentumSnapshot &b)
+bool SameM10ClosedInputs(M10MomentumSnapshot &a,M10MomentumSnapshot &b,int inputCount=0)
 {
    if(!a.ready || !b.ready || a.symbol!=b.symbol || a.timeframe!=b.timeframe || a.sourceBar!=b.sourceBar)return false;
-   for(int i=0;i<=BB_PERIOD;i++)if(a.times[i]!=b.times[i] || a.closes[i]!=b.closes[i])return false;
+   if(inputCount==0)
+   {
+      if(a.inputCount!=b.inputCount)return false;
+      inputCount=a.inputCount;
+   }
+   if(inputCount<1 || inputCount>BB_PERIOD+1 || a.inputCount<inputCount || b.inputCount<inputCount)return false;
+   for(int i=0;i<inputCount;i++)if(a.times[i]!=b.times[i] || a.closes[i]!=b.closes[i])return false;
    return true;
+}
+
+void ReadM10MomentumInputs(string pair,int timeframe,int shift,M10MomentumSnapshot &snapshot)
+{
+   ReadM10ClosedInputs(pair,timeframe,shift,BB_PERIOD+1,snapshot);
+}
+
+bool SameM10MomentumInputs(M10MomentumSnapshot &a,M10MomentumSnapshot &b)
+{
+   return SameM10ClosedInputs(a,b);
 }
 
 bool ReadM10MomentumSnapshot(string pair,int timeframe,int shift,M10MomentumSnapshot &snapshot)
@@ -3621,6 +3641,37 @@ bool DetectCSM(string pair,int timeframe,ENUM_DIRECTION direction,int shift)
    M10MomentumSnapshot snapshot;ReadM10MomentumSnapshot(pair,timeframe,shift,snapshot);
    // Preserve canonical numeric behavior even when custom history provenance is unready.
    return direction==DIR_BUY?snapshot.buy:snapshot.sell;
+}
+
+bool M10_CandleClosesBeyondMid(double close,double mid,ENUM_DIRECTION direction)
+{
+   if(close<=0 || mid<=0 || !MathIsValidNumber(close) || !MathIsValidNumber(mid))return false;
+   if(direction==DIR_BUY)return close>mid;
+   if(direction==DIR_SELL)return close<mid;
+   return false;
+}
+
+bool ReadM10CSASnapshot(string pair,int timeframe,int shift,M10MomentumSnapshot &snapshot)
+{
+   ReadM10ClosedInputs(pair,timeframe,shift,BB_PERIOD,snapshot);
+   if(!snapshot.ready || CustomTFIndex(timeframe)<0)return false;
+   int slot=CustomTFIndex(timeframe);int pairIndex=-1;
+   for(int i=0;i<g_pair_count;i++)if(g_pair_states[i].actual_symbol==pair){pairIndex=i;break;}
+   if(shift>1)slot+=7;
+   if(pairIndex>=0 && SameM10ClosedInputs(snapshot,g_pair_states[pairIndex].m10_csa[slot]))
+   {snapshot=g_pair_states[pairIndex].m10_csa[slot];return true;}
+   // Reuse the canonical MOM current band if its current20 inputs match.
+   // CSA readiness never requires MOM's extra previous-band candle/expansion.
+   if(pairIndex>=0 && SameM10ClosedInputs(snapshot,g_pair_states[pairIndex].m10_momentum[slot],BB_PERIOD))
+      snapshot.currentBand=g_pair_states[pairIndex].m10_momentum[slot].currentBand;
+   else CalculateBollinger(pair,timeframe,shift,snapshot.currentBand);
+   M10MomentumSnapshot after;ReadM10ClosedInputs(pair,timeframe,shift,BB_PERIOD,after);
+   snapshot.ready=SameM10ClosedInputs(snapshot,after) && snapshot.currentBand.MID_BB>0 && MathIsValidNumber(snapshot.currentBand.MID_BB);
+   if(!snapshot.ready)return false;
+   snapshot.buy=M10_CandleClosesBeyondMid(snapshot.closes[0],snapshot.currentBand.MID_BB,DIR_BUY);
+   snapshot.sell=M10_CandleClosesBeyondMid(snapshot.closes[0],snapshot.currentBand.MID_BB,DIR_SELL);
+   if(pairIndex>=0)g_pair_states[pairIndex].m10_csa[slot]=snapshot;
+   return true;
 }
 
 bool CandleBodyCrossesLevel(double open, double close, double level,
@@ -11269,7 +11320,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=6.07 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=6.08 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -14268,6 +14319,22 @@ bool ReadCustomOwnerView(int pairIndex,int tf,string signal,ENUM_DIRECTION direc
    view.symbol=g_pair_states[pairIndex].actual_symbol;
    if(StringLen(view.symbol)==0){view.reason="WAIT_SYMBOL_BINDING";return false;}
    int kind=CustomSignalIndex(signal);
+   if(kind==8)
+   {
+      int slot=CustomTFIndex(tf);
+      if(slot<0){view.reason="TF_OWNER_UNWIRED";return false;}
+      M10MomentumSnapshot csa=g_pair_states[pairIndex].m10_csa[slot];
+      if(!csa.ready || csa.symbol!=view.symbol || csa.timeframe!=tf || csa.sourceBar!=latest || latest<=0)
+      {view.reason="WAIT_M10_CSA_SNAPSHOT";return false;}
+      view.readable=true;view.sourceBar=latest;view.recoveryOnly=true;
+      view.structuralValid=direction==DIR_BUY?csa.buy:csa.sell;
+      if(view.structuralValid)
+      {
+         view.confirmation=latest;
+         view.eventId=IntegerToString(StringLen(view.symbol))+":"+view.symbol+"|CSA|"+IntegerToString(tf)+"|"+IntegerToString(direction)+"|"+IntegerToString(latest);
+      }
+      view.reason="READ_ONLY_M10_CSA_SNAPSHOT";return true;
+   }
    if(kind==10)
    {
       int slot=CustomTFIndex(tf);
@@ -14366,6 +14433,15 @@ void ObserveCustomClosedBars(int pairIndex)
       bool needsLifecycle=false;
       for(int supported=0;supported<=7;supported++)
          if(g_custom_use.signalEnabled[producer*11+supported]){needsLifecycle=true;break;}
+      if(g_custom_use.signalEnabled[producer*11+8])
+      {
+         M10MomentumSnapshot csa;
+         if(!ReadM10CSASnapshot(actual,tf,1,csa) || csa.sourceBar!=obs[producer].closedOpen)
+         {
+            g_custom_owner_frames[pairIndex].viewCount=0;
+            CompleteCustomClosedBatch(g_custom_clock_states[pairIndex],batch,false);return;
+         }
+      }
       if(g_custom_use.signalEnabled[producer*11+10])
       {
          M10MomentumSnapshot momentum;

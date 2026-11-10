@@ -1,11 +1,13 @@
 """Actual canonical controller comparison; test-only OrderSend capture, no live orders."""
 from pathlib import Path
 import argparse,hashlib,json,shutil,subprocess,re
-p=argparse.ArgumentParser();p.add_argument('--root',type=Path,required=True);p.add_argument('--repo',type=Path,required=True);p.add_argument('--expected-source-sha',default='0266fb3318348ae64b7bbbb52a1b30a0e79994df64979377cd14c1ba877c666e');p.add_argument('--baseline-build',choices=['605','606'],default='605');p.add_argument('--seeded',action='store_true');a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--root',type=Path,required=True);p.add_argument('--repo',type=Path,required=True);p.add_argument('--expected-source-sha',default='0266fb3318348ae64b7bbbb52a1b30a0e79994df64979377cd14c1ba877c666e');p.add_argument('--baseline-build',choices=['605','606','607'],default='605');p.add_argument('--seeded',action='store_true');a=p.parse_args()
 root=a.root;repo=a.repo;test=repo/'blueprint/tests/custom_mtf';build=re.search(r'#property version\s+"([^"]+)"',(repo/'blueprint/source/BBMA_EA.mq4').read_text()).group(1);tag=build.replace('.','');e=root/('evidence/controller'+tag+('_seeded' if a.seeded else ''));e.mkdir(parents=True,exist_ok=True)
 source=repo/'blueprint/source/BBMA_EA.mq4';source_hash=hashlib.sha256(source.read_text().encode()).hexdigest()
 assert source_hash==a.expected_source_sha
-baseline_path=root/('evidence/stage606_baseline/blueprint/source/BBMA_EA.mq4' if a.baseline_build=='605' else '597-stage/blueprint/source/BBMA_EA.mq4');baseline=baseline_path.read_text();baseline_fence='4247b5aa6babc62d7680fcb71e8859a74452638ba60c9c0fa084fae7f6f78415' if a.baseline_build=='605' else '0266fb3318348ae64b7bbbb52a1b30a0e79994df64979377cd14c1ba877c666e';assert hashlib.sha256(baseline.encode()).hexdigest()==baseline_fence
+baseline_paths={'605':'evidence/stage606_baseline/blueprint/source/BBMA_EA.mq4','606':'597-stage/blueprint/source/BBMA_EA.mq4','607':'ecsd607-stage/blueprint/source/BBMA_EA.mq4'}
+baseline_fences={'605':'4247b5aa6babc62d7680fcb71e8859a74452638ba60c9c0fa084fae7f6f78415','606':'0266fb3318348ae64b7bbbb52a1b30a0e79994df64979377cd14c1ba877c666e','607':'3c2745e4fd9d0d84c66c6e5442388f0d8de05ccb211fff81bd4ed38a2e310b44'}
+baseline_path=root/baseline_paths[a.baseline_build];baseline=baseline_path.read_text();assert hashlib.sha256(baseline.encode()).hexdigest()==baseline_fences[a.baseline_build]
 (repo/'blueprint/source/BBMA_EA_ParityBaseline605.mq4').write_text(baseline)
 h=test/'CustomControllerParityHarness.mq4';hb=test/'CustomControllerBaselineHarness.mq4';hb.write_text('#define CONTROLLER_BASELINE605\n'+h.read_text())
 compiled={}
@@ -35,7 +37,7 @@ for case,name,monitor in [('off',h.stem,'false'),('on',h.stem,'true'),('baseline
  payload=[x.split('[CUSTOM-PARITY] ',1)[1] for x in rows if '[CUSTOM-PARITY] ' in x]
  assert len(payload)>1000
  trace=e/(case+'_trace.txt');trace.write_text('\n'.join(payload)+'\n');payloads[case]=payload
- counts={k:int(v) for k,v in re.findall(r'(cycles|valid|frames|attempts|seeds|handovers)=(\d+)',summary)}
+ counts={k:int(v) for k,v in re.findall(r'(cycles|valid|frames|attempts|seeds|handovers|csaViews)=(\d+)',summary)}
  records[case]={'initial_checkpoint_isolation':isolation,'summary':summary,'counts':counts,'trace_path':str(trace),'trace_rows':len(payload),'trace_sha256':hashlib.sha256(trace.read_bytes()).hexdigest()}
  print(json.dumps({'case':case,**counts,'rows':len(payload)}),flush=True)
 off=payloads['off'];on=payloads['on'];base=payloads['baseline'+a.baseline_build]

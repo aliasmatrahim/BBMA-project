@@ -124,3 +124,7 @@ User-selected integration extends canonical D1/H4/H1 M09 parent installation int
 ### Build6.06 native mechanics evidence — 2026-11-10
 
 The pre-freeze transaction is now native-verified in bounded monitor/controller scopes:61 fixture checks, actual16-cycle monitor parity and3/3 trusted pending-owner handovers through ProcessPair. Coarse M15 tester delivery produced a legitimate future-source WAIT; M1 delivery was used while preserving canonical M15 processing and the guard. This does not grant full source-epoch recovery, live reinit/timer, custom admission or trade execution authority. See CUSTOM_MTF_E4_NATIVE_ACCEPTANCE_20261110.md.
+
+## Build6.08 — CSA read-only M10 source
+
+Requested CSA rows now read the canonical M10 finalized MidBB snapshot; a bare MidBB direction does not require MA pair or MOM expansion/previous band. Failed CSA input readiness aborts without consuming the observation batch. Stable symbol/TF/direction/source-bar identities are context observations, not executable trigger reservations. All CSA views stay recoveryOnly=true with closed entry/eligibility/execution flags; first observation remains priming only. All77 availability cells remain OFF. Native154/154 and210 actual-controller views verified; see CUSTOM_MTF_CSA_SIGNAL_ACCEPTANCE_20261110.md. CSAK/CSD migration is still pending SIG-03.

@@ -1,0 +1,46 @@
+"""Actual canonical controller comparison; test-only OrderSend capture, no live orders."""
+from pathlib import Path
+import argparse,hashlib,json,shutil,subprocess,re
+p=argparse.ArgumentParser();p.add_argument('--root',type=Path,required=True);p.add_argument('--repo',type=Path,required=True);p.add_argument('--seeded',action='store_true');a=p.parse_args()
+root=a.root;repo=a.repo;test=repo/'blueprint/tests/custom_mtf';e=root/('evidence/controller606_seeded' if a.seeded else 'evidence/controller606');e.mkdir(parents=True,exist_ok=True)
+source=repo/'blueprint/source/BBMA_EA.mq4';source_hash=hashlib.sha256(source.read_text().encode()).hexdigest()
+assert source_hash=='0266fb3318348ae64b7bbbb52a1b30a0e79994df64979377cd14c1ba877c666e'
+baseline=(root/'evidence/stage606_baseline/blueprint/source/BBMA_EA.mq4').read_text();assert hashlib.sha256(baseline.encode()).hexdigest()=='4247b5aa6babc62d7680fcb71e8859a74452638ba60c9c0fa084fae7f6f78415'
+(repo/'blueprint/source/BBMA_EA_ParityBaseline605.mq4').write_text(baseline)
+h=test/'CustomControllerParityHarness.mq4';hb=test/'CustomControllerBaselineHarness.mq4';hb.write_text('#define CONTROLLER_BASELINE605\n'+h.read_text())
+compiled={}
+for path in [h,hb]:
+ log=e/(path.stem+'_compile.log');log.unlink(missing_ok=True);path.with_suffix('.ex4').unlink(missing_ok=True)
+ subprocess.run([str(root/'metaeditor.exe'),'/compile:'+str(path),'/log:'+str(log)],timeout=60)
+ line=next((x for x in log.read_bytes().decode('utf-16').splitlines() if 'Result:' in x),'NO_RESULT');assert '0 errors, 0 warnings' in line,log.read_bytes().decode('utf-16')
+ compiled[path.stem]={'result':line,'harness_sha256_lf':hashlib.sha256(path.read_text().encode()).hexdigest(),'binary_sha256':hashlib.sha256(path.with_suffix('.ex4').read_bytes()).hexdigest()}
+ shutil.copyfile(path.with_suffix('.ex4'),root/'MQL4/Experts'/path.with_suffix('.ex4').name)
+records={};payloads={}
+for case,name,monitor in [('off',h.stem,'false'),('on',h.stem,'true'),('baseline605',hb.stem,'false')]:
+ params={'PairList':'GBPUSD','MaxActivePair':'1','MMMode':'2','FixedLot':'0.01','InstanceID':'82','DebugLevel':'0','ShowDashboard':'false','MonitorRequested':monitor,'SeedPending':'true' if a.seeded else 'false','CustomSymbolMode':'0','CustomSymbolList':''}
+ for tf in ['M1','M5','M15','M30','H1','H4','D1']:params['CustomTF_'+tf]='true';params['CustomSignals_'+tf]=''
+ for slot in range(1,6):
+  for key,value in [('Enable','false'),('Context',''),('Trigger',''),('Symbols','ALL')]:params[f'Custom{slot}_{key}']=value
+ preset=root/'tester'/('controller606_'+case+'.set');preset.write_text(''.join(k+'='+v+'\n' for k,v in params.items()))
+ cfg=(root/'config/parser_green.ini').read_text().replace('CustomFormulaHarness',name).replace('parser_green.html',case+'606.html').replace('TestPeriod=M15','TestPeriod=M1').replace('TestModel=0','TestModel=2').replace('TestFromDate=2026.08.03','TestFromDate=2026.08.04').replace('TestToDate=2026.08.04','TestToDate=2026.08.05')+'\nTestExpertParameters='+preset.name+'\n'
+ assert 'ExpertsTrades=false' in cfg
+ ini=e/(case+'.ini');ini.write_text(cfg);logs=root/'tester/logs';before={x:x.stat().st_size for x in logs.glob('*.log')}
+ subprocess.run([str(root/'terminal.exe'),'/portable',str(ini)],cwd=root,timeout=150,check=True)
+ rows=[]
+ for log in logs.glob('*.log'):
+  with log.open('rb') as stream:stream.seek(before.get(log,0));rows.extend(stream.read().decode(errors='replace').splitlines())
+ summaries=[x for x in rows if '[CUSTOM-PARITY-SUMMARY]' in x];assert len(summaries)==1,summaries
+ summary=summaries[0];observed_ok=('ok=true' in summary or 'ok=1' in summary);assert observed_ok==(not(a.seeded and case=='baseline605')),summary
+ payload=[x.split('[CUSTOM-PARITY] ',1)[1] for x in rows if '[CUSTOM-PARITY] ' in x]
+ assert len(payload)>1000
+ trace=e/(case+'_trace.txt');trace.write_text('\n'.join(payload)+'\n');payloads[case]=payload
+ counts={k:int(v) for k,v in re.findall(r'(cycles|valid|frames|attempts|seeds|handovers)=(\d+)',summary)}
+ records[case]={'summary':summary,'counts':counts,'trace_path':str(trace),'trace_rows':len(payload),'trace_sha256':hashlib.sha256(trace.read_bytes()).hexdigest()}
+ print(json.dumps({'case':case,**counts,'rows':len(payload)}),flush=True)
+off=payloads['off'];on=payloads['on'];base=payloads['baseline605']
+parity=(off==on);differences=[{'off':x,'on':y} for x,y in zip(off,on) if x!=y][:10]
+old_diff=[{'baseline605':x,'candidate606':y} for x,y in zip(base,off) if x!=y]
+manifest={'seeded_trusted_owner_fixtures':a.seeded,'source_sha256_lf':source_hash,'baseline605_sha256_lf':hashlib.sha256(baseline.encode()).hexdigest(),'compiled':compiled,'records':records,'candidate_monitor_parity':parity,'candidate_differences_first10':differences,'old_new_trace_row_counts_equal':len(base)==len(off),'old_new_difference_count':len(old_diff),'old_new_differences_first20':old_diff[:20],'scope':'Actual OnTick/OnTimer -> M27 -> ProcessPair on GBPUSD M1 delivery model2 with canonical M15 clock, Aug4 2026 02:00-06:00 chart time; fresh initialized owners unless seeded_trusted_owner_fixtures=true (explicit pending handover fixtures, not historical formation), M30 derived fixture; no wall-clock timer, arbitrary cold-start/session or positive-entry claim. Test-only OrderSend capture replaces broker send; all custom slots OFF. Full scalar owner/decision traces are compared, not only hashes.'}
+(e/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
+assert parity and len(base)==len(off),manifest['candidate_differences_first10']
+print('CONTROLLER606_PARITY_PASS',flush=True)

@@ -1,0 +1,58 @@
+{
+  "ffmpeg": "C:\\Users\\Afiq Mat Rahim\\BBMA_SOURCE_AUDIT\\tools\\ffmpeg\\ffmpeg-9.0.1-essentials_build\\bin\\ffmpeg.exe",
+  "frames": [
+    {
+      "video": "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\bbma_finale\\V05\\BBMA_Finale_V05.mp4",
+      "second": 1801,
+      "frame": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\source606\\V05_1801.jpg",
+      "sha256": "6abd853bcdc864a04c640cf223967a155eb994b0357a085f7576e6f031069af0",
+      "repository_frame": "blueprint/audits/evidence/CUSTOM_MTF_DIRECTION606/V05_1801.jpg"
+    },
+    {
+      "video": "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\bbma_finale\\V05\\BBMA_Finale_V05.mp4",
+      "second": 1869,
+      "frame": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\source606\\V05_1869.jpg",
+      "sha256": "c4743079355b8d8107206822af20279b26672020141adfbab1a1b3f5934b9758",
+      "repository_frame": "blueprint/audits/evidence/CUSTOM_MTF_DIRECTION606/V05_1869.jpg"
+    },
+    {
+      "video": "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\bbma_finale\\V06\\BBMA_Finale_V06.mp4",
+      "second": 1035,
+      "frame": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\source606\\V06_1035.jpg",
+      "sha256": "c8e48ebc9225dcf10b8d201dde694b9b80d57aae1ca418cb10ea700123ff3d9f",
+      "repository_frame": "blueprint/audits/evidence/CUSTOM_MTF_DIRECTION606/V06_1035.jpg"
+    },
+    {
+      "video": "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\bbma_finale\\V06\\BBMA_Finale_V06.mp4",
+      "second": 1211,
+      "frame": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\source606\\V06_1211.jpg",
+      "sha256": "ac8793295a86d4663c751b280839a96d42e56e8e72a9bcd856fbe0087f4eceac",
+      "repository_frame": "blueprint/audits/evidence/CUSTOM_MTF_DIRECTION606/V06_1211.jpg"
+    },
+    {
+      "video": "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\bbma_finale\\V05\\BBMA_Finale_V05.mp4",
+      "second": 2030,
+      "frame": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\source606\\V05_2030.jpg",
+      "sha256": "28a44f1454e27a35e0055bd705a6cc097036e162a64b6e8231627d894b11efd7",
+      "repository_frame": null
+    },
+    {
+      "video": "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\bbma_finale\\V05\\BBMA_Finale_V05.mp4",
+      "second": 2048,
+      "frame": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\source606\\V05_2048.jpg",
+      "sha256": "b0602ac4affe9e1e685349ae5a239a90e4bc7ff545f064511097c29662bf153b",
+      "repository_frame": null
+    },
+    {
+      "video": "D:\\BBMA_SOURCE_AUDIT_VIDEOS\\bbma_finale\\V05\\BBMA_Finale_V05.mp4",
+      "second": 2062,
+      "frame": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\source606\\V05_2062.jpg",
+      "sha256": "d0c7841c34a0eee6e087b1932073a7db2268010e7b568291451cfe141e03aa9c",
+      "repository_frame": "blueprint/audits/evidence/CUSTOM_MTF_DIRECTION606/V05_2062.jpg"
+    }
+  ],
+  "video_hashes": {
+    "V05": "07dfbbe8e1133a78744053e89fff55041789149a2fc55b29be930ca9cd35312a",
+    "V06": "4d3735d6a3f35c1ca65b19b7ebe429319baf7a049f91b4b6e59540212ba65043"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "rows": [
+    {
+      "tf": 1,
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD1.hst",
+      "sha256": "f931fef6b0d9a829de421c497af8691de48ba74cc9db68d29c50d852de6f1310",
+      "header_version": 401,
+      "records": 512000,
+      "source_kind": "installed broker-format HST; not session authentication"
+    },
+    {
+      "tf": 5,
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD5.hst",
+      "sha256": "418440bf35ac6b436361987f3f3deb1beb101ec3a36a3f6c298f338b1e188713",
+      "header_version": 401,
+      "records": 512000,
+      "source_kind": "installed broker-format HST; not session authentication"
+    },
+    {
+      "tf": 15,
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD15.hst",
+      "sha256": "74db0196f4d77fc66548cd41614adfdde9ca96f9e2da91daebcd17e304c5e7b5",
+      "header_version": 401,
+      "records": 499059,
+      "source_kind": "installed broker-format HST; not session authentication"
+    },
+    {
+      "tf": 30,
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD30.hst",
+      "sha256": "d9668038ebc635225534d683ea34b60805915d92510be2b58b6584b8fbbde0d7",
+      "header_version": 401,
+      "records": 15983,
+      "source_kind": "derived complete-bucket OHLC fixture"
+    },
+    {
+      "tf": 60,
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD60.hst",
+      "sha256": "566762b35fce7ef2dcb5985a57dac6bc5d0476a6a76ddef2d680ef0905632389",
+      "header_version": 401,
+      "records": 124772,
+      "source_kind": "installed broker-format HST; not session authentication"
+    },
+    {
+      "tf": 240,
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD240.hst",
+      "sha256": "aa58b7e1114d20b135573168fd414db7f210ab260427c8596cadfb8052e5015f",
+      "header_version": 401,
+      "records": 31200,
+      "source_kind": "installed broker-format HST; not session authentication"
+    },
+    {
+      "tf": 1440,
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD1440.hst",
+      "sha256": "6ee8ded5b0027a2340d15196f34da603899d648a772919af6facd156f81800ac",
+      "header_version": 401,
+      "records": 5206,
+      "source_kind": "installed broker-format HST; not session authentication"
+    }
+  ],
+  "scope": "Post-run source-file identity; session/UTC/tick completeness not established"
+}

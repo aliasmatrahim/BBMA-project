@@ -278,6 +278,14 @@ void VerifyControllerHandover()
 
 int OnInit()
 {
+ // Each comparison case starts from the same empty fixture checkpoint.
+ // Guard this test-only cleanup to the isolated GBPUSD tester identity.
+ if(!IsTesting() || Symbol()!="GBPUSD" || InstanceID!=82)return INIT_FAILED;
+ PairState bootstrap;ZeroMemory(bootstrap);bootstrap.base_symbol="GBPUSD";
+ string prefix=H4OwnerGVBase(bootstrap);
+ Print("[CUSTOM-PARITY-INIT] checkpointBefore=",GlobalVariableCheck(prefix+"T")," prefix=",prefix);
+ ClearH4OwnerCheckpoint(bootstrap);GlobalVariablesFlush();
+ Print("[CUSTOM-PARITY-INIT] checkpointAfter=",GlobalVariableCheck(prefix+"T"));
  int status=CanonicalOnInit();if(status!=INIT_SUCCEEDED)return status;
  if(g_pair_count!=1 || !g_pair_canonical_scope[0])return INIT_FAILED;
  ZeroMemory(g_custom_use);ArrayResize(g_custom_pair_indices,MonitorRequested?1:0);

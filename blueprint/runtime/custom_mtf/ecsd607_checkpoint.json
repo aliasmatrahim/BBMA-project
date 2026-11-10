@@ -1,0 +1,21 @@
+{
+  "task": "SIG-01-eCSD",
+  "status": "IN_PROGRESS",
+  "base_commit": "328d33a0dd4824f4ff3dcb2a2b2823a69e12bc9b",
+  "build": "6.07",
+  "source_sha256_lf": "3c2745e4fd9d0d84c66c6e5442388f0d8de05ccb211fff81bd4ed38a2e310b44",
+  "cloud_red": "actual baseline rejects Close-beyond-MA due Open",
+  "cloud_green": "76 passed in1.35s final run",
+  "native_ecsd": {
+    "checks": 190,
+    "passed": true,
+    "actual_closed_history_comparisons": 140,
+    "timeframes": 7,
+    "M30": "derived complete-bucket OHLC fixture"
+  },
+  "native_regression": "11 affected groups PASS, G40 process13040 exit0",
+  "controller": "Initial OFF/ON mismatch in8 H4Owner.RecoveredFromCheckpoint fields. Case checkpoint carry-over identified; test-only isolated H4 checkpoint reset added. Final rerun pending. No field excluded or production guard altered.",
+  "auto_entry": false,
+  "next_signal_started": false,
+  "next_action": "Finish current controller comparison and exact manifest/binary/trace binding before SIG-01 accepted; no other signal development."
+}

@@ -1,5 +1,7 @@
 # Approved Custom MTF queue — 2026-11-10
 
+Active user sequence override2026-11-10: SIG-01 eCSD is the only development task. Finish its source/consumer/native acceptance and checkpoint before CSA, CSAK or any other signal. Affected regression belongs to SIG-01. Details: CUSTOM_MTF_SIGNAL_SERIAL_ACCEPTANCE_20261110.md.
+
 Authority: user approved continuous execution with checkpoint after each task. This is a scoped workstream queue, not a replacement for the canonical MASTER_QUEUE. Source/branch authority and dependencies remain mandatory. Auto-entry/availability remain OFF; no merge or trading activation.
 
 | Task | Scope / exit | Status at checkpoint |

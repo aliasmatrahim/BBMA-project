@@ -1,7 +1,7 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 6.0.6 - Canonical M09 Pre-Freeze Transaction        |
-//|                         WIP - NATIVE VALIDATION PENDING            |
+//| Version 6.0.7 - eCSD Close-Only Signal        |
+//| SIGNAL VALIDATION IN PROGRESS - CUSTOM ORDERS OFF          |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
 //|                    CODING COMPLEXITY LIMITER                       |
@@ -31,14 +31,14 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "6.06"
+#property version   "6.07"
 #property strict
 #include "custom_mtf/CustomInputs.mqh"
 #include "custom_mtf/CustomPairBinding.mqh"
 #include "custom_mtf/CustomClock.mqh"
 
-#define BBMA_BUILD_TAG      "V606_M09_PREFREEZE_TRANSACTION_20261109"
-#define BBMA_SOURCE_REV_TAG "M09_PREFREEZE_TRANSACTION_001_20261109"
+#define BBMA_BUILD_TAG      "V607_ECSD_CLOSE_ONLY_20261110"
+#define BBMA_SOURCE_REV_TAG "ECSD_CLOSE_ONLY_001_20261110"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -3665,22 +3665,23 @@ bool DetectCSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
           CandleBodyCrossesLevel(open, close, band.MID_BB, direction);
 }
 
+bool M10_CandleClosesBeyondMAPair(double close, double ma5, double ma10,
+                                  ENUM_DIRECTION direction)
+{
+   if(close <= 0 || ma5 <= 0 || ma10 <= 0) return false;
+   if(direction == DIR_BUY) return (close > ma5 && close > ma10);
+   if(direction == DIR_SELL) return (close < ma5 && close < ma10);
+   return false;
+}
+
 bool DetectECSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,
                 MovingAverage &ma)
 {
-   double open = iOpen(pair, timeframe, shift);
+   if(shift < 1 || (direction != DIR_BUY && direction != DIR_SELL)) return false;
    double close = iClose(pair, timeframe, shift);
-   if(open <= 0 || close <= 0) return false;
-   if(direction != DIR_BUY && direction != DIR_SELL) return false;
-
    if(direction == DIR_BUY)
-   {
-      if(ma.MA5_High <= 0 || ma.MA10_High <= 0) return false;
-      return M10_CandleBodyCrossesMAPair(open, close, ma.MA5_High, ma.MA10_High, direction);
-   }
-
-   if(ma.MA5_Low <= 0 || ma.MA10_Low <= 0) return false;
-   return M10_CandleBodyCrossesMAPair(open, close, ma.MA5_Low, ma.MA10_Low, direction);
+      return M10_CandleClosesBeyondMAPair(close, ma.MA5_High, ma.MA10_High, direction);
+   return M10_CandleClosesBeyondMAPair(close, ma.MA5_Low, ma.MA10_Low, direction);
 }
 
 //+------------------------------------------------------------------+
@@ -11268,7 +11269,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=6.06 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=6.07 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);

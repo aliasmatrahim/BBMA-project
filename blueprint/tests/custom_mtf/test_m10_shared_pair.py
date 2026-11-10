@@ -9,7 +9,7 @@ def fn(name):
   depth+=(s[i]=='{')-(s[i]=='}');i+=1
  return s[m.start():i]
 helper=fn('M10_CandleBodyCrossesMAPair')
-for name in ('DetectCSD','DetectECSD'):
+for name in ('DetectCSD',):
  b=fn(name)
  assert b.count('M10_CandleBodyCrossesMAPair(')==2
  assert 'CandleBodyCrossesLevel(open, close, ma.' not in b
@@ -24,3 +24,6 @@ with tempfile.TemporaryDirectory() as t:
  subprocess.run(['g++','-std=c++11',str(p/'test.cpp'),'-o',str(p/'test')],check=True)
  subprocess.run([str(p/'test')],check=True)
 print('M10_SHARED_PAIR_EQUIVALENCE_PASS cases=19683; numeric C++ equivalence only, not native MQL4 runtime')
+
+assert fn('DetectECSD').count('M10_CandleClosesBeyondMAPair(')==2
+assert 'iOpen(' not in fn('DetectECSD')

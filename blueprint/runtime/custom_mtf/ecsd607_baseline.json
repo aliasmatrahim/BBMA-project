@@ -1,0 +1,15 @@
+{
+  "source_sha256_lf": "0266fb3318348ae64b7bbbb52a1b30a0e79994df64979377cd14c1ba877c666e",
+  "protected_functions": {
+    "DetectCSD": "a06c1654e62f161bd9d4d945819525b1a6a3cc57ee63a46226eeded62fe19b33",
+    "DetectCSM": "58c111d9f95632299e672bd72b668e125396e030f3c55a81301b0c8cf8e84719",
+    "CandleBodyCrossesLevel": "f21d35f89c54a8dbdb80736055096239456e2317439760a3636c20ddbc70f24e",
+    "M10_CandleBodyCrossesMAPair": "6aa068b07104b45b8dc26c03ed692a0d5da9999adfaf18443586ddc88c90a826",
+    "DetectD1OpportunityECSDWatch": "3568847bbd11956f521d9ed803106cbb76f6ff34dc0f206a61689319a8372210",
+    "DetectReEntryDirectionOwnerSignal": "1af6f1cb6f04e71f125ae71b4c9833b2b5c134c41c9445dfe35abbaa259a7534",
+    "ClassifyH4AuthoritativeSignal": "b5b5ebab5f7a985dad5585145e29fb19fa0707c6ab3b994db2dd101a3d832bec",
+    "ApplyH4AuthoritativeEvent": "15bbfee635613e170fa4747ae07caf4661a42a430b562b79ee5e9fd2b0d56c3c",
+    "AdvanceMHVSourceOwners": "13b4872911881242c647d183671740218d46d4e30c7c7b89540228fabc034d6f"
+  },
+  "old_ecsd": "bool DetectECSD(string pair, int timeframe, ENUM_DIRECTION direction, int shift,\n                MovingAverage &ma)\n{\n   double open = iOpen(pair, timeframe, shift);\n   double close = iClose(pair, timeframe, shift);\n   if(open <= 0 || close <= 0) return false;\n   if(direction != DIR_BUY && direction != DIR_SELL) return false;\n\n   if(direction == DIR_BUY)\n   {\n      if(ma.MA5_High <= 0 || ma.MA10_High <= 0) return false;\n      return M10_CandleBodyCrossesMAPair(open, close, ma.MA5_High, ma.MA10_High, direction);\n   }\n\n   if(ma.MA5_Low <= 0 || ma.MA10_Low <= 0) return false;\n   return M10_CandleBodyCrossesMAPair(open, close, ma.MA5_Low, ma.MA10_Low, direction);\n}"
+}

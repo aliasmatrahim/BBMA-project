@@ -1,6 +1,6 @@
 # Approved Custom MTF queue — 2026-11-10
 
-Active user sequence override2026-11-10: SIG-01 eCSD, SIG-02 CSA, SIG-03 CSAK/CSD, SIG-04 MOM and SIG-05 Extreme have bounded VERIFIED acceptances. Verify SIG-05 final publication before SIG-06 MHV. Finish one signal before another; do no unrelated task. All custom execution remains OFF.
+Active user sequence override2026-11-10: SIG-01–05 bounded acceptances published/verified. Current only SIG-06 MHV: historical owner-epoch/session preflight HOLD. Do not start SIG-07 MLV or Re-Entry, or unrelated tasks. All custom execution remains OFF.
 
 Authority: user approved continuous execution with checkpoint after each task. This is a scoped workstream queue, not a replacement for the canonical MASTER_QUEUE. Source/branch authority and dependencies remain mandatory. Auto-entry/availability remain OFF; no merge or trading activation.
 
@@ -60,3 +60,6 @@ SIG-05 Extreme IN_PROGRESS: Build6.11 rev003 / LF SHA a62672ae1874fcbf61c671af01
 
 
 SIG-05 FINAL supersedes IN_PROGRESS: Build6.11 rev003, source a62672ae1874fcbf61c671af01da09ef45ffe6972abd998ec70c5f9a74c238cb. Native141 source/handover +716 valid lifecycle/history,19 specialized groups (21 current total), frozen6.10 lifecycle716, strict0E0W. Controller180 EXT+630 M10 views/15 frames,16 cycles/12224 rows per profile, OFF/ON/6.10 exact parity; zero decisions/attempts.23 bindings plus separate baseline harness and3 full traces verified12828 exit0. Full manifest/RED archive ext611_evidence.json.gz; acceptance CUSTOM_MTF_EXTREME_SIGNAL_ACCEPTANCE_20261110.md. Next only SIG-06 MHV after publication verification. No session/epoch/T04-F/entry/merge/deployment promotion.
+
+
+SIG-06 MHV current checkpoint: Core/F1 reviewed; exact6.11 mechanical native proofs reused. Fresh G40 provenance check6256 exit0 confirms4 metadata hashes unchanged/reference authority and56 zero M08/M09 anchors at the current controller first cycle. Historical origin/session acceptance remains HOLD-UNRESOLVED, not a formula/Open/pre-freeze decision gap. No source/native rerun/availability promotion. See CUSTOM_MTF_MHV_SIGNAL_PREFLIGHT_20261110.md and mhv611_preflight.json. Exact next: authenticated same-feed session/history evidence plus accepted/source-proven reconstructed M08/M09 epoch, then full continuous-vs-recovered owner comparison. Stay SIG06; MLV/ReEntry pending. Existing3904-name/210-candidate discovery is retained, not repeated or claimed G40-wide absence.

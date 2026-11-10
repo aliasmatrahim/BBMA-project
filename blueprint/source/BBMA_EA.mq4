@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 6.1.0 - Momentum Readiness            |
+//| Version 6.1.1 - Extreme Source Readiness      |
 //| SIGNAL VALIDATION IN PROGRESS - CUSTOM ORDERS OFF          |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,14 +31,14 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "6.10"
+#property version   "6.11"
 #property strict
 #include "custom_mtf/CustomInputs.mqh"
 #include "custom_mtf/CustomPairBinding.mqh"
 #include "custom_mtf/CustomClock.mqh"
 
-#define BBMA_BUILD_TAG      "V610_MOMENTUM_READINESS_20261110"
-#define BBMA_SOURCE_REV_TAG "MOMENTUM_READINESS_003_20261110"
+#define BBMA_BUILD_TAG      "V611_EXTREME_SOURCE_READINESS_20261110"
+#define BBMA_SOURCE_REV_TAG "EXTREME_SOURCE_READINESS_003_20261110"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -2738,40 +2738,35 @@ bool IsExtremeReversalDirection(TimeframeData &data, ENUM_DIRECTION direction)
 bool IsExtremeMomentumInvalidation(string pair, TimeframeData &data,
                                    BollingerBand &currentBand)
 {
-   if(data.barIndex < 1 || data.close <= 0 || currentBand.Width <= 0) return false;
+   // M10 owns Momentum classification and complete finalized source readiness.
+   M10MomentumSnapshot momentum;
+   if(!ReadM10MomentumSource(pair,data,momentum))return false;
+   return (momentum.buy || momentum.sell);
+}
 
-   BollingerBand previousBand;
-   ZeroMemory(previousBand);
-   CalculateBollinger(pair, data.timeframe, data.barIndex + 1, previousBand);
-   if(previousBand.Width <= 0 || previousBand.MID_BB <= 0 ||
-      previousBand.TOP_BB <= 0 || previousBand.LOW_BB <= 0)
-      return false;
+bool ReadExtremeLifecycleInvalidation(string pair, ENUM_DIRECTION direction,
+                                      TimeframeData &data, BollingerBand &band,
+                                      bool &invalidated)
+{
+   invalidated=false;
+   if(direction!=DIR_BUY && direction!=DIR_SELL)return false;
+   if(data.close<=0 || band.TOP_BB<=0 || band.LOW_BB<=0)return false;
+   M10MomentumSnapshot momentum;
+   if(!ReadM10MomentumSource(pair,data,momentum))return false;
 
-   bool bbExpanding = (currentBand.Width > previousBand.Width);
-   bool buyMomentum = bbExpanding &&
-                      currentBand.MID_BB > previousBand.MID_BB &&
-                      currentBand.TOP_BB > previousBand.TOP_BB &&
-                      data.close > currentBand.TOP_BB;
-   bool sellMomentum = bbExpanding &&
-                       currentBand.MID_BB < previousBand.MID_BB &&
-                       currentBand.LOW_BB < previousBand.LOW_BB &&
-                       data.close < currentBand.LOW_BB;
-   return (buyMomentum || sellMomentum);
+   // Relevant-side outer close or either accepted directional Momentum voids.
+   bool relevantOuterBreak=(direction==DIR_SELL)
+                           ?(data.close>band.TOP_BB):(data.close<band.LOW_BB);
+   invalidated=(relevantOuterBreak || momentum.buy || momentum.sell);
+   return true;
 }
 
 bool IsExtremeLifecycleInvalidation(string pair, ENUM_DIRECTION direction,
                                     TimeframeData &data, BollingerBand &band)
 {
-   if(data.close <= 0 || band.TOP_BB <= 0 || band.LOW_BB <= 0) return false;
-
-   // A continuation close through the original Extreme-side outer BB is void.
-   // An opposite-side outside close is not made a universal hard failure here;
-   // it is invalid only when it qualifies as accepted directional Momentum.
-   bool relevantOuterBreak = (direction == DIR_SELL)
-                             ? (data.close > band.TOP_BB)
-                             : (data.close < band.LOW_BB);
-
-   return (relevantOuterBreak || IsExtremeMomentumInvalidation(pair, data, band));
+   bool invalidated=false;
+   return ReadExtremeLifecycleInvalidation(pair,direction,data,band,invalidated)
+          && invalidated;
 }
 
 void MarkExtremeLifecycleVoid(ExtremeLifecycleData &extreme,
@@ -2891,6 +2886,10 @@ ENUM_EXTREME_MATURITY UpdateExtremeLifecycle(ExtremeLifecycleData &extreme,
    if(direction != DIR_BUY && direction != DIR_SELL) return extreme.Maturity;
    if(!data.is_valid || !data.is_closed || data.candle_time <= 0) return extreme.Maturity;
 
+   bool invalidated=false;
+   if(!ReadExtremeLifecycleInvalidation(pair,direction,data,band,invalidated))
+      return extreme.Maturity;
+
    if(extreme.Direction != direction || extreme.Timeframe != data.timeframe)
       ResetExtremeLifecycle(extreme, direction, data.timeframe);
 
@@ -2921,7 +2920,7 @@ ENUM_EXTREME_MATURITY UpdateExtremeLifecycle(ExtremeLifecycleData &extreme,
       extreme.IsValid = false;
       extreme.Reason = "RAW Extreme detected; awaiting reversal confirmation";
 
-      if(IsExtremeLifecycleInvalidation(pair, direction, data, band))
+      if(invalidated)
          MarkExtremeLifecycleVoid(extreme, data,
                                   "RAW Extreme void: outside-BB/Momentum invalidation");
       return extreme.Maturity;
@@ -2931,7 +2930,7 @@ ENUM_EXTREME_MATURITY UpdateExtremeLifecycle(ExtremeLifecycleData &extreme,
       return extreme.Maturity;
 
    // Invalidation is evaluated before every pre-entry maturity promotion.
-   if(IsExtremeLifecycleInvalidation(pair, direction, data, band))
+   if(invalidated)
    {
       MarkExtremeLifecycleVoid(extreme, data,
                                "Extreme void: outside-BB/Momentum invalidation");
@@ -3259,16 +3258,22 @@ void InstallMHVSupersessionParent(MLVData &mlv,
 
 bool TryAdvanceMHVSupersessionCandidate(MLVData &mlv, string pair,
                                         TimeframeData &data, BollingerBand &band,
-                                        ExtremeLifecycleData &parent,bool emitTelemetry=true)
+                                        ExtremeLifecycleData &parent,bool &sourceAvailable,
+                                        bool emitTelemetry=true)
 {
+   sourceAvailable=false;
    ENUM_DIRECTION parentDirection = GetMHVParentExtremeDirection(mlv.Direction);
    if(parentDirection == DIR_NONE) return false;
+   bool invalidated=false;
+   if(!ReadExtremeLifecycleInvalidation(pair,parentDirection,data,band,invalidated))
+      return false;
+   sourceAvailable=true;
 
    if(mlv.SupersessionCandidateActive)
    {
       if(data.candle_time <= mlv.SupersessionRawCandleTime) return false;
 
-      if(IsExtremeLifecycleInvalidation(pair, parentDirection, data, band))
+      if(invalidated)
       {
          mlv.SupersessionCandidateActive = false;
          mlv.SupersessionRawBar = 0;
@@ -3301,7 +3306,7 @@ bool TryAdvanceMHVSupersessionCandidate(MLVData &mlv, string pair,
 
    // Opposite RAW Extreme is only a new-cycle candidate. It cannot erase the
    // old MHV provenance until the later reversal-confirmation candle arrives.
-   if(IsExtremeLifecycleInvalidation(pair, parentDirection, data, band))
+   if(invalidated)
       return false;
 
    mlv.SupersessionCandidateActive = true;
@@ -3466,8 +3471,10 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
          return mlv.State;
       }
 
-      if(TryAdvanceMHVSupersessionCandidate(mlv, pair, data, band, parent,emitTelemetry))
-         return mlv.State;
+      bool sourceAvailable=false;
+      bool superseded=TryAdvanceMHVSupersessionCandidate(mlv,pair,data,band,parent,
+                                                        sourceAvailable,emitTelemetry);
+      if(!sourceAvailable || superseded)return mlv.State;
 
       if(mlv.State == MLV_FORMATION_ESTABLISHED &&
          data.candle_time > mlv.ConfirmationCandleTime &&
@@ -3503,8 +3510,10 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
       mlv.InvalidationWindowOpen = false;
       mlv.IsValid = true;
 
-      if(TryAdvanceMHVSupersessionCandidate(mlv, pair, data, band, parent,emitTelemetry))
-         return mlv.State;
+      bool sourceAvailable=false;
+      bool superseded=TryAdvanceMHVSupersessionCandidate(mlv,pair,data,band,parent,
+                                                        sourceAvailable,emitTelemetry);
+      if(!sourceAvailable || superseded)return mlv.State;
 
       mlv.LastUpdateBar = data.barIndex;
       mlv.LastUpdateCandleTime = data.candle_time;
@@ -3516,7 +3525,9 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
    {
       // VOID remains non-authoritative. A later RAW opposite-cycle Extreme is
       // only a candidate; a reversal-confirmed Extreme installs the new parent.
-      TryAdvanceMHVSupersessionCandidate(mlv, pair, data, band, parent,emitTelemetry);
+      bool sourceAvailable=false;
+      TryAdvanceMHVSupersessionCandidate(mlv,pair,data,band,parent,sourceAvailable,emitTelemetry);
+      if(!sourceAvailable)return mlv.State;
       mlv.LastUpdateBar = data.barIndex;
       mlv.LastUpdateCandleTime = data.candle_time;
       mlv.PreviousClose = data.close;

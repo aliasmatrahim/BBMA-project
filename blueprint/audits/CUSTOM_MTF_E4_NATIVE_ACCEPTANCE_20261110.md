@@ -62,7 +62,7 @@ A recovery check detected stale seeded gzip blob references. Publication uses re
 Read-only local original V05/V06 videos were recovered on G40 and decoded using the installed ffmpeg.
 Seven time-aligned frames extracted; five archived. Video/frame hashes are in source_frames606_evidence.json.
 V05 at1801 seconds: written close beyond MA5/10 Hi/Low, CS Awal.
-V05 at2062 seconds, inside routed33:44-34:16 strong-direction window: completed definition close beyond MA5/10 Hi/Low plus MidBB, CS Kukuh. Frame has a dissolve transition; text corroboration only.
+V05 at2062 seconds (34:22), six seconds after the routed33:44-34:16 strong-direction window: completed definition close beyond MA5/10 Hi/Low plus MidBB, CS Kukuh. Frame has a dissolve transition; text corroboration only.
 V05 at1869 and V06 at1035/1211 show chart context; none decisively determines the open-side rule when the candle already opens beyond one required line.
 Original V05 subtitles755-768 and V06 routed17:07-17:45 /20:07-20:18 corroborate close-side wording.
 This strengthens source evidence but does NOT choose body-cross vs close-side engineering mapping, alias CSA to MA-only eCSD, or promote any executable capability.
@@ -80,3 +80,16 @@ The frozen EA header retains its historical WIP text; this dated acceptance supe
 Next: retrieve a source-discriminating CSA/CSAK open-side example under current SOURCE_INDEX and document an explicit source/engineering mapping decision; separately obtain same-feed historical session/UTC and trusted owner-epoch evidence for T04-B/E reconstruction.
 Then run targeted cold-start/gap reconstruction checks against those authenticated boundaries. Unknown owners stay unavailable.
 Only after B/D/E exit criteria pass may T04-F integrated acceptance and dependent T05 advance.
+
+
+## T04-E/4 checkpoint reconciliation — 2026-11-10
+
+Recovered live Draft PR303 head bd3367b0a1747fb239ec8615a8b5343c3ba5b94c on feat/custom-mtf-v1-20261108; owner d1-owner-dev459c0588e625d7f7630f0fb5612b7f04fda496de unchanged. G40 online. CURRENT/MASTER_QUEUE/SOURCE_INDEX on owner match the local copies exactly. Local interrupted documentation and stale seeded gzip references were preserved in a temporary backup and reconciled to the published evidence before validation. Four previously unpublished native/source/contract/plan addenda are now included in the same checkpoint lineage.
+
+Fresh final cloud command from repository root: PYTHONPATH=/workspace/scratch/f5ddfbd6f6f6/pytest-deps python -m pytest -q -> exit0,75 passed in0.98s. Final controller driver py_compile and git diff --check PASS. All six gzip traces decompress to their published SHA256/12,224-row manifests; monitor OFF/ON bytes match in both profiles. Final harness/source identities, five JPEG hashes, native manifest pass flags and startup4/4 bindings rechecked. This closes the previously missing final cloud rerun, not any new native/live acceptance. No native tests or compile were rerun because production source and final native harness are unchanged from verified artifacts.
+
+Confirmed documentation error corrected: V05 frame2062 is34:22, six seconds AFTER routed33:44-34:16, not inside it. Text corroboration only; no candle-geometry inference or CSA/CSAK predicate is promoted. Existing six-second source-window error had no executable effect. Earlier dated evidence remains historical; this addendum supersedes only final-cloud/reconciliation status.
+
+Source stays Build6.06/SHA0266fb3318348ae64b7bbbb52a1b30a0e79994df64979377cd14c1ba877c666e. E/4 bounded native mechanics VERIFIED; B session/owner epoch HOLD, D mapping PARTIAL, E overall PARTIAL, F BLOCKED. Auto-entry and all77 availability cells OFF. No merge/deployment/primary-terminal restart.
+
+Exact next action: continue C under current SOURCE_INDEX with a labelled CSA/CSAK candle example distinguishing open-side interpretations; separately obtain same-feed authenticated historical session/UTC and trusted owner-epoch evidence before B/E cold-start/gap validation. Do not use the seeded handovers as historical reconstruction evidence. No downstream dependency is waived. Publication SHA is recorded in Draft PR303.

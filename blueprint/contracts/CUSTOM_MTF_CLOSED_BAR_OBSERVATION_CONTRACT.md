@@ -119,3 +119,8 @@ All semantic input availability and entry/execution flags remain OFF. Fixture me
 ## C+1 pre-freeze candidate — Build6.06 (validation pending)
 
 User-selected integration extends canonical D1/H4/H1 M09 parent installation into ProcessPair before persistent Extreme exports and frozen M13 consumers. The shared transaction requires active canonical processing and the matching current M15 source snapshot; post-cycle observation retains the parent-read-only guard. Both directions share one staged commit into the existing owner slots. Diagnostic selection never controls canonical production. This may alter canonical parent/candidate history compared with6.05 and requires explicit native controller/parity characterization. Gaps, unknown epochs and executable admission remain gated. No native6.06 validation or deployment is claimed.
+
+
+### Build6.06 native mechanics evidence — 2026-11-10
+
+The pre-freeze transaction is now native-verified in bounded monitor/controller scopes:61 fixture checks, actual16-cycle monitor parity and3/3 trusted pending-owner handovers through ProcessPair. Coarse M15 tester delivery produced a legitimate future-source WAIT; M1 delivery was used while preserving canonical M15 processing and the guard. This does not grant full source-epoch recovery, live reinit/timer, custom admission or trade execution authority. See CUSTOM_MTF_E4_NATIVE_ACCEPTANCE_20261110.md.

@@ -27,3 +27,5 @@ C+1 follow-up: user selected source-example verification and pre-freeze M09 inte
 
 
 2026-11-10 superseding native checkpoint: see CUSTOM_MTF_E4_NATIVE_ACCEPTANCE_20261110.md, native606_evidence.json and both controller606 manifests. The earlier offline/WIP native status above is historical. B/D/E overall remain unresolved; F/T05+ stay blocked. C source frames corroborate close-side wording but do not decide open-side mapping. Exact next action: source-discriminating CSA/CSAK example plus same-feed historical session/UTC and trusted owner-epoch evidence, then targeted recovery validation. No merge/activation.
+
+2026-11-10 refresh: final published-harness cloud suite75/75 PASS after workspace recovery; six full traces/five JPEGs rebound, four interrupted addenda reconciled. Source unchanged. V05_2062 timestamp corrected to34:22 (six seconds after routed window). No B/D/E/F availability promotion. See progress.md latest reconciliation.

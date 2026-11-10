@@ -14,7 +14,9 @@ M09: extract one shared canonical transaction from the existing bounded observer
 - [x] E/4 RED: extracted actual transaction with explicit stage/broker fixtures must fail pre-freeze handover on baseline; source-order check must fail before wiring exists. These are cloud transaction tests, not MQL4 runtime proof.
 - [x] E/4 patch: shared transaction and three unconditional canonical calls before exports; unique Build6.06 identity. No availability/order changes.
 - [x] Cloud GREEN (native harness prepared only): run targeted and full pytest, diff/cross-module checks. Native harness must cover both directions and D1/H4/H1 handover, duplicates, invalid phase, gap, symbol isolation and post-cycle protection.
-- [ ] Native full compile, targeted native regressions and actual ProcessPair/monitor parity are required before E/4 VERIFIED. G40 offline leaves these NOT VERIFIED, not waived.
-- [ ] Save WIP checkpoint and update Draft PR with exact source hash, test scope, missing proof and next action. Do not mark T04-E/F complete or advance T05.
+- [x] Native full compile/regressions/startup and actual ProcessPair monitor parity completed2026-11-10 in the bounded scope documented by CUSTOM_MTF_E4_NATIVE_ACCEPTANCE_20261110.md; positive handover uses explicit trusted owner fixtures, not natural historical formation.
+- [x] Save bounded-acceptance/WIP checkpoint and update Draft PR with exact source hash, test scope, missing proof and next action. Do not mark T04-E/F complete or advance T05.
 
 Review focus: post-freeze parent writes; request-dependent legacy decisions; duplicate M15 update; partial two-direction commit; gap/cold-start promotion. No merge, activation or deployment.
+
+2026-11-10 refresh: final cloud75/75 and artifact identity reconciliation completed after workspace recovery; pending C source discrimination and B/E authenticated reconstruction gates remain. Native compile/runtime proof reused by exact source/harness hash; no duplicate run.

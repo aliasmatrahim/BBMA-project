@@ -305,3 +305,16 @@ The frozen EA header retains its historical WIP text; this dated acceptance supe
 Next: retrieve a source-discriminating CSA/CSAK open-side example under current SOURCE_INDEX and document an explicit source/engineering mapping decision; separately obtain same-feed historical session/UTC and trusted owner-epoch evidence for T04-B/E reconstruction.
 Then run targeted cold-start/gap reconstruction checks against those authenticated boundaries. Unknown owners stay unavailable.
 Only after B/D/E exit criteria pass may T04-F integrated acceptance and dependent T05 advance.
+
+
+## T04-E/4 checkpoint reconciliation — 2026-11-10
+
+Recovered live Draft PR303 head bd3367b0a1747fb239ec8615a8b5343c3ba5b94c on feat/custom-mtf-v1-20261108; owner d1-owner-dev459c0588e625d7f7630f0fb5612b7f04fda496de unchanged. G40 online. CURRENT/MASTER_QUEUE/SOURCE_INDEX on owner match the local copies exactly. Local interrupted documentation and stale seeded gzip references were preserved in a temporary backup and reconciled to the published evidence before validation. Four previously unpublished native/source/contract/plan addenda are now included in the same checkpoint lineage.
+
+Fresh final cloud command from repository root: PYTHONPATH=/workspace/scratch/f5ddfbd6f6f6/pytest-deps python -m pytest -q -> exit0,75 passed in0.98s. Final controller driver py_compile and git diff --check PASS. All six gzip traces decompress to their published SHA256/12,224-row manifests; monitor OFF/ON bytes match in both profiles. Final harness/source identities, five JPEG hashes, native manifest pass flags and startup4/4 bindings rechecked. This closes the previously missing final cloud rerun, not any new native/live acceptance. No native tests or compile were rerun because production source and final native harness are unchanged from verified artifacts.
+
+Confirmed documentation error corrected: V05 frame2062 is34:22, six seconds AFTER routed33:44-34:16, not inside it. Text corroboration only; no candle-geometry inference or CSA/CSAK predicate is promoted. Existing six-second source-window error had no executable effect. Earlier dated evidence remains historical; this addendum supersedes only final-cloud/reconciliation status.
+
+Source stays Build6.06/SHA0266fb3318348ae64b7bbbb52a1b30a0e79994df64979377cd14c1ba877c666e. E/4 bounded native mechanics VERIFIED; B session/owner epoch HOLD, D mapping PARTIAL, E overall PARTIAL, F BLOCKED. Auto-entry and all77 availability cells OFF. No merge/deployment/primary-terminal restart.
+
+Exact next action: continue C under current SOURCE_INDEX with a labelled CSA/CSAK candle example distinguishing open-side interpretations; separately obtain same-feed authenticated historical session/UTC and trusted owner-epoch evidence before B/E cold-start/gap validation. Do not use the seeded handovers as historical reconstruction evidence. No downstream dependency is waived. Publication SHA is recorded in Draft PR303.

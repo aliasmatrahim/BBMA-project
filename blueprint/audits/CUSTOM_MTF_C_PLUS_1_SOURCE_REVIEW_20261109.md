@@ -24,3 +24,15 @@ Public-source fallback also located candidate YouTube items H61M3mppMiI (V05) an
 
 
 Subsequent browser follow-up reached the V06 watch page and displayed a20:07 seek position, but not the corresponding decoded video frame. The initial image was a generic MHV poster. Play and one ordinary reload left buffering; the video DOM remained currentTime0/readyState0. Therefore no candle geometry, SRT timing match or A/B discriminator is accepted from that image. See cplus1_followup606_evidence.json. G40 was also still offline. The source gate remains unchanged.
+
+
+## Local source-video review — 2026-11-10
+
+G40 video files recovered: V05 SHA25607dfbbe8e1133a78744053e89fff55041789149a2fc55b29be930ca9cd35312a; V06 SHA2564d3735d6a3f35c1ca65b19b7ebe429319baf7a049f91b4b6e59540212ba65043. Seven frames were extracted; five are archived in blueprint/audits/evidence/CUSTOM_MTF_DIRECTION606. Hashes/paths are in source_frames606_evidence.json. The archive's download script lists the same V05/V06 YouTube leads; that is provenance corroboration, not independent official authorship authentication.
+
+V05 at30:01 visually shows the written early-direction close-beyond-MA5/10 definition. The strong-direction extraction routes specifically to33:44–34:16; at34:22 the written MA5/10-plus-MidBB close definition and strong-direction label remain readable during a dissolve. That frame is used for text corroboration only, not chart geometry. V05 at31:09 and V06 at17:15/20:11 provide actual chart context corresponding to the direction discussion. These are actual decoded local frames, superseding the earlier browser poster/buffering limitation.
+
+Conclusion: closed-candle/MA/Mid semantic roles are visually corroborated. The inspected examples do not establish an explicit labelled numeric case where the open is already beyond one required line and the teacher classifies the resulting candle in a way that distinguishes A from B. Do not interpret an absent written open restriction as proof that no restriction exists. Canonical body-span engineering mapping remains unchanged; independent CSA and exact CSAK alias/event admission remain verification required. No raw direction signal gets standalone entry authority.
+
+
+Timestamp correction2026-11-10: V05_2062 is34:22, six seconds after the routed33:44–34:16 window. Its text is readable after the window; do not describe that frame as inside the routed interval. The extracted frames at2030/2048 seconds belong inside the interval but were intermediate extractions, not among the five committed JPEGs. No mapping decision changes.

@@ -158,5 +158,18 @@
     "T04-E reconstruction",
     "T04-F acceptance"
   ],
-  "next_action": "Source-discriminating CSA/CSAK example and authenticated session/epoch retrieval before eligible recovery validation"
+  "next_action": "Source-discriminating CSA/CSAK example and authenticated session/epoch retrieval before eligible recovery validation",
+  "cloud_followup": {
+    "date": "2026-11-10",
+    "command": "PYTHONPATH=/workspace/scratch/f5ddfbd6f6f6/pytest-deps python -m pytest -q",
+    "cwd": "/workspace/scratch/f5ddfbd6f6f6/bbma-custom-mtf",
+    "exit_code": 0,
+    "passed": 75,
+    "duration_seconds": 0.98,
+    "scope": "Fresh full cloud suite on final published harness/fixtures after bd3367b reconciliation; production source unchanged",
+    "driver_py_compile": "PASS",
+    "git_diff_check": "PASS",
+    "artifact_bindings": "six decompressed full traces, both monitor parity comparisons, final harness/source hashes, five archived JPEGs and native startup/manifests PASS",
+    "native_compile_rerun": false
+  }
 }

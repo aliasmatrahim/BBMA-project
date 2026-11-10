@@ -1,0 +1,385 @@
+{
+  "task": "SIG-06-MHV",
+  "status": "PARTIAL_FULL_ACCEPTANCE_HOLD",
+  "production_source_changed": false,
+  "source_sha256_lf": "a62672ae1874fcbf61c671af01da09ef45ffe6972abd998ec70c5f9a74c238cb",
+  "new_native_restart_assertions": 106,
+  "new_post_reload_bars": 72,
+  "reused_assertions": 136,
+  "combined_assertions": 242,
+  "combined_post_reload_bars": 168,
+  "fields_per_state": 102,
+  "all_seven_TF_bounded_proofs": true,
+  "M30_adapter_MA_comparisons": 200,
+  "new_terminal_processes": 6,
+  "source_provenance": "M15/H1/H4/D1 exact synthetic v3 SHA; M1/M5 exact suffix payload plus identical header. M30 fixture derived from complete M15 pairs. No broker-session authentication.",
+  "source_binding": {
+    "profile": {
+      "profileId": "BBMA_SYNTHETIC_NY_CLOSE_TEST_V1",
+      "status": "APPROVED_FOR_ISOLATED_TESTER_REFERENCE_ONLY",
+      "classification": "ENGINEERING_MAPPING",
+      "canonicalStrategyRule": false,
+      "deploymentBrokerCanonical": false,
+      "sourceSession": {
+        "timezone": "America/New_York",
+        "anchorLocal": "17:00:00",
+        "evidence": "Dukascopy instrument metadata / session-reference derivation"
+      },
+      "syntheticServerMapping": {
+        "rule": "Map 17:00 America/New_York session start to 00:00 synthetic MT4 server day",
+        "winterUtcOffsetHours": 2,
+        "summerUtcOffsetHours": 3,
+        "dstAuthority": "IANA America/New_York",
+        "purpose": "Normal MT4 D1 midnight and H4 00/04/08/12/16/20 boundaries while preserving source session ownership"
+      },
+      "guards": [
+        "Do not label this profile as the user's deployment broker timezone.",
+        "Do not alter BBMA Strategy Core semantics.",
+        "Use only in D:\\BBMA\\MT4_Canonical_Tester or derived/export artifacts explicitly tagged synthetic-test-reference."
+      ]
+    },
+    "profile_sha256": "b762006b89e39224f333eb2551a86796f56d9e8205a916a751791db6af15f875",
+    "v3_manifest_sha256": "fcadc4e325d06a9676e0712f2294f973c26c53b22894a614a994e7e834856ae8",
+    "files": [
+      {
+        "tf": 1,
+        "current_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD1.hst",
+        "current_sha256": "f931fef6b0d9a829de421c497af8691de48ba74cc9db68d29c50d852de6f1310",
+        "source_v3_path": "D:\\BBMA\\HistoricalData\\exports\\mt4\\synthetic_ny_close_v3\\GBPUSD1.hst",
+        "source_manifest_sha256": "64d5bed21b61cc119507fd552d6a86091b2cf4a580eefb5c589aa97654f56019",
+        "source_records": 7470147,
+        "current_records": 512000,
+        "classification": "EXACT_SUFFIX_PAYLOAD_OF_SYNTHETIC_V3",
+        "source_tail_records_equal": true,
+        "source_header_equal": true
+      },
+      {
+        "tf": 5,
+        "current_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD5.hst",
+        "current_sha256": "418440bf35ac6b436361987f3f3deb1beb101ec3a36a3f6c298f338b1e188713",
+        "source_v3_path": "D:\\BBMA\\HistoricalData\\exports\\mt4\\synthetic_ny_close_v3\\GBPUSD5.hst",
+        "source_manifest_sha256": "6f7a16a1a6bdaf6f6871f56af399530974c2429d51e35f7584d37a2a88ec549d",
+        "source_records": 1496907,
+        "current_records": 512000,
+        "classification": "EXACT_SUFFIX_PAYLOAD_OF_SYNTHETIC_V3",
+        "source_tail_records_equal": true,
+        "source_header_equal": true
+      },
+      {
+        "tf": 15,
+        "current_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD15.hst",
+        "current_sha256": "74db0196f4d77fc66548cd41614adfdde9ca96f9e2da91daebcd17e304c5e7b5",
+        "source_v3_path": "D:\\BBMA\\HistoricalData\\exports\\mt4\\synthetic_ny_close_v3\\GBPUSD15.hst",
+        "source_manifest_sha256": "74db0196f4d77fc66548cd41614adfdde9ca96f9e2da91daebcd17e304c5e7b5",
+        "source_records": 499059,
+        "current_records": 499059,
+        "classification": "EXACT_SYNTHETIC_V3_EXPORT_SHA_MATCH",
+        "source_tail_records_equal": true,
+        "source_header_equal": true
+      },
+      {
+        "tf": 60,
+        "current_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD60.hst",
+        "current_sha256": "566762b35fce7ef2dcb5985a57dac6bc5d0476a6a76ddef2d680ef0905632389",
+        "source_v3_path": "D:\\BBMA\\HistoricalData\\exports\\mt4\\synthetic_ny_close_v3\\GBPUSD60.hst",
+        "source_manifest_sha256": "566762b35fce7ef2dcb5985a57dac6bc5d0476a6a76ddef2d680ef0905632389",
+        "source_records": 124772,
+        "current_records": 124772,
+        "classification": "EXACT_SYNTHETIC_V3_EXPORT_SHA_MATCH",
+        "source_tail_records_equal": true,
+        "source_header_equal": true
+      },
+      {
+        "tf": 240,
+        "current_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD240.hst",
+        "current_sha256": "aa58b7e1114d20b135573168fd414db7f210ab260427c8596cadfb8052e5015f",
+        "source_v3_path": "D:\\BBMA\\HistoricalData\\exports\\mt4\\synthetic_ny_close_v3\\GBPUSD240.hst",
+        "source_manifest_sha256": "aa58b7e1114d20b135573168fd414db7f210ab260427c8596cadfb8052e5015f",
+        "source_records": 31200,
+        "current_records": 31200,
+        "classification": "EXACT_SYNTHETIC_V3_EXPORT_SHA_MATCH",
+        "source_tail_records_equal": true,
+        "source_header_equal": true
+      },
+      {
+        "tf": 1440,
+        "current_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD1440.hst",
+        "current_sha256": "6ee8ded5b0027a2340d15196f34da603899d648a772919af6facd156f81800ac",
+        "source_v3_path": "D:\\BBMA\\HistoricalData\\exports\\mt4\\synthetic_ny_close_v3\\GBPUSD1440.hst",
+        "source_manifest_sha256": "6ee8ded5b0027a2340d15196f34da603899d648a772919af6facd156f81800ac",
+        "source_records": 5206,
+        "current_records": 5206,
+        "classification": "EXACT_SYNTHETIC_V3_EXPORT_SHA_MATCH",
+        "source_tail_records_equal": true,
+        "source_header_equal": true
+      }
+    ],
+    "scope": "Byte identity or explicit tail-record identity. No new source download, calendar inference, price repair or broker authentication."
+  },
+  "NY_calendar_native": {
+    "classification": "BOUNDED_H4_D1_SYNTHETIC_PROFILE_CALENDAR_RESTART_NOT_BROKER_ACCEPTANCE",
+    "calendar_policy": {
+      "profile_id": "BBMA_SYNTHETIC_NY_CLOSE_TEST_V1",
+      "profile_sha256": "b762006b89e39224f333eb2551a86796f56d9e8205a916a751791db6af15f875",
+      "v3_manifest_sha256": "fcadc4e325d06a9676e0712f2294f973c26c53b22894a614a994e7e834856ae8",
+      "classification": "APPROVED_SYNTHETIC_REFERENCE_CALENDAR_ONLY_NOT_HISTORICAL_BROKER_SESSIONS",
+      "source_clock_mapping": {
+        "rule": "Map 17:00 America/New_York session start to 00:00 synthetic MT4 server day",
+        "winterUtcOffsetHours": 2,
+        "summerUtcOffsetHours": 3,
+        "dstAuthority": "IANA America/New_York",
+        "purpose": "Normal MT4 D1 midnight and H4 00/04/08/12/16/20 boundaries while preserving source session ownership"
+      },
+      "weekend_rule": "Only nominally adjacent bars or a sequence of Saturday/Sunday synthetic-wall-clock slots; any weekday omission is rejected",
+      "invariant": "No existing M15 source bar may lie inside an admitted weekend interval"
+    },
+    "source_sha256_lf": "a62672ae1874fcbf61c671af01da09ef45ffe6972abd998ec70c5f9a74c238cb",
+    "compile": "Result: 0 errors, 0 warnings, 607 msec elapsed",
+    "harness_sha256_lf": "ed681b653327ca662942d607601e269122a252936b3d798f67a18aa2428861b3",
+    "binary_sha256": "ea8a666c209430e58d5be9569dd1496de6eaf27a39e8c390e4f51972c22ff235",
+    "codec_sha256_lf": "cff6eb1c08076ce2f20af33f421fbe733a206e2837afcf4898415c627f535876",
+    "equality_header_sha256_lf": "98d692ca85fbda7954160e818ab7894970a85ecd90630934e4bab9fc2b43aa18",
+    "hst_hashes_before_after_equal": true,
+    "hst_hashes": {
+      "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD1.hst": "f931fef6b0d9a829de421c497af8691de48ba74cc9db68d29c50d852de6f1310",
+      "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD1440.hst": "6ee8ded5b0027a2340d15196f34da603899d648a772919af6facd156f81800ac",
+      "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD15.hst": "74db0196f4d77fc66548cd41614adfdde9ca96f9e2da91daebcd17e304c5e7b5",
+      "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD240.hst": "aa58b7e1114d20b135573168fd414db7f210ab260427c8596cadfb8052e5015f",
+      "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD30.hst": "d9668038ebc635225534d683ea34b60805915d92510be2b58b6584b8fbbde0d7",
+      "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD5.hst": "418440bf35ac6b436361987f3f3deb1beb101ec3a36a3f6c298f338b1e188713",
+      "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD60.hst": "566762b35fce7ef2dcb5985a57dac6bc5d0476a6a76ddef2d680ef0905632389"
+    },
+    "steps_after_anchor": 24,
+    "cases": {
+      "240": {
+        "status": "BOUNDED_PASS",
+        "records": {
+          "produce": {
+            "terminal_pid": 4512,
+            "terminal_exit": 0,
+            "rows": [
+              "0\t05:24:57.899\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART-SELECT] tf=240 anchor=1777392000 buy=true",
+              "0\t05:24:57.899\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] four_hypotheses_converge_at_anchor PASS",
+              "0\t05:24:57.899\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] natural_selected_parent_TPW_formation_after_Momentum PASS",
+              "0\t05:24:57.899\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] first_reset_precedes_both_M08_raws PASS",
+              "0\t05:24:57.899\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] both_M09_parent_origins_after_first_reset PASS",
+              "0\t05:24:57.899\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART-WITNESS] firstReset=2026.03.19 20:00:00 lastMomentum=2026.04.27 08:00:00 buyRaw=2026.04.24 08:00:00 sellRaw=2026.04.27 16:00:00 buyParentRaw=2026.04.27 16:00:00 sellParentRaw=2026.04.24 08:00:00 reversal=2026.04.27 20:00:00 tpw=2026.04.28 04:00:00 formation=2026.04.28 16:00:00",
+              "0\t05:24:57.919\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-NY-BRIDGE] tf=240 previous=1777665600 next=1777852800",
+              "0\t05:24:57.929\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] persist_anchor_and_24_continuous_states PASS",
+              "0\t05:24:57.929\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] source_calendar_weekend_bridge_observed PASS",
+              "0\t05:24:57.929\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] no_broker_orders PASS",
+              "0\t05:24:57.929\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART-SUMMARY] mode=produce checks=7 failed=0 ok=true acceptance=BOUNDED_ENGINEERING_ONLY"
+            ],
+            "reference_calendar_bridges": [
+              {
+                "previous_chart_epoch": 1777665600,
+                "next_chart_epoch": 1777852800,
+                "omitted_fixture_slots": 12,
+                "observed_M15_bars_skipped": 0
+              }
+            ],
+            "snapshot_sha256": "34e21747cafc07be2cfd8bee8315a9f7c2e8cd327f864e5441f1eea9636d5961"
+          },
+          "consume": {
+            "terminal_pid": 5880,
+            "terminal_exit": 0,
+            "rows": [
+              "0\t05:25:21.144\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] fresh_terminal_snapshot_identity PASS",
+              "0\t05:25:21.144\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] read_full_M08_M09_snapshot PASS",
+              "0\t05:25:23.945\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_1 PASS",
+              "0\t05:25:23.945\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_2 PASS",
+              "0\t05:25:23.945\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_3 PASS",
+              "0\t05:25:23.945\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_4 PASS",
+              "0\t05:25:23.945\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_5 PASS",
+              "0\t05:25:23.945\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_6 PASS",
+              "0\t05:25:23.945\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_7 PASS",
+              "0\t05:25:23.945\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_8 PASS",
+              "0\t05:25:23.955\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_9 PASS",
+              "0\t05:25:23.955\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_10 PASS",
+              "0\t05:25:23.955\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_11 PASS",
+              "0\t05:25:23.955\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_12 PASS",
+              "0\t05:25:23.955\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_13 PASS",
+              "0\t05:25:23.955\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_14 PASS",
+              "0\t05:25:23.955\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_15 PASS",
+              "0\t05:25:23.955\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_16 PASS",
+              "0\t05:25:23.955\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_17 PASS",
+              "0\t05:25:23.965\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_18 PASS",
+              "0\t05:25:23.965\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_19 PASS",
+              "0\t05:25:23.965\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-NY-BRIDGE] tf=240 previous=1777665600 next=1777852800",
+              "0\t05:25:23.965\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_20 PASS",
+              "0\t05:25:23.965\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_21 PASS",
+              "0\t05:25:23.965\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_22 PASS",
+              "0\t05:25:23.965\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_23 PASS",
+              "0\t05:25:23.965\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_24 PASS",
+              "0\t05:25:23.965\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] snapshot_has_no_extra_records PASS",
+              "0\t05:25:23.965\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] source_calendar_weekend_bridge_observed PASS",
+              "0\t05:25:23.965\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] no_broker_orders PASS",
+              "0\t05:25:23.965\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART-SUMMARY] mode=consume checks=29 failed=0 ok=true acceptance=BOUNDED_ENGINEERING_ONLY"
+            ],
+            "reference_calendar_bridges": [
+              {
+                "previous_chart_epoch": 1777665600,
+                "next_chart_epoch": 1777852800,
+                "omitted_fixture_slots": 12,
+                "observed_M15_bars_skipped": 0
+              }
+            ],
+            "snapshot_sha256": "34e21747cafc07be2cfd8bee8315a9f7c2e8cd327f864e5441f1eea9636d5961"
+          }
+        },
+        "anchor_chart_epoch": 1777392000,
+        "buy": true,
+        "snapshot_sha256": "34e21747cafc07be2cfd8bee8315a9f7c2e8cd327f864e5441f1eea9636d5961",
+        "snapshot_bytes": 105242
+      },
+      "1440": {
+        "status": "BOUNDED_PASS",
+        "records": {
+          "produce": {
+            "terminal_pid": 3164,
+            "terminal_exit": 0,
+            "rows": [
+              "0\t05:25:45.488\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART-SELECT] tf=1440 anchor=1761091200 buy=false",
+              "0\t05:25:45.488\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] four_hypotheses_converge_at_anchor PASS",
+              "0\t05:25:45.488\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] natural_selected_parent_TPW_formation_after_Momentum PASS",
+              "0\t05:25:45.488\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] first_reset_precedes_both_M08_raws PASS",
+              "0\t05:25:45.488\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] both_M09_parent_origins_after_first_reset PASS",
+              "0\t05:25:45.488\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART-WITNESS] firstReset=2025.01.02 00:00:00 lastMomentum=2025.10.09 00:00:00 buyRaw=2025.10.15 00:00:00 sellRaw=2025.09.17 00:00:00 buyParentRaw=2025.09.17 00:00:00 sellParentRaw=2025.10.15 00:00:00 reversal=2025.09.18 00:00:00 tpw=2025.09.22 00:00:00 formation=1970.01.01 00:00:00",
+              "0\t05:25:45.488\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-NY-BRIDGE] tf=1440 previous=1761264000 next=1761523200",
+              "0\t05:25:45.498\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-NY-BRIDGE] tf=1440 previous=1761868800 next=1762128000",
+              "0\t05:25:45.498\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-NY-BRIDGE] tf=1440 previous=1762473600 next=1762732800",
+              "0\t05:25:45.508\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-NY-BRIDGE] tf=1440 previous=1763078400 next=1763337600",
+              "0\t05:25:45.508\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-NY-BRIDGE] tf=1440 previous=1763683200 next=1763942400",
+              "0\t05:25:45.518\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] persist_anchor_and_24_continuous_states PASS",
+              "0\t05:25:45.518\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] source_calendar_weekend_bridge_observed PASS",
+              "0\t05:25:45.518\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] no_broker_orders PASS",
+              "0\t05:25:45.518\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART-SUMMARY] mode=produce checks=7 failed=0 ok=true acceptance=BOUNDED_ENGINEERING_ONLY"
+            ],
+            "reference_calendar_bridges": [
+              {
+                "previous_chart_epoch": 1761264000,
+                "next_chart_epoch": 1761523200,
+                "omitted_fixture_slots": 2,
+                "observed_M15_bars_skipped": 0
+              },
+              {
+                "previous_chart_epoch": 1761868800,
+                "next_chart_epoch": 1762128000,
+                "omitted_fixture_slots": 2,
+                "observed_M15_bars_skipped": 0
+              },
+              {
+                "previous_chart_epoch": 1762473600,
+                "next_chart_epoch": 1762732800,
+                "omitted_fixture_slots": 2,
+                "observed_M15_bars_skipped": 0
+              },
+              {
+                "previous_chart_epoch": 1763078400,
+                "next_chart_epoch": 1763337600,
+                "omitted_fixture_slots": 2,
+                "observed_M15_bars_skipped": 0
+              },
+              {
+                "previous_chart_epoch": 1763683200,
+                "next_chart_epoch": 1763942400,
+                "omitted_fixture_slots": 2,
+                "observed_M15_bars_skipped": 0
+              }
+            ],
+            "snapshot_sha256": "cd9e5fa16e2b95216eb8ddb4768d768b4112b59e0a5959dfbeb230df502d3960"
+          },
+          "consume": {
+            "terminal_pid": 4572,
+            "terminal_exit": 0,
+            "rows": [
+              "0\t05:26:08.477\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] fresh_terminal_snapshot_identity PASS",
+              "0\t05:26:08.477\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] read_full_M08_M09_snapshot PASS",
+              "0\t05:26:11.221\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_1 PASS",
+              "0\t05:26:11.221\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_2 PASS",
+              "0\t05:26:11.221\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-NY-BRIDGE] tf=1440 previous=1761264000 next=1761523200",
+              "0\t05:26:11.221\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_3 PASS",
+              "0\t05:26:11.221\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_4 PASS",
+              "0\t05:26:11.221\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_5 PASS",
+              "0\t05:26:11.221\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_6 PASS",
+              "0\t05:26:11.221\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_7 PASS",
+              "0\t05:26:11.221\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-NY-BRIDGE] tf=1440 previous=1761868800 next=1762128000",
+              "0\t05:26:11.221\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_8 PASS",
+              "0\t05:26:11.231\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_9 PASS",
+              "0\t05:26:11.231\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_10 PASS",
+              "0\t05:26:11.231\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_11 PASS",
+              "0\t05:26:11.231\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_12 PASS",
+              "0\t05:26:11.231\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-NY-BRIDGE] tf=1440 previous=1762473600 next=1762732800",
+              "0\t05:26:11.231\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_13 PASS",
+              "0\t05:26:11.231\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_14 PASS",
+              "0\t05:26:11.231\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_15 PASS",
+              "0\t05:26:11.231\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_16 PASS",
+              "0\t05:26:11.231\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_17 PASS",
+              "0\t05:26:11.231\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-NY-BRIDGE] tf=1440 previous=1763078400 next=1763337600",
+              "0\t05:26:11.231\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_18 PASS",
+              "0\t05:26:11.241\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_19 PASS",
+              "0\t05:26:11.241\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_20 PASS",
+              "0\t05:26:11.241\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_21 PASS",
+              "0\t05:26:11.241\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_22 PASS",
+              "0\t05:26:11.241\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-NY-BRIDGE] tf=1440 previous=1763683200 next=1763942400",
+              "0\t05:26:11.241\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_23 PASS",
+              "0\t05:26:11.241\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_24 PASS",
+              "0\t05:26:11.241\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] snapshot_has_no_extra_records PASS",
+              "0\t05:26:11.241\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] source_calendar_weekend_bridge_observed PASS",
+              "0\t05:26:11.241\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART] no_broker_orders PASS",
+              "0\t05:26:11.241\t2026.08.03 00:00:01  CustomMHVNYFixtureCalendarReplayHarness GBPUSD,M15: [MHV-RESTART-SUMMARY] mode=consume checks=29 failed=0 ok=true acceptance=BOUNDED_ENGINEERING_ONLY"
+            ],
+            "reference_calendar_bridges": [
+              {
+                "previous_chart_epoch": 1761264000,
+                "next_chart_epoch": 1761523200,
+                "omitted_fixture_slots": 2,
+                "observed_M15_bars_skipped": 0
+              },
+              {
+                "previous_chart_epoch": 1761868800,
+                "next_chart_epoch": 1762128000,
+                "omitted_fixture_slots": 2,
+                "observed_M15_bars_skipped": 0
+              },
+              {
+                "previous_chart_epoch": 1762473600,
+                "next_chart_epoch": 1762732800,
+                "omitted_fixture_slots": 2,
+                "observed_M15_bars_skipped": 0
+              },
+              {
+                "previous_chart_epoch": 1763078400,
+                "next_chart_epoch": 1763337600,
+                "omitted_fixture_slots": 2,
+                "observed_M15_bars_skipped": 0
+              },
+              {
+                "previous_chart_epoch": 1763683200,
+                "next_chart_epoch": 1763942400,
+                "omitted_fixture_slots": 2,
+                "observed_M15_bars_skipped": 0
+              }
+            ],
+            "snapshot_sha256": "cd9e5fa16e2b95216eb8ddb4768d768b4112b59e0a5959dfbeb230df502d3960"
+          }
+        },
+        "anchor_chart_epoch": 1761091200,
+        "buy": false,
+        "snapshot_sha256": "cd9e5fa16e2b95216eb8ddb4768d768b4112b59e0a5959dfbeb230df502d3960",
+        "snapshot_bytes": 104095
+      }
+    },
+    "scope": "First actual-history origin satisfying unchanged strict witness and24 future contiguous bars in each selected TF. Four initial-state stress hypotheses, not universal historical-state proof. No orders or global availability promotion."
+  },
+  "prior_M30_summary": "m30_fixture_restart_summary_v5.json",
+  "review": "No material M30 adapter issue. NY test calls actual source engines directly; does not exercise production replay continuity admission. Original historical origin/session and T04B remain HOLD.",
+  "remaining": [
+    "Accepted same-feed historical session/boundary authority for production recovery",
+    "Source-proven owner epoch beyond four bounded stress hypotheses",
+    "Production replay admission and continuous/recovered parity across accepted non-nominal boundary"
+  ],
+  "next": "Remain SIG06. Do not start MLV/Re-Entry, weaken recovery admission, or promote custom availability.",
+  "auto_entry": false,
+  "all77_semantic_availability": false
+}

@@ -1,7 +1,7 @@
 {
   "task": "SIG-06-MHV",
-  "status": "PARTIAL — bounded natural-history restart PASS M1/M5/M15/H1; global origin/session HOLD",
-  "base_commit": "91ab4d28f51c7bb9648f8e757ee22a9eb70592ff",
+  "status": "PARTIAL — all7 TF bounded fixture proofs PASS; full production origin/session recovery HOLD",
+  "base_commit": "e3c3af4234071f7c72df52fb78a29e4613bc752d",
   "source_sha256_lf": "a62672ae1874fcbf61c671af01da09ef45ffe6972abd998ec70c5f9a74c238cb",
   "production_source_changed": false,
   "inventory": {
@@ -13,20 +13,33 @@
     "M1",
     "M5",
     "M15",
-    "H1"
-  ],
-  "native_assertions": 136,
-  "post_reload_source_bars": 96,
-  "fields_per_state": 102,
-  "terminal_processes": 8,
-  "collector_pid": 4500,
-  "collector_exit": 0,
-  "remaining_TFs": [
     "M30",
+    "H1",
     "H4",
     "D1"
   ],
-  "pending": "same-feed authenticated boundary/session provenance and source-origin proof beyond the bounded hypotheses, then full continuous/recovered comparison across non-nominal boundaries",
-  "next": "Remain SIG06; qualify a concrete M30/H4/D1 boundary using source evidence tied to current HST hashes; no SIG07/RE",
-  "auto_entry": false
+  "native_assertions": 242,
+  "post_reload_source_bars": 168,
+  "fields_per_state": 102,
+  "terminal_processes": 14,
+  "collector_pid": 3712,
+  "collector_exit": 0,
+  "remaining_TFs": [],
+  "pending": "Original full historical origin/session and T04B recovery exits remain HOLD; bounded seven-TF evidence does not waive them",
+  "next": "Remain SIG06. Obtain accepted same-feed production boundary and source-proven epoch, then exercise actual production recovery admission. No SIG07/RE.",
+  "auto_entry": false,
+  "remaining_full_acceptance": [
+    "accepted production same-feed historical boundary/session authority",
+    "source-proven owner epoch beyond four bounded initial-state stress hypotheses",
+    "full production replay admission and continuous/recovered parity across accepted non-nominal boundary"
+  ],
+  "scope": {
+    "M1_M5_M15_H1": "Prior installed-HST tests; underlying files bound to synthetic reference export",
+    "M30": "Alternate test-only fixture from exact complete M15 pairs",
+    "H4_D1": "Direct source engines with synthetic-NY-calendar test-only admission; production admission not exercised"
+  },
+  "MA_adapter_comparisons": 200,
+  "archive_sha256": "d50ae0d6f0a7854023b5e019a6b76295e9f708a9fb4745cd80ca6fd34ed9d85b",
+  "archive_bytes": 110324,
+  "report": "blueprint/audits/CUSTOM_MTF_MHV_FIXTURE_PROFILE_MILESTONE_20261111.md"
 }

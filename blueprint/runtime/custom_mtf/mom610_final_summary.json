@@ -1,0 +1,134 @@
+{
+  "verified": true,
+  "source_sha256_lf": "ebe3e4155b0ae5211432957ed999e04b58bc0a043b40a23ce76d24257346baae",
+  "groups": {
+    "momready": "passed=167 failed=0",
+    "momentum": "passed=72 failed=0",
+    "ecsd": "passed=190 failed=0",
+    "csak": "passed=211 failed=0",
+    "csa": "passed=154 failed=0",
+    "csakview": "passed=189 failed=0",
+    "direction": "passed=141 failed=0",
+    "mhvtf": "passed=238 failed=0",
+    "m09producer": "passed=52 failed=0",
+    "m09replay": "passed=57 failed=0",
+    "canonmhv": "passed=47 failed=0",
+    "observer": "passed=4 failed=0",
+    "observerm09": "passed=4 failed=0",
+    "producer": "passed=22 failed=0",
+    "recovery": "passed=27 failed=0",
+    "higher": "passed=23 failed=0",
+    "flow": "passed=12 failed=0",
+    "prefreeze": "passed=61 failed=0"
+  },
+  "binding_count": 20,
+  "controller": {
+    "build": "6.10",
+    "seeded_trusted_owner_fixtures": false,
+    "source_sha256_lf": "ebe3e4155b0ae5211432957ed999e04b58bc0a043b40a23ce76d24257346baae",
+    "baseline_build": "609",
+    "baseline_source_sha256_lf": "d74f41d0c85e8ec5e4afdd58728c4cfcaae5765adc128f4aefa849edbfb04c25",
+    "compiled": {
+      "CustomControllerParityHarness": {
+        "result": "Result: 0 errors, 0 warnings, 1065 msec elapsed",
+        "harness_sha256_lf": "0d0c227001d2bb0c0c25aae209660414dc8332f0c33f39a80cb45e896b19cb03",
+        "binary_sha256": "4672510552635a8e4d86d62bcca474387e9e4f40ffe7ab24b794db4b3d0113b7"
+      },
+      "CustomControllerBaselineHarness": {
+        "result": "Result: 0 errors, 0 warnings, 1141 msec elapsed",
+        "harness_sha256_lf": "09b912b2271734dbcf34e90d35e31988f16b6ce3635ff3d5d4839db4641c128c",
+        "binary_sha256": "6fe6ef5a421c5d8c9357e4f6a637f2966df229737045c9e846567fcc782ae98d"
+      }
+    },
+    "records": {
+      "off": {
+        "initial_checkpoint_isolation": [
+          "0\t23:16:34.638\t2026.08.04 00:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointBefore=true prefix=F4H4|1|82|GBPUSD|",
+          "0\t23:16:34.648\t2026.08.04 00:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointAfter=false"
+        ],
+        "summary": "0\t23:16:49.320\t2026.08.04 06:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-SUMMARY] cycles=16 valid=0 frames=0 attempts=0 seeds=0 handovers=0 csaViews=0 csaOK=true ok=true",
+        "counts": {
+          "cycles": 16,
+          "valid": 0,
+          "frames": 0,
+          "attempts": 0,
+          "seeds": 0,
+          "handovers": 0,
+          "csaViews": 0
+        },
+        "trace_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\sig04_mom\\controller610\\off_trace.txt",
+        "trace_rows": 12224,
+        "trace_sha256": "8650dc9b4f8b5f6704a6e9338ad2a41b9711509f2e439d17b48afaed147026c8"
+      },
+      "on": {
+        "initial_checkpoint_isolation": [
+          "0\t23:17:06.132\t2026.08.04 00:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointBefore=true prefix=F4H4|1|82|GBPUSD|",
+          "0\t23:17:06.132\t2026.08.04 00:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointAfter=false"
+        ],
+        "summary": "0\t23:17:23.843\t2026.08.04 06:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-SUMMARY] cycles=16 valid=0 frames=15 attempts=0 seeds=0 handovers=0 csaViews=630 csaOK=true ok=true",
+        "counts": {
+          "cycles": 16,
+          "valid": 0,
+          "frames": 15,
+          "attempts": 0,
+          "seeds": 0,
+          "handovers": 0,
+          "csaViews": 630
+        },
+        "trace_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\sig04_mom\\controller610\\on_trace.txt",
+        "trace_rows": 12224,
+        "trace_sha256": "8650dc9b4f8b5f6704a6e9338ad2a41b9711509f2e439d17b48afaed147026c8"
+      },
+      "baseline609": {
+        "initial_checkpoint_isolation": [
+          "0\t23:17:45.587\t2026.08.04 00:00:59  CustomControllerBaselineHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointBefore=true prefix=F4H4|1|82|GBPUSD|",
+          "0\t23:17:45.587\t2026.08.04 00:00:59  CustomControllerBaselineHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointAfter=false"
+        ],
+        "summary": "0\t23:17:59.843\t2026.08.04 06:00:59  CustomControllerBaselineHarness GBPUSD,M1: [CUSTOM-PARITY-SUMMARY] cycles=16 valid=0 frames=0 attempts=0 seeds=0 handovers=0 csaViews=0 csaOK=true ok=true",
+        "counts": {
+          "cycles": 16,
+          "valid": 0,
+          "frames": 0,
+          "attempts": 0,
+          "seeds": 0,
+          "handovers": 0,
+          "csaViews": 0
+        },
+        "trace_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\sig04_mom\\controller610\\baseline609_trace.txt",
+        "trace_rows": 12224,
+        "trace_sha256": "8650dc9b4f8b5f6704a6e9338ad2a41b9711509f2e439d17b48afaed147026c8"
+      }
+    },
+    "candidate_monitor_parity": true,
+    "candidate_differences_first10": [],
+    "old_new_trace_row_counts_equal": true,
+    "old_new_difference_count": 0,
+    "old_new_differences_first20": [],
+    "scope": "Actual OnTick/OnTimer -> M27 -> ProcessPair on GBPUSD M1 delivery model2 with canonical M15 clock, Aug4 2026 02:00-06:00 chart time; fresh initialized owners unless seeded_trusted_owner_fixtures=true (explicit pending handover fixtures, not historical formation), M30 derived fixture; no wall-clock timer, arbitrary cold-start/session or positive-entry claim. Test-only OrderSend capture replaces broker send; all custom slots OFF. Full scalar owner/decision traces are compared, not only hashes."
+  },
+  "traces": {
+    "off": {
+      "raw_sha256": "8650dc9b4f8b5f6704a6e9338ad2a41b9711509f2e439d17b48afaed147026c8",
+      "gzip_sha256": "f0f602a151fa39ab972fdc6f8eda04ed6c2158009d8f2ca8392776f17ececba1",
+      "rows": 12224,
+      "bytes": 587367,
+      "gzip_bytes": 52079
+    },
+    "on": {
+      "raw_sha256": "8650dc9b4f8b5f6704a6e9338ad2a41b9711509f2e439d17b48afaed147026c8",
+      "gzip_sha256": "f0f602a151fa39ab972fdc6f8eda04ed6c2158009d8f2ca8392776f17ececba1",
+      "rows": 12224,
+      "bytes": 587367,
+      "gzip_bytes": 52079
+    },
+    "baseline609": {
+      "raw_sha256": "8650dc9b4f8b5f6704a6e9338ad2a41b9711509f2e439d17b48afaed147026c8",
+      "gzip_sha256": "f0f602a151fa39ab972fdc6f8eda04ed6c2158009d8f2ca8392776f17ececba1",
+      "rows": 12224,
+      "bytes": 587367,
+      "gzip_bytes": 52079
+    }
+  },
+  "archive_sha256": "93d2271be33e851d0cb5dd4cec13c718d06d0d14078d83e494131dff3c2aa63d",
+  "archive_bytes": 25031
+}

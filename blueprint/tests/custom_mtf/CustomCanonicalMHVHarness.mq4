@@ -1,9 +1,11 @@
 #property strict
+#include "CustomClosedPriceFixture.mqh"
 #define OnInit CanonicalOnInit
 #define OnDeinit CanonicalOnDeinit
 #define OnTick CanonicalOnTick
 #define OnTimer CanonicalOnTimer
 #include "..\\..\\source\\BBMA_EA.mq4"
+#undef iClose
 #undef OnInit
 #undef OnDeinit
 #undef OnTick
@@ -42,6 +44,7 @@ int OnInit()
  int frames[3]={PERIOD_D1,PERIOD_H4,PERIOD_H1};
  for(int slot=0;slot<3;slot++)
  {
+  ClearClosedPriceFixture();
   int tf=frames[slot],seconds=GetTimeframeSeconds(tf);datetime latest=GetLatestClosedCandleTime(Symbol(),tf);TimeframeData data;ReadCustomAuxClosedData(Symbol(),tf,latest,data);
   CustomAuxLifecycle before,after;SeedFixture(tf,data,before);bool handled=ObserveCanonicalMHVSource(0,tf,latest);
   CustomOwnerView a,b;bool mhv=ReadCustomOwnerView(0,tf,"MHV",DIR_BUY,latest,a);bool mlv=ReadCustomOwnerView(0,tf,"MLV",DIR_BUY,latest,b);
@@ -68,6 +71,7 @@ int OnInit()
   data.open=1.5;data.close=1.4;data.high=1.7;data.low=1.3;data.bollinger[0]=2;data.bollinger[1]=1.5;data.bollinger[2]=1;
   ENUM_DIRECTION side=DetectCSM(Symbol(),tf,DIR_SELL,1)?DIR_SELL:DIR_BUY;
   if(side==DIR_SELL)data.close=1.6;
+  SetClosedPriceFixture(Symbol(),tf,data.close);
   SeedFixture(tf,data,before);MLVData pending=side==DIR_BUY?before.mhvBuy:before.mhvSell;
   pending.SupersessionCandidateActive=true;pending.SupersessionRawCandleTime=latest-seconds;
   if(side==DIR_BUY)before.mhvBuy=pending;else before.mhvSell=pending;

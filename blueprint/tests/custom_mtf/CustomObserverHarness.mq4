@@ -5,6 +5,7 @@ datetime simulatedNow=D'2026.08.03 10:00';datetime simulatedQuote=simulatedNow;d
 datetime ObserverTime(string symbol,int timeframe,int shift)
 {
  if(timeframe==PERIOD_M1 && shift>=0 && shift<51)return m1Open-shift*60;
+ if(timeframe==PERIOD_H1 && shift>=0 && shift<51)return D'2026.08.03 10:00'-shift*3600;
  if(shift>1)return 0;
  if(timeframe==PERIOD_M1)return shift==0?m1Open:m1Open-60;
  if(timeframe==PERIOD_M15)return shift==0?D'2026.08.03 10:00':D'2026.08.03 09:45';
@@ -12,8 +13,8 @@ datetime ObserverTime(string symbol,int timeframe,int shift)
  return 0;
 }
 double ObserverMarketInfo(string symbol,int mode){if(mode==MODE_TIME)return (double)simulatedQuote;return 0;}
-int ObserverBars(string symbol,int tf){return tf==PERIOD_M1?51:iBars(symbol,tf);}
-double ObserverClose(string symbol,int tf,int shift){return tf==PERIOD_M1?1.5:iClose(symbol,tf,shift);}
+int ObserverBars(string symbol,int tf){return tf==PERIOD_M1 || tf==PERIOD_H1?51:iBars(symbol,tf);}
+double ObserverClose(string symbol,int tf,int shift){return tf==PERIOD_M1 || tf==PERIOD_H1?1.5:iClose(symbol,tf,shift);}
 double ObserverHigh(string symbol,int tf,int shift){return tf==PERIOD_M1?1.6:iHigh(symbol,tf,shift);}
 double ObserverLow(string symbol,int tf,int shift){return tf==PERIOD_M1?1.4:iLow(symbol,tf,shift);}
 double ObserverMA(string symbol,int tf,int period,int offset,int method,int price,int shift){if(tf==PERIOD_M1)return price==PRICE_HIGH?1.6:(price==PRICE_LOW?1.4:1.5);return iMA(symbol,tf,period,offset,method,price,shift);}

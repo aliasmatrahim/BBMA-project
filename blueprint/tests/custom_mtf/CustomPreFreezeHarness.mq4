@@ -1,9 +1,11 @@
 #property strict
+#include "CustomClosedPriceFixture.mqh"
 #define OnInit CanonicalOnInit
 #define OnDeinit CanonicalOnDeinit
 #define OnTick CanonicalOnTick
 #define OnTimer CanonicalOnTimer
 #include "..\\..\\source\\BBMA_EA.mq4"
+#undef iClose
 #undef OnInit
 #undef OnDeinit
 #undef OnTick
@@ -27,12 +29,10 @@ void Seed(int tf,ENUM_DIRECTION side,TimeframeData &data,CustomAuxLifecycle &own
  if(side==DIR_BUY){owner.mhvBuy.SupersessionCandidateActive=true;owner.mhvBuy.SupersessionRawCandleTime=latest-seconds;}
  else{owner.mhvSell.SupersessionCandidateActive=true;owner.mhvSell.SupersessionRawCandleTime=latest-seconds;}
  owner.reBuy.EntryPrice=77;owner.reSell.EntryPrice=88;
+ SetClosedPriceFixture(Symbol(),tf,data.close);
  // Isolate handover from unrelated historical momentum in these synthetic
  // price trajectories, using the existing testable M10 snapshot channel.
- M10MomentumSnapshot momentum;ReadM10MomentumSnapshot(Symbol(),tf,1,momentum);
- int momentumSlot=CustomTFIndex(tf);
- g_pair_states[0].m10_momentum[momentumSlot].buy=false;
- g_pair_states[0].m10_momentum[momentumSlot].sell=false;
+ // The complete flat source fixture produces no Momentum through the real classifier.
  StoreCustomCanonicalSource(0,tf,data,owner);g_pair_states[0].canonical_mhv_observed[CustomCanonicalTFIndex(tf)]=false;
  g_pair_states[0].tf_snapshot.M15_CandleTime=GetLatestClosedCandleTime(Symbol(),PERIOD_M15);
  g_pair_states[0].is_processing=true;g_processed_candle_time[0]=0;
@@ -44,6 +44,7 @@ int OnInit()
  for(int slot=0;slot<3;slot++)for(int d=0;d<2;d++)
  {
   int tf=frames[slot],seconds=GetTimeframeSeconds(tf);ENUM_DIRECTION side=d==0?DIR_BUY:DIR_SELL;
+  ClearClosedPriceFixture();
   datetime latest=GetLatestClosedCandleTime(Symbol(),tf);TimeframeData data;ReadCustomAuxClosedData(Symbol(),tf,latest,data);
   CustomAuxLifecycle before,expected,after,other,otherAfter;Seed(tf,side,data,before);expected=before;
   TimeframeData otherData;LoadCustomCanonicalSource(1,tf,otherData,other);

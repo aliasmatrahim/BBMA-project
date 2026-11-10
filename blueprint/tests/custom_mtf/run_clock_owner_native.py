@@ -57,6 +57,6 @@ if a.kind=='canonmhv':
  manifest['stage_telemetry']={'uncommitted_parent_events':offending,'canonical_control_events':controls,'expected_control_count':3}
  manifest['passed']=manifest['passed'] and len(offending)==0 and len(controls)==3
  print('CANONICAL_M09_TELEMETRY '+json.dumps({'uncommitted':len(offending),'canonical_controls':len(controls)}),flush=True)
-manifest['test_headers']={str(x.relative_to(repo)).replace(chr(92),'/'):hashlib.sha256(x.read_text().encode()).hexdigest() for x in tests.glob('CustomOwnerTestEquality.mqh')}
+manifest['test_headers']={str(x.relative_to(repo)).replace(chr(92),'/'):hashlib.sha256(x.read_text().encode()).hexdigest() for x in tests.glob('*.mqh')}
 if a.kind=='flow':manifest['preflight']=preflight;manifest['tester']={'period':'M1','model':2,'from':'2026.08.04','to':'2026.08.05','duration_seconds':7200,'slots_enabled':False,'M1_request':'MHV,MLV,MOM only; RE/EXT admission flags false'}
 (e/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n');assert manifest['passed'],summary;print('CLOCK_OWNER_NATIVE_PASS',flush=True)

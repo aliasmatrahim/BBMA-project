@@ -42,3 +42,6 @@ Modify only blueprint/source/BBMA_EA.mq4 and relevant custom_mtf tests.
 - [ ] Native missing/short/unordered/revision fixtures reject/no-mutate/no-exit; valid-data oracle and controller parity.
 - [ ] Affected specialized regression only; review source/binary/trace bindings and any intended state differences.
 - [ ] Independent review, durable checkpoint/acceptance and PR update. No SIG-04 VERIFIED claim until all scoped exits pass.
+
+
+Completion2026-11-10: all planned bounded exits PASS on Build6.10 rev003. Native72/167,18 groups,20 bindings, controller630 views/12224 rows exact parity with OFF and6.09; collector9520 exit0. Full acceptance and retained REDs: blueprint/audits/CUSTOM_MTF_MOM_SIGNAL_ACCEPTANCE_20261110.md. No execution/epoch/release promotion. Next signal only after publication verification.

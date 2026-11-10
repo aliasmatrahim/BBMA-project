@@ -1,6 +1,6 @@
 # Signal-by-signal acceptance — 2026-11-10
 
-User instruction: finish one signal before moving to the next; do no unrelated task. SIG-01 eCSD, SIG-02 CSA and SIG-03 CSAK/CSD have the bounded VERIFIED acceptances below. Current checkpoint is SIG-03 final publication; SIG-04 MOM becomes eligible only after that publication is verified. Shared-consumer regression is part of SIG-01, not development of another signal. Base328d33a0dd4824f4ff3dcb2a2b2823a69e12bc9b / Draft PR303 / feat/custom-mtf-v1-20261108.
+User instruction: finish one signal before moving to the next; do no unrelated task. SIG-01 eCSD, SIG-02 CSA and SIG-03 CSAK/CSD have the bounded VERIFIED acceptances below. Current checkpoint is SIG-04 MOM final publication; SIG-05 Extreme becomes eligible only after that publication is verified. Shared-consumer regression is part of SIG-01, not development of another signal. Base328d33a0dd4824f4ff3dcb2a2b2823a69e12bc9b / Draft PR303 / feat/custom-mtf-v1-20261108.
 
 ## SIG-01 eCSD — VERIFIED (bounded canonical signal acceptance)
 
@@ -38,3 +38,7 @@ Next eligible after publication: SIG-03 CSAK/CSD. No later signal developed befo
 ## SIG-03 CSAK/CSD — VERIFIED (bounded predicate/consumer/read-only context)
 
 Build6.09 rev002, source LF SHA d74f41d0c85e8ec5e4afdd58728c4cfcaae5765adc128f4aefa849edbfb04c25. Canonical211/211, final context189/189, characterization141/141,17 native groups,0E0W. Actual-controller420 combined CSA/CSAK views,16 cycles/12224 scalar rows per case; OFF/ON exact parity. Frozen6.08 differs296 intended H4/M12 Type4 context rows and0 Decision rows; zero attempts.19 source/binary bindings and3 traces verified6212 exit0. Independent review found no material bug; explicit High-only revision test passed7TF. Six cloud test functions/import assertions/py_compile PASS; full pytest unavailable. Acceptance CUSTOM_MTF_CSAK_SIGNAL_ACCEPTANCE_20261110.md; next only SIG-04 MOM after final publication. All77/custom executable availability OFF; no merge/deployment. Historical paragraphs naming earlier active signals are retained chronology, not current scheduling authority.
+
+## SIG-04 MOM — VERIFIED (bounded predicate/readiness/affected consumers)
+
+Build6.10 rev003, LF SHA ebe3e4155b0ae5211432957ed999e04b58bc0a043b40a23ce76d24257346baae. Native72 valid-data/1400 iBands comparisons and167 readiness/recovery/atomicity checks, all18 native groups, strict0E0W;20 bindings verified. Actual controller630 combined views,16 cycles/12224 scalar rows per case, OFF/ON/frozen6.09 exact parity, zero decisions/attempts. Confirmed partial-data false classification and unavailable-state propagation repaired; explicit REDs retained. Full evidence and limits: CUSTOM_MTF_MOM_SIGNAL_ACCEPTANCE_20261110.md. Next only SIG-05 Extreme after publication verification; no custom execution/merge/deployment promotion.

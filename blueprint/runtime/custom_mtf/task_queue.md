@@ -31,3 +31,5 @@ C+1 follow-up: user selected source-example verification and pre-freeze M09 inte
 2026-11-10 refresh: final published-harness cloud suite75/75 PASS after workspace recovery; six full traces/five JPEGs rebound, four interrupted addenda reconciled. Source unchanged. V05_2062 timestamp corrected to34:22 (six seconds after routed window). No B/D/E/F availability promotion. See progress.md latest reconciliation.
 
 2026-11-10 source/epoch retrieval: new V05 frame/candidate inventory records added; no source-discriminating candle or trusted M08/M09 historical epoch accepted. M11 epoch/Q10 validation snapshot excluded for wrong owner/build. B/D/E statuses unchanged; no dependency promotion. See CUSTOM_MTF_SOURCE_EPOCH_RETRIEVAL_20261110.md for exact next action.
+
+Internet2026-11-10: primary researcher formula recovered (MidBB body cross plus MA close-side). Third-party implementation only; T04-D remains VERIFICATION REQUIRED, B/E recovery HOLD. Details in CUSTOM_MTF_INTERNET_DIRECTION_EVIDENCE_20261110.md.

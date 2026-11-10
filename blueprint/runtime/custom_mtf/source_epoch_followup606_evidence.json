@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-10",
+  "task": "T04-B/D source and epoch evidence follow-up",
+  "base_commit": "f71b574ece3f07f6134ae0951351b178e969ffd7",
+  "source_sha256_lf": "0266fb3318348ae64b7bbbb52a1b30a0e79994df64979377cd14c1ba877c666e",
+  "controller_first_cycle_m08_m09_anchor_rows": [
+    "1785807900|1440/BUY/M08.RawCandleTime|1:0",
+    "1785807900|1440/SELL/M08.RawCandleTime|1:0",
+    "1785807900|1440/BUY/M09.ParentRawCandleTime|1:0",
+    "1785807900|1440/SELL/M09.ParentRawCandleTime|1:0",
+    "1785807900|240/BUY/M08.RawCandleTime|1:0",
+    "1785807900|240/SELL/M08.RawCandleTime|1:0",
+    "1785807900|240/BUY/M09.ParentRawCandleTime|1:0",
+    "1785807900|240/SELL/M09.ParentRawCandleTime|1:0",
+    "1785807900|60/BUY/M08.RawCandleTime|1:0",
+    "1785807900|60/SELL/M08.RawCandleTime|1:0",
+    "1785807900|60/BUY/M09.ParentRawCandleTime|1:0",
+    "1785807900|60/SELL/M09.ParentRawCandleTime|1:0",
+    "1785807900|15/BUY/M08.RawCandleTime|1:0",
+    "1785807900|15/SELL/M08.RawCandleTime|1:0",
+    "1785807900|15/BUY/M09.ParentRawCandleTime|1:0",
+    "1785807900|15/SELL/M09.ParentRawCandleTime|1:0"
+  ],
+  "historical_files": {
+    "blueprint/audits/evidence/N1_P1_BUILD508_20260922/EPOCH_R1_ANALYSIS.json": {
+      "local_raw_sha256": "d8d52990e9dd9513c4908644f35ccb97291c604a08c8acef1268e458f4519213",
+      "g40_raw_sha256": "51062d9bf0288518a44bb7686e4d983a09e60bbda8d29dd866413e7a09909738",
+      "json_content_equal": true,
+      "classification": "Historical different owner/build; does not authenticate CustomMTF M08/M09 recovery"
+    },
+    "blueprint/audits/evidence/Q10_R3_METAQUOTES_20260923/state_snapshot.json": {
+      "local_raw_sha256": "0dd601921717abc10e2cb9e356903b1e9375dbb4a5ca0dbb288f28842fe872de",
+      "g40_raw_sha256": "a71409d70b4a88d567a446f2d42542eb50f7d537a8b9f72bd7e6141ad110654a",
+      "json_content_equal": true,
+      "classification": "Historical different owner/build; does not authenticate CustomMTF M08/M09 recovery"
+    }
+  },
+  "frame1966_sha256": "d1992830503fb82417b56fc3d290d885f05dbd875c4b99fcef4f3ff54139386f",
+  "status": "HOLD: no accepted open-side discriminator or trusted M08/M09 historical epoch recovered",
+  "compile_regression": "No production or test changes; prior exact-source native and final cloud evidence reused. No new compile/runtime run claimed."
+}

@@ -1,0 +1,1664 @@
+{
+  "scope": "Bounded read-only candidate-file discovery; no absence claim outside listed roots",
+  "roots": [
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence",
+    "D:\\BBMA\\CustomMTF302_Regression_20261108",
+    "D:\\BBMA\\HistoricalData\\validation",
+    "D:\\BBMA\\GitHub_BBMA-project\\blueprint\\runtime"
+  ],
+  "scanned": 3904,
+  "candidates": [
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\binding_plan_green\\manifest.json",
+      "bytes": 2970,
+      "sha256": "b5a5aa48d20ceef532aedf5f0ff6307d756e043a7ba4773a7108b97546e6ce3d",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\binding_state_green\\manifest.json",
+      "bytes": 3030,
+      "sha256": "9683cc5d66e59f1150a1a358147913218912c2a2578d1a0e41f0c982102d4aef",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\binding_state_green_real\\manifest.json",
+      "bytes": 2146,
+      "sha256": "ecb7a658864378fe83c61f46075af3f4ea04879e4935ba25e614cd326e87729d",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\compat594\\manifest.json",
+      "bytes": 2039,
+      "sha256": "2103101147157588d26a8ee4c503b7f7baf40323a64f52777f68f73d8aa29a17",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\compat595\\manifest.json",
+      "bytes": 1032,
+      "sha256": "6a12ee15c1c0f03fa05137c749289755680c244feb84a8ca9b649ab92c04040f",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\config593\\final_configuration_manifest.json",
+      "bytes": 5198,
+      "sha256": "882de5694de9ae31ce79832e38a68d5ae6296240766face6d88f26705d70e2d5",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\config593\\manifest_reinit.json",
+      "bytes": 1756,
+      "sha256": "a8cbff3ea2fed0259469fadcf3cc888f8d9863104ed29d6ab3da8913df102e58",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\controller606\\manifest.json",
+      "bytes": 6382,
+      "sha256": "a81b0d3c8adab92708b4508ac3a6497279a716b6e0be935cf698c7454bae8351",
+      "markers": [
+        "seeded_trusted_owner_fixtures",
+        "trusted",
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\controller606_seeded\\manifest.json",
+      "bytes": 6796,
+      "sha256": "04385e175f253e27c6e4e05a6faa188af8881530ed133ee45beae07ae91ab9ec",
+      "markers": [
+        "seeded_trusted_owner_fixtures",
+        "trusted",
+        "fixture",
+        "RawCandleTime",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom597_clock\\manifest.json",
+      "bytes": 3683,
+      "sha256": "db3b4672c9356cc5faac64b3bb757b487bf98e2d196d2c6767745f251b531e3b",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom597_observer\\manifest.json",
+      "bytes": 2419,
+      "sha256": "2a88511bdef306a82611bc1a7fd2529defc0369dd5e586692ef1a3a856e7f3e7",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom597_owner\\manifest.json",
+      "bytes": 3265,
+      "sha256": "2a27374a7ffc042deeea1800d8228aebd47e467db48fb25482a6d04a33dc6cfc",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom598_clock\\manifest.json",
+      "bytes": 3778,
+      "sha256": "f98f7d4fb45377be430101074980ecee29b1961b11fed56fd2793c5f38ec975c",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom598_mhv\\manifest.json",
+      "bytes": 2819,
+      "sha256": "6387bfcd389fa75d44135d709e69e81c8b4acbe3ebf60d9a8ce9f2524d8f9883",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom598_mhv_red\\manifest.json",
+      "bytes": 2819,
+      "sha256": "7b4bd104c0b8b5f65e197c503559d22cfe17177037d345cce130cc1a1c8fa914",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom598_observer\\manifest.json",
+      "bytes": 2407,
+      "sha256": "1f581af06541cea9eb2a1dc67af234e1e38a0eaa4179b5e2b717ed935fcd91c5",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom598_owner\\manifest.json",
+      "bytes": 3362,
+      "sha256": "ce40448ae7ce3a65dd46210fea2fcef99a9a592092b2d8a9333365be2708a782",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom598_producer\\manifest.json",
+      "bytes": 5225,
+      "sha256": "86f65d5532039223b505b525408f414b81baaed76ceaa1a002aea259ae39cf66",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom598_producer_red\\manifest.json",
+      "bytes": 3043,
+      "sha256": "8d35fa84605f1f24d3949b97c2713c1ead8fa1364582e8f6b957100385e30b28",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom599_clock\\manifest.json",
+      "bytes": 3778,
+      "sha256": "2b48f5d8cb32befbc2514de79114865dc299280a4411cf82b8fa6a30e7dd90ac",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom599_flow\\manifest.json",
+      "bytes": 6115,
+      "sha256": "b150b3eb91ad4bfbb481805a974ad93b676f8892d89129cbdd5d5f9cbf5dfdeb",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom599_flow_gap\\manifest.json",
+      "bytes": 4475,
+      "sha256": "2b5e9a09047497fc69b8400772bb18f03064f14a0e1bf4a9e9a1c2f388fc9b3d",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom599_higher\\manifest.json",
+      "bytes": 4948,
+      "sha256": "1e1ea210664d301a7a4017ae025725a3415ea225d283b38fb9f96e2750d5b4e7",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom599_higher_red\\manifest.json",
+      "bytes": 4948,
+      "sha256": "1e1ea210664d301a7a4017ae025725a3415ea225d283b38fb9f96e2750d5b4e7",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom599_mhv\\manifest.json",
+      "bytes": 2819,
+      "sha256": "1478a5ce44462067f473aed1b886e87f355af44fa71a2bd04d12efa3172845b1",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom599_observer\\manifest.json",
+      "bytes": 2407,
+      "sha256": "5ebcd26045eb315c78eabbe31f618b0777190c3b66592e5bfcc952955e5c0d35",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom599_owner\\manifest.json",
+      "bytes": 3362,
+      "sha256": "16790df902ec965b7fcf0562d20d5e2a6bcba70cee365b096aa9ea93e03c649a",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom599_producer\\manifest.json",
+      "bytes": 5225,
+      "sha256": "d2a4a96eef425959b6b2127a08b7a50f5fbdecb3c00db2c0939fc2eb1aff37aa",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom599_provenance_red\\manifest.json",
+      "bytes": 5226,
+      "sha256": "e3b69a866fc488034d7cb7ab7deea7e4583a4bee917db15dc3e3128ffe76c83b",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom599_recovery\\manifest.json",
+      "bytes": 5518,
+      "sha256": "88936105f8c8d69786e643b06380e977b2ad53e2afdef6c96472007230cf6f1d",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom599_recovery_red\\manifest.json",
+      "bytes": 4791,
+      "sha256": "c8a1d87aa86d61a34190ca6b74347a7102c8449d19c10f43ed58f9fc2b9945cc",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom600_clock\\manifest.json",
+      "bytes": 3936,
+      "sha256": "044fcdb87eaadd814c3fd8daa79d187270372bf161204fa9c370a4d3ff78dbc7",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom600_flow\\manifest.json",
+      "bytes": 6107,
+      "sha256": "025443ff782d06d711146b8ee36fda633153d69142f5e5687fcea0e5e798904d",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom600_higher\\manifest.json",
+      "bytes": 5085,
+      "sha256": "cb841dd8a95c07d6536615f410cd1e48c2c0a5b83c482426ac59e20db25d279c",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom600_mhv\\manifest.json",
+      "bytes": 2976,
+      "sha256": "571f9a4ef18bcdeb7733c550df0d0eb2213ffe849f29646f3d595c23ebd57a83",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom600_observer\\manifest.json",
+      "bytes": 2564,
+      "sha256": "39404156d175416a1a707f5b17dc78f382d747ffefd5dc4bff1b1b1d9a7acaf4",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom600_owner\\manifest.json",
+      "bytes": 3518,
+      "sha256": "8a471636db9914b5dd1cb26de919517c233a98ef1be7754f137da918bc54d601",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom600_producer\\manifest.json",
+      "bytes": 5382,
+      "sha256": "35e3cee67cd642abe1650738906c89f2fdb0543fea25acb829954bdc60a6c35f",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom600_recovery\\manifest.json",
+      "bytes": 5518,
+      "sha256": "6d2297324fd216494b1e33f63f67af8f11be733bb18178b2291daf934aed522f",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom601_clock\\manifest.json",
+      "bytes": 3936,
+      "sha256": "befc9c626a251b9fe7543d9177590c92862aa0692fd5c8974472ede70dc98f33",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom601_flow\\manifest.json",
+      "bytes": 6105,
+      "sha256": "a5ddd01db4cb3f63ab2d344eca024159c932a34609632017302dd96b9a2b18ef",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom601_higher\\manifest.json",
+      "bytes": 5085,
+      "sha256": "b4e9d09252b2ea0b8df2957421aa313698f58cb40798a2df938ea106e08ea47c",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom601_mhv\\manifest.json",
+      "bytes": 2976,
+      "sha256": "65a51c1d10af1c20ef6c113b8a1f2067b9a120996060f77616e648ddb138e4ec",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom601_mhvtf\\manifest.json",
+      "bytes": 28552,
+      "sha256": "ee2440d259607f3fe93694c03f2fa55ffc400dcd929bf81a057c4184735a4c6f",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom601_momentum\\manifest.json",
+      "bytes": 10465,
+      "sha256": "703b6ddef57451f7ec1f58023617262fa2b9254a18909727c698f7e4eca1c146",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom601_observer\\manifest.json",
+      "bytes": 2564,
+      "sha256": "16474f45d878e5f36c82cc0263cd59a2f39c07e3e00d4e4d281af28cc7facfc9",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom601_owner\\manifest.json",
+      "bytes": 3519,
+      "sha256": "11c615f33a264e4eccdacacbd2d5e2bd97a168e876ce7d72a25a45b3eef39784",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom601_producer\\manifest.json",
+      "bytes": 5382,
+      "sha256": "706e18633209df16728926f70ceba4b90c8a5ebb0dc52f87dee152d83f691cc0",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom601_recovery\\manifest.json",
+      "bytes": 5518,
+      "sha256": "6e8c4b4fd302c80528a3026db37ae4875af712deea7d1f8e5b0faa5d32ab5215",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom602_clock\\manifest.json",
+      "bytes": 3936,
+      "sha256": "9974df39d267cdf68245551d7536fcd316c9f8a44e13e14a043a7e3de1a671b4",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom602_flow\\manifest.json",
+      "bytes": 6106,
+      "sha256": "1a5cbed29fe4aebf566f7751b77127359c3da09b9bb009bb4f5a87cebbe356fb",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom602_m09producer\\manifest.json",
+      "bytes": 9148,
+      "sha256": "9596caf749f87d22b9f01430618964603856e7fd457ef1063c8e77dfcd6c8330",
+      "markers": [
+        "trusted",
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom602_mhv\\manifest.json",
+      "bytes": 2976,
+      "sha256": "cbd211ceb75b823e42c001deddedbd2529ff0988593dda7996f426593ad8988f",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom602_mhvtf\\manifest.json",
+      "bytes": 32306,
+      "sha256": "d5cb03d77c7650ac59cf3012f25de42e1f05318e5c38b49d3d6b0f36147c6cea",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom602_momentum\\manifest.json",
+      "bytes": 10465,
+      "sha256": "2296821c77423357a634b9e9fb1cfba43413457be1fa3645547793a5838aa81a",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom603_canonmhv\\manifest.json",
+      "bytes": 8592,
+      "sha256": "2fb88d29cb85890591c2e25d54969c3917370eab54466413c34f08ff93efba01",
+      "markers": [
+        "trusted",
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom603_clock\\manifest.json",
+      "bytes": 3935,
+      "sha256": "2d845f133ab2c0e13fa0f35fcd5dc667b6f4fe514834a422c0ae90eea7e3e6ba",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom603_flow\\manifest.json",
+      "bytes": 6175,
+      "sha256": "e441bdb8ef803417c3f96cd0ca56e27f8bef14abcd66ee01ce287f21e9becb4a",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom603_higher\\manifest.json",
+      "bytes": 5085,
+      "sha256": "c5330a40ce6c1395780c28af38f7e4c3ec8a81025ccfbd51ab15a99cca970d63",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom603_m09producer\\manifest.json",
+      "bytes": 9146,
+      "sha256": "19bed686a104a8957437a3740ba4789042f1e33e3ca833d3afecfb50e64e22cc",
+      "markers": [
+        "trusted",
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom603_m09replay\\manifest.json",
+      "bytes": 9707,
+      "sha256": "ae6c41e3b4ebb90f2de12de93640600e5ae8c853252cd38706c53ebdea28b78b",
+      "markers": [
+        "trusted",
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom603_mhv\\manifest.json",
+      "bytes": 2976,
+      "sha256": "f719d8ec837561764c848094a9b13228bfe06731441386f628d6d119d3f58436",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom603_mhvtf\\manifest.json",
+      "bytes": 32306,
+      "sha256": "d066c8d89a8c243b6f116b85db89b8a103ce80d2e5b89b230d22a93267027acd",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom603_momentum\\manifest.json",
+      "bytes": 10465,
+      "sha256": "b3f8454b7613ff06b13a52f0fe902397861976124c2cee2c8c262f8ec085dfb0",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom603_observer\\manifest.json",
+      "bytes": 2564,
+      "sha256": "8d445de066ed2b703a7dd6568cbf15190d224443b09d09ac383ea9008e845db8",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom603_observerm09\\manifest.json",
+      "bytes": 2595,
+      "sha256": "517883868ccdab2351025ed37addbb08dd720648b17cb678ca46ef2de396f4c6",
+      "markers": [
+        "trusted",
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom603_owner\\manifest.json",
+      "bytes": 3519,
+      "sha256": "ab6c8c07bc07f88dbca4b7df9ef898a78ae7fd8732b56b625660a848220f2769",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom603_producer\\manifest.json",
+      "bytes": 5382,
+      "sha256": "d55867cf0759e8258cca13b14fc2980aec7476f73a6a5e0648632e9843b8e42d",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom603_recovery\\manifest.json",
+      "bytes": 5518,
+      "sha256": "7f9cf186da298fffe64da54fc6c0de3947aeccd06ba54e4fbc95bdaf4b012466",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom604_canonmhv\\manifest.json",
+      "bytes": 9891,
+      "sha256": "43d07cf081bbdbe51af432e0b43fd6c5454a2068f9bfaae3c6da1cf0461c3b3a",
+      "markers": [
+        "trusted",
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom604_clock\\manifest.json",
+      "bytes": 3936,
+      "sha256": "4554d16952edf31f65aaf6e065ddcf97c4803c00f2cda695e69ff58cb364da12",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom604_flow\\manifest.json",
+      "bytes": 6175,
+      "sha256": "03f9e8f9eb5b68c1aeb3e70fbf22f5f114b39fee7ee823f73a3f23359b2f868f",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom604_higher\\manifest.json",
+      "bytes": 5085,
+      "sha256": "8e884c16dee2d5b60978a6526d5011cf3964290291fa980091f5ba91c879d766",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom604_m09producer\\manifest.json",
+      "bytes": 9146,
+      "sha256": "0029273862c4d19ca379726498464363bb143e4300149a0c40e05d7ccb524ca4",
+      "markers": [
+        "trusted",
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom604_m09replay\\manifest.json",
+      "bytes": 9707,
+      "sha256": "f4d96179e3f510c5d21f70372302aab54c8863614b26229deb4881d3877f6d22",
+      "markers": [
+        "trusted",
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom604_mhv\\manifest.json",
+      "bytes": 2976,
+      "sha256": "85329075a28b83edeb40ebcd73af096e88054973f0ce011dc84f340b1dc675fc",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom604_mhvtf\\manifest.json",
+      "bytes": 32306,
+      "sha256": "d27bc75fcb93cfb6edfe29d8f5be3f1f6a7d35844e93f34079eed399f66c1caa",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom604_momentum\\manifest.json",
+      "bytes": 10465,
+      "sha256": "c0ce66c8a60679cec8305a884f49dd774a154c05cd0b192a149c5f6ce13c8639",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom604_observer\\manifest.json",
+      "bytes": 2564,
+      "sha256": "b408c22254a9087e805ca6eaa8fd095c42b58d6e4dffc6f1685f794e02bd4b47",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom604_observerm09\\manifest.json",
+      "bytes": 2594,
+      "sha256": "977eef1b8d4ecf6a2c5029543b69b7916292d8cfb2cd7890c65a16f412934c63",
+      "markers": [
+        "trusted",
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom604_owner\\manifest.json",
+      "bytes": 3518,
+      "sha256": "5a09f061f97bc96c53d550011afa12e7041acee6bf80bc1eee8fa8811f4fba60",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom604_producer\\manifest.json",
+      "bytes": 5382,
+      "sha256": "f02b68113b0c34e751b3be80aed9ac212610b69297b772f70d7b154a948e7be6",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom604_recovery\\manifest.json",
+      "bytes": 5518,
+      "sha256": "7751c712381662916b8934054bf17c77b7830656dfb5e2645872438cb4e03e92",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom605_canonmhv\\manifest.json",
+      "bytes": 9309,
+      "sha256": "33c64f4e4ff85e5f7c6f02007433c3b00bc6ae1804f43d3df9e93dc04202f076",
+      "markers": [
+        "trusted",
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom605_clock\\manifest.json",
+      "bytes": 3936,
+      "sha256": "fa84c2c9be2d3f59f1bc653a488f72f06554b86e255f0bd961ab527df71d7458",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom605_direction\\manifest.json",
+      "bytes": 20639,
+      "sha256": "f3a0723f95496e4f1d56ef569b3a63c059a29daeff762ad0824579e43dec0f6e",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom605_flow\\manifest.json",
+      "bytes": 6174,
+      "sha256": "b2a0b2e232b4f05acb787f7dad660e349fcbe6b14e2e45b3c49019615472b949",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom605_higher\\manifest.json",
+      "bytes": 5085,
+      "sha256": "2c87d6b0d665c9da545f878b59e9e507d620a446aa3e4a4c0810ab8cef69ca9d",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom605_m09producer\\manifest.json",
+      "bytes": 9146,
+      "sha256": "e3edcebf0df68ba1fdfce156f22c36163639b8e01855a6222157037463574f22",
+      "markers": [
+        "trusted",
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom605_m09replay\\manifest.json",
+      "bytes": 9707,
+      "sha256": "07420fe7fd32287d62c05d298834831bcc8f71abfb35456374931a788886f875",
+      "markers": [
+        "trusted",
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom605_mhv\\manifest.json",
+      "bytes": 2976,
+      "sha256": "14badf9c34e6a9acb48df861ae1e13e1fb193c61afb51b60be800839ca255b11",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom605_mhvtf\\manifest.json",
+      "bytes": 32306,
+      "sha256": "1f006fabb1cc0eb3388649e0c700d16fe46770d07d2680d51981b314dda5b6a5",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom605_momentum\\manifest.json",
+      "bytes": 10465,
+      "sha256": "7d63ccb3ce96eba9d724105cc579a0b868c38507b95d5a88b63b3277cb83f097",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom605_observer\\manifest.json",
+      "bytes": 2564,
+      "sha256": "be785d5b91eb3e9a6e54ff739cfc6ed9ed1a19e1566a243f0b855aced412829e",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom605_observerm09\\manifest.json",
+      "bytes": 2594,
+      "sha256": "c75da5201882181ed3dd8e28fb9c0ccef09e212c79826e62afab4564737a825f",
+      "markers": [
+        "trusted",
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom605_owner\\manifest.json",
+      "bytes": 3518,
+      "sha256": "d8923802e95b06a101f2158011a42d3d7616a9883e41d17f5c7646d51b824b98",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom605_producer\\manifest.json",
+      "bytes": 5382,
+      "sha256": "7d7159d600cc11c33e3ca50cc5ae6c68dfcf5802e548d49d6f9d107cc123539a",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom605_recovery\\manifest.json",
+      "bytes": 5518,
+      "sha256": "1525c8fb6d27679397c5651dbaadfe5a8ad7cdc059ce8d395764ee15555a0168",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom606_canonmhv\\manifest.json",
+      "bytes": 9309,
+      "sha256": "e61362b26ca6c9fc7f9a4c57071064edbdd3d0a1197135048c8103a503351cfe",
+      "markers": [
+        "trusted",
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom606_clock\\manifest.json",
+      "bytes": 3935,
+      "sha256": "b1b4d59ec5c5441657ffeef09568348ff7385f9bfbec1902f7a5895a80022f3c",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom606_flow\\manifest.json",
+      "bytes": 6174,
+      "sha256": "c05c04e582a6c1fefda72ae1adbb5ad03858a7083794a24beed2a85335ab3095",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom606_higher\\manifest.json",
+      "bytes": 5085,
+      "sha256": "7a5715ba86d71e1c99593ce4c1b690c85003b8a4a2dbb41cbfd23acc3c1b2b91",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom606_m09producer\\manifest.json",
+      "bytes": 9146,
+      "sha256": "8de0a91179e4b96b5fe5b140fe7f24517d22dabd5bb79b1999a4e8423dc4858a",
+      "markers": [
+        "trusted",
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom606_m09replay\\manifest.json",
+      "bytes": 9707,
+      "sha256": "56b94f08c9b344017a236d37adb0be544211dff87fa2fc9aa13c7b04a2dfa9b0",
+      "markers": [
+        "trusted",
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom606_mhv\\manifest.json",
+      "bytes": 2976,
+      "sha256": "13b24fb0870b5d55c163636729da6b03973d56299804b567d96697225a6f7d55",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom606_mhvtf\\manifest.json",
+      "bytes": 32306,
+      "sha256": "3f4c28506dc82ddeed90e6a6fad2d38e4fa9f3b6fbe5a0529620606f87dd1794",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom606_momentum\\manifest.json",
+      "bytes": 10465,
+      "sha256": "eeab1bc442ee7fba256e777b399d347fa9201b558d3a8720cea377c5e197f96f",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom606_observer\\manifest.json",
+      "bytes": 2564,
+      "sha256": "c0dbd1edc157c1d7070672ce06ec48d0c981571570ec662f62fb5582a7a0faf2",
+      "markers": [
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom606_observerm09\\manifest.json",
+      "bytes": 2594,
+      "sha256": "ecac5f85f3a2b73429b61ea4de209a03573cefa7b8b7926bf3aaa705d6e02323",
+      "markers": [
+        "trusted",
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom606_owner\\manifest.json",
+      "bytes": 3519,
+      "sha256": "9707809717558be3819676cc222ac4595838e12e9968262d95b6166cdc3660ad",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom606_prefreeze\\manifest.json",
+      "bytes": 10535,
+      "sha256": "5c0a15d112a1dde2bbd26f27747f1207e633cbe8978858a81c14e33b3216ea81",
+      "markers": [
+        "trusted",
+        "fixture",
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom606_producer\\manifest.json",
+      "bytes": 5382,
+      "sha256": "b6b57aee38c451716e33ccb734456af448eac8e4017fa638ef43d5669fcdafb2",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\custom606_recovery\\manifest.json",
+      "bytes": 5518,
+      "sha256": "033b6421965d3c8f714cb13d2376c115c15ce759ae033afe9ec8ff9597d88935",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\scope596\\manifest.json",
+      "bytes": 1271,
+      "sha256": "1fee6b3e2192b360d55c84a50223f82bad7e586b94fcb27fbb03bacf41ba6508",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\scope597\\manifest.json",
+      "bytes": 1514,
+      "sha256": "5a08980761355312fa63c8fb8cdd986f82031cae8414f61eda14f36bd474b4b8",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\source606\\frame_manifest.json",
+      "bytes": 2407,
+      "sha256": "88810e71c332991282c04877c133b3b69d4db7986ed521f82afb30ccf9a9b9c2",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\startup593\\manifest.json",
+      "bytes": 4183,
+      "sha256": "291d2409e414231ca35b3e4fc3351ace0bf46e6a0c4835b4f254dc0884d818e6",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\startup594\\manifest.json",
+      "bytes": 5967,
+      "sha256": "1ed7655f40fe6ec75ed479b996adae24a6abea63da8327b4203f2a772dc38726",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\startup595\\manifest.json",
+      "bytes": 6071,
+      "sha256": "7bb5dc623b1a5af5f3c678bedb9416166478efb3d55b4af2b105b36bedaddd50",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\startup596\\manifest.json",
+      "bytes": 6091,
+      "sha256": "be3e9816088a8b94cee0c5b0ce5967ed108fe5fccc3b9ee5d5de5256ab393f2a",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\startup597\\manifest.json",
+      "bytes": 6071,
+      "sha256": "26efeea0b88426579bad62a2dfa27d7c58f30019b23f1e077739c54f05f21351",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\startup598\\manifest.json",
+      "bytes": 6071,
+      "sha256": "75f3c4a48f0eed2542320b5a8efc322181d8e6e2a1b5d63f657a1a77e0f5fa32",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\startup599\\manifest.json",
+      "bytes": 6091,
+      "sha256": "68a08972730f0e2ba60ba87485f8b2693bef8526c664cc46c6bbca355aec13c9",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\startup600\\manifest.json",
+      "bytes": 6091,
+      "sha256": "c4e05a3b28ad312c4e52423824613adeb9385fc91a4bdaab816801bf82d7ef0c",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\startup601\\manifest.json",
+      "bytes": 6111,
+      "sha256": "1837c413f72ec2924594d1a72fa5497b90a343fdfa2eccf3f44f35ae4670cc83",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\startup602\\manifest.json",
+      "bytes": 6031,
+      "sha256": "5bbfc87746e0a65eb87a22cc2f5a2c34dc38148f1b46b5792db08672354fecaa",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\startup603\\manifest.json",
+      "bytes": 6091,
+      "sha256": "f23dc8713a4f56e6b82e38a0b5549833c75ad5ad34b6ed16688f2bfc8e534c46",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\startup604\\manifest.json",
+      "bytes": 6111,
+      "sha256": "ec5d3765e2bd858af0f516cc58a1dc67d3dc12b8339b2e059e5d28deab3fc6c7",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\startup605\\manifest.json",
+      "bytes": 6091,
+      "sha256": "d73d1e632fa96d085089136ff378d627faa016bcaf565ed3c08480e4b9aae7c4",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\startup606\\manifest.json",
+      "bytes": 6151,
+      "sha256": "efcd49d04bf8a933ddf7bb7cad2cc2a8bc78aab540dddbcd8b49fecd136f2c00",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\C044_STEP2_LIFECYCLE_STATE_RECOVERY_IMPLEMENTATION_AUDIT_20260826.md",
+      "bytes": 2216,
+      "sha256": "5ca3f2e6d1590a48f46deff5d7973e6ada951d3ed9ba28954ee8e16103bb2cc2",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\C044_STEP3_OWNER_EVENT_EVALUATOR_IMPLEMENTATION_AUDIT_20260826.md",
+      "bytes": 2677,
+      "sha256": "acffb6e7ddfb2fc761b1f57a0416fd73f65dd3543077af776c7fe0c1e2e9d0f9",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\CORE_V2_F7_COMBINATION_LIFECYCLE_EXIT_OWNERSHIP_AUDIT_20260824.md",
+      "bytes": 15610,
+      "sha256": "9b5c33cfb8548f16941ec3259b1bf80b8892ccd4f7c2fd1241f5086f3492311f",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\CORE_V2_F7_M23_M24_LIFECYCLE_STATE_RESTART_RECOVERY_AUDIT_20260824.md",
+      "bytes": 22965,
+      "sha256": "65f1c96e42fcbff5428e3c9d1bb475e9321ab5550eff9993c0a2f493285ea4c9",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\D1O_STEP8_CURRENT_OWNER_NATIVE_COMPILE_20260825.md",
+      "bytes": 832,
+      "sha256": "65e907febbff72d11a917014f4a4ae05dc7c9391fad0ae7c6b0b4d7910fb55b3",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\D1_STEP1_M11_STRATEGIC_OWNER_IMPLEMENTATION_AUDIT_20260824.md",
+      "bytes": 1263,
+      "sha256": "4158139495463252cbef19eff4fbd86783e56b1c4e111c45219a53b8fbb028ae",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\D1_STEP1_M11_STRATEGIC_OWNER_IMPLEMENTATION_PREP_20260824.md",
+      "bytes": 6250,
+      "sha256": "a24dd04a062abd0420c030a948f9ddce54e4d01a6dc5c58c42968819c453c45d",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\D1_STEP3_M11_SNAPSHOT_ATOMICITY_IMPLEMENTATION_AUDIT_20260824.md",
+      "bytes": 1739,
+      "sha256": "6a1e871b018bafe45754d22a526b6057f7797b3f7899c73da5d070885ee90a77",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\MT4_VERIFICATION_OWNERSHIP_POLICY_20260824.md",
+      "bytes": 2535,
+      "sha256": "9c347b1f627a7babe63d971b6a1a1b21adf2be002b83265a62bfb1573705eacc",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\P2_STEP9_M24_RESTART_RECOVERY_AUDIT.md",
+      "bytes": 2928,
+      "sha256": "d4fc870b2451d408cbccaa97a4686eab105b9397ede7ea266f2f6e15f821f196",
+      "markers": [
+        "trusted"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\P3_STEP5_DEPLOYMENT_MANIFEST.md",
+      "bytes": 2051,
+      "sha256": "17b39cfd34f201adb58fbb1eb0efbd2f4a9e502b8507dd78fa1ba530a4589db5",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\P3_STEP5_RECOVERY_STATE_AUDIT.md",
+      "bytes": 7634,
+      "sha256": "5e1a2786a637754e7444adf6954cdcd163bb9ed8b695c6a98fd850806db47a63",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\C044_BUILD497_FAIL_FROZEN_RECOVERY_VALIDATION_20260920.md",
+      "bytes": 4777,
+      "sha256": "c28c543f4d9d1a9313ec1651dd29dba6c2ce86d71fd07300356d9d3fc368d0be",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\D1TPW_BUILD487_CHECKPOINT_ATOMICITY_VALIDATION_20260920.md",
+      "bytes": 5052,
+      "sha256": "522f6407586b6f092a2d49566ed993c01459b5813864b17443709fb38e6f6912",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\NMJE_V1_V2_CURRENT_OWNER_IMPLEMENTATION_RECONCILIATION_20260925.md",
+      "bytes": 9435,
+      "sha256": "b45cd46af7f3f82b7e8d35dea5f78fd3812099037ff6b26c0f7209ebe8537699",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\NMJE_V2_P2_P3_CURRENT_OWNER_REMATERIALIZATION_20260925.md",
+      "bytes": 3818,
+      "sha256": "c92cf5da34ac65d7ea32ec781cc63a6e51894944e65142264c3d2454ef5d1d41",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\NMJE_V2_P4PLUS_CURRENT_OWNER_REMATERIALIZATION_20260925.md",
+      "bytes": 5814,
+      "sha256": "6e6ce695f2bcb4b62a21ab8346692215098f3d7b66e462f362d66412341b8ac1",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\Q10_R3_METAQUOTES_RUNTIME_CHECKPOINT_20260923.md",
+      "bytes": 5303,
+      "sha256": "99fa724dcac3b59f4dd204ed262e7f6431d7d2fa45e3dca119f1be27746d3b47",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\V461_F7_RUNTIME_DEPLOYMENT_CHECKPOINT_20260904.md",
+      "bytes": 2021,
+      "sha256": "cb770d4912c9d5ef3a286d8181dd1fd40d73ab44f5c4d37405c6880bb16c9f62",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\C044_BUILD497_20260920\\LOCAL_EVIDENCE_MANIFEST.json",
+      "bytes": 1349,
+      "sha256": "0f10d56988b701448b843c7eecea376facb4aa578fbf84a3c5868901f4fd76a7",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\D1O_BUILD503_20260921\\LOCAL_EVIDENCE_MANIFEST.json",
+      "bytes": 1924,
+      "sha256": "02b8c13eb4b4f7b4185a91eac56418b45f919d784e9e4bdcaa937100cf83482c",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\D1TPW_BUILD487_20260920\\LOCAL_EVIDENCE_MANIFEST.json",
+      "bytes": 1693,
+      "sha256": "abc6483ca03ba39b142ae4955c74a0901ddb2bdb91c5273239153ebeac31f7ef",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\F05_BUILD506_20260922\\COMPILE_MANIFEST_R2.json",
+      "bytes": 956,
+      "sha256": "598f34e92904c86518b2219b3a5ad14adff43f9febf3661690bec6163aa9413b",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\F07_BUILD505_20260922\\COMPILE_MANIFEST_R2.json",
+      "bytes": 954,
+      "sha256": "4fc07b79ea883003f7dcf39874abdf32b1f0f49fcf21c8eb26db760949dfc662",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\FINAL_BUILD511_INTEGRATION_20260923\\LOCAL_EVIDENCE_MANIFEST.json",
+      "bytes": 5843,
+      "sha256": "34512e3a2ee16038f912a12dab4875ac0ef96116cb024d067fcafc26ad06cafd",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\G40_TIERA_MEDIA_20260925\\MEDIA_EVIDENCE_MANIFEST.json",
+      "bytes": 3379,
+      "sha256": "c1d8f0a204b8998d308b648fde6574049fca952dce25230c5b4c085c02f1c58c",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\M17_BUILD499_20260921\\LOCAL_EVIDENCE_MANIFEST.json",
+      "bytes": 1538,
+      "sha256": "d0726bf6e1fdf10d2a9f84a7d38f0771afd321f0831604bf0be4a286cdae5b4e",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\M19_BUILD504_20260921\\COMPILE_MANIFEST.json",
+      "bytes": 943,
+      "sha256": "cab6c95ae4f114f0b86772fdaff72df32850d4d32161b122699562aaf8accb99",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\M25_BUILD510_20260922\\CHECKPOINT.md",
+      "bytes": 988,
+      "sha256": "0503fbaa5046b6539681fc6bcd8479e9d732b8a80b70a3e2b8c1bc859c06f55d",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\M25_BUILD510_20260922\\COMPILE_MANIFEST.json",
+      "bytes": 775,
+      "sha256": "ce72ae37e8caf2fd2213bb9df11e18907d132a1c0af1bbdb43f64a6cd0695c47",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\M25_BUILD510_20260922\\RUNTIME_MANIFEST.json",
+      "bytes": 1125,
+      "sha256": "0b718b4c7a2e52c581efb3a18b908a0c0af5004491bca38446f369ffe44cea91",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\N1_P1_BUILD508_20260922\\CHECKPOINT.md",
+      "bytes": 1099,
+      "sha256": "d8b3a7768e5e45724011bd4055f1b7c1c46d76f25c2a7b0a0fe844b04ea854ec",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\N1_P1_BUILD508_20260922\\COMPILE_MANIFEST.json",
+      "bytes": 498,
+      "sha256": "d4a2b6c7661e4d93639c60718ba6a12fc50616b40611d83b495e400beb012dfe",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\N1_P1_BUILD508_20260922\\EPOCH_R1_ANALYSIS.json",
+      "bytes": 2401,
+      "sha256": "51062d9bf0288518a44bb7686e4d983a09e60bbda8d29dd866413e7a09909738",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\N1_P1_BUILD508_20260922\\RUNTIME_MANIFEST.json",
+      "bytes": 1107,
+      "sha256": "6021fea7204c48dfbae12b1972bc7c08a75c17616b8e1d87bd0da7babc673ee8",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\N2_BUILD507_20260922\\CHECKPOINT.md",
+      "bytes": 1266,
+      "sha256": "fd1d3a8151a3fabd5bd46026124c224c10aa7c2323c767aee17d36570aad5b7b",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\N2_BUILD507_20260922\\COMPILE_MANIFEST.json",
+      "bytes": 715,
+      "sha256": "e673391ed97dda407dd2af3bce476c58a82cb0cc53356a2cd9818e6f0eba5543",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\N2_BUILD507_20260922\\RUNTIME_MANIFEST.json",
+      "bytes": 1159,
+      "sha256": "7ff018394413f2da57d34e9f8b004d23f9bd42458e30d9432088ba936a23be4b",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\N2_BUILD509_20260922\\CHECKPOINT.md",
+      "bytes": 1060,
+      "sha256": "4edb5adffbb7dc9e52237c4c3febe2774ee84d7cf4f298a35fe2b75f13e8a988",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\N2_BUILD509_20260922\\COMPILE_MANIFEST.json",
+      "bytes": 973,
+      "sha256": "d297d9bad41c441f38bd12fc18cbdf60d3311670396dfda74e9000e9bd96b342",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\N2_BUILD509_20260922\\RUNTIME_MANIFEST.json",
+      "bytes": 1366,
+      "sha256": "08f9b5f2cae8fc64bcc9e28f4b3dc69226c25e97c505e42eeb4097bf70ff3228",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\NMJE_V1_V2_20260925\\current_owner_compare.json",
+      "bytes": 9500,
+      "sha256": "1a992752d3f60c3dcdcc2c89ed14fb97d5193b97540a429a538d0ba800e97b36",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\NMJE_V2_P2_COUNTERFACTUAL_20260925\\evidence_manifest_rev004.json",
+      "bytes": 3072,
+      "sha256": "7ef8388d770847e009d164ea88e711b6d928ad41fea12e1e234f8d6ef70807a2",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\NMJE_V2_P2_TARGETLESS_REPLAY_20260925\\evidence_manifest_rev001.json",
+      "bytes": 3160,
+      "sha256": "22e35bbbc3585b78314a1d33dcdd48a63d14b9f36d86a1984ce1ffe1c654392f",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\NMJE_V2_P4PLUS_20260925\\evidence_manifest_rev006.json",
+      "bytes": 2687,
+      "sha256": "8cf521cf91d5eb21ab09a5ab34b4139fc564a2003c251c936d3ce53b6339a874",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\OBSERVER_BUILD511_20260922\\CHECKPOINT.md",
+      "bytes": 1120,
+      "sha256": "9cb078b1113b010bc31767b9957aded1196d055d788a4ade9df5d088e4791bda",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\OBSERVER_BUILD511_20260922\\COMPILE_MANIFEST.json",
+      "bytes": 565,
+      "sha256": "c03c28b9435b10023b23286508a8c98604997d7e6385c1e2be6fa69914cf7513",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\OBSERVER_BUILD511_20260922\\RUNTIME_MANIFEST.json",
+      "bytes": 1319,
+      "sha256": "a8d7a719d7a12cfe2b93383bb7a9856c7f0a1fa2fb2001f24f1cc9af1d50e209",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\Q10_DEMO_PROBE_R2_20260923\\PROBE_MANIFEST.json",
+      "bytes": 530,
+      "sha256": "0bc0402b495e142ecf889842bcf724840637646828df9ecc52b9a32c1ab0a566",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\Q10_HYBRID_PHASE_H_REUSE_20260923\\MANIFEST.json",
+      "bytes": 3777,
+      "sha256": "272425cc09b0f57a83cb87bd7c2a72748784df62cb256353e80f055e6def9c16",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\Q10_PHASE_H_DETERMINISTIC_20260923\\MANIFEST.json",
+      "bytes": 546,
+      "sha256": "1795c76bf5bf089adc5dfa8b0e0b632fefa0ae73b1c70cb773e1c31e57ae97f9",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\Q10_PHASE_H_GAP3_20260923\\MANIFEST.json",
+      "bytes": 814,
+      "sha256": "31b4a22f61decc60f1748e488f5dc90bfbd8c0939607058e2699a1557a8dc4fa",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\Q10_PHASE_H_GAP_CLOSURE_20260923\\MANIFEST.json",
+      "bytes": 371,
+      "sha256": "d61366868f0b7be195756a54a06941f5f8d0fdb3d284b315d2f97e0961aac3e7",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\Q10_R3_METAQUOTES_20260923\\MANIFEST.json",
+      "bytes": 2601,
+      "sha256": "76db92e009354d843023a7915dfecfacfee76f2d600d433e073f0bdd61f43ab2",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\Q10_R3_METAQUOTES_20260923\\state_snapshot.json",
+      "bytes": 2224,
+      "sha256": "a71409d70b4a88d567a446f2d42542eb50f7d537a8b9f72bd7e6141ad110654a",
+      "markers": [
+        "source_sha256"
+      ]
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\Q10_TOOLING_BUILD511_20260923\\TOOLING_MANIFEST.json",
+      "bytes": 2594,
+      "sha256": "e7c17d72fdef7f135305546bb88f885036830fdcb77bcc387808e904140bc1d8",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\audits\\evidence\\Q8_BUILD486_GBPUSD_20260918\\local_evidence_manifest.json",
+      "bytes": 7558,
+      "sha256": "37f305fd03308986237b675086673f256c7eb98ab30d57f4c27c3fe9a4d005d1",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\contracts\\M11_D1_MAJOR_TREND_OWNER_CONTRACT.md",
+      "bytes": 7753,
+      "sha256": "ad2deb4fddaab273814537113a5826b46d361901ccc19b5a8c07b36da1101c99",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\contracts\\M24_RECOVERY_CONTRACT.md",
+      "bytes": 9176,
+      "sha256": "5afbf4d65723b125246aad9fecc902b179ec7207b0b6c0c27c00d626e514ba41",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\decisions\\HOME_COURSE_D1_TRANSITION_MAJOR_TREND_OWNER_DECISION.md",
+      "bytes": 13753,
+      "sha256": "3b7f6cd352c0cd3b823c567949cda5b92aa6e32fc1c9fccd8a820e041eb973a6",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\decisions\\Q9_NMJE_V2_P5_M5_SEMANTIC_OWNERSHIP_TRUE_CONFLICT_DECISION_20260925.md",
+      "bytes": 7270,
+      "sha256": "652c39e2075d7aab1a2404c9b43c8b4167a6258714fa245c31782e55d0e467f7",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\blueprint\\gap_closure\\GAP_A1_D1O_EXTREME_TPW_OWNERSHIP_RECONCILIATION_20260826.md",
+      "bytes": 5147,
+      "sha256": "fd0199b1f022746accade259488f2d2f6cb612c30335e5d6fde4886dce3c7503",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\CustomMTF302_Regression_20261108\\docs\\references\\original\\video\\oma_ally_finale\\MANIFEST.md",
+      "bytes": 2196,
+      "sha256": "cf129cfbbf85d24da203f09f4440407ccb1e20406f5f3bad9a8c3722a29ffc2c",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\HistoricalData\\validation\\gbpusd_201302_native_arbitration_manifest.json",
+      "bytes": 10591,
+      "sha256": "aa3c071faf0ed04004a0281053a3421111f2fff1f79fda411f2fe1ec6b573950",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\HistoricalData\\validation\\gbpusd_2014_native_arbitration_manifest.json",
+      "bytes": 3321,
+      "sha256": "a68793dc193e0b742994497018ea9b3b7da31211f2b100dad707a793ea57c3e7",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\HistoricalData\\validation\\gbpusd_2015_native_arbitration_manifest.json",
+      "bytes": 1566,
+      "sha256": "83af94929300e5b5a46004df2a4250c3eb2ef5015f580c8c1e25632cea048364",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\HistoricalData\\validation\\gbpusd_2017_native_arbitration_manifest.json",
+      "bytes": 587,
+      "sha256": "95214bf43fd7354bb5e1138055d22639da685010a0970e27f8ed4a050b942f56",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\HistoricalData\\validation\\gbpusd_2018_native_arbitration_manifest.json",
+      "bytes": 912,
+      "sha256": "8cb62a96dc368782544680ad06103e1f278fd2a68772fb403d63296d26811925",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\HistoricalData\\validation\\gbpusd_2019_native_arbitration_manifest.json",
+      "bytes": 1205,
+      "sha256": "53a96546e9d861dce0c6f4f8ad53316e1aae128bee16551c5c430587e6fde995",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\HistoricalData\\validation\\gbpusd_2020_native_arbitration_manifest.json",
+      "bytes": 587,
+      "sha256": "5a118928dd42655fd57febcd30561dfc946d539b4248cff3963a21d12b8ab6dc",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\HistoricalData\\validation\\gbpusd_2023_native_arbitration_manifest.json",
+      "bytes": 912,
+      "sha256": "de8ae7834c47169cd07cd0e0a136cad11adce14c5054313ae4328206ed005399",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\HistoricalData\\validation\\gbpusd_2024_native_arbitration_manifest.json",
+      "bytes": 3054,
+      "sha256": "e4f678c28bdba55bdad393b2a750064d9026a472f32a736cc779ec1e3f171a39",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\HistoricalData\\validation\\gbpusd_2025_native_arbitration_manifest.json",
+      "bytes": 1897,
+      "sha256": "184df2257edfb56c1f51c3da4480fd56c08cb49d983869b15d1250defe262eed",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\HistoricalData\\validation\\gbpusd_2026_native_arbitration_manifest.json",
+      "bytes": 2217,
+      "sha256": "6d7433bd800a233a185c57f61385fb7a53fa11bd898b0b82b64ddcaa512dd083",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\HistoricalData\\validation\\gbpusd_tick_validation_native_m1_v2_manifest.json",
+      "bytes": 26348,
+      "sha256": "4c8fbddb6e86392de4a93c1a2bd10d3c2cb9f20cdf1c6e262ae4470eb884cf83",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\HistoricalData\\validation\\histdata_gbpusd_201905_manifest.json",
+      "bytes": 244,
+      "sha256": "2c192915d46b1690c2ed94c9598446be560326891dd323058e58ad2f707b04bf",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\HistoricalData\\validation\\histdata_usdjpy_gap_months_manifest.json",
+      "bytes": 801,
+      "sha256": "e63470c3dbeaa51dd7418c9478575b035fa86d9d9a30cc8bd8c74ff5cf9159ee",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\HistoricalData\\validation\\m1_repair_overlay_manifest.json",
+      "bytes": 181956,
+      "sha256": "a079b5c07b47b55659bae7f0b7e9df58f22968471c22e2bd5d63f23d040bf33f",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\HistoricalData\\validation\\native_repair_2024-10-09_10_manifest.json",
+      "bytes": 29567,
+      "sha256": "180e104dc39bf792ebbc54139a803fef9e71589d18451ed2b77794a5b9be6232",
+      "markers": []
+    },
+    {
+      "path": "D:\\BBMA\\HistoricalData\\validation\\native_required_repair_targets_manifest.json",
+      "bytes": 213985,
+      "sha256": "9ddff0f81c182b246a3f89e6fa261142fdf19e56745258252985ff1b1d014422",
+      "markers": []
+    }
+  ],
+  "errors": [],
+  "frames": [
+    {
+      "second": 1885,
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\source_followup\\V05_1885.jpg",
+      "sha256": "e2c427194de42bf46247858621fe4140dfb1a70eaf9fb36606d48e995cfbff3c"
+    },
+    {
+      "second": 1892,
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\source_followup\\V05_1892.jpg",
+      "sha256": "581244cb76e634bde63e9b49575eec36099fc89058ef864b9f1aad6c9e340fab"
+    },
+    {
+      "second": 1900,
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\source_followup\\V05_1900.jpg",
+      "sha256": "e1ebbb730e0a151da3d98c3e57a5653db460236d91c8225c77d7fca1bf01ebaa"
+    },
+    {
+      "second": 1925,
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\source_followup\\V05_1925.jpg",
+      "sha256": "77f770388c68d25b55119e3091f0530a53b1959297f08666c2f984ab41e9cb4a"
+    },
+    {
+      "second": 1935,
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\source_followup\\V05_1935.jpg",
+      "sha256": "c31b15f37a16dfed4ca20b5ab029e93ac037ca4cac3d5f9458dd1568a66041dd"
+    },
+    {
+      "second": 1950,
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\source_followup\\V05_1950.jpg",
+      "sha256": "4bbf6845449fd1a22b4a90d18f53b4c71b356edf3ae90850895ac4b9fa25ddd7"
+    },
+    {
+      "second": 1960,
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\source_followup\\V05_1960.jpg",
+      "sha256": "9e3b786c7c8f830614cd88fb17778472a710d3171a38e7560589a0f40585c812"
+    },
+    {
+      "second": 1966,
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\source_followup\\V05_1966.jpg",
+      "sha256": "d1992830503fb82417b56fc3d290d885f05dbd875c4b99fcef4f3ff54139386f"
+    }
+  ],
+  "frames_reviewed_seconds": [
+    1892,
+    1935,
+    1950,
+    1960,
+    1966
+  ],
+  "frames_archived": {
+    "1966": "blueprint/audits/evidence/CUSTOM_MTF_DIRECTION606_FOLLOWUP/V05_1966.jpg"
+  },
+  "finding": "No source-discriminating classification accepted. Inventory is bounded candidate discovery, not full semantic audit of every file; no global absence claim."
+}

@@ -1,0 +1,34 @@
+{
+  "task": "SIG-06-MHV",
+  "status": "IN_PROGRESS — confirmed stale-candidate invalidation bug; Build6.12 targeted295/295, affected native regression RUNNING",
+  "base_commit": "629059d48fd94106d3bf84d05f8fb0f530884161",
+  "source_sha256_lf": "900744561bd5e5c5abaef754478a055fcf600bf178fe3174da2d484dd840f2e8",
+  "build": "6.12",
+  "source_revision": "MHV_CANDIDATE_INVALIDATION_001_20261111",
+  "production_source_changed": true,
+  "red": {
+    "passed": 239,
+    "failed": 56,
+    "source": "6.11",
+    "terminal_pid": 13116
+  },
+  "green_v1": {
+    "passed": 295,
+    "failed": 0,
+    "terminal_pid": 6108,
+    "compile": "0E0W"
+  },
+  "stage": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\mhv612-stage",
+  "regression_driver_pid": 5616,
+  "regression_state": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\sig06_mhv\\fix612_regression\\state.json",
+  "queued_revision_test_driver_pid": 1536,
+  "cloud": {
+    "pytest": "NOT AVAILABLE: No module named pytest",
+    "available_test_functions": 6,
+    "import_assertions": "PASS",
+    "full_repository_suite": false
+  },
+  "next": "Poll5616/state; never duplicate native processes. V2 RED/GREEN scheduler1536 waits for regression PASS. Review extra-read revision atomicity; collect bindings/controller traces before acceptance. Stay SIG06.",
+  "full_SIG06": "PARTIAL/HOLD — historical session/epoch/successful boundary recovery gates unchanged",
+  "auto_entry": false
+}

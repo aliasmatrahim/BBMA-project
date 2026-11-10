@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 6.1.1 - Extreme Source Readiness      |
+//| Version 6.1.2 - MHV Candidate Invalidation      |
 //| SIGNAL VALIDATION IN PROGRESS - CUSTOM ORDERS OFF          |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,14 +31,14 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "6.11"
+#property version   "6.12"
 #property strict
 #include "custom_mtf/CustomInputs.mqh"
 #include "custom_mtf/CustomPairBinding.mqh"
 #include "custom_mtf/CustomClock.mqh"
 
-#define BBMA_BUILD_TAG      "V611_EXTREME_SOURCE_READINESS_20261110"
-#define BBMA_SOURCE_REV_TAG "EXTREME_SOURCE_READINESS_003_20261110"
+#define BBMA_BUILD_TAG      "V612_MHV_CANDIDATE_INVALIDATION_20261111"
+#define BBMA_SOURCE_REV_TAG "MHV_CANDIDATE_INVALIDATION_001_20261111"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -3256,6 +3256,13 @@ void InstallMHVSupersessionParent(MLVData &mlv,
    parent.Reason = data.timeframe==PERIOD_M15?"Reversal-confirmed M15 Extreme installed by F1 cycle supersession":"Reversal-confirmed source-TF Extreme installed by F1 cycle supersession";
 }
 
+void ClearMHVSupersessionCandidate(MLVData &mlv)
+{
+   mlv.SupersessionCandidateActive = false;
+   mlv.SupersessionRawBar = 0;
+   mlv.SupersessionRawCandleTime = 0;
+}
+
 bool TryAdvanceMHVSupersessionCandidate(MLVData &mlv, string pair,
                                         TimeframeData &data, BollingerBand &band,
                                         ExtremeLifecycleData &parent,bool &sourceAvailable,
@@ -3275,9 +3282,7 @@ bool TryAdvanceMHVSupersessionCandidate(MLVData &mlv, string pair,
 
       if(invalidated)
       {
-         mlv.SupersessionCandidateActive = false;
-         mlv.SupersessionRawBar = 0;
-         mlv.SupersessionRawCandleTime = 0;
+         ClearMHVSupersessionCandidate(mlv);
          return false;
       }
 
@@ -3465,6 +3470,15 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
       if(mlv.InvalidationWindowOpen &&
          IsMHVContinuationInvalidation(pair, direction, data, band))
       {
+         // MHV invalidation must not bypass the pending Extreme's own rule.
+         // An outer-only MHV break can leave that opposite-side candidate valid.
+         if(mlv.SupersessionCandidateActive)
+         {
+            bool candidateInvalidated=false;
+            if(!ReadExtremeLifecycleInvalidation(pair,GetMHVParentExtremeDirection(direction),
+                                                data,band,candidateInvalidated))return mlv.State;
+            if(candidateInvalidated)ClearMHVSupersessionCandidate(mlv);
+         }
          MarkCanonicalMLVVoid(
             mlv, data,
             "Canonical MHV void: outer-BB/Momentum invalidation before direction takeover");

@@ -37,7 +37,7 @@ for case,name,monitor in [('off',h.stem,'false'),('on',h.stem,'true'),('baseline
  payload=[x.split('[CUSTOM-PARITY] ',1)[1] for x in rows if '[CUSTOM-PARITY] ' in x]
  assert len(payload)>1000
  trace=e/(case+'_trace.txt');trace.write_text('\n'.join(payload)+'\n');payloads[case]=payload
- counts={k:int(v) for k,v in re.findall(r'(cycles|valid|frames|attempts|seeds|handovers|csaViews)=(\d+)',summary)}
+ counts={k:int(v) for k,v in re.findall(r'(cycles|valid|frames|attempts|seeds|handovers|csaViews|extViews)=(\d+)',summary)}
  records[case]={'initial_checkpoint_isolation':isolation,'summary':summary,'counts':counts,'trace_path':str(trace),'trace_rows':len(payload),'trace_sha256':hashlib.sha256(trace.read_bytes()).hexdigest()}
  print(json.dumps({'case':case,**counts,'rows':len(payload)}),flush=True)
 off=payloads['off'];on=payloads['on'];base=payloads['baseline'+a.baseline_build]

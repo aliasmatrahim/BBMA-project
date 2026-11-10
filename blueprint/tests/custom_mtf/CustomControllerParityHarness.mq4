@@ -20,7 +20,7 @@ int CaptureOrderSend(string pair,int direction,double lot,double price,int slip,
 #undef OnTimer
 #include "CustomOwnerTestEquality.mqh"
 int cycles=0,validDecisions=0,diagnosticFrames=0,seeds=0,handovers=0;
-int csaViews=0;bool csaOK=true;
+int csaViews=0,extViews=0;bool csaOK=true;
 bool seeded=false,seedTF[3];
 ExtremeLifecycleData expectedBuy[3],expectedSell[3];
 MLVData expectedMHVBuy[3],expectedMHVSell[3];
@@ -293,7 +293,7 @@ int OnInit()
  if(MonitorRequested)
  {
   g_custom_pair_indices[0]=0;
-  for(int tf=0;tf<7;tf++){g_custom_use.tfEnabled[tf]=true;g_custom_use.signalEnabled[tf*11+6]=true;g_custom_use.signalEnabled[tf*11+7]=true;g_custom_use.signalEnabled[tf*11+10]=true;g_custom_use.signalEnabled[tf*11+8]=true;g_custom_use.signalEnabled[tf*11+9]=true;}
+  for(int tf=0;tf<7;tf++){g_custom_use.tfEnabled[tf]=true;g_custom_use.signalEnabled[tf*11+6]=true;g_custom_use.signalEnabled[tf*11+7]=true;g_custom_use.signalEnabled[tf*11+10]=true;g_custom_use.signalEnabled[tf*11+8]=true;g_custom_use.signalEnabled[tf*11+9]=true;if(CustomTFValue(tf)!=PERIOD_M1)g_custom_use.signalEnabled[tf*11+5]=true;}
  }
  startAt=StringToTime(TimeToString(TimeCurrent(),TIME_DATE))+7200;endAt=startAt+14400;
  return INIT_SUCCEEDED;
@@ -302,7 +302,7 @@ void Finish()
 {
  if(finished)return;finished=true;
  bool ok=cycles>=16 && (!SeedPending || (seeds>0 && handovers==seeds)) && OrdersTotal()==0 && OrdersHistoryTotal()==0 && (!MonitorRequested || (diagnosticFrames>0 && csaViews>0)) && csaOK;
- Print("[CUSTOM-PARITY-SUMMARY] cycles=",cycles," valid=",validDecisions," frames=",diagnosticFrames," attempts=",capturedOrderAttempts," seeds=",seeds," handovers=",handovers," csaViews=",csaViews," csaOK=",csaOK," ok=",ok);
+ Print("[CUSTOM-PARITY-SUMMARY] cycles=",cycles," valid=",validDecisions," frames=",diagnosticFrames," attempts=",capturedOrderAttempts," seeds=",seeds," handovers=",handovers," csaViews=",csaViews," extViews=",extViews," csaOK=",csaOK," ok=",ok);
 }
 void OnTick()
 {
@@ -322,10 +322,27 @@ void OnTick()
 #ifndef CONTROLLER_BASELINE605
  if(MonitorRequested && g_custom_owner_frames[0].viewCount>0)
  {
-  int found=0;
+  int found=0,foundExt=0;
   for(int v=0;v<g_custom_owner_frames[0].viewCount;v++)
   {
-   CustomOwnerView view=g_custom_owner_frames[0].views[v];if(view.signal!="CSA" && view.signal!="CSAK")continue;
+   CustomOwnerView view=g_custom_owner_frames[0].views[v];
+   if(view.signal=="EXT")
+   {
+    extViews++;foundExt++;datetime latestExt=iTime(Symbol(),view.timeframe,1);TimeframeData extData;ZeroMemory(extData);CustomAuxLifecycle extOwner;ZeroMemory(extOwner);bool loaded=false;
+    if(CustomCanonicalTFIndex(view.timeframe)>=0)loaded=LoadCustomCanonicalSource(0,view.timeframe,extData,extOwner);
+    else if(view.timeframe==PERIOD_M5){extData=g_pair_states[0].m5_data;extOwner=g_pair_states[0].custom_aux[1];loaded=!extOwner.recoveryRequired;}
+    else if(view.timeframe==PERIOD_M30){extData=g_pair_states[0].m30_data;extOwner=g_pair_states[0].custom_aux[2];loaded=!extOwner.recoveryRequired;}
+    ExtremeLifecycleData ext=view.direction==DIR_BUY?extOwner.extremeBuy:extOwner.extremeSell;
+    bool readable=loaded && extData.is_valid && extData.is_closed && extData.barIndex>=1 && extData.timeframe==view.timeframe && extData.candle_time==latestExt && latestExt>0 && ext.Timeframe==view.timeframe && ext.Direction==view.direction && ext.LastUpdateCandleTime==latestExt;
+    bool mature=ext.IsValid && ext.ConfirmationCandleTime>0 && ext.ConfirmationCandleTime<=latestExt && (ext.Maturity==EXT_MAT_REVERSAL_CONFIRMED || ext.Maturity==EXT_MAT_RETEST_PHASE || ext.Maturity==EXT_MAT_RETEST_READY);
+    if(view.readable!=readable || view.structuralValid!=(readable && mature) || view.entryWindowOpen || view.entryEligible || view.executionAvailable)csaOK=false;
+    if(readable && (view.sourceBar!=latestExt || view.ownerState!=(int)ext.Maturity || view.entryCandle!=ext.RetestCompletionCandleTime))csaOK=false;
+    string extEvent= IntegerToString(StringLen(Symbol()))+":"+Symbol()+"|EXT|"+IntegerToString(view.timeframe)+"|"+IntegerToString(view.direction)+"|"+IntegerToString(ext.RawCandleTime)+"|"+IntegerToString(ext.ConfirmationCandleTime);
+    if(readable && mature && (view.confirmation!=ext.ConfirmationCandleTime || view.eventId!=extEvent))csaOK=false;
+    if(!(readable && mature) && (view.confirmation!=0 || StringLen(view.eventId)>0))csaOK=false;
+    continue;
+   }
+   if(view.signal!="CSA" && view.signal!="CSAK" && view.signal!="MOM")continue;
    found++;csaViews++;
    datetime latest=iTime(Symbol(),view.timeframe,1);
    double close=iClose(Symbol(),view.timeframe,1),mid=iMA(Symbol(),view.timeframe,20,0,MODE_SMA,PRICE_CLOSE,1);
@@ -336,11 +353,17 @@ void OnTick()
     double ma5=iMA(Symbol(),view.timeframe,5,0,MODE_LWMA,price,1),ma10=iMA(Symbol(),view.timeframe,10,0,MODE_LWMA,price,1);
     expected=expected && (view.direction==DIR_BUY?(close>ma5 && close>ma10):(close<ma5 && close<ma10));
    }
+   if(view.signal=="MOM")
+   {
+    double top=iBands(Symbol(),view.timeframe,20,2,0,PRICE_CLOSE,MODE_UPPER,1),low=iBands(Symbol(),view.timeframe,20,2,0,PRICE_CLOSE,MODE_LOWER,1);
+    double pt=iBands(Symbol(),view.timeframe,20,2,0,PRICE_CLOSE,MODE_UPPER,2),pm=iBands(Symbol(),view.timeframe,20,2,0,PRICE_CLOSE,MODE_MAIN,2),pl=iBands(Symbol(),view.timeframe,20,2,0,PRICE_CLOSE,MODE_LOWER,2);
+    expected=top-low>pt-pl && (view.direction==DIR_BUY?(close>top && mid>pm && top>pt):(close<low && mid<pm && low<pl));
+   }
    if(!view.readable || view.sourceBar!=latest || view.structuralValid!=expected || !view.recoveryOnly || view.entryWindowOpen || view.entryEligible || view.executionAvailable || close<=0 || mid<=0)csaOK=false;
    if(expected && (view.confirmation!=latest || StringLen(view.eventId)==0))csaOK=false;
    if(!expected && (view.confirmation!=0 || StringLen(view.eventId)>0))csaOK=false;
   }
-  if(found!=28)csaOK=false;
+  if(found!=42 || foundExt!=12)csaOK=false;
  }
 #endif
  TraceDecision("Decision",g_pair_states[0].last_decision);

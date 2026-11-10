@@ -1,6 +1,6 @@
 # Signal-by-signal acceptance — 2026-11-10
 
-User instruction: finish one signal before moving to the next; do no unrelated task. SIG-01 eCSD, SIG-02 CSA and SIG-03 CSAK/CSD have the bounded VERIFIED acceptances below. Current checkpoint is SIG-04 MOM final publication; SIG-05 Extreme becomes eligible only after that publication is verified. Shared-consumer regression is part of SIG-01, not development of another signal. Base328d33a0dd4824f4ff3dcb2a2b2823a69e12bc9b / Draft PR303 / feat/custom-mtf-v1-20261108.
+User instruction: finish one signal before moving to the next; do no unrelated task. SIG-01 eCSD, SIG-02 CSA and SIG-03 CSAK/CSD have the bounded VERIFIED acceptances below. Current checkpoint is SIG-05 Extreme final publication; SIG-06 MHV becomes eligible only after that publication is verified. Shared-consumer regression is part of SIG-01, not development of another signal. Base328d33a0dd4824f4ff3dcb2a2b2823a69e12bc9b / Draft PR303 / feat/custom-mtf-v1-20261108.
 
 ## SIG-01 eCSD — VERIFIED (bounded canonical signal acceptance)
 
@@ -42,3 +42,7 @@ Build6.09 rev002, source LF SHA d74f41d0c85e8ec5e4afdd58728c4cfcaae5765adc128f4a
 ## SIG-04 MOM — VERIFIED (bounded predicate/readiness/affected consumers)
 
 Build6.10 rev003, LF SHA ebe3e4155b0ae5211432957ed999e04b58bc0a043b40a23ce76d24257346baae. Native72 valid-data/1400 iBands comparisons and167 readiness/recovery/atomicity checks, all18 native groups, strict0E0W;20 bindings verified. Actual controller630 combined views,16 cycles/12224 scalar rows per case, OFF/ON/frozen6.09 exact parity, zero decisions/attempts. Confirmed partial-data false classification and unavailable-state propagation repaired; explicit REDs retained. Full evidence and limits: CUSTOM_MTF_MOM_SIGNAL_ACCEPTANCE_20261110.md. Next only SIG-05 Extreme after publication verification; no custom execution/merge/deployment promotion.
+
+## SIG-05 Extreme — VERIFIED (bounded RAW/maturity/readiness/affected handover and projection)
+
+Build6.11 rev003, source LF SHA a62672ae1874fcbf61c671af01da09ef45ffe6972abd998ec70c5f9a74c238cb. Native141/716 and19 specialized groups, strict0E0W; frozen6.10 lifecycle716;23 bindings plus baseline harness verified12828 exit0. Actual controller180 non-executable EXT+630 M10 views,16 cycles/12224 rows per case; OFF/ON/frozen6.10 exact parity and zero attempts. Explicit M08 source8/14 and handover106/35 REDs retained. Accepted F2 RAW/reversal/retest and Open/body anchors unchanged; M10 is sole Momentum producer. Acceptance CUSTOM_MTF_EXTREME_SIGNAL_ACCEPTANCE_20261110.md. Next only SIG-06 MHV after publication verification. All77 availability/entry OFF; session/epoch/integrated execution gates unchanged.

@@ -1,6 +1,6 @@
 # Approved Custom MTF queue — 2026-11-10
 
-Active user sequence override2026-11-10: SIG-01 eCSD, SIG-02 CSA and SIG-03 CSAK/CSD have bounded VERIFIED acceptances. Verify final SIG-03 publication before SIG-04 MOM. Finish one signal before another; do no unrelated task. All custom execution remains OFF.
+Active user sequence override2026-11-10: SIG-01 eCSD, SIG-02 CSA, SIG-03 CSAK/CSD, SIG-04 MOM and SIG-05 Extreme have bounded VERIFIED acceptances. Verify SIG-05 final publication before SIG-06 MHV. Finish one signal before another; do no unrelated task. All custom execution remains OFF.
 
 Authority: user approved continuous execution with checkpoint after each task. This is a scoped workstream queue, not a replacement for the canonical MASTER_QUEUE. Source/branch authority and dependencies remain mandatory. Auto-entry/availability remain OFF; no merge or trading activation.
 
@@ -57,3 +57,6 @@ SIG-04 FINAL acceptance2026-11-10 supersedes IN_PROGRESS entries: Build6.10 rev0
 
 
 SIG-05 Extreme IN_PROGRESS: Build6.11 rev003 / LF SHA a62672ae1874fcbf61c671af01da09ef45ffe6972abd998ec70c5f9a74c238cb. Native source RED8/14 exposed duplicated partial-data Momentum and owner VOID; first repair22/22. Native reviewed Extreme-handover expansion106/35 RED, including7 actual M09 source-revision escapes, now guarded with availability propagation to all3 callers. Driver8896 current source141/lifecycle716 +18 native groups/controller baseline610 RUNNING. Do not duplicate or start MHV. Plan/ext611_checkpoint.json carry remaining work. All77 availability/auto-entry OFF.
+
+
+SIG-05 FINAL supersedes IN_PROGRESS: Build6.11 rev003, source a62672ae1874fcbf61c671af01da09ef45ffe6972abd998ec70c5f9a74c238cb. Native141 source/handover +716 valid lifecycle/history,19 specialized groups (21 current total), frozen6.10 lifecycle716, strict0E0W. Controller180 EXT+630 M10 views/15 frames,16 cycles/12224 rows per profile, OFF/ON/6.10 exact parity; zero decisions/attempts.23 bindings plus separate baseline harness and3 full traces verified12828 exit0. Full manifest/RED archive ext611_evidence.json.gz; acceptance CUSTOM_MTF_EXTREME_SIGNAL_ACCEPTANCE_20261110.md. Next only SIG-06 MHV after publication verification. No session/epoch/T04-F/entry/merge/deployment promotion.

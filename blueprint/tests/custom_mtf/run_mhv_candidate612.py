@@ -5,10 +5,11 @@ assert kind in ['red','green','red_v2','green_v2']
 e=r/('evidence/sig06_mhv/candidate612_'+kind);assert not e.exists();e.mkdir(parents=True)
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest();lf=lambda p:hashlib.sha256(p.read_text().encode()).hexdigest()
 source=repo/'blueprint/source/BBMA_EA.mq4'
-if kind.startswith('red'):assert lf(source)=='a62672ae1874fcbf61c671af01da09ef45ffe6972abd998ec70c5f9a74c238cb'
+if kind=='red':assert lf(source)=='a62672ae1874fcbf61c671af01da09ef45ffe6972abd998ec70c5f9a74c238cb'
 h=repo/'blueprint/tests/custom_mtf/CustomMHVCandidateInvalidationHarness.mq4'
 if kind=='red_v2':
  baseline=repo/'blueprint/source/BBMA_EA_CandidateBaseline611.mq4';shutil.copyfile(r/'ext611-stage/blueprint/source/BBMA_EA.mq4',baseline)
+ assert lf(baseline)=='a62672ae1874fcbf61c671af01da09ef45ffe6972abd998ec70c5f9a74c238cb'
  source=baseline;h=repo/'blueprint/tests/custom_mtf/CustomMHVCandidateBaselineHarness.mq4';h.write_text((repo/'blueprint/tests/custom_mtf/CustomMHVCandidateInvalidationHarness.mq4').read_text().replace('BBMA_EA.mq4',baseline.name))
 log=e/'compile.log'
 subprocess.run([str(r/'metaeditor.exe'),'/compile:'+str(h),'/log:'+str(log)],timeout=60)

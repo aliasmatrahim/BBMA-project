@@ -1,6 +1,6 @@
 {
   "task": "SIG-06-MHV",
-  "status": "IN_PROGRESS — confirmed stale-candidate invalidation bug; Build6.12 targeted295/295, affected native regression RUNNING",
+  "status": "PARTIAL — stale-candidate fix bounded VERIFIED323/323+22 groups; explicit M09 availability propagation source-confirmed/native pending",
   "base_commit": "629059d48fd94106d3bf84d05f8fb0f530884161",
   "source_sha256_lf": "900744561bd5e5c5abaef754478a055fcf600bf178fe3174da2d484dd840f2e8",
   "build": "6.12",
@@ -28,7 +28,42 @@
     "import_assertions": "PASS",
     "full_repository_suite": false
   },
-  "next": "Poll5616/state; never duplicate native processes. V2 RED/GREEN scheduler1536 waits for regression PASS. Review extra-read revision atomicity; collect bindings/controller traces before acceptance. Stay SIG06.",
+  "next": "SIG06 only: native caller-level transient inner-read RED on6.12, then minimum explicit availability propagation and no cursor/decision commit; same-bar retry GREEN. Do not redo unaffected6.12 proofs or start another signal.",
   "full_SIG06": "PARTIAL/HOLD — historical session/epoch/successful boundary recovery gates unchanged",
-  "auto_entry": false
+  "auto_entry": false,
+  "regression_driver_exit": 0,
+  "regression_status": "PASS",
+  "green_v2": {
+    "passed": 323,
+    "failed": 0,
+    "terminal_pid": 2736,
+    "terminal_exit": 0
+  },
+  "red_v2": {
+    "passed": 239,
+    "failed": 84,
+    "terminal_pid": 8972,
+    "terminal_exit": 0
+  },
+  "collector_pid": 6592,
+  "collector_exit": 0,
+  "final_binary_bindings": 20,
+  "controller": {
+    "ordinary_old_new_differences": 0,
+    "seeded_old_new_differences": 0,
+    "rows_per_case": 12224,
+    "cycles_per_case": 16,
+    "attempts": 0
+  },
+  "archive": {
+    "original_zip_sha256": "3e68cca85ee23a8047ffa6f9046b2540a6be6379e8b6220913349f138318eefb",
+    "original_zip_bytes": 474259,
+    "xz_sha256": "d4203d1b92fc1413a97c5073dcda0a13aae7c32c7b2f23e5e7c67287ec5a1a2e",
+    "xz_bytes": 210632,
+    "base64_chars": 280844,
+    "chunk_chars": 50000,
+    "parts": 6,
+    "roundtrip_verified": true
+  },
+  "followup_issue": "M09 inner unavailable source not propagated; caller may commit consumed candle and suppress same-bar retry. Need explicit status+staged commit+M15/pre-freeze abort."
 }

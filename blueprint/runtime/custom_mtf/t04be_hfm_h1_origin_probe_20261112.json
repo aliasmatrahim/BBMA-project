@@ -1,0 +1,59 @@
+{
+  "task_ids": [
+    "T04-B",
+    "T04-E"
+  ],
+  "branch": "feat/custom-mtf-v1-20261108",
+  "source_checkpoint": "2a3fb61b8c64a9bf5e608b12185121cdc477e24d",
+  "build": "6.15",
+  "server": "HFMarketsSV-Demo Server",
+  "symbol": "GBPUSD",
+  "timeframe": "H1",
+  "source_sha256": "b698f85ef3ae634f679d2bf1b3715392e4b74962f2385f6e878604885ea0aacd",
+  "compile": "Result: 0 errors, 0 warnings, 621 msec elapsed",
+  "harness_sha256": "97104c488744b0476ee67c9977909d5ca446f3efcae915aea94754fed85b6ff9",
+  "binary_sha256": "169e7b112c1408a13be17f791798330fdee991890e481d1c6700fa2f52318762",
+  "archive_sha256": "dbf371def1b2b3abd2998c9eb749645a53e372dbe7c5c157af27ba79948e0155",
+  "archive_rows": 2528,
+  "pid": 776,
+  "exit": 0,
+  "cases": {
+    "aug": {
+      "friday": "2026-07-31 23:00",
+      "monday": "2026-08-03 00:00",
+      "input_rows": 183,
+      "csv_sha256": "1aa859f3f66c1e6130abd5409c86787671bf4f17457e9950dcff341643f8915e"
+    },
+    "nov": {
+      "friday": "2026-10-30 22:00",
+      "monday": "2026-11-02 00:00",
+      "input_rows": 183,
+      "csv_sha256": "fa09a1b7bd4003fef1b8b158f5eca6d400389442c67b11eb598ed17ff926a895"
+    }
+  },
+  "markers": [
+    "0\t05:49:05.731\t2026.08.03 00:00:01  CustomHFMOriginH1Harness GBPUSD,M15: [HFM-ORIGIN] case=aug baseline=120 bars=96 start=2026.07.28 00:00 end=2026.07.31 23:00 exact=false m08buy=EXT_MAT_RETEST_READY m08sell=EXT_MAT_VOID m09buy=MLV_DIRECTION_TAKEN m09sell=MLV_RETEST_COMPLETE",
+    "0\t05:49:05.801\t2026.08.03 00:00:01  CustomHFMOriginH1Harness GBPUSD,M15: [HFM-ORIGIN] case=aug baseline=120 bars=72 start=2026.07.29 00:00 end=2026.07.31 23:00 exact=false m08buy=EXT_MAT_RETEST_READY m08sell=EXT_MAT_VOID m09buy=MLV_DIRECTION_TAKEN m09sell=MLV_RETEST_COMPLETE",
+    "0\t05:49:05.851\t2026.08.03 00:00:01  CustomHFMOriginH1Harness GBPUSD,M15: [HFM-ORIGIN] case=aug baseline=120 bars=48 start=2026.07.30 00:00 end=2026.07.31 23:00 exact=false m08buy=EXT_MAT_RETEST_READY m08sell=EXT_MAT_VOID m09buy=MLV_DIRECTION_TAKEN m09sell=MLV_RETEST_COMPLETE",
+    "0\t05:49:06.059\t2026.08.03 00:00:01  CustomHFMOriginH1Harness GBPUSD,M15: [HFM-ORIGIN] case=nov baseline=120 bars=96 start=2026.10.26 23:00 end=2026.10.30 22:00 exact=true m08buy=EXT_MAT_RETEST_READY m08sell=EXT_MAT_VOID m09buy=MLV_SUPERSEDED m09sell=MLV_DIRECTION_TAKEN",
+    "0\t05:49:06.119\t2026.08.03 00:00:01  CustomHFMOriginH1Harness GBPUSD,M15: [HFM-ORIGIN] case=nov baseline=120 bars=72 start=2026.10.27 23:00 end=2026.10.30 22:00 exact=false m08buy=EXT_MAT_RETEST_READY m08sell=EXT_MAT_VOID m09buy=MLV_VOID m09sell=MLV_DIRECTION_TAKEN",
+    "0\t05:49:06.169\t2026.08.03 00:00:01  CustomHFMOriginH1Harness GBPUSD,M15: [HFM-ORIGIN] case=nov baseline=120 bars=48 start=2026.10.28 23:00 end=2026.10.30 22:00 exact=false m08buy=EXT_MAT_RETEST_READY m08sell=EXT_MAT_VOID m09buy=MLV_VOID m09sell=MLV_DIRECTION_TAKEN",
+    "0\t05:49:06.169\t2026.08.03 00:00:01  CustomHFMOriginH1Harness GBPUSD,M15: [HFM-ORIGIN-END] aug=true nov=true no_orders=true"
+  ],
+  "scope": "Bounded same-feed HFM H1 archive through a test-only series adapter. No historical session authority or broker owner epoch.",
+  "status": "HOLD",
+  "baseline_warmup": 120,
+  "comparison_warmups": [
+    96,
+    72,
+    48
+  ],
+  "exact_owner_matches": 1,
+  "owner_comparisons": 6,
+  "finding": "Exact M08/M09/M12 pre-gap owner comparison against a 120-bar zero-initialized baseline matched 1/6. July: 96, 72 and 48 bars differed despite matching displayed maturity/state labels. October: 96 bars matched; 72 and 48 differed, including M09 Buy MLV_VOID versus MLV_SUPERSEDED. These are bounded test-only origins on two historical samples.",
+  "remaining": "Same-feed closure coverage, source-proven independent owner epoch, and native across-gap parity. HFM recorder remains active. No EA/Core source changes.",
+  "next_action": "Locate a same-feed owner epoch with an independently witnessed reset or a trustworthy production owner checkpoint. Validate observed close/reopen coverage against the HFM quote/session capture, then compare uninterrupted and recovered production replay, including stale-trigger suppression.",
+  "g40_manifest": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\t04be_hfm_h1_origin_20261112\\manifest.json",
+  "g40_driver": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\run_t04be_hfm_h1_origin_20261112.py",
+  "g40_driver_session": 9316
+}

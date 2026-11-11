@@ -1,6 +1,6 @@
 # Signal-by-signal acceptance — 2026-11-10
 
-User instruction: finish one signal before moving to the next; do no unrelated task. SIG-01 eCSD, SIG-02 CSA and SIG-03 CSAK/CSD have the bounded VERIFIED acceptances below. SIG-05 publication and branch were verified at d2e7e85c3f9fd0d2620361c175dbe0b71cea5fa7. SIG-06 MHV now has bounded canonical signal acceptance. SIG-07 MLV alias acceptance is verified. Current only Re-Entry Types 1–4. Shared historical production recovery remains HOLD. Shared-consumer regression is part of SIG-01, not development of another signal. Base328d33a0dd4824f4ff3dcb2a2b2823a69e12bc9b / Draft PR303 / feat/custom-mtf-v1-20261108.
+User instruction: finish one signal before moving to the next; do no unrelated task. SIG-01 eCSD, SIG-02 CSA and SIG-03 CSAK/CSD have the bounded VERIFIED acceptances below. SIG-05 publication and branch were verified at d2e7e85c3f9fd0d2620361c175dbe0b71cea5fa7. SIG-06 MHV now has bounded canonical signal acceptance. SIG-07 MLV alias acceptance is verified. Re-Entry Types 1–4 signal audit complete in isolated Build 6.14. Shared historical production recovery remains HOLD. Shared-consumer regression is part of SIG-01, not development of another signal. Base328d33a0dd4824f4ff3dcb2a2b2823a69e12bc9b / Draft PR303 / feat/custom-mtf-v1-20261108.
 
 ## SIG-01 eCSD — VERIFIED (bounded canonical signal acceptance)
 
@@ -92,4 +92,11 @@ Re-Entry EntryCandle milestone: exact Build 6.13 native reproduction 34 PASS/24 
 
 Actual isolated GBPUSD August 2026 M15 controller replay completed: Build 6.13 emits 16 late candidate admission rows for one Type 3 confirmation; isolated 6.14 emits zero. The 1,296 RE_EVAL rows are identical. Both runs have zero orders; no timely H4-aligned window and no market Type 2 confirmation were observed. Re-Entry remains IN PROGRESS. See `reentry614_market_replay.json`.
 
-Re-Entry Build 6.14 positive market timing verified in G40 Strategy Tester. EURUSD August 2026: 8 orders; USDJPY August 2026: 6 orders. All 14 have one matching admission, M15 selection, M16 pass, tester open event and OrderOpenTime in the next actual H1 source candle; 2 Type 1, 4 Type 3, 8 Type 4. No late admissions or orders over the five extension profiles. Type 2 formation remains the only open signal-evidence item. See `reentry614_positive_order_trace.json`.
+Re-Entry Build 6.14 positive market timing verified in G40 Strategy Tester. EURUSD August 2026: 8 orders; USDJPY August 2026: 6 orders. All 14 have one matching admission, M15 selection, M16 pass, tester open event and OrderOpenTime in the next actual H1 source candle; 2 Type 1, 4 Type 3, 8 Type 4. No late admissions or orders over the five extension profiles. The subsequent Type 2 market witness completes the signal audit. See `reentry614_positive_order_trace.json`.
+
+
+## Re-Entry Types 1–4 — VERIFIED in isolated signal-audit scope
+
+Serial Re-Entry signal audit complete in isolated Build 6.14. Natural market formation is evidenced for Types 1, 3 and 4 in the H1 controller and for Type 2 in native M15 M12 owner replay. Positive standalone H1 order timing is verified for Types 1, 3 and 4, with the seeded admission test covering all four types. Type 2 H1 market execution was not observed. The isolated patch is not integrated or deployed. Shared T04-B/E recovery and custom execution remain gated.
+
+Type 2 SELL on GBPUSD M15 confirmed 2024-05-13 05:30 chart time on the third qualifying candle, after candidate states at 05:00 and 05:15. Native replay from 96 and 240 bars converged on the same owner and 05:45 EntryCandle. See `reentry614_type2_market_witness.json` and `reentry614_positive_order_trace.json`. No later signal audit queued.

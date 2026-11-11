@@ -1,0 +1,165 @@
+{
+  "status": "VERIFIED M12 market formation on M15",
+  "candidate_source_lf_sha": "ad76809f3c63134d9b170c5b0078b34b36720d489819e5ed0ecb85256fb913e2",
+  "native_driver_pid": 5952,
+  "native_driver_exit": 0,
+  "scope": "historical OHLC and indicator reads in MT4, chronological production M12 owner replay with 96 and 240 bars of warm-up, no synthetic candle or seeded confirmed owner, no orders",
+  "screen_start": "2022-01-01",
+  "screenM15": {
+    "GBPUSD": [
+      [
+        "2024-04-12 03:00",
+        "SELL",
+        3
+      ],
+      [
+        "2024-05-13 05:30",
+        "SELL",
+        3
+      ],
+      [
+        "2024-06-26 06:45",
+        "BUY",
+        5
+      ]
+    ],
+    "EURUSD": [
+      [
+        "2022-08-19 02:30",
+        "SELL",
+        3
+      ],
+      [
+        "2023-11-03 04:00",
+        "SELL",
+        3
+      ],
+      [
+        "2024-08-12 22:45",
+        "BUY",
+        3
+      ]
+    ],
+    "USDJPY": [
+      [
+        "2026-05-25 17:30",
+        "SELL",
+        3
+      ]
+    ]
+  },
+  "compile": "Result: 0 errors, 0 warnings, 628 msec elapsed",
+  "binary_sha": "03d7ffa735e1bbddcaf1e3e996e318d1e3bf74a8112a56747f3c3e09e8463365",
+  "witness": {
+    "symbol": "GBPUSD",
+    "target": "2024.05.13 05:30",
+    "direction": "SELL",
+    "screen_streak": 3,
+    "pid": 4500,
+    "markers": [
+      "STATE] lookback=96 bar=2024.05.13 04:15 collision=false touch=false owner=RE_NONE state=RE_STATE_NONE qualifying=0",
+      "STATE] lookback=96 bar=2024.05.13 04:30 collision=false touch=true owner=RE_NONE state=RE_STATE_NONE qualifying=0",
+      "STATE] lookback=96 bar=2024.05.13 04:45 collision=false touch=false owner=RE_NONE state=RE_STATE_NONE qualifying=0",
+      "STATE] lookback=96 bar=2024.05.13 05:00 collision=true touch=false owner=RE_TYPE_2 state=RE_STATE_CANDIDATE qualifying=1",
+      "STATE] lookback=96 bar=2024.05.13 05:15 collision=true touch=false owner=RE_TYPE_2 state=RE_STATE_CANDIDATE qualifying=2",
+      "STATE] lookback=96 bar=2024.05.13 05:30 collision=true touch=true owner=RE_TYPE_2 state=RE_STATE_CONFIRMED qualifying=3",
+      "HIT] lookback=96 bar=2024.05.13 05:30 entry=2024.05.13 05:45 count=3 direction=DIR_SELL reason=Type2 confirmed: 3-candle MA5/10 + MID BB confluence",
+      "STATE] lookback=96 bar=2024.05.13 05:45 collision=false touch=false owner=RE_NONE state=RE_STATE_NONE qualifying=0",
+      "STATE] lookback=96 bar=2024.05.13 06:00 collision=false touch=false owner=RE_NONE state=RE_STATE_NONE qualifying=0",
+      "RESULT] lookback=96 valid=true hits=1",
+      "STATE] lookback=240 bar=2024.05.13 04:15 collision=false touch=false owner=RE_NONE state=RE_STATE_NONE qualifying=0",
+      "STATE] lookback=240 bar=2024.05.13 04:30 collision=false touch=true owner=RE_NONE state=RE_STATE_NONE qualifying=0",
+      "STATE] lookback=240 bar=2024.05.13 04:45 collision=false touch=false owner=RE_NONE state=RE_STATE_NONE qualifying=0",
+      "STATE] lookback=240 bar=2024.05.13 05:00 collision=true touch=false owner=RE_TYPE_2 state=RE_STATE_CANDIDATE qualifying=1",
+      "STATE] lookback=240 bar=2024.05.13 05:15 collision=true touch=false owner=RE_TYPE_2 state=RE_STATE_CANDIDATE qualifying=2",
+      "STATE] lookback=240 bar=2024.05.13 05:30 collision=true touch=true owner=RE_TYPE_2 state=RE_STATE_CONFIRMED qualifying=3",
+      "HIT] lookback=240 bar=2024.05.13 05:30 entry=2024.05.13 05:45 count=3 direction=DIR_SELL reason=Type2 confirmed: 3-candle MA5/10 + MID BB confluence",
+      "STATE] lookback=240 bar=2024.05.13 05:45 collision=false touch=false owner=RE_NONE state=RE_STATE_NONE qualifying=0",
+      "STATE] lookback=240 bar=2024.05.13 06:00 collision=false touch=false owner=RE_NONE state=RE_STATE_NONE qualifying=0",
+      "RESULT] lookback=240 valid=true hits=1",
+      "END] matched=true no_orders=true"
+    ],
+    "log_sha": "6267e6b08bd314f509f64730b06b1903095f0f33568fb15d17139f1dbeb8db07",
+    "history_sha": {
+      "GBPUSD1.hst": "64d5bed21b61cc119507fd552d6a86091b2cf4a580eefb5c589aa97654f56019",
+      "GBPUSD1440.hst": "6ee8ded5b0027a2340d15196f34da603899d648a772919af6facd156f81800ac",
+      "GBPUSD15.hst": "74db0196f4d77fc66548cd41614adfdde9ca96f9e2da91daebcd17e304c5e7b5",
+      "GBPUSD240.hst": "aa58b7e1114d20b135573168fd414db7f210ab260427c8596cadfb8052e5015f",
+      "GBPUSD5.hst": "6f7a16a1a6bdaf6f6871f56af399530974c2429d51e35f7584d37a2a88ec549d",
+      "GBPUSD60.hst": "566762b35fce7ef2dcb5985a57dac6bc5d0476a6a76ddef2d680ef0905632389"
+    }
+  },
+  "runs": [
+    {
+      "direction": "SELL",
+      "pid": 1172,
+      "symbol": "USDJPY",
+      "end": [
+        "END] matched=false no_orders=true"
+      ],
+      "target": "2026.05.25 17:30",
+      "log_sha": "c4edfef8aac2b1462d46b8a10b4560de1cf730c1c5e28b1014a8c192a5769c11"
+    },
+    {
+      "direction": "BUY",
+      "pid": 12012,
+      "symbol": "GBPUSD",
+      "end": [
+        "END] matched=false no_orders=true"
+      ],
+      "target": "2024.06.26 06:45",
+      "log_sha": "d1151ad28ac77626d8e64cd1d06af9ed9c8e3914f2be1bce2e81f56eeba229a7"
+    },
+    {
+      "direction": "BUY",
+      "pid": 5228,
+      "symbol": "EURUSD",
+      "end": [
+        "END] matched=false no_orders=true"
+      ],
+      "target": "2024.08.12 22:45",
+      "log_sha": "ef5fdcde04776d6a2c3faacd16dca7deec820d8777760d3d0315d51089dcfa2e"
+    },
+    {
+      "direction": "SELL",
+      "pid": 11788,
+      "symbol": "GBPUSD",
+      "end": [
+        "END] matched=false no_orders=true"
+      ],
+      "target": "2024.04.12 03:00",
+      "log_sha": "9521aa74cf170d6b9629860ef411c69526fbec14843ebe1d57eeaa6c7148246c"
+    },
+    {
+      "direction": "SELL",
+      "pid": 4500,
+      "symbol": "GBPUSD",
+      "end": [
+        "END] matched=true no_orders=true"
+      ],
+      "target": "2024.05.13 05:30",
+      "log_sha": "6267e6b08bd314f509f64730b06b1903095f0f33568fb15d17139f1dbeb8db07"
+    }
+  ],
+  "source_sha": "7688ac50412fcef585fa584235a3d5ed336e5930ee04855deacbc1e5f63ef297",
+  "screenH1": {
+    "GBPUSD": {
+      "digits": 5,
+      "rows": 124772,
+      "last": "2026-09-01T02:00:00+00:00",
+      "hits": []
+    },
+    "EURUSD": {
+      "digits": 5,
+      "rows": 124658,
+      "last": "2026-09-01T02:00:00+00:00",
+      "hits": []
+    },
+    "USDJPY": {
+      "digits": 3,
+      "rows": 124774,
+      "last": "2026-09-01T02:00:00+00:00",
+      "hits": []
+    }
+  }
+}

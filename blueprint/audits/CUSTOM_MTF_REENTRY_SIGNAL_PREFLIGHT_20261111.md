@@ -1,6 +1,6 @@
 # Serial Re-Entry audit — preflight on Build 6.13
 
-Status: IN PROGRESS. MHV and MLV bounded signal acceptances are published. This preflight concerns the Re-Entry family only.
+Status: VERIFIED for the isolated serial Re-Entry signal audit. MHV and MLV bounded signal acceptances are published. This preflight concerns the Re-Entry family only.
 
 ## Source and owner
 
@@ -47,3 +47,11 @@ Next eligible work is Re-Entry only: use a verified history/profile that can pro
 Re-Entry Build 6.14 positive market timing verified in G40 Strategy Tester. EURUSD August 2026: 8 orders; USDJPY August 2026: 6 orders. All 14 have one matching admission, M15 selection, M16 pass, tester open event and OrderOpenTime in the next actual H1 source candle; 2 Type 1, 4 Type 3, 8 Type 4. No late admissions or orders over the five extension profiles. Type 2 formation remains the only open signal-evidence item. See `reentry614_positive_order_trace.json`.
 
 G40 repeated only unfinished evidence on the already compiled candidate adapter. It checked 14 complete per-decision traces against the next actual H1 bar in the read-only HST series. GBPUSD January and July 2026 and EURUSD July 2026 supplied no positive orders. The August EURUSD and USDJPY profiles used M15, model 0, fixed spread 20, EntryMode 1 and all custom execution slots off. Native order evidence is simulated tester execution. The accepted build and shared recovery gates have no production promotion.
+
+## Type 2 market formation and serial audit closeout
+
+A read-only price-series screen on the current two-point project tolerance found zero candidate H1 windows and seven candidate M15 windows across the three stored pairs from 2022 onward. The native driver replayed five targeted M15 windows until the first reproducible Type 2 confirmation. Four earlier windows did not confirm Type 2 under the existing owner priority and lifecycle. The GBPUSD SELL sequence on 13 May 2024 reached candidate count 1 at 05:00, count 2 at 05:15 and confirmation count 3 at 05:30, with a valid MA-cluster touch. Both real-history replays, starting 96 or 240 closed M15 bars earlier, produced the same 05:45 EntryCandle. The tester-only harness ran the exact isolated 6.14 production M12 functions, compiled strict 0 errors/0 warnings and placed zero orders. All chart times are source candle opens.
+
+Serial Re-Entry signal audit complete in isolated Build 6.14. Natural market formation is evidenced for Types 1, 3 and 4 in the H1 controller and for Type 2 in native M15 M12 owner replay. Positive standalone H1 order timing is verified for Types 1, 3 and 4, with the seeded admission test covering all four types. Type 2 H1 market execution was not observed. The isolated patch is not integrated or deployed. Shared T04-B/E recovery and custom execution remain gated.
+
+Evidence: `reentry614_type2_market_witness.json`, `reentry614_positive_order_trace.json`, `reentry614_entrycandle_probe.json` and `reentry614_market_replay.json`. The signal queue ends here. Owner-branch integration of the existing EntryCandle patch and production validation are separate work.

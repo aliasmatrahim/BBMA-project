@@ -1,0 +1,37 @@
+{
+  "task": "T04-B/E",
+  "status": "FORWARD_QUOTE_CAPTURE_STARTED; production recovery HOLD",
+  "branch": "feat/custom-mtf-v1-20261108",
+  "base_commit": "94de2b2c3a15c3e8ef3322b0933546d412159e71",
+  "server": "HFMarketsSV-Demo Server",
+  "symbol": "GBPUSD",
+  "account_mode": "DEMO",
+  "terminal_auto_trading": false,
+  "terminal_pid": 1264,
+  "first_launch": "Init refused before connection context was ready; no CSV; corrected to wait up to 120 seconds before failing closed",
+  "recorder_compile": "0 errors, 0 warnings; G40 launcher PID7216 exit 0",
+  "initial_capture": {
+    "pid": 1264,
+    "running": true,
+    "ticks": 27,
+    "heartbeats": 4,
+    "sessions": [
+      "1|0|0|86400",
+      "2|0|0|86400",
+      "3|0|0|86400",
+      "4|0|0|86400",
+      "5|0|0|86400"
+    ],
+    "first_utc": "1794417276",
+    "last_utc": "1794417308",
+    "connected": "1",
+    "last_event": "TICK",
+    "source_sha": "6573718c1061b3b0e5cb397be2df71fc20db49f8fa00c91694d360e5638ecca9",
+    "binary_sha": "f41170aaf1b4257e24f1e37e437d8dde170910510e35c680790e5bb354388d07"
+  },
+  "capture_file": "MQL4/Files/BBMA_HFM_GBPUSD_SESSION_1794417276.csv",
+  "stop_utc": "2026-11-16T12:00:00Z",
+  "clock_note": "Raw server/quote labels are stored separately from terminal-observed UTC. Quote event delivery is terminal-observed, not guaranteed exhaustive broker tick archive.",
+  "evidence_scope": "read-only quote and connection heartbeat capture; no M08/M09 owner snapshot or parity run",
+  "next": "Check closure/open and clock/coverage on the recorded same-server boundary; then prove pre-gap owner state and run production replay parity."
+}

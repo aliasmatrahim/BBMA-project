@@ -88,3 +88,5 @@ SIG-06 MHV current checkpoint: Core/F1 reviewed; exact6.11 mechanical native pro
 2026-11-11 serial scheduling correction: see the SIG-06 bounded acceptance in `CUSTOM_MTF_SIGNAL_SERIAL_ACCEPTANCE_20261110.md`. T04-B/E full recovery criteria and T04-F/T05+ dependencies retain their original status.
 
 2026-11-11 SIG-07 MLV bounded alias acceptance verified on Build 6.13. Existing archive proves identical MHV/MLV identities across seven requested TFs and three canonical higher TFs. Next serial Re-Entry Types 1–4. No shared recovery or executable availability promotion.
+
+2026-11-11 Re-Entry preflight: standalone H1 late-admission gap confirmed on 6.13; reuse unmerged Draft #301's scoped eligibility fix and isolated controls. See `CUSTOM_MTF_REENTRY_SIGNAL_PREFLIGHT_20261111.md`. Re-Entry remains IN PROGRESS. No T04-B/E or execution promotion.

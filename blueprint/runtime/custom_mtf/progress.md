@@ -439,3 +439,5 @@ SIG-06 MHV current checkpoint: Core/F1 reviewed; exact6.11 mechanical native pro
 SIG-06 bounded signal acceptance (Build 6.13 / 15a96f6b1ba9b72154dbcf0e8a50c1e1db379d90): published native archive independently read back, all 47 unique object hashes verified and two exact controller traces checked. Canonical/read-only MHV acceptance is complete; T04-B/E production historical recovery remains HOLD. Next serial SIG-07 MLV alias only. See `CUSTOM_MTF_SIGNAL_SERIAL_ACCEPTANCE_20261110.md`.
 
 SIG-07 MLV read-only alias VERIFIED on Build 6.13. Reused shared M09 lifecycle and verified 7 requested-TF and 3 canonical higher-TF native alias identities against the published evidence and current projection header. Re-Entry Types 1–4 now eligible in serial scope. T04-B/E historical production recovery remains HOLD.
+
+Re-Entry Types 1–4 IN PROGRESS. Source preflight confirmed the 6.13 standalone H1 builder lacks the EntryCandle eligibility gate; full body equals owner 5.15. Draft #301 existing fix and 5.16 runtime evidence located. See `CUSTOM_MTF_REENTRY_SIGNAL_PREFLIGHT_20261111.md` for exact next action.

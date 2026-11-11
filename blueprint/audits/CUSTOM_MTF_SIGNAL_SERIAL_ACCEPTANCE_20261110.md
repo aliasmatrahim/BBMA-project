@@ -82,3 +82,8 @@ Build 6.13. Core V2 §6, Finale V05 and the F1 decision resolve MHV/MLV as names
 Independent readback of the published Build 6.13 evidence verified all seven producer alias identity rows (M1/M5/M15/M30/H1/H4/D1) plus all three canonical higher-timeframe rows (H1/H4/D1). The published projection header SHA `2cbb1a1c062053e2162037e58096aec194e36409dcb911865eed6dd1fba1a38e` matches both manifests. The accepted native cases use the previously declared trusted owner/history fixtures. The existing moving-bar monitor run is 12/12 with zero orders. No executable MLV availability or production session recovery is inferred. No EA code change or new native run.
 
 Next serial signal: Re-Entry Types 1–4. T04-B/E historical production recovery remains HOLD.
+
+
+## Re-Entry Types 1–4 — IN PROGRESS
+
+Core V2 §8 and current M12/standalone paths reviewed. Confirmed canonical H1 late-admission gap on Build 6.13; complete builder body matches owner 5.15, while the existing gate and targeted evidence are on unmerged Draft PR #301 Build 5.16. See `CUSTOM_MTF_REENTRY_SIGNAL_PREFLIGHT_20261111.md`. Re-Entry is the only active serial audit.

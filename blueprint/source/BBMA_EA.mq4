@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 6.1.2 - MHV Candidate Invalidation      |
+//| Version 6.1.3 - MHV Availability Propagation      |
 //| SIGNAL VALIDATION IN PROGRESS - CUSTOM ORDERS OFF          |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,14 +31,14 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "6.12"
+#property version   "6.13"
 #property strict
 #include "custom_mtf/CustomInputs.mqh"
 #include "custom_mtf/CustomPairBinding.mqh"
 #include "custom_mtf/CustomClock.mqh"
 
-#define BBMA_BUILD_TAG      "V612_MHV_CANDIDATE_INVALIDATION_20261111"
-#define BBMA_SOURCE_REV_TAG "MHV_CANDIDATE_INVALIDATION_001_20261111"
+#define BBMA_BUILD_TAG      "V613_MHV_AVAILABILITY_PROPAGATION_20261111"
+#define BBMA_SOURCE_REV_TAG "MHV_AVAILABILITY_PROPAGATION_001_20261111"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -3156,41 +3156,47 @@ bool IsMHVTPWajibCompleted(TimeframeData &data, ENUM_DIRECTION parentDirection)
    return false;
 }
 
+bool ReadMHVContinuationInvalidation(string pair,ENUM_DIRECTION mhvDirection,
+                                     TimeframeData &data,BollingerBand &band,bool &invalidated)
+{
+   invalidated=false;
+   if(data.close<=0 || band.TOP_BB<=0 || band.LOW_BB<=0 ||
+      (mhvDirection!=DIR_BUY && mhvDirection!=DIR_SELL))return false;
+   if((mhvDirection==DIR_BUY && data.close<band.LOW_BB) ||
+      (mhvDirection==DIR_SELL && data.close>band.TOP_BB))
+   {invalidated=true;return true;}
+   M10MomentumSnapshot momentum;
+   if(!ReadM10MomentumSource(pair,data,momentum))return false;
+   invalidated=mhvDirection==DIR_BUY?momentum.sell:momentum.buy;
+   return true;
+}
+
 bool IsMHVContinuationInvalidation(string pair, ENUM_DIRECTION mhvDirection,
                                    TimeframeData &data, BollingerBand &band)
 {
-   if(data.close <= 0 || band.TOP_BB <= 0 || band.LOW_BB <= 0) return false;
+   bool invalidated=false;
+   return ReadMHVContinuationInvalidation(pair,mhvDirection,data,band,invalidated) && invalidated;
+}
 
-   // Bottom-side BUY MHV follows a prior SELL Extreme/TP move: a fresh
-   // downside outer-BB close / SELL CSM means prior momentum continued.
-   if(mhvDirection == DIR_BUY)
-   {
-      if(data.close < band.LOW_BB) return true;
-      return DetectCSM(pair, data.timeframe, DIR_SELL, data.barIndex);
-   }
-
-   // Top-side SELL MHV mirrors the rule after a prior BUY Extreme/TP move.
-   if(mhvDirection == DIR_SELL)
-   {
-      if(data.close > band.TOP_BB) return true;
-      return DetectCSM(pair, data.timeframe, DIR_BUY, data.barIndex);
-   }
-
-   return false;
+bool ReadMHVLossPhaseEligibility(string pair,ENUM_DIRECTION mhvDirection,
+                                  TimeframeData &data,BollingerBand &band,bool &eligible)
+{
+   eligible=false;
+   if(data.close<=0 || band.TOP_BB<=0 || band.LOW_BB<=0)return false;
+   if(data.close<band.LOW_BB || data.close>band.TOP_BB)return true;
+   ENUM_DIRECTION priorMoveDirection=GetMHVParentExtremeDirection(mhvDirection);
+   if(priorMoveDirection==DIR_NONE)return false;
+   M10MomentumSnapshot momentum;
+   if(!ReadM10MomentumSource(pair,data,momentum))return false;
+   eligible=!(priorMoveDirection==DIR_BUY?momentum.buy:momentum.sell);
+   return true;
 }
 
 bool IsMHVLossPhaseEligible(string pair, ENUM_DIRECTION mhvDirection,
                             TimeframeData &data, BollingerBand &band)
 {
-   if(data.close <= 0 || band.TOP_BB <= 0 || band.LOW_BB <= 0) return false;
-   if(data.close < band.LOW_BB || data.close > band.TOP_BB) return false;
-
-   ENUM_DIRECTION priorMoveDirection = GetMHVParentExtremeDirection(mhvDirection);
-   if(priorMoveDirection == DIR_NONE) return false;
-   M10MomentumSnapshot momentum;
-   if(!ReadM10MomentumSource(pair,data,momentum))return false;
-   if(priorMoveDirection==DIR_BUY?momentum.buy:momentum.sell)return false;
-   return true;
+   bool eligible=false;
+   return ReadMHVLossPhaseEligibility(pair,mhvDirection,data,band,eligible) && eligible;
 }
 
 double GetMHVBodyEdge(TimeframeData &data, ENUM_DIRECTION mhvDirection)
@@ -3329,15 +3335,17 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
                                        TimeframeData &data,
                                        BollingerBand &band,
                                        ExtremeLifecycleData &parent,
-                                       bool sameDirectionSignal,bool emitTelemetry=true)
+                                       bool sameDirectionSignal,bool emitTelemetry,bool &sourceReady)
 {
-   if(!EnableMLVStateEngine) return MLV_NONE;
+   sourceReady=false;
+   if(!EnableMLVStateEngine){sourceReady=true;return MLV_NONE;}
    if(direction != DIR_BUY && direction != DIR_SELL) return MLV_NONE;
    if(!data.is_valid || !data.is_closed || data.candle_time <= 0 ||
       data.timeframe>PERIOD_D1 || GetTimeframeSeconds(data.timeframe)<=0) return mlv.State;
 
    M10MomentumSnapshot momentum;
    if(!ReadM10MomentumSource(pair,data,momentum))return mlv.State;
+   sourceReady=true;
 
    if(mlv.Direction != direction || mlv.Timeframe != data.timeframe)
       ResetMLVState(mlv, direction,data.timeframe);
@@ -3410,7 +3418,10 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
       // Continuing Momentum after TP means loss-of-momentum has not started.
       // No fixed candle count or timer is used; wait for an actual inside-BB,
       // non-CSM structural pause to begin the MHV formation phase.
-      if(IsMHVLossPhaseEligible(pair, direction, data, band))
+      bool lossEligible=false;
+      if(!ReadMHVLossPhaseEligibility(pair,direction,data,band,lossEligible))
+      {sourceReady=false;return mlv.State;}
+      if(lossEligible)
       {
          mlv.State = MLV_LOSS_DEVELOPING;
          mlv.StartBar = data.barIndex;
@@ -3430,7 +3441,10 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
    if(mlv.State == MLV_LOSS_DEVELOPING)
    {
       // Invalidation has priority over formation promotion.
-      if(IsMHVContinuationInvalidation(pair, direction, data, band))
+      bool continuationInvalidated=false;
+      if(!ReadMHVContinuationInvalidation(pair,direction,data,band,continuationInvalidated))
+      {sourceReady=false;return mlv.State;}
+      if(continuationInvalidated)
       {
          MarkCanonicalMLVVoid(
             mlv, data,
@@ -3467,8 +3481,11 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
    if(mlv.State == MLV_FORMATION_ESTABLISHED ||
       mlv.State == MLV_RETEST_COMPLETE)
    {
+      bool continuationInvalidated=false;
       if(mlv.InvalidationWindowOpen &&
-         IsMHVContinuationInvalidation(pair, direction, data, band))
+         !ReadMHVContinuationInvalidation(pair,direction,data,band,continuationInvalidated))
+      {sourceReady=false;return mlv.State;}
+      if(mlv.InvalidationWindowOpen && continuationInvalidated)
       {
          // MHV invalidation must not bypass the pending Extreme's own rule.
          // An outer-only MHV break can leave that opposite-side candidate valid.
@@ -3476,7 +3493,8 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
          {
             bool candidateInvalidated=false;
             if(!ReadExtremeLifecycleInvalidation(pair,GetMHVParentExtremeDirection(direction),
-                                                data,band,candidateInvalidated))return mlv.State;
+                                                data,band,candidateInvalidated))
+            {sourceReady=false;return mlv.State;}
             if(candidateInvalidated)ClearMHVSupersessionCandidate(mlv);
          }
          MarkCanonicalMLVVoid(
@@ -3488,7 +3506,8 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
       bool sourceAvailable=false;
       bool superseded=TryAdvanceMHVSupersessionCandidate(mlv,pair,data,band,parent,
                                                         sourceAvailable,emitTelemetry);
-      if(!sourceAvailable || superseded)return mlv.State;
+      if(!sourceAvailable){sourceReady=false;return mlv.State;}
+      if(superseded)return mlv.State;
 
       if(mlv.State == MLV_FORMATION_ESTABLISHED &&
          data.candle_time > mlv.ConfirmationCandleTime &&
@@ -3527,7 +3546,8 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
       bool sourceAvailable=false;
       bool superseded=TryAdvanceMHVSupersessionCandidate(mlv,pair,data,band,parent,
                                                         sourceAvailable,emitTelemetry);
-      if(!sourceAvailable || superseded)return mlv.State;
+      if(!sourceAvailable){sourceReady=false;return mlv.State;}
+      if(superseded)return mlv.State;
 
       mlv.LastUpdateBar = data.barIndex;
       mlv.LastUpdateCandleTime = data.candle_time;
@@ -3541,7 +3561,7 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
       // only a candidate; a reversal-confirmed Extreme installs the new parent.
       bool sourceAvailable=false;
       TryAdvanceMHVSupersessionCandidate(mlv,pair,data,band,parent,sourceAvailable,emitTelemetry);
-      if(!sourceAvailable)return mlv.State;
+      if(!sourceAvailable){sourceReady=false;return mlv.State;}
       mlv.LastUpdateBar = data.barIndex;
       mlv.LastUpdateCandleTime = data.candle_time;
       mlv.PreviousClose = data.close;
@@ -3558,6 +3578,35 @@ ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv, string pair,
    }
 
    return mlv.State;
+}
+
+// Compatibility entry point; production callers use the guarded bool contract.
+ENUM_MLV_STATE UpdateCanonicalMLVState(MLVData &mlv,string pair,ENUM_DIRECTION direction,
+                                       TimeframeData &data,BollingerBand &band,
+                                       ExtremeLifecycleData &parent,
+                                       bool sameDirectionSignal,bool emitTelemetry=true)
+{
+   bool sourceReady=false;
+   return UpdateCanonicalMLVState(mlv,pair,direction,data,band,parent,
+                                 sameDirectionSignal,emitTelemetry,sourceReady);
+}
+
+bool TryUpdateCanonicalMLVState(MLVData &mlv,string pair,ENUM_DIRECTION direction,
+                                TimeframeData &data,BollingerBand &band,
+                                ExtremeLifecycleData &parent,
+                                bool sameDirectionSignal,bool emitTelemetry=true)
+{
+   if(!EnableMLVStateEngine)return true;
+   M10MomentumSnapshot before,after;
+   if(!ReadM10MomentumSource(pair,data,before))return false;
+   MLVData staged=mlv;ExtremeLifecycleData stagedParent=parent;
+   bool sourceReady=false;
+   UpdateCanonicalMLVState(staged,pair,direction,data,band,stagedParent,
+                           sameDirectionSignal,emitTelemetry,sourceReady);
+   if(!sourceReady || !ReadM10MomentumSource(pair,data,after) ||
+      !SameM10MomentumInputs(before,after))return false;
+   mlv=staged;parent=stagedParent;
+   return true;
 }
 
 bool ExportSourceMHVSignal(MLVData &mlv, Signal &signal)
@@ -13758,9 +13807,10 @@ void ProcessPair(int pairIndex)
 
    // Canonical M09 owns its parent transaction before persistent exports and
    // frozen consumers. Diagnostic requests never control canonical production.
-   AdvanceCanonicalMHVBeforeFreeze(pairIndex,PERIOD_D1,g_pair_states[pairIndex].tf_snapshot.D1_CandleTime);
-   AdvanceCanonicalMHVBeforeFreeze(pairIndex,PERIOD_H4,g_pair_states[pairIndex].tf_snapshot.H4_CandleTime);
-   AdvanceCanonicalMHVBeforeFreeze(pairIndex,PERIOD_H1,g_pair_states[pairIndex].tf_snapshot.H1_CandleTime);
+   if(!AdvanceCanonicalMHVBeforeFreeze(pairIndex,PERIOD_D1,g_pair_states[pairIndex].tf_snapshot.D1_CandleTime) ||
+      !AdvanceCanonicalMHVBeforeFreeze(pairIndex,PERIOD_H4,g_pair_states[pairIndex].tf_snapshot.H4_CandleTime) ||
+      !AdvanceCanonicalMHVBeforeFreeze(pairIndex,PERIOD_H1,g_pair_states[pairIndex].tf_snapshot.H1_CandleTime))
+   {g_pair_states[pairIndex].is_processing=false;return;}
 
    Signal resolvedH1BuyExtreme, resolvedH1SellExtreme, resolvedH4BuyExtreme, resolvedH4SellExtreme;
    ZeroMemory(resolvedH1BuyExtreme); ZeroMemory(resolvedH1SellExtreme);
@@ -13843,11 +13893,12 @@ void ProcessPair(int pairIndex)
 
       if(direction == DIR_BUY)
       {
-         UpdateCanonicalMLVState(
+         if(!TryUpdateCanonicalMLVState(
             g_pair_states[pairIndex].mlv_buy_state, actual, DIR_BUY,
             g_pair_states[pairIndex].m15_data, m15Band,
             g_pair_states[pairIndex].extreme_m15_sell_lifecycle,
-            (m15CSDSnapshot.Valid || m15ECSDSnapshot.Valid));
+            (m15CSDSnapshot.Valid || m15ECSDSnapshot.Valid)))
+         {g_pair_states[pairIndex].is_processing=false;return;}
          mlvSnapshot = g_pair_states[pairIndex].mlv_buy_state;
 
          UpdateReEntryState(g_pair_states[pairIndex].re_h1_buy_state, actual, direction,
@@ -13865,11 +13916,12 @@ void ProcessPair(int pairIndex)
       }
       else
       {
-         UpdateCanonicalMLVState(
+         if(!TryUpdateCanonicalMLVState(
             g_pair_states[pairIndex].mlv_sell_state, actual, DIR_SELL,
             g_pair_states[pairIndex].m15_data, m15Band,
             g_pair_states[pairIndex].extreme_m15_buy_lifecycle,
-            (m15CSDSnapshot.Valid || m15ECSDSnapshot.Valid));
+            (m15CSDSnapshot.Valid || m15ECSDSnapshot.Valid)))
+         {g_pair_states[pairIndex].is_processing=false;return;}
          mlvSnapshot = g_pair_states[pairIndex].mlv_sell_state;
 
          UpdateReEntryState(g_pair_states[pairIndex].re_h1_sell_state, actual, direction,
@@ -14088,15 +14140,19 @@ bool AdvanceMHVSourceOwners(string symbol,TimeframeData &next,BollingerBand &ban
                             ExtremeLifecycleData &extremeBuy,ExtremeLifecycleData &extremeSell,
                             MLVData &mhvBuy,MLVData &mhvSell,bool emitTelemetry=true)
 {
-   M10MomentumSnapshot momentum;
+   M10MomentumSnapshot momentum,after;
+   ExtremeLifecycleData stagedBuy=extremeBuy,stagedSell=extremeSell;
+   MLVData stagedMHVBuy=mhvBuy,stagedMHVSell=mhvSell;
    if(!ReadM10MomentumSource(symbol,next,momentum))return false;
    MovingAverage ma;
    ma.MA5_High=next.ma[0];ma.MA10_High=next.ma[1];ma.MA5_Low=next.ma[2];ma.MA10_Low=next.ma[3];ma.EMA50=next.ma[4];
    bool directionBuy=DetectCSD(symbol,next.timeframe,DIR_BUY,next.barIndex,ma,band) || DetectECSD(symbol,next.timeframe,DIR_BUY,next.barIndex,ma);
    bool directionSell=DetectCSD(symbol,next.timeframe,DIR_SELL,next.barIndex,ma,band) || DetectECSD(symbol,next.timeframe,DIR_SELL,next.barIndex,ma);
    // The canonical M09 engine owns both aliases; no second MHV detector.
-   UpdateCanonicalMLVState(mhvBuy,symbol,DIR_BUY,next,band,extremeSell,directionBuy,emitTelemetry);
-   UpdateCanonicalMLVState(mhvSell,symbol,DIR_SELL,next,band,extremeBuy,directionSell,emitTelemetry);
+   if(!TryUpdateCanonicalMLVState(stagedMHVBuy,symbol,DIR_BUY,next,band,stagedSell,directionBuy,emitTelemetry) ||
+      !TryUpdateCanonicalMLVState(stagedMHVSell,symbol,DIR_SELL,next,band,stagedBuy,directionSell,emitTelemetry))return false;
+   if(!ReadM10MomentumSource(symbol,next,after) || !SameM10MomentumInputs(momentum,after))return false;
+   extremeBuy=stagedBuy;extremeSell=stagedSell;mhvBuy=stagedMHVBuy;mhvSell=stagedMHVSell;
    return true;
 }
 

@@ -1,0 +1,59 @@
+{
+  "task": "SIG-06-MHV",
+  "status": "IN_PROGRESS — availability propagation native targeted PASS; affected regression resuming",
+  "base_commit": "b867ad76c92e67a5bdd317d37d16bfa5cb0b0a99",
+  "build": "6.13",
+  "source_revision": "MHV_AVAILABILITY_PROPAGATION_001_20261111",
+  "source_sha256_lf": "43470ff9795b18e44844bb815deceee778072a004b8815666e18e8ffa584d15c",
+  "scope": {
+    "changed": [
+      "IsMHVContinuationInvalidation/4",
+      "IsMHVLossPhaseEligible/4",
+      "UpdateCanonicalMLVState/8",
+      "ProcessPair/1",
+      "AdvanceMHVSourceOwners/8"
+    ],
+    "added": [
+      "ReadMHVContinuationInvalidation/5",
+      "ReadMHVLossPhaseEligibility/5",
+      "UpdateCanonicalMLVState/9",
+      "TryUpdateCanonicalMLVState/8"
+    ],
+    "deleted": [],
+    "unchanged": 460
+  },
+  "native": {
+    "red": {
+      "build": "6.12",
+      "passed": 197,
+      "failed": 98,
+      "terminal_pid": 4456
+    },
+    "green": {
+      "passed": 295,
+      "failed": 0,
+      "terminal_pid": 7868,
+      "compile": "0E0W",
+      "harness_sha256_lf": "4f2f1ed1192ed9f0b7cab8a39d3fb2c78560158477d496fa537a101dd946a247"
+    },
+    "inner_status": {
+      "passed": 785,
+      "failed": 0,
+      "terminal_pid": 12676,
+      "compile": "0E0W",
+      "harness_sha256_lf": "21873d025e60d796792803609571553e942e6c168e34a42d940fb0eb58f1ff64"
+    }
+  },
+  "regression": {
+    "initial_driver_pid": 2948,
+    "initial_candidate_group": "PASS",
+    "initial_momready": "166 PASS / 1 FAIL: direct fixture omitted canonical scope used by M27",
+    "resume_driver_pid": 5100,
+    "resume_state_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\sig06_mhv\\fix613_regression\\state.json",
+    "resume_status": "RUNNING",
+    "first_native_fail_retained": true
+  },
+  "next": "Poll5100/state. Validate canonical-scope fixture retry, then affected groups and actual controller OFF/ON/frozen6.12 ordinary and seeded. No duplicate processes or later signal.",
+  "full_SIG06": "PARTIAL/HOLD — original historical session/owner-epoch/successful production boundary recovery exits remain",
+  "auto_entry": false
+}

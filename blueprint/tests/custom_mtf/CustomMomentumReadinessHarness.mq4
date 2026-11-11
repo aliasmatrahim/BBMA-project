@@ -68,6 +68,7 @@ void ResetGap(int kind)
 {
  GapCase=kind;GapReads=0;GapRevised=false;GapNeutral=false;GapMutationAt=22;g_processing_time=GapNow+1;
  g_pair_count=1;InitPairState(g_pair_states[0]);g_pair_states[0].actual_symbol="MOM_GAP";g_pair_states[0].pair_enabled=true;g_pair_names[0]="MOM_GAP";
+ g_pair_canonical_scope[0]=true; // M27 calls ProcessPair only for canonical pairs.
  g_processed_candle_time[0]=0;
 }
 void DataFixture(int tf,TimeframeData &d)

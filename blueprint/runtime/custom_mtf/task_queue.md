@@ -90,3 +90,5 @@ SIG-06 MHV current checkpoint: Core/F1 reviewed; exact6.11 mechanical native pro
 2026-11-11 SIG-07 MLV bounded alias acceptance verified on Build 6.13. Existing archive proves identical MHV/MLV identities across seven requested TFs and three canonical higher TFs. Next serial Re-Entry Types 1–4. No shared recovery or executable availability promotion.
 
 2026-11-11 Re-Entry preflight: standalone H1 late-admission gap confirmed on 6.13; reuse unmerged Draft #301's scoped eligibility fix and isolated controls. See `CUSTOM_MTF_REENTRY_SIGNAL_PREFLIGHT_20261111.md`. Re-Entry remains IN PROGRESS. No T04-B/E or execution promotion.
+
+2026-11-11 Re-Entry native window milestone: Build 6.13 baseline reproduces 24 misses; isolated 6.14 candidate 58/58. Full market-driven lifecycle/controller still IN PROGRESS. No source promotion. See `reentry614_entrycandle_probe.json`.

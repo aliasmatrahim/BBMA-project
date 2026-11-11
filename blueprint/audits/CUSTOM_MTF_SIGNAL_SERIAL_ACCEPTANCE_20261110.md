@@ -87,3 +87,5 @@ Next serial signal: Re-Entry Types 1–4. T04-B/E historical production recovery
 ## Re-Entry Types 1–4 — IN PROGRESS
 
 Core V2 §8 and current M12/standalone paths reviewed. Confirmed canonical H1 late-admission gap on Build 6.13; complete builder body matches owner 5.15, while the existing gate and targeted evidence are on unmerged Draft PR #301 Build 5.16. See `CUSTOM_MTF_REENTRY_SIGNAL_PREFLIGHT_20261111.md`. Re-Entry is the only active serial audit.
+
+Re-Entry EntryCandle milestone: exact Build 6.13 native reproduction 34 PASS/24 FAIL → isolated 6.14 58/58, both sides and Types 1–4, strict EA/harness 0E0W and zero orders. Timing admission verified on seeded owners only. Exact-build market-driven lifecycle/controller and order timing remain pending. See `reentry614_entrycandle_probe.json`.

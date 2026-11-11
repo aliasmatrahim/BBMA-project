@@ -1,0 +1,479 @@
+{
+  "task": "T04-B/E",
+  "status": "HOLD: historical production session authority and owner epoch unproved",
+  "branch": "feat/custom-mtf-v1-20261108",
+  "base_commit": "c8e1f02885d090a92d3772308701652903958fdb",
+  "build": "6.15",
+  "source_git_blob": "a2907a698728c302eb5a8ca26840d379014491a4",
+  "source_lf_sha256": "b698f85ef3ae634f679d2bf1b3715392e4b74962f2385f6e878604885ea0aacd",
+  "g40": {
+    "comparison_pid": 2900,
+    "comparison_exit": 0,
+    "journal_pid": 9016,
+    "journal_exit": 0,
+    "artifact": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\t04be_boundary_lineage_20261111.json",
+    "journal": [
+      {
+        "kind": "logs",
+        "count": 7,
+        "first": "20260917.log",
+        "last": "metaeditor.log",
+        "boundary": []
+      },
+      {
+        "kind": "MQL4\\Logs",
+        "count": 7,
+        "first": "20260917.log",
+        "last": "20260926.log",
+        "boundary": []
+      },
+      {
+        "status": "UNRESOLVED",
+        "broker": null,
+        "server": null,
+        "utcOffsetStandardMinutes": null,
+        "utcOffsetDstMinutes": null,
+        "dstRule": null,
+        "weekOpenRule": null,
+        "weekCloseRule": null
+      }
+    ]
+  },
+  "interval_chart_label": [
+    "2026-07-31 00:00",
+    "2026-08-04 00:00"
+  ],
+  "records": {
+    "MT4_CustomMTF_302_Unit": {
+      "1": {
+        "sha256": "f931fef6b0d9a829de421c497af8691de48ba74cc9db68d29c50d852de6f1310",
+        "header": {
+          "version": 401,
+          "symbol": "GBPUSD",
+          "period": 1,
+          "digits": 5,
+          "copyright": "Copyright 2000-2026, MetaQuotes Ltd."
+        },
+        "bar_count": 512000,
+        "first": "2025-04-15 18:38",
+        "last": "2026-09-01 02:59",
+        "window_rows": 2873,
+        "friday_last": "2026-07-31 23:59",
+        "monday_first": "2026-08-03 00:02",
+        "gap_minutes": 2883,
+        "intra_friday_monday_non_nominal": 3
+      },
+      "5": {
+        "sha256": "418440bf35ac6b436361987f3f3deb1beb101ec3a36a3f6c298f338b1e188713",
+        "header": {
+          "version": 401,
+          "symbol": "GBPUSD",
+          "period": 5,
+          "digits": 5,
+          "copyright": "Copyright 2000-2026, MetaQuotes Ltd."
+        },
+        "bar_count": 512000,
+        "first": "2019-10-25 09:05",
+        "last": "2026-09-01 02:55",
+        "window_rows": 576,
+        "friday_last": "2026-07-31 23:55",
+        "monday_first": "2026-08-03 00:00",
+        "gap_minutes": 2885,
+        "intra_friday_monday_non_nominal": 0
+      },
+      "15": {
+        "sha256": "74db0196f4d77fc66548cd41614adfdde9ca96f9e2da91daebcd17e304c5e7b5",
+        "header": {
+          "version": 401,
+          "symbol": "GBPUSD",
+          "period": 15,
+          "digits": 5,
+          "copyright": "Copyright 2000-2026, MetaQuotes Ltd."
+        },
+        "bar_count": 499059,
+        "first": "2006-09-01 03:00",
+        "last": "2026-09-01 02:45",
+        "window_rows": 192,
+        "friday_last": "2026-07-31 23:45",
+        "monday_first": "2026-08-03 00:00",
+        "gap_minutes": 2895,
+        "intra_friday_monday_non_nominal": 0
+      },
+      "30": {
+        "sha256": "d9668038ebc635225534d683ea34b60805915d92510be2b58b6584b8fbbde0d7",
+        "header": {
+          "version": 401,
+          "symbol": "GBPUSD",
+          "period": 30,
+          "digits": 5,
+          "copyright": "Copyright 2000-2026, MetaQuotes Ltd."
+        },
+        "bar_count": 15983,
+        "first": "2025-04-15 19:00",
+        "last": "2026-09-01 02:30",
+        "window_rows": 92,
+        "friday_last": "2026-07-31 23:30",
+        "monday_first": "2026-08-03 01:00",
+        "gap_minutes": 2970,
+        "intra_friday_monday_non_nominal": 0
+      },
+      "60": {
+        "sha256": "566762b35fce7ef2dcb5985a57dac6bc5d0476a6a76ddef2d680ef0905632389",
+        "header": {
+          "version": 401,
+          "symbol": "GBPUSD",
+          "period": 60,
+          "digits": 5,
+          "copyright": "Copyright 2000-2026, MetaQuotes Ltd."
+        },
+        "bar_count": 124772,
+        "first": "2006-09-01 03:00",
+        "last": "2026-09-01 02:00",
+        "window_rows": 48,
+        "friday_last": "2026-07-31 23:00",
+        "monday_first": "2026-08-03 00:00",
+        "gap_minutes": 2940,
+        "intra_friday_monday_non_nominal": 0
+      },
+      "240": {
+        "sha256": "aa58b7e1114d20b135573168fd414db7f210ab260427c8596cadfb8052e5015f",
+        "header": {
+          "version": 401,
+          "symbol": "GBPUSD",
+          "period": 240,
+          "digits": 5,
+          "copyright": "Copyright 2000-2026, MetaQuotes Ltd."
+        },
+        "bar_count": 31200,
+        "first": "2006-09-01 04:00",
+        "last": "2026-08-31 20:00",
+        "window_rows": 12,
+        "friday_last": "2026-07-31 20:00",
+        "monday_first": "2026-08-03 00:00",
+        "gap_minutes": 3120,
+        "intra_friday_monday_non_nominal": 0
+      },
+      "1440": {
+        "sha256": "6ee8ded5b0027a2340d15196f34da603899d648a772919af6facd156f81800ac",
+        "header": {
+          "version": 401,
+          "symbol": "GBPUSD",
+          "period": 1440,
+          "digits": 5,
+          "copyright": "Copyright 2000-2026, MetaQuotes Ltd."
+        },
+        "bar_count": 5206,
+        "first": "2006-09-04 00:00",
+        "last": "2026-08-31 00:00",
+        "window_rows": 2,
+        "friday_last": "2026-07-31 00:00",
+        "monday_first": "2026-08-03 00:00",
+        "gap_minutes": 4320,
+        "intra_friday_monday_non_nominal": 0
+      }
+    },
+    "MT4_ReEntryTiming_515_20261107": {
+      "1": {
+        "sha256": "64d5bed21b61cc119507fd552d6a86091b2cf4a580eefb5c589aa97654f56019",
+        "header": {
+          "version": 401,
+          "symbol": "GBPUSD",
+          "period": 1,
+          "digits": 5,
+          "copyright": "Copyright 2000-2026, MetaQuotes Ltd."
+        },
+        "bar_count": 7470147,
+        "first": "2006-09-01 03:00",
+        "last": "2026-09-01 02:59",
+        "window_rows": 2873,
+        "friday_last": "2026-07-31 23:59",
+        "monday_first": "2026-08-03 00:02",
+        "gap_minutes": 2883,
+        "intra_friday_monday_non_nominal": 3
+      },
+      "5": {
+        "sha256": "6f7a16a1a6bdaf6f6871f56af399530974c2429d51e35f7584d37a2a88ec549d",
+        "header": {
+          "version": 401,
+          "symbol": "GBPUSD",
+          "period": 5,
+          "digits": 5,
+          "copyright": "Copyright 2000-2026, MetaQuotes Ltd."
+        },
+        "bar_count": 1496907,
+        "first": "2006-09-01 03:00",
+        "last": "2026-09-01 02:55",
+        "window_rows": 576,
+        "friday_last": "2026-07-31 23:55",
+        "monday_first": "2026-08-03 00:00",
+        "gap_minutes": 2885,
+        "intra_friday_monday_non_nominal": 0
+      },
+      "15": {
+        "sha256": "74db0196f4d77fc66548cd41614adfdde9ca96f9e2da91daebcd17e304c5e7b5",
+        "header": {
+          "version": 401,
+          "symbol": "GBPUSD",
+          "period": 15,
+          "digits": 5,
+          "copyright": "Copyright 2000-2026, MetaQuotes Ltd."
+        },
+        "bar_count": 499059,
+        "first": "2006-09-01 03:00",
+        "last": "2026-09-01 02:45",
+        "window_rows": 192,
+        "friday_last": "2026-07-31 23:45",
+        "monday_first": "2026-08-03 00:00",
+        "gap_minutes": 2895,
+        "intra_friday_monday_non_nominal": 0
+      },
+      "60": {
+        "sha256": "566762b35fce7ef2dcb5985a57dac6bc5d0476a6a76ddef2d680ef0905632389",
+        "header": {
+          "version": 401,
+          "symbol": "GBPUSD",
+          "period": 60,
+          "digits": 5,
+          "copyright": "Copyright 2000-2026, MetaQuotes Ltd."
+        },
+        "bar_count": 124772,
+        "first": "2006-09-01 03:00",
+        "last": "2026-09-01 02:00",
+        "window_rows": 48,
+        "friday_last": "2026-07-31 23:00",
+        "monday_first": "2026-08-03 00:00",
+        "gap_minutes": 2940,
+        "intra_friday_monday_non_nominal": 0
+      },
+      "240": {
+        "sha256": "aa58b7e1114d20b135573168fd414db7f210ab260427c8596cadfb8052e5015f",
+        "header": {
+          "version": 401,
+          "symbol": "GBPUSD",
+          "period": 240,
+          "digits": 5,
+          "copyright": "Copyright 2000-2026, MetaQuotes Ltd."
+        },
+        "bar_count": 31200,
+        "first": "2006-09-01 04:00",
+        "last": "2026-08-31 20:00",
+        "window_rows": 12,
+        "friday_last": "2026-07-31 20:00",
+        "monday_first": "2026-08-03 00:00",
+        "gap_minutes": 3120,
+        "intra_friday_monday_non_nominal": 0
+      },
+      "1440": {
+        "sha256": "6ee8ded5b0027a2340d15196f34da603899d648a772919af6facd156f81800ac",
+        "header": {
+          "version": 401,
+          "symbol": "GBPUSD",
+          "period": 1440,
+          "digits": 5,
+          "copyright": "Copyright 2000-2026, MetaQuotes Ltd."
+        },
+        "bar_count": 5206,
+        "first": "2006-09-04 00:00",
+        "last": "2026-08-31 00:00",
+        "window_rows": 2,
+        "friday_last": "2026-07-31 00:00",
+        "monday_first": "2026-08-03 00:00",
+        "gap_minutes": 4320,
+        "intra_friday_monday_non_nominal": 0
+      }
+    },
+    "MT4_NMJE_141_Demo": {
+      "15": {
+        "sha256": "a2cb859dacf548a2bb88516807a358a83b87b168f88e734ca5b8f5a0bd97b769",
+        "header": {
+          "version": 401,
+          "symbol": "GBPUSD",
+          "period": 15,
+          "digits": 5,
+          "copyright": "Copyright 2000-2026, MetaQuotes Ltd."
+        },
+        "bar_count": 2125,
+        "first": "2026-08-24 13:15",
+        "last": "2026-09-23 20:15",
+        "window_rows": 0,
+        "friday_last": null,
+        "monday_first": null,
+        "gap_minutes": null,
+        "intra_friday_monday_non_nominal": 0
+      },
+      "60": {
+        "sha256": "de26f388b1ee0ef9b25c2d8d50d51b958c0725dd2b3e424add9780493adcaedc",
+        "header": {
+          "version": 401,
+          "symbol": "GBPUSD",
+          "period": 60,
+          "digits": 5,
+          "copyright": "Copyright 2000-2026, MetaQuotes Ltd."
+        },
+        "bar_count": 2117,
+        "first": "2026-05-26 02:00",
+        "last": "2026-09-25 22:00",
+        "window_rows": 48,
+        "friday_last": "2026-07-31 23:00",
+        "monday_first": "2026-08-03 00:00",
+        "gap_minutes": 2940,
+        "intra_friday_monday_non_nominal": 0
+      },
+      "240": {
+        "sha256": "f3f2236d1cfc563f8c852343be70a4fbfa8b205504fb1032c41aa66217174d95",
+        "header": {
+          "version": 401,
+          "symbol": "GBPUSD",
+          "period": 240,
+          "digits": 5,
+          "copyright": "Copyright 2000-2026, MetaQuotes Ltd."
+        },
+        "bar_count": 20471,
+        "first": "2009-12-21 00:00",
+        "last": "2026-09-25 20:00",
+        "window_rows": 12,
+        "friday_last": "2026-07-31 20:00",
+        "monday_first": "2026-08-03 00:00",
+        "gap_minutes": 3120,
+        "intra_friday_monday_non_nominal": 0
+      },
+      "1440": {
+        "sha256": "90215e8d73ebd346ec453f156dab6ad50e01e9e60ff5ea433416fa6544919d4c",
+        "header": {
+          "version": 401,
+          "symbol": "GBPUSD",
+          "period": 1440,
+          "digits": 5,
+          "copyright": "Copyright 2000-2026, MetaQuotes Ltd."
+        },
+        "bar_count": 2050,
+        "first": "2018-11-01 00:00",
+        "last": "2026-09-25 00:00",
+        "window_rows": 2,
+        "friday_last": "2026-07-31 00:00",
+        "monday_first": "2026-08-03 00:00",
+        "gap_minutes": 4320,
+        "intra_friday_monday_non_nominal": 0
+      }
+    }
+  },
+  "comparisons": {
+    "MT4_ReEntryTiming_515_20261107": {
+      "1": {
+        "time_overlap": 2873,
+        "ohlc_exact": 2873,
+        "full_records_exact": 2873,
+        "only_unit": 0,
+        "only_other": 0,
+        "same_entire_file": false
+      },
+      "5": {
+        "time_overlap": 576,
+        "ohlc_exact": 576,
+        "full_records_exact": 576,
+        "only_unit": 0,
+        "only_other": 0,
+        "same_entire_file": false
+      },
+      "15": {
+        "time_overlap": 192,
+        "ohlc_exact": 192,
+        "full_records_exact": 192,
+        "only_unit": 0,
+        "only_other": 0,
+        "same_entire_file": true
+      },
+      "60": {
+        "time_overlap": 48,
+        "ohlc_exact": 48,
+        "full_records_exact": 48,
+        "only_unit": 0,
+        "only_other": 0,
+        "same_entire_file": true
+      },
+      "240": {
+        "time_overlap": 12,
+        "ohlc_exact": 12,
+        "full_records_exact": 12,
+        "only_unit": 0,
+        "only_other": 0,
+        "same_entire_file": true
+      },
+      "1440": {
+        "time_overlap": 2,
+        "ohlc_exact": 2,
+        "full_records_exact": 2,
+        "only_unit": 0,
+        "only_other": 0,
+        "same_entire_file": true
+      }
+    },
+    "MT4_NMJE_141_Demo": {
+      "15": {
+        "time_overlap": 0,
+        "ohlc_exact": 0,
+        "full_records_exact": 0,
+        "only_unit": 192,
+        "only_other": 0,
+        "same_entire_file": false
+      },
+      "60": {
+        "time_overlap": 48,
+        "ohlc_exact": 0,
+        "full_records_exact": 0,
+        "only_unit": 0,
+        "only_other": 0,
+        "same_entire_file": false
+      },
+      "240": {
+        "time_overlap": 12,
+        "ohlc_exact": 0,
+        "full_records_exact": 0,
+        "only_unit": 0,
+        "only_other": 0,
+        "same_entire_file": false
+      },
+      "1440": {
+        "time_overlap": 2,
+        "ohlc_exact": 0,
+        "full_records_exact": 0,
+        "only_unit": 0,
+        "only_other": 0,
+        "same_entire_file": false
+      }
+    }
+  },
+  "scope": "HST lineage corroboration only; timestamps read as numeric chart labels; no historical broker session authentication",
+  "prior_evidence": {
+    "all_seven_hst_hashes_match": true,
+    "reference_profile_report": "blueprint/audits/CUSTOM_MTF_MHV_FIXTURE_PROFILE_MILESTONE_20261111.md",
+    "owner_snapshot_manifest": "blueprint/runtime/custom_mtf/mhv611_natural_origin_restart_summary.json",
+    "bounded_snapshot_anchors": {
+      "1": {
+        "chart_epoch": 1785515820,
+        "snapshot_sha256": "b233b99f79c76848864f8ef5adfc78fc50d10cd48052f1ede60ba4990c38ab4e"
+      },
+      "5": {
+        "chart_epoch": 1785422100,
+        "snapshot_sha256": "a352d5c137fae250484dbf71849a5de76360bf2b80f71028e7f3f49b8e987b47"
+      },
+      "15": {
+        "chart_epoch": 1784912400,
+        "snapshot_sha256": "29ffef507c83d37b8f79475a929eb9182003cd2fdcddc36305e4a4551bbbc16e"
+      },
+      "60": {
+        "chart_epoch": 1783584000,
+        "snapshot_sha256": "89f280797420cba918d6342ac1566549025a0476d71e8ecc982d115f03871e36"
+      }
+    }
+  },
+  "source_note": "https://www.metatrader4.com/en/trading-platform/help/service/history_center",
+  "acceptance": {
+    "same_feed_historical_boundary": false,
+    "production_owner_epoch_at_boundary": false,
+    "across_gap_continuous_recovered_parity": "NOT RUN; inputs not admitted",
+    "ea_change": false,
+    "custom_auto_entry": false
+  },
+  "exact_next": "Confirm target MT4 broker/server, retrieve native same-server quotes and dated session/clock evidence for one boundary, prove pre-gap owner state with bound checkpoint or reconstruction, then test production admission and continuous/recovered parity."
+}

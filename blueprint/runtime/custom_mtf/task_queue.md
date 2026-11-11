@@ -94,3 +94,5 @@ SIG-06 MHV current checkpoint: Core/F1 reviewed; exact6.11 mechanical native pro
 2026-11-11 Re-Entry native window milestone: Build 6.13 baseline reproduces 24 misses; isolated 6.14 candidate 58/58. Full market-driven lifecycle/controller still IN PROGRESS. No source promotion. See `reentry614_entrycandle_probe.json`.
 
 Actual isolated GBPUSD August 2026 M15 controller replay completed: Build 6.13 emits 16 late candidate admission rows for one Type 3 confirmation; isolated 6.14 emits zero. The 1,296 RE_EVAL rows are identical. Both runs have zero orders; no timely H4-aligned window and no market Type 2 confirmation were observed. Re-Entry remains IN PROGRESS. See `reentry614_market_replay.json`.
+
+Re-Entry Build 6.14 positive market timing verified in G40 Strategy Tester. EURUSD August 2026: 8 orders; USDJPY August 2026: 6 orders. All 14 have one matching admission, M15 selection, M16 pass, tester open event and OrderOpenTime in the next actual H1 source candle; 2 Type 1, 4 Type 3, 8 Type 4. No late admissions or orders over the five extension profiles. Type 2 formation remains the only open signal-evidence item. See `reentry614_positive_order_trace.json`.

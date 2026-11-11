@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 5.1.5 - NMJE P2 Targetless Lifecycle Replay         |
+//| Version 5.1.6 - M12 EntryCandle Eligibility Gate                  |
 //|                                           CODE-READY              |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,11 +31,11 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "5.15"
+#property version   "5.16"
 #property strict
 
-#define BBMA_BUILD_TAG      "V515_NMJE_P2_TARGETLESS_REPLAY_20260925"
-#define BBMA_SOURCE_REV_TAG "NMJE_P2_TARGETLESS_REPLAY_001_20260925"
+#define BBMA_BUILD_TAG      "V516_M12_ENTRYCANDLE_GATE_20261107"
+#define BBMA_SOURCE_REV_TAG "M12_ENTRYCANDLE_GATE_001_20261107"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -6636,7 +6636,8 @@ bool IsCandidateEligible(ValidatedSequenceCandidate &candidate)
    return true;
 }
 
-void BuildConfirmedReEntryCandidate(ReEntryData &reEntry,
+void BuildConfirmedReEntryCandidate(string pair,
+                                    ReEntryData &reEntry,
                                     H4DirectionalOwner &h4Owner,
                                     ValidatedSequenceCandidate &candidate)
 {
@@ -6655,16 +6656,22 @@ void BuildConfirmedReEntryCandidate(ReEntryData &reEntry,
    if(reEntry.State != RE_STATE_CONFIRMED || !reEntry.IsValid) return;
    if(reEntry.Direction != DIR_BUY && reEntry.Direction != DIR_SELL) return;
    if(reEntry.Timeframe != PERIOD_H1) return;
+   if(reEntry.ConfirmationCandle <= 0 || reEntry.EntryCandle <= 0) return;
+
+   // Candidate eligibility is limited to its recorded event candle. The
+   // confirmed M12 owner remains structurally valid until source invalidation.
+   datetime currentEntryCandle = iTime(pair, reEntry.Timeframe, 0);
+   if(currentEntryCandle <= 0 ||
+      currentEntryCandle != reEntry.EntryCandle)
+      return;
 
    // CORE-V2-F4: standalone H1 Re-Entry is executable only under the
-   // immediate H4 authoritative directional owner. No D1/EMA/current-candle
-   // fallback is permitted when H4 is NO_OWNER or recovery is unresolved.
+   // immediate H4 authoritative directional owner. No D1/EMA owner fallback
+   // is permitted when H4 is NO_OWNER or recovery is unresolved.
    if(!h4Owner.RecoveryComplete || !h4Owner.IsValid ||
       h4Owner.State != H4_OWNER_ACTIVE ||
       h4Owner.Direction != reEntry.Direction)
       return;
-
-   if(reEntry.ConfirmationCandle <= 0) return;
 
    candidate.SequenceType = SIGNAL_RE_ENTRY;
    candidate.Direction = reEntry.Direction;
@@ -11167,7 +11174,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=5.15 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=5.16 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -13604,7 +13611,8 @@ void ProcessPair(int pairIndex)
       
       ValidatedSequenceCandidate reEntryCandidate;
       BuildConfirmedReEntryCandidate(
-         reEntry, g_pair_states[pairIndex].h4_direction_owner, reEntryCandidate);
+         actual, reEntry, g_pair_states[pairIndex].h4_direction_owner,
+         reEntryCandidate);
       AppendValidatedCandidate(reEntryCandidate, allCandidates, allCandidateCount);
 
       ValidatedSequenceCandidate standaloneExtremeCandidate;

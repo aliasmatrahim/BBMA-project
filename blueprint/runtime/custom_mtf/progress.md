@@ -443,3 +443,5 @@ SIG-07 MLV read-only alias VERIFIED on Build 6.13. Reused shared M09 lifecycle a
 Re-Entry Types 1–4 IN PROGRESS. Source preflight confirmed the 6.13 standalone H1 builder lacks the EntryCandle eligibility gate; full body equals owner 5.15. Draft #301 existing fix and 5.16 runtime evidence located. See `CUSTOM_MTF_REENTRY_SIGNAL_PREFLIGHT_20261111.md` for exact next action.
 
 Re-Entry isolated EntryCandle control finished on G40 (PID12104 exit0). Build6.13 RED34/24, isolated6.14 GREEN58/58, no orders. Candidate/source/binary identity and all58 paired outcomes preserved in `reentry614_entrycandle_probe.json`. Next exact-build market-driven controller replay, not a rerun of the seeded admission probe.
+
+Actual isolated GBPUSD August 2026 M15 controller replay completed: Build 6.13 emits 16 late candidate admission rows for one Type 3 confirmation; isolated 6.14 emits zero. The 1,296 RE_EVAL rows are identical. Both runs have zero orders; no timely H4-aligned window and no market Type 2 confirmation were observed. Re-Entry remains IN PROGRESS. See `reentry614_market_replay.json`.

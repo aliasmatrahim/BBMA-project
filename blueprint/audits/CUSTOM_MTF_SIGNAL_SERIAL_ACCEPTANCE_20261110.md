@@ -89,3 +89,5 @@ Next serial signal: Re-Entry Types 1–4. T04-B/E historical production recovery
 Core V2 §8 and current M12/standalone paths reviewed. Confirmed canonical H1 late-admission gap on Build 6.13; complete builder body matches owner 5.15, while the existing gate and targeted evidence are on unmerged Draft PR #301 Build 5.16. See `CUSTOM_MTF_REENTRY_SIGNAL_PREFLIGHT_20261111.md`. Re-Entry is the only active serial audit.
 
 Re-Entry EntryCandle milestone: exact Build 6.13 native reproduction 34 PASS/24 FAIL → isolated 6.14 58/58, both sides and Types 1–4, strict EA/harness 0E0W and zero orders. Timing admission verified on seeded owners only. Exact-build market-driven lifecycle/controller and order timing remain pending. See `reentry614_entrycandle_probe.json`.
+
+Actual isolated GBPUSD August 2026 M15 controller replay completed: Build 6.13 emits 16 late candidate admission rows for one Type 3 confirmation; isolated 6.14 emits zero. The 1,296 RE_EVAL rows are identical. Both runs have zero orders; no timely H4-aligned window and no market Type 2 confirmation were observed. Re-Entry remains IN PROGRESS. See `reentry614_market_replay.json`.

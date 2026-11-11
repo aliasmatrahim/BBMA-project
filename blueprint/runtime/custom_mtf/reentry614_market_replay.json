@@ -1,0 +1,150 @@
+{
+  "status": "VERIFIED negative control only",
+  "runtime": "G40 isolated MT4 Strategy Tester, GBPUSD M15, model 0, fixed spread 20, August 2026, EntryMode 1, all custom slots off",
+  "driver_pid": 6072,
+  "driver_exit": 0,
+  "source_next_h1_open": "2026.08.28 18:00",
+  "late_confirmation": "2026.08.28 17:00",
+  "identical_re_eval_rows": 1296,
+  "inside_window_h4_unresolved": 124,
+  "inside_window_h4_active_opposite": 8,
+  "inside_window_h4_active_aligned": 0,
+  "tester_orders": 0,
+  "market_type2_confirmation_observed": false,
+  "remaining": "Market Type 2 confirmation and positive controller-to-OrderOpenTime trace on an accepted, matching H4 owner profile.",
+  "runs": [
+    {
+      "build": "613",
+      "canonical_sha": "43470ff9795b18e44844bb815deceee778072a004b8815666e18e8ffa584d15c",
+      "adapter_sha": "9536ea2c395a7b28081feae8ae6681a94921bb780302ca2c38a71597add2d440",
+      "binary_sha": "b325c4cb5a712387e2ba25c88a9de1fa645297a337d074504e3d79c4166492d2",
+      "pid": 7436,
+      "exit": 0,
+      "compile": "Result: 0 errors, 0 warnings, 1002 msec elapsed",
+      "report": true,
+      "tester_log_sha": "3b2ef0cf69e5c97775ace840c47a28e8ea3021f6c2c584bb16bd8e75def659e8",
+      "counts": {
+        "F7-BUILD": 1,
+        "RE_STATE": 2016,
+        "RE_ADMIT": 16
+      },
+      "admissions": 16,
+      "out_of_window": 16,
+      "tester_orders": 0,
+      "sample": [
+        "0\t11:38:52.413\t2026.08.31 00:00:01  BBMA_REENTRY_613_20261111_TESTONLY GBPUSD,M15: [P3M1][RE_ADMIT] Type=RE_TYPE_3_CSM Dir=DIR_SELL Confirm=2026.08.28 17:00 Hash=65ECC528579B8D14",
+        "0\t11:38:52.413\t2026.08.31 00:15:01  BBMA_REENTRY_613_20261111_TESTONLY GBPUSD,M15: [P3M1][RE_ADMIT] Type=RE_TYPE_3_CSM Dir=DIR_SELL Confirm=2026.08.28 17:00 Hash=65ECC528579B8D14"
+      ],
+      "out_of_window_sample": [
+        "0\t11:38:52.413\t2026.08.31 00:00:01  BBMA_REENTRY_613_20261111_TESTONLY GBPUSD,M15: [P3M1][RE_ADMIT] Type=RE_TYPE_3_CSM Dir=DIR_SELL Confirm=2026.08.28 17:00 Hash=65ECC528579B8D14",
+        "0\t11:38:52.413\t2026.08.31 00:15:01  BBMA_REENTRY_613_20261111_TESTONLY GBPUSD,M15: [P3M1][RE_ADMIT] Type=RE_TYPE_3_CSM Dir=DIR_SELL Confirm=2026.08.28 17:00 Hash=65ECC528579B8D14",
+        "0\t11:38:52.413\t2026.08.31 00:30:01  BBMA_REENTRY_613_20261111_TESTONLY GBPUSD,M15: [P3M1][RE_ADMIT] Type=RE_TYPE_3_CSM Dir=DIR_SELL Confirm=2026.08.28 17:00 Hash=65ECC528579B8D14",
+        "0\t11:38:52.413\t2026.08.31 00:45:01  BBMA_REENTRY_613_20261111_TESTONLY GBPUSD,M15: [P3M1][RE_ADMIT] Type=RE_TYPE_3_CSM Dir=DIR_SELL Confirm=2026.08.28 17:00 Hash=65ECC528579B8D14"
+      ],
+      "order_sample": []
+    },
+    {
+      "build": "614",
+      "canonical_sha": "ad76809f3c63134d9b170c5b0078b34b36720d489819e5ed0ecb85256fb913e2",
+      "adapter_sha": "e0647c12bca530a2cbdd9e1187a7532103afe2284e565b580e75255ae18186c2",
+      "binary_sha": "d49300414dc28e26c819fc988a970f9855c85e197e423f2a386de77971490cc1",
+      "pid": 9572,
+      "exit": 0,
+      "compile": "Result: 0 errors, 0 warnings, 954 msec elapsed",
+      "report": true,
+      "tester_log_sha": "0789bfaf65b35e4239b58c2aa7fce8693bf0c389e7d5c3b27ac623d7bf44fa09",
+      "counts": {
+        "F7-BUILD": 1,
+        "RE_STATE": 2016
+      },
+      "admissions": 0,
+      "out_of_window": 0,
+      "tester_orders": 0,
+      "sample": [],
+      "out_of_window_sample": [],
+      "order_sample": []
+    }
+  ],
+  "reviews": [
+    {
+      "build": "613",
+      "confirmed_events_by_type": {
+        "RE_TYPE_4_CSD": 22,
+        "RE_TYPE_1": 7,
+        "RE_TYPE_3_CSM": 4
+      },
+      "admissions_by_type": {
+        "RE_TYPE_3_CSM": 16
+      },
+      "admission_count": 16,
+      "admission_outside_nominal_window": 16,
+      "outside_sample": [
+        {
+          "type": "RE_TYPE_3_CSM",
+          "dir": "DIR_SELL",
+          "confirm": "2026.08.28 17:00",
+          "admit": "2026.08.31 00:00:01",
+          "seconds": 198001
+        },
+        {
+          "type": "RE_TYPE_3_CSM",
+          "dir": "DIR_SELL",
+          "confirm": "2026.08.28 17:00",
+          "admit": "2026.08.31 00:15:01",
+          "seconds": 198901
+        },
+        {
+          "type": "RE_TYPE_3_CSM",
+          "dir": "DIR_SELL",
+          "confirm": "2026.08.28 17:00",
+          "admit": "2026.08.31 00:30:01",
+          "seconds": 199801
+        },
+        {
+          "type": "RE_TYPE_3_CSM",
+          "dir": "DIR_SELL",
+          "confirm": "2026.08.28 17:00",
+          "admit": "2026.08.31 00:45:01",
+          "seconds": 200701
+        },
+        {
+          "type": "RE_TYPE_3_CSM",
+          "dir": "DIR_SELL",
+          "confirm": "2026.08.28 17:00",
+          "admit": "2026.08.31 01:00:01",
+          "seconds": 201601
+        }
+      ],
+      "orders_in_nominal_window": [],
+      "orders_outside_nominal_window": [],
+      "exec_marker_total": 0
+    },
+    {
+      "build": "614",
+      "confirmed_events_by_type": {
+        "RE_TYPE_4_CSD": 22,
+        "RE_TYPE_1": 7,
+        "RE_TYPE_3_CSM": 4
+      },
+      "admissions_by_type": {},
+      "admission_count": 0,
+      "admission_outside_nominal_window": 0,
+      "outside_sample": [],
+      "orders_in_nominal_window": [],
+      "orders_outside_nominal_window": [],
+      "exec_marker_total": 0
+    }
+  ],
+  "history": {
+    "hst_count": 6,
+    "history_sha": {
+      "history\\MetaQuotes-Demo\\GBPUSD1.hst": "64d5bed21b61cc119507fd552d6a86091b2cf4a580eefb5c589aa97654f56019",
+      "history\\MetaQuotes-Demo\\GBPUSD1440.hst": "6ee8ded5b0027a2340d15196f34da603899d648a772919af6facd156f81800ac",
+      "history\\MetaQuotes-Demo\\GBPUSD15.hst": "74db0196f4d77fc66548cd41614adfdde9ca96f9e2da91daebcd17e304c5e7b5",
+      "history\\MetaQuotes-Demo\\GBPUSD240.hst": "aa58b7e1114d20b135573168fd414db7f210ab260427c8596cadfb8052e5015f",
+      "history\\MetaQuotes-Demo\\GBPUSD5.hst": "6f7a16a1a6bdaf6f6871f56af399530974c2429d51e35f7584d37a2a88ec549d",
+      "history\\MetaQuotes-Demo\\GBPUSD60.hst": "566762b35fce7ef2dcb5985a57dac6bc5d0476a6a76ddef2d680ef0905632389"
+    },
+    "preset_sha": "4e04beaa870b6debaa58036f7da0e1b60a01315f315c39d50366b63c2d723db1"
+  }
+}

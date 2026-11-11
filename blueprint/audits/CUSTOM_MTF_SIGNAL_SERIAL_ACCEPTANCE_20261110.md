@@ -1,6 +1,6 @@
 # Signal-by-signal acceptance — 2026-11-10
 
-User instruction: finish one signal before moving to the next; do no unrelated task. SIG-01 eCSD, SIG-02 CSA and SIG-03 CSAK/CSD have the bounded VERIFIED acceptances below. SIG-05 publication and branch were verified at d2e7e85c3f9fd0d2620361c175dbe0b71cea5fa7. SIG-06 MHV now has bounded canonical signal acceptance. Current only SIG-07 MLV alias acceptance. Shared historical production recovery remains HOLD. Shared-consumer regression is part of SIG-01, not development of another signal. Base328d33a0dd4824f4ff3dcb2a2b2823a69e12bc9b / Draft PR303 / feat/custom-mtf-v1-20261108.
+User instruction: finish one signal before moving to the next; do no unrelated task. SIG-01 eCSD, SIG-02 CSA and SIG-03 CSAK/CSD have the bounded VERIFIED acceptances below. SIG-05 publication and branch were verified at d2e7e85c3f9fd0d2620361c175dbe0b71cea5fa7. SIG-06 MHV now has bounded canonical signal acceptance. SIG-07 MLV alias acceptance is verified. Current only Re-Entry Types 1–4. Shared historical production recovery remains HOLD. Shared-consumer regression is part of SIG-01, not development of another signal. Base328d33a0dd4824f4ff3dcb2a2b2823a69e12bc9b / Draft PR303 / feat/custom-mtf-v1-20261108.
 
 ## SIG-01 eCSD — VERIFIED (bounded canonical signal acceptance)
 
@@ -73,3 +73,12 @@ Build 6.13 at `15a96f6b1ba9b72154dbcf0e8a50c1e1db379d90`, source LF SHA `43470ff
 This supersedes the serial scheduling restriction in the earlier SIG-06 entries. The signal audit had included the shared T04-B/E deployment recovery gate. The approved plan permits eligible independent work while T04-B is HOLD. The full T04-B/E historical session and owner-epoch acceptance retains all three exits: authenticated same-feed boundary, source-proven historical owner epoch and successful production continuous/recovered parity across that boundary. G40 broker/server/UTC/DST/week rules remain unresolved. The current replay correctly rejects non-nominal spacing; future admission needs a verified source policy and end-to-end evidence. T04-F/T05+ stay gated, and no executable availability, deployment or orders are authorized.
 
 Next serial signal is SIG-07 MLV read-only alias acceptance. Reuse the shared M09 mechanics. Re-Entry follows MLV acceptance.
+
+
+## SIG-07 MLV — VERIFIED for the read-only alias
+
+Build 6.13. Core V2 §6, Finale V05 and the F1 decision resolve MHV/MLV as names for the same M09 setup. Both names route through the same symbol/timeframe/direction owner, current closed-candle and recovery checks and `ProjectCustomMHVView`. They share one event identity. The projection disables entry window, entry eligibility and execution availability. M09 lifecycle and BUY/SELL coverage are reused from SIG-06.
+
+Independent readback of the published Build 6.13 evidence verified all seven producer alias identity rows (M1/M5/M15/M30/H1/H4/D1) plus all three canonical higher-timeframe rows (H1/H4/D1). The published projection header SHA `2cbb1a1c062053e2162037e58096aec194e36409dcb911865eed6dd1fba1a38e` matches both manifests. The accepted native cases use the previously declared trusted owner/history fixtures. The existing moving-bar monitor run is 12/12 with zero orders. No executable MLV availability or production session recovery is inferred. No EA code change or new native run.
+
+Next serial signal: Re-Entry Types 1–4. T04-B/E historical production recovery remains HOLD.

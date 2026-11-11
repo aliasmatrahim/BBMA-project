@@ -1,0 +1,31 @@
+{
+  "task": "T04-E/1",
+  "build": "6.02",
+  "source_sha256_lf_utf8": "730e94ad7d257d0cb1e1885b962a8c664539309165fdba042407f6051303c165",
+  "native_results": {
+    "mhvtf": 238,
+    "flow": 12,
+    "momentum": 55,
+    "M15_mhv": 8,
+    "clock": 14,
+    "startup": 4
+  },
+  "baseline601_initial210_fixture": {
+    "passed": 64,
+    "failed": 146,
+    "scope": "expected missing source-TF identity and parent-direction guard; baseline source exporter adapter delegates to M15 wrapper"
+  },
+  "full_local_pytest": {
+    "passed": 73,
+    "failed": 0
+  },
+  "compile": "Result: 0 errors, 0 warnings, 1127 msec elapsed",
+  "binding": "source/include/test-helper hashes match; final MHVTF harness hash matches; full EA EX4 equals startup binary",
+  "limits": [
+    "synthetic structural M09 trajectories, not broker-history signal or cold-start proof",
+    "additional MHV/MLV producer/storage/replay wiring not admitted",
+    "T04-E remains PARTIAL",
+    "T04-B remains HOLD; CSA/CSAK unavailable",
+    "custom auto-entry OFF; no merge or trading activation"
+  ]
+}

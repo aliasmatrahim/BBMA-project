@@ -1,0 +1,17 @@
+{
+  "task": "SIG-05-EXTREME",
+  "status": "VERIFIED bounded acceptance; publication verification required before SIG-06",
+  "build": "6.11",
+  "source_rev": "EXTREME_SOURCE_READINESS_003_20261110",
+  "source_sha256_lf": "a62672ae1874fcbf61c671af01da09ef45ffe6972abd998ec70c5f9a74c238cb",
+  "tested_code": "a4455117d62cd5fc34087416a9d9940c68afe9ac",
+  "native_groups": 21,
+  "source_handover": 141,
+  "valid_lifecycle_history": 716,
+  "baseline610_lifecycle": 716,
+  "bindings": 23,
+  "collector_pid": 12828,
+  "collector_exit": 0,
+  "next": "SIG-06 MHV after publication verification",
+  "auto_entry": false
+}

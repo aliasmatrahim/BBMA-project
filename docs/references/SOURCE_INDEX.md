@@ -196,3 +196,8 @@ All seven original BBMA Finale SRT files are preserved in GitHub under `docs/ref
 The reviewed Tier-B Home Course Workbook binary is preserved in GitHub as `docs/references/original/333531988-BBMA-Home-Course.pdf` (SHA-256 `b20b8de38d878fa192d0a2fb9d70aba15b59208b477a3cefe73936974a5c2ee7`). It remains a Tier-B / strong-provenance copy and must not be relabelled as an original Tier-A archived source unless a purchaser-preserved/official binary provenance chain is later established and recorded.
 
 The GitHub connector used by ChatGPT exposes UTF-8 text writes but no mounted/local-file upload parameter, so future binary/local-file source additions may require manual upload to the repository. Derived analysis Markdown can be committed directly to GitHub.
+
+
+## Active user direction reconciliation — 2026-11-10
+
+For M10/CSA/CSAK numerical mapping, also retrieve `blueprint/decisions/M10_DIRECTION_CLOSE_ONLY_USER_DECISION_20261110.md`. The user settled Open as irrelevant; direction is based on the closed price beyond the relevant MA pair, MidBB or both. Historical body-span audits remain provenance, not an unresolved Open choice or current implementation acceptance. This user-directed project decision does not relabel research/ASH material as authenticated founder evidence. Code compliance and owner/trigger/runtime gates remain separate and pending.

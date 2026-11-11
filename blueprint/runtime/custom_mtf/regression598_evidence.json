@@ -1,0 +1,8 @@
+{
+  "build": "5.98",
+  "command": "PYTHONPATH=/workspace/scratch/f5ddfbd6f6f6/pytest-deps python3 -m pytest -q",
+  "result": "72 passed",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "scope": "full bare local pytest; not native full-EA execution",
+  "source_sha256_lf_utf8": "e56e6350a82d792b4ee06324fa63f114280edabf6731af88e5629f453940b352"
+}

@@ -1,0 +1,10 @@
+{
+  "sha256": "dabc0aa4f454ec8ee1bdfdc48841fd639340a0672a899821200daf14d0ff88aa",
+  "bytes": 41676,
+  "base64_chars": 55568,
+  "parts": 2,
+  "chunk_chars": 50000,
+  "roundtrip_verified": true,
+  "files": 51,
+  "unique_objects": 47
+}

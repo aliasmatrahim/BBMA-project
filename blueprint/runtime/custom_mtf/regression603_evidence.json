@@ -1,0 +1,44 @@
+{
+  "task": "T04-E/2 monitor pipeline",
+  "build": "6.03",
+  "source_sha256_lf_utf8": "a21c8c4fe0bd8a51635869e2e7bcafb6a499f8c4dca20cc1283e560d2084493b",
+  "native_results": {
+    "m09producer": 52,
+    "m09replay": 57,
+    "flow": 12,
+    "producer": 22,
+    "recovery": 27,
+    "higher": 23,
+    "owner": 10,
+    "momentum": 55,
+    "mhvtf": 238,
+    "observer": 4,
+    "mhv": 8,
+    "clock": 14,
+    "startup": 4
+  },
+  "full_local_pytest": {
+    "passed": 73,
+    "failed": 0
+  },
+  "compile": "Result: 0 errors, 0 warnings, 754 msec elapsed",
+  "all_field_replay_coverage": {
+    "MLVData": 31,
+    "ReEntryData": 31,
+    "ExtremeLifecycleData": 20
+  },
+  "binding": "source/includes/test helper and every compiled harness source hash matched; final EA EX4 equals actual startup binary",
+  "baseline602_wiring": {
+    "passed": 24,
+    "failed": 28,
+    "phase": "expected failure with test-only extra-TF no-op seed/read adapter"
+  },
+  "limits": [
+    "trusted M09 anchors do not certify cold-start/history formation",
+    "M30 derived OHLC fixture",
+    "canonical D1/H4/H1 M09 unavailable; parent installation requires pre-freeze integration",
+    "source gaps/session/owner epoch remain T04-B HOLD",
+    "all semantic availability and custom entry/execution flags remain OFF",
+    "no live reinit, wall-clock timer delivery, positive multi-symbol broker execution, custom-order runtime or profitability claim"
+  ]
+}

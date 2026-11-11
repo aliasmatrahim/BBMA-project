@@ -1,0 +1,70 @@
+{
+  "task": "T04-E/3 bounded canonical monitor",
+  "build": "6.05",
+  "passed": true,
+  "overall_T04_E": "PARTIAL",
+  "source_sha256_lf_utf8": "4247b5aa6babc62d7680fcb71e8859a74452638ba60c9c0fa084fae7f6f78415",
+  "native_results": {
+    "canonmhv": 47,
+    "observerm09": 4,
+    "flow": 12,
+    "m09producer": 52,
+    "m09replay": 57,
+    "producer": 22,
+    "recovery": 27,
+    "higher": 23,
+    "owner": 10,
+    "momentum": 55,
+    "mhvtf": 238,
+    "observer": 4,
+    "mhv": 8,
+    "clock": 14,
+    "startup": 4
+  },
+  "stage_telemetry": {
+    "uncommitted_parent_events": 0,
+    "default_canonical_control_events": 3,
+    "baseline604_uncommitted": 3
+  },
+  "full_cloud_pytest": {
+    "passed": 73,
+    "failed": 0,
+    "phase": "after 6.05 patch, before local environment loss; no later source change"
+  },
+  "compile": "Result: 0 errors, 0 warnings, 1104 msec elapsed",
+  "all_field_coverage": {
+    "MLVData": 31,
+    "ReEntryData": 31,
+    "ExtremeLifecycleData": 20
+  },
+  "parent_compare_fields": 20,
+  "actual_source_runner_git_blobs": {
+    "blueprint/source/BBMA_EA.mq4": {
+      "sha256_lf_utf8": "4247b5aa6babc62d7680fcb71e8859a74452638ba60c9c0fa084fae7f6f78415",
+      "git_blob_sha1": "0e183a3c7a3d5845490a817e70bc2da992cbc3ca",
+      "length": 570018
+    },
+    "blueprint/tests/custom_mtf/run_clock_owner_native.py": {
+      "sha256_lf_utf8": "99d00bf6e851f821e9eca7d374c0fe9dc4c2d562d74f54ccd9f7544d4f1d948f",
+      "git_blob_sha1": "ab6583265eb06ee626c057a8d8a23543ba208792",
+      "length": 9335
+    },
+    "blueprint/tests/custom_mtf/run_startup_native.py": {
+      "sha256_lf_utf8": "23b3d5ecd81309cf74a1feccfc7acdef1911311b6f6926af5ccb4efe7b2db864",
+      "git_blob_sha1": "8befd30490df54e57ce44328849ee4ccc2b06b53",
+      "length": 3926
+    }
+  },
+  "actual_final_EA_EX4": "920281849b852253ee73d3aacfb7414596fdb8859d2fbf3aae28f97d284f7b9a",
+  "final_bindings_passed": true,
+  "publication": "GitHub/G40; local host unavailable, no fabricated local6.05 commit",
+  "limits": [
+    "trusted source/owner/canonical-cycle fixtures are not live canonical-controller/cold-start proof",
+    "canonical parent writes and unproven gaps remain HOLD/unavailable",
+    "M30 derived OHLC fixture",
+    "CSA/CSAK unavailable pending source/alias/admission reconciliation",
+    "T04-F/T05–T12 dependencies not bypassed",
+    "custom auto-entry/semantic availability/entry/execution flags OFF",
+    "no merge or trading activation, positive multi-symbol broker execution, profitability or release-ready claim"
+  ]
+}

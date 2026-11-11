@@ -1,0 +1,385 @@
+{
+  "task": "SIG-06-MHV",
+  "status": "PARTIAL_BOUNDED_NATURAL_HISTORY_RESTART_PASS_SESSION_GLOBAL_ORIGIN_HOLD",
+  "source_sha256_lf": "a62672ae1874fcbf61c671af01da09ef45ffe6972abd998ec70c5f9a74c238cb",
+  "inventory_ready_bars": 4200,
+  "inventory_candidate_chains": 57,
+  "inventory_converged_candidates": 23,
+  "cases": {
+    "1": {
+      "status": "BOUNDED_PASS",
+      "records": {
+        "produce": {
+          "terminal_pid": 10440,
+          "terminal_exit": 0,
+          "rows": [
+            "0\t02:10:04.573\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART-SELECT] tf=1 anchor=1785515820 buy=true",
+            "0\t02:10:04.573\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] four_hypotheses_converge_at_anchor PASS",
+            "0\t02:10:04.573\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] natural_selected_parent_TPW_formation_after_Momentum PASS",
+            "0\t02:10:04.573\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] first_reset_precedes_both_M08_raws PASS",
+            "0\t02:10:04.573\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] both_M09_parent_origins_after_first_reset PASS",
+            "0\t02:10:04.573\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART-WITNESS] firstReset=2026.07.31 14:00:00 lastMomentum=2026.07.31 16:24:00 buyRaw=2026.07.31 15:31:00 sellRaw=2026.07.31 16:25:00 buyParentRaw=2026.07.31 16:25:00 sellParentRaw=2026.07.31 15:31:00 reversal=2026.07.31 16:28:00 tpw=2026.07.31 16:31:00 formation=2026.07.31 16:37:00",
+            "0\t02:10:04.603\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] persist_anchor_and_24_continuous_states PASS",
+            "0\t02:10:04.603\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] no_broker_orders PASS",
+            "0\t02:10:04.603\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART-SUMMARY] mode=produce checks=6 failed=0 ok=true acceptance=BOUNDED_ENGINEERING_ONLY"
+          ],
+          "snapshot_sha256": "b233b99f79c76848864f8ef5adfc78fc50d10cd48052f1ede60ba4990c38ab4e"
+        },
+        "consume": {
+          "terminal_pid": 5492,
+          "terminal_exit": 0,
+          "rows": [
+            "0\t02:10:22.516\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] fresh_terminal_snapshot_identity PASS",
+            "0\t02:10:22.516\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] read_full_M08_M09_snapshot PASS",
+            "0\t02:10:22.516\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_1 PASS",
+            "0\t02:10:22.516\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_2 PASS",
+            "0\t02:10:22.516\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_3 PASS",
+            "0\t02:10:22.526\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_4 PASS",
+            "0\t02:10:22.526\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_5 PASS",
+            "0\t02:10:22.526\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_6 PASS",
+            "0\t02:10:22.526\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_7 PASS",
+            "0\t02:10:22.526\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_8 PASS",
+            "0\t02:10:22.526\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_9 PASS",
+            "0\t02:10:22.526\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_10 PASS",
+            "0\t02:10:22.526\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_11 PASS",
+            "0\t02:10:22.526\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_12 PASS",
+            "0\t02:10:22.536\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_13 PASS",
+            "0\t02:10:22.536\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_14 PASS",
+            "0\t02:10:22.536\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_15 PASS",
+            "0\t02:10:22.536\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_16 PASS",
+            "0\t02:10:22.536\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_17 PASS",
+            "0\t02:10:22.536\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_18 PASS",
+            "0\t02:10:22.536\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_19 PASS",
+            "0\t02:10:22.536\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_20 PASS",
+            "0\t02:10:22.536\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_21 PASS",
+            "0\t02:10:22.536\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_22 PASS",
+            "0\t02:10:22.546\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_23 PASS",
+            "0\t02:10:22.546\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_24 PASS",
+            "0\t02:10:22.546\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] snapshot_has_no_extra_records PASS",
+            "0\t02:10:22.546\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] no_broker_orders PASS",
+            "0\t02:10:22.546\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART-SUMMARY] mode=consume checks=28 failed=0 ok=true acceptance=BOUNDED_ENGINEERING_ONLY"
+          ],
+          "snapshot_sha256": "b233b99f79c76848864f8ef5adfc78fc50d10cd48052f1ede60ba4990c38ab4e"
+        }
+      },
+      "anchor_chart_epoch": 1785515820,
+      "buy": true,
+      "snapshot_sha256": "b233b99f79c76848864f8ef5adfc78fc50d10cd48052f1ede60ba4990c38ab4e",
+      "snapshot_bytes": 106405,
+      "snapshot": "origin_multi_v4/sig06_mhv_origin_checkpoint_multi_v4_1.csv",
+      "snapshot_rows": 2553,
+      "steps": 24
+    },
+    "5": {
+      "status": "BOUNDED_PASS",
+      "records": {
+        "produce": {
+          "terminal_pid": 12180,
+          "terminal_exit": 0,
+          "rows": [
+            "0\t02:10:43.393\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART-SELECT] tf=5 anchor=1785422100 buy=true",
+            "0\t02:10:43.393\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] four_hypotheses_converge_at_anchor PASS",
+            "0\t02:10:43.393\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] natural_selected_parent_TPW_formation_after_Momentum PASS",
+            "0\t02:10:43.393\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] first_reset_precedes_both_M08_raws PASS",
+            "0\t02:10:43.393\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] both_M09_parent_origins_after_first_reset PASS",
+            "0\t02:10:43.393\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART-WITNESS] firstReset=2026.07.30 02:05:00 lastMomentum=2026.07.30 13:45:00 buyRaw=2026.07.30 08:00:00 sellRaw=2026.07.30 13:50:00 buyParentRaw=2026.07.30 13:50:00 sellParentRaw=2026.07.30 08:00:00 reversal=2026.07.30 13:55:00 tpw=2026.07.30 14:00:00 formation=2026.07.30 14:35:00",
+            "0\t02:10:43.423\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] persist_anchor_and_24_continuous_states PASS",
+            "0\t02:10:43.423\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] no_broker_orders PASS",
+            "0\t02:10:43.423\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART-SUMMARY] mode=produce checks=6 failed=0 ok=true acceptance=BOUNDED_ENGINEERING_ONLY"
+          ],
+          "snapshot_sha256": "a352d5c137fae250484dbf71849a5de76360bf2b80f71028e7f3f49b8e987b47"
+        },
+        "consume": {
+          "terminal_pid": 5092,
+          "terminal_exit": 0,
+          "rows": [
+            "0\t02:11:06.351\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] fresh_terminal_snapshot_identity PASS",
+            "0\t02:11:06.351\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] read_full_M08_M09_snapshot PASS",
+            "0\t02:11:09.420\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_1 PASS",
+            "0\t02:11:09.420\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_2 PASS",
+            "0\t02:11:09.420\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_3 PASS",
+            "0\t02:11:09.420\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_4 PASS",
+            "0\t02:11:09.420\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_5 PASS",
+            "0\t02:11:09.430\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_6 PASS",
+            "0\t02:11:09.430\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_7 PASS",
+            "0\t02:11:09.430\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_8 PASS",
+            "0\t02:11:09.430\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_9 PASS",
+            "0\t02:11:09.430\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_10 PASS",
+            "0\t02:11:09.430\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_11 PASS",
+            "0\t02:11:09.440\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_12 PASS",
+            "0\t02:11:09.440\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_13 PASS",
+            "0\t02:11:09.440\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_14 PASS",
+            "0\t02:11:09.440\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_15 PASS",
+            "0\t02:11:09.440\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_16 PASS",
+            "0\t02:11:09.440\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_17 PASS",
+            "0\t02:11:09.450\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_18 PASS",
+            "0\t02:11:09.450\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_19 PASS",
+            "0\t02:11:09.450\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_20 PASS",
+            "0\t02:11:09.450\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_21 PASS",
+            "0\t02:11:09.450\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_22 PASS",
+            "0\t02:11:09.460\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_23 PASS",
+            "0\t02:11:09.460\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_24 PASS",
+            "0\t02:11:09.460\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] snapshot_has_no_extra_records PASS",
+            "0\t02:11:09.460\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] no_broker_orders PASS",
+            "0\t02:11:09.460\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART-SUMMARY] mode=consume checks=28 failed=0 ok=true acceptance=BOUNDED_ENGINEERING_ONLY"
+          ],
+          "snapshot_sha256": "a352d5c137fae250484dbf71849a5de76360bf2b80f71028e7f3f49b8e987b47"
+        }
+      },
+      "anchor_chart_epoch": 1785422100,
+      "buy": true,
+      "snapshot_sha256": "a352d5c137fae250484dbf71849a5de76360bf2b80f71028e7f3f49b8e987b47",
+      "snapshot_bytes": 104462,
+      "snapshot": "origin_multi_v4/sig06_mhv_origin_checkpoint_multi_v4_5.csv",
+      "snapshot_rows": 2553,
+      "steps": 24
+    },
+    "15": {
+      "records": {
+        "produce": {
+          "terminal_pid": 10664,
+          "terminal_exit": 0,
+          "rows": [
+            "0\t02:06:27.182\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] four_hypotheses_converge_at_anchor PASS",
+            "0\t02:06:27.182\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] natural_selected_parent_TPW_formation_after_Momentum PASS",
+            "0\t02:06:27.182\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] first_reset_precedes_both_M08_raws PASS",
+            "0\t02:06:27.182\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] both_M09_parent_origins_after_first_reset PASS",
+            "0\t02:06:27.182\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART-WITNESS] firstReset=2026.07.24 03:45:00 lastMomentum=2026.07.24 15:30:00 buyRaw=2026.07.24 16:00:00 sellRaw=2026.07.24 10:30:00 buyParentRaw=2026.07.24 10:30:00 sellParentRaw=2026.07.24 16:00:00 reversal=2026.07.24 11:15:00 tpw=2026.07.24 11:45:00 formation=2026.07.24 12:15:00",
+            "0\t02:06:27.212\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] persist_anchor_and_24_continuous_states PASS",
+            "0\t02:06:27.212\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] no_broker_orders PASS",
+            "0\t02:06:27.212\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART-SUMMARY] mode=produce checks=6 failed=0 ok=true acceptance=BOUNDED_ENGINEERING_ONLY"
+          ],
+          "snapshot_sha256": "29ffef507c83d37b8f79475a929eb9182003cd2fdcddc36305e4a4551bbbc16e"
+        },
+        "consume": {
+          "terminal_pid": 8424,
+          "terminal_exit": 0,
+          "rows": [
+            "0\t02:06:45.470\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] fresh_terminal_snapshot_identity PASS",
+            "0\t02:06:45.470\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] read_full_M08_M09_snapshot PASS",
+            "0\t02:06:45.470\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_1 PASS",
+            "0\t02:06:45.470\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_2 PASS",
+            "0\t02:06:45.470\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_3 PASS",
+            "0\t02:06:45.470\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_4 PASS",
+            "0\t02:06:45.480\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_5 PASS",
+            "0\t02:06:45.480\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_6 PASS",
+            "0\t02:06:45.480\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_7 PASS",
+            "0\t02:06:45.480\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_8 PASS",
+            "0\t02:06:45.480\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_9 PASS",
+            "0\t02:06:45.480\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_10 PASS",
+            "0\t02:06:45.480\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_11 PASS",
+            "0\t02:06:45.480\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_12 PASS",
+            "0\t02:06:45.480\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_13 PASS",
+            "0\t02:06:45.480\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_14 PASS",
+            "0\t02:06:45.480\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_15 PASS",
+            "0\t02:06:45.480\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_16 PASS",
+            "0\t02:06:45.490\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_17 PASS",
+            "0\t02:06:45.490\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_18 PASS",
+            "0\t02:06:45.490\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_19 PASS",
+            "0\t02:06:45.490\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_20 PASS",
+            "0\t02:06:45.490\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_21 PASS",
+            "0\t02:06:45.490\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_22 PASS",
+            "0\t02:06:45.490\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_23 PASS",
+            "0\t02:06:45.490\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_24 PASS",
+            "0\t02:06:45.490\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] snapshot_has_no_extra_records PASS",
+            "0\t02:06:45.490\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART] no_broker_orders PASS",
+            "0\t02:06:45.490\t2026.08.03 00:00:01  CustomMHVOriginReplayHarness GBPUSD,M15: [MHV-RESTART-SUMMARY] mode=consume checks=28 failed=0 ok=true acceptance=BOUNDED_ENGINEERING_ONLY"
+          ],
+          "snapshot_sha256": "29ffef507c83d37b8f79475a929eb9182003cd2fdcddc36305e4a4551bbbc16e"
+        }
+      },
+      "anchor_chart_epoch": 1784912400,
+      "status": "BOUNDED_PASS",
+      "snapshot": "origin_replay_v3/sig06_mhv_origin_checkpoint_v3_20261111.csv",
+      "snapshot_sha256": "29ffef507c83d37b8f79475a929eb9182003cd2fdcddc36305e4a4551bbbc16e",
+      "snapshot_rows": 2553,
+      "steps": 24
+    },
+    "60": {
+      "status": "BOUNDED_PASS",
+      "records": {
+        "produce": {
+          "terminal_pid": 7456,
+          "terminal_exit": 0,
+          "rows": [
+            "0\t02:11:35.320\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART-SELECT] tf=60 anchor=1783584000 buy=true",
+            "0\t02:11:35.320\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] four_hypotheses_converge_at_anchor PASS",
+            "0\t02:11:35.320\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] natural_selected_parent_TPW_formation_after_Momentum PASS",
+            "0\t02:11:35.320\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] first_reset_precedes_both_M08_raws PASS",
+            "0\t02:11:35.320\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] both_M09_parent_origins_after_first_reset PASS",
+            "0\t02:11:35.320\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART-WITNESS] firstReset=2026.07.06 04:00:00 lastMomentum=2026.07.08 22:00:00 buyRaw=2026.07.08 14:00:00 sellRaw=2026.07.08 23:00:00 buyParentRaw=2026.07.08 23:00:00 sellParentRaw=2026.07.08 14:00:00 reversal=2026.07.09 04:00:00 tpw=2026.07.09 06:00:00 formation=2026.07.09 08:00:00",
+            "0\t02:11:35.350\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] persist_anchor_and_24_continuous_states PASS",
+            "0\t02:11:35.350\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] no_broker_orders PASS",
+            "0\t02:11:35.350\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART-SUMMARY] mode=produce checks=6 failed=0 ok=true acceptance=BOUNDED_ENGINEERING_ONLY"
+          ],
+          "snapshot_sha256": "89f280797420cba918d6342ac1566549025a0476d71e8ecc982d115f03871e36"
+        },
+        "consume": {
+          "terminal_pid": 7976,
+          "terminal_exit": 0,
+          "rows": [
+            "0\t02:11:57.973\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] fresh_terminal_snapshot_identity PASS",
+            "0\t02:11:57.973\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] read_full_M08_M09_snapshot PASS",
+            "0\t02:12:00.735\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_1 PASS",
+            "0\t02:12:00.735\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_2 PASS",
+            "0\t02:12:00.735\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_3 PASS",
+            "0\t02:12:00.735\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_4 PASS",
+            "0\t02:12:00.735\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_5 PASS",
+            "0\t02:12:00.735\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_6 PASS",
+            "0\t02:12:00.735\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_7 PASS",
+            "0\t02:12:00.735\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_8 PASS",
+            "0\t02:12:00.745\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_9 PASS",
+            "0\t02:12:00.745\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_10 PASS",
+            "0\t02:12:00.745\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_11 PASS",
+            "0\t02:12:00.745\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_12 PASS",
+            "0\t02:12:00.745\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_13 PASS",
+            "0\t02:12:00.745\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_14 PASS",
+            "0\t02:12:00.745\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_15 PASS",
+            "0\t02:12:00.745\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_16 PASS",
+            "0\t02:12:00.745\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_17 PASS",
+            "0\t02:12:00.755\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_18 PASS",
+            "0\t02:12:00.755\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_19 PASS",
+            "0\t02:12:00.755\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_20 PASS",
+            "0\t02:12:00.755\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_21 PASS",
+            "0\t02:12:00.755\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_22 PASS",
+            "0\t02:12:00.755\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_23 PASS",
+            "0\t02:12:00.755\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] recovered_equals_continuous_full_state_24 PASS",
+            "0\t02:12:00.755\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] snapshot_has_no_extra_records PASS",
+            "0\t02:12:00.755\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART] no_broker_orders PASS",
+            "0\t02:12:00.755\t2026.08.03 00:00:01  CustomMHVOriginMultiReplayHarness GBPUSD,M15: [MHV-RESTART-SUMMARY] mode=consume checks=28 failed=0 ok=true acceptance=BOUNDED_ENGINEERING_ONLY"
+          ],
+          "snapshot_sha256": "89f280797420cba918d6342ac1566549025a0476d71e8ecc982d115f03871e36"
+        }
+      },
+      "anchor_chart_epoch": 1783584000,
+      "buy": true,
+      "snapshot_sha256": "89f280797420cba918d6342ac1566549025a0476d71e8ecc982d115f03871e36",
+      "snapshot_bytes": 106307,
+      "snapshot": "origin_multi_v4/sig06_mhv_origin_checkpoint_multi_v4_60.csv",
+      "snapshot_rows": 2553,
+      "steps": 24
+    }
+  },
+  "source_bars_compared_after_reload": 96,
+  "fields_per_state": 102,
+  "native_assertions": 136,
+  "distinct_terminal_processes": 8,
+  "bindings": {
+    "CustomMHVOriginInventoryHarness": {
+      "harness_sha256_lf": "d07b77d5416da4c415a68355285f205b2653f037e0f2700efe7b1cf992fb517d",
+      "binary_sha256": "52612162bf8b270125e01b04c4406096830d0aec2f45273ed4ff8d217170c743",
+      "compile": "Result: 0 errors, 0 warnings, 575 msec elapsed"
+    },
+    "CustomMHVOriginReplayHarness": {
+      "harness_sha256_lf": "33ccb0036bf6044af05b9cffd611f00e11a9e436ea08920f60b7289076e0e1f7",
+      "binary_sha256": "bf7cc3b0cb7f63314ceb471c39a1918d48ca8c4aa8ce099c40ff515b1f33c08d",
+      "compile": "Result: 0 errors, 0 warnings, 613 msec elapsed"
+    },
+    "CustomMHVOriginMultiReplayHarness": {
+      "harness_sha256_lf": "5518b2b7285e6031313130288361f26c428eed216dceec3f431d4b4bf772ca2a",
+      "binary_sha256": "bd376e1092b1c94937987b3c010b97f5a3cd7237ce17738a2461022f7c6eb032",
+      "compile": "Result: 0 errors, 0 warnings, 613 msec elapsed"
+    }
+  },
+  "codec_sha256_lf": "cff6eb1c08076ce2f20af33f421fbe733a206e2837afcf4898415c627f535876",
+  "hst_hashes_before_after_equal": true,
+  "hst_hashes": {
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD1.hst": "f931fef6b0d9a829de421c497af8691de48ba74cc9db68d29c50d852de6f1310",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD1440.hst": "6ee8ded5b0027a2340d15196f34da603899d648a772919af6facd156f81800ac",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD15.hst": "74db0196f4d77fc66548cd41614adfdde9ca96f9e2da91daebcd17e304c5e7b5",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD240.hst": "aa58b7e1114d20b135573168fd414db7f210ab260427c8596cadfb8052e5015f",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD30.hst": "d9668038ebc635225534d683ea34b60805915d92510be2b58b6584b8fbbde0d7",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD5.hst": "418440bf35ac6b436361987f3f3deb1beb101ec3a36a3f6c298f338b1e188713",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD60.hst": "566762b35fce7ef2dcb5985a57dac6bc5d0476a6a76ddef2d680ef0905632389"
+  },
+  "remaining_boundary_examples": {
+    "30": [
+      {
+        "previous_chart_epoch": 1784068200,
+        "next_chart_epoch": 1784071800,
+        "previous_chart_label": "2026-07-14 22:30",
+        "next_chart_label": "2026-07-14 23:30",
+        "elapsed_seconds": 3600,
+        "unobserved_nominal_bars": 1,
+        "classification": "UNAUTHENTICATED_BOUNDARY_NOT_ASSUMED_CLOSURE_OR_FILLED_BARS"
+      },
+      {
+        "previous_chart_epoch": 1784071800,
+        "next_chart_epoch": 1784075400,
+        "previous_chart_label": "2026-07-14 23:30",
+        "next_chart_label": "2026-07-15 00:30",
+        "elapsed_seconds": 3600,
+        "unobserved_nominal_bars": 1,
+        "classification": "UNAUTHENTICATED_BOUNDARY_NOT_ASSUMED_CLOSURE_OR_FILLED_BARS"
+      },
+      {
+        "previous_chart_epoch": 1784158200,
+        "next_chart_epoch": 1784161800,
+        "previous_chart_label": "2026-07-15 23:30",
+        "next_chart_label": "2026-07-16 00:30",
+        "elapsed_seconds": 3600,
+        "unobserved_nominal_bars": 1,
+        "classification": "UNAUTHENTICATED_BOUNDARY_NOT_ASSUMED_CLOSURE_OR_FILLED_BARS"
+      }
+    ],
+    "240": [
+      {
+        "previous_chart_epoch": 1774036800,
+        "next_chart_epoch": 1774224000,
+        "previous_chart_label": "2026-03-20 20:00",
+        "next_chart_label": "2026-03-23 00:00",
+        "elapsed_seconds": 187200,
+        "unobserved_nominal_bars": 12,
+        "classification": "UNAUTHENTICATED_BOUNDARY_NOT_ASSUMED_CLOSURE_OR_FILLED_BARS"
+      },
+      {
+        "previous_chart_epoch": 1774641600,
+        "next_chart_epoch": 1774828800,
+        "previous_chart_label": "2026-03-27 20:00",
+        "next_chart_label": "2026-03-30 00:00",
+        "elapsed_seconds": 187200,
+        "unobserved_nominal_bars": 12,
+        "classification": "UNAUTHENTICATED_BOUNDARY_NOT_ASSUMED_CLOSURE_OR_FILLED_BARS"
+      },
+      {
+        "previous_chart_epoch": 1775246400,
+        "next_chart_epoch": 1775433600,
+        "previous_chart_label": "2026-04-03 20:00",
+        "next_chart_label": "2026-04-06 00:00",
+        "elapsed_seconds": 187200,
+        "unobserved_nominal_bars": 12,
+        "classification": "UNAUTHENTICATED_BOUNDARY_NOT_ASSUMED_CLOSURE_OR_FILLED_BARS"
+      }
+    ],
+    "1440": [
+      {
+        "previous_chart_epoch": 1712880000,
+        "next_chart_epoch": 1713139200,
+        "previous_chart_label": "2024-04-12 00:00",
+        "next_chart_label": "2024-04-15 00:00",
+        "elapsed_seconds": 259200,
+        "unobserved_nominal_bars": 2,
+        "classification": "UNAUTHENTICATED_BOUNDARY_NOT_ASSUMED_CLOSURE_OR_FILLED_BARS"
+      },
+      {
+        "previous_chart_epoch": 1713484800,
+        "next_chart_epoch": 1713744000,
+        "previous_chart_label": "2024-04-19 00:00",
+        "next_chart_label": "2024-04-22 00:00",
+        "elapsed_seconds": 259200,
+        "unobserved_nominal_bars": 2,
+        "classification": "UNAUTHENTICATED_BOUNDARY_NOT_ASSUMED_CLOSURE_OR_FILLED_BARS"
+      },
+      {
+        "previous_chart_epoch": 1714089600,
+        "next_chart_epoch": 1714348800,
+        "previous_chart_label": "2024-04-26 00:00",
+        "next_chart_label": "2024-04-29 00:00",
+        "elapsed_seconds": 259200,
+        "unobserved_nominal_bars": 2,
+        "classification": "UNAUTHENTICATED_BOUNDARY_NOT_ASSUMED_CLOSURE_OR_FILLED_BARS"
+      }
+    ]
+  },
+  "limits": "Four initial-state hypotheses do not exhaust all possible valid histories. No session/UTC authentication, no D1/H4/M30 origin acceptance, no custom executable availability. Prior SIG01-05 bounded acceptance unchanged."
+}

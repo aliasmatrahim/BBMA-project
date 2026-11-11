@@ -1,0 +1,197 @@
+{
+  "native": {
+    "build": "6.09",
+    "scope": "shared canonical M10 snapshot and frozen6.00 equivalence; no trading controller",
+    "source_sha256_lf_utf8": "d74f41d0c85e8ec5e4afdd58728c4cfcaae5765adc128f4aefa849edbfb04c25",
+    "compiled": {
+      "CustomMomentumHarness": {
+        "result": "Result: 0 errors, 0 warnings, 587 msec elapsed",
+        "source_sha256_lf_utf8": "9a9669c2449b2d6e6b9a9aaf7a9a540f61ac51915425b9358947c0e96672d8aa",
+        "ex4_sha256": "b252b0e94ba67a2e937095c875c9aafcaa0c47b3326b62794bb2a7c3bccd21a8"
+      }
+    },
+    "rows": [
+      "0\t20:28:54.059\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] frozen600_equivalence_200_1 PASS",
+      "0\t20:28:54.059\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] native_iBands_equivalence_200_1 PASS",
+      "0\t20:28:54.059\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] ready_current_closed_snapshot_1 PASS",
+      "0\t20:28:54.059\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] opposite_direction_reuses_same_calculation_1 PASS",
+      "0\t20:28:54.059\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] historical_query_does_not_evict_current_1 PASS",
+      "0\t20:28:54.059\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] changed_fingerprint_rebuilds_1 PASS",
+      "0\t20:28:54.059\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] unready_snapshot_retries_1 PASS",
+      "0\t20:28:54.059\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] diagnostic_only_projection_1 PASS",
+      "0\t20:28:54.059\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM-DATA] tf=1 comparisons=200 positive=17",
+      "0\t20:28:56.905\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] frozen600_equivalence_200_5 PASS",
+      "0\t20:28:56.905\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] native_iBands_equivalence_200_5 PASS",
+      "0\t20:28:56.905\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] ready_current_closed_snapshot_5 PASS",
+      "0\t20:28:56.905\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] opposite_direction_reuses_same_calculation_5 PASS",
+      "0\t20:28:56.905\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] historical_query_does_not_evict_current_5 PASS",
+      "0\t20:28:56.905\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] changed_fingerprint_rebuilds_5 PASS",
+      "0\t20:28:56.905\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] unready_snapshot_retries_5 PASS",
+      "0\t20:28:56.905\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] diagnostic_only_projection_5 PASS",
+      "0\t20:28:56.905\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM-DATA] tf=5 comparisons=200 positive=12",
+      "0\t20:28:56.935\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] frozen600_equivalence_200_15 PASS",
+      "0\t20:28:56.935\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] native_iBands_equivalence_200_15 PASS",
+      "0\t20:28:56.935\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] ready_current_closed_snapshot_15 PASS",
+      "0\t20:28:56.935\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] opposite_direction_reuses_same_calculation_15 PASS",
+      "0\t20:28:56.935\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] historical_query_does_not_evict_current_15 PASS",
+      "0\t20:28:56.935\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] changed_fingerprint_rebuilds_15 PASS",
+      "0\t20:28:56.935\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] unready_snapshot_retries_15 PASS",
+      "0\t20:28:56.935\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] diagnostic_only_projection_15 PASS",
+      "0\t20:28:56.935\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM-DATA] tf=15 comparisons=200 positive=9",
+      "0\t20:28:59.722\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] frozen600_equivalence_200_30 PASS",
+      "0\t20:28:59.722\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] native_iBands_equivalence_200_30 PASS",
+      "0\t20:28:59.722\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] ready_current_closed_snapshot_30 PASS",
+      "0\t20:28:59.722\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] opposite_direction_reuses_same_calculation_30 PASS",
+      "0\t20:28:59.722\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] historical_query_does_not_evict_current_30 PASS",
+      "0\t20:28:59.722\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] changed_fingerprint_rebuilds_30 PASS",
+      "0\t20:28:59.722\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] unready_snapshot_retries_30 PASS",
+      "0\t20:28:59.722\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] diagnostic_only_projection_30 PASS",
+      "0\t20:28:59.722\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM-DATA] tf=30 comparisons=200 positive=18",
+      "0\t20:29:02.515\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] frozen600_equivalence_200_60 PASS",
+      "0\t20:29:02.515\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] native_iBands_equivalence_200_60 PASS",
+      "0\t20:29:02.515\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] ready_current_closed_snapshot_60 PASS",
+      "0\t20:29:02.515\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] opposite_direction_reuses_same_calculation_60 PASS",
+      "0\t20:29:02.515\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] historical_query_does_not_evict_current_60 PASS",
+      "0\t20:29:02.515\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] changed_fingerprint_rebuilds_60 PASS",
+      "0\t20:29:02.515\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] unready_snapshot_retries_60 PASS",
+      "0\t20:29:02.515\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] diagnostic_only_projection_60 PASS",
+      "0\t20:29:02.515\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM-DATA] tf=60 comparisons=200 positive=12",
+      "0\t20:29:05.290\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] frozen600_equivalence_200_240 PASS",
+      "0\t20:29:05.290\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] native_iBands_equivalence_200_240 PASS",
+      "0\t20:29:05.290\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] ready_current_closed_snapshot_240 PASS",
+      "0\t20:29:05.290\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] opposite_direction_reuses_same_calculation_240 PASS",
+      "0\t20:29:05.290\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] historical_query_does_not_evict_current_240 PASS",
+      "0\t20:29:05.290\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] changed_fingerprint_rebuilds_240 PASS",
+      "0\t20:29:05.290\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] unready_snapshot_retries_240 PASS",
+      "0\t20:29:05.290\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] diagnostic_only_projection_240 PASS",
+      "0\t20:29:05.290\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM-DATA] tf=240 comparisons=200 positive=10",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] frozen600_equivalence_200_1440 PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] native_iBands_equivalence_200_1440 PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] ready_current_closed_snapshot_1440 PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] opposite_direction_reuses_same_calculation_1440 PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] historical_query_does_not_evict_current_1440 PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] changed_fingerprint_rebuilds_1440 PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] unready_snapshot_retries_1440 PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] diagnostic_only_projection_1440 PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM-DATA] tf=1440 comparisons=200 positive=10",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] BUY_expanding_directional_outside PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] BUY_equal_outer_rejected PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] equal_width_rejected PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] BUY_equal_mid_slope_rejected PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] SELL_expanding_directional_outside PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] SELL_equal_outer_rejected PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] SELL_equal_mid_slope_rejected PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] flat_outside_not_MOM PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] missing_band_rejected PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] NONE_direction_rejected PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] missing_symbol_isolated PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] live_candle_rejected PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] invalid_direction_rejected PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] stale_projection_rejected PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] unseeded_CSA_CSAK_views_unavailable PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM] no_orders PASS",
+      "0\t20:29:08.072\t2026.08.03 00:00:01  CustomMomentumHarness GBPUSD,M15: [CUSTOM-MOMENTUM-SUMMARY] passed=72 failed=0"
+    ],
+    "expected": "passed=72 failed=0",
+    "passed": true,
+    "headers": {
+      "blueprint/source/custom_mtf/CustomClock.mqh": "a012146ba0e863acc324d53bba041f24ac9ddf81486bdeee3f7b3d1f99df1261",
+      "blueprint/source/custom_mtf/CustomFormula.mqh": "891beea1605278a0d072a9d54cc305d75b7c180918679197e5bb82cd436fa92b",
+      "blueprint/source/custom_mtf/CustomIdentity.mqh": "58357dc65c07a684ca14291c9933f7b7880c82f332880f2fd190a3b69b6095e9",
+      "blueprint/source/custom_mtf/CustomInputs.mqh": "2e4cd80bd66e0cfd7255ea643b343a6c08f91b406b1278e772c82ec86f3b8eb2",
+      "blueprint/source/custom_mtf/CustomOwners.mqh": "2cbb1a1c062053e2162037e58096aec194e36409dcb911865eed6dd1fba1a38e",
+      "blueprint/source/custom_mtf/CustomPairBinding.mqh": "58cc864aecb8c228f7da8fa51a4e0363e1625aa750c6cf1356b2e6e02cd98da2",
+      "blueprint/source/custom_mtf/CustomSlot.mqh": "a3fffe0a3d8da7076f952a755d7060c6e8b4fc34e3a7445c14852aba71fa56f3",
+      "blueprint/source/custom_mtf/CustomSymbolInputs.mqh": "ac2d8fd5500269cd3821838d56456b2bd857a205545e58c7b307ad57453e35fe",
+      "blueprint/source/custom_mtf/CustomSymbols.mqh": "709aaff7fe4d0a4d24206c7a0d55456ba4b339e63dfc16219321e0b0a91a1630"
+    },
+    "test_headers": {
+      "blueprint/tests/custom_mtf/CustomOwnerTestEquality.mqh": "98d692ca85fbda7954160e818ab7894970a85ecd90630934e4bab9fc2b43aa18"
+    }
+  },
+  "controller": {
+    "build": "6.09",
+    "seeded_trusted_owner_fixtures": false,
+    "source_sha256_lf": "d74f41d0c85e8ec5e4afdd58728c4cfcaae5765adc128f4aefa849edbfb04c25",
+    "baseline_build": "609",
+    "baseline_source_sha256_lf": "d74f41d0c85e8ec5e4afdd58728c4cfcaae5765adc128f4aefa849edbfb04c25",
+    "compiled": {
+      "CustomControllerParityHarness": {
+        "result": "Result: 0 errors, 0 warnings, 1059 msec elapsed",
+        "harness_sha256_lf": "0d0c227001d2bb0c0c25aae209660414dc8332f0c33f39a80cb45e896b19cb03",
+        "binary_sha256": "89c5a13f208fdcc3aaa9a23ed96dd3cd37d2e5fd31bfc40306775939bec02063"
+      },
+      "CustomControllerBaselineHarness": {
+        "result": "Result: 0 errors, 0 warnings, 1072 msec elapsed",
+        "harness_sha256_lf": "09b912b2271734dbcf34e90d35e31988f16b6ce3635ff3d5d4839db4641c128c",
+        "binary_sha256": "8976acc9efa42980ee5f31f9eb01d83549b917d987f82cbc4fb0faa045f04d34"
+      }
+    },
+    "records": {
+      "off": {
+        "initial_checkpoint_isolation": [
+          "0\t20:29:31.939\t2026.08.04 00:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointBefore=true prefix=F4H4|1|82|GBPUSD|",
+          "0\t20:29:31.939\t2026.08.04 00:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointAfter=false"
+        ],
+        "summary": "0\t20:29:46.286\t2026.08.04 06:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-SUMMARY] cycles=16 valid=0 frames=0 attempts=0 seeds=0 handovers=0 csaViews=0 csaOK=true ok=true",
+        "counts": {
+          "cycles": 16,
+          "valid": 0,
+          "frames": 0,
+          "attempts": 0,
+          "seeds": 0,
+          "handovers": 0,
+          "csaViews": 0
+        },
+        "trace_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\sig04_mom\\controller609\\off_trace.txt",
+        "trace_rows": 12224,
+        "trace_sha256": "8650dc9b4f8b5f6704a6e9338ad2a41b9711509f2e439d17b48afaed147026c8"
+      },
+      "on": {
+        "initial_checkpoint_isolation": [
+          "0\t20:30:02.650\t2026.08.04 00:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointBefore=true prefix=F4H4|1|82|GBPUSD|",
+          "0\t20:30:02.650\t2026.08.04 00:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointAfter=false"
+        ],
+        "summary": "0\t20:30:20.189\t2026.08.04 06:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-SUMMARY] cycles=16 valid=0 frames=15 attempts=0 seeds=0 handovers=0 csaViews=630 csaOK=true ok=true",
+        "counts": {
+          "cycles": 16,
+          "valid": 0,
+          "frames": 15,
+          "attempts": 0,
+          "seeds": 0,
+          "handovers": 0,
+          "csaViews": 630
+        },
+        "trace_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\sig04_mom\\controller609\\on_trace.txt",
+        "trace_rows": 12224,
+        "trace_sha256": "8650dc9b4f8b5f6704a6e9338ad2a41b9711509f2e439d17b48afaed147026c8"
+      },
+      "baseline609": {
+        "initial_checkpoint_isolation": [
+          "0\t20:30:36.930\t2026.08.04 00:00:59  CustomControllerBaselineHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointBefore=true prefix=F4H4|1|82|GBPUSD|",
+          "0\t20:30:36.930\t2026.08.04 00:00:59  CustomControllerBaselineHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointAfter=false"
+        ],
+        "summary": "0\t20:30:51.232\t2026.08.04 06:00:59  CustomControllerBaselineHarness GBPUSD,M1: [CUSTOM-PARITY-SUMMARY] cycles=16 valid=0 frames=0 attempts=0 seeds=0 handovers=0 csaViews=0 csaOK=true ok=true",
+        "counts": {
+          "cycles": 16,
+          "valid": 0,
+          "frames": 0,
+          "attempts": 0,
+          "seeds": 0,
+          "handovers": 0,
+          "csaViews": 0
+        },
+        "trace_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\sig04_mom\\controller609\\baseline609_trace.txt",
+        "trace_rows": 12224,
+        "trace_sha256": "8650dc9b4f8b5f6704a6e9338ad2a41b9711509f2e439d17b48afaed147026c8"
+      }
+    },
+    "candidate_monitor_parity": true,
+    "candidate_differences_first10": [],
+    "old_new_trace_row_counts_equal": true,
+    "old_new_difference_count": 0,
+    "old_new_differences_first20": [],
+    "scope": "Actual OnTick/OnTimer -> M27 -> ProcessPair on GBPUSD M1 delivery model2 with canonical M15 clock, Aug4 2026 02:00-06:00 chart time; fresh initialized owners unless seeded_trusted_owner_fixtures=true (explicit pending handover fixtures, not historical formation), M30 derived fixture; no wall-clock timer, arbitrary cold-start/session or positive-entry claim. Test-only OrderSend capture replaces broker send; all custom slots OFF. Full scalar owner/decision traces are compared, not only hashes."
+  },
+  "status": "Valid complete-data baseline only; SIG-04 NOT VERIFIED due native readiness counterexample"
+}

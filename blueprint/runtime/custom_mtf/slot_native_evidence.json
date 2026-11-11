@@ -1,0 +1,14 @@
+{
+  "scope": "T02_SLOT_SCHEMA_ONLY",
+  "red_adapter": "passed=8 failed=3",
+  "green": "passed=11 failed=0",
+  "native_compile": "0 errors, 0 warnings, 417 msec elapsed",
+  "compiler": "5.0.0.2425",
+  "terminal": 1492,
+  "log_excerpt": "[Reading last 18 lines (total: 164 lines)]\n\n0\t10:30:39.707\tTester: start with configuration file\n3\t10:30:49.334\tTestGenerator: no connect to trade server, default environment will be applied\n0\t10:30:49.334\tTestGenerator: spread set to 20\n2\t10:30:51.436\t2026.08.03 00:00:00  CustomSlotHarness test started\n0\t10:30:51.509\t2026.08.03 00:00:01  CustomSlotHarness GBPUSD,M15: [CUSTOM-SLOT] PASS slot=1 expected=true actual=true\n0\t10:30:51.509\t2026.08.03 00:00:01  CustomSlotHarness GBPUSD,M15: [CUSTOM-SLOT] PASS slot=5 expected=true actual=true\n0\t10:30:51.509\t2026.08.03 00:00:01  CustomSlotHarness GBPUSD,M15: [CUSTOM-SLOT] PASS slot=1 expected=false actual=false\n0\t10:30:51.509\t2026.08.03 00:00:01  CustomSlotHarness GBPUSD,M15: [CUSTOM-SLOT] PASS slot=0 expected=false actual=false\n0\t10:30:51.509\t2026.08.03 00:00:01  CustomSlotHarness GBPUSD,M15: [CUSTOM-SLOT] PASS slot=6 expected=false actual=false\n0\t10:30:51.509\t2026.08.03 00:00:01  CustomSlotHarness GBPUSD,M15: [CUSTOM-SLOT] PASS slot=3 expected=true actual=true\n0\t10:30:51.509\t2026.08.03 00:00:01  CustomSlotHarness GBPUSD,M15: [CUSTOM-SLOT] PASS slot=2 expected=false actual=false\n0\t10:30:51.509\t2026.08.03 00:00:01  CustomSlotHarness GBPUSD,M15: [CUSTOM-SLOT] PASS slot=2 expected=false actual=false\n0\t10:30:51.509\t2026.08.03 00:00:01  CustomSlotHarness GBPUSD,M15: [CUSTOM-SLOT] PASS slot=2 expected=false actual=false\n0\t10:30:51.509\t2026.08.03 00:00:01  CustomSlotHarness GBPUSD,M15: [CUSTOM-SLOT] PASS slot=2 expected=false actual=false\n0\t10:30:51.509\t2026.08.03 00:00:01  CustomSlotHarness GBPUSD,M15: [CUSTOM-SLOT] PASS slot=2 expected=false actual=false\n0\t10:30:51.509\t2026.08.03 00:00:01  CustomSlotHarness GBPUSD,M15: [CUSTOM-SLOT-SUMMARY] passed=11 failed=0\n0\t10:30:51.510\tGBPUSD,M15: 96 tick events (96 bars, 1096 bar states) processed in 0:00:00.078 (total time 0:00:10.594)\n0\t10:30:52.827\tExpert CustomSlotHarness GBPUSD,M15: removed",
+  "limitations": [
+    "Return-value assertions only; per-cell indexing/publication reviewed statically",
+    "Not integrated into EA inputs",
+    "No trading or signal semantics verified"
+  ]
+}

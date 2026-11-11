@@ -1,0 +1,110 @@
+{
+  "task": "SIG-06-MHV",
+  "status": "PARTIAL — bounded M09 availability propagation fix VERIFIED; full historical recovery HOLD",
+  "base_commit": "b867ad76c92e67a5bdd317d37d16bfa5cb0b0a99",
+  "build": "6.13",
+  "source_revision": "MHV_AVAILABILITY_PROPAGATION_001_20261111",
+  "source_sha256_lf": "43470ff9795b18e44844bb815deceee778072a004b8815666e18e8ffa584d15c",
+  "scope": {
+    "changed": [
+      "IsMHVContinuationInvalidation/4",
+      "IsMHVLossPhaseEligible/4",
+      "UpdateCanonicalMLVState/8",
+      "ProcessPair/1",
+      "AdvanceMHVSourceOwners/8"
+    ],
+    "added": [
+      "ReadMHVContinuationInvalidation/5",
+      "ReadMHVLossPhaseEligibility/5",
+      "UpdateCanonicalMLVState/9",
+      "TryUpdateCanonicalMLVState/8"
+    ],
+    "deleted": [],
+    "unchanged": 460
+  },
+  "native": {
+    "red": {
+      "build": "6.12",
+      "passed": 197,
+      "failed": 98,
+      "terminal_pid": 4456
+    },
+    "green": {
+      "passed": 295,
+      "failed": 0,
+      "terminal_pid": 7868,
+      "compile": "0E0W",
+      "harness_sha256_lf": "4f2f1ed1192ed9f0b7cab8a39d3fb2c78560158477d496fa537a101dd946a247"
+    },
+    "inner_status": {
+      "passed": 785,
+      "failed": 0,
+      "terminal_pid": 12676,
+      "compile": "0E0W",
+      "harness_sha256_lf": "21873d025e60d796792803609571553e942e6c168e34a42d940fb0eb58f1ff64"
+    }
+  },
+  "regression": {
+    "initial_driver_pid": 2948,
+    "initial_fixture_failure": "166 PASS / 1 FAIL, omitted canonical scope; retained",
+    "resume_driver_pid": 5100,
+    "resume_driver_exit": 0,
+    "completed": [
+      "candidate",
+      "momready",
+      "mhvtf",
+      "m09producer",
+      "m09replay",
+      "canonmhv",
+      "observerm09",
+      "producer",
+      "recovery",
+      "higher",
+      "flow",
+      "prefreeze",
+      "controller",
+      "controller_seeded"
+    ],
+    "controller_differences": {
+      "ordinary": 0,
+      "seeded": 0
+    },
+    "rows_per_case": 12224,
+    "cycles_per_case": 16,
+    "attempts": 0
+  },
+  "next": "Remain SIG06. Obtain accepted deployment-feed/server historical session/boundary authority and a source-proven owner epoch, then successful production gap-recovery parity. Do not redo verified 6.13 availability work or start MLV/Re-Entry.",
+  "full_SIG06": "PARTIAL/HOLD — original historical session/owner-epoch/successful production boundary recovery exits remain",
+  "auto_entry": false,
+  "collector": {
+    "pid": 6584,
+    "exit": 0,
+    "binary_bindings": 14,
+    "archive": {
+      "sha256": "dabc0aa4f454ec8ee1bdfdc48841fd639340a0672a899821200daf14d0ff88aa",
+      "bytes": 41676,
+      "base64_chars": 55568,
+      "parts": 2,
+      "chunk_chars": 50000,
+      "roundtrip_verified": true,
+      "files": 51,
+      "unique_objects": 47
+    }
+  },
+  "report": "blueprint/audits/CUSTOM_MTF_MHV_AVAILABILITY_PROPAGATION_20261111.md",
+  "broker_profile": {
+    "schemaVersion": 1,
+    "profileId": "BBMA_PRIMARY_BROKER_UNRESOLVED",
+    "status": "UNRESOLVED",
+    "classification": "ENGINEERING_MAPPING",
+    "canonicalStrategyRule": false,
+    "broker": null,
+    "server": null,
+    "utcOffsetStandardMinutes": null,
+    "utcOffsetDstMinutes": null,
+    "dstRule": null,
+    "weekOpenRule": null,
+    "weekCloseRule": null,
+    "notes": "Resolve from the eventual primary deployment broker. Do not encode UTC+2/UTC+3 as BBMA Strategy Core without source evidence."
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "task": "SIG-04-MOM",
+  "status": "VERIFIED bounded acceptance; publication verification required before SIG-05",
+  "build": "6.10",
+  "source_rev": "MOMENTUM_READINESS_003_20261110",
+  "source_sha256_lf": "ebe3e4155b0ae5211432957ed999e04b58bc0a043b40a23ce76d24257346baae",
+  "tested_code": "0da572057bc009b0108b98745b617041fc06fa18",
+  "native_groups": 18,
+  "native_readiness": 167,
+  "native_valid_data": 72,
+  "bindings": 20,
+  "collector_pid": 9520,
+  "collector_exit": 0,
+  "next": "SIG-05 Extreme after publication verification",
+  "auto_entry": false
+}

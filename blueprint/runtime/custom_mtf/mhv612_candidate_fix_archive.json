@@ -1,0 +1,10 @@
+{
+  "original_zip_sha256": "3e68cca85ee23a8047ffa6f9046b2540a6be6379e8b6220913349f138318eefb",
+  "original_zip_bytes": 474259,
+  "xz_sha256": "d4203d1b92fc1413a97c5073dcda0a13aae7c32c7b2f23e5e7c67287ec5a1a2e",
+  "xz_bytes": 210632,
+  "base64_chars": 280844,
+  "chunk_chars": 50000,
+  "parts": 6,
+  "roundtrip_verified": true
+}

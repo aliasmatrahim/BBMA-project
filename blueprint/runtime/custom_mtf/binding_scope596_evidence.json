@@ -1,0 +1,22 @@
+{
+  "red": {
+    "source_sha256_lf_utf8": "8608909247c9eb8f2f946474544fc14297bb7a990e2b1fee744c6e63d8ffee63",
+    "dispatch_body_sha256_lf_utf8": "5ce72923d170c0438d51805fa28f3efd513327db94002afd85924adb632dfb0f",
+    "compile": "Result: 0 errors, 0 warnings, 398 msec elapsed",
+    "rows": [
+      "0\t00:12:47.815\t2026.08.03 00:00:01  CustomScopeHarness GBPUSD,M15: [SCOPE-ROUTING] custom_blocked=false all_custom_blocked=false canonical_preserved=true",
+      "0\t00:12:47.815\t2026.08.03 00:00:01  CustomScopeHarness GBPUSD,M15: [SCOPE-ROUTING-SUMMARY] passed=1 failed=2"
+    ],
+    "expected": "passed=1 failed=2"
+  },
+  "green": {
+    "source_sha256_lf_utf8": "16c34434dc83c7fccffef25ed2c0787160bd76cfc0ba2dc1fd450f96cb13637c",
+    "dispatch_body_sha256_lf_utf8": "865ef6858f791efdfdb93e09d6c94f09bf5b6614d157bf169656b5d3b9b9e984",
+    "compile": "Result: 0 errors, 0 warnings, 294 msec elapsed",
+    "rows": [
+      "0\t00:13:11.182\t2026.08.03 00:00:01  CustomScopeHarness GBPUSD,M15: [SCOPE-ROUTING] custom_blocked=true all_custom_blocked=true canonical_preserved=true",
+      "0\t00:13:11.182\t2026.08.03 00:00:01  CustomScopeHarness GBPUSD,M15: [SCOPE-ROUTING-SUMMARY] passed=3 failed=0"
+    ],
+    "expected": "passed=3 failed=0"
+  }
+}

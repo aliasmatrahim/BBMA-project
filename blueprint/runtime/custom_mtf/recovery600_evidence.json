@@ -1,0 +1,58 @@
+{
+  "build": "6.00",
+  "scope": "actual M06/M08/M12 anchored replay vs continuous control; no trading controller invoked",
+  "source_sha256_lf_utf8": "9f189bee1d7b0c8520b47e4f3c8ab96c7ebdcb2c0ce8a360b902041eb7e8d0c2",
+  "compiled": {
+    "CustomRecoveryHarness": {
+      "result": "Result: 0 errors, 0 warnings, 465 msec elapsed",
+      "source_sha256_lf_utf8": "a8cc9996b6605de3b3fec6664f29ab11a8b9dc517b10f6dc2f8b7d8291016fc8",
+      "ex4_sha256": "16a9419b93fe21999ce6602a1e9cbb7ddee5736781f70978e298926c56f86519"
+    }
+  },
+  "rows": [
+    "0\t08:52:20.539\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] seed_1 PASS",
+    "0\t08:52:20.540\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] continuous_control_1 PASS",
+    "0\t08:52:20.541\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] replay_catches_up_1 PASS",
+    "0\t08:52:20.541\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] all_owner_fields_match_control_1 PASS",
+    "0\t08:52:20.541\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] duplicate_does_not_replay_1 PASS",
+    "0\t08:52:20.541\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] replay_is_context_only_1 PASS",
+    "0\t08:52:20.541\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] next_genuine_bar_resumes_1 PASS",
+    "0\t08:52:23.751\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] seed_5 PASS",
+    "0\t08:52:23.752\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] continuous_control_5 PASS",
+    "0\t08:52:23.753\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] replay_catches_up_5 PASS",
+    "0\t08:52:23.753\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] all_owner_fields_match_control_5 PASS",
+    "0\t08:52:23.753\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] duplicate_does_not_replay_5 PASS",
+    "0\t08:52:23.753\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] replay_is_context_only_5 PASS",
+    "0\t08:52:23.754\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] next_genuine_bar_resumes_5 PASS",
+    "0\t08:52:26.881\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] seed_30 PASS",
+    "0\t08:52:26.882\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] continuous_control_30 PASS",
+    "0\t08:52:26.883\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] replay_catches_up_30 PASS",
+    "0\t08:52:26.883\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] all_owner_fields_match_control_30 PASS",
+    "0\t08:52:26.883\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] duplicate_does_not_replay_30 PASS",
+    "0\t08:52:26.883\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] replay_is_context_only_30 PASS",
+    "0\t08:52:26.883\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] next_genuine_bar_resumes_30 PASS",
+    "0\t08:52:26.883\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] missing_exact_anchor_holds PASS",
+    "0\t08:52:26.883\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] failed_recovery_preserves_structural_owner PASS",
+    "0\t08:52:26.883\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] owner_watermark_cannot_exceed_replay_anchor PASS",
+    "0\t08:52:27.004\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] bounded_chunk_keeps_recovery_hold PASS",
+    "0\t08:52:27.022\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] next_chunk_resumes_without_replay PASS",
+    "0\t08:52:27.023\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY] missing_warmup_does_not_publish_partial_chunk PASS",
+    "0\t08:52:27.023\t2026.08.03 00:00:01  CustomRecoveryHarness GBPUSD,M15: [CUSTOM-RECOVERY-SUMMARY] passed=27 failed=0"
+  ],
+  "expected": "passed=27 failed=0",
+  "passed": true,
+  "headers": {
+    "blueprint/source/custom_mtf/CustomClock.mqh": "a012146ba0e863acc324d53bba041f24ac9ddf81486bdeee3f7b3d1f99df1261",
+    "blueprint/source/custom_mtf/CustomFormula.mqh": "891beea1605278a0d072a9d54cc305d75b7c180918679197e5bb82cd436fa92b",
+    "blueprint/source/custom_mtf/CustomIdentity.mqh": "58357dc65c07a684ca14291c9933f7b7880c82f332880f2fd190a3b69b6095e9",
+    "blueprint/source/custom_mtf/CustomInputs.mqh": "2e4cd80bd66e0cfd7255ea643b343a6c08f91b406b1278e772c82ec86f3b8eb2",
+    "blueprint/source/custom_mtf/CustomOwners.mqh": "4851eb723355a806d7ecc7b1522c83897ba6751e4c77030379b2faa384172fd0",
+    "blueprint/source/custom_mtf/CustomPairBinding.mqh": "58cc864aecb8c228f7da8fa51a4e0363e1625aa750c6cf1356b2e6e02cd98da2",
+    "blueprint/source/custom_mtf/CustomSlot.mqh": "a3fffe0a3d8da7076f952a755d7060c6e8b4fc34e3a7445c14852aba71fa56f3",
+    "blueprint/source/custom_mtf/CustomSymbolInputs.mqh": "ac2d8fd5500269cd3821838d56456b2bd857a205545e58c7b307ad57453e35fe",
+    "blueprint/source/custom_mtf/CustomSymbols.mqh": "709aaff7fe4d0a4d24206c7a0d55456ba4b339e63dfc16219321e0b0a91a1630"
+  },
+  "test_headers": {
+    "blueprint/tests/custom_mtf/CustomOwnerTestEquality.mqh": "4d5639b69c9844bc80ada3ce445ab22279999375d88f91338c1cea1ac308a287"
+  }
+}

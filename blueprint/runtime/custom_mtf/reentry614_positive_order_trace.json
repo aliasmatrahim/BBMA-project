@@ -1,0 +1,406 @@
+{
+  "status": "VERIFIED positive timing for standalone H1 Types 1, 3, 4 in Strategy Tester",
+  "build": "isolated 6.14",
+  "driver_pid": 9188,
+  "driver_exit": 0,
+  "analysis_pid": 5952,
+  "order_count": 14,
+  "trace_type_counts": {
+    "type1": 2,
+    "type3": 4,
+    "type4": 8
+  },
+  "trace_requirements": [
+    "same candle and decision identity for RE_ADMIT/M15_SELECT/M16_PASS/tester order open/EXEC",
+    "OrderOpenTime equals next actual H1 source candle open",
+    "no late admissions or orders in five profiles",
+    "all input HST SHA256 values checked again against per-profile manifests"
+  ],
+  "g40_evidence": "D:\\BBMA\\MT4_ReEntryTiming_515_20261107\\evidence\\ReEntryTiming614_Witness_20261111",
+  "profiles": [
+    {
+      "profile": "EURUSD_202608",
+      "dates": [
+        "2026.08.01",
+        "2026.09.01"
+      ],
+      "pid": 5924,
+      "binary_sha": "d49300414dc28e26c819fc988a970f9855c85e197e423f2a386de77971490cc1",
+      "log_sha": "c628480025cd8b066d1e33eca2ea219851e3a3ef59759ce1a563db463480ac2c",
+      "preset_sha": "f1dd98152b14de481a93e2cc53b801ecf1e9d4cf6a52933b020b97ee28afaec6",
+      "confirmed": {
+        "RE_TYPE_3_CSM": 5,
+        "RE_TYPE_4_CSD": 28,
+        "RE_TYPE_1": 5
+      },
+      "admitted": {
+        "RE_TYPE_4_CSD": 15,
+        "RE_TYPE_3_CSM": 4,
+        "RE_TYPE_1": 1
+      },
+      "admission_rows": 80,
+      "late_admissions": [],
+      "late_orders": [],
+      "positive_order_count": 8,
+      "positive_orders": [
+        [
+          "1",
+          "SIGNAL_RE_ENTRY",
+          "DIR_BUY",
+          "2026.08.03 03:00",
+          "2026.08.03 04:00"
+        ],
+        [
+          "2",
+          "SIGNAL_RE_ENTRY",
+          "DIR_BUY",
+          "2026.08.05 11:00",
+          "2026.08.05 12:00"
+        ],
+        [
+          "3",
+          "SIGNAL_RE_ENTRY",
+          "DIR_BUY",
+          "2026.08.12 17:00",
+          "2026.08.12 18:00"
+        ],
+        [
+          "4",
+          "SIGNAL_RE_ENTRY",
+          "DIR_BUY",
+          "2026.08.13 15:00",
+          "2026.08.13 16:00"
+        ],
+        [
+          "5",
+          "SIGNAL_RE_ENTRY",
+          "DIR_BUY",
+          "2026.08.17 14:00",
+          "2026.08.17 15:00"
+        ],
+        [
+          "6",
+          "SIGNAL_RE_ENTRY",
+          "DIR_BUY",
+          "2026.08.19 21:00",
+          "2026.08.19 22:00"
+        ],
+        [
+          "7",
+          "SIGNAL_RE_ENTRY",
+          "DIR_BUY",
+          "2026.08.21 09:00",
+          "2026.08.21 10:00"
+        ],
+        [
+          "8",
+          "SIGNAL_RE_ENTRY",
+          "DIR_BUY",
+          "2026.08.24 04:00",
+          "2026.08.24 05:00"
+        ]
+      ],
+      "type2_examples": [],
+      "execution_rows": 8
+    },
+    {
+      "profile": "USDJPY_202608",
+      "dates": [
+        "2026.08.01",
+        "2026.09.01"
+      ],
+      "pid": 12176,
+      "binary_sha": "d49300414dc28e26c819fc988a970f9855c85e197e423f2a386de77971490cc1",
+      "log_sha": "ded10e5a9bc4e52cd0ff96e4466f2ef03f94a95dedceb43d89aef03ee63775bd",
+      "preset_sha": "290ee8b93c42449820472e3dd3c87f9e71b57212f5824a99e7cd534fff6248f4",
+      "confirmed": {
+        "RE_TYPE_3_CSM": 4,
+        "RE_TYPE_4_CSD": 25,
+        "RE_TYPE_1": 6
+      },
+      "admitted": {
+        "RE_TYPE_3_CSM": 2,
+        "RE_TYPE_4_CSD": 15,
+        "RE_TYPE_1": 2
+      },
+      "admission_rows": 76,
+      "late_admissions": [],
+      "late_orders": [],
+      "positive_order_count": 6,
+      "positive_orders": [
+        [
+          "1",
+          "SIGNAL_RE_ENTRY",
+          "DIR_SELL",
+          "2026.08.07 22:00",
+          "2026.08.07 23:00"
+        ],
+        [
+          "2",
+          "SIGNAL_RE_ENTRY",
+          "DIR_SELL",
+          "2026.08.13 06:00",
+          "2026.08.13 07:00"
+        ],
+        [
+          "3",
+          "SIGNAL_RE_ENTRY",
+          "DIR_SELL",
+          "2026.08.13 09:00",
+          "2026.08.13 10:00"
+        ],
+        [
+          "4",
+          "SIGNAL_RE_ENTRY",
+          "DIR_SELL",
+          "2026.08.17 06:00",
+          "2026.08.17 07:00"
+        ],
+        [
+          "5",
+          "SIGNAL_RE_ENTRY",
+          "DIR_SELL",
+          "2026.08.21 14:00",
+          "2026.08.21 15:00"
+        ],
+        [
+          "6",
+          "SIGNAL_RE_ENTRY",
+          "DIR_SELL",
+          "2026.08.24 04:00",
+          "2026.08.24 05:00"
+        ]
+      ],
+      "type2_examples": [],
+      "execution_rows": 6
+    },
+    {
+      "profile": "GBPUSD_202607",
+      "dates": [
+        "2026.07.01",
+        "2026.08.01"
+      ],
+      "pid": 7172,
+      "binary_sha": "d49300414dc28e26c819fc988a970f9855c85e197e423f2a386de77971490cc1",
+      "log_sha": "ae0b4589cc58c3a23502ea635cb33f31d88fb27cd26c69a388aba28988862b5c",
+      "preset_sha": "4e04beaa870b6debaa58036f7da0e1b60a01315f315c39d50366b63c2d723db1",
+      "confirmed": {
+        "RE_TYPE_4_CSD": 27,
+        "RE_TYPE_1": 7,
+        "RE_TYPE_3_CSM": 3
+      },
+      "admitted": {},
+      "admission_rows": 0,
+      "late_admissions": [],
+      "late_orders": [],
+      "positive_order_count": 0,
+      "positive_orders": [],
+      "type2_examples": [],
+      "execution_rows": 0
+    },
+    {
+      "profile": "GBPUSD_202601",
+      "dates": [
+        "2026.01.01",
+        "2026.02.01"
+      ],
+      "pid": 2740,
+      "binary_sha": "d49300414dc28e26c819fc988a970f9855c85e197e423f2a386de77971490cc1",
+      "log_sha": "aa026062c8ff29045833ddcfbb4b8a6804b83814306c06b49c2e76ee0d436f67",
+      "preset_sha": "4e04beaa870b6debaa58036f7da0e1b60a01315f315c39d50366b63c2d723db1",
+      "confirmed": {
+        "RE_TYPE_1": 11,
+        "RE_TYPE_4_CSD": 26,
+        "RE_TYPE_3_CSM": 3
+      },
+      "admitted": {},
+      "admission_rows": 0,
+      "late_admissions": [],
+      "late_orders": [],
+      "positive_order_count": 0,
+      "positive_orders": [],
+      "type2_examples": [],
+      "execution_rows": 0
+    },
+    {
+      "profile": "EURUSD_202607",
+      "dates": [
+        "2026.07.01",
+        "2026.08.01"
+      ],
+      "pid": 2472,
+      "binary_sha": "d49300414dc28e26c819fc988a970f9855c85e197e423f2a386de77971490cc1",
+      "log_sha": "b773eb136e72eba1c5ae33bcaad67ccb03b86e2c6ec31ca5a1fa49f66d883a33",
+      "preset_sha": "f1dd98152b14de481a93e2cc53b801ecf1e9d4cf6a52933b020b97ee28afaec6",
+      "confirmed": {
+        "RE_TYPE_4_CSD": 34,
+        "RE_TYPE_3_CSM": 1,
+        "RE_TYPE_1": 5
+      },
+      "admitted": {},
+      "admission_rows": 0,
+      "late_admissions": [],
+      "late_orders": [],
+      "positive_order_count": 0,
+      "positive_orders": [],
+      "type2_examples": [],
+      "execution_rows": 0
+    }
+  ],
+  "orders": [
+    {
+      "profile": "EURUSD_202608",
+      "ticket": 1,
+      "type": "RE_TYPE_4_CSD",
+      "dir": "DIR_BUY",
+      "confirmation": "2026.08.03 03:00",
+      "next_h1": "2026.08.03 04:00",
+      "m15_m16_order_trace": "2026.08.03 04:00:01",
+      "order_open": "2026.08.03 04:00",
+      "decision_id": "EURUSD|2026.08.03 03:00|1|7|5791FE6A7797673C"
+    },
+    {
+      "profile": "EURUSD_202608",
+      "ticket": 2,
+      "type": "RE_TYPE_3_CSM",
+      "dir": "DIR_BUY",
+      "confirmation": "2026.08.05 11:00",
+      "next_h1": "2026.08.05 12:00",
+      "m15_m16_order_trace": "2026.08.05 12:00:01",
+      "order_open": "2026.08.05 12:00",
+      "decision_id": "EURUSD|2026.08.05 11:00|1|7|225683FC5E7FA4B0"
+    },
+    {
+      "profile": "EURUSD_202608",
+      "ticket": 3,
+      "type": "RE_TYPE_3_CSM",
+      "dir": "DIR_BUY",
+      "confirmation": "2026.08.12 17:00",
+      "next_h1": "2026.08.12 18:00",
+      "m15_m16_order_trace": "2026.08.12 18:00:01",
+      "order_open": "2026.08.12 18:00",
+      "decision_id": "EURUSD|2026.08.12 17:00|1|7|45DD6A477D823DE6"
+    },
+    {
+      "profile": "EURUSD_202608",
+      "ticket": 4,
+      "type": "RE_TYPE_4_CSD",
+      "dir": "DIR_BUY",
+      "confirmation": "2026.08.13 15:00",
+      "next_h1": "2026.08.13 16:00",
+      "m15_m16_order_trace": "2026.08.13 16:00:01",
+      "order_open": "2026.08.13 16:00",
+      "decision_id": "EURUSD|2026.08.13 15:00|1|7|736A8C85A07961A3"
+    },
+    {
+      "profile": "EURUSD_202608",
+      "ticket": 5,
+      "type": "RE_TYPE_4_CSD",
+      "dir": "DIR_BUY",
+      "confirmation": "2026.08.17 14:00",
+      "next_h1": "2026.08.17 15:00",
+      "m15_m16_order_trace": "2026.08.17 15:00:01",
+      "order_open": "2026.08.17 15:00",
+      "decision_id": "EURUSD|2026.08.17 14:00|1|7|070C7AB06DCA6C3A"
+    },
+    {
+      "profile": "EURUSD_202608",
+      "ticket": 6,
+      "type": "RE_TYPE_3_CSM",
+      "dir": "DIR_BUY",
+      "confirmation": "2026.08.19 21:00",
+      "next_h1": "2026.08.19 22:00",
+      "m15_m16_order_trace": "2026.08.19 22:00:01",
+      "order_open": "2026.08.19 22:00",
+      "decision_id": "EURUSD|2026.08.19 21:00|1|7|27D090F2440B1F2E"
+    },
+    {
+      "profile": "EURUSD_202608",
+      "ticket": 7,
+      "type": "RE_TYPE_4_CSD",
+      "dir": "DIR_BUY",
+      "confirmation": "2026.08.21 09:00",
+      "next_h1": "2026.08.21 10:00",
+      "m15_m16_order_trace": "2026.08.21 10:00:01",
+      "order_open": "2026.08.21 10:00",
+      "decision_id": "EURUSD|2026.08.21 09:00|1|7|BBA232C862A87E8C"
+    },
+    {
+      "profile": "EURUSD_202608",
+      "ticket": 8,
+      "type": "RE_TYPE_1",
+      "dir": "DIR_BUY",
+      "confirmation": "2026.08.24 04:00",
+      "next_h1": "2026.08.24 05:00",
+      "m15_m16_order_trace": "2026.08.24 05:00:01",
+      "order_open": "2026.08.24 05:00",
+      "decision_id": "EURUSD|2026.08.24 04:00|1|7|F04807D3FBF4B533"
+    },
+    {
+      "profile": "USDJPY_202608",
+      "ticket": 1,
+      "type": "RE_TYPE_3_CSM",
+      "dir": "DIR_SELL",
+      "confirmation": "2026.08.07 22:00",
+      "next_h1": "2026.08.07 23:00",
+      "m15_m16_order_trace": "2026.08.07 23:00:01",
+      "order_open": "2026.08.07 23:00",
+      "decision_id": "USDJPY|2026.08.07 22:00|2|7|1A5217E2633A84F4"
+    },
+    {
+      "profile": "USDJPY_202608",
+      "ticket": 2,
+      "type": "RE_TYPE_1",
+      "dir": "DIR_SELL",
+      "confirmation": "2026.08.13 06:00",
+      "next_h1": "2026.08.13 07:00",
+      "m15_m16_order_trace": "2026.08.13 07:00:01",
+      "order_open": "2026.08.13 07:00",
+      "decision_id": "USDJPY|2026.08.13 06:00|2|7|22162BF24E122F48"
+    },
+    {
+      "profile": "USDJPY_202608",
+      "ticket": 3,
+      "type": "RE_TYPE_4_CSD",
+      "dir": "DIR_SELL",
+      "confirmation": "2026.08.13 09:00",
+      "next_h1": "2026.08.13 10:00",
+      "m15_m16_order_trace": "2026.08.13 10:00:01",
+      "order_open": "2026.08.13 10:00",
+      "decision_id": "USDJPY|2026.08.13 09:00|2|7|32D5A6E34E29EEE9"
+    },
+    {
+      "profile": "USDJPY_202608",
+      "ticket": 4,
+      "type": "RE_TYPE_4_CSD",
+      "dir": "DIR_SELL",
+      "confirmation": "2026.08.17 06:00",
+      "next_h1": "2026.08.17 07:00",
+      "m15_m16_order_trace": "2026.08.17 07:00:01",
+      "order_open": "2026.08.17 07:00",
+      "decision_id": "USDJPY|2026.08.17 06:00|2|7|60A7977EFA2BB47F"
+    },
+    {
+      "profile": "USDJPY_202608",
+      "ticket": 5,
+      "type": "RE_TYPE_4_CSD",
+      "dir": "DIR_SELL",
+      "confirmation": "2026.08.21 14:00",
+      "next_h1": "2026.08.21 15:00",
+      "m15_m16_order_trace": "2026.08.21 15:00:01",
+      "order_open": "2026.08.21 15:00",
+      "decision_id": "USDJPY|2026.08.21 14:00|2|7|6C66802F01B8FBF1"
+    },
+    {
+      "profile": "USDJPY_202608",
+      "ticket": 6,
+      "type": "RE_TYPE_4_CSD",
+      "dir": "DIR_SELL",
+      "confirmation": "2026.08.24 04:00",
+      "next_h1": "2026.08.24 05:00",
+      "m15_m16_order_trace": "2026.08.24 05:00:01",
+      "order_open": "2026.08.24 05:00",
+      "decision_id": "USDJPY|2026.08.24 04:00|2|7|0ECF7A561AB08851"
+    }
+  ]
+}

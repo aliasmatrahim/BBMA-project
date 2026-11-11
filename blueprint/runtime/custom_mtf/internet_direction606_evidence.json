@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-10",
+  "classification": "EXTERNAL_RESEARCH_IMPLEMENTATION_NOT_ACCEPTED_CORE",
+  "base_commit": "099de1d6192471e81f6ef42d404a0db389aacf10",
+  "publisher": "https://publikasi.uyelindo.ac.id/index.php/semmau/article/view/236",
+  "pdf": "https://publikasi.uyelindo.ac.id/index.php/semmau/article/download/236/205/570",
+  "printed_page": 179,
+  "buy": {
+    "open": "O < MidBB",
+    "close": [
+      "C > MidBB",
+      "C > MA5High",
+      "C > MA10High"
+    ]
+  },
+  "sell": {
+    "open": "O > MidBB",
+    "close": [
+      "C < MidBB",
+      "C < MA5Low",
+      "C < MA10Low"
+    ]
+  },
+  "source_sha256_lf": "0266fb3318348ae64b7bbbb52a1b30a0e79994df64979377cd14c1ba877c666e",
+  "arithmetic_example": {
+    "Mid": 100,
+    "MA5High": 98,
+    "MA10High": 99,
+    "Open": 99.5,
+    "Close": 101,
+    "paper": true,
+    "all_lines_body": false,
+    "classification": "ENGINEERING_ILLUSTRATION_NOT_MARKET_DATA"
+  },
+  "mapping_status": "VERIFICATION REQUIRED",
+  "owner_epoch_status": "HOLD",
+  "mql5_download_status": "403 direct G40; browser octet-stream unsupported; code NOT READ"
+}

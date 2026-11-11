@@ -1,0 +1,33 @@
+{
+  "task": "SIG-01-eCSD",
+  "status": "VERIFIED: canonical eCSD scoped acceptance",
+  "base_commit": "328d33a0dd4824f4ff3dcb2a2b2823a69e12bc9b",
+  "build": "6.07",
+  "source_sha256_lf": "3c2745e4fd9d0d84c66c6e5442388f0d8de05ccb211fff81bd4ed38a2e310b44",
+  "cloud_red": "actual baseline rejects Close-beyond-MA due Open",
+  "cloud_green": "76 passed in1.35s final run",
+  "native_ecsd": {
+    "checks": 190,
+    "passed": true,
+    "actual_closed_history_comparisons": 140,
+    "timeframes": 7,
+    "M30": "derived complete-bucket OHLC fixture"
+  },
+  "native_regression": "11 affected groups PASS, G40 process13040 exit0",
+  "controller": {
+    "parity": true,
+    "cycles_per_case": 16,
+    "rows_per_trace": 12224,
+    "valid_decisions": 0,
+    "order_attempts": 0,
+    "baseline_build": "6.06",
+    "old_new_difference_rows": 136,
+    "initial_red_mismatches": 8,
+    "root_cause": "case-to-case persisted H4 checkpoint; test-only fixture reset, production recovery unchanged",
+    "scope": "actual tester controller window, no live timer/session/cold-start or positive-entry proof"
+  },
+  "auto_entry": false,
+  "next_signal_started": false,
+  "next_action": "Verify final checkpoint publication, then SIG-02 CSA user MidBB direction; no other signal development before SIG-01 closure",
+  "tested_code_commit": "3c14938b8e2c2ab79d47101e61a8d90362a94091"
+}

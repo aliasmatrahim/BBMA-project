@@ -1,0 +1,31 @@
+{
+  "task": "SIG-03-CSAK-CSD",
+  "status": "VERIFIED bounded canonical detector/consumer and read-only source-context acceptance",
+  "tested_code_commit": "b2b2250e9f3cb2d5410bd844d912b3571be760d6",
+  "build": "6.09",
+  "source_rev": "CSAK_CLOSE_ONLY_002_20261110",
+  "source_sha256_lf": "d74f41d0c85e8ec5e4afdd58728c4cfcaae5765adc128f4aefa849edbfb04c25",
+  "native_canonical": 211,
+  "native_source_context": 189,
+  "native_direction_characterization": 141,
+  "native_groups": 17,
+  "actual_closed_history_comparisons_per_layer": 140,
+  "controller": {
+    "parity": true,
+    "combined_CSA_CSAK_views": 420,
+    "frames": 15,
+    "cycles_per_case": 16,
+    "rows_per_case": 12224,
+    "baseline": "6.08",
+    "old_new_difference_rows": 296,
+    "decision_difference_rows": 0,
+    "valid_decisions": 0,
+    "order_attempts": 0
+  },
+  "final_source_binary_bindings": 19,
+  "cloud": "6 targeted test functions plus import assertions and py_compile PASS; full pytest unavailable",
+  "independent_review": "No material confirmed defect; explicit High-only revision coverage added and passed seven TF",
+  "final_binding_process": 6212,
+  "next_action": "Verify final publication, then SIG-04 MOM only. Do not repeat verified signals or advance past a failed acceptance.",
+  "auto_entry": false
+}

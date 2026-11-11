@@ -1,0 +1,82 @@
+{
+  "build": "5.94",
+  "source_sha256_lf_utf8": "49d111226950c71c0ea040f564134e5ca6c15d16f5f3fa58db0af89df94a16dc",
+  "ex4_sha256": "3cbe29cf89e2249fdef61c9dfcfaecdea795ac5b945ab42ee9fd5e3c48724f51",
+  "cases": [
+    {
+      "case": "defaults",
+      "expected_init": true,
+      "initialized": false,
+      "input_rejected": false,
+      "status": "VERIFICATION_REQUIRED",
+      "rows": [
+        "0\t23:25:15.786\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: [F7-BUILD] EA=BBMA_EA Build=5.94 BuildTag=V594_TESTER_CHART_SYMBOL_20261108 SourceRev=TESTER_CHART_SYMBOL_001_20261108 InitTime=2026.08.03 00:00:01",
+        "0\t23:25:15.802\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: [P3S1] InitializeEA start PairList=GBPUSD RequestedMaxActivePair=1 EffectiveMaxActivePair=1",
+        "0\t23:25:15.802\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: [P3S1] Pair request=GBPUSD",
+        "0\t23:25:15.802\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: [P3S1] Symbol resolved GBPUSD -> GBPUSD",
+        "0\t23:25:15.802\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: [P3S1][PASS] Broker spec GBPUSD PID=14 Magic=118214",
+        "0\t23:25:15.802\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: [P3S1] LoadPairs completed count=1",
+        "0\t23:25:15.802\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: [P3S1][PASS] PairID validation",
+        "0\t23:25:15.802\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: [P3S1][PASS] Magic validation",
+        "0\t23:25:19.301\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: [P3S1][PASS] EA initialized successfully with 1 pairs",
+        "0\t23:25:19.301\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: 2026.08.03 00:00 [4] EA initialized successfully with 1 pairs",
+        "3\t23:25:19.301\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: initialization failed (1)",
+        "0\t23:25:19.301\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: 2026.08.03 00:00 [4] EA deinitialized, reason: 8"
+      ],
+      "internal_initialize_ea_passed": true,
+      "note": "Corrected verifier: internal InitializeEA success was followed by EventSetTimer 4059 and OnInit failure; intermediate success is not overall startup PASS."
+    },
+    {
+      "case": "changed_inputs",
+      "expected_init": true,
+      "initialized": false,
+      "input_rejected": false,
+      "status": "VERIFICATION_REQUIRED",
+      "rows": [
+        "0\t23:25:44.974\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: [F7-BUILD] EA=BBMA_EA Build=5.94 BuildTag=V594_TESTER_CHART_SYMBOL_20261108 SourceRev=TESTER_CHART_SYMBOL_001_20261108 InitTime=2026.08.03 00:00:01",
+        "0\t23:25:44.976\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: [P3S1] InitializeEA start PairList=GBPUSD RequestedMaxActivePair=1 EffectiveMaxActivePair=1",
+        "0\t23:25:44.976\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: [P3S1] Pair request=GBPUSD",
+        "0\t23:25:44.976\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: [P3S1] Symbol resolved GBPUSD -> GBPUSD",
+        "0\t23:25:44.976\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: [P3S1][PASS] Broker spec GBPUSD PID=14 Magic=118214",
+        "0\t23:25:44.976\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: [P3S1] LoadPairs completed count=1",
+        "0\t23:25:44.976\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: [P3S1][PASS] PairID validation",
+        "0\t23:25:44.976\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: [P3S1][PASS] Magic validation",
+        "0\t23:25:48.109\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: [P3S1][PASS] EA initialized successfully with 1 pairs",
+        "0\t23:25:48.109\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: 2026.08.03 00:00 [4] EA initialized successfully with 1 pairs",
+        "3\t23:25:48.109\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: initialization failed (1)",
+        "0\t23:25:48.109\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: 2026.08.03 00:00 [4] EA deinitialized, reason: 8"
+      ],
+      "internal_initialize_ea_passed": true,
+      "note": "Corrected verifier: internal InitializeEA success was followed by EventSetTimer 4059 and OnInit failure; intermediate success is not overall startup PASS."
+    },
+    {
+      "case": "invalid_formula",
+      "expected_init": false,
+      "initialized": false,
+      "input_rejected": true,
+      "status": "PASS",
+      "rows": [
+        "0\t23:26:14.920\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: [F7-BUILD] EA=BBMA_EA Build=5.94 BuildTag=V594_TESTER_CHART_SYMBOL_20261108 SourceRev=TESTER_CHART_SYMBOL_001_20261108 InitTime=2026.08.03 00:00:01",
+        "0\t23:26:14.922\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: 2026.08.03 00:00 [1] CUSTOM_SLOT_1:CONTEXT:UNKNOWN_TIMEFRAME@0",
+        "0\t23:26:14.922\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: 2026.08.03 00:00 [1] Input parameter validation failed",
+        "3\t23:26:14.922\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: initialization failed (32767)",
+        "0\t23:26:14.922\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: 2026.08.03 00:00 [4] EA deinitialized, reason: 8"
+      ]
+    },
+    {
+      "case": "unavailable",
+      "expected_init": false,
+      "initialized": false,
+      "input_rejected": true,
+      "status": "PASS",
+      "rows": [
+        "0\t23:26:36.133\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: [F7-BUILD] EA=BBMA_EA Build=5.94 BuildTag=V594_TESTER_CHART_SYMBOL_20261108 SourceRev=TESTER_CHART_SYMBOL_001_20261108 InitTime=2026.08.03 00:00:01",
+        "0\t23:26:36.135\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: 2026.08.03 00:00 [1] CUSTOM_SLOT_1:SIGNAL_UNAVAILABLE",
+        "0\t23:26:36.135\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: 2026.08.03 00:00 [1] Input parameter validation failed",
+        "3\t23:26:36.135\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: initialization failed (32767)",
+        "0\t23:26:36.135\t2026.08.03 00:00:01  BBMA_Custom594_Startup GBPUSD,M15: 2026.08.03 00:00 [4] EA deinitialized, reason: 8"
+      ]
+    }
+  ],
+  "scope": "actual EA OnInit/offline Strategy Tester; not live terminal reattachment, recovery, profitability or custom execution"
+}

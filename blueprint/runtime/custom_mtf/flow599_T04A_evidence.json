@@ -1,0 +1,113 @@
+{
+  "build": "5.99",
+  "scope": "actual canonical callbacks/M27 custom-only observer/producer path with moving M1 tester bars; monitor fixture, slots OFF",
+  "source_sha256_lf_utf8": "0f9b6eb98c825de14b295be97cd412173d371d47c39b8cae0f114b7c355b3631",
+  "compiled": {
+    "BBMA_EA": {
+      "result": "Result: 0 errors, 0 warnings, 878 msec elapsed",
+      "source_sha256_lf_utf8": "0f9b6eb98c825de14b295be97cd412173d371d47c39b8cae0f114b7c355b3631",
+      "ex4_sha256": "4b3cacf743e99b70e65cae58c46c3712168e49c4c5711bb8879995bcbfeaf93c"
+    },
+    "CustomFlowHarness": {
+      "result": "Result: 0 errors, 0 warnings, 1153 msec elapsed",
+      "source_sha256_lf_utf8": "f9043f0974f06cc61d6f477df85656c8fc3815091c7390372e119c3c28f7e9bb",
+      "ex4_sha256": "d5ff8bdb1a98f74d8fddbc88325c16181cd94fc92895ebf7cd14296a27b456a0"
+    }
+  },
+  "rows": [
+    "0\t08:36:22.568\t2026.08.04 00:00:59  CustomFlowHarness GBPUSD,M1: [CUSTOM-FLOW-INIT] start=2026.08.04 02:00:00 connected=true testing=true chartTF=1 quote=2026.08.04 00:00:59",
+    "0\t08:36:32.338\t2026.08.04 02:00:59  CustomFlowHarness GBPUSD,M1: [CUSTOM-FLOW-TICK] time=2026.08.04 02:00:59 quote=2026.08.04 02:00:59 processing=2026.08.04 02:00:59 connected=true frame=0 lastM1=2026.08.04 01:59:00 recovery=",
+    "0\t08:36:32.339\t2026.08.04 02:01:59  CustomFlowHarness GBPUSD,M1: [CUSTOM-FLOW-TICK] time=2026.08.04 02:01:59 quote=2026.08.04 02:01:59 processing=2026.08.04 02:01:59 connected=true frame=16 lastM1=2026.08.04 02:00:00 recovery=",
+    "0\t08:36:32.490\t2026.08.04 04:00:59  CustomFlowHarness GBPUSD,M1: [CUSTOM-FLOW] canonical_startup PASS",
+    "0\t08:36:32.490\t2026.08.04 04:00:59  CustomFlowHarness GBPUSD,M1: [CUSTOM-FLOW] moving_M1_tester_schedule PASS",
+    "0\t08:36:32.490\t2026.08.04 04:00:59  CustomFlowHarness GBPUSD,M1: [CUSTOM-FLOW] all_three_producers_advance PASS",
+    "0\t08:36:32.490\t2026.08.04 04:00:59  CustomFlowHarness GBPUSD,M1: [CUSTOM-FLOW] tick_and_timer_handlers_deliver PASS",
+    "0\t08:36:32.490\t2026.08.04 04:00:59  CustomFlowHarness GBPUSD,M1: [CUSTOM-FLOW] M1_without_waiting_M15 PASS",
+    "0\t08:36:32.490\t2026.08.04 04:00:59  CustomFlowHarness GBPUSD,M1: [CUSTOM-FLOW] simultaneous_frame_high_to_low PASS",
+    "0\t08:36:32.490\t2026.08.04 04:00:59  CustomFlowHarness GBPUSD,M1: [CUSTOM-FLOW] only_matching_closed_snapshots PASS",
+    "0\t08:36:32.490\t2026.08.04 04:00:59  CustomFlowHarness GBPUSD,M1: [CUSTOM-FLOW] duplicate_tick_timer_state_stable PASS",
+    "0\t08:36:32.490\t2026.08.04 04:00:59  CustomFlowHarness GBPUSD,M1: [CUSTOM-FLOW] unsupported_and_custom_H1_unavailable PASS",
+    "0\t08:36:32.490\t2026.08.04 04:00:59  CustomFlowHarness GBPUSD,M1: [CUSTOM-FLOW] no_entry_or_execution_authority PASS",
+    "0\t08:36:32.490\t2026.08.04 04:00:59  CustomFlowHarness GBPUSD,M1: [CUSTOM-FLOW] custom_only_never_canonical_dispatch PASS",
+    "0\t08:36:32.490\t2026.08.04 04:00:59  CustomFlowHarness GBPUSD,M1: [CUSTOM-FLOW] no_broker_orders PASS",
+    "0\t08:36:32.490\t2026.08.04 04:00:59  CustomFlowHarness GBPUSD,M1: [CUSTOM-FLOW-DATA] ticks=120 M1=120 M5=24 M30=4 tickFirst=60 timerFirst=60 nonM15=112 simultaneous=3 frames=119",
+    "0\t08:36:32.490\t2026.08.04 04:00:59  CustomFlowHarness GBPUSD,M1: [CUSTOM-FLOW-SUMMARY] passed=12 failed=0"
+  ],
+  "expected": "passed=12 failed=0",
+  "passed": true,
+  "headers": {
+    "blueprint/source/custom_mtf/CustomClock.mqh": "a012146ba0e863acc324d53bba041f24ac9ddf81486bdeee3f7b3d1f99df1261",
+    "blueprint/source/custom_mtf/CustomFormula.mqh": "891beea1605278a0d072a9d54cc305d75b7c180918679197e5bb82cd436fa92b",
+    "blueprint/source/custom_mtf/CustomIdentity.mqh": "58357dc65c07a684ca14291c9933f7b7880c82f332880f2fd190a3b69b6095e9",
+    "blueprint/source/custom_mtf/CustomInputs.mqh": "2e4cd80bd66e0cfd7255ea643b343a6c08f91b406b1278e772c82ec86f3b8eb2",
+    "blueprint/source/custom_mtf/CustomOwners.mqh": "4851eb723355a806d7ecc7b1522c83897ba6751e4c77030379b2faa384172fd0",
+    "blueprint/source/custom_mtf/CustomPairBinding.mqh": "58cc864aecb8c228f7da8fa51a4e0363e1625aa750c6cf1356b2e6e02cd98da2",
+    "blueprint/source/custom_mtf/CustomSlot.mqh": "a3fffe0a3d8da7076f952a755d7060c6e8b4fc34e3a7445c14852aba71fa56f3",
+    "blueprint/source/custom_mtf/CustomSymbolInputs.mqh": "ac2d8fd5500269cd3821838d56456b2bd857a205545e58c7b307ad57453e35fe",
+    "blueprint/source/custom_mtf/CustomSymbols.mqh": "709aaff7fe4d0a4d24206c7a0d55456ba4b339e63dfc16219321e0b0a91a1630"
+  },
+  "test_headers": {
+    "blueprint/tests/custom_mtf/CustomOwnerTestEquality.mqh": "4d5639b69c9844bc80ada3ce445ab22279999375d88f91338c1cea1ac308a287"
+  },
+  "preflight": {
+    "scope": "source-bar subset mechanics only; M30 is the previously declared derived OHLC fixture",
+    "date": "2026.08.04",
+    "start_hour": 2,
+    "duration_seconds": 7200,
+    "complete_window_candidates": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22
+    ],
+    "inputs": {
+      "1": {
+        "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD1.hst",
+        "sha256": "f931fef6b0d9a829de421c497af8691de48ba74cc9db68d29c50d852de6f1310",
+        "period": 1,
+        "rows": 512000
+      },
+      "5": {
+        "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD5.hst",
+        "sha256": "418440bf35ac6b436361987f3f3deb1beb101ec3a36a3f6c298f338b1e188713",
+        "period": 5,
+        "rows": 512000
+      },
+      "30": {
+        "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD30.hst",
+        "sha256": "d9668038ebc635225534d683ea34b60805915d92510be2b58b6584b8fbbde0d7",
+        "period": 30,
+        "rows": 15983
+      }
+    },
+    "omitted_M1_00_minutes": [
+      1,
+      2
+    ]
+  },
+  "tester": {
+    "period": "M1",
+    "model": 2,
+    "from": "2026.08.04",
+    "to": "2026.08.05",
+    "duration_seconds": 7200,
+    "slots_enabled": false
+  }
+}

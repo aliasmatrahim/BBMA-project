@@ -1,6 +1,12 @@
 # M10 BBMA Direction / Momentum Source Contract
 
-## Status
+## Active direction decision — 2026-11-10
+
+`../decisions/M10_DIRECTION_CLOSE_ONLY_USER_DECISION_20261110.md` supersedes the historical open-to-close body-span interpretation below. Direction admission uses valid closed price beyond the relevant MA pair, MidBB or both; Open is not a criterion. Scoped candidate Build6.09 implements the Close-only direction predicates; active-owner integration and full Custom MTF execution acceptance remain pending. Historical Build6.06 used the old body predicates. This is an explicit user semantic decision, not a newly authenticated founder quote. Do not reopen the Open ambiguity or remove unrelated Extreme/MHV body-anchor calculations. MOM and raw-signal/no-direct-entry authority remain unchanged.
+
+The sections below preserve historical Step3E provenance; their Open/body-span details are not the active target. Follow the linked decision and current task queue for pending implementation/verification.
+
+## Historical status
 P0 Step 3E source-alignment contract for Module 10.
 
 The user-supplied BBMA PDFs govern BBMA strategy semantics. `Oma ally BBMA - AL.pdf` is the primary operational reference; `BBMA technique.pdf` is secondary corroboration.
@@ -115,3 +121,22 @@ Focused reconstruction verification:
 Because the project previously discovered that a partial reconstruction had been mislabeled as a full-chain source, no new full-working-source SHA is claimed from this focused Step 3E verification.
 
 Do not merge to `main` until the full blueprint audit is clean and explicitly approved as MASTER BLUEPRINT LOCKED.
+
+
+## Sequential implementation candidate — Build6.07 / SIG-01
+
+eCSD alone now targets the accepted MA-pair Close-only predicate and rejects shift0/negative. Its raw predicate may overlap stronger direction, as before; existing collector precedence is unchanged. CSD/CSAK retains historical body code until its own sequential task. The canonical function signature is unchanged; no new custom eCSD token or executable availability is added. Source validation remains in progress until the SIG-01 acceptance checklist closes. No other signal is being migrated in this patch.
+
+SIG-01 update2026-11-10: eCSD canonical Close-only implementation accepted in bounded Build6.07 scope; see CUSTOM_MTF_ECSD_SIGNAL_ACCEPTANCE_20261110.md and exact native/controller/source proofs. CSD/CSAK and user MidBB CSA remain separate pending tasks; this is not complete M10/custom execution acceptance.
+
+## SIG-02 CSA source/context — Build6.08
+
+The user MidBB CSA uses one shared M10 closed-input/fingerprint reader and classifier: BUY Close>MidBB, SELL Close<MidBB. Open/MA/expansion are not criteria;20 valid finalized inputs suffice. Requested read-only snapshots carry symbol/TF/direction/source-candle identity and stay recoveryOnly/non-executable. eCSD is not aliased. Native154/154 and actual-controller210 views accepted in CUSTOM_MTF_CSA_SIGNAL_ACCEPTANCE_20261110.md. CSD/CSAK retains historical body predicate until SIG-03. This is not full M10 or execution acceptance.
+
+## SIG-03 CSAK/CSD source/context — Build6.09 rev002
+
+Canonical DetectCSD now composes the existing Close-pair and MidBB helpers; its signature/consumer ordering stay unchanged. Obsolete direction-body helpers are removed. ReadM10CSAKSnapshot reuses finalized M10 MidBB inputs, existing M06 MA functions and the canonical CSD predicate, fencing20 closes/times and10 High/Low inputs. Its projections remain read-only/recoveryOnly with no entry/trigger/execution authority. Canonical211, context189, characterization141 and bounded actual-controller evidence accepted in CUSTOM_MTF_CSAK_SIGNAL_ACCEPTANCE_20261110.md. This does not complete custom availability/trigger/recovery or integrate/deploy the scoped candidate.
+
+## SIG-04 Momentum readiness — Build6.10 rev003
+
+The accepted CSM formula above is unchanged. A ready source requires21 valid ordered finalized inputs covering current/prior BB windows. Unavailable input is distinct from a ready false Momentum result. Failed initial/final source fences publish neither direction and invalidate cache readiness. Affected consumers must verify source candle/Close identity before owner, fallback, lifecycle or cursor changes; unavailable reads defer/freeze rather than assert absence. H4 recovery preserves unresolved checkpoint lineage and retries through M15. Auxiliary staged updates commit atomically. Native167 readiness checks,72 valid-data checks,18 groups and bounded controller parity accepted in CUSTOM_MTF_MOM_SIGNAL_ACCEPTANCE_20261110.md; custom execution remains OFF.

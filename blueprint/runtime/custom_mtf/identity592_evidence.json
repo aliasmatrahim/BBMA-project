@@ -1,0 +1,18 @@
+{
+  "build": "5.92",
+  "scope": "CONFIGURATION_IDENTITY_AND_HELPER_REINITIALIZATION",
+  "native_compile": "0 errors, 0 warnings, 699 msec",
+  "source_sha256_lf_utf8": "8ef03ff5ce2b9a8997327b4249328088af2c55655a1189606637cfa7d42b6e5f",
+  "ex4_sha256": "12ddf0eb8617737735bc14521c0bb9ef8f5df85b972232d1534db349fa3099af",
+  "identity_red": "passed=2 failed=8; test-only missing-capability adapter",
+  "identity_green": "passed=11 failed=0",
+  "identity_compile": "0 errors, 0 warnings, 416 msec",
+  "identity_log_time_g40": "2026-11-08 22:53:43.601",
+  "identity_policy": "Canonical parsed payload retained; SHORT_HASH reused as diagnostic fingerprint. No execution dedup authority. Formula ordering retained; disabled formula text excluded. Future configuration fields must extend payload before activation.",
+  "limitations": [
+    "Full EA runtime not run",
+    "Helper repeated initialization does not prove terminal detach/attach or open-position recovery",
+    "Custom availability remains closed",
+    "Global pytest unavailable"
+  ]
+}

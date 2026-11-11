@@ -1,0 +1,76 @@
+{
+  "source_sha256_lf": "a62672ae1874fcbf61c671af01da09ef45ffe6972abd998ec70c5f9a74c238cb",
+  "targeted_functions": [
+    "test_momentum_shared_classifier_equivalence",
+    "test_pre_freeze_transaction_with_stage_fault_fixtures",
+    "test_pre_freeze_calls_precede_persistent_exports"
+  ],
+  "status": "PASS; runpy direct plus runner py_compile",
+  "protected_functions": [
+    {
+      "name": "DetectExtreme",
+      "unchanged": true
+    },
+    {
+      "name": "ResetExtremeLifecycle",
+      "unchanged": true
+    },
+    {
+      "name": "GetExtremeRelevantMA5",
+      "unchanged": true
+    },
+    {
+      "name": "GetExtremeReversalBodyEdge",
+      "unchanged": true
+    },
+    {
+      "name": "IsExtremeReversalDirection",
+      "unchanged": true
+    },
+    {
+      "name": "UpdateExtremeProvisionalAnchor",
+      "unchanged": true
+    },
+    {
+      "name": "IsExtremeRetestStart",
+      "unchanged": true
+    },
+    {
+      "name": "IsExtremeRetestInteraction",
+      "unchanged": true
+    },
+    {
+      "name": "ResolveOppositeExtremeSupersession",
+      "unchanged": true
+    },
+    {
+      "name": "ExportReversalConfirmedExtremeSignal",
+      "unchanged": true
+    },
+    {
+      "name": "M10_ClassifyMomentum",
+      "unchanged": true
+    },
+    {
+      "name": "ReadM10MomentumSnapshot",
+      "unchanged": true
+    },
+    {
+      "name": "ReadM10MomentumSource",
+      "unchanged": true
+    },
+    {
+      "name": "DetectCSM",
+      "unchanged": true
+    },
+    {
+      "name": "DetectCSD",
+      "unchanged": true
+    },
+    {
+      "name": "DetectECSD",
+      "unchanged": true
+    }
+  ],
+  "full_pytest": "NOT RUN; unavailable"
+}

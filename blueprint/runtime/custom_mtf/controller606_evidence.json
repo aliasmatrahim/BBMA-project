@@ -1,0 +1,148 @@
+{
+  "seeded_trusted_owner_fixtures": false,
+  "source_sha256_lf": "0266fb3318348ae64b7bbbb52a1b30a0e79994df64979377cd14c1ba877c666e",
+  "baseline605_sha256_lf": "4247b5aa6babc62d7680fcb71e8859a74452638ba60c9c0fa084fae7f6f78415",
+  "compiled": {
+    "CustomControllerParityHarness": {
+      "result": "Result: 0 errors, 0 warnings, 1063 msec elapsed",
+      "harness_sha256_lf": "520aa81547710cdccda35a1dfae454677b1a7130ef4709e5bfb164665f9336c2",
+      "binary_sha256": "2e5f763ba9d4c2df3856390df2f8bfcb7bd2629a262d0093304d77df2279f061"
+    },
+    "CustomControllerBaselineHarness": {
+      "result": "Result: 0 errors, 0 warnings, 1046 msec elapsed",
+      "harness_sha256_lf": "97e560db8245f5bd58bf37178de72da72b128d4204f7668fe9a26d476b8c773a",
+      "binary_sha256": "6b6dc537e8518cee30d293516e04d5e49dbbdb1570e6597d19e6f6b2ce1b822e"
+    }
+  },
+  "records": {
+    "off": {
+      "summary": "0\t11:52:41.630\t2026.08.04 06:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-SUMMARY] cycles=16 valid=0 frames=0 attempts=0 seeds=0 handovers=0 ok=true",
+      "counts": {
+        "cycles": 16,
+        "valid": 0,
+        "frames": 0,
+        "attempts": 0,
+        "seeds": 0,
+        "handovers": 0
+      },
+      "trace_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\controller606\\off_trace.txt",
+      "trace_rows": 12224,
+      "trace_sha256": "926a09a8fc2a8138774fbce3c3ccb48710b7b5e0261cd908b0cc08165223d29b"
+    },
+    "on": {
+      "summary": "0\t11:53:16.977\t2026.08.04 06:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-SUMMARY] cycles=16 valid=0 frames=15 attempts=0 seeds=0 handovers=0 ok=true",
+      "counts": {
+        "cycles": 16,
+        "valid": 0,
+        "frames": 15,
+        "attempts": 0,
+        "seeds": 0,
+        "handovers": 0
+      },
+      "trace_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\controller606\\on_trace.txt",
+      "trace_rows": 12224,
+      "trace_sha256": "926a09a8fc2a8138774fbce3c3ccb48710b7b5e0261cd908b0cc08165223d29b"
+    },
+    "baseline605": {
+      "summary": "0\t11:53:54.459\t2026.08.04 06:00:59  CustomControllerBaselineHarness GBPUSD,M1: [CUSTOM-PARITY-SUMMARY] cycles=16 valid=0 frames=0 attempts=0 seeds=0 handovers=0 ok=true",
+      "counts": {
+        "cycles": 16,
+        "valid": 0,
+        "frames": 0,
+        "attempts": 0,
+        "seeds": 0,
+        "handovers": 0
+      },
+      "trace_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\controller606\\baseline605_trace.txt",
+      "trace_rows": 12224,
+      "trace_sha256": "cdf9227af8c6b3d4812e94571b8507ab09e17eece419454eaa25e90637045e9d"
+    }
+  },
+  "candidate_monitor_parity": true,
+  "candidate_differences_first10": [],
+  "old_new_trace_row_counts_equal": true,
+  "old_new_difference_count": 288,
+  "old_new_differences_first20": [
+    {
+      "baseline605": "1785807900|1440/BUY/M09.Direction|1:0",
+      "candidate606": "1785807900|1440/BUY/M09.Direction|1:1"
+    },
+    {
+      "baseline605": "1785807900|1440/BUY/M09.ParentExtremeDirection|1:0",
+      "candidate606": "1785807900|1440/BUY/M09.ParentExtremeDirection|1:2"
+    },
+    {
+      "baseline605": "1785807900|1440/BUY/M09.Timeframe|1:0",
+      "candidate606": "1785807900|1440/BUY/M09.Timeframe|4:1440"
+    },
+    {
+      "baseline605": "1785807900|1440/SELL/M09.Direction|1:0",
+      "candidate606": "1785807900|1440/SELL/M09.Direction|1:2"
+    },
+    {
+      "baseline605": "1785807900|1440/SELL/M09.ParentExtremeDirection|1:0",
+      "candidate606": "1785807900|1440/SELL/M09.ParentExtremeDirection|1:1"
+    },
+    {
+      "baseline605": "1785807900|1440/SELL/M09.Timeframe|1:0",
+      "candidate606": "1785807900|1440/SELL/M09.Timeframe|4:1440"
+    },
+    {
+      "baseline605": "1785807900|240/BUY/M09.Direction|1:0",
+      "candidate606": "1785807900|240/BUY/M09.Direction|1:1"
+    },
+    {
+      "baseline605": "1785807900|240/BUY/M09.ParentExtremeDirection|1:0",
+      "candidate606": "1785807900|240/BUY/M09.ParentExtremeDirection|1:2"
+    },
+    {
+      "baseline605": "1785807900|240/BUY/M09.Timeframe|1:0",
+      "candidate606": "1785807900|240/BUY/M09.Timeframe|3:240"
+    },
+    {
+      "baseline605": "1785807900|240/SELL/M09.Direction|1:0",
+      "candidate606": "1785807900|240/SELL/M09.Direction|1:2"
+    },
+    {
+      "baseline605": "1785807900|240/SELL/M09.ParentExtremeDirection|1:0",
+      "candidate606": "1785807900|240/SELL/M09.ParentExtremeDirection|1:1"
+    },
+    {
+      "baseline605": "1785807900|240/SELL/M09.Timeframe|1:0",
+      "candidate606": "1785807900|240/SELL/M09.Timeframe|3:240"
+    },
+    {
+      "baseline605": "1785807900|60/BUY/M09.Direction|1:0",
+      "candidate606": "1785807900|60/BUY/M09.Direction|1:1"
+    },
+    {
+      "baseline605": "1785807900|60/BUY/M09.ParentExtremeDirection|1:0",
+      "candidate606": "1785807900|60/BUY/M09.ParentExtremeDirection|1:2"
+    },
+    {
+      "baseline605": "1785807900|60/BUY/M09.Timeframe|1:0",
+      "candidate606": "1785807900|60/BUY/M09.Timeframe|2:60"
+    },
+    {
+      "baseline605": "1785807900|60/SELL/M09.Direction|1:0",
+      "candidate606": "1785807900|60/SELL/M09.Direction|1:2"
+    },
+    {
+      "baseline605": "1785807900|60/SELL/M09.ParentExtremeDirection|1:0",
+      "candidate606": "1785807900|60/SELL/M09.ParentExtremeDirection|1:1"
+    },
+    {
+      "baseline605": "1785807900|60/SELL/M09.Timeframe|1:0",
+      "candidate606": "1785807900|60/SELL/M09.Timeframe|2:60"
+    },
+    {
+      "baseline605": "1785808800|1440/BUY/M09.Direction|1:0",
+      "candidate606": "1785808800|1440/BUY/M09.Direction|1:1"
+    },
+    {
+      "baseline605": "1785808800|1440/BUY/M09.ParentExtremeDirection|1:0",
+      "candidate606": "1785808800|1440/BUY/M09.ParentExtremeDirection|1:2"
+    }
+  ],
+  "scope": "Actual OnTick/OnTimer -> M27 -> ProcessPair on GBPUSD M1 delivery model2 with canonical M15 clock, Aug4 2026 02:00-06:00 chart time; fresh initialized owners unless seeded_trusted_owner_fixtures=true (explicit pending handover fixtures, not historical formation), M30 derived fixture; no wall-clock timer, arbitrary cold-start/session or positive-entry claim. Test-only OrderSend capture replaces broker send; all custom slots OFF. Full scalar owner/decision traces are compared, not only hashes."
+}

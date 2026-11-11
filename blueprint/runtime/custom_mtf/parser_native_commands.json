@@ -1,0 +1,22 @@
+{
+  "root": "D:\\BBMA\\MT4_CustomMTF_302_Unit",
+  "compiler": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\metaeditor.exe",
+  "compile_args": [
+    "/compile:D:\\BBMA\\MT4_CustomMTF_302_Unit\\MQL4\\Experts\\CustomFormulaHarness.mq4",
+    "/log:D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\parser_green_compile.log"
+  ],
+  "terminal": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\terminal.exe",
+  "runtime_args": [
+    "/portable",
+    "config\\parser_green.ini"
+  ],
+  "offline_proxy": "127.0.0.1:1",
+  "ExpertsTrades": false,
+  "TestExpert": "CustomFormulaHarness",
+  "TestSymbol": "GBPUSD",
+  "TestPeriod": "M15",
+  "TestFromDate": "2026.08.03",
+  "TestToDate": "2026.08.04",
+  "assertions": "Pure configuration syntax only; no trade primitives",
+  "setup_note": "Existing MetaQuotes-Demo server metadata and history copied locally; no account credentials in repository"
+}

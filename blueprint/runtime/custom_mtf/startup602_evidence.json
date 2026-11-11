@@ -1,0 +1,78 @@
+{
+  "build": "6.02",
+  "source_sha256_lf_utf8": "730e94ad7d257d0cb1e1885b962a8c664539309165fdba042407f6051303c165",
+  "ex4_sha256": "c3ac0d6b3f5618011444420c253f51eb39b5afb9c6e5ce68e6f54e0a1d04a584",
+  "cases": [
+    {
+      "case": "defaults",
+      "expected_init": true,
+      "initialized": true,
+      "input_rejected": false,
+      "status": "PASS",
+      "rows": [
+        "0\t09:58:39.737\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: [F7-BUILD] EA=BBMA_EA Build=6.02 BuildTag=V602_M09_SOURCE_TF_20261109 SourceRev=M09_SOURCE_TF_001_20261109 InitTime=2026.08.03 00:00:01",
+        "0\t09:58:39.739\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: [P3S1] InitializeEA start PairList=GBPUSD RequestedMaxActivePair=1 EffectiveMaxActivePair=1",
+        "0\t09:58:39.739\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: [P3S1] Pair request=GBPUSD",
+        "0\t09:58:39.739\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: [P3S1] Symbol resolved GBPUSD -> GBPUSD",
+        "0\t09:58:39.739\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: [P3S1][PASS] Broker spec GBPUSD PID=14 Magic=118214",
+        "0\t09:58:39.739\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: [P3S1] LoadPairs completed count=1",
+        "0\t09:58:39.739\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: [P3S1][PASS] PairID validation",
+        "0\t09:58:39.739\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: [P3S1][PASS] Magic validation",
+        "0\t09:58:43.290\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: [P3S1][PASS] EA initialized successfully with 1 pairs",
+        "0\t09:58:43.290\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: 2026.08.03 00:00 [4] EA initialized successfully with 1 pairs",
+        "0\t09:58:43.290\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: 2026.08.03 00:00 [4] BBMA EA V602_M09_SOURCE_TF_20261109 initialized successfully",
+        "0\t09:58:53.525\t2026.08.03 23:45:01  BBMA_Custom602_Startup GBPUSD,M15: 2026.08.03 23:45 [4] EA deinitialized, reason: 0"
+      ]
+    },
+    {
+      "case": "changed_inputs",
+      "expected_init": true,
+      "initialized": true,
+      "input_rejected": false,
+      "status": "PASS",
+      "rows": [
+        "0\t09:59:15.642\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: [F7-BUILD] EA=BBMA_EA Build=6.02 BuildTag=V602_M09_SOURCE_TF_20261109 SourceRev=M09_SOURCE_TF_001_20261109 InitTime=2026.08.03 00:00:01",
+        "0\t09:59:15.662\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: [P3S1] InitializeEA start PairList=GBPUSD RequestedMaxActivePair=1 EffectiveMaxActivePair=1",
+        "0\t09:59:15.662\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: [P3S1] Pair request=GBPUSD",
+        "0\t09:59:15.662\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: [P3S1] Symbol resolved GBPUSD -> GBPUSD",
+        "0\t09:59:15.663\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: [P3S1][PASS] Broker spec GBPUSD PID=14 Magic=118214",
+        "0\t09:59:15.663\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: [P3S1] LoadPairs completed count=1",
+        "0\t09:59:15.663\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: [P3S1][PASS] PairID validation",
+        "0\t09:59:15.663\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: [P3S1][PASS] Magic validation",
+        "0\t09:59:19.168\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: [P3S1][PASS] EA initialized successfully with 1 pairs",
+        "0\t09:59:19.168\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: 2026.08.03 00:00 [4] EA initialized successfully with 1 pairs",
+        "0\t09:59:19.168\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: 2026.08.03 00:00 [4] BBMA EA V602_M09_SOURCE_TF_20261109 initialized successfully",
+        "0\t09:59:29.212\t2026.08.03 23:45:01  BBMA_Custom602_Startup GBPUSD,M15: 2026.08.03 23:45 [4] EA deinitialized, reason: 0"
+      ]
+    },
+    {
+      "case": "invalid_formula",
+      "expected_init": false,
+      "initialized": false,
+      "input_rejected": true,
+      "status": "PASS",
+      "rows": [
+        "0\t09:59:48.524\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: [F7-BUILD] EA=BBMA_EA Build=6.02 BuildTag=V602_M09_SOURCE_TF_20261109 SourceRev=M09_SOURCE_TF_001_20261109 InitTime=2026.08.03 00:00:01",
+        "0\t09:59:48.525\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: 2026.08.03 00:00 [1] CUSTOM_SLOT_1:CONTEXT:UNKNOWN_TIMEFRAME@0",
+        "0\t09:59:48.525\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: 2026.08.03 00:00 [1] Input parameter validation failed",
+        "3\t09:59:48.525\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: initialization failed (32767)",
+        "0\t09:59:48.525\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: 2026.08.03 00:00 [4] EA deinitialized, reason: 8"
+      ]
+    },
+    {
+      "case": "unavailable",
+      "expected_init": false,
+      "initialized": false,
+      "input_rejected": true,
+      "status": "PASS",
+      "rows": [
+        "0\t10:00:09.525\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: [F7-BUILD] EA=BBMA_EA Build=6.02 BuildTag=V602_M09_SOURCE_TF_20261109 SourceRev=M09_SOURCE_TF_001_20261109 InitTime=2026.08.03 00:00:01",
+        "0\t10:00:09.527\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: 2026.08.03 00:00 [1] CUSTOM_SLOT_1:SIGNAL_UNAVAILABLE",
+        "0\t10:00:09.527\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: 2026.08.03 00:00 [1] Input parameter validation failed",
+        "3\t10:00:09.527\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: initialization failed (32767)",
+        "0\t10:00:09.527\t2026.08.03 00:00:01  BBMA_Custom602_Startup GBPUSD,M15: 2026.08.03 00:00 [4] EA deinitialized, reason: 8"
+      ]
+    }
+  ],
+  "scope": "actual EA OnInit/offline Strategy Tester; not live terminal reattachment, recovery, profitability or custom execution"
+}

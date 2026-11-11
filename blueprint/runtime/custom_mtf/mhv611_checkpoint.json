@@ -1,0 +1,60 @@
+{
+  "task": "SIG-06-MHV",
+  "status": "PARTIAL — all7 TF bounded fixture proofs PASS; full production origin/session recovery HOLD",
+  "base_commit": "b9f200861a865ab90a909a1897e4a70dc06a68c5",
+  "source_sha256_lf": "a62672ae1874fcbf61c671af01da09ef45ffe6972abd998ec70c5f9a74c238cb",
+  "production_source_changed": false,
+  "inventory": {
+    "closed_bars": 4200,
+    "candidates": 57,
+    "converged_candidates": 23
+  },
+  "bounded_restart_TFs": [
+    "M1",
+    "M5",
+    "M15",
+    "M30",
+    "H1",
+    "H4",
+    "D1"
+  ],
+  "native_assertions": 242,
+  "post_reload_source_bars": 168,
+  "fields_per_state": 102,
+  "terminal_processes": 14,
+  "collector_pid": 3712,
+  "collector_exit": 0,
+  "remaining_TFs": [],
+  "pending": "Original full historical origin/session and T04B recovery exits remain HOLD; bounded seven-TF evidence does not waive them",
+  "next": "Remain SIG06. Actual production gap HOLD/rollback/view isolation verified340/340. Obtain accepted same-feed historical boundary and source-proven owner epoch, then successful production recovery parity. No SIG07/RE.",
+  "auto_entry": false,
+  "remaining_full_acceptance": [
+    "accepted production same-feed historical boundary/session authority",
+    "source-proven owner epoch beyond four bounded initial-state stress hypotheses",
+    "full production replay admission and continuous/recovered parity across accepted non-nominal boundary"
+  ],
+  "scope": {
+    "M1_M5_M15_H1": "Prior installed-HST tests; underlying files bound to synthetic reference export",
+    "M30": "Alternate test-only fixture from exact complete M15 pairs",
+    "H4_D1": "Direct source engines with synthetic-NY-calendar test-only admission; production admission not exercised"
+  },
+  "MA_adapter_comparisons": 200,
+  "archive_sha256": "d50ae0d6f0a7854023b5e019a6b76295e9f708a9fb4745cd80ca6fd34ed9d85b",
+  "archive_bytes": 110324,
+  "report": "blueprint/audits/CUSTOM_MTF_MHV_FIXTURE_PROFILE_MILESTONE_20261111.md",
+  "production_gap_fail_frozen": {
+    "status": "BOUNDED_PASS_NOT_RECOVERY_ACCEPTANCE",
+    "native_assertions": 340,
+    "cases": 24,
+    "boundaries": 6,
+    "terminal_pid": 6904,
+    "terminal_exit": 0,
+    "driver_pid": 8456,
+    "driver_exit": 0,
+    "compile": "0 errors, 0 warnings",
+    "previously_unheld_coverage": true,
+    "initial_fixture_failure": "148 PASS/12 FAIL: invalid historical router target, corrected in test-only v2",
+    "archive_sha256": "ec6049c513eed9c44861aaf43caa59768d996cf1e2293729ef5049b16506ada2",
+    "report": "blueprint/audits/CUSTOM_MTF_MHV_PRODUCTION_ADMISSION_20261111.md"
+  }
+}

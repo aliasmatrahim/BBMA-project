@@ -1,0 +1,14 @@
+{
+  "task": "T04-E/3 WIP",
+  "build": "6.04",
+  "passed": false,
+  "source_sha256_lf_utf8": "f21d6e8737f0addfdcec1c7ed3cae6da78a54d0a6b288a7a9fbf9dae583b969e",
+  "state_assertions": "47/47",
+  "observer_assertions": "4/4",
+  "full_local_pytest": "73/73",
+  "native_full_EA_compile": "0 errors / 0 warnings",
+  "native_initial_mechanics_suite": "PASS; not telemetry acceptance",
+  "uncommitted_parent_events": 3,
+  "canonical_control_events": 3,
+  "remaining": "suppress callee event emission for discarded monitor stage while preserving canonical default telemetry; final acceptance pending"
+}

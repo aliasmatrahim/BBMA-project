@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "source_sha256_lf_utf8": "4247b5aa6babc62d7680fcb71e8859a74452638ba60c9c0fa084fae7f6f78415",
+  "scope": "all source/include/test-helper/compiled-harness normalized hashes match actual stage files; actual final EA EX4 equals clock compile and startup binary",
+  "native_expected": {
+    "canonmhv": "passed=47 failed=0",
+    "observerm09": "passed=4 failed=0",
+    "flow": "passed=12 failed=0",
+    "m09producer": "passed=52 failed=0",
+    "m09replay": "passed=57 failed=0",
+    "producer": "passed=22 failed=0",
+    "recovery": "passed=27 failed=0",
+    "higher": "passed=23 failed=0",
+    "owner": "passed=10 failed=0",
+    "momentum": "passed=55 failed=0",
+    "mhvtf": "passed=238 failed=0",
+    "observer": "passed=4 failed=0",
+    "mhv": "passed=8 failed=0",
+    "clock": "passed=14 failed=0"
+  },
+  "startup": "4/4",
+  "ex4_sha256": "920281849b852253ee73d3aacfb7414596fdb8859d2fbf3aae28f97d284f7b9a"
+}

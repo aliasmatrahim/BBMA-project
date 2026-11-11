@@ -1,0 +1,245 @@
+{
+  "task": "C/T04-D three-formula source comparison",
+  "base_commit": "a149da67d578c19a94d12f6e0d14bd8d9ea8f865",
+  "source_sha256_lf": "0266fb3318348ae64b7bbbb52a1b30a0e79994df64979377cd14c1ba877c666e",
+  "scope": "Offline hypothetical positive finite values; actual DetectCSD extracted into host C++ with I/O stubs. Not native MQL4/runtime/market/source-authority proof. B is bare close-side, with no silent colour/first-event rule.",
+  "witnesses": [
+    {
+      "case": "cross_all",
+      "side": "BUY",
+      "O": 99,
+      "C": 105,
+      "Mid": 100,
+      "MA5": 102,
+      "MA10": 104,
+      "result": {
+        "A": true,
+        "B": true,
+        "C": true
+      }
+    },
+    {
+      "case": "open_past_MAs_before_Mid",
+      "side": "BUY",
+      "O": 99.5,
+      "C": 101,
+      "Mid": 100,
+      "MA5": 98,
+      "MA10": 99,
+      "result": {
+        "A": false,
+        "B": true,
+        "C": true
+      }
+    },
+    {
+      "case": "open_past_Mid",
+      "side": "BUY",
+      "O": 101,
+      "C": 105,
+      "Mid": 100,
+      "MA5": 102,
+      "MA10": 104,
+      "result": {
+        "A": false,
+        "B": true,
+        "C": false
+      }
+    },
+    {
+      "case": "continuation_bull",
+      "side": "BUY",
+      "O": 105,
+      "C": 106,
+      "Mid": 100,
+      "MA5": 102,
+      "MA10": 104,
+      "result": {
+        "A": false,
+        "B": true,
+        "C": false
+      }
+    },
+    {
+      "case": "bear_body_above_cluster",
+      "side": "BUY",
+      "O": 106,
+      "C": 105,
+      "Mid": 100,
+      "MA5": 102,
+      "MA10": 104,
+      "result": {
+        "A": false,
+        "B": true,
+        "C": false
+      }
+    },
+    {
+      "case": "open_equals_Mid",
+      "side": "BUY",
+      "O": 100,
+      "C": 105,
+      "Mid": 100,
+      "MA5": 102,
+      "MA10": 104,
+      "result": {
+        "A": true,
+        "B": true,
+        "C": false
+      }
+    },
+    {
+      "case": "open_equals_MA",
+      "side": "BUY",
+      "O": 98,
+      "C": 101,
+      "Mid": 100,
+      "MA5": 98,
+      "MA10": 99,
+      "result": {
+        "A": true,
+        "B": true,
+        "C": true
+      }
+    },
+    {
+      "case": "close_equals_outer_required_line",
+      "side": "BUY",
+      "O": 99,
+      "C": 104,
+      "Mid": 100,
+      "MA5": 102,
+      "MA10": 104,
+      "result": {
+        "A": false,
+        "B": false,
+        "C": false
+      }
+    },
+    {
+      "case": "cross_all",
+      "side": "SELL",
+      "O": 101,
+      "C": 95,
+      "Mid": 100,
+      "MA5": 98,
+      "MA10": 96,
+      "result": {
+        "A": true,
+        "B": true,
+        "C": true
+      }
+    },
+    {
+      "case": "open_past_MAs_before_Mid",
+      "side": "SELL",
+      "O": 100.5,
+      "C": 99,
+      "Mid": 100,
+      "MA5": 102,
+      "MA10": 101,
+      "result": {
+        "A": false,
+        "B": true,
+        "C": true
+      }
+    },
+    {
+      "case": "open_past_Mid",
+      "side": "SELL",
+      "O": 99,
+      "C": 95,
+      "Mid": 100,
+      "MA5": 98,
+      "MA10": 96,
+      "result": {
+        "A": false,
+        "B": true,
+        "C": false
+      }
+    },
+    {
+      "case": "continuation_bull",
+      "side": "SELL",
+      "O": 95,
+      "C": 94,
+      "Mid": 100,
+      "MA5": 98,
+      "MA10": 96,
+      "result": {
+        "A": false,
+        "B": true,
+        "C": false
+      }
+    },
+    {
+      "case": "bear_body_above_cluster",
+      "side": "SELL",
+      "O": 94,
+      "C": 95,
+      "Mid": 100,
+      "MA5": 98,
+      "MA10": 96,
+      "result": {
+        "A": false,
+        "B": true,
+        "C": false
+      }
+    },
+    {
+      "case": "open_equals_Mid",
+      "side": "SELL",
+      "O": 100,
+      "C": 95,
+      "Mid": 100,
+      "MA5": 98,
+      "MA10": 96,
+      "result": {
+        "A": true,
+        "B": true,
+        "C": false
+      }
+    },
+    {
+      "case": "open_equals_MA",
+      "side": "SELL",
+      "O": 102,
+      "C": 99,
+      "Mid": 100,
+      "MA5": 102,
+      "MA10": 101,
+      "result": {
+        "A": true,
+        "B": true,
+        "C": true
+      }
+    },
+    {
+      "case": "close_equals_outer_required_line",
+      "side": "SELL",
+      "O": 101,
+      "C": 96,
+      "Mid": 100,
+      "MA5": 98,
+      "MA10": 96,
+      "result": {
+        "A": false,
+        "B": false,
+        "C": false
+      }
+    }
+  ],
+  "exhaustive_geometry": {
+    "cases": 33614,
+    "A_true": 1624,
+    "B_true": 6174,
+    "C_true": 1834,
+    "A_not_C": 392,
+    "C_not_A": 602
+  },
+  "source_A_cpp_equivalence_cases": 33614,
+  "host_compile_returncode": 0,
+  "host_compile_warnings": "",
+  "formula_C_source": "https://publikasi.uyelindo.ac.id/index.php/semmau/article/download/236/205/570 printed179",
+  "ruling": "A currently locked; B/C not admitted; founder numerical open/equality/event proof unresolved"
+}

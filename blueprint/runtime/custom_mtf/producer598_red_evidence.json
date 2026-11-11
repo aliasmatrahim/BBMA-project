@@ -1,0 +1,38 @@
+{
+  "build": "5.97 baseline",
+  "scope": "RED test-only missing-capability adapter; no producer/controller invoked",
+  "source_sha256_lf_utf8": "ec2206836c289d52bad076826bca12f52f6ae37deb0d8ec379b3034e62fd9885",
+  "compiled": {
+    "CustomProducerHarness": {
+      "result": "Result: 0 errors, 0 warnings, 944 msec elapsed",
+      "source_sha256_lf_utf8": "9d5cf94e554a06b6a2cd4ff35be941fe37945ad00c9542986a29186cb31a7cd1",
+      "ex4_sha256": "acf32d2460f2eb3dc8c43aad487dee3f34f6ee35c1ae4118789324b79ec934f5"
+    }
+  },
+  "rows": [
+    "0\t07:10:27.710\t2026.08.03 00:00:01  CustomProducerHarness GBPUSD,M15: [CUSTOM-PRODUCER] producer_ready_and_duplicate_1 FAIL",
+    "0\t07:10:30.952\t2026.08.03 00:00:01  CustomProducerHarness GBPUSD,M15: [CUSTOM-PRODUCER] producer_ready_and_duplicate_5 FAIL",
+    "0\t07:10:34.077\t2026.08.03 00:00:01  CustomProducerHarness GBPUSD,M15: [CUSTOM-PRODUCER] producer_ready_and_duplicate_30 FAIL",
+    "0\t07:10:34.077\t2026.08.03 00:00:01  CustomProducerHarness GBPUSD,M15: [CUSTOM-PRODUCER] invalid_pair_rejected PASS",
+    "0\t07:10:34.077\t2026.08.03 00:00:01  CustomProducerHarness GBPUSD,M15: [CUSTOM-PRODUCER] canonical_tf_not_duplicated PASS",
+    "0\t07:10:34.077\t2026.08.03 00:00:01  CustomProducerHarness GBPUSD,M15: [CUSTOM-PRODUCER] missing_bar_rejected PASS",
+    "0\t07:10:34.077\t2026.08.03 00:00:01  CustomProducerHarness GBPUSD,M15: [CUSTOM-PRODUCER] next_source_candle_window FAIL",
+    "0\t07:10:34.077\t2026.08.03 00:00:01  CustomProducerHarness GBPUSD,M15: [CUSTOM-PRODUCER] late_window_without_structural_expiry PASS",
+    "0\t07:10:34.077\t2026.08.03 00:00:01  CustomProducerHarness GBPUSD,M15: [CUSTOM-PRODUCER] missing_entry_fails_closed PASS",
+    "0\t07:10:34.077\t2026.08.03 00:00:01  CustomProducerHarness GBPUSD,M15: [CUSTOM-PRODUCER-SUMMARY] passed=5 failed=4"
+  ],
+  "expected": "passed=5 failed=4",
+  "passed": true,
+  "headers": {
+    "blueprint/source/custom_mtf/CustomClock.mqh": "a012146ba0e863acc324d53bba041f24ac9ddf81486bdeee3f7b3d1f99df1261",
+    "blueprint/source/custom_mtf/CustomFormula.mqh": "891beea1605278a0d072a9d54cc305d75b7c180918679197e5bb82cd436fa92b",
+    "blueprint/source/custom_mtf/CustomIdentity.mqh": "58357dc65c07a684ca14291c9933f7b7880c82f332880f2fd190a3b69b6095e9",
+    "blueprint/source/custom_mtf/CustomInputs.mqh": "2e4cd80bd66e0cfd7255ea643b343a6c08f91b406b1278e772c82ec86f3b8eb2",
+    "blueprint/source/custom_mtf/CustomOwners.mqh": "b73b322e168d8bc55cd1fbb4c3fd10a926e9a39522c618467988e051a9b068ca",
+    "blueprint/source/custom_mtf/CustomPairBinding.mqh": "58cc864aecb8c228f7da8fa51a4e0363e1625aa750c6cf1356b2e6e02cd98da2",
+    "blueprint/source/custom_mtf/CustomSlot.mqh": "a3fffe0a3d8da7076f952a755d7060c6e8b4fc34e3a7445c14852aba71fa56f3",
+    "blueprint/source/custom_mtf/CustomSymbolInputs.mqh": "ac2d8fd5500269cd3821838d56456b2bd857a205545e58c7b307ad57453e35fe",
+    "blueprint/source/custom_mtf/CustomSymbols.mqh": "709aaff7fe4d0a4d24206c7a0d55456ba4b339e63dfc16219321e0b0a91a1630"
+  },
+  "phase": "RED baseline: passed flag means expected failing-case counts reproduced"
+}

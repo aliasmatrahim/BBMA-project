@@ -1,0 +1,55 @@
+{
+  "task": "T04-D",
+  "status": "ALIAS_IMPLEMENTATION_VERIFICATION_REQUIRED",
+  "scope": "numeric C++ extraction of actual current M10 predicate on four hypothetical closed-candle fixtures; not MQL4 runtime, source adjudication or trade evidence",
+  "source_sha256_lf_utf8": "f21d6e8737f0addfdcec1c7ed3cae6da78a54d0a6b288a7a9fbf9dae583b969e",
+  "extracted_predicates_sha256": "8d1ae1c680eddb1448519d5e381bf12d2bc19eb73266ebb50b14d48e7c4c964a",
+  "result": "two fixtures differ, two agree; current body-span and close-side readings cannot be silently interchanged",
+  "cases": [
+    {
+      "fixture": 0,
+      "direction": "BUY",
+      "open": 100.5,
+      "close": 102.0,
+      "mid": 100,
+      "MA5_relevant": 101,
+      "MA10_relevant": 101.5,
+      "canonical_CSD_body_cross": false,
+      "unimplemented_close_side_alternative": true
+    },
+    {
+      "fixture": 1,
+      "direction": "SELL",
+      "open": 99.5,
+      "close": 98.0,
+      "mid": 100,
+      "MA5_relevant": 99,
+      "MA10_relevant": 98.5,
+      "canonical_CSD_body_cross": false,
+      "unimplemented_close_side_alternative": true
+    },
+    {
+      "fixture": 2,
+      "direction": "BUY",
+      "open": 99.0,
+      "close": 102.0,
+      "mid": 100,
+      "MA5_relevant": 101,
+      "MA10_relevant": 101.5,
+      "canonical_CSD_body_cross": true,
+      "unimplemented_close_side_alternative": true
+    },
+    {
+      "fixture": 3,
+      "direction": "SELL",
+      "open": 101.0,
+      "close": 98.0,
+      "mid": 100,
+      "MA5_relevant": 99,
+      "MA10_relevant": 98.5,
+      "canonical_CSD_body_cross": true,
+      "unimplemented_close_side_alternative": true
+    }
+  ],
+  "decision": "CSA/CSAK remain unavailable; no alternative predicate or alias is admitted by this experiment"
+}

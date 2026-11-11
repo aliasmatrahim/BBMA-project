@@ -1,0 +1,14 @@
+{
+  "build": "5.95",
+  "compile": "Result: 0 errors, 0 warnings, 1010 msec elapsed",
+  "source_sha256_lf_utf8": "8608909247c9eb8f2f946474544fc14297bb7a990e2b1fee744c6e63d8ffee63",
+  "ex4_sha256": "b403ffb2fd50268a753dbffe6fe920d624c0f9e2fcda9005886bfbc8bfef29be",
+  "header_hashes": {
+    "blueprint/source/custom_mtf/CustomFormula.mqh": "891beea1605278a0d072a9d54cc305d75b7c180918679197e5bb82cd436fa92b",
+    "blueprint/source/custom_mtf/CustomIdentity.mqh": "58357dc65c07a684ca14291c9933f7b7880c82f332880f2fd190a3b69b6095e9",
+    "blueprint/source/custom_mtf/CustomInputs.mqh": "2e4cd80bd66e0cfd7255ea643b343a6c08f91b406b1278e772c82ec86f3b8eb2",
+    "blueprint/source/custom_mtf/CustomSlot.mqh": "deaa605a6149fd4a2d1b73516403d799481f7887fb53e5999a7b8adc15c4845c",
+    "blueprint/source/custom_mtf/CustomSymbolInputs.mqh": "ac2d8fd5500269cd3821838d56456b2bd857a205545e58c7b307ad57453e35fe",
+    "blueprint/source/custom_mtf/CustomSymbols.mqh": "709aaff7fe4d0a4d24206c7a0d55456ba4b339e63dfc16219321e0b0a91a1630"
+  }
+}

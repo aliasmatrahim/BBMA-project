@@ -1,0 +1,47 @@
+{
+  "task": "T04-D/C-source-example-review",
+  "user_choice": "C+1; no A/B formula selection",
+  "base_remote": "fa96ba43014a4f55610bca0f47dedd6abfa3d4fe",
+  "source_hashes": {
+    "docs/references/SOURCE_INDEX.md": "7586d9fc5b195da5b5dbb6acf0ba4ffbe8be167d7d52b928535baf4bc938d09d",
+    "docs/references/BBMA_STRATEGY_CORE_SOURCE_OF_TRUTH_V2.md": "87774cf885fef378a1bc1cab33fe7d74d928843f79b6f01775ab8b79e768f745",
+    "docs/references/original/Oma ally BBMA - AL.pdf": "3e6065dd97c20951bd8af96bc81b81ca138800184be6fc4740a32aa4ab0a9c9c",
+    "docs/references/original/BBMA technique.pdf": "b3457fb600f8a1ef7586e463938816de3da2e1801b53234d89511de38c946de1",
+    "blueprint/decisions/CORE_V2_F1_MHV_MLV_LIFECYCLE_DECISION.md": "bf068992f9facee595bac7659e8f3d16032b5362b54c98b4ccd5045b00f1e7a6",
+    "docs/references/original/video/oma_ally_finale/(srt-original-subtitles-multilingual)_bbma-finale-video-6-hd.srt": "7550eb8f05db83746cb60ee63836593acfb3da2c1d4a8334efb9b316a7615e62",
+    "docs/references/original/video/oma_ally_finale/(srt-original-subtitles-multilingual)_bbma-finale-video-5-hd.srt": "2abdc1d217932b0998483dbfb440a813207d3a51351b9cb7a0d461d834eecfbc"
+  },
+  "primary_pdf_visual_inspection": {
+    "page": 8,
+    "render_command": "pdftoppm -f 8 -l 8 -scale-to 1500 -singlefile -png",
+    "finding": "MLV diagrams and eCSD/CSD text; no discriminating labelled direction candle with open already beyond one line"
+  },
+  "subtitle_windows": {
+    "V05": [
+      "00:29:58\u201300:30:06",
+      "00:30:35\u201300:31:34"
+    ],
+    "V06": [
+      "00:17:07\u201300:17:45",
+      "00:20:07\u201300:20:18"
+    ]
+  },
+  "status": "VERIFICATION_REQUIRED",
+  "formula_changed": false,
+  "media_inventory_attempt": {
+    "device": "g40",
+    "result": "No Desktop Commander device is currently online; last seen 2h ago",
+    "native_runtime_available": false
+  },
+  "external_discovery": {
+    "date": "2026-11-09",
+    "V05": "https://www.youtube.com/watch?v=H61M3mppMiI&t=1798s",
+    "V06": "https://www.youtube.com/watch?v=oiJpOXh0UtY&t=1207s",
+    "retrieval_results": {
+      "V05": "DisabledError",
+      "V06": "Landing title BBMA Finale - Video 6; no video frames/content"
+    },
+    "archived_SRT_match": "NOT_VERIFIED",
+    "authority": "DISCOVERY_ONLY_NO_CORE_DELTA"
+  }
+}

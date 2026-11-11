@@ -1,0 +1,54 @@
+{
+  "build": "6.04",
+  "scope": "canonical TF source slots for custom-only scope; actual M06/M08/M12 and existing M11 delegation; no trading controller",
+  "source_sha256_lf_utf8": "f21d6e8737f0addfdcec1c7ed3cae6da78a54d0a6b288a7a9fbf9dae583b969e",
+  "compiled": {
+    "CustomHigherHarness": {
+      "result": "Result: 0 errors, 0 warnings, 848 msec elapsed",
+      "source_sha256_lf_utf8": "947df1e5ec37212325176fff76a2cf754be00baa941528fceb9fc6b305885825",
+      "ex4_sha256": "969a397744e5b360ff7016ad110f047d20a4b039c3cf8f154c5574cf3d76ae98"
+    }
+  },
+  "rows": [
+    "0\t13:19:40.800\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER] custom_only_closed_source_1440 PASS",
+    "0\t13:19:40.800\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER] existing_canonical_slots_updated_1440 PASS",
+    "0\t13:19:40.800\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER] cold_snapshot_context_only_1440 PASS",
+    "0\t13:19:40.800\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER] duplicate_preserves_existing_owner_1440 PASS",
+    "0\t13:19:44.197\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER] custom_only_closed_source_240 PASS",
+    "0\t13:19:44.197\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER] existing_canonical_slots_updated_240 PASS",
+    "0\t13:19:44.197\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER] cold_snapshot_context_only_240 PASS",
+    "0\t13:19:44.197\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER] duplicate_preserves_existing_owner_240 PASS",
+    "0\t13:19:47.555\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER] custom_only_closed_source_60 PASS",
+    "0\t13:19:47.555\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER] existing_canonical_slots_updated_60 PASS",
+    "0\t13:19:47.555\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER] cold_snapshot_context_only_60 PASS",
+    "0\t13:19:47.555\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER] duplicate_preserves_existing_owner_60 PASS",
+    "0\t13:19:47.556\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER] custom_only_closed_source_15 PASS",
+    "0\t13:19:47.556\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER] existing_canonical_slots_updated_15 PASS",
+    "0\t13:19:47.556\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER] cold_snapshot_context_only_15 PASS",
+    "0\t13:19:47.556\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER] duplicate_preserves_existing_owner_15 PASS",
+    "0\t13:19:47.556\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER] canonical_scope_not_advanced_again PASS",
+    "0\t13:19:47.556\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER] missing_symbol_not_given_chart_state PASS",
+    "0\t13:19:47.556\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER] aux_TF_not_duplicated_here PASS",
+    "0\t13:19:47.556\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER] invalid_pair_rejected PASS",
+    "0\t13:19:47.556\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER] D1_major_owner_uses_existing_M11 PASS",
+    "0\t13:19:47.556\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER] unrecovered_H4_not_invented PASS",
+    "0\t13:19:47.556\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER] recovered_H4_delegates_existing_owner PASS",
+    "0\t13:19:47.556\t2026.08.03 00:00:01  CustomHigherHarness GBPUSD,M15: [CUSTOM-HIGHER-SUMMARY] passed=23 failed=0"
+  ],
+  "expected": "passed=23 failed=0",
+  "passed": true,
+  "headers": {
+    "blueprint/source/custom_mtf/CustomClock.mqh": "a012146ba0e863acc324d53bba041f24ac9ddf81486bdeee3f7b3d1f99df1261",
+    "blueprint/source/custom_mtf/CustomFormula.mqh": "891beea1605278a0d072a9d54cc305d75b7c180918679197e5bb82cd436fa92b",
+    "blueprint/source/custom_mtf/CustomIdentity.mqh": "58357dc65c07a684ca14291c9933f7b7880c82f332880f2fd190a3b69b6095e9",
+    "blueprint/source/custom_mtf/CustomInputs.mqh": "2e4cd80bd66e0cfd7255ea643b343a6c08f91b406b1278e772c82ec86f3b8eb2",
+    "blueprint/source/custom_mtf/CustomOwners.mqh": "2cbb1a1c062053e2162037e58096aec194e36409dcb911865eed6dd1fba1a38e",
+    "blueprint/source/custom_mtf/CustomPairBinding.mqh": "58cc864aecb8c228f7da8fa51a4e0363e1625aa750c6cf1356b2e6e02cd98da2",
+    "blueprint/source/custom_mtf/CustomSlot.mqh": "a3fffe0a3d8da7076f952a755d7060c6e8b4fc34e3a7445c14852aba71fa56f3",
+    "blueprint/source/custom_mtf/CustomSymbolInputs.mqh": "ac2d8fd5500269cd3821838d56456b2bd857a205545e58c7b307ad57453e35fe",
+    "blueprint/source/custom_mtf/CustomSymbols.mqh": "709aaff7fe4d0a4d24206c7a0d55456ba4b339e63dfc16219321e0b0a91a1630"
+  },
+  "test_headers": {
+    "blueprint/tests/custom_mtf/CustomOwnerTestEquality.mqh": "98d692ca85fbda7954160e818ab7894970a85ecd90630934e4bab9fc2b43aa18"
+  }
+}

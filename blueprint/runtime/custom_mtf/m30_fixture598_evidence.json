@@ -1,0 +1,11 @@
+{
+  "scope": "derived OHLC test fixture; no synthesized ticks, filled missing bars, coverage or profitability claim",
+  "source": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD1.hst",
+  "source_sha256": "f931fef6b0d9a829de421c497af8691de48ba74cc9db68d29c50d852de6f1310",
+  "output": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD30.hst",
+  "output_sha256": "d9668038ebc635225534d683ea34b60805915d92510be2b58b6584b8fbbde0d7",
+  "complete_buckets": 15983,
+  "incomplete_buckets_omitted": 1190,
+  "first": 1744743600,
+  "last": 1788229800
+}

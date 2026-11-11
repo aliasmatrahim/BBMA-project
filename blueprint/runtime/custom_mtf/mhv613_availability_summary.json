@@ -1,0 +1,290 @@
+{
+  "verified": true,
+  "task": "SIG-06-MHV",
+  "build": "6.13",
+  "source_sha256_lf": "43470ff9795b18e44844bb815deceee778072a004b8815666e18e8ffa584d15c",
+  "baseline_sha256_lf": "900744561bd5e5c5abaef754478a055fcf600bf178fe3174da2d484dd840f2e8",
+  "units": {
+    "red": {
+      "mode": "red",
+      "source_sha256_lf": "900744561bd5e5c5abaef754478a055fcf600bf178fe3174da2d484dd840f2e8",
+      "harness_sha256_lf": "4f2f1ed1192ed9f0b7cab8a39d3fb2c78560158477d496fa537a101dd946a247",
+      "binary_sha256": "db67070bbeeb0824c55c5244bff1274a75b921a27997e6d4f5ae551d09baa776",
+      "compile": "Result: 0 errors, 0 warnings, 670 msec elapsed",
+      "terminal_pid": 4456,
+      "terminal_exit": 0,
+      "passed": 197,
+      "failed": 98
+    },
+    "caller": {
+      "mode": "green",
+      "source_sha256_lf": "43470ff9795b18e44844bb815deceee778072a004b8815666e18e8ffa584d15c",
+      "harness_sha256_lf": "4f2f1ed1192ed9f0b7cab8a39d3fb2c78560158477d496fa537a101dd946a247",
+      "binary_sha256": "489efc3a6996ff62d7e86d3f4b56d9501c1f209c9523e031626bbf79ca23961a",
+      "compile": "Result: 0 errors, 0 warnings, 686 msec elapsed",
+      "terminal_pid": 7868,
+      "terminal_exit": 0,
+      "passed": 295,
+      "failed": 0
+    },
+    "inner": {
+      "mode": "green",
+      "source_sha256_lf": "43470ff9795b18e44844bb815deceee778072a004b8815666e18e8ffa584d15c",
+      "harness_sha256_lf": "21873d025e60d796792803609571553e942e6c168e34a42d940fb0eb58f1ff64",
+      "binary_sha256": "4bcaf0897f73fef28de045df25610a2185be1495cc3e9a621b11027b194c0bc0",
+      "compile": "Result: 0 errors, 0 warnings, 592 msec elapsed",
+      "terminal_pid": 12676,
+      "terminal_exit": 0,
+      "passed": 785,
+      "failed": 0
+    },
+    "candidate": {
+      "mode": "green_v2",
+      "source_sha256_lf": "43470ff9795b18e44844bb815deceee778072a004b8815666e18e8ffa584d15c",
+      "harness_sha256_lf": "fea72a988a73a1cc573b86f046744b175cb80a408a2b0f8bdf9d6c40e604ff53",
+      "binary_sha256": "54ff53178564ef3bd844c214193b7476ccc144da1b4f7a0ab1ac8e8467ae1c3a",
+      "compile": "Result: 0 errors, 0 warnings, 650 msec elapsed",
+      "terminal_pid": 2276,
+      "terminal_exit": 0,
+      "passed": 323,
+      "failed": 0
+    }
+  },
+  "native_groups_completed": [
+    "candidate",
+    "momready",
+    "mhvtf",
+    "m09producer",
+    "m09replay",
+    "canonmhv",
+    "observerm09",
+    "producer",
+    "recovery",
+    "higher",
+    "flow",
+    "prefreeze",
+    "controller",
+    "controller_seeded"
+  ],
+  "regression": {
+    "momready": {
+      "passed": true,
+      "expected": "passed=167 failed=0"
+    },
+    "mhvtf": {
+      "passed": true,
+      "expected": "passed=238 failed=0"
+    },
+    "m09producer": {
+      "passed": true,
+      "expected": "passed=52 failed=0"
+    },
+    "m09replay": {
+      "passed": true,
+      "expected": "passed=57 failed=0"
+    },
+    "canonmhv": {
+      "passed": true,
+      "expected": "passed=47 failed=0"
+    },
+    "observerm09": {
+      "passed": true,
+      "expected": "passed=4 failed=0"
+    },
+    "producer": {
+      "passed": true,
+      "expected": "passed=22 failed=0"
+    },
+    "recovery": {
+      "passed": true,
+      "expected": "passed=27 failed=0"
+    },
+    "higher": {
+      "passed": true,
+      "expected": "passed=23 failed=0"
+    },
+    "flow": {
+      "passed": true,
+      "expected": "passed=12 failed=0"
+    },
+    "prefreeze": {
+      "passed": true,
+      "expected": "passed=61 failed=0"
+    },
+    "controller": {
+      "old_new_difference_count": 0,
+      "old_new_differences_first20": [],
+      "candidate_monitor_parity": true,
+      "records": {
+        "off": {
+          "initial_checkpoint_isolation": [
+            "0\t10:22:55.633\t2026.08.04 00:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointBefore=true prefix=F4H4|1|82|GBPUSD|",
+            "0\t10:22:55.633\t2026.08.04 00:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointAfter=false"
+          ],
+          "summary": "0\t10:23:09.958\t2026.08.04 06:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-SUMMARY] cycles=16 valid=0 frames=0 attempts=0 seeds=0 handovers=0 csaViews=0 extViews=0 csaOK=true ok=true",
+          "counts": {
+            "cycles": 16,
+            "valid": 0,
+            "frames": 0,
+            "attempts": 0,
+            "seeds": 0,
+            "handovers": 0,
+            "csaViews": 0,
+            "extViews": 0
+          },
+          "trace_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\sig06_mhv\\fix613_regression\\controller613\\off_trace.txt",
+          "trace_rows": 12224,
+          "trace_sha256": "8650dc9b4f8b5f6704a6e9338ad2a41b9711509f2e439d17b48afaed147026c8"
+        },
+        "on": {
+          "initial_checkpoint_isolation": [
+            "0\t10:23:26.480\t2026.08.04 00:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointBefore=true prefix=F4H4|1|82|GBPUSD|",
+            "0\t10:23:26.480\t2026.08.04 00:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointAfter=false"
+          ],
+          "summary": "0\t10:23:44.206\t2026.08.04 06:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-SUMMARY] cycles=16 valid=0 frames=15 attempts=0 seeds=0 handovers=0 csaViews=630 extViews=180 csaOK=true ok=true",
+          "counts": {
+            "cycles": 16,
+            "valid": 0,
+            "frames": 15,
+            "attempts": 0,
+            "seeds": 0,
+            "handovers": 0,
+            "csaViews": 630,
+            "extViews": 180
+          },
+          "trace_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\sig06_mhv\\fix613_regression\\controller613\\on_trace.txt",
+          "trace_rows": 12224,
+          "trace_sha256": "8650dc9b4f8b5f6704a6e9338ad2a41b9711509f2e439d17b48afaed147026c8"
+        },
+        "baseline612": {
+          "initial_checkpoint_isolation": [
+            "0\t10:24:05.599\t2026.08.04 00:00:59  CustomControllerBaselineHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointBefore=true prefix=F4H4|1|82|GBPUSD|",
+            "0\t10:24:05.599\t2026.08.04 00:00:59  CustomControllerBaselineHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointAfter=false"
+          ],
+          "summary": "0\t10:24:19.828\t2026.08.04 06:00:59  CustomControllerBaselineHarness GBPUSD,M1: [CUSTOM-PARITY-SUMMARY] cycles=16 valid=0 frames=0 attempts=0 seeds=0 handovers=0 csaViews=0 extViews=0 csaOK=true ok=true",
+          "counts": {
+            "cycles": 16,
+            "valid": 0,
+            "frames": 0,
+            "attempts": 0,
+            "seeds": 0,
+            "handovers": 0,
+            "csaViews": 0,
+            "extViews": 0
+          },
+          "trace_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\sig06_mhv\\fix613_regression\\controller613\\baseline612_trace.txt",
+          "trace_rows": 12224,
+          "trace_sha256": "8650dc9b4f8b5f6704a6e9338ad2a41b9711509f2e439d17b48afaed147026c8"
+        }
+      }
+    },
+    "controller_seeded": {
+      "old_new_difference_count": 0,
+      "old_new_differences_first20": [],
+      "candidate_monitor_parity": true,
+      "records": {
+        "off": {
+          "initial_checkpoint_isolation": [
+            "0\t10:24:43.535\t2026.08.04 00:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointBefore=true prefix=F4H4|1|82|GBPUSD|",
+            "0\t10:24:43.535\t2026.08.04 00:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointAfter=false"
+          ],
+          "summary": "0\t10:24:57.924\t2026.08.04 06:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-SUMMARY] cycles=16 valid=0 frames=0 attempts=0 seeds=3 handovers=3 csaViews=0 extViews=0 csaOK=true ok=true",
+          "counts": {
+            "cycles": 16,
+            "valid": 0,
+            "frames": 0,
+            "attempts": 0,
+            "seeds": 3,
+            "handovers": 3,
+            "csaViews": 0,
+            "extViews": 0
+          },
+          "trace_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\sig06_mhv\\fix613_regression\\controller613_seeded\\off_trace.txt",
+          "trace_rows": 12224,
+          "trace_sha256": "01a3d342e119efda86455632bd8446693333a43c925ebe5a29d94ac467855dd9"
+        },
+        "on": {
+          "initial_checkpoint_isolation": [
+            "0\t10:25:14.437\t2026.08.04 00:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointBefore=true prefix=F4H4|1|82|GBPUSD|",
+            "0\t10:25:14.437\t2026.08.04 00:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointAfter=false"
+          ],
+          "summary": "0\t10:25:31.849\t2026.08.04 06:00:59  CustomControllerParityHarness GBPUSD,M1: [CUSTOM-PARITY-SUMMARY] cycles=16 valid=0 frames=15 attempts=0 seeds=3 handovers=3 csaViews=630 extViews=180 csaOK=true ok=true",
+          "counts": {
+            "cycles": 16,
+            "valid": 0,
+            "frames": 15,
+            "attempts": 0,
+            "seeds": 3,
+            "handovers": 3,
+            "csaViews": 630,
+            "extViews": 180
+          },
+          "trace_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\sig06_mhv\\fix613_regression\\controller613_seeded\\on_trace.txt",
+          "trace_rows": 12224,
+          "trace_sha256": "01a3d342e119efda86455632bd8446693333a43c925ebe5a29d94ac467855dd9"
+        },
+        "baseline612": {
+          "initial_checkpoint_isolation": [
+            "0\t10:25:48.246\t2026.08.04 00:00:59  CustomControllerBaselineHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointBefore=true prefix=F4H4|1|82|GBPUSD|",
+            "0\t10:25:48.246\t2026.08.04 00:00:59  CustomControllerBaselineHarness GBPUSD,M1: [CUSTOM-PARITY-INIT] checkpointAfter=false"
+          ],
+          "summary": "0\t10:26:02.603\t2026.08.04 06:00:59  CustomControllerBaselineHarness GBPUSD,M1: [CUSTOM-PARITY-SUMMARY] cycles=16 valid=0 frames=0 attempts=0 seeds=3 handovers=3 csaViews=0 extViews=0 csaOK=true ok=true",
+          "counts": {
+            "cycles": 16,
+            "valid": 0,
+            "frames": 0,
+            "attempts": 0,
+            "seeds": 3,
+            "handovers": 3,
+            "csaViews": 0,
+            "extViews": 0
+          },
+          "trace_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\evidence\\sig06_mhv\\fix613_regression\\controller613_seeded\\baseline612_trace.txt",
+          "trace_rows": 12224,
+          "trace_sha256": "01a3d342e119efda86455632bd8446693333a43c925ebe5a29d94ac467855dd9"
+        }
+      }
+    }
+  },
+  "final_binary_bindings": {
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\mhv613-stage\\blueprint\\source\\BBMA_EA.ex4": "1a1acd962908b9916e51511cdc0195442f3d6495577313a6e9cdc7e3308a3308",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\mhv613-stage\\blueprint\\tests\\custom_mtf\\CustomMomentumReadinessHarness.ex4": "0bcc1413995060c2da1199420ba77165c5c474cda1b17c3ebd2c829601586af7",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\mhv613-stage\\blueprint\\tests\\custom_mtf\\CustomMHVTFHarness.ex4": "0efd1fb158073182e53bda176621d49b7462ad2104fcf65357f0d4f311e22f2c",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\mhv613-stage\\blueprint\\tests\\custom_mtf\\CustomM09ProducerHarness.ex4": "e0bac6f08dcf89384a45caeaf074166fa92b31fbeb4679e4d3fc66d1b44c6001",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\mhv613-stage\\blueprint\\tests\\custom_mtf\\CustomM09ReplayHarness.ex4": "e94b511bb9c08a9296837f0aef95b68e9373dfd402d913d1ec67707f41fe2e32",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\mhv613-stage\\blueprint\\tests\\custom_mtf\\CustomCanonicalMHVHarness.ex4": "55a7feda7d0b7a1bc1409dd66595deb95ec547cec7ef95fb5891757b64edc67a",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\mhv613-stage\\blueprint\\tests\\custom_mtf\\CustomObserverHarness.ex4": "09d150e09f428f84af8179c417452478afde09479639f237da03a7acb61a6d20",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\mhv613-stage\\blueprint\\tests\\custom_mtf\\CustomProducerHarness.ex4": "a661917bf60d965ad71058cb6dad240331645644142fa4f34665c948cb34348e",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\mhv613-stage\\blueprint\\tests\\custom_mtf\\CustomRecoveryHarness.ex4": "516af717771b69e183f253bc1ac539d29f3b162e286dd9a560ccb4e56a701a35",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\mhv613-stage\\blueprint\\tests\\custom_mtf\\CustomHigherHarness.ex4": "c529fec4541ab42c7e0ea18a96c9ab8e68a37e48eef0126a92e0fd224e9d932a",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\mhv613-stage\\blueprint\\tests\\custom_mtf\\CustomFlowHarness.ex4": "5e4a7afa7ea483bd091d0ca137720dd4da36394c68d1e99687da2b66cb902014",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\mhv613-stage\\blueprint\\tests\\custom_mtf\\CustomPreFreezeHarness.ex4": "4884f1b7d6623d0087267dffe3684785d740cf23a1132bab4213c4e8da2809cf",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\mhv613-stage\\blueprint\\tests\\custom_mtf\\CustomControllerParityHarness.ex4": "baf097fd4c65c476b6330d3002d1549c98e9f6cc8d110fdf69dde0ecfcb64202",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\mhv613-stage\\blueprint\\tests\\custom_mtf\\CustomControllerBaselineHarness.ex4": "8711c0c475bb639891bf675b85a5551861e6bf5108fcefde282586e10499ad95"
+  },
+  "hst_hashes": {
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD1.hst": "f931fef6b0d9a829de421c497af8691de48ba74cc9db68d29c50d852de6f1310",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD1440.hst": "6ee8ded5b0027a2340d15196f34da603899d648a772919af6facd156f81800ac",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD15.hst": "74db0196f4d77fc66548cd41614adfdde9ca96f9e2da91daebcd17e304c5e7b5",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD240.hst": "aa58b7e1114d20b135573168fd414db7f210ab260427c8596cadfb8052e5015f",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD30.hst": "d9668038ebc635225534d683ea34b60805915d92510be2b58b6584b8fbbde0d7",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD5.hst": "418440bf35ac6b436361987f3f3deb1beb101ec3a36a3f6c298f338b1e188713",
+    "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD60.hst": "566762b35fce7ef2dcb5985a57dac6bc5d0476a6a76ddef2d680ef0905632389"
+  },
+  "broker_profile": {
+    "schemaVersion": 1,
+    "profileId": "BBMA_PRIMARY_BROKER_UNRESOLVED",
+    "status": "UNRESOLVED",
+    "classification": "ENGINEERING_MAPPING",
+    "canonicalStrategyRule": false,
+    "broker": null,
+    "server": null,
+    "utcOffsetStandardMinutes": null,
+    "utcOffsetDstMinutes": null,
+    "dstRule": null,
+    "weekOpenRule": null,
+    "weekCloseRule": null,
+    "notes": "Resolve from the eventual primary deployment broker. Do not encode UTC+2/UTC+3 as BBMA Strategy Core without source evidence."
+  },
+  "remaining": "Full historical session/epoch/successful production gap recovery HOLD; no later signal or execution promotion."
+}

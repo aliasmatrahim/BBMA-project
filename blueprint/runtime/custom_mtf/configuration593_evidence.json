@@ -1,0 +1,85 @@
+{
+  "build": "5.93",
+  "source_and_include_hashes_sha256_lf_utf8": {
+    "blueprint/source/BBMA_EA.mq4": "fd27f10c1c71491cf8c976c71b952388ac7f15a7827ec1a2fe6c72721dc9cabe",
+    "blueprint/source/custom_mtf/CustomFormula.mqh": "891beea1605278a0d072a9d54cc305d75b7c180918679197e5bb82cd436fa92b",
+    "blueprint/source/custom_mtf/CustomIdentity.mqh": "58357dc65c07a684ca14291c9933f7b7880c82f332880f2fd190a3b69b6095e9",
+    "blueprint/source/custom_mtf/CustomInputs.mqh": "2e4cd80bd66e0cfd7255ea643b343a6c08f91b406b1278e772c82ec86f3b8eb2",
+    "blueprint/source/custom_mtf/CustomSlot.mqh": "deaa605a6149fd4a2d1b73516403d799481f7887fb53e5999a7b8adc15c4845c",
+    "blueprint/source/custom_mtf/CustomSymbolInputs.mqh": "ac2d8fd5500269cd3821838d56456b2bd857a205545e58c7b307ad57453e35fe",
+    "blueprint/source/custom_mtf/CustomSymbols.mqh": "709aaff7fe4d0a4d24206c7a0d55456ba4b339e63dfc16219321e0b0a91a1630",
+    "blueprint/tests/custom_mtf/CustomFormulaHarness.mq4": "b6a653ce1ac833194bb9ef88ad5762abf7b78c3d1b4fa9f2dccf1b304abbf50f",
+    "blueprint/tests/custom_mtf/CustomIdentityHarness.mq4": "1e9e8dfa921300c3ca42c11e344710a4d72a499fcdfb78e5f85e32f621f94ebe",
+    "blueprint/tests/custom_mtf/CustomInputHarness.mq4": "60966a9798e1eb3ce9050f619fb50c4703bbf2660d77a984efe58874c5762d81",
+    "blueprint/tests/custom_mtf/CustomReinitHarness.mq4": "34eeebdf7fe06fb92d49fd7558341febfeac0f9fa2ad1a3686bc08c7fe4c330d",
+    "blueprint/tests/custom_mtf/CustomSlotHarness.mq4": "d8b2b5958d7a588e2835e6bd7d87fd26a78a26822094f573c3608994f84589c7",
+    "blueprint/tests/custom_mtf/CustomSymbolHarness.mq4": "f250fb28235afc46845ac00219773211c420cb9c9eb34d7b7f90d1112ff86f92",
+    "blueprint/tests/custom_mtf/CanonicalResolverFixture.mqh": "fe190ede0c590539cf1bc3d6c5de1c24afaaf477396b624ee2c17bd241c5f300"
+  },
+  "source_ex4_sha256": "b3052fd606adb0a09f6cc08e84db982871a0c61769a825ea0d6931b073a72bb2",
+  "compiles": {
+    "CustomFormulaHarness_compile.log": "Result: 0 errors, 0 warnings, 428 msec elapsed",
+    "CustomIdentityHarness_compile.log": "Result: 0 errors, 0 warnings, 468 msec elapsed",
+    "CustomReinitHarness_compile.log": "Result: 0 errors, 0 warnings, 301 msec elapsed",
+    "CustomSlotHarness_compile.log": "Result: 0 errors, 0 warnings, 447 msec elapsed",
+    "CustomSymbolHarness_compile.log": "Result: 0 errors, 0 warnings, 452 msec elapsed",
+    "full593_compile.log": "Result: 0 errors, 0 warnings, 1101 msec elapsed"
+  },
+  "native_helper_summaries": {
+    "[CUSTOM-PARSER-SUMMARY]": "0\t23:08:58.679\t2026.08.03 00:00:01  CustomFormulaHarness GBPUSD,M15: [CUSTOM-PARSER-SUMMARY] passed=30 failed=0",
+    "[CUSTOM-SLOT-SUMMARY]": "0\t23:09:23.853\t2026.08.03 00:00:01  CustomSlotHarness GBPUSD,M15: [CUSTOM-SLOT-SUMMARY] passed=11 failed=0",
+    "[CONFIG-ID-SUMMARY]": "0\t23:09:47.269\t2026.08.03 00:00:01  CustomIdentityHarness GBPUSD,M15: [CONFIG-ID-SUMMARY] passed=11 failed=0",
+    "[CUSTOM-SYMBOL-SUMMARY]": "0\t23:10:12.380\t2026.08.03 00:00:01  CustomSymbolHarness GBPUSD,M15: [CUSTOM-SYMBOL-SUMMARY] passed=13 failed=0"
+  },
+  "reinit": {
+    "build": "5.93",
+    "compiled": {
+      "CustomReinitHarness": {
+        "result": "Result: 0 errors, 0 warnings, 301 msec elapsed",
+        "compiler_process_exit": 1,
+        "source_sha256_lf_utf8": "34eeebdf7fe06fb92d49fd7558341febfeac0f9fa2ad1a3686bc08c7fe4c330d",
+        "ex4_sha256": "61e4b7302493762ae626e716f483cc4e06d98ca8e8ddad36464493639b5ef130"
+      }
+    },
+    "runtime": {
+      "defaults": [
+        "0\t23:14:29.740\t2026.08.03 00:00:01  CustomReinitHarness GBPUSD,M15: [CUSTOM-REINIT] expected=true first=true second=true reason= clean=true passed=true"
+      ],
+      "spaced_signal_list": [
+        "0\t23:14:51.271\t2026.08.03 00:00:01  CustomReinitHarness GBPUSD,M15: [CUSTOM-REINIT] expected=true first=true second=true reason= clean=true passed=true"
+      ],
+      "invalid_formula": [
+        "0\t23:15:11.916\t2026.08.03 00:00:01  CustomReinitHarness GBPUSD,M15: [CUSTOM-REINIT] expected=false first=false second=false reason=CUSTOM_SLOT_1:CONTEXT:UNKNOWN_TIMEFRAME@0 clean=true passed=true"
+      ],
+      "unavailable": [
+        "0\t23:15:33.412\t2026.08.03 00:00:01  CustomReinitHarness GBPUSD,M15: [CUSTOM-REINIT] expected=false first=false second=false reason=CUSTOM_SLOT_1:SIGNAL_UNAVAILABLE clean=true passed=true"
+      ],
+      "bad_universe": [
+        "0\t23:15:52.272\t2026.08.03 00:00:01  CustomReinitHarness GBPUSD,M15: [CUSTOM-REINIT] expected=false first=false second=false reason=SYMBOL_UNRESOLVED:GOLDTYPO clean=true passed=true"
+      ],
+      "explicit_universe": [
+        "0\t23:16:13.358\t2026.08.03 00:00:01  CustomReinitHarness GBPUSD,M15: [CUSTOM-REINIT] expected=true first=true second=true reason= clean=true passed=true"
+      ]
+    },
+    "scope": "configuration helpers only; not full EA runtime/order execution"
+  },
+  "limitations": [
+    "Broker I/O fixtures used for configuration helper identity/reinit/symbol tests",
+    "Actual canonical resolver body extracted from current source for fixtures",
+    "No custom owner availability or execution enabled",
+    "Global Python pytest unavailable"
+  ],
+  "history": {
+    "red_baselines": {
+      "identity": "missing-capability adapter 2 pass/8 fail",
+      "symbols": "missing-capability adapter 7 pass/6 fail",
+      "spaced_signal_list": "native Build5.92 helper expected=true actual=false INVALID_SIGNAL_LIST:0"
+    },
+    "verification_repairs": [
+      "Saved the returned MQL4 trim string; ALL with spaces and MOM, RE now accepted",
+      "Test runner now writes complete custom presets; reason assertions prevent a negative case passing for an unrelated stale slot",
+      "Helper init/reinit uses broker-I/O fixtures with actual canonical resolver extracted; actual EA startup tested separately"
+    ],
+    "independent_review": "No new fix required; real catalog/reinit/multi-symbol evidence limitations retained"
+  }
+}

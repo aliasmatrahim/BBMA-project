@@ -1,0 +1,103 @@
+{
+  "profile": {
+    "profileId": "BBMA_SYNTHETIC_NY_CLOSE_TEST_V1",
+    "status": "APPROVED_FOR_ISOLATED_TESTER_REFERENCE_ONLY",
+    "classification": "ENGINEERING_MAPPING",
+    "canonicalStrategyRule": false,
+    "deploymentBrokerCanonical": false,
+    "sourceSession": {
+      "timezone": "America/New_York",
+      "anchorLocal": "17:00:00",
+      "evidence": "Dukascopy instrument metadata / session-reference derivation"
+    },
+    "syntheticServerMapping": {
+      "rule": "Map 17:00 America/New_York session start to 00:00 synthetic MT4 server day",
+      "winterUtcOffsetHours": 2,
+      "summerUtcOffsetHours": 3,
+      "dstAuthority": "IANA America/New_York",
+      "purpose": "Normal MT4 D1 midnight and H4 00/04/08/12/16/20 boundaries while preserving source session ownership"
+    },
+    "guards": [
+      "Do not label this profile as the user's deployment broker timezone.",
+      "Do not alter BBMA Strategy Core semantics.",
+      "Use only in D:\\BBMA\\MT4_Canonical_Tester or derived/export artifacts explicitly tagged synthetic-test-reference."
+    ]
+  },
+  "profile_sha256": "b762006b89e39224f333eb2551a86796f56d9e8205a916a751791db6af15f875",
+  "v3_manifest_sha256": "fcadc4e325d06a9676e0712f2294f973c26c53b22894a614a994e7e834856ae8",
+  "files": [
+    {
+      "tf": 1,
+      "current_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD1.hst",
+      "current_sha256": "f931fef6b0d9a829de421c497af8691de48ba74cc9db68d29c50d852de6f1310",
+      "source_v3_path": "D:\\BBMA\\HistoricalData\\exports\\mt4\\synthetic_ny_close_v3\\GBPUSD1.hst",
+      "source_manifest_sha256": "64d5bed21b61cc119507fd552d6a86091b2cf4a580eefb5c589aa97654f56019",
+      "source_records": 7470147,
+      "current_records": 512000,
+      "classification": "EXACT_SUFFIX_PAYLOAD_OF_SYNTHETIC_V3",
+      "source_tail_records_equal": true,
+      "source_header_equal": true
+    },
+    {
+      "tf": 5,
+      "current_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD5.hst",
+      "current_sha256": "418440bf35ac6b436361987f3f3deb1beb101ec3a36a3f6c298f338b1e188713",
+      "source_v3_path": "D:\\BBMA\\HistoricalData\\exports\\mt4\\synthetic_ny_close_v3\\GBPUSD5.hst",
+      "source_manifest_sha256": "6f7a16a1a6bdaf6f6871f56af399530974c2429d51e35f7584d37a2a88ec549d",
+      "source_records": 1496907,
+      "current_records": 512000,
+      "classification": "EXACT_SUFFIX_PAYLOAD_OF_SYNTHETIC_V3",
+      "source_tail_records_equal": true,
+      "source_header_equal": true
+    },
+    {
+      "tf": 15,
+      "current_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD15.hst",
+      "current_sha256": "74db0196f4d77fc66548cd41614adfdde9ca96f9e2da91daebcd17e304c5e7b5",
+      "source_v3_path": "D:\\BBMA\\HistoricalData\\exports\\mt4\\synthetic_ny_close_v3\\GBPUSD15.hst",
+      "source_manifest_sha256": "74db0196f4d77fc66548cd41614adfdde9ca96f9e2da91daebcd17e304c5e7b5",
+      "source_records": 499059,
+      "current_records": 499059,
+      "classification": "EXACT_SYNTHETIC_V3_EXPORT_SHA_MATCH",
+      "source_tail_records_equal": true,
+      "source_header_equal": true
+    },
+    {
+      "tf": 60,
+      "current_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD60.hst",
+      "current_sha256": "566762b35fce7ef2dcb5985a57dac6bc5d0476a6a76ddef2d680ef0905632389",
+      "source_v3_path": "D:\\BBMA\\HistoricalData\\exports\\mt4\\synthetic_ny_close_v3\\GBPUSD60.hst",
+      "source_manifest_sha256": "566762b35fce7ef2dcb5985a57dac6bc5d0476a6a76ddef2d680ef0905632389",
+      "source_records": 124772,
+      "current_records": 124772,
+      "classification": "EXACT_SYNTHETIC_V3_EXPORT_SHA_MATCH",
+      "source_tail_records_equal": true,
+      "source_header_equal": true
+    },
+    {
+      "tf": 240,
+      "current_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD240.hst",
+      "current_sha256": "aa58b7e1114d20b135573168fd414db7f210ab260427c8596cadfb8052e5015f",
+      "source_v3_path": "D:\\BBMA\\HistoricalData\\exports\\mt4\\synthetic_ny_close_v3\\GBPUSD240.hst",
+      "source_manifest_sha256": "aa58b7e1114d20b135573168fd414db7f210ab260427c8596cadfb8052e5015f",
+      "source_records": 31200,
+      "current_records": 31200,
+      "classification": "EXACT_SYNTHETIC_V3_EXPORT_SHA_MATCH",
+      "source_tail_records_equal": true,
+      "source_header_equal": true
+    },
+    {
+      "tf": 1440,
+      "current_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\history\\MetaQuotes-Demo\\GBPUSD1440.hst",
+      "current_sha256": "6ee8ded5b0027a2340d15196f34da603899d648a772919af6facd156f81800ac",
+      "source_v3_path": "D:\\BBMA\\HistoricalData\\exports\\mt4\\synthetic_ny_close_v3\\GBPUSD1440.hst",
+      "source_manifest_sha256": "6ee8ded5b0027a2340d15196f34da603899d648a772919af6facd156f81800ac",
+      "source_records": 5206,
+      "current_records": 5206,
+      "classification": "EXACT_SYNTHETIC_V3_EXPORT_SHA_MATCH",
+      "source_tail_records_equal": true,
+      "source_header_equal": true
+    }
+  ],
+  "scope": "Byte identity or explicit tail-record identity. No new source download, calendar inference, price repair or broker authentication."
+}

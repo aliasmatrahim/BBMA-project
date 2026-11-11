@@ -1,6 +1,6 @@
 # Approved Custom MTF queue — 2026-11-10
 
-Active user serial sequence: SIG01–05 bounded acceptances verified. Current SIG06 MHV PARTIAL: bounded fixture restart proofs now cover all7 TF; production source/session/owner-epoch recovery remains HOLD. Do not start MLV/Re-Entry or unrelated work. All custom execution OFF.
+Active user serial sequence: SIG01–06 bounded acceptances verified. Current only SIG07 MLV read-only alias. T04-B/E production session/owner-epoch recovery remains HOLD. Re-Entry follows SIG07 acceptance. All custom execution OFF.
 
 Authority: user approved continuous execution with checkpoint after each task. This is a scoped workstream queue, not a replacement for the canonical MASTER_QUEUE. Source/branch authority and dependencies remain mandatory. Auto-entry/availability remain OFF; no merge or trading activation.
 
@@ -84,3 +84,5 @@ SIG-06 MHV current checkpoint: Core/F1 reviewed; exact6.11 mechanical native pro
 
 
 2026-11-11 SIG06 availability propagation bounded VERIFIED on Build6.13 source43470ff9795b18e44844bb815deceee778072a004b8815666e18e8ffa584d15c. Native caller RED197/98 → GREEN295/295;112 inner-status cases785/785; candidate323/323 preserved. All14 groups PASS5100 exit0; initial momready166/1 fixture scope defect corrected and retry PASS, no source change. Ordinary+seeded controller OFF/ON/frozen6.12 12224 rows/16 cycles per case exact parity, zero attempts. Collector6584 exit0,14 binaries/unchanged HST verified; evidence archive dabc0aa4f454ec8ee1bdfdc48841fd639340a0672a899821200daf14d0ff88aa. FullSIG06 stillPARTIAL: G40 deployment broker profile UNRESOLVED and original session/owner-epoch/successful production gap recovery gates remain. No MLV/Re-Entry or execution promotion. See mhv613_checkpoint.json and CUSTOM_MTF_MHV_AVAILABILITY_PROPAGATION_20261111.md.
+
+2026-11-11 serial scheduling correction: see the SIG-06 bounded acceptance in `CUSTOM_MTF_SIGNAL_SERIAL_ACCEPTANCE_20261110.md`. T04-B/E full recovery criteria and T04-F/T05+ dependencies retain their original status.

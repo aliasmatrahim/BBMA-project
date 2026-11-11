@@ -1,6 +1,6 @@
 # Signal-by-signal acceptance — 2026-11-10
 
-User instruction: finish one signal before moving to the next; do no unrelated task. SIG-01 eCSD, SIG-02 CSA and SIG-03 CSAK/CSD have the bounded VERIFIED acceptances below. SIG-05 publication and branch were verified at d2e7e85c3f9fd0d2620361c175dbe0b71cea5fa7. Current only SIG-06 MHV: actual historical origin/session evidence HOLD; no later signal may start. Shared-consumer regression is part of SIG-01, not development of another signal. Base328d33a0dd4824f4ff3dcb2a2b2823a69e12bc9b / Draft PR303 / feat/custom-mtf-v1-20261108.
+User instruction: finish one signal before moving to the next; do no unrelated task. SIG-01 eCSD, SIG-02 CSA and SIG-03 CSAK/CSD have the bounded VERIFIED acceptances below. SIG-05 publication and branch were verified at d2e7e85c3f9fd0d2620361c175dbe0b71cea5fa7. SIG-06 MHV now has bounded canonical signal acceptance. Current only SIG-07 MLV alias acceptance. Shared historical production recovery remains HOLD. Shared-consumer regression is part of SIG-01, not development of another signal. Base328d33a0dd4824f4ff3dcb2a2b2823a69e12bc9b / Draft PR303 / feat/custom-mtf-v1-20261108.
 
 ## SIG-01 eCSD — VERIFIED (bounded canonical signal acceptance)
 
@@ -64,3 +64,12 @@ Natural-history diagnostic4200 bars/57 candidates/23 four-hypothesis convergence
 
 
 2026-11-11 SIG06 availability propagation bounded VERIFIED on Build6.13 source43470ff9795b18e44844bb815deceee778072a004b8815666e18e8ffa584d15c. Native caller RED197/98 → GREEN295/295;112 inner-status cases785/785; candidate323/323 preserved. All14 groups PASS5100 exit0; initial momready166/1 fixture scope defect corrected and retry PASS, no source change. Ordinary+seeded controller OFF/ON/frozen6.12 12224 rows/16 cycles per case exact parity, zero attempts. Collector6584 exit0,14 binaries/unchanged HST verified; evidence archive dabc0aa4f454ec8ee1bdfdc48841fd639340a0672a899821200daf14d0ff88aa. FullSIG06 stillPARTIAL: G40 deployment broker profile UNRESOLVED and original session/owner-epoch/successful production gap recovery gates remain. No MLV/Re-Entry or execution promotion. See mhv613_checkpoint.json and CUSTOM_MTF_MHV_AVAILABILITY_PROPAGATION_20261111.md.
+
+
+## SIG-06 MHV — VERIFIED for the canonical signal and read-only projection
+
+Build 6.13 at `15a96f6b1ba9b72154dbcf0e8a50c1e1db379d90`, source LF SHA `43470ff9795b18e44844bb815deceee778072a004b8815666e18e8ffa584d15c`. The bounded serial acceptance covers source-valid Extreme/TP Wajib lineage, formation/invalidation/supersession, both owner directions, read-only projection and exact closed-bar readiness/retry. Existing native manifests were independently read back from the published archive: 51 logical files, 47 unique hash-verified objects; structural 238/238, producer 52/52, anchored replay 57/57, canonical 47/47, observer 4/4, pre-freeze 61/61, caller 295/295, inner status 785/785 and candidate 323/323. Ordinary and seeded traces each have 12,224 identical OFF/ON/frozen rows and zero order attempts. The earlier seven-TF reference restart and negative production gap-admission proofs retain their original exact-build and fixture bounds.
+
+This supersedes the serial scheduling restriction in the earlier SIG-06 entries. The signal audit had included the shared T04-B/E deployment recovery gate. The approved plan permits eligible independent work while T04-B is HOLD. The full T04-B/E historical session and owner-epoch acceptance retains all three exits: authenticated same-feed boundary, source-proven historical owner epoch and successful production continuous/recovered parity across that boundary. G40 broker/server/UTC/DST/week rules remain unresolved. The current replay correctly rejects non-nominal spacing; future admission needs a verified source policy and end-to-end evidence. T04-F/T05+ stay gated, and no executable availability, deployment or orders are authorized.
+
+Next serial signal is SIG-07 MLV read-only alias acceptance. Reuse the shared M09 mechanics. Re-Entry follows MLV acceptance.

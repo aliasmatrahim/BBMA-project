@@ -1,0 +1,66 @@
+{
+  "task_ids": [
+    "T04-B",
+    "T04-E"
+  ],
+  "branch": "feat/custom-mtf-v1-20261108",
+  "source_checkpoint": "b7e9aed01055b44463494a864c79593f5aef561a",
+  "build": "6.15",
+  "server": "HFMarketsSV-Demo Server",
+  "symbol": "GBPUSD",
+  "timeframe": "H1",
+  "source_sha256": "b698f85ef3ae634f679d2bf1b3715392e4b74962f2385f6e878604885ea0aacd",
+  "compile": "Result: 0 errors, 0 warnings, 623 msec elapsed",
+  "harness_sha256": "0efa5afd40d03d2393e869502a03927146ae524571beeb6d88decceeeeda16c3",
+  "binary_sha256": "9248ed2a301d309a6edf97057f75a70a92509469b44bea1845ff1b011fba9e14",
+  "archive_sha256": "dbf371def1b2b3abd2998c9eb749645a53e372dbe7c5c157af27ba79948e0155",
+  "archive_rows": 2528,
+  "pid": 10280,
+  "exit": 0,
+  "cases": {
+    "aug": {
+      "friday": "2026-07-31 23:00",
+      "monday": "2026-08-03 00:00",
+      "input_rows": 183,
+      "csv_sha256": "1aa859f3f66c1e6130abd5409c86787671bf4f17457e9950dcff341643f8915e"
+    },
+    "nov": {
+      "friday": "2026-10-30 22:00",
+      "monday": "2026-11-02 00:00",
+      "input_rows": 183,
+      "csv_sha256": "fa09a1b7bd4003fef1b8b158f5eca6d400389442c67b11eb598ed17ff926a895"
+    }
+  },
+  "markers": [
+    "0\t07:35:21.105\t2026.08.03 00:00:01  CustomHFMSeedH1Harness GBPUSD,M15: [HFM-SEED] case=aug momentum=1785114000 first_m09=1785520800 first_full=1785520800 first_witness=1785520800 friday=1785538800 m09_exact=true full_exact=true origin=true buy_raw=1785517200 sell_raw=1785438000 buy_parent=1785369600 sell_parent=1785517200",
+    "0\t07:35:21.615\t2026.08.03 00:00:01  CustomHFMSeedH1Harness GBPUSD,M15: [HFM-SEED] case=nov momentum=1793044800 first_m09=0 first_full=0 first_witness=0 friday=1793397600 m09_exact=false full_exact=false origin=true buy_raw=1793300400 sell_raw=1793253600 buy_parent=1793080800 sell_parent=1793300400",
+    "0\t07:35:21.615\t2026.08.03 00:00:01  CustomHFMSeedH1Harness GBPUSD,M15: [HFM-SEED-END] aug=true nov=true no_orders=true"
+  ],
+  "scope": "Four reused test-only M08/M09 hypotheses, identical H1 timeline, native Build 6.15 owner functions via same archive adapter. M12 initialized identically in all paths. No admitted production owner epoch or successful cross-gap claim.",
+  "owner_replay_bars_per_case": 120,
+  "source_code_changed": false,
+  "status": "HOLD",
+  "finding": "Four existing M08/M09 seed hypotheses were replayed through the same 120 consecutive H1 bars per case on the immutable HFM GBPUSD archive. Exact M08/M09/M12 comparison first converged at 2026-07-31 18:00 chart time and still matched at the 23:00 pre-gap candle. The 2026-10-30 22:00 pre-gap case never reached exact M09 or full owner convergence, even though path 0 met the post-Momentum lineage witness. Seeded M12 variation and independent authoritative owner epoch were outside this diagnostic.",
+  "forward_capture_sample": {
+    "first": "1794417276",
+    "last": "1794440108",
+    "first_tick": "1794417287",
+    "last_tick": "1794440078",
+    "ticks": 13058,
+    "heartbeats": 2283,
+    "max_heartbeat_delta_s": 11,
+    "not_connected": 0,
+    "events": [
+      "INIT",
+      "HEARTBEAT",
+      "QUOTE_SESSION",
+      "QUOTE_SESSION_COUNT",
+      "TICK"
+    ],
+    "pid": 1264
+  },
+  "remaining": "T04-B/E remain HOLD. No independently authenticated owner epoch or full same-server session boundary yet. Build 6.15 still rejects non-nominal steps in ReplayCustomAuxOwnerSource. T04-F and downstream acceptance remain gated. The queue shows no newly eligible independent task.",
+  "next_action": "Use a pre-gap owner snapshot with verified lineage or a source-proven reconstruction at a confirmed same-feed closure. Validate Friday close and Monday reopen with the existing HFM capture. Use the resulting boundary evidence to verify gap admission and production uninterrupted/recovered parity, including stale-trigger suppression.",
+  "manifest_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\t04be_hfm_h1_seed_20261112\\manifest.json",
+  "driver_path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\prepare_t04be_hfm_h1_seed_20261112.py"
+}

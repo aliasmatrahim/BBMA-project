@@ -1,0 +1,41 @@
+{
+  "source_sha256": "b698f85ef3ae634f679d2bf1b3715392e4b74962f2385f6e878604885ea0aacd",
+  "compile": "Result: 0 errors, 0 warnings, 661 msec elapsed",
+  "harness_sha256": "6e9e36f4f4ab474762f28c563d179c65b2b70d28c4d958e6c62e0b130bd6b456",
+  "binary_sha256": "fc9fb7ac7060df4c9deca2a44cf464d39edf7902ff4a8480e8a17d351d4fba98",
+  "archive_sha256": "dbf371def1b2b3abd2998c9eb749645a53e372dbe7c5c157af27ba79948e0155",
+  "archive_rows": 2528,
+  "pid": 11464,
+  "exit": 0,
+  "cases": {
+    "aug": {
+      "friday": "2026-07-31 23:00",
+      "monday": "2026-08-03 00:00",
+      "input_rows": 183,
+      "csv_sha256": "1aa859f3f66c1e6130abd5409c86787671bf4f17457e9950dcff341643f8915e"
+    },
+    "nov": {
+      "friday": "2026-10-30 22:00",
+      "monday": "2026-11-02 00:00",
+      "input_rows": 183,
+      "csv_sha256": "fa09a1b7bd4003fef1b8b158f5eca6d400389442c67b11eb598ed17ff926a895"
+    }
+  },
+  "markers": [
+    "0\t01:46:08.587\t2026.08.03 00:00:01  CustomHFMArchiveH1Harness GBPUSD,M15: [HFM-ARCHIVE] case=aug warm=116 parity=true hold=true friday=2026.07.31 23:00 monday=2026.08.03 00:00 m08buy=EXT_MAT_RETEST_READY m08sell=EXT_MAT_VOID m09buy=MLV_DIRECTION_TAKEN m09sell=MLV_RETEST_COMPLETE",
+    "0\t01:46:08.727\t2026.08.03 00:00:01  CustomHFMArchiveH1Harness GBPUSD,M15: [HFM-ARCHIVE] case=nov warm=116 parity=true hold=true friday=2026.10.30 22:00 monday=2026.11.02 00:00 m08buy=EXT_MAT_RETEST_READY m08sell=EXT_MAT_VOID m09buy=MLV_SUPERSEDED m09sell=MLV_DIRECTION_TAKEN",
+    "0\t01:46:08.727\t2026.08.03 00:00:01  CustomHFMArchiveH1Harness GBPUSD,M15: [HFM-ARCHIVE-END] aug=true nov=true no_orders=true"
+  ],
+  "scope": "Bounded same-feed HFM H1 archive through a test-only series adapter. No historical session authority or broker owner epoch.",
+  "task": "T04-B/E",
+  "status": "BOUNDED_HFM_ARCHIVE_PROBE_PASS; T04-B/E HOLD",
+  "base_commit": "e7c8086af2b0488b90909a701a8c3f0c12a97c0f",
+  "source_build": "6.15",
+  "series_adapter": "MQL4 native production functions with test-only H1 OHLC/time reads and native iMAOnArray; archive chart labels are not UTC assertions",
+  "g40_driver_pid": 8472,
+  "g40_driver_exit": 0,
+  "g40_evidence": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\t04be_hfm_h1_archive_20261112_v2",
+  "initial_compile": "0 errors, 24 shadow warnings in test fixture; corrected harness identifier only, no EA source change",
+  "remaining": "Dated same-server quote/session coverage and independently proven pre-gap epoch before successful production across-gap admission and parity",
+  "public_schedule": "https://www.hfm.com/int/en/trading-instruments/trading-hours"
+}

@@ -113,6 +113,45 @@ int OnInit()
   ResetSources();mutateHighDuringMA=true;
   Check(label+"High_only_revision_during_MA_read_rejected",!ReadM10CSAKSnapshot("CSA_A",tf,1,other) && !g_pair_states[0].m10_csak[t].ready);
   ResetSources();
+  // A failed refresh must retire the view for the same source candle.
+  ResetSources();
+  bool seeded=ReadM10CSAKSnapshot("CSA_A",tf,1,s) &&
+              ReadM10CSAKSnapshot("CSA_B",tf,1,other) &&
+              ReadM10CSAKSnapshot("CSA_A",tf,8,other);
+  Check(label+"refresh_seed_current_historical_peer",seeded);
+  missingShift=9;
+  bool failedClose=!ReadM10CSASnapshot("CSA_A",tf,1,other);
+  Check(label+"failed_close_retires_both_current_views",
+        failedClose && !ReadCustomOwnerView(0,tf,"CSA",DIR_BUY,latest,repeat) &&
+        !ReadCustomOwnerView(0,tf,"CSAK",DIR_BUY,latest,repeat));
+  Check(label+"failed_close_preserves_other_keys",
+        ReadCustomOwnerView(1,tf,"CSAK",DIR_SELL,latest,repeat) &&
+        g_pair_states[0].m10_csak[t+7].ready);
+  missingShift=-1;
+  Check(label+"same_bar_retry_restores_both_views",
+        ReadM10CSAKSnapshot("CSA_A",tf,1,s) &&
+        ReadCustomOwnerView(0,tf,"CSA",DIR_BUY,latest,repeat) &&
+        ReadCustomOwnerView(0,tf,"CSAK",DIR_BUY,latest,repeat));
+  missingHighShift=5;
+  bool failedHigh=!ReadM10CSAKSnapshot("CSA_A",tf,1,other);
+  Check(label+"failed_high_retires_only_csak",
+        failedHigh && !ReadCustomOwnerView(0,tf,"CSAK",DIR_BUY,latest,repeat) &&
+        ReadCustomOwnerView(0,tf,"CSA",DIR_BUY,latest,repeat));
+  missingHighShift=-1;
+  bool restored=ReadM10CSAKSnapshot("CSA_A",tf,1,s);
+  fixtureClose=98;
+  Check(label+"revised_csa_retires_dependent_view",
+        restored && ReadM10CSASnapshot("CSA_A",tf,1,other) && other.sell &&
+        !ReadCustomOwnerView(0,tf,"CSAK",DIR_BUY,latest,repeat));
+  bool refreshed=ReadM10CSAKSnapshot("CSA_A",tf,1,s);
+  missingShift=12;
+  bool failedPast=!ReadM10CSAKSnapshot("CSA_A",tf,8,other);
+  missingShift=-1;
+  // Revalidate the current key first; a successful historical lookup uses a separate slot.
+  Check(label+"historical_and_current_slots_separate",
+        refreshed && failedPast && ReadM10CSAKSnapshot("CSA_A",tf,1,s) &&
+        ReadCustomOwnerView(0,tf,"CSAK",DIR_SELL,latest,repeat) && repeat.structuralValid);
+  ResetSources();
   bool ready=true,equivalent=true;int positive=0;
   for(int shift=1;shift<=10;shift++)
   {

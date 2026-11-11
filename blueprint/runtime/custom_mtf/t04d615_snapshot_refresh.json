@@ -1,0 +1,155 @@
+{
+  "task": "T04-D",
+  "status": "VERIFIED bounded same-candle snapshot refresh fix; overall T04-D PARTIAL",
+  "branch": "feat/custom-mtf-v1-20261108",
+  "base_commit": "48d26f0c772214cbcfb9fcf7d68f11850c0519ff",
+  "canonical_owner_head": "7567af7dfbfaafff35a37c1d307b387e96273c78",
+  "build": "6.15",
+  "source_lf_sha256": "b698f85ef3ae634f679d2bf1b3715392e4b74962f2385f6e878604885ea0aacd",
+  "source_git_blob": "a2907a698728c302eb5a8ca26840d379014491a4",
+  "scope": {
+    "functions": 466,
+    "changed": [
+      "ReadM10CSASnapshot",
+      "ReadM10CSAKSnapshot",
+      "F7BuildIdentityTelemetry"
+    ]
+  },
+  "issue": "After failed refresh, older ready CSA/CSAK at the same sourceBar could still pass direct owner-view readiness. A revised CSA fingerprint could leave a dependent CSAK ready.",
+  "fix": "Retire same-symbol/TF/current-or-historical CSA and dependent CSAK when the shared close fingerprint fails or changes. Retire CSAK before its independent high/low and MA refresh. Keep other keys, successful cache hits, and semantic availability.",
+  "native_scope": "G40 isolated GBPUSD tester with controlled source fixtures and existing actual history checks; M30 derived fixture",
+  "native_driver_pids": {
+    "red": 4076,
+    "green": 4272
+  },
+  "native_driver_exits": {
+    "red": 0,
+    "green": 0
+  },
+  "g40_evidence": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\t04d_refresh_20261111",
+  "manifests": [
+    {
+      "passed": true,
+      "source": "43470ff9795b18e44844bb815deceee778072a004b8815666e18e8ffa584d15c",
+      "case": "custom613_csakview",
+      "compile": {
+        "BBMA_EA": {
+          "result": "Result: 0 errors, 0 warnings, 979 msec elapsed",
+          "source_sha256_lf_utf8": "43470ff9795b18e44844bb815deceee778072a004b8815666e18e8ffa584d15c",
+          "ex4_sha256": "365533607d76518f9e1240814c1b013d0702e74f6efdb0f4774dc8effb5e302d"
+        },
+        "CustomT04DRefreshHarness": {
+          "result": "Result: 0 errors, 0 warnings, 670 msec elapsed",
+          "source_sha256_lf_utf8": "8165d83556a601e9b252d406fe243bdec257b18bf2a0fd5db6cb2cede19bbfd7",
+          "ex4_sha256": "ca3d5e38b6b64962cdf7bcd619bcea8c8bccaf7940f3c0eb87bed448dd1844a7"
+        }
+      },
+      "summary": [
+        "0\t14:48:58.101\t2026.08.03 00:00:01  CustomT04DRefreshHarness GBPUSD,M15: [CUSTOM-CSAKVIEW-SUMMARY] passed=217 failed=21"
+      ],
+      "manifest_sha": "35f9751dab8fd93c2b57e7bc94060e1ceeaaf7fbdd82a98b82057625cdb5e303",
+      "mode": "red"
+    },
+    {
+      "passed": true,
+      "source": "b698f85ef3ae634f679d2bf1b3715392e4b74962f2385f6e878604885ea0aacd",
+      "case": "custom615_csa",
+      "compile": {
+        "BBMA_EA": {
+          "result": "Result: 0 errors, 0 warnings, 988 msec elapsed",
+          "source_sha256_lf_utf8": "b698f85ef3ae634f679d2bf1b3715392e4b74962f2385f6e878604885ea0aacd",
+          "ex4_sha256": "6c96f102b2ac043db65f1830f0a5621e9baaaf7f3ee40b531bd10733e01f54f7"
+        },
+        "CustomCSAHarness": {
+          "result": "Result: 0 errors, 0 warnings, 671 msec elapsed",
+          "source_sha256_lf_utf8": "cdaa7dbc6f758694b432dffa2a533dd3880bd2253d6e577bc1fc1c76082b852b",
+          "ex4_sha256": "4c023751c82e72efea7e63e91f5acb95cafff77aaa5478bc076456f584a14607"
+        }
+      },
+      "summary": [
+        "0\t14:51:25.683\t2026.08.03 00:00:01  CustomCSAHarness GBPUSD,M15: [CUSTOM-CSA-SUMMARY] passed=154 failed=0"
+      ],
+      "manifest_sha": "c6f57c6ec3da7deb00d48d9f88d28581a50ca04b6df82620665665e3195e6a67",
+      "mode": "green"
+    },
+    {
+      "passed": true,
+      "source": "b698f85ef3ae634f679d2bf1b3715392e4b74962f2385f6e878604885ea0aacd",
+      "case": "custom615_csak",
+      "compile": {
+        "BBMA_EA": {
+          "result": "Result: 0 errors, 0 warnings, 1071 msec elapsed",
+          "source_sha256_lf_utf8": "b698f85ef3ae634f679d2bf1b3715392e4b74962f2385f6e878604885ea0aacd",
+          "ex4_sha256": "9e44c11adf0a08510bc1bfd79a982d07343fcced38c84e3ce826c912aa3a98fb"
+        },
+        "CustomCSAKHarness": {
+          "result": "Result: 0 errors, 0 warnings, 593 msec elapsed",
+          "source_sha256_lf_utf8": "1ff6ce649336082936fef2929851b7cf59fc4cde5ef9d6d1d1eaf8f54cccdfba",
+          "ex4_sha256": "10036a40031f12fd9364bb274671385b31b8599dbda42d7f18edf2fa43e0808e"
+        }
+      },
+      "summary": [
+        "0\t14:52:04.516\t2026.08.03 00:00:01  CustomCSAKHarness GBPUSD,M15: [CUSTOM-CSAK-SUMMARY] passed=211 failed=0"
+      ],
+      "manifest_sha": "25974cc0b0d3a7f3a76e40183d665daf548b4be192c3ac358c919a194fe78492",
+      "mode": "green"
+    },
+    {
+      "passed": true,
+      "source": "b698f85ef3ae634f679d2bf1b3715392e4b74962f2385f6e878604885ea0aacd",
+      "case": "custom615_csakview",
+      "compile": {
+        "BBMA_EA": {
+          "result": "Result: 0 errors, 0 warnings, 991 msec elapsed",
+          "source_sha256_lf_utf8": "b698f85ef3ae634f679d2bf1b3715392e4b74962f2385f6e878604885ea0aacd",
+          "ex4_sha256": "a792c99c69dd9a8fe6af04298b3e914570c73496692e9a3138078e66d3da7b03"
+        },
+        "CustomT04DRefreshHarness": {
+          "result": "Result: 0 errors, 0 warnings, 693 msec elapsed",
+          "source_sha256_lf_utf8": "8165d83556a601e9b252d406fe243bdec257b18bf2a0fd5db6cb2cede19bbfd7",
+          "ex4_sha256": "683e9b9588636ca58936e960d0d753bae9e7aa3038b384254e4e0aeeba2dd574"
+        }
+      },
+      "summary": [
+        "0\t14:50:47.239\t2026.08.03 00:00:01  CustomT04DRefreshHarness GBPUSD,M15: [CUSTOM-CSAKVIEW-SUMMARY] passed=238 failed=0"
+      ],
+      "manifest_sha": "3b801f720f1329145474a610319527b3f715d6a63374f9c45c1aab4a3dbbe594",
+      "mode": "green"
+    },
+    {
+      "passed": true,
+      "source": "b698f85ef3ae634f679d2bf1b3715392e4b74962f2385f6e878604885ea0aacd",
+      "case": "custom615_momready",
+      "compile": {
+        "BBMA_EA": {
+          "result": "Result: 0 errors, 0 warnings, 900 msec elapsed",
+          "source_sha256_lf_utf8": "b698f85ef3ae634f679d2bf1b3715392e4b74962f2385f6e878604885ea0aacd",
+          "ex4_sha256": "8379f86539d1f160b36f5334b6e1f97192e6e906daffe78da18e982c05c0313c"
+        },
+        "CustomMomentumReadinessHarness": {
+          "result": "Result: 0 errors, 0 warnings, 881 msec elapsed",
+          "source_sha256_lf_utf8": "041a94ee7adc92887d0598566bf2ba8c02e23ebceebb09074131bcdc5a5b1000",
+          "ex4_sha256": "a1e720d763bd889a854cc905449e0635c414654f31dcf4b9dfbeac9a59bf4bd9"
+        }
+      },
+      "summary": [
+        "0\t14:52:30.029\t2026.08.03 00:00:01  CustomMomentumReadinessHarness GBPUSD,M15: [MOM-READY-SUMMARY] passed=167 failed=0"
+      ],
+      "manifest_sha": "fc8d2fa5273200007f42be75f29537d0754dcb313e4d27cd819cd83a05881f4e",
+      "mode": "green"
+    }
+  ],
+  "host": {
+    "execution": "Linux direct invocation of four exact GitHub modules and their test functions, including g++ numeric equivalence; no full pytest claim",
+    "exit": 0,
+    "initial_g40_pytest": "collection exit 2: g++ unavailable",
+    "output": "b698f85ef3ae634f679d2bf1b3715392e4b74962f2385f6e878604885ea0aacd  blueprint/source/BBMA_EA.mq4\na2907a698728c302eb5a8ca26840d379014491a4\nPASS test_csa_close_only.py (1 test functions plus module assertions)\nPASS test_csak_close_only.py (1 test functions plus module assertions)\nCUSTOM_INPUT_INIT_WIRING_PASS\nPASS test_custom_input_wiring.py (0 test functions plus module assertions)\nM10_CLOSE_PAIR_EQUIVALENCE_PASS cases=2187; host numeric equivalence only\nPASS test_m10_shared_pair.py (0 test functions plus module assertions)\n"
+  },
+  "broker_profile": {
+    "status": "UNRESOLVED",
+    "sha256": "2a7a2fe17c828cce1dca4768e3b905188ba94eafc415ed8069f0f34bbd354d21",
+    "read_pid": 3536
+  },
+  "remaining": "Authenticated same-feed historical session/closure and a source-proven historical owner epoch, then successful production continuous/recovered parity. T04-F/T05+ remain gated.",
+  "custom_auto_entry": false
+}

@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 6.1.3 - MHV Availability Propagation      |
+//| Version 6.1.5 - M10 Snapshot Refresh Readiness      |
 //| SIGNAL VALIDATION IN PROGRESS - CUSTOM ORDERS OFF          |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,14 +31,14 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "6.13"
+#property version   "6.15"
 #property strict
 #include "custom_mtf/CustomInputs.mqh"
 #include "custom_mtf/CustomPairBinding.mqh"
 #include "custom_mtf/CustomClock.mqh"
 
-#define BBMA_BUILD_TAG      "V613_MHV_AVAILABILITY_PROPAGATION_20261111"
-#define BBMA_SOURCE_REV_TAG "MHV_AVAILABILITY_PROPAGATION_001_20261111"
+#define BBMA_BUILD_TAG      "V615_M10_SNAPSHOT_REFRESH_READINESS_20261111"
+#define BBMA_SOURCE_REV_TAG "M10_SNAPSHOT_REFRESH_READINESS_001_20261111"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -3755,12 +3755,20 @@ bool M10_CandleClosesBeyondMid(double close,double mid,ENUM_DIRECTION direction)
 bool ReadM10CSASnapshot(string pair,int timeframe,int shift,M10MomentumSnapshot &snapshot)
 {
    ReadM10ClosedInputs(pair,timeframe,shift,BB_PERIOD,snapshot);
-   if(!snapshot.ready || CustomTFIndex(timeframe)<0)return false;
-   int slot=CustomTFIndex(timeframe);int pairIndex=-1;
+   int slot=CustomTFIndex(timeframe);
+   if(shift<1 || slot<0)return false;
+   int pairIndex=-1;
    for(int i=0;i<g_pair_count;i++)if(g_pair_states[i].actual_symbol==pair){pairIndex=i;break;}
    if(shift>1)slot+=7;
    if(pairIndex>=0 && SameM10ClosedInputs(snapshot,g_pair_states[pairIndex].m10_csa[slot]))
    {snapshot=g_pair_states[pairIndex].m10_csa[slot];return true;}
+   // A failed or revised close fingerprint also retires the dependent CSAK view.
+   if(pairIndex>=0)
+   {
+      g_pair_states[pairIndex].m10_csa[slot].ready=false;
+      g_pair_states[pairIndex].m10_csak[slot].ready=false;
+   }
+   if(!snapshot.ready)return false;
    // Reuse the canonical MOM current band if its current20 inputs match.
    // CSA readiness never requires MOM's extra previous-band candle/expansion.
    if(pairIndex>=0 && SameM10ClosedInputs(snapshot,g_pair_states[pairIndex].m10_momentum[slot],BB_PERIOD))
@@ -3813,6 +3821,12 @@ bool ReadM10CSAKSnapshot(string pair,int timeframe,int shift,M10MomentumSnapshot
 {
    // M10 owns classification; reuse its finalized MidBB inputs and M06 MA functions.
    if(!ReadM10CSASnapshot(pair,timeframe,shift,snapshot)) return false;
+   int slot=CustomTFIndex(timeframe);if(shift>1)slot+=7;
+   int pairIndex=-1;
+   for(int p=0;p<g_pair_count;p++)
+      if(g_pair_states[p].actual_symbol==pair){pairIndex=p;break;}
+   // Publish this key again only after the full MA/high-low refresh succeeds.
+   if(pairIndex>=0)g_pair_states[pairIndex].m10_csak[slot].ready=false;
    double highs[10]={0},lows[10]={0};
    for(int i=0;i<10;i++)
    {
@@ -3837,9 +3851,7 @@ bool ReadM10CSAKSnapshot(string pair,int timeframe,int shift,M10MomentumSnapshot
    for(int j=0;j<10;j++)
       if(highs[j]!=iHigh(pair,timeframe,shift+j) || lows[j]!=iLow(pair,timeframe,shift+j))snapshot.ready=false;
    if(!snapshot.ready)return false;
-   int slot=CustomTFIndex(timeframe);if(shift>1)slot+=7;
-   for(int p=0;p<g_pair_count;p++)
-      if(g_pair_states[p].actual_symbol==pair){g_pair_states[p].m10_csak[slot]=snapshot;break;}
+   if(pairIndex>=0)g_pair_states[pairIndex].m10_csak[slot]=snapshot;
    return true;
 }
 
@@ -11436,7 +11448,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=6.10 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=6.15 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);

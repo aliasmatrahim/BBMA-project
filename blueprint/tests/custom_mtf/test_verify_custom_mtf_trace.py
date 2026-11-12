@@ -86,6 +86,26 @@ class TraceFixtureTests(unittest.TestCase):
         fixture["cases"][0]["sends"][0]["sent_at"] = True
         self.run_fixture(fixture, "invalid_manifest")
 
+    def test_duplicate_json_members(self):
+        raw = json.dumps(BASE)
+        variants = [
+            raw.replace('"build": "fixture-build"', '"build": "wrong", "build": "fixture-build"', 1),
+            raw.replace('"expected_sends": 1', '"expected_sends": 0, "expected_sends": 1', 1),
+            raw.replace('"required_cases":', '"required_cases": ["missing"], "required_cases":', 1),
+        ]
+        for variant in variants:
+            with self.subTest(manifest=variant), tempfile.TemporaryDirectory() as tmp:
+                manifest = Path(tmp, "manifest.json")
+                output = Path(tmp, "summary.json")
+                manifest.write_text(variant, encoding="utf-8")
+                result = subprocess.run(
+                    [sys.executable, str(ANALYZER), "--manifest", str(manifest), "--output", str(output)],
+                    capture_output=True, text=True, check=False,
+                )
+                self.assertEqual(result.returncode, 1, result.stderr)
+                summary = json.loads(output.read_text(encoding="utf-8"))
+                self.assertEqual(summary["errors"], ["invalid_manifest"])
+
 
 if __name__ == "__main__":
     unittest.main()

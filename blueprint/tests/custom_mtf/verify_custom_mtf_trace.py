@@ -30,6 +30,15 @@ def array(value):
     return value
 
 
+def unique_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON member: {key}")
+        result[key] = value
+    return result
+
+
 def verify(manifest):
     errors = []
     counts = {"cases": 0, "witnesses": 0, "sends": 0}
@@ -98,7 +107,10 @@ def main():
     if args.manifest.resolve() == args.output.resolve():
         parser.error("manifest and output must be different files")
     try:
-        summary = verify(json.loads(args.manifest.read_text(encoding="utf-8")))
+        manifest = json.loads(
+            args.manifest.read_text(encoding="utf-8"), object_pairs_hook=unique_object
+        )
+        summary = verify(manifest)
     except (OSError, ValueError, KeyError, TypeError) as error:
         summary = {
             "errors": ["invalid_manifest"],

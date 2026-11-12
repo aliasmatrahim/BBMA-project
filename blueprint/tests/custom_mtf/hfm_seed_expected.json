@@ -1,0 +1,67 @@
+{
+  "baseline_commit": "6e76d8707d3294df80c660d2f775bd27c221242f",
+  "identity": {
+    "source_checkpoint": "b7e9aed01055b44463494a864c79593f5aef561a",
+    "build": "6.15",
+    "server": "HFMarketsSV-Demo Server",
+    "symbol": "GBPUSD",
+    "timeframe": "H1",
+    "source_sha256": "b698f85ef3ae634f679d2bf1b3715392e4b74962f2385f6e878604885ea0aacd",
+    "harness_sha256": "0efa5afd40d03d2393e869502a03927146ae524571beeb6d88decceeeeda16c3",
+    "binary_sha256": "9248ed2a301d309a6edf97057f75a70a92509469b44bea1845ff1b011fba9e14",
+    "archive_sha256": "dbf371def1b2b3abd2998c9eb749645a53e372dbe7c5c157af27ba79948e0155",
+    "archive_rows": 2528,
+    "owner_replay_bars_per_case": 120
+  },
+  "cases": {
+    "aug": {
+      "friday": "2026-07-31 23:00",
+      "monday": "2026-08-03 00:00",
+      "input_rows": 183,
+      "csv_sha256": "1aa859f3f66c1e6130abd5409c86787671bf4f17457e9950dcff341643f8915e"
+    },
+    "nov": {
+      "friday": "2026-10-30 22:00",
+      "monday": "2026-11-02 00:00",
+      "input_rows": 183,
+      "csv_sha256": "fa09a1b7bd4003fef1b8b158f5eca6d400389442c67b11eb598ed17ff926a895"
+    }
+  },
+  "results": [
+    {
+      "case": "aug",
+      "momentum": "1785114000",
+      "first_m09": "1785520800",
+      "first_full": "1785520800",
+      "first_witness": "1785520800",
+      "friday": "1785538800",
+      "m09_exact": "true",
+      "full_exact": "true",
+      "origin": "true",
+      "buy_raw": "1785517200",
+      "sell_raw": "1785438000",
+      "buy_parent": "1785369600",
+      "sell_parent": "1785517200"
+    },
+    {
+      "case": "nov",
+      "momentum": "1793044800",
+      "first_m09": "0",
+      "first_full": "0",
+      "first_witness": "0",
+      "friday": "1793397600",
+      "m09_exact": "false",
+      "full_exact": "false",
+      "origin": "true",
+      "buy_raw": "1793300400",
+      "sell_raw": "1793253600",
+      "buy_parent": "1793080800",
+      "sell_parent": "1793300400"
+    }
+  ],
+  "end": {
+    "aug": "true",
+    "nov": "true",
+    "no_orders": "true"
+  }
+}

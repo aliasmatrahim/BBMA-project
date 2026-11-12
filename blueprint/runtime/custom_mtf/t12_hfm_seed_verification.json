@@ -1,0 +1,15 @@
+{
+  "errors": [],
+  "baseline_commit": "6e76d8707d3294df80c660d2f775bd27c221242f",
+  "case_count": 2,
+  "owner_matches": {
+    "aug": true,
+    "nov": false
+  },
+  "recovery_acceptance": "HOLD",
+  "limitations": [
+    "Verifies recorded native manifest fields and log markers against a frozen checkpoint.",
+    "Does not rehash original G40 binaries or history files, rerun MT4, or authenticate the owner epoch.",
+    "October owner divergence is an expected diagnostic result. Production recovery remains HOLD."
+  ]
+}

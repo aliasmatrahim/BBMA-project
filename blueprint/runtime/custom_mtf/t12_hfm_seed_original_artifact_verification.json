@@ -1,0 +1,87 @@
+{
+  "task": "T12",
+  "branch": "feat/custom-mtf-v1-20261108",
+  "parent_checkpoint": "d018536df9960221be0f74cfbf15c53ee2681513",
+  "g40_process": 236,
+  "g40_process_exit": 0,
+  "checked_utc": "2026-11-12T01:07:35.437664+00:00",
+  "bindings": [
+    {
+      "name": "source_sha256",
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\t04be_hfm_h1_seed_20261112\\repo\\blueprint\\source\\BBMA_EA.mq4",
+      "normalization": "text_universal_newline_utf8",
+      "sha256": "b698f85ef3ae634f679d2bf1b3715392e4b74962f2385f6e878604885ea0aacd",
+      "expected_sha256": "b698f85ef3ae634f679d2bf1b3715392e4b74962f2385f6e878604885ea0aacd",
+      "match": true
+    },
+    {
+      "name": "harness_sha256",
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\t04be_hfm_h1_seed_20261112\\repo\\blueprint\\tests\\custom_mtf\\CustomHFMSeedH1Harness.mq4",
+      "normalization": "text_universal_newline_utf8",
+      "sha256": "0efa5afd40d03d2393e869502a03927146ae524571beeb6d88decceeeeda16c3",
+      "expected_sha256": "0efa5afd40d03d2393e869502a03927146ae524571beeb6d88decceeeeda16c3",
+      "match": true
+    },
+    {
+      "name": "binary_sha256",
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\t04be_hfm_h1_seed_20261112\\repo\\blueprint\\tests\\custom_mtf\\CustomHFMSeedH1Harness.ex4",
+      "normalization": "raw_bytes",
+      "sha256": "9248ed2a301d309a6edf97057f75a70a92509469b44bea1845ff1b011fba9e14",
+      "expected_sha256": "9248ed2a301d309a6edf97057f75a70a92509469b44bea1845ff1b011fba9e14",
+      "match": true
+    },
+    {
+      "name": "installed_binary",
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\MQL4\\Experts\\CustomHFMSeedH1Harness.ex4",
+      "normalization": "raw_bytes",
+      "sha256": "9248ed2a301d309a6edf97057f75a70a92509469b44bea1845ff1b011fba9e14",
+      "expected_sha256": "9248ed2a301d309a6edf97057f75a70a92509469b44bea1845ff1b011fba9e14",
+      "match": true
+    },
+    {
+      "name": "archive_sha256",
+      "path": "C:\\Users\\Afiq Mat Rahim\\AppData\\Roaming\\MetaQuotes\\Terminal\\91DD9F8C3ED3720A3F71FC024EC6B483\\history\\HFMarketsSV-Demo Server\\GBPUSD60.hst",
+      "normalization": "raw_bytes",
+      "sha256": "dbf371def1b2b3abd2998c9eb749645a53e372dbe7c5c157af27ba79948e0155",
+      "expected_sha256": "dbf371def1b2b3abd2998c9eb749645a53e372dbe7c5c157af27ba79948e0155",
+      "match": true
+    },
+    {
+      "name": "aug_csv",
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\tester\\files\\hfm_seed_aug.csv",
+      "normalization": "raw_bytes",
+      "sha256": "1aa859f3f66c1e6130abd5409c86787671bf4f17457e9950dcff341643f8915e",
+      "expected_sha256": "1aa859f3f66c1e6130abd5409c86787671bf4f17457e9950dcff341643f8915e",
+      "match": true
+    },
+    {
+      "name": "nov_csv",
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\tester\\files\\hfm_seed_nov.csv",
+      "normalization": "raw_bytes",
+      "sha256": "fa09a1b7bd4003fef1b8b158f5eca6d400389442c67b11eb598ed17ff926a895",
+      "expected_sha256": "fa09a1b7bd4003fef1b8b158f5eca6d400389442c67b11eb598ed17ff926a895",
+      "match": true
+    }
+  ],
+  "compile_line_match": true,
+  "manifest_fields_match": true,
+  "original_logs": [
+    {
+      "path": "D:\\BBMA\\MT4_CustomMTF_302_Unit\\tester\\logs\\20261112.log",
+      "sha256": "58e783cf8a10970cf9db4b2ba66bb37352593ff64be5c81f39e325aaa687a57c",
+      "matched_markers": [
+        "0\t07:35:21.105\t2026.08.03 00:00:01  CustomHFMSeedH1Harness GBPUSD,M15: [HFM-SEED] case=aug momentum=1785114000 first_m09=1785520800 first_full=1785520800 first_witness=1785520800 friday=1785538800 m09_exact=true full_exact=true origin=true buy_raw=1785517200 sell_raw=1785438000 buy_parent=1785369600 sell_parent=1785517200",
+        "0\t07:35:21.615\t2026.08.03 00:00:01  CustomHFMSeedH1Harness GBPUSD,M15: [HFM-SEED] case=nov momentum=1793044800 first_m09=0 first_full=0 first_witness=0 friday=1793397600 m09_exact=false full_exact=false origin=true buy_raw=1793300400 sell_raw=1793253600 buy_parent=1793080800 sell_parent=1793300400",
+        "0\t07:35:21.615\t2026.08.03 00:00:01  CustomHFMSeedH1Harness GBPUSD,M15: [HFM-SEED-END] aug=true nov=true no_orders=true"
+      ]
+    }
+  ],
+  "unique_markers_found": 3,
+  "expected_markers": 3,
+  "recovery_acceptance": "HOLD",
+  "passed": true,
+  "scope": "Current G40 original artifact identity and matching original native log markers. Earlier native execution reused; no new MT4 test or compile.",
+  "initial_attempt": "PowerShell inline Python quoting failed before audit execution. File-based script retry succeeded.",
+  "remaining": "T04-B/E remain skipped/HOLD; successful production recovery and T05-T10 decision/order trace interfaces remain unverified.",
+  "next_action": "Bind decision/witness/order traces after eligible producer interfaces pass. Existing seed diagnostic cannot close production recovery."
+}

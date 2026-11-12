@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 6.1.6 - T05 RE Fresh Event Adapter Draft    |
+//| Version 6.1.7 - T05 Scheduler Snapshot Dispatch Draft    |
 //| SIGNAL VALIDATION IN PROGRESS - CUSTOM ORDERS OFF          |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,14 +31,14 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "6.16"
+#property version   "6.17"
 #property strict
 #include "custom_mtf/CustomInputs.mqh"
 #include "custom_mtf/CustomPairBinding.mqh"
 #include "custom_mtf/CustomClock.mqh"
 
-#define BBMA_BUILD_TAG      "V616_T05_RE_FRESH_EVENT_ADAPTER_20261112"
-#define BBMA_SOURCE_REV_TAG "T05_RE_FRESH_EVENT_ADAPTER_001_20261112"
+#define BBMA_BUILD_TAG      "V617_T05_SCHEDULER_SNAPSHOT_DISPATCH_20261112"
+#define BBMA_SOURCE_REV_TAG "T05_SCHEDULER_SNAPSHOT_DISPATCH_001_20261112"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -1074,7 +1074,7 @@ struct PairState
 };
 
 #include "custom_mtf/CustomOwners.mqh"
-#include "custom_mtf/CustomFreshEvents.mqh"
+#include "custom_mtf/CustomDispatch.mqh"
 
 struct TradeInfo
 {
@@ -1305,6 +1305,7 @@ bool                 g_pair_canonical_scope[MAX_PAIRS];
 int                  g_custom_pair_indices[];
 CustomClockState     g_custom_clock_states[MAX_PAIRS];
 CustomOwnerFrame     g_custom_owner_frames[MAX_PAIRS];
+CustomEvaluationSnapshot g_custom_evaluation_snapshots[MAX_PAIRS];
 int                  g_effective_max_active_pair;
 bool                 g_max_active_pair_sanitized;
 bool                 g_pair_list_truncated;
@@ -13397,6 +13398,7 @@ void LoadPairs()
    for(int resetClock=0;resetClock<MAX_PAIRS;resetClock++)
    {
       ZeroMemory(g_custom_clock_states[resetClock]);
+      ZeroMemory(g_custom_evaluation_snapshots[resetClock]);
       g_custom_owner_frames[resetClock].viewCount=0;
       g_custom_owner_frames[resetClock].observedAt=0;
       g_custom_owner_frames[resetClock].symbol="";
@@ -14589,10 +14591,14 @@ bool ReadCustomOwnerView(int pairIndex,int tf,string signal,ENUM_DIRECTION direc
 void ObserveCustomClosedBars(int pairIndex)
 {
    if(pairIndex<0 || pairIndex>=g_pair_count)return;
+   // One-observation diagnostic lifetime: failures/no-event batches cannot reuse a witness.
+   ZeroMemory(g_custom_evaluation_snapshots[pairIndex]);
+   g_custom_owner_frames[pairIndex].viewCount=0;
    bool mapped=false;
    for(int map=0;map<ArraySize(g_custom_pair_indices);map++)
       if(g_custom_pair_indices[map]==pairIndex){mapped=true;break;}
    if(!mapped)return;
+   string snapshotRevision=g_custom_config_payload;
    string actual=g_pair_states[pairIndex].actual_symbol;
    CustomClosedObservation obs[7];
    for(int i=0;i<7;i++)
@@ -14681,7 +14687,14 @@ void ObserveCustomClosedBars(int pairIndex)
             }
          }
       }
+      if(!CompleteCustomClosedBatch(g_custom_clock_states[pairIndex],batch,true))return;
       g_custom_owner_frames[pairIndex]=frame;
+      // T05 receives only a committed batch and the matching immutable owner frame.
+      // Result storage is diagnostic; it is not connected to canonical M15 selection.
+      if(!DispatchCustomEvaluationSnapshot(actual,snapshotRevision,g_custom_clock_states[pairIndex],
+                                            batch,frame,g_custom_evaluation_snapshots[pairIndex],reason))
+         Log(DBG_FULL,"CUSTOM_T05_SNAPSHOT:"+actual+":"+reason);
+      return;
    }
    CompleteCustomClosedBatch(g_custom_clock_states[pairIndex],batch,true);
 }

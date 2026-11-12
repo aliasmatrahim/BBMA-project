@@ -12,7 +12,7 @@ Authority: user approved continuous execution with checkpoint after each task. T
 | T04-D | Shared MOM/CSA/CSAK mappings, no duplicate detectors | PARTIAL overall. Shared MOM/CSA/CSAK source and read-only mappings verified in their recorded scopes. Build 6.15 repairs stale same-candle availability after failed or revised CSA/CSAK refresh (native 238/238, three affected regressions pass). Custom trigger/selection/executable availability remains pending. |
 | T04-E | MHV/MLV on source-accepted TFs through the same M09 owner | PARTIAL. Reuse bounded SIG06/07 M09 source, restart, fail-frozen gap admission and MHV/MLV alias evidence. Authenticated production session boundary, source-proven owner epoch and successful production gap recovery remain HOLD. |
 | T04-F | Integrated T04 acceptance, entry-window/isolation/reinit/regression, per-row availability evidence | BLOCKED by remaining B–E/gates. |
-| T05 | Context/Trigger AND/OR evaluator and concrete witness | DRAFT CODE / HOLD / NOT VERIFIED. Build 6.16 connects M12 subtype/fresh-event adapter to evaluator wrapper. Scheduler scope/config binding, non-RE freshness and all compile/regression/runtime validation pending. |
+| T05 | Context/Trigger AND/OR evaluator and concrete witness | DRAFT CODE / HOLD / NOT VERIFIED. Build 6.17 adds committed scheduler snapshot delivery, exact symbol/slot scope and admitted config-revision binding to the RE adapter/evaluator. Non-RE freshness, T06 consumption and all compile/regression/runtime validation pending. |
 | T06 | M15 final authority and arbitration | PENDING. |
 | T07 | Physical dedup, reservation and retry | PENDING. |
 | T08 | Exit profiles / frozen TradePlan | PENDING. |

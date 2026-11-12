@@ -1,7 +1,7 @@
 #ifndef BBMA_CUSTOM_EVALUATOR_V1
 #define BBMA_CUSTOM_EVALUATOR_V1
 // Draft consumer of immutable owner snapshots. Include after canonical owner types.
-// No scheduler or execution caller is connected while T05 remains HOLD.
+// Scheduler delivery is diagnostic only while T05 remains HOLD; no execution caller.
 #include "CustomClock.mqh"
 #include "CustomOwners.mqh"
 #define CUSTOM_EVALUATOR_REV "CUSTOM_EVALUATOR_DRAFT_001_20261112"

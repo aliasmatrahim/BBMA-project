@@ -58,6 +58,14 @@ string CustomInputSignalList(int index)
  if(index==6)return CustomSignals_D1;
  return "";
 }
+// Exact validated configuration identity; the short hash is telemetry only.
+string BuildCustomResolvedConfigurationPayload()
+{
+ string payload=BuildCustomConfigurationPayload(g_custom_slots,g_custom_use)+"U:"+CustomResolvedSymbolIdentity(g_custom_universe)+"|";
+ for(int slot=0;slot<CUSTOM_SLOT_COUNT;slot++)
+  payload+="S"+IntegerToString(slot+1)+":"+CustomResolvedSymbolIdentity(g_custom_slot_symbols[slot].actual)+"|";
+ return payload;
+}
 bool InitializeCustomInputs(string &reason)
 {
  reason="";g_custom_config_payload="";g_custom_config_hash="";
@@ -99,9 +107,7 @@ bool InitializeCustomInputs(string &reason)
   {reason="CUSTOM_SLOT_"+IntegerToString(n+1)+":"+reason;return false;}
  }
  if(!InitializeCustomSymbolInputs(reason))return false;
- g_custom_config_payload=BuildCustomConfigurationPayload(g_custom_slots,g_custom_use)+"U:"+CustomResolvedSymbolIdentity(g_custom_universe)+"|";
- for(int slot=0;slot<CUSTOM_SLOT_COUNT;slot++)
-  g_custom_config_payload+="S"+IntegerToString(slot+1)+":"+CustomResolvedSymbolIdentity(g_custom_slot_symbols[slot].actual)+"|";
+ g_custom_config_payload=BuildCustomResolvedConfigurationPayload();
  return true;
 }
 #endif

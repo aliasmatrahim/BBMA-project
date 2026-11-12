@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 6.1.5 - M10 Snapshot Refresh Readiness      |
+//| Version 6.1.6 - T05 RE Fresh Event Adapter Draft    |
 //| SIGNAL VALIDATION IN PROGRESS - CUSTOM ORDERS OFF          |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,14 +31,14 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "6.15"
+#property version   "6.16"
 #property strict
 #include "custom_mtf/CustomInputs.mqh"
 #include "custom_mtf/CustomPairBinding.mqh"
 #include "custom_mtf/CustomClock.mqh"
 
-#define BBMA_BUILD_TAG      "V615_M10_SNAPSHOT_REFRESH_READINESS_20261111"
-#define BBMA_SOURCE_REV_TAG "M10_SNAPSHOT_REFRESH_READINESS_001_20261111"
+#define BBMA_BUILD_TAG      "V616_T05_RE_FRESH_EVENT_ADAPTER_20261112"
+#define BBMA_SOURCE_REV_TAG "T05_RE_FRESH_EVENT_ADAPTER_001_20261112"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -1074,6 +1074,7 @@ struct PairState
 };
 
 #include "custom_mtf/CustomOwners.mqh"
+#include "custom_mtf/CustomFreshEvents.mqh"
 
 struct TradeInfo
 {

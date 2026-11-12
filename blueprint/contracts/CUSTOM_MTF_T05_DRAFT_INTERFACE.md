@@ -1,24 +1,28 @@
 # T05 evaluator draft interface
 
-Status HOLD / NOT VERIFIED. User authorized coding with tests deferred on 2026-11-12. Source baseline `bfbd41b57740b762e3bdf610d7ef5a85026eb8b2` on `feat/custom-mtf-v1-20261108`.
+Status HOLD / NOT VERIFIED. Coding continues with compile, regression and runtime tests deferred by user instruction. Candidate Build 6.16, revision `T05_RE_FRESH_EVENT_ADAPTER_001_20261112`.
 
-## Draft implementation
+## Connected adapter
 
-`blueprint/source/custom_mtf/CustomEvaluator.mqh` contains `EvaluateCustomSlotSnapshot`, consuming existing parsed slot formulas, a closed event batch, an immutable owner frame and owner-supplied fresh event IDs. The extra frame and fresh-ID parameters make the current producer boundary explicit. The planned batch-only wrapper remains pending producer integration.
+`CustomFreshEvents.mqh` is included by `BBMA_EA.mq4` after canonical owner types. Its `EvaluateCustomSlot(slot, batch, sourceFrame, direction, witness, reason)` wrapper builds normalized inputs and calls the existing `EvaluateCustomSlotSnapshot`.
 
-The function evaluates OR alternatives within each parsed group and AND across groups, enforces direction and current-frame identity, and publishes a witness only after Context and Trigger both succeed. Trigger components require owner entry eligibility and window state. At least one component must have an owner-declared fresh identity in a continuous batch event. Closed-bar advancement alone does not declare an owner identity fresh.
+The owner frame remains explicit because the current `CustomEventBatch` contains candle observations and events, while the immutable owner views live in a separate `CustomOwnerFrame`.
 
-The draft selects OR components deterministically by physical owner event ID. It selects a fresh anchor using confirmation time, timeframe, concrete signal and owner ID, replaces that group's selected alternative if needed, and retains all matching simultaneous fresh identities for the future reservation consumer. It introduces no source detector, structural TTL or component-time ordering requirement.
+M12 projection now publishes `concreteSignal` from the actual `ReEntryData.Type` and `entryEventTime` from `ConfirmationCandle` after a successful source export. The adapter resolves a RE wildcard into RE1–RE4 using these fields. It preserves the opaque physical event ID. Conflicting explicit subtypes fail closed.
 
-RE wildcard matching requires an explicit RE1–RE4 view. Existing RE event identities are treated as opaque. `CustomWitnessContainsSource` only searches the selected components for later SL/TP source validation.
+A RE identity is fresh only when owner readability, structural validity, execution availability, entry eligibility and the source entry window are all satisfied. The confirmation must match the batch's latest closed candle, the source EntryCandle must match currentOpen, and that TF event must have continuousBoundary. Repeated RE/wildcard views produce one fresh ID. Recovery-only views and priming batches produce no fresh identity.
 
-## Integration still required
+The adapter preserves all owner availability flags. Current producer projections still keep custom entry eligibility/execution availability closed. Fresh-event adapters for EXT/MHV/MLV/CSA/CSAK/MOM remain pending their own accepted source entry contracts.
 
-- A producer must supply authenticated fresh owner IDs after replay/cold-start restrictions and exact physical identity checks. This list must never be populated solely from changed candle timestamps.
-- Bind the slot symbol scope and validated configuration revision before evaluation. Map the existing owner frame into concrete RE subtype views where needed.
-- Preserve unavailable owner rows. Current custom execution availability stays closed, including MOM/CSA/CSAK read-only views.
-- Resolve the final wrapper and scheduler call through the approved T04/T06 owner interfaces. The draft header has no EA caller or include in `BBMA_EA.mq4`.
-- T08 must reject an unusable fixed SL/TP source for the selected witness. Exit-source selection among alternative satisfying witnesses remains pending the exit configuration interface.
-- Native compile, witness harness, regression, scheduler/runtime wiring and T05 acceptance remain pending. No test or compile was run in this change at the user's request.
+## Evaluator
 
-Include this header only after the canonical types required by `CustomOwners.mqh` are declared. The module has a unique draft revision. The EA build identity is unchanged because the EA source is unchanged.
+The evaluator consumes the parsed AND/OR groups without calling detectors. It selects concrete components, requires simultaneous trigger eligibility with a fresh anchor, and publishes the witness atomically. OR ordering uses owner IDs; anchor ordering uses confirmation time, timeframe, concrete signal and owner ID. Simultaneous fresh alternatives are retained for later reservation. `CustomWitnessContainsSource` searches only selected components.
+
+## Remaining work
+
+- Bind the wrapper to the scheduler's slot symbol scope and validated configuration revision through the approved T04/T06 interfaces. No scheduler or execution caller invokes the new wrapper yet.
+- Provide accepted non-RE freshness adapters while preserving unavailable rows.
+- Implement persistent dedup/reservation through T07 and fixed SL/TP source handling through T08.
+- Run native strict compile, wildcard/subtype/freshness harness cases, targeted regression and scheduler/runtime acceptance when validation resumes.
+
+No compile or tests were run for Build 6.16. The candidate has not been deployed or merged. T04-B/E and T05 acceptance remain HOLD.

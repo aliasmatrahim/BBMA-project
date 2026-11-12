@@ -4,6 +4,7 @@
 struct CustomOwnerView
 {
  string symbol;string signal;string eventId;string reason;
+ string concreteSignal;datetime entryEventTime;
  int timeframe;int direction;int ownerState;
  datetime sourceBar;datetime confirmation;datetime entryCandle;
  bool readable;bool structuralValid;bool recoveryOnly;bool entryWindowOpen;bool entryEligible;bool executionAvailable;
@@ -23,6 +24,7 @@ bool ProjectCustomReEntryView(string symbol,int tf,string signal,ENUM_DIRECTION 
 {
  view.recoveryOnly=false;view.entryWindowOpen=false;view.readable=false;view.structuralValid=false;view.entryEligible=false;view.executionAvailable=false;view.eventId="";
  view.ownerState=(int)source.State;view.entryCandle=source.EntryCandle;
+ view.concreteSignal="";view.entryEventTime=0;
  if(!data.is_valid || !data.is_closed || data.barIndex<1 || data.timeframe!=tf || data.candle_time!=latest || latest<=0)
  {view.reason="WAIT_OWNER_DATA";return false;}
  if(source.Timeframe!=tf || source.Direction!=direction || source.LastUpdateCandleTime!=latest)
@@ -37,6 +39,8 @@ bool ProjectCustomReEntryView(string symbol,int tf,string signal,ENUM_DIRECTION 
  if(view.structuralValid)
  {
   view.confirmation=exported.CandleTime;
+  view.concreteSignal=CustomSignalValue((int)source.Type);
+  view.entryEventTime=source.ConfirmationCandle;
   view.eventId=IntegerToString(StringLen(symbol))+":"+symbol+"|RE|"+IntegerToString(tf)+"|"+IntegerToString(direction)+"|"+IntegerToString(source.Type)+"|"+IntegerToString(source.StartCandleTime)+"|"+IntegerToString(source.ConfirmationCandle);
  }
  view.reason="READ_ONLY_M12_OWNER";
@@ -47,6 +51,7 @@ bool ProjectCustomExtremeView(string symbol,int tf,ENUM_DIRECTION direction,date
 {
  view.recoveryOnly=false;view.entryWindowOpen=false;view.readable=false;view.structuralValid=false;view.entryEligible=false;view.executionAvailable=false;view.eventId="";
  view.ownerState=(int)source.Maturity;view.entryCandle=source.RetestCompletionCandleTime;
+ view.concreteSignal="";view.entryEventTime=0;
  if(!data.is_valid || !data.is_closed || data.barIndex<1 || data.timeframe!=tf || data.candle_time!=latest || latest<=0)
  {view.reason="WAIT_OWNER_DATA";return false;}
  if(source.Timeframe!=tf || source.Direction!=direction || source.LastUpdateCandleTime!=latest)
@@ -67,6 +72,7 @@ bool ProjectCustomMHVView(string symbol,int tf,ENUM_DIRECTION direction,datetime
  view.recoveryOnly=false;view.entryWindowOpen=false;view.readable=false;view.structuralValid=false;
  view.entryEligible=false;view.executionAvailable=false;view.eventId="";
  view.ownerState=(int)source.State;
+ view.concreteSignal="";view.entryEventTime=0;
  if(CustomTFIndex(tf)<0){view.reason="TF_OWNER_UNWIRED";return false;}
  if(!data.is_valid || !data.is_closed || data.barIndex<1 || data.timeframe!=tf || data.candle_time!=latest || latest<=0)
  {view.reason="WAIT_OWNER_DATA";return false;}

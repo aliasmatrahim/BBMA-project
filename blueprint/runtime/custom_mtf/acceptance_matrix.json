@@ -1,0 +1,208 @@
+{
+  "task_id": "T12",
+  "scope": "Acceptance matrix baseline. Scope and statuses reflect the approved plan and queue.",
+  "branch": "feat/custom-mtf-v1-20261108",
+  "checkpoint_parent": "d29765ba547fa4d930de3f0ee38ddc2ae830c6bc",
+  "plan": {
+    "path": "docs/superpowers/plans/2026-11-08-custom-mtf-autoentry-plan.md",
+    "git_blob": "2f51ffaa32f0dba64cb14c7970d2e204e3338ae7"
+  },
+  "integrated_acceptance": "BLOCKED",
+  "custom_auto_entry": false,
+  "requirements": [
+    {
+      "id": "R01",
+      "requirement": "tujuh TF/signal switches",
+      "tasks": [
+        "T01",
+        "T02",
+        "T04",
+        "T12"
+      ],
+      "criteria": "Owner semantics+supported TF coverage; OFF/reference behavior clear.",
+      "status": "HOLD",
+      "existing_evidence": [
+        {
+          "path": "blueprint/runtime/custom_mtf/USER_INPUT_REFERENCE.md",
+          "git_blob": "75206ac641dda3a545f15f097f5616e1ec17e48b",
+          "scope": "Build 6.15 input defaults and recognized syntax, with availability closed."
+        },
+        {
+          "path": "blueprint/runtime/custom_mtf/t04d615_snapshot_refresh.json",
+          "git_blob": "00db1ae88c859aebf3f7ad1fdc12d18ea1ec9f71",
+          "scope": "Build 6.15 source and read-only snapshot refresh regressions."
+        },
+        {
+          "path": "blueprint/runtime/custom_mtf/t04be_hfm_h1_seed_probe_20261112.json",
+          "git_blob": "e412db18a21abf4aeb01a8dec4ed5a0e52881cd9",
+          "scope": "H1 archive seed diagnostic. July converged for the tested seeds. October did not."
+        },
+        {
+          "path": "blueprint/runtime/custom_mtf/t04be_hfm_forward_capture_20261112.json",
+          "git_blob": "fa033e87183d8181b7e7d431ef00f480f3f2b6b8",
+          "scope": "HFM same-server quote capture started. Complete closure/reopen evidence pending."
+        }
+      ],
+      "next_action": "Confirm same-feed boundary and source-proven owner epoch in T04-B/E, then verify the supported owner rows and integrated T04-F availability."
+    },
+    {
+      "id": "R02",
+      "requirement": "lima slot/tujuh atom",
+      "tasks": [
+        "T02",
+        "T05"
+      ],
+      "criteria": "Bounds and independent slot config tested.",
+      "status": "PARTIAL",
+      "existing_evidence": [
+        {
+          "path": "blueprint/runtime/custom_mtf/USER_INPUT_REFERENCE.md",
+          "git_blob": "75206ac641dda3a545f15f097f5616e1ec17e48b",
+          "scope": "Build 6.15 input defaults and recognized syntax, with availability closed."
+        },
+        {
+          "path": "blueprint/runtime/custom_mtf/parser_native_evidence.json",
+          "git_blob": "04a6d6ec9a96e6e903d4800ab46f359076fc0c16",
+          "scope": "Native parser syntax evidence. Runtime evaluator and witness remain pending."
+        }
+      ],
+      "next_action": "After the required T04 interfaces pass, prove independent slot evaluation and witness behavior in T05."
+    },
+    {
+      "id": "R03",
+      "requirement": "format/AND/OR",
+      "tasks": [
+        "T02",
+        "T05",
+        "T07"
+      ],
+      "criteria": "Parser+witness+physical event dedup native proof.",
+      "status": "PARTIAL",
+      "existing_evidence": [
+        {
+          "path": "blueprint/runtime/custom_mtf/parser_native_evidence.json",
+          "git_blob": "04a6d6ec9a96e6e903d4800ab46f359076fc0c16",
+          "scope": "Native parser syntax evidence. Runtime evaluator and witness remain pending."
+        }
+      ],
+      "next_action": "Prove Context/Trigger evaluator behavior and witness selection in T05."
+    },
+    {
+      "id": "R04",
+      "requirement": "format/AND/OR",
+      "tasks": [
+        "T02",
+        "T05",
+        "T07"
+      ],
+      "criteria": "Parser+witness+physical event dedup native proof.",
+      "status": "PARTIAL",
+      "existing_evidence": [
+        {
+          "path": "blueprint/runtime/custom_mtf/parser_native_evidence.json",
+          "git_blob": "04a6d6ec9a96e6e903d4800ab46f359076fc0c16",
+          "scope": "Native parser syntax evidence. Runtime evaluator and witness remain pending."
+        }
+      ],
+      "next_action": "Prove OR witness selection in T05 and physical event dedup in T07."
+    },
+    {
+      "id": "R05",
+      "requirement": "auto-entry",
+      "tasks": [
+        "T04",
+        "T06",
+        "T07",
+        "T10",
+        "T12"
+      ],
+      "criteria": "Closed event→approved decision→exact broker order trace.",
+      "status": "BLOCKED",
+      "existing_evidence": [],
+      "next_action": "Complete T04-F and verify the T06/T07/T10 decision-to-order chain. Custom auto-entry remains OFF."
+    },
+    {
+      "id": "R06",
+      "requirement": "tiga exits",
+      "tasks": [
+        "T08",
+        "T10"
+      ],
+      "criteria": "Source mapping, RR/distance geometry, frozen lifecycle.",
+      "status": "PENDING",
+      "existing_evidence": [],
+      "next_action": "Verify the three exit profiles and frozen TradePlan through T08/T10."
+    },
+    {
+      "id": "R07",
+      "requirement": "sizing",
+      "tasks": [
+        "T09"
+      ],
+      "criteria": "Frozen risk input and invalid lot fail-closed.",
+      "status": "PENDING",
+      "existing_evidence": [],
+      "next_action": "Verify frozen risk inputs and invalid-lot rejection in T09."
+    },
+    {
+      "id": "R08",
+      "requirement": "caps",
+      "tasks": [
+        "T09",
+        "T10"
+      ],
+      "criteria": "In-flight+owned exposure per slot/symbol/portfolio.",
+      "status": "PENDING",
+      "existing_evidence": [],
+      "next_action": "Verify in-flight and owned exposure through T09/T10."
+    },
+    {
+      "id": "R09",
+      "requirement": "hedging",
+      "tasks": [
+        "T06",
+        "T09"
+      ],
+      "criteria": "Broker support, gross risk, D1/conflict policy retained.",
+      "status": "PENDING",
+      "existing_evidence": [],
+      "next_action": "Verify broker support, gross risk and D1/conflict behavior through T06/T09."
+    },
+    {
+      "id": "R10",
+      "requirement": "symbols",
+      "tasks": [
+        "T03",
+        "T04",
+        "T10",
+        "T12"
+      ],
+      "criteria": "Suffix/universe/state isolation and multi-symbol runtime.",
+      "status": "PARTIAL",
+      "existing_evidence": [
+        {
+          "path": "blueprint/runtime/custom_mtf/USER_INPUT_REFERENCE.md",
+          "git_blob": "75206ac641dda3a545f15f097f5616e1ec17e48b",
+          "scope": "Build 6.15 input defaults and recognized syntax, with availability closed."
+        },
+        {
+          "path": "blueprint/runtime/custom_mtf/regression596_evidence.json",
+          "git_blob": "6eea06f7843524beefd2cf8fe5804c633ff77461",
+          "scope": "Build 5.96 host regression evidence. Integrated multi-symbol broker runtime remains pending."
+        }
+      ],
+      "next_action": "Verify multi-symbol runtime with isolated state, exact broker symbols and approved test settings after the T03/T04/T10 prerequisites."
+    },
+    {
+      "id": "R11",
+      "requirement": "labels",
+      "tasks": [
+        "T11"
+      ],
+      "criteria": "Read-only display/order parity.",
+      "status": "PENDING",
+      "existing_evidence": [],
+      "next_action": "Verify labels, monitor and attribution through T11, including visual evidence and order-trace parity."
+    }
+  ]
+}

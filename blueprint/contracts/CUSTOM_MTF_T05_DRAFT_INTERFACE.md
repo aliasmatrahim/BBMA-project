@@ -36,13 +36,30 @@ Mapping classification: the lifecycle event timestamp and frozen-body state come
 This is a **setup-formation receipt**, not an `entryEventTime`. It does not set `entryEligible`, `entryWindowOpen` or `executionAvailable`. `CustomViewCurrent` therefore continues to fail closed for MHV/MLV Trigger use while availability is OFF; the receipt alone cannot produce a trigger witness, T06 selection or entry. All 77 availability cells and custom auto-entry remain OFF. M09 source-epoch/recovery acceptance remains HOLD under SIG-06/T04-E evidence.
 
 
+
+## Fresh-event audit: CSA/CSAK — HOLD
+
+Source route: `SOURCE_INDEX → accepted Core §7 / M10 close-only user decision → Finale V05/V06 direction rules + primary PDF pp.7–8 → M10 contract and SIG-02/SIG-03 acceptance → current M10 snapshots and custom projection`. The registered Forex Factory forum set is supplemental and supplies no authoritative CSA/CSAK event-window rule.
+
+The direction predicates are already resolved:
+- CSA = valid closed Close strictly beyond MidBB in the requested direction.
+- CSAK = valid closed Close strictly beyond the relevant MA5/MA10 pair and MidBB.
+- Open is not a predicate; equality fails. CSA is not an alias for MA-only eCSD, and CSAK maps to the strong CSD predicate.
+
+SIG-02/SIG-03 accept these as bounded M10 read-only snapshots. `ReadCustomOwnerView` projects them with source-bar identity and an observation `eventId` containing that candle time. The projection is `recoveryOnly=true`; it does not set entry eligibility, entry window or execution availability. Existing acceptance explicitly leaves physical trigger reservation/dedup to T05–T07.
+
+**No fresh executable event boundary is accepted.** The close-only user decision says a repeated matching observation must not become a fresh executable event solely because the predicate remains true, and it does not define a prior-cross edge, first-event reset, generic TTL or expiry. Treating each new closed bar with the same true predicate as a fresh event would therefore invent repeat-trigger semantics; using a first false-to-true transition would invent an unapproved event edge. The per-candle observation ID and a continuous scheduler boundary alone do not resolve that choice.
+
+Classification: **HOLD / UNRESOLVED — event freshness and consumption contract only.** The CSA/CSAK predicates and read-only snapshot owner are accepted; this is not a formula conflict or an Open ambiguity. Do not add a `CustomFreshCSA[K]Event` adapter or make either signal Trigger-eligible until an already-authorized event lifecycle/consumption contract defines what constitutes a new event. Do not add a previous-bar cross, reset, expiry or TTL as a substitute. Current availability and custom auto-entry stay OFF.
+
+
 ## Entry-event adapter: RE (existing)
 
 M12 projection publishes concrete RE subtype and `ConfirmationCandle`. The adapter resolves RE wildcard into RE1–RE4 and preserves the opaque physical event ID. It currently declares fresh RE only when existing source window and availability/eligibility gates pass; those availability flags remain closed on current projections.
 
 ## Still pending
 
-- Fresh events for CSA/CSAK and MOM remain unimplemented; keep each unavailable until its source event contract is mapped and accepted. MHV/MLV formation receipts do not make MHV/MLV Trigger eligible.
+- CSA/CSAK predicates and read-only snapshots are accepted, but fresh-event identity/consumption remains HOLD as recorded above; both Trigger paths remain unavailable. MOM freshness is unimplemented. MHV/MLV formation receipts do not make MHV/MLV Trigger eligible.
 - Bind transient T05 receipts into T06 M15 authority/arbitration. Keep canonical M15 cadence/signatures and D1/H4 owner gates.
 - Implement persistent dedup/reservation through T07 and fixed SL/TP source handling through T08.
 - When validation resumes: native strict compile; EXT raw/reversal/retest-ready/stale/recovery boundaries; RE subtype cases; simultaneous batch and exact next-open cases; symbol/config binding; cross-module regression and scheduler runtime.

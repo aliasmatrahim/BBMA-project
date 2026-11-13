@@ -1,6 +1,6 @@
 # T05 evaluator draft interface
 
-Status HOLD / NOT VERIFIED. Coding continues with compile, regression and runtime tests deferred by user instruction. Candidate Build 6.19, revision `T05_M09_MHV_FORMATION_EVENT_001_20261113`.
+Status HOLD / NOT VERIFIED. Coding continues with compile, regression and runtime tests deferred by user instruction. Candidate Build 6.20, revision `T05_M10_MOM_FRESH_CANDLE_EVENT_001_20261113`.
 
 ## Scheduler delivery and binding
 
@@ -53,15 +53,27 @@ SIG-02/SIG-03 accept these as bounded M10 read-only snapshots. `ReadCustomOwnerV
 Classification: **HOLD / UNRESOLVED — event freshness and consumption contract only.** The CSA/CSAK predicates and read-only snapshot owner are accepted; this is not a formula conflict or an Open ambiguity. Do not add a `CustomFreshCSA[K]Event` adapter or make either signal Trigger-eligible until an already-authorized event lifecycle/consumption contract defines what constitutes a new event. Do not add a previous-bar cross, reset, expiry or TTL as a substitute. Current availability and custom auto-entry stay OFF.
 
 
+
+## Fresh-event adapter: MOM (read-only momentum-candle receipt)
+
+Source route: `SOURCE_INDEX → accepted Core §4 → primary PDF pp.2/5 + secondary PDF p.18 → Finale V02 rules 001–005 → M10 source contract and SIG-04 acceptance → current M10 snapshot/custom projection`.
+
+The accepted M10 predicate remains a valid closed candle beyond the relevant outer BB with expanding width and directional Mid/outer BB movement. The source describes a momentum candle or candles; the M10 owner evaluates and identifies each closed source candle separately. `ReadCustomOwnerView` already carries the exact source bar in both `confirmation` and its opaque `eventId` (`symbol|MOM|TF|direction|sourceBar`).
+
+The read-only adapter now declares a fresh MOM candle receipt only when the current owner view is readable and direction-valid, `confirmation == sourceBar`, and the scheduler batch has the same timeframe/closed source bar plus the actual observed next open across a continuous boundary. A repeated read of the same source candle keeps the same event ID; a later qualifying closed momentum candle has its own source-bar identity. This is a per-candle engineering mapping of the source's “momentum candle(s)” wording, not a founder-quoted trigger timing rule. It adds no run-start edge, reset, fixed-time calculation or TTL.
+
+This receipt preserves the M10 projection's `recoveryOnly=true` and `executionAvailable=false`. It does not set `entryEventTime`, `entryEligible` or `entryWindowOpen`. `CustomViewCurrent` still blocks MOM Context/Trigger evaluation while those gates are closed; receipt creation alone cannot produce a witness, T06 selection or entry. Persistent event reservation/consumption remains T07 work; T05 deduplicates identical event IDs only within the current frame. All 77 availability cells and custom auto-entry remain OFF.
+
+
 ## Entry-event adapter: RE (existing)
 
 M12 projection publishes concrete RE subtype and `ConfirmationCandle`. The adapter resolves RE wildcard into RE1–RE4 and preserves the opaque physical event ID. It currently declares fresh RE only when existing source window and availability/eligibility gates pass; those availability flags remain closed on current projections.
 
 ## Still pending
 
-- CSA/CSAK predicates and read-only snapshots are accepted, but fresh-event identity/consumption remains HOLD as recorded above; both Trigger paths remain unavailable. MOM freshness is unimplemented. MHV/MLV formation receipts do not make MHV/MLV Trigger eligible.
+- CSA/CSAK predicates and read-only snapshots are accepted, but fresh-event identity/consumption remains HOLD as recorded above; both Trigger paths remain unavailable. MOM has a read-only per-candle receipt but no Context/Trigger authority. MHV/MLV formation receipts do not make MHV/MLV Trigger eligible.
 - Bind transient T05 receipts into T06 M15 authority/arbitration. Keep canonical M15 cadence/signatures and D1/H4 owner gates.
 - Implement persistent dedup/reservation through T07 and fixed SL/TP source handling through T08.
 - When validation resumes: native strict compile; EXT raw/reversal/retest-ready/stale/recovery boundaries; RE subtype cases; simultaneous batch and exact next-open cases; symbol/config binding; cross-module regression and scheduler runtime.
 
-No compile, regression or runtime checks were run for Build 6.19 under the user-directed HOLD. The candidate has not been deployed or merged. T04-B/E and T05 acceptance remain HOLD. Custom auto-entry remains OFF.
+No compile, regression or runtime checks were run for Build 6.20 under the user-directed HOLD. The candidate has not been deployed or merged. T04-B/E and T05 acceptance remain HOLD. Custom auto-entry remains OFF.

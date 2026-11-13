@@ -3,7 +3,7 @@
 #include "CustomEvaluator.mqh"
 #define CUSTOM_FRESH_EVENTS_REV "CUSTOM_FRESH_EVENTS_DRAFT_004_20261113"
 
-// Read-only projections of M08/M12 source event metadata. They never grant execution availability.
+// Read-only projections of canonical M08/M09/M10/M12 source events; never grant execution availability.
 bool CustomFreshReEntryEvent(const CustomOwnerView &view,const CustomEventBatch &batch)
 {
  int subtype=CustomSignalIndex(view.signal);
@@ -129,7 +129,7 @@ bool BuildCustomEvaluationInputs(const CustomEventBatch &batch,const CustomOwner
 }
 
 // Scope/configuration revision and persistent consumption remain upstream owners.
-// Non-RE trigger freshness stays unavailable until its source adapter is accepted.
+// CSA/CSAK freshness remains unresolved; M09/M10 receipts stay read-only.
 bool EvaluateCustomSlot(const CustomSlotConfig &slot,const CustomEventBatch &batch,
                         const CustomOwnerFrame &source,int direction,
                         CustomWitness &witness,string &reason)

@@ -1,6 +1,6 @@
 # T05 evaluator draft interface
 
-Status HOLD / NOT VERIFIED. Coding continues with compile, regression and runtime tests deferred by user instruction. Candidate Build 6.20, revision `T05_M10_MOM_FRESH_CANDLE_EVENT_001_20261113`.
+Status DRAFT / HOLD / NOT VERIFIED. T06 read-only consumer is wired in candidate Build 6.21; compile, regression and runtime remain deferred by user instruction. Build revision `T06_CUSTOM_M15_READONLY_AUTHORITY_001_20261114`.
 
 ## Scheduler delivery and binding
 
@@ -69,19 +69,19 @@ This receipt preserves the M10 projection's `recoveryOnly=true` and `executionAv
 
 M12 projection publishes concrete RE subtype and `ConfirmationCandle`. The adapter resolves RE wildcard into RE1–RE4 and preserves the opaque physical event ID. It currently declares fresh RE only when existing source window and availability/eligibility gates pass; those availability flags remain closed on current projections.
 
-## T06 M15 authority audit — implementation HOLD
+## T06 M15 authority — adopted engineering mappings; read-only draft
 
-The contract audit is recorded in `blueprint/audits/CUSTOM_MTF_T06_M15_AUTHORITY_AUDIT_20261113.md`. M15 remains the sole final custom decision authority, but the current T05 receipt is diagnostic only and has no T06 consumer.
+The audit and five adopted arbitration decisions are recorded in `blueprint/audits/CUSTOM_MTF_T06_M15_AUTHORITY_AUDIT_20261113.md` and the binding Custom MTF implementation contract in `blueprint/contracts/CUSTOM_MTF_T06_M15_AUTHORITY_CONTRACT.md`. The canonical M15 contract and signatures remain unchanged.
 
-The canonical M15 contract selects canonical M11/M12/M14 candidates. It does not define custom slot priority/attribution, custom direction conflict policy, custom event-batch decision cadence, the OR/fresh-anchor tie-break, or the custom M15→M16 frozen witness payload. The full custom design labels those arbitration details as draft proposals. No T06 selection code is connected, and no custom candidate is available while semantic availability remains closed.
+The EA now calls `BuildCustomM15AuthorityReceipt` only after a committed batch and successful T05 dispatch. The separate consumer validates batch/clock/config/witness/fresh-anchor binding and the current same-pair M11 D1 owner, applies D1 filtering before arbitration, and records the full selected witness plus same-anchor slot attribution. The evaluator uses the adopted latest-confirmation Context OR and latest-physical-event Trigger OR ordering with deterministic TF/signal/event-ID ties.
 
-T06 implementation stays HOLD until the listed arbitration and M16 interface decisions are adopted. This hold preserves the canonical M15 cadence/signatures and prevents the diagnostic receipt from becoming entry authority.
+The result is a transient read-only receipt, not `BBMA_Decision`. `executionAuthority` stays false; M16 revalidation is marked required for a selection. The consumer does not call canonical M15, M16, T07, risk, OrderSend or lifecycle. All 77 availability cells remain OFF, and no T05 result can become selected until its signal-specific gates pass. MHV/MLV remains setup-only; CSA/CSAK freshness and SIG-06/T04-E owner recovery remain HOLD.
 
 ## Still pending
 
 - CSA/CSAK predicates and read-only snapshots are accepted, but fresh-event identity/consumption remains HOLD as recorded above; both Trigger paths remain unavailable. MOM has a read-only per-candle receipt but no Context/Trigger authority. MHV/MLV formation receipts do not make MHV/MLV Trigger eligible.
-- T06 contract audit is complete but implementation is HOLD pending an accepted custom arbitration/interface decision; see `CUSTOM_MTF_T06_M15_AUTHORITY_AUDIT_20261113.md`. Do not treat the T05 diagnostic receipt as a selected candidate.
+- T06 arbitration decisions are adopted and a read-only consumer is implemented as draft; status remains HOLD / NOT VERIFIED. Do not treat its receipt as an executable candidate; validation is deferred.
 - Implement persistent dedup/reservation through T07 and fixed SL/TP source handling through T08.
 - When validation resumes: native strict compile; EXT raw/reversal/retest-ready/stale/recovery boundaries; RE subtype cases; simultaneous batch and exact next-open cases; symbol/config binding; cross-module regression and scheduler runtime.
 
-No compile, regression or runtime checks were run for Build 6.20 under the user-directed HOLD. The candidate has not been deployed or merged. T04-B/E and T05 acceptance remain HOLD. Custom auto-entry remains OFF.
+No compile, regression, static harness or runtime checks were run for Build 6.21 under the user-directed HOLD. The candidate has not been deployed or merged. T04-B/E and T05 acceptance remain HOLD. Custom auto-entry remains OFF.

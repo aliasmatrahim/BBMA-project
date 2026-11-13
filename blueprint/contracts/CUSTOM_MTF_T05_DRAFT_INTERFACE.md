@@ -69,10 +69,18 @@ This receipt preserves the M10 projection's `recoveryOnly=true` and `executionAv
 
 M12 projection publishes concrete RE subtype and `ConfirmationCandle`. The adapter resolves RE wildcard into RE1–RE4 and preserves the opaque physical event ID. It currently declares fresh RE only when existing source window and availability/eligibility gates pass; those availability flags remain closed on current projections.
 
+## T06 M15 authority audit — implementation HOLD
+
+The contract audit is recorded in `blueprint/audits/CUSTOM_MTF_T06_M15_AUTHORITY_AUDIT_20261113.md`. M15 remains the sole final custom decision authority, but the current T05 receipt is diagnostic only and has no T06 consumer.
+
+The canonical M15 contract selects canonical M11/M12/M14 candidates. It does not define custom slot priority/attribution, custom direction conflict policy, custom event-batch decision cadence, the OR/fresh-anchor tie-break, or the custom M15→M16 frozen witness payload. The full custom design labels those arbitration details as draft proposals. No T06 selection code is connected, and no custom candidate is available while semantic availability remains closed.
+
+T06 implementation stays HOLD until the listed arbitration and M16 interface decisions are adopted. This hold preserves the canonical M15 cadence/signatures and prevents the diagnostic receipt from becoming entry authority.
+
 ## Still pending
 
 - CSA/CSAK predicates and read-only snapshots are accepted, but fresh-event identity/consumption remains HOLD as recorded above; both Trigger paths remain unavailable. MOM has a read-only per-candle receipt but no Context/Trigger authority. MHV/MLV formation receipts do not make MHV/MLV Trigger eligible.
-- Bind transient T05 receipts into T06 M15 authority/arbitration. Keep canonical M15 cadence/signatures and D1/H4 owner gates.
+- T06 contract audit is complete but implementation is HOLD pending an accepted custom arbitration/interface decision; see `CUSTOM_MTF_T06_M15_AUTHORITY_AUDIT_20261113.md`. Do not treat the T05 diagnostic receipt as a selected candidate.
 - Implement persistent dedup/reservation through T07 and fixed SL/TP source handling through T08.
 - When validation resumes: native strict compile; EXT raw/reversal/retest-ready/stale/recovery boundaries; RE subtype cases; simultaneous batch and exact next-open cases; symbol/config binding; cross-module regression and scheduler runtime.
 

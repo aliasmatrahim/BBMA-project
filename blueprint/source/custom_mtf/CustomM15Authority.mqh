@@ -1,7 +1,7 @@
 #ifndef BBMA_CUSTOM_M15_AUTHORITY_V1
 #define BBMA_CUSTOM_M15_AUTHORITY_V1
 #include "CustomDispatch.mqh"
-#define CUSTOM_M15_AUTHORITY_REV "CUSTOM_M15_AUTHORITY_DRAFT_001_20261114"
+#define CUSTOM_M15_AUTHORITY_REV "CUSTOM_M15_AUTHORITY_001_20261114"
 
 struct CustomM15AuthorityReceipt
 {
@@ -102,37 +102,42 @@ bool CustomM15ValidateCandidate(const CustomSlotEvaluation &row,
                                 CustomOwnerView &anchor,string &reason)
 {
  ZeroMemory(anchor);reason="";
- const CustomWitness &witness=row.witness;
- if(!row.satisfied || witness.symbol!=batch.symbol || witness.slotId!=row.slotId ||
-    witness.direction!=row.direction || witness.observedAt!=batch.observedAt ||
-    witness.batchTicket!=batch.ticket || witness.componentCount<1 ||
-    witness.componentCount>CUSTOM_MAX_ATOMS || witness.anchorCount<1 ||
-    witness.anchorCount>CUSTOM_OWNER_VIEW_CAP || witness.selectedAnchor=="")
+ if(!row.satisfied || row.witness.symbol!=batch.symbol ||
+    row.witness.slotId!=row.slotId || row.witness.direction!=row.direction ||
+    row.witness.observedAt!=batch.observedAt || row.witness.batchTicket!=batch.ticket ||
+    row.witness.componentCount<1 || row.witness.componentCount>CUSTOM_MAX_ATOMS ||
+    row.witness.anchorCount<1 || row.witness.anchorCount>CUSTOM_OWNER_VIEW_CAP ||
+    row.witness.selectedAnchor=="")
  {reason="INVALID_CUSTOM_WITNESS";return false;}
  bool anchorListed=false;
- for(int item=0;item<witness.anchorCount;item++)
+ for(int item=0;item<row.witness.anchorCount;item++)
  {
-  if(witness.freshAnchors[item]==""){reason="INVALID_FRESH_ANCHOR_LIST";return false;}
-  if(witness.freshAnchors[item]==witness.selectedAnchor)anchorListed=true;
+  if(row.witness.freshAnchors[item]==""){reason="INVALID_FRESH_ANCHOR_LIST";return false;}
+  for(int prior=0;prior<item;prior++)
+   if(row.witness.freshAnchors[prior]==row.witness.freshAnchors[item])
+   {reason="DUPLICATE_FRESH_ANCHOR";return false;}
+  if(row.witness.freshAnchors[item]==row.witness.selectedAnchor)anchorListed=true;
  }
  if(!anchorListed){reason="SELECTED_ANCHOR_NOT_FRESH";return false;}
  bool selectedTriggerFound=false;
- for(int component=0;component<witness.componentCount;component++)
+ for(int component=0;component<row.witness.componentCount;component++)
  {
-  if(witness.components[component].group<0){reason="INVALID_WITNESS_GROUP";return false;}
-  if(witness.components[component].owner.symbol!=batch.symbol ||
-     witness.components[component].owner.direction!=row.direction ||
-     witness.components[component].owner.eventId=="")
+  if(row.witness.components[component].group<0 ||
+     row.witness.components[component].group>=CUSTOM_MAX_ATOMS)
+  {reason="INVALID_WITNESS_GROUP";return false;}
+  if(row.witness.components[component].owner.symbol!=batch.symbol ||
+     row.witness.components[component].owner.direction!=row.direction ||
+     row.witness.components[component].owner.eventId=="")
   {reason="INVALID_WITNESS_OWNER";return false;}
-  if(!CustomViewCurrent(witness.components[component].owner,batch,row.direction,
-                        witness.components[component].trigger))
+  if(!CustomViewCurrent(row.witness.components[component].owner,batch,row.direction,
+                        row.witness.components[component].trigger))
   {reason="WAIT_CURRENT_WITNESS_OWNER";return false;}
-  if(witness.components[component].trigger &&
-     witness.components[component].owner.eventId==witness.selectedAnchor)
+  if(row.witness.components[component].trigger &&
+     row.witness.components[component].owner.eventId==row.witness.selectedAnchor)
   {
-   if(!CustomM15FreshAnchorCurrent(witness.components[component].owner,batch,
+   if(!CustomM15FreshAnchorCurrent(row.witness.components[component].owner,batch,
                                    row.direction,reason))return false;
-   anchor=witness.components[component].owner;
+   anchor=row.witness.components[component].owner;
    selectedTriggerFound=true;
   }
  }
@@ -178,21 +183,23 @@ bool BuildCustomM15AuthorityReceipt(const CustomEvaluationSnapshot &evaluation,
  receipt.d1Owner=d1Owner;
 
  int best=-1;
- CustomOwnerView bestAnchor;
- ZeroMemory(bestAnchor);
+ CustomOwnerView bestAnchor;ZeroMemory(bestAnchor);
  bool sawBuy=false;bool sawSell=false;
  for(int rowIndex=0;rowIndex<evaluation.resultCount;rowIndex++)
  {
-  const CustomSlotEvaluation &row=evaluation.results[rowIndex];
-  if(!row.satisfied)continue;
+  if(!evaluation.results[rowIndex].satisfied)continue;
+  int rowDirection=evaluation.results[rowIndex].direction;
+  // Apply the M11 D1 direction filter before validating/arbitrating candidates.
+  if(rowDirection!=d1Direction)continue;
+  if(rowDirection==DIR_BUY)sawBuy=true;
+  if(rowDirection==DIR_SELL)sawSell=true;
   CustomOwnerView anchor;string validationReason;
-  if(!CustomM15ValidateCandidate(row,batch,anchor,validationReason))
+  if(!CustomM15ValidateCandidate(evaluation.results[rowIndex],batch,anchor,validationReason))
   {receipt.reason=validationReason;reason=validationReason;return false;}
-  if(row.direction==DIR_BUY)sawBuy=true;
-  if(row.direction==DIR_SELL)sawSell=true;
-  if(row.direction!=d1Direction)continue;
+  int rowSlotId=evaluation.results[rowIndex].slotId;
+  int bestSlotId=(best<0?CUSTOM_SLOT_COUNT+1:evaluation.results[best].slotId);
   if(best<0 || CustomPreferredOwnerIdentity(anchor,bestAnchor,true) ||
-     (anchor.eventId==bestAnchor.eventId && row.slotId<evaluation.results[best].slotId))
+     (anchor.eventId==bestAnchor.eventId && rowSlotId<bestSlotId))
   {
    best=rowIndex;bestAnchor=anchor;
   }
@@ -210,29 +217,36 @@ bool BuildCustomM15AuthorityReceipt(const CustomEvaluationSnapshot &evaluation,
   return true;
  }
 
- const CustomSlotEvaluation &winner=evaluation.results[best];
- receipt.selected=true;
- receipt.executionAuthority=false;
- receipt.m16RevalidationRequired=true;
- receipt.direction=winner.direction;
- receipt.primarySlotId=winner.slotId;
- receipt.selectedAnchor=winner.witness.selectedAnchor;
- receipt.witness=winner.witness;
+ receipt.direction=evaluation.results[best].direction;
+ receipt.primarySlotId=evaluation.results[best].slotId;
+ receipt.selectedAnchor=evaluation.results[best].witness.selectedAnchor;
+ receipt.witness=evaluation.results[best].witness;
+ receipt.d1Owner=d1Owner;
  for(int match=0;match<evaluation.resultCount;match++)
  {
   if(!evaluation.results[match].satisfied ||
-     evaluation.results[match].direction!=winner.direction ||
+     evaluation.results[match].direction!=receipt.direction ||
      evaluation.results[match].witness.selectedAnchor!=receipt.selectedAnchor)continue;
-  bool duplicate=false;
-  for(int prior=0;prior<receipt.matchingSlotCount;prior++)
-   if(receipt.matchingSlotIds[prior]==evaluation.results[match].slotId){duplicate=true;break;}
-  if(duplicate)continue;
-  if(receipt.matchingSlotCount>=CUSTOM_SLOT_COUNT)
-  {receipt.selected=false;receipt.reason="MATCHING_SLOT_CAPACITY";reason=receipt.reason;return false;}
-  receipt.matchingSlotIds[receipt.matchingSlotCount++]=evaluation.results[match].slotId;
+  int slotId=evaluation.results[match].slotId;
+  int insertAt=receipt.matchingSlotCount;
+  if(insertAt>=CUSTOM_SLOT_COUNT)
+  {receipt.reason="MATCHING_SLOT_CAPACITY";reason=receipt.reason;return false;}
+  while(insertAt>0 && receipt.matchingSlotIds[insertAt-1]>slotId)
+  {
+   receipt.matchingSlotIds[insertAt]=receipt.matchingSlotIds[insertAt-1];
+   insertAt--;
+  }
+  receipt.matchingSlotIds[insertAt]=slotId;
+  receipt.matchingSlotCount++;
  }
+ if(receipt.matchingSlotCount<1)
+ {receipt.reason="NO_MATCHING_SLOT_ATTRIBUTION";reason=receipt.reason;return false;}
+ receipt.primarySlotId=receipt.matchingSlotIds[0];
+ receipt.selected=true;
+ receipt.executionAuthority=false;
+ receipt.m16RevalidationRequired=true;
  receipt.reason="SELECTED_READ_ONLY";
  reason=receipt.reason;
- return receipt.matchingSlotCount>0;
+ return true;
 }
 #endif

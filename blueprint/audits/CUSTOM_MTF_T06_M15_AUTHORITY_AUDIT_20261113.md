@@ -5,7 +5,7 @@ Date: 2026-11-13
 Branch: `feat/custom-mtf-v1-20261108`  
 Base: `d1-owner-dev`  
 Starting checkpoint: `f828ad79e396aec70923ad7f56382d9c805f1c69`  
-Status: **CONTRACT AUDIT COMPLETE; T06 IMPLEMENTATION HOLD / NOT VERIFIED**  
+Status: **FIVE ARBITRATION DECISIONS ADOPTED; READ-ONLY CONSUMER DRAFT IMPLEMENTED / NOT VERIFIED**  
 Scope: read-only audit. No EA source or build identity changed.
 
 ## Findings
@@ -81,3 +81,22 @@ After these decisions are recorded, implement the smallest T06 consumer. Keep cu
 No compile, regression, static harness, or runtime command was run under the user's validation HOLD instruction. This documentation audit is not implementation verification.
 
 Exact next action: record the five arbitration/interface decisions above in an approved T06 contract, then implement the read-only M15 consumer only after the required signal/owner inputs are accepted. Until then T06 is **AUDIT COMPLETE / IMPLEMENTATION HOLD**, not complete.
+
+
+## User-directed arbitration decisions and implementation update — 2026-11-14
+
+The user's next instruction adopts the five custom arbitration mappings in `blueprint/contracts/CUSTOM_MTF_T06_M15_AUTHORITY_CONTRACT.md`. These are engineering mappings for the Custom MTF path; they do not change BBMA source rules or canonical M15 behavior.
+
+1. **Cadence:** at most one read-only receipt per resolved symbol and committed nonempty batch. Persistent reservation/consumption stays in T07.
+2. **D1 and conflict:** require the same-pair confirmed current M11 D1 owner; filter direction before arbitration; unresolved/stale/transition owner blocks. Only contradictory directions surviving that filter fail closed. Hedging does not bypass the gate.
+3. **Slot/attribution:** latest physical fresh trigger event wins; ties use D1→H4→H1→M30→M15→M5→M1, signal ascending, owner event ID ascending. Same-anchor slots all remain attributed; lowest numeric slot is primary bookkeeping, with no quality rank or configurable priority.
+4. **OR/fresh-anchor order:** Context OR uses latest confirmation; Trigger OR and cross-candidate ordering use latest physical event (`entryEventTime`, else closed source bar), followed by the same deterministic tie order. Alternative anchors remain in the witness for T07.
+5. **M15→M16 payload:** carry symbol, batch/time, exact config revision, direction, primary and matching slots, selected anchor, full witness, and frozen M11 D1 owner identity; M16 revalidation is required and execution authority is always false.
+
+Implementation is present as a separate read-only consumer, connected after successful T05 dispatch. It does not invoke canonical M15, M16, T07, risk, OrderSend or trade lifecycle. D1 filtering happens before candidate validation/arbitration. The evaluator's OR comparator now follows the adopted deterministic ordering. Build identity is 6.21.
+
+Code commits: comparator `342ab25a414b17647d720e637db1ac9ad934c76f`; consumer validation `bae2db09c5ea8321fc61a1bceb75a72107073265`; EA wiring/build identity `b76eec7609cf72bd029b7fc489170fdde38ae7c7`.
+
+All 77 semantic availability cells and custom auto-entry remain OFF. MHV/MLV remains setup-only; CSA/CSAK fresh-event identity remains HOLD; SIG-06/T04-E owner-epoch/recovery remains HOLD. No compile, regression, static harness or runtime was run under the standing validation HOLD. This remains **DRAFT / HOLD / NOT VERIFIED**, with no merge or trading activation.
+
+Exact next action: preserve this implementation checkpoint and wait for the validation gate to reopen; then run strict compile, targeted M15/T05 arbitration regressions and scheduler runtime evidence before deciding whether T06 can advance. Reassess upstream availability and T04-B/E plus M16/T07 dependencies at that point.

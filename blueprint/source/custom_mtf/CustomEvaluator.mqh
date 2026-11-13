@@ -4,7 +4,7 @@
 // Scheduler delivery is diagnostic only while T05 remains HOLD; no execution caller.
 #include "CustomClock.mqh"
 #include "CustomOwners.mqh"
-#define CUSTOM_EVALUATOR_REV "CUSTOM_EVALUATOR_DRAFT_001_20261112"
+#define CUSTOM_EVALUATOR_REV "CUSTOM_EVALUATOR_T06_M15_AUTHORITY_001_20261114"
 
 struct CustomWitnessComponent
 {
@@ -71,10 +71,22 @@ bool CustomViewFresh(const CustomOwnerView &view,const CustomEventBatch &batch,
  return false;
 }
 
-bool CustomEarlierIdentity(const CustomOwnerView &left,const CustomOwnerView &right)
+datetime CustomOwnerIdentityTime(const CustomOwnerView &view,bool physicalEvent)
 {
- if(left.confirmation!=right.confirmation)return left.confirmation<right.confirmation;
- if(left.timeframe!=right.timeframe)return left.timeframe<right.timeframe;
+ if(physicalEvent && view.entryEventTime>0)return view.entryEventTime;
+ if(physicalEvent)return view.sourceBar;
+ return view.confirmation;
+}
+
+bool CustomPreferredOwnerIdentity(const CustomOwnerView &left,const CustomOwnerView &right,
+                                  bool physicalEvent)
+{
+ datetime leftTime=CustomOwnerIdentityTime(left,physicalEvent);
+ datetime rightTime=CustomOwnerIdentityTime(right,physicalEvent);
+ if(leftTime!=rightTime)return leftTime>rightTime;
+ int leftTf=CustomTFIndex(left.timeframe);
+ int rightTf=CustomTFIndex(right.timeframe);
+ if(leftTf!=rightTf)return leftTf>rightTf;
  int signalOrder=StringCompare(left.signal,right.signal);
  if(signalOrder!=0)return signalOrder<0;
  return StringCompare(left.eventId,right.eventId)<0;
@@ -114,13 +126,13 @@ bool CustomEvaluateGroups(const CustomFormula &formula,const CustomEventBatch &b
    {
     if(!CustomAtomMatchesView(formula.atoms[atom],frame.views[viewIndex]) ||
        !CustomViewCurrent(frame.views[viewIndex],batch,direction,trigger))continue;
-    if(selected<0 || StringCompare(frame.views[viewIndex].eventId,frame.views[selected].eventId)<0)
+    if(selected<0 || CustomPreferredOwnerIdentity(frame.views[viewIndex],frame.views[selected],trigger))
      selected=viewIndex;
     if(trigger && CustomViewFresh(frame.views[viewIndex],batch,freshOwnerIds))
     {
      if(!CustomAddFreshAnchor(witness,frame.views[viewIndex].eventId))
      {reason="ANCHOR_CAPACITY";return false;}
-     if(freshReplacement<0 || CustomEarlierIdentity(frame.views[viewIndex],frame.views[freshReplacement]))
+     if(freshReplacement<0 || CustomPreferredOwnerIdentity(frame.views[viewIndex],frame.views[freshReplacement],true))
      {freshReplacement=viewIndex;freshReplacementComponent=firstComponent+group;}
     }
    }

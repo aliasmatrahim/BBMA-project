@@ -1,7 +1,7 @@
 #ifndef BBMA_CUSTOM_FRESH_EVENTS_V1
 #define BBMA_CUSTOM_FRESH_EVENTS_V1
 #include "CustomEvaluator.mqh"
-#define CUSTOM_FRESH_EVENTS_REV "CUSTOM_FRESH_EVENTS_DRAFT_003_20261113"
+#define CUSTOM_FRESH_EVENTS_REV "CUSTOM_FRESH_EVENTS_DRAFT_004_20261113"
 
 // Read-only projections of M08/M12 source event metadata. They never grant execution availability.
 bool CustomFreshReEntryEvent(const CustomOwnerView &view,const CustomEventBatch &batch)
@@ -65,6 +65,26 @@ bool CustomFreshExtremeEvent(const CustomOwnerView &view,const CustomEventBatch 
   return false;
  }
 
+
+ // M10's MOM snapshot is tied to one physical closed source candle. This creates a
+ // read-only candle receipt; recoveryOnly/execution gates remain unchanged.
+ bool CustomFreshMomentumCandleEvent(const CustomOwnerView &view,const CustomEventBatch &batch)
+ {
+  if(CustomSignalIndex(view.signal)!=10 || view.symbol!=batch.symbol ||
+     (view.direction!=DIR_BUY && view.direction!=DIR_SELL) ||
+     !view.readable || !view.structuralValid || view.sourceBar<=0 ||
+     view.confirmation!=view.sourceBar || view.eventId=="")return false;
+  for(int index=0;index<batch.eventCount;index++)
+  {
+   if(batch.events[index].timeframe!=view.timeframe)continue;
+   return batch.events[index].continuousBoundary &&
+          batch.events[index].closedOpen==view.sourceBar &&
+          batch.events[index].currentOpen>view.sourceBar &&
+          batch.events[index].currentOpen<=batch.observedAt;
+  }
+  return false;
+ }
+
 bool BuildCustomEvaluationInputs(const CustomEventBatch &batch,const CustomOwnerFrame &source,
                                  CustomOwnerFrame &frame,string &freshOwnerIds[],string &reason)
 {
@@ -95,7 +115,8 @@ bool BuildCustomEvaluationInputs(const CustomEventBatch &batch,const CustomOwner
   }
   if(!CustomFreshReEntryEvent(staged.views[index],batch) &&
      !CustomFreshExtremeEvent(staged.views[index],batch) &&
-     !CustomFreshMHVFormationEvent(staged.views[index],batch))continue;
+     !CustomFreshMHVFormationEvent(staged.views[index],batch) &&
+     !CustomFreshMomentumCandleEvent(staged.views[index],batch))continue;
   bool duplicate=false;
   for(int existing=0;existing<freshCount;existing++)
    if(fresh[existing]==staged.views[index].eventId){duplicate=true;break;}

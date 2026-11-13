@@ -1,9 +1,9 @@
 #ifndef BBMA_CUSTOM_FRESH_EVENTS_V1
 #define BBMA_CUSTOM_FRESH_EVENTS_V1
 #include "CustomEvaluator.mqh"
-#define CUSTOM_FRESH_EVENTS_REV "CUSTOM_FRESH_EVENTS_DRAFT_001_20261112"
+#define CUSTOM_FRESH_EVENTS_REV "CUSTOM_FRESH_EVENTS_DRAFT_002_20261113"
 
-// Read-only projection of M12 confirmation metadata. It never grants eligibility.
+// Read-only projections of M08/M12 source event metadata. They never grant execution availability.
 bool CustomFreshReEntryEvent(const CustomOwnerView &view,const CustomEventBatch &batch)
 {
  int subtype=CustomSignalIndex(view.signal);
@@ -16,6 +16,29 @@ bool CustomFreshReEntryEvent(const CustomOwnerView &view,const CustomEventBatch 
   return batch.events[index].continuousBoundary &&
          batch.events[index].closedOpen==view.entryEventTime &&
          batch.events[index].currentOpen==view.entryCandle &&
+         batch.events[index].currentOpen<=batch.observedAt;
+ }
+ return false;
+}
+
+// A fresh EXT event requires the exact closed-bar retest-completion event. This physical
+// event can be recorded while executionAvailable remains false; the evaluator still
+// fails closed on owner availability and entry gates.
+bool CustomFreshExtremeEvent(const CustomOwnerView &view,const CustomEventBatch &batch)
+{
+ if(CustomSignalIndex(view.signal)!=5 || view.concreteSignal!="EXT" ||
+    !view.readable || !view.structuralValid || view.recoveryOnly ||
+    view.ownerState!=(int)EXT_MAT_RETEST_READY || !view.entryEligible ||
+    !view.entryWindowOpen || view.entryEventTime<=0 ||
+    view.sourceBar!=view.entryEventTime || view.confirmation<=0 ||
+    view.confirmation>view.sourceBar || view.eventId=="")return false;
+ for(int index=0;index<batch.eventCount;index++)
+ {
+  if(batch.events[index].timeframe!=view.timeframe)continue;
+  return batch.events[index].continuousBoundary &&
+         batch.events[index].closedOpen==view.entryEventTime &&
+         batch.events[index].currentOpen==view.entryCandle &&
+         batch.events[index].currentOpen>view.entryEventTime &&
          batch.events[index].currentOpen<=batch.observedAt;
  }
  return false;
@@ -49,7 +72,8 @@ bool BuildCustomEvaluationInputs(const CustomEventBatch &batch,const CustomOwner
    {reason="WAIT_CONCRETE_RE_OWNER";return false;}
    staged.views[index].signal=staged.views[index].concreteSignal;
   }
-  if(!CustomFreshReEntryEvent(staged.views[index],batch))continue;
+  if(!CustomFreshReEntryEvent(staged.views[index],batch) &&
+     !CustomFreshExtremeEvent(staged.views[index],batch))continue;
   bool duplicate=false;
   for(int existing=0;existing<freshCount;existing++)
    if(fresh[existing]==staged.views[index].eventId){duplicate=true;break;}

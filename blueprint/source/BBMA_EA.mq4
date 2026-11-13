@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 6.1.7 - T05 Scheduler Snapshot Dispatch Draft    |
+//| Version 6.1.8 - T05 EXT Fresh Entry-Event Adapter Draft    |
 //| SIGNAL VALIDATION IN PROGRESS - CUSTOM ORDERS OFF          |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,14 +31,14 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "6.17"
+#property version   "6.18"
 #property strict
 #include "custom_mtf/CustomInputs.mqh"
 #include "custom_mtf/CustomPairBinding.mqh"
 #include "custom_mtf/CustomClock.mqh"
 
-#define BBMA_BUILD_TAG      "V617_T05_SCHEDULER_SNAPSHOT_DISPATCH_20261112"
-#define BBMA_SOURCE_REV_TAG "T05_SCHEDULER_SNAPSHOT_DISPATCH_001_20261112"
+#define BBMA_BUILD_TAG      "V618_T05_EXT_FRESH_ENTRY_EVENT_20261113"
+#define BBMA_SOURCE_REV_TAG "T05_EXT_FRESH_ENTRY_EVENT_001_20261113"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -14581,7 +14581,7 @@ bool ReadCustomOwnerView(int pairIndex,int tf,string signal,ENUM_DIRECTION direc
    else {view.reason="TF_OWNER_UNWIRED";return false;}
    bool readable;
    if(kind==6 || kind==7)readable=ProjectCustomMHVView(view.symbol,tf,direction,latest,data,mhv,view);
-   else if(kind==5)readable=ProjectCustomExtremeView(view.symbol,tf,direction,latest,data,extreme,view);
+   else if(kind==5)readable=ProjectCustomExtremeView(view.symbol,tf,direction,latest,iTime(view.symbol,tf,0),data,extreme,view);
    else readable=ProjectCustomReEntryView(view.symbol,tf,signal,direction,latest,data,re,view);
    view.recoveryOnly=contextOnly;
    view.entryWindowOpen=kind<=4 && !contextOnly && readable && view.structuralValid && CustomReEntryWindowOpen(re,tf,iTime(view.symbol,tf,0));

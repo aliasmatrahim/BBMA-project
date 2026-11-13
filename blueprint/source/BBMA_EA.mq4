@@ -31,14 +31,14 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "6.20"
+#property version   "6.21"
 #property strict
 #include "custom_mtf/CustomInputs.mqh"
 #include "custom_mtf/CustomPairBinding.mqh"
 #include "custom_mtf/CustomClock.mqh"
 
-#define BBMA_BUILD_TAG      "V620_T05_M10_MOM_FRESH_CANDLE_EVENT_20261113"
-#define BBMA_SOURCE_REV_TAG "T05_M10_MOM_FRESH_CANDLE_EVENT_001_20261113"
+#define BBMA_BUILD_TAG      "V621_T06_CUSTOM_M15_READONLY_AUTHORITY_20261114"
+#define BBMA_SOURCE_REV_TAG "T06_CUSTOM_M15_READONLY_AUTHORITY_001_20261114"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -1075,6 +1075,7 @@ struct PairState
 
 #include "custom_mtf/CustomOwners.mqh"
 #include "custom_mtf/CustomDispatch.mqh"
+#include "custom_mtf/CustomM15Authority.mqh"
 
 struct TradeInfo
 {
@@ -1306,6 +1307,7 @@ int                  g_custom_pair_indices[];
 CustomClockState     g_custom_clock_states[MAX_PAIRS];
 CustomOwnerFrame     g_custom_owner_frames[MAX_PAIRS];
 CustomEvaluationSnapshot g_custom_evaluation_snapshots[MAX_PAIRS];
+CustomM15AuthorityReceipt g_custom_m15_authority_snapshots[MAX_PAIRS];
 int                  g_effective_max_active_pair;
 bool                 g_max_active_pair_sanitized;
 bool                 g_pair_list_truncated;
@@ -11450,7 +11452,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=6.20 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=6.21 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);
@@ -13399,6 +13401,7 @@ void LoadPairs()
    {
       ZeroMemory(g_custom_clock_states[resetClock]);
       ZeroMemory(g_custom_evaluation_snapshots[resetClock]);
+      ZeroMemory(g_custom_m15_authority_snapshots[resetClock]);
       g_custom_owner_frames[resetClock].viewCount=0;
       g_custom_owner_frames[resetClock].observedAt=0;
       g_custom_owner_frames[resetClock].symbol="";
@@ -14593,6 +14596,7 @@ void ObserveCustomClosedBars(int pairIndex)
    if(pairIndex<0 || pairIndex>=g_pair_count)return;
    // One-observation diagnostic lifetime: failures/no-event batches cannot reuse a witness.
    ZeroMemory(g_custom_evaluation_snapshots[pairIndex]);
+   ZeroMemory(g_custom_m15_authority_snapshots[pairIndex]);
    g_custom_owner_frames[pairIndex].viewCount=0;
    bool mapped=false;
    for(int map=0;map<ArraySize(g_custom_pair_indices);map++)
@@ -14690,10 +14694,23 @@ void ObserveCustomClosedBars(int pairIndex)
       if(!CompleteCustomClosedBatch(g_custom_clock_states[pairIndex],batch,true))return;
       g_custom_owner_frames[pairIndex]=frame;
       // T05 receives only a committed batch and the matching immutable owner frame.
-      // Result storage is diagnostic; it is not connected to canonical M15 selection.
       if(!DispatchCustomEvaluationSnapshot(actual,snapshotRevision,g_custom_clock_states[pairIndex],
                                             batch,frame,g_custom_evaluation_snapshots[pairIndex],reason))
+      {
          Log(DBG_FULL,"CUSTOM_T05_SNAPSHOT:"+actual+":"+reason);
+         return;
+      }
+      // T06 records a read-only receipt; this is not BBMA_Decision or execution authority.
+      datetime latestClosedD1=GetLatestClosedCandleTime(actual,PERIOD_D1);
+      if(!BuildCustomM15AuthorityReceipt(g_custom_evaluation_snapshots[pairIndex],batch,
+                                         g_custom_clock_states[pairIndex],snapshotRevision,
+                                         g_pair_states[pairIndex].d1_major_trend_owner,
+                                         latestClosedD1,
+                                         g_custom_m15_authority_snapshots[pairIndex],reason))
+         Log(DBG_FULL,"CUSTOM_T06_M15_AUTHORITY:"+actual+":"+reason);
+      else
+         Log(DBG_FULL,"CUSTOM_T06_M15_AUTHORITY:"+actual+":"+
+             g_custom_m15_authority_snapshots[pairIndex].reason);
       return;
    }
    CompleteCustomClosedBatch(g_custom_clock_states[pairIndex],batch,true);

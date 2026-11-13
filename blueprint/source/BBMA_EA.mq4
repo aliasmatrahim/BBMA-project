@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           BBMA_EA.mq4 |
-//| Version 6.1.8 - T05 EXT Fresh Entry-Event Adapter Draft    |
+//| Version 6.1.9 - T05 M09 MHV Formation-Event Adapter Draft |
 //| SIGNAL VALIDATION IN PROGRESS - CUSTOM ORDERS OFF          |
 //+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
@@ -31,14 +31,14 @@
 //+------------------------------------------------------------------+
 #property copyright "BBMA EA"
 #property link      ""
-#property version   "6.18"
+#property version   "6.19"
 #property strict
 #include "custom_mtf/CustomInputs.mqh"
 #include "custom_mtf/CustomPairBinding.mqh"
 #include "custom_mtf/CustomClock.mqh"
 
-#define BBMA_BUILD_TAG      "V618_T05_EXT_FRESH_ENTRY_EVENT_20261113"
-#define BBMA_SOURCE_REV_TAG "T05_EXT_FRESH_ENTRY_EVENT_001_20261113"
+#define BBMA_BUILD_TAG      "V619_T05_M09_MHV_FORMATION_EVENT_20261113"
+#define BBMA_SOURCE_REV_TAG "T05_M09_MHV_FORMATION_EVENT_001_20261113"
 
 //+------------------------------------------------------------------+
 //| MODULE 01: HEADER & INPUTS                                       |
@@ -11450,7 +11450,7 @@ void F7TelemetryWrite(string line)
 
 void F7BuildIdentityTelemetry()
 {
-   string line="[F7-BUILD] EA=BBMA_EA Build=6.15 BuildTag="+string(BBMA_BUILD_TAG)+
+   string line="[F7-BUILD] EA=BBMA_EA Build=6.19 BuildTag="+string(BBMA_BUILD_TAG)+
       " SourceRev="+string(BBMA_SOURCE_REV_TAG)+
       " InitTime="+TimeToString(TimeLocal(),TIME_DATE|TIME_SECONDS);
    Print(line);

@@ -1,6 +1,6 @@
 # T05 evaluator draft interface
 
-Status HOLD / NOT VERIFIED. Coding continues with compile, regression and runtime tests deferred by user instruction. Candidate Build 6.18, revision `T05_EXT_FRESH_ENTRY_EVENT_001_20261113`.
+Status HOLD / NOT VERIFIED. Coding continues with compile, regression and runtime tests deferred by user instruction. Candidate Build 6.19, revision `T05_M09_MHV_FORMATION_EVENT_001_20261113`.
 
 ## Scheduler delivery and binding
 
@@ -22,15 +22,29 @@ Mapping classification: the RETEST_READY requirement is accepted source/project 
 
 The physical fresh EXT identity reuses the opaque M08 lifecycle ID: one lifecycle can complete its retest only once; the identity includes symbol, TF, direction, raw candle and reversal confirmation. The explicit retest timestamp is checked separately against the batch. This event declaration does not set `executionAvailable`; the existing owner projections leave it false and all custom signal×TF availability cells remain closed. Therefore a fresh event record cannot by itself produce a usable Trigger witness or an entry.
 
+
+## Setup-formation event: MHV/MLV (one M09 owner)
+
+Source route: `SOURCE_INDEX → accepted Core section 6 → Finale master MHV/MLV rules + PDF-derived pages 7–8 → F1 MHV/MLV lifecycle decision → current M09 owner`.
+
+Accepted semantics treat MHV and MLV as aliases for one canonical same-timeframe/cycle M09 lifecycle. MHV/MLV is setup/context, not standalone direct-entry authority. The physical formation event is the first valid closed move-away candle that establishes `MLV_FORMATION_ESTABLISHED` and freezes the marked body. The existing owner sets `ConfirmationCandleTime` to that candle; `ExportSourceMHVSignal` preserves it as the confirmation timestamp. A later retest is a separate optional lifecycle transition, not a second formation event. REM's M15 component maturity remains formation-established plus frozen body; its standalone policy is unchanged.
+
+The read-only adapter now declares a fresh formation event only when the projected owner is the same M09 owner, state is exactly `MLV_FORMATION_ESTABLISHED`, confirmation equals the latest closed source bar, and the same-timeframe scheduler batch records that closed bar plus its actual following open across a continuous boundary. It rejects recovery-only views, stale formation timestamps and later retest/direction states. MHV/MLV alias views retain the same opaque owner event ID, so duplicate projections deduplicate.
+
+Mapping classification: the lifecycle event timestamp and frozen-body state come from the accepted F1 project mapping. Tying that closed event to the actual next observed open/continuous scheduler boundary is an engineering mapping; it is not claimed as founder-quoted timing. No calculated future open, generic TTL, new detector or separate MHV/MLV owner is added.
+
+This is a **setup-formation receipt**, not an `entryEventTime`. It does not set `entryEligible`, `entryWindowOpen` or `executionAvailable`. `CustomViewCurrent` therefore continues to fail closed for MHV/MLV Trigger use while availability is OFF; the receipt alone cannot produce a trigger witness, T06 selection or entry. All 77 availability cells and custom auto-entry remain OFF. M09 source-epoch/recovery acceptance remains HOLD under SIG-06/T04-E evidence.
+
+
 ## Entry-event adapter: RE (existing)
 
 M12 projection publishes concrete RE subtype and `ConfirmationCandle`. The adapter resolves RE wildcard into RE1–RE4 and preserves the opaque physical event ID. It currently declares fresh RE only when existing source window and availability/eligibility gates pass; those availability flags remain closed on current projections.
 
 ## Still pending
 
-- Fresh events for MHV/MLV, CSA/CSAK and MOM; keep each unavailable until its source entry-event contract is mapped and accepted.
+- Fresh events for CSA/CSAK and MOM remain unimplemented; keep each unavailable until its source event contract is mapped and accepted. MHV/MLV formation receipts do not make MHV/MLV Trigger eligible.
 - Bind transient T05 receipts into T06 M15 authority/arbitration. Keep canonical M15 cadence/signatures and D1/H4 owner gates.
 - Implement persistent dedup/reservation through T07 and fixed SL/TP source handling through T08.
 - When validation resumes: native strict compile; EXT raw/reversal/retest-ready/stale/recovery boundaries; RE subtype cases; simultaneous batch and exact next-open cases; symbol/config binding; cross-module regression and scheduler runtime.
 
-No compile or tests were run for Build 6.18. The candidate has not been deployed or merged. T04-B/E and T05 acceptance remain HOLD. Custom auto-entry remains OFF.
+No compile, regression or runtime checks were run for Build 6.19 under the user-directed HOLD. The candidate has not been deployed or merged. T04-B/E and T05 acceptance remain HOLD. Custom auto-entry remains OFF.

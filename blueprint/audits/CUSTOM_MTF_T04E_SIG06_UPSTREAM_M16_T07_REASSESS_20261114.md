@@ -20,12 +20,23 @@ Auto-entry custom: **OFF**. Merge/trading activation: **not performed**.
 Evidence and limits:
 
 - `source_epoch_followup606_inventory.json` scanned 3,904 names and hashed 210 candidates across four named roots. This is bounded discovery, not a G40-wide absence claim. It found no accepted actual M08/M09 cycle-origin checkpoint. The reviewed M11 Epoch_R1 and Q10 snapshot are different owners/builds and cannot substitute.
-- The deployment feed profile remains `BBMA_PRIMARY_BROKER_UNRESOLVED`: broker, server, UTC standard/DST offsets, DST rule, and week-open/week-close rules are unset. No authenticated same-feed quote-vs-missing session boundary is bound to the installed HST hashes.
+- A later read-only HFM capture identifies the test feed as `HFMarketsSV-Demo Server` / GBPUSD. The primary deployment profile remains `BBMA_PRIMARY_BROKER_UNRESOLVED` because no accepted project decision binds that demo server to the target deployment profile. The capture is not an exhaustive broker tick archive, and no authenticated historical quote-vs-missing boundary is yet bound to the installed HST hashes.
 - SIG-06 requires an origin tied to the same symbol/feed/history revision, source TF and source candle/cursor, full M08 and both M09 owners (M12 where applicable), parent-cycle/TPW origin, and intervening accepted events. Then bind that snapshot before controlled restart and compare full continuous versus recovered owner state across the authenticated boundary. An arbitrary `NONE`, another feed's calendar, fitted UTC offset, or synthetic fill cannot satisfy it.
 - Reusable bounded evidence: Build 6.13 availability propagation has native RED/GREEN and regression records, including strict 0-error/0-warning compile, 295/295 caller checks, 785/785 inner-status checks, 323/323 expanded candidate checks, and 14 native regression groups. The natural-origin restart audit covers M1/M5/M15/H1 only; its report explicitly leaves full session/origin acceptance HOLD. The 340/340 production-admission checks prove safe refusal on unavailable recovery input, not successful recovery.
 - Do not repeat those verified suites. No new compile/regression/runtime was run for this documentation-only audit.
 
 References: [source/epoch retrieval](CUSTOM_MTF_SOURCE_EPOCH_RETRIEVAL_20261110.md), [SIG-06 preflight](CUSTOM_MTF_MHV_SIGNAL_PREFLIGHT_20261110.md), [availability propagation](CUSTOM_MTF_MHV_AVAILABILITY_PROPAGATION_20261111.md), [natural-origin restart](CUSTOM_MTF_MHV_NATURAL_ORIGIN_RESTART_20261111.md), [production admission](CUSTOM_MTF_MHV_PRODUCTION_ADMISSION_20261111.md), and [bounded inventory](../runtime/custom_mtf/source_epoch_followup606_inventory.json).
+
+### Newer same-server HFM probes (2026-11-12)
+
+The newer artifacts narrow the evidence gap but do not close it:
+
+- `t04be_hfm_forward_capture_20261112.json` identifies `HFMarketsSV-Demo Server` and GBPUSD, with terminal AutoTrading false. It records quote/heartbeat capture; the recorder metadata explicitly says event delivery is terminal-observed and not guaranteed to be an exhaustive broker tick archive.
+- The H1 archive probe replays 2,528 HFM archive rows through a test-only series adapter. Its August and November cases retain `hold=true`; report scope says chart labels do not authenticate UTC or the historical session.
+- The H1 origin probe compares six exact M08/M09/M12 owner states against a zero-initialized 120-bar baseline and matches 1/6. The H1 seed probe has bounded convergence on the July sample, but the October pre-gap case does not converge to an exact M09/full owner. These are diagnostic initial-state hypotheses, not an independently witnessed/source-proven owner epoch.
+- All these artifacts retain T04-B/E HOLD: dated same-server closure/reopen coverage, an independent pre-gap epoch, and native production across-gap continuous/recovered parity remain unproved.
+
+This evidence identifies the server used by the test capture, so the blocker is no longer “unknown HFM test server.” It still does not establish primary deployment-profile authority or accepted session/epoch recovery.
 
 ## Remaining fresh-event upstream
 

@@ -16,7 +16,7 @@ params={'StrategyID':'1','InstanceID':'0','DebugLevel':'4','ShowDashboard':'fals
 for tf in ['M1','M5','M15','M30','H1','H4','D1']:params['CustomTF_'+tf]='true';params['CustomSignals_'+tf]=''
 for slot in range(1,6):
  for key,value in [('Enable','false'),('Context',''),('Trigger',''),('Symbols','ALL')]:params[f'Custom{slot}_{key}']=value
-if a.kind=='observerm09':params['ObserverM09']='true'
+if a.kind in ('observer','observerm09'):params['ObserverM09']='true' if a.kind=='observerm09' else 'false'
 if a.kind=='canonmhv':params['EntryMode']='2'
 if a.kind=='flow':
  # Subset mechanics acceptance only; do not certify market/session coverage.

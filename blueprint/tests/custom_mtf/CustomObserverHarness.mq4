@@ -51,6 +51,14 @@ int passed=0,failed=0;
 void Check(string name,bool ok){if(ok)passed++;else failed++;Print("[CUSTOM-OBSERVER] ",name," ",ok?"PASS":"FAIL");}
 int OnInit()
 {
+ ResetCustomSymbolInputs();
+ ArrayResize(g_custom_universe,1);g_custom_universe[0]="GBPUSD";
+ for(int slot=0;slot<CUSTOM_SLOT_COUNT;slot++)
+ {
+  g_custom_slots[slot].slotId=slot+1;g_custom_slots[slot].enabled=false;
+  g_custom_slots[slot].context.atomCount=0;g_custom_slots[slot].context.groupCount=0;
+  g_custom_slots[slot].trigger.atomCount=0;g_custom_slots[slot].trigger.groupCount=0;
+ }
  g_pair_count=1;InitPairState(g_pair_states[0]);g_pair_states[0].actual_symbol="GBPUSD";g_pair_canonical_scope[0]=true; // Prevalidated canonical H1 owner fixture.
  ArrayResize(g_custom_pair_indices,1);g_custom_pair_indices[0]=0;ZeroMemory(g_custom_use);
  g_custom_use.tfEnabled[0]=true;g_custom_use.tfEnabled[4]=true;g_custom_use.signalEnabled[9]=true;g_custom_use.signalEnabled[44]=true;
@@ -71,12 +79,13 @@ int OnInit()
   owner.mhvSell=owner.mhvBuy;owner.mhvSell.Direction=DIR_SELL;owner.mhvSell.ParentExtremeDirection=DIR_BUY;
   StoreCustomCanonicalSource(0,PERIOD_H1,data,owner);g_processed_candle_time[0]=simulatedNow-900;
  }
+ g_custom_config_payload=BuildCustomResolvedConfigurationPayload();
  g_processing_time=simulatedNow;ObserveCustomClosedBars(0);Check("driver_primes_without_historical_frame",g_custom_owner_frames[0].viewCount==0 && g_custom_clock_states[0].primed[0]);
  simulatedNow+=60;simulatedQuote=simulatedNow;m1Open=simulatedNow;g_processing_time=simulatedNow;ObserveCustomClosedBars(0);
  bool frameReady=g_custom_owner_frames[0].viewCount==4;
  Check("M1_event_projects_current_H1_owner",frameReady && g_custom_owner_frames[0].observedAt==simulatedNow && g_custom_owner_frames[0].views[0].timeframe==PERIOD_H1 && g_custom_owner_frames[0].views[0].structuralValid && !g_custom_owner_frames[0].views[0].entryEligible && g_custom_owner_frames[0].views[2].readable && !g_custom_owner_frames[0].views[2].structuralValid && !g_custom_owner_frames[0].views[2].entryEligible);
  datetime epoch=g_custom_owner_frames[0].observedAt;simulatedNow++;simulatedQuote=simulatedNow;g_processing_time=simulatedNow;ObserveCustomClosedBars(0);
- Check("duplicate_does_not_relabel_snapshot",g_custom_owner_frames[0].viewCount==4 && g_custom_owner_frames[0].observedAt==epoch);
+ Check("duplicate_clears_stale_frame_without_replay",g_custom_owner_frames[0].viewCount==0 && g_custom_clock_states[0].lastClosed[0]==epoch-60 && g_custom_clock_states[0].lastOpen[0]==epoch);
  simulatedQuote=D'2026.08.03 09:59';ObserveCustomClosedBars(0);
  Check("stale_quote_hides_frame_without_consuming",g_custom_owner_frames[0].viewCount==0 && g_custom_clock_states[0].lastClosed[0]==D'2026.08.03 10:00' && !g_custom_clock_states[0].busy);
  Print("[CUSTOM-OBSERVER-SUMMARY] passed=",passed," failed=",failed);return failed==0?INIT_SUCCEEDED:INIT_FAILED;

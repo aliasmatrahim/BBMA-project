@@ -1,0 +1,87 @@
+{
+  "task_id": "T06-M15-READONLY-AUTHORITY-01 / validation gate",
+  "date": "2026-11-14",
+  "branch": "feat/custom-mtf-v1-20261108",
+  "validated_source_commit": "2bab3ccb2f69211b958e68934e6add6e5ed0d253",
+  "build": "6.21",
+  "source": {
+    "path": "blueprint/source/BBMA_EA.mq4",
+    "git_blob": "f046347fc087375cd04596d89c7e2fc400eee9cd",
+    "sha256_lf_utf8": "14eb65f893e50082bbc93c63095d1240823fd116dc8d96a3753109b940177b40",
+    "strict_compile": {
+      "status": "PASS",
+      "errors": 0,
+      "warnings": 0,
+      "log": "G40:D:\\BBMA\\MT4_CustomMTF_302_Unit\\t06_m15_authority_20261114\\evidence\\strict_compile_build621.log"
+    }
+  },
+  "results": {
+    "t05_t06": {
+      "status": "PASS",
+      "passed": 16,
+      "failed": 0,
+      "compile": "0 errors, 0 warnings",
+      "checks": [
+        "RE subtype alias",
+        "Context/Trigger AND-OR evaluator",
+        "latest physical Trigger arbitration",
+        "D1 filter before candidate validation",
+        "same-anchor slot attribution",
+        "stale D1/config fail-closed",
+        "recovery gap and duplicate-key fail-closed",
+        "read-only receipt requires M16",
+        "no broker orders"
+      ],
+      "harness": "blueprint/tests/custom_mtf/CustomM15AuthorityHarness.mq4",
+      "harness_sha256": "6450cfacfe4615884148d293c24d0080922147c6abf9186f54c4686b991ce3a5",
+      "compile_log": "G40:D:\\BBMA\\MT4_CustomMTF_302_Unit\\t06_m15_authority_20261114\\evidence\\t05_t06_harness_compile.log",
+      "tester_log": "G40:D:\\BBMA\\MT4_CustomMTF_302_Unit\\tester\\logs\\20261114.log",
+      "scope": "Synthetic unit data; does not open signal availability or trading gates."
+    },
+    "clock": {
+      "status": "PASS",
+      "passed": 14,
+      "failed": 0,
+      "manifest": "G40:D:\\BBMA\\MT4_CustomMTF_302_Unit\\t06_m15_authority_20261114\\evidence\\custom621_clock\\manifest.json"
+    },
+    "observer": {
+      "status": "PASS",
+      "passed": 4,
+      "failed": 0,
+      "manifest": "G40:D:\\BBMA\\MT4_CustomMTF_302_Unit\\t06_m15_authority_20261114\\evidence\\custom621_observer\\manifest.json",
+      "fixture": "Seeds resolved GBPUSD/revision without broker discovery; verifies duplicate clears one-observation frame without advancing clock."
+    },
+    "flow": {
+      "status": "PASS",
+      "passed": 12,
+      "failed": 0,
+      "window": "GBPUSD 2026-08-04 02:00–04:00, tester Model 2, ExpertsTrades=false",
+      "metrics": {
+        "ticks": 120,
+        "m1": 120,
+        "m5": 24,
+        "m30": 4,
+        "tick_first": 60,
+        "timer_first": 60,
+        "non_m15_m1": 112,
+        "simultaneous_frames": 3,
+        "frames": 119,
+        "entry_eligible_views": 5,
+        "execution_available_views": 0,
+        "receipt_selected": false,
+        "execution_authority": false,
+        "orders": 0
+      },
+      "manifest": "G40:D:\\BBMA\\MT4_CustomMTF_302_Unit\\t06_m15_authority_20261114\\evidence\\custom621_flow\\manifest.json",
+      "HST_SHA256": {
+        "M1": "f931fef6b0d9a829de421c497af8691de48ba74cc9db68d29c50d852de6f1310",
+        "M5": "418440bf35ac6b436361987f3f3deb1beb101ec3a36a3f6c298f338b1e188713",
+        "M30": "d9668038ebc635225534d683ea34b60805915d92510be2b58b6584b8fbbde0d7"
+      },
+      "limitation": "Two-hour scheduler subset; M30 is a derived OHLC fixture. No broker-session/weekend or owner-epoch recovery proof."
+    }
+  },
+  "safety": "All tests ran in isolated portable MT4 Strategy Tester with ExpertsTrades=false. Custom auto-entry and all 77 availability cells remain OFF; no broker orders occurred.",
+  "status": "Targeted validation PASS; overall T06 acceptance HOLD because upstream fresh-event/owner-epoch dependencies remain unresolved and M16/T07 are not implemented by this consumer.",
+  "exact_next_action": "Reassess T04-E/SIG-06 owner-epoch recovery and upstream fresh-event contracts, then evaluate M16/T07 prerequisites. Keep PR #303 Draft; do not merge or activate trading."
+}

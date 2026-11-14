@@ -15,7 +15,7 @@ input bool FlowOnlyM09M1=false; // Prove M09-only request drives its shared prod
 input bool FlowExpectMomentum=false;
 input bool FlowExpectHigher=false; // Capability expectation for the tested source revision.
 input int FlowStartHour=2; // Chosen by read-only source-history preflight.
-int passed=0,failed=0,ticks=0,advances[3],tickAdvances=0,timerAdvances=0,nonM15=0,simultaneous=0,frames=0;
+int passed=0,failed=0,ticks=0,advances[3],tickAdvances=0,timerAdvances=0,nonM15=0,simultaneous=0,frames=0,entryEligibleViews=0,executionAvailableViews=0;
 bool initialized=false,printed=false,closedOK=true,duplicatesOK=true,orderOK=true,flagsOK=true,unavailableOK=true,canonicalExcluded=true;
 datetime endAt=0,startAt=0;
 void Check(string name,bool ok){if(ok)passed++;else failed++;Print("[CUSTOM-FLOW] ",name," ",ok?"PASS":"FAIL");}
@@ -47,10 +47,10 @@ void Finish()
  Check("only_matching_closed_snapshots",closedOK && frames>=100);
  Check("duplicate_tick_timer_state_stable",duplicatesOK && frames>=100);
  Check("M09_MOM_H1_capability_scope",unavailableOK && frames>=100);
- Check("no_entry_or_execution_authority",flagsOK && frames>=100);
+ Check("no_execution_authority_or_availability",flagsOK && frames>=100);
  Check("custom_only_never_canonical_dispatch",canonicalExcluded && g_processed_candle_time[0]==0);
  Check("no_broker_orders",OrdersTotal()==0 && OrdersHistoryTotal()==0);
- Print("[CUSTOM-FLOW-DATA] ticks=",ticks," M1=",advances[0]," M5=",advances[1]," M30=",advances[2]," tickFirst=",tickAdvances," timerFirst=",timerAdvances," nonM15=",nonM15," simultaneous=",simultaneous," frames=",frames);
+ Print("[CUSTOM-FLOW-DATA] ticks=",ticks," M1=",advances[0]," M5=",advances[1]," M30=",advances[2]," tickFirst=",tickAdvances," timerFirst=",timerAdvances," nonM15=",nonM15," simultaneous=",simultaneous," frames=",frames," entryEligibleViews=",entryEligibleViews," executionAvailableViews=",executionAvailableViews," receiptSelected=",g_custom_m15_authority_snapshots[0].selected," executionAuthority=",g_custom_m15_authority_snapshots[0].executionAuthority);
  Print("[CUSTOM-FLOW-SUMMARY] passed=",passed," failed=",failed);
 }
 void OnTick()
@@ -83,7 +83,14 @@ void OnTick()
      g_pair_states[0].custom_aux[0].mhvBuy.Timeframe!=PERIOD_M1 || g_pair_states[0].custom_aux[0].mhvSell.Timeframe!=PERIOD_M1 ||
      g_pair_states[0].custom_aux[0].mhvBuy.Direction!=DIR_BUY || g_pair_states[0].custom_aux[0].mhvSell.Direction!=DIR_SELL))unavailableOK=false;
   if(frame.views[14].readable!=FlowExpectMomentum || frame.views[15].readable!=FlowExpectMomentum)unavailableOK=false;
-  for(int v=0;v<frame.viewCount;v++)if(frame.views[v].entryEligible || frame.views[v].executionAvailable)flagsOK=false;
+  for(int v=0;v<frame.viewCount;v++)
+  {
+   if(frame.views[v].entryEligible)entryEligibleViews++;
+   if(frame.views[v].executionAvailable){executionAvailableViews++;flagsOK=false;}
+  }
+  if(g_custom_m15_authority_snapshots[0].selected || g_custom_m15_authority_snapshots[0].executionAuthority)flagsOK=false;
+  for(int cell=0;cell<77;cell++)if(g_custom_use.available[cell])flagsOK=false;
+  for(int slot=0;slot<CUSTOM_SLOT_COUNT;slot++)if(g_custom_slots[slot].enabled)flagsOK=false;
  }
  else if(ticks>1)closedOK=false;
  TimeframeData data[3];data[0]=g_pair_states[0].m1_data;data[1]=g_pair_states[0].m5_data;data[2]=g_pair_states[0].m30_data;

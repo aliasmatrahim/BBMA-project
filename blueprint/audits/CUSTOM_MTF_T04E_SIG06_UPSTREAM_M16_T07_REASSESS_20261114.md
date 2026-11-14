@@ -27,16 +27,18 @@ Evidence and limits:
 
 References: [source/epoch retrieval](CUSTOM_MTF_SOURCE_EPOCH_RETRIEVAL_20261110.md), [SIG-06 preflight](CUSTOM_MTF_MHV_SIGNAL_PREFLIGHT_20261110.md), [availability propagation](CUSTOM_MTF_MHV_AVAILABILITY_PROPAGATION_20261111.md), [natural-origin restart](CUSTOM_MTF_MHV_NATURAL_ORIGIN_RESTART_20261111.md), [production admission](CUSTOM_MTF_MHV_PRODUCTION_ADMISSION_20261111.md), and [bounded inventory](../runtime/custom_mtf/source_epoch_followup606_inventory.json).
 
-### Newer same-server HFM probes (2026-11-12)
+### Newer same-server HFM probes and live capture (2026-11-14)
 
-The newer artifacts narrow the evidence gap but do not close it:
+The newer artifacts narrow the gap, but do not close it:
 
-- `t04be_hfm_forward_capture_20261112.json` identifies `HFMarketsSV-Demo Server` and GBPUSD, with terminal AutoTrading false. It records quote/heartbeat capture; the recorder metadata explicitly says event delivery is terminal-observed and not guaranteed to be an exhaustive broker tick archive.
-- The H1 archive probe replays 2,528 HFM archive rows through a test-only series adapter. Its August and November cases retain `hold=true`; report scope says chart labels do not authenticate UTC or the historical session.
+- `t04be_hfm_forward_capture_20261112.json` identifies the test feed as `HFMarketsSV-Demo Server` / GBPUSD; terminal AutoTrading was false. The recorder's own scope says the quote stream is terminal-observed and not an exhaustive broker tick archive.
+- A read-only G40 inspection of the active capture `MQL4/Files/BBMA_HFM_GBPUSD_SESSION_1794417276.csv` found the last `TICK` at UTC epoch `1794607198` (2026-11-13 21:59:58Z), with server/quote labels `1794614398` (23:59:58 at GMT+2). Heartbeats continued through `1794626329` (2026-11-14 03:18:49Z) with `connected=1`, while the server/quote labels remained frozen and the last quote remained cached. This establishes a no-new-quote interval of at least 3h18m51s during the observed weekend closure, not the Monday reopen or a complete historical boundary. The terminal remained running; no restart or order action was performed.
+- HFM's current trading-hours page states server time is winter GMT+2 / summer GMT+3 and publishes a November table with Forex Friday trading to 23:58 GMT+2. The observed final quote label is 23:59:58 GMT+2; the page also distinguishes trading hours from rate refresh/quote availability. Therefore published trading hours alone do not certify the exact quote-delivery boundary. Preserve this as HOLD pending observed same-server close/reopen classification. Source: [HFM trading hours](https://www.hfm.com/int/en/trading-instruments/trading-hours).
+- The H1 archive probe replays 2,528 HFM archive rows through a test-only series adapter. August and November cases retain `hold=true`; chart labels do not authenticate UTC or historical session state.
 - The H1 origin probe compares six exact M08/M09/M12 owner states against a zero-initialized 120-bar baseline and matches 1/6. The H1 seed probe has bounded convergence on the July sample, but the October pre-gap case does not converge to an exact M09/full owner. These are diagnostic initial-state hypotheses, not an independently witnessed/source-proven owner epoch.
-- All these artifacts retain T04-B/E HOLD: dated same-server closure/reopen coverage, an independent pre-gap epoch, and native production across-gap continuous/recovered parity remain unproved.
+- HFM archive/origin/seed probes therefore remain T04-B/E HOLD: first post-weekend quote, independently source-proven pre-gap epoch, and production continuous-versus-recovered parity are still missing.
 
-This evidence identifies the server used by the test capture, so the blocker is no longer “unknown HFM test server.” It still does not establish primary deployment-profile authority or accepted session/epoch recovery.
+This evidence identifies the test server and provides a real read-only closure sample. It does not establish that the HFM Demo is the deployment profile, nor does it prove the full session boundary or trusted owner epoch.
 
 ## Remaining fresh-event upstream
 

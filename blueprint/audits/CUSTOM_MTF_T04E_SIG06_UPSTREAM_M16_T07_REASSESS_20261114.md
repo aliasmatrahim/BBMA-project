@@ -66,6 +66,6 @@ No Custom MTF T07 contract/module/test path exists on the current PR branch. The
 
 ## Exact next action
 
-1. Keep SIG-06/T04-E on HOLD until the deployment broker/server/feed identity and same-feed session boundary are authenticated, a source-valid M08/M09 origin is bound, and continuous/recovered owner parity passes.
+1. Keep SIG-06/T04-E on HOLD. Continue the existing AutoTrading-off HFM Demo capture through the first post-weekend quote, compare UTC/server/quote labels against the HFM schedule, and classify the observed close/reopen. The test server is known, but it is not promoted to the project deployment profile without an explicit binding decision. Then bind a source-valid M08/M09 origin and run continuous/recovered owner parity.
 2. In parallel, resolve the CSA/CSAK fresh-event identity/consumption contract without changing their accepted close predicates or inventing a cross/reset/TTL rule.
 3. Only after upstream gates pass, implement and validate the Custom M16 adapter; then define/implement T07 reservation and retry. Keep PR #303 Draft; no merge or trading activation.

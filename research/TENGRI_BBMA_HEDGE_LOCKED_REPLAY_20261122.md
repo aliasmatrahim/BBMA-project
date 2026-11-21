@@ -113,3 +113,12 @@ Data and D1 warm-up are **PASS** for the same HFM Demo4 server and evaluation wi
 - The discovered TengriTesterAuditV2 tester run starts 1 Sep and reports a 1,000-unit tester deposit. It cannot by itself explain the 6 Apr–18 Nov two-pair frozen ledger or establish its provenance. Existing source comparison shows the audit wrapper around Tengri v1.45, but the ledger-to-executable / 4,000 USC anchor crosswalk remains unproven.
 - No expectancy, profit factor, cost total, or combined drawdown is reported yet. The ledger provenance/scale and the installed EA’s non-BBMA trigger must be resolved before running the locked overlay replay. This avoids attributing a hypothetical BBMA harness result to the wrong Hedge build or mixing account units.
 - Current status: **HOLD — data warm-up and source-derived signal counts are verified; combined performance replay is not yet valid.** No same-sample tuning, production edits, live/forward run, or merge was performed.
+
+
+### Locked replay harness — run in progress
+
+- Added the single-pass research harness at research/tengri_bbma_hedge_locked_replay.py (commit f1f08b8559806fd8c20a3fe5475eac47655169cc). It consumes the approved Build 5.16 event CSV, the frozen Tengri statement tape, and the same HFM tick archive.
+- The run compares Baseline and Type 1–4. Entry uses the first quote after the first M15 decision row; gate is six net-side Tengri orders, hedge target is 25% of net lots rounded down, with a 3-pip entry spread cap. Every type uses the same exit (first approved H1 RE back to current net Tengri direction; safety close if Tengri goes flat or the hedge is no longer opposite).
+- Base cost is the actual Bid/Ask execution spread plus 1 pip per lot per Hedge action; stress is Bid/Ask plus 2 pips per lot per action. HFM Cent USC contract conversion is used. No same-sample tuning and no margin/fill-failure claim.
+- One issue remains explicit: the history export contains no Magic/comment column, so mapping all 1,357 EURUSD/USDCHF rows to Tengri is an assumption. The replay is conditional until that statement provenance is confirmed. Hedge profit does not feed back into later frozen Tengri lots.
+- The single locked run is executing on G40. No profitability result has been written yet.

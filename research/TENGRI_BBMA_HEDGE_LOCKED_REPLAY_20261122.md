@@ -1,7 +1,7 @@
 # Tengri + BBMA Hedge — locked replay checkpoint
 
 Updated: 2026-11-22  
-Status: **HOLD — no valid combined performance replay yet**  
+Status: **REPLAY COMPLETE — conditional historical overlay result; no production validation**  
 Issue: #304  
 Research branch: `research/tengri-bbma-hedge-replay-20261122`  
 Base: `d1-owner-dev` at `7567af7dfbfaafff35a37c1d307b387e96273c78`
@@ -115,10 +115,50 @@ Data and D1 warm-up are **PASS** for the same HFM Demo4 server and evaluation wi
 - Current status: **HOLD — data warm-up and source-derived signal counts are verified; combined performance replay is not yet valid.** No same-sample tuning, production edits, live/forward run, or merge was performed.
 
 
-### Locked replay harness — run in progress
+### Final locked overlay replay — 22 Nov 2026
 
-- Added the single-pass research harness at research/tengri_bbma_hedge_locked_replay.py (commit f1f08b8559806fd8c20a3fe5475eac47655169cc). It consumes the approved Build 5.16 event CSV, the frozen Tengri statement tape, and the same HFM tick archive.
-- The run compares Baseline and Type 1–4. Entry uses the first quote after the first M15 decision row; gate is six net-side Tengri orders, hedge target is 25% of net lots rounded down, with a 3-pip entry spread cap. Every type uses the same exit (first approved H1 RE back to current net Tengri direction; safety close if Tengri goes flat or the hedge is no longer opposite).
-- Base cost is the actual Bid/Ask execution spread plus 1 pip per lot per Hedge action; stress is Bid/Ask plus 2 pips per lot per action. HFM Cent USC contract conversion is used. No same-sample tuning and no margin/fill-failure claim.
-- One issue remains explicit: the history export contains no Magic/comment column, so mapping all 1,357 EURUSD/USDCHF rows to Tengri is an assumption. The replay is conditional until that statement provenance is confirmed. Hedge profit does not feed back into later frozen Tengri lots.
-- The single locked run is executing on G40. No profitability result has been written yet.
+This section supersedes the earlier “run in progress” and pre-run HOLD statements above. The locked replay completed once on the frozen sample; no parameter sweep or same-sample tuning was performed.
+
+#### Replay rules and interpretation
+
+- Period: 1 May–18 Nov 2026, EURUSD and USDCHF, with the frozen Tengri stream and HFM Demo4 ticks/quotes. Starting balance anchor: 4,000 USC. The order ledger contains 1,357 rows from 6 Apr onward; the 18 positions still open at the cutoff remain marked to market.
+- Signals came from the pinned Build 5.16 event export after closed-candle D1/H4/H1/M15 gates. Approved event counts: EURUSD T1/T2/T3/T4 = 18/0/18/35; USDCHF = 24/0/23/36; combined = 42/0/41/71.
+- Each type was replayed separately against the same frozen Tengri path. Entry was opposite same-symbol net Tengri exposure after at least six net-side orders, at 25% of net lots rounded down, with a 3-pip entry spread cap. Hedge P&L did not alter later frozen Tengri lot sizing.
+- All types used the same exit rule: first confirmed H1 Re-Entry back toward current Tengri net direction; safety close on Tengri flat or net-direction flip. **No normal Re-Entry exit fired in any variant.** Recorded closes were safety closes or exposure trims, so this run does not validate the normal exit hypothesis.
+- Actual Bid/Ask quotes captured spread impact. The additional model cost was 1 pip per lot per Hedge action; stress used 2 pips. Cost table separates the estimated Bid/Ask spread from this added fixed cost. Commission, swap, slippage beyond the quote, partial/rejected fills, and margin/stop-out were not simulated.
+- Metrics are conditional historical overlay results, not verified performance of the installed Hedge EA. The installed G40 EA is ADX/H4 based and does not consume BBMA Type 1–4 events. The result is also conditional on attributing the frozen statement rows to Tengri: the export lacks Magic/comment fields, the ledger-to-tester executable crosswalk is unresolved, and reconciliation has small residuals.
+
+#### Combined-account results
+
+Account P&L is flow-adjusted over the frozen Tengri path after the base Hedge cost model. “Hedge P&L” includes open Hedge mark-to-market at period end. Expectancy and profit factor use closed Hedge campaigns after modeled costs. Max equity drawdown is measured on flow-adjusted equity.
+
+| Variant | Account P&L, base cost (USC) | Change vs baseline / Hedge P&L incl. open (USC) | Closed campaigns (wins/losses); open at end | Expectancy per closed campaign (USC) | Profit factor | Max equity DD (USC / %) | Worst combined floating P&L (USC) | Entry/add; close/trim actions |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Baseline | +7,640.34 | 0.00 | — | N/A | N/A | 7,723.28 / 113.51% | -9,198.75 | 0; 0 |
+| Type 1 | +7,352.51 | -287.83 | 8 (2/6); 1 | -48.35 | 0.4575 | 6,798.96 / 104.09% | -8,279.31 | 13; 21 |
+| Type 2 | +7,640.34 | 0.00 | 0; 0 | N/A | N/A | 7,723.28 / 113.51% | -9,198.75 | 0; 0 |
+| Type 3 | +7,220.37 | -419.97 | 8 (2/6); 1 | -62.17 | 0.2566 | 7,204.93 / 106.10% | -8,671.49 | 12; 18 |
+| Type 4 | +6,114.56 | -1,525.78 | 10 (1/9); 2 | -161.86 | 0.1232 | 6,901.26 / 102.04% | -8,374.09 | 17; 28 |
+
+Type 2 had no eligible event or trade in this sample. It is not evidence for or against Type 2 profitability. For every variant, flow-adjusted minimum equity fell below zero: baseline/Type 2 -919.34 USC, Type 1 -266.87, Type 3 -414.43, and Type 4 -138.06. Every maximum drawdown exceeded 100%; the replay has no margin/stop-out engine, so these paths cannot be called fundable or live-safe.
+
+#### Cost and stress results
+
+| Variant | Added fixed cost at 1 pip/action (USC) | Estimated Bid/Ask spread cost (USC) | Base total cost estimate (USC) | Stress total estimate at 2 pips/action (USC) | Account P&L under stress (USC) |
+|---|---:|---:|---:|---:|---:|
+| Type 1 | 51.97 | 52.80 | 104.77 | 156.74 | +7,300.54 |
+| Type 2 | 0.00 | 0.00 | 0.00 | 0.00 | +7,640.34 |
+| Type 3 | 47.81 | 47.38 | 95.19 | 143.01 | +7,172.56 |
+| Type 4 | 89.33 | 88.94 | 178.27 | 267.60 | +6,025.23 |
+
+The spread estimate is a cost attribution already reflected by Bid/Ask execution; do not subtract it a second time from account P&L.
+
+#### Pair split and conclusion
+
+- Type 1: EURUSD closed 4 campaigns, expectancy +45.35 USC and PF 2.253; USDCHF closed 4, all losses, expectancy -142.04 USC and PF 0. USDCHF had one open 0.08-lot Hedge marked +98.94 USC.
+- Type 3: EURUSD closed 4, expectancy +12.64 USC and PF 1.692; USDCHF closed 4, expectancy -136.99 USC and PF 0.0807. USDCHF had one open 0.31-lot Hedge marked +77.41 USC.
+- Type 4: EURUSD closed 5, expectancy -139.67 USC and PF 0.2456; USDCHF closed 5, expectancy -184.06 USC and PF 0. Both pairs had an open Hedge at cutoff (EURUSD 0.12 lots, +5.44 USC; USDCHF 0.19 lots, +87.42 USC).
+- Type 1 reduced the worst combined floating loss by 919.44 USC versus baseline, but Hedge expectancy was negative and net account P&L fell by 287.83 USC. Types 3 and 4 also had negative Hedge expectancy and reduced net account P&L. Type 4 produced the largest Hedge loss. The run therefore does not support enabling any BBMA Hedge type in production.
+- Decision: keep this as a research result only. Before relying on it, reconcile the frozen order ledger to the actual Tengri build/account and simulate margin, broker commissions/swaps, rejected/partial fills, and the normal exit using an independently verified event-to-execution path. Do not tune these parameters on this sample.
+
+Research harness: `research/tengri_bbma_hedge_locked_replay.py`. Raw account/tick files remain on G40 and are not copied into the repository.

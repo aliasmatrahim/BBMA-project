@@ -76,3 +76,10 @@ Until these pass, status remains **HOLD**. No profitability figures are reported
 ## Current status after audit
 
 Data and D1 warm-up are **PASS** for the same HFM Demo4 server and evaluation window. Static D1/H4 ownership logic is **present in pinned source**. The combined replay remains **HOLD** because the Build 5.16 runtime signal stream and Tengri ledger-to-executable crosswalk have not yet been verified, and Hedge execution-cost details remain incomplete. No Type 1–4 profitability result is available.
+
+
+### Build 5.16 compile identity
+
+- The exact pinned `blueprint/source/BBMA_EA.mq4` file was copied to an isolated G40 research folder and compiled with HFM MT4 MetaEditor 5.0.2425. Compile log: **0 errors, 0 warnings**. No production EA/source was overwritten.
+- Source SHA-256: `5264A5D10F146B9ADDAEA3B167BEA07D7EEC0EF1E55984374F96DB8A53CD9228` (Git blob `05b961863b53e4c8408f152a5d800699b5f27eaf`). Compiled audit EX4 SHA-256: `E896C34E4D07E84F20A4CAB346BC372527ACD77115E45A0D6636A68BFC8F3D29`.
+- This proves the pinned source compiles in the available MT4 compiler. It does not yet prove tester/runtime signal parity or owner recovery behavior. The replay remains HOLD pending a confirmed source-derived event stream and the Tengri ledger crosswalk.

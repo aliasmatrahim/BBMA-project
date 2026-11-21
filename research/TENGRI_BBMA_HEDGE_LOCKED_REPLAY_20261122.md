@@ -83,3 +83,33 @@ Data and D1 warm-up are **PASS** for the same HFM Demo4 server and evaluation wi
 - The exact pinned `blueprint/source/BBMA_EA.mq4` file was copied to an isolated G40 research folder and compiled with HFM MT4 MetaEditor 5.0.2425. Compile log: **0 errors, 0 warnings**. No production EA/source was overwritten.
 - Source SHA-256: `5264A5D10F146B9ADDAEA3B167BEA07D7EEC0EF1E55984374F96DB8A53CD9228` (Git blob `05b961863b53e4c8408f152a5d800699b5f27eaf`). Compiled audit EX4 SHA-256: `E896C34E4D07E84F20A4CAB346BC372527ACD77115E45A0D6636A68BFC8F3D29`.
 - This proves the pinned source compiles in the available MT4 compiler. It does not yet prove tester/runtime signal parity or owner recovery behavior. The replay remains HOLD pending a confirmed source-derived event stream and the Tengri ledger crosswalk.
+
+
+### Progress update — 22 Nov 2026 (supersedes older runtime/data status above)
+
+#### Build 5.16 signal replay
+
+- Exact pinned Build 5.16 source compiled on G40 with 0 errors/0 warnings; source and EX4 hashes are recorded above. The isolated HFM MT4 Strategy Tester run used test-only symbol/timer adapters and M15 Open Prices Only. This verifies a source-derived research signal stream, not broker fills or live execution. MT4 also simulated standalone BBMA trades in its tester report; those trades are excluded from all Tengri+Hedge performance calculations.
+- Closed-candle M12 candidates were deduplicated by event and approved only when the H4 gate, D1 owner filter, M15 final decision, and no-direction-conflict checks passed. Approved events in the 1 May–18 Nov window:
+
+| Pair | Type 1 | Type 2 | Type 3 | Type 4 | Total |
+|---|---:|---:|---:|---:|---:|
+| EURUSD | 18 | 0 | 18 | 35 | 71 |
+| USDCHF | 24 | 0 | 23 | 36 | 83 |
+| Combined | 42 | 0 | 41 | 71 | 154 |
+
+- Type 2 had no eligible event in either pair. This is an observed result for this source/data/window, not a reason to relax its definition.
+- Runtime adapter limitation: each pair was tested on its own chart because MT4 tester omitted the other symbol from its market list. One secondary symbol lookup fails per run; no cross-symbol signal is claimed. Pair-level event logs and counts remain separate.
+
+#### Hedge position-reading audit
+
+- The current G40 Hedge source is Tengri_Hedge_ADX_H4_25_Overlay.mq4, SHA-256 330B07EC0D1399C4E4C22C220B4B02CBA3DFFDE6BDE553297422BAC1F2B2BDD6. It scans open market orders for the same symbol and Tengri Magic 12345, then totals BUY/SELL lots and order counts. It derives net side from BUY lots minus SELL lots and counts orders on that net side. Other symbols, Magic Numbers, and pending orders are ignored.
+- Entry is eligible only at six or more net-side Tengri orders, with a closed H4 candle on the prospective hedge side, Bollinger Mid(20,2) agreement, ADX(14)>25, and matching DI direction. The size target is 25% of net Tengri lots, rounded down. It trims when core exposure shrinks. It closes on Tengri flat/net-side flip or when closed H4 price crosses Mid-BB against the hedge. Orders are disabled by default.
+- Therefore this installed EA does not read the BBMA Type 1–4 stream. Any Type 1–4 overlay calculation is a separate research harness, not a result from the installed ADX Hedge EA.
+
+#### Tengri ledger crosswalk and current gate
+
+- The frozen statement/replay folder contains 1,357 Tengri order rows: EURUSD 724, USDCHF 633. Opens span 6 Apr–18 Nov 2026; 18 rows remain open at the end (EURUSD 8, USDCHF 10). These counts are not the evaluation-window-only trade counts.
+- The discovered TengriTesterAuditV2 tester run starts 1 Sep and reports a 1,000-unit tester deposit. It cannot by itself explain the 6 Apr–18 Nov two-pair frozen ledger or establish its provenance. Existing source comparison shows the audit wrapper around Tengri v1.45, but the ledger-to-executable / 4,000 USC anchor crosswalk remains unproven.
+- No expectancy, profit factor, cost total, or combined drawdown is reported yet. The ledger provenance/scale and the installed EA’s non-BBMA trigger must be resolved before running the locked overlay replay. This avoids attributing a hypothetical BBMA harness result to the wrong Hedge build or mixing account units.
+- Current status: **HOLD — data warm-up and source-derived signal counts are verified; combined performance replay is not yet valid.** No same-sample tuning, production edits, live/forward run, or merge was performed.

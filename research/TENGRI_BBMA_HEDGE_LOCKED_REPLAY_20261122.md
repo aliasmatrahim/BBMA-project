@@ -64,3 +64,15 @@ Common gates/settings retained from the existing lock: D1 and H4 owners agree wi
 6. Run once; report net expectancy, profit factor, floating drawdown, total costs, and number of campaigns/tickets separately by type, pair, and combined account. Record exclusions and open-at-end Hedge exposure.
 
 Until these pass, status remains **HOLD**. No profitability figures are reported from the current ADX overlay as though they were BBMA Type 1–4 results.
+
+
+### Static source audit — Build 5.16
+
+- The pinned Build 5.16 source constructs confirmed Re-Entry candidates only for H1 and requires a current entry candle, a confirmed H1 signal, and an active, valid, recovered H4 directional owner in the same direction. The M15 atomic decision path also filters each candidate through the D1-owner gate and freezes the D1 owner snapshot before selection. These checks are present in source at the pinned base commit; they are not runtime evidence.
+- The F4 decision note on the base branch still describes implementation as pending / H4-only. That note conflicts with the inspected Build 5.16 source. It remains unedited; resolve the documentation provenance separately so this research does not rewrite a Core decision record.
+- The source state machine gives specific Type 3 (CSM precursor) and Type 4 (CSD precursor) ownership priority, then Type 2, before generic Type 1. Type 1 requires prior directional ownership plus structural ranging/retrace; Type 2 requires three qualifying candles; Type 3 waits for MA5/MA50 retrace; Type 4 waits for MA5/10 retrace. All are closed-source-candle states. The exact implementation must still be exercised or independently audited before emitting tradeable events.
+- Runtime/compile identity is still unresolved. MT4 4.0.1492 and MetaEditor 5.0.2425 are installed on G40; the available canonical BBMA tester folder contains older 5.99 artifacts, not the pinned Build 5.16 source. No Build 5.16 executable/hash or signal log has yet been produced.
+
+## Current status after audit
+
+Data and D1 warm-up are **PASS** for the same HFM Demo4 server and evaluation window. Static D1/H4 ownership logic is **present in pinned source**. The combined replay remains **HOLD** because the Build 5.16 runtime signal stream and Tengri ledger-to-executable crosswalk have not yet been verified, and Hedge execution-cost details remain incomplete. No Type 1–4 profitability result is available.

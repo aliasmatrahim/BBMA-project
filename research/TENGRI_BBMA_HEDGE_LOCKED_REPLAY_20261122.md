@@ -23,11 +23,18 @@ Tengri source/behavior must remain unchanged. This is research only: no live or 
 
 ### Data and warm-up
 
-- Candidate evaluation window remains 2026-05-01 through 2026-11-18. The audit folder contains date-named EURUSD/USDCHF tick files from 2026-04-06 through 2026-11-19.
-- A filename-level scan found all 144 calendar weekdays in the evaluation window for both pairs. This is not yet a verified quote-coverage pass: the full audit-folder tick counts/hashes were not reconciled to a manifest.
-- Only 22 date-named files exist before 2026-05-01 (earliest 2026-04-06). The locked spec requires at least 51 closed D1 bars to calculate current and previous MA50 observations. This archive alone cannot establish that warm-up.
-- The standalone root manifest covers a different slice (2026-07-27 to 2026-11-01); the root summary is marked `FETCH_COMPLETE_COVERAGE_NOT_YET_VERIFIED` and covers Aug–Oct. Those records do not prove May–Nov quote coverage.
-- MT4 HST files staged for the overlay begin 2026-07-27. A separate MetaQuotes-Demo history file has older D1 bars but is a different server and must not be substituted. No matching HFM EURUSD/USDCHF D1 HST warm-up has been established yet.
+- Evaluation window: 2026-05-01 through 2026-11-18. EURUSD and USDCHF quote-day coverage is now verified for all 145 weekdays. The existing replay records monthly coverage of 21, 22, 23, 21, 22, 23, and 13 days (May–November), with no missing weekday in the evaluation window. Broker-clock calibration selected offset 0 hours (552 matched executions; median price difference 0.2 pip), and the replay asserts that alignment.
+- The initial tick-file scan found only 22 pre-window dates, which was not enough to prove D1 warm-up. This is now resolved with OHLC history fetched directly from **HFMarketsGlobal-Demo4** via MT5 `copy_rates_range`, spanning 2025-01-02 through 2026-11-18 for both symbols. All exported bars were strictly ordered, duplicate-free, finite, and passed basic OHLC checks.
+- Before the evaluation window, the export provides 345 closed D1 bars, 2,066 H4 bars, 8,248 H1 bars, and 32,983 M15 bars for EURUSD / 32,982 M15 bars for USDCHF. This exceeds the locked minimum of 51 closed D1 observations for MA50 and provides a long chronological warm-up for MTF state reconstruction. H4/H1 owner-state reconstruction itself still needs to be demonstrated by the signal harness.
+- Bar export and SHA-256 manifest are on G40 under `C:\Trading\Tengri-Hedge-Research\Statement_Floating_Audit_20261119\bars_HFM_Demo4_20250101_20261119`. Hashes:
+
+| Symbol | M15 | H1 | H4 | D1 |
+|---|---|---|---|---|
+| EURUSD | `95c3957f80f114dba24370976fbdb0fa6f6d80708cd734b483f002e21e59160a` | `d2c5a211e3589385b9e6b5283151beaf075dd4ba3388192027f36ebe4108c4f4` | `73c067eabb5ce63adbb9ea3884d8cc78936835459f5a0a5749aecbd1fa52693a` | `6ac5138674c8738b41d22a748c0a371636f110e3d07fd04f6933d2acd08bbe62` |
+| USDCHF | `39af844caad33ebc73c82e01a52b76820340b562470e47d42572b492e0c8edab` | `52c46add281e59a9051f7d73a0b78063cdda1a2cd5282df9a3c82978463ba7d1` | `9c20584149327ac30a200e7be1fa281302e662e22aed8802b5832a8db5cfce58` | `1dec4b0bbbbe23723d8cc43d9676c33adf37b3e6d0dba243b20d668150cdaa6c` |
+
+- The other-server MetaQuotes-Demo HST data is excluded. The evaluation quote archive is treated as HFM Demo4 only; the live-server M15/H1/H4/D1 bars above provide signal/warm-up inputs while the tick archive supplies fill and marking quotes.
+- Hedge transaction charges remain a separate unresolved cost limitation: the frozen replay models the same spread cap plus 1 pip/lot/action and a +1 pip stress case, but does not yet replay broker-specific Hedge commission, swap, partial fills, or rejected fills.
 
 ### BBMA exit classification
 

@@ -1,7 +1,7 @@
 # Tengri Hedge Entry/Exit Comparison — Research Lock
 
 Date: 22 Nov 2026  
-Status: **Entry pass complete; exit comparison pending**  
+Status: **Entry and H1 Re-Entry exit passes complete; exploratory only**  
 Branch: `research/tengri-bbma-hedge-replay-20261122`
 
 ## Objective
@@ -66,6 +66,6 @@ The existing H4 replay was run on the 1 May–18 Nov 2026 frozen 4,000 USC scale
 Entry pass finished successfully using the locked common H4 Mid-BB exit. The direct control-versus-Re-Entry results and all caveats are recorded in [TENGRI_HEDGE_ENTRY_EXIT_COMPARISON_RESULT_20261122.md](TENGRI_HEDGE_ENTRY_EXIT_COMPARISON_RESULT_20261122.md). Type 3 is only a follow-up research lead (five closed campaigns); no production winner is established. The separate exit pass remains pending because the earlier structure exit replay used staged 25/50/75/90% hedge sizing and cannot be ranked directly against this fixed-25% ADX control.
 
 
-## Progress — matched exit pass launched
+## Progress — matched exit pass completed
 
-Exit pass is now running for the H4 ADX25/DI control and the H1 Re-Entry Type 3 candidate. X0 is the same H4 Mid-BB recross; X1 closes on the first H1 Re-Entry event in the current Tengri net direction (Type 1–4 signals, without D1/H4 owner gating on exits), with the same core-flat/direction-flip safety close. The four combinations use the same frozen 4,000 USC path, 25% Hedge size, quotes and costs. Entry and exit quote-delay percentiles are recorded separately. This X1 is a research definition, not a validated CSAK exit.
+Exit pass completed for the H4 ADX25/DI control and the H1 Re-Entry Type 3 candidate. X0 is the same H4 Mid-BB recross; X1 closes on the first H1 Re-Entry event in the current Tengri net direction (Type 1–4 signals, without D1/H4 owner gating on exits), with the same core-flat/direction-flip safety close. The four combinations use the same frozen 4,000 USC path, 25% Hedge size, quotes and costs. Entry and exit quote-delay percentiles are recorded separately. This X1 is a research definition, not a validated CSAK exit.

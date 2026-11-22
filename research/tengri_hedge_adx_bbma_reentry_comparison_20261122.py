@@ -175,7 +175,11 @@ replace_once(
 
 os.chdir(ROOT)
 sys.argv=[str(BASE_RUNNER),"full"]
+variant_names=("ADX25_25","RE1_ADX25","RE2_ADX25","RE3_ADX25","RE4_ADX25")
+base_cost_stats={n:dict(peak=4000.0,dd=0.0,minimum=4000.0,last=4000.0) for n in variant_names}
+stress2_stats={n:dict(peak=4000.0,dd=0.0,minimum=4000.0,last=4000.0) for n in variant_names}
 namespace={"__file__":str(BASE_RUNNER),"__name__":"__main__",
            "events_by_symbol":events_by_symbol,"approved_counts":approved_counts,
-           "context_counts":context_counts}
+           "context_counts":context_counts,"base_cost_stats":base_cost_stats,
+           "stress2_stats":stress2_stats}
 exec(compile(runner_text,str(BASE_RUNNER),"exec"),namespace)

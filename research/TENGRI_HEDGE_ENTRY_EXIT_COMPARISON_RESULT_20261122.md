@@ -2,7 +2,7 @@
 
 Tarikh: 22 Nov 2026  
 Tempoh replay: 1 Mei–18 Nov 2026  
-Status: **Entry dan exit X0/X1 selesai; hasil bersyarat, tiada pemenang disahkan.**  
+Status: **Perbandingan entry/exit dan replay event bersih selesai; hasil penyelidikan, tiada pemenang production.**  
 Branch: research/tengri-bbma-hedge-replay-20261122
 
 ## Soalan yang diuji
@@ -49,7 +49,13 @@ Kos tetap 1 pip / stress 2 pip masing-masing ialah: kawalan ADX25 93.50 / 187.01
 
 Replay ini **tidak mengasingkan exit**: semua varian menggunakan exit H4 Mid-BB yang sama. Kajian struktur berasingan sebelum ini mendapati entry H4+H1 dengan retest M15 dan exit H4+H1 mengurangkan kerugian daripada −581.39 kepada −414.85 USC serta DD daripada 36.82% kepada 33.33%, tetapi masih rugi. Ia menggunakan saiz hedge bertahap 25/50/75/90%, jadi angka itu bukan perbandingan sepadan dengan ujian 25% ini.
 
-Pengesahan release masih bercanggah: sumber BBMA menunjukkan Build 5.16 tetapi fail identiti release menyebut 4.59. Replay juga melaporkan jurang rekonsiliasi sehingga 739.47 USC apabila laluan akaun 4,000 USC dibandingkan dengan statement berskala lot asal; data itu bukan hasil akaun live yang disahkan. Komisen, swap, slip di luar quote, rejection/partial fill, margin dan stop-out sebenar belum dimodelkan. Ini bukan out-of-sample dan tiada parameter dilaras pada sampel ini.
+Identiti build kini dipisahkan dengan jelas: Build 5.16 ialah source development yang telah digabung pada `d1-owner-dev`; `EA_RELEASE_IDENTITY.json` ialah rekod release beku Build 4.59 dan tidak patut ditimpa. Build 5.16 belum dipromosikan sebagai release production.
+
+Angka 739.47 USC bukan baki akaun yang hilang; ia datang daripada perbandingan lot scaled dengan statement mentah. Audit raw-to-raw masih menemui residual +12.40 USC pada 3 Ogos dan −14.16 USC pada 4 Ogos tanpa transaksi yang dikenal pasti. Daripada 1,357 row order Tengri, commission dan swap yang direkodkan kedua-duanya sifar; ini tidak mengesahkan jadual caj broker atau kos Hedge. Hedge replay masih menggunakan proksi kos 1 pip/tindakan dan stress 2 pip.
+
+Replay signal bersih dijalankan semula secara pair-specific dengan tester expert unik. Counts event yang diluluskan tidak berubah: EURUSD Type 1/2/3/4 = 18/0/18/35; USDCHF = 24/0/23/36. CSV bersih 282 row sama byte-for-byte dengan input replay terdahulu; tiada `P3S1` failure. HST D1/H4/H1/M15 meliputi 2 Jan 2025–18 Nov 2026 dan warm-up owner hadir pada permulaan ujian. Ujian menggunakan MT4 Model 2 open-prices-only; ia membuktikan aliran signal ini, bukan tick fill.
+
+Margin, stop-out, Hedge commission/swap, slippage di luar quote, rejection/partial fill, serta silang jejak source/executable Tengri kepada ledger masih belum disahkan. EA Hedge sebenar masih menggunakan H4 Mid-BB + ADX25/DI dan tidak membaca event BBMA. Ini bukan out-of-sample atau angka prestasi production; tiada parameter dilaras dan tiada EA/trading activation dibuat. Provenance terperinci: `research/BBMA_BUILD516_REPLAY_IDENTITY_AUDIT_20261122.md`.
 
 ## Keputusan sementara dan langkah berikutnya
 

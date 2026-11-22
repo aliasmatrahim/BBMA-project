@@ -1,7 +1,7 @@
 # Tengri Hedge Entry/Exit Comparison — Research Lock
 
 Date: 22 Nov 2026  
-Status: **Entry and H1 Re-Entry exit passes complete; exploratory only**  
+Status: **Entry/exit comparison and clean source-event replay complete; exploratory only**  
 Branch: `research/tengri-bbma-hedge-replay-20261122`
 
 ## Objective
@@ -44,7 +44,10 @@ For entry timing, first replay E0–E3 with the common X0 exit. For exit timing,
 ## Limits and decision rule
 
 - The current installed EA remains ADX/H4 and does not consume BBMA events. This work is offline research only: no EA activation, live/forward orders, or Tengri modifications.
-- The release identity conflict (source Build 5.16 vs `EA_RELEASE_IDENTITY.json` Build 4.59), ledger-to-Tengri-executable crosswalk, full path-dependent lot feedback, margin/stop-out, broker commission/swap, and fill failure remain open validation issues.
+- Build identity is now distinguished: current development source is Build 5.16 at owner commit `7567af7dfbfaafff35a37c1d307b387e96273c78`; `EA_RELEASE_IDENTITY.json` remains the separate frozen v4.59 release record. No Build 5.16 production release was promoted.
+- The apparent 739.47 USC discrepancy came from mixing the scaled replay path with raw statement balances. Raw reconciliation still has +12.40 USC on 3 Aug and −14.16 USC on 4 Aug unexplained.
+- Margin/stop-out, account-matched commission/swap and failed/partial fills, and the Tengri source/executable-to-ledger crosswalk remain open. Captured Tengri statement rows show zero recorded commission/swap, which does not establish Hedge costs or broker fee rules.
+- The installed Hedge EA still uses H4 Mid-BB + ADX(14)>25 + DI and does not consume BBMA events. No production source/configuration or trading activation was changed.
 - Previous structure and Type 1–4 results used related but not identical execution/exit models. Treat them as hypotheses, not directly ranked winners.
 - Do not tune thresholds or choose a winner on this May–November sample. If one candidate survives this fixed comparison, require a separately identified untouched period and margin/fill model before considering any implementation.
 
@@ -57,7 +60,8 @@ The existing H4 replay was run on the 1 May–18 Nov 2026 frozen 4,000 USC scale
 - H4 Mid-BB + ADX25 control: gross overlay account result +855.97 USC. After the modelled 1 pip/lot/action cost, +762.46 USC; after a 2 pip/lot/action stress, +668.96 USC.
 - H4 control's one-pip-cost maximum DD was 42.27%; minimum equity was 3,383.12 USC. Its fixed one-pip transaction-cost tally was 93.50 USC; Bid/Ask spread was reflected in fills.
 - Before the new event comparison, the underlying runner counted 26 first Hedge opens (14 EURUSD, 12 USDCHF) and 24 full exits (13 EURUSD, 11 USDCHF). It is a scaled replay, not a verified production-account return.
-- Added research runner: `research/tengri_hedge_adx_bbma_reentry_comparison_20261122.py`. It compares that control with individually gated H1 Re-Entry Types 1–4 under the same H4 Mid-BB exit, 25% size, quote stream, and cost rules. The run is in progress; no result is claimed until it completes.
+- Research runner `research/tengri_hedge_adx_bbma_reentry_comparison_20261122.py` compared the control with individually gated H1 Re-Entry Types 1–4 under the same H4 Mid-BB exit, 25% size, quote stream, and cost rules. The entry/exit results are recorded below and in the result report; they remain exploratory.
+- The clean pair-specific source-event replay used unique tester expert names to avoid stale saved PairList parameters. It reproduced the previous 282 event CSV rows byte-for-byte, with zero `[P3S1][FAIL]` tokens. Approved counts remain Type 1 = 18/24, Type 2 = 0/0, Type 3 = 18/23, Type 4 = 35/36 (EURUSD/USDCHF). Full provenance is in `research/BBMA_BUILD516_REPLAY_IDENTITY_AUDIT_20261122.md`.
 
 
 

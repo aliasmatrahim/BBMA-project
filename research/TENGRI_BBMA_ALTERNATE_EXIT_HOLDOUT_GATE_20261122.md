@@ -7,7 +7,7 @@ Branch: `research/tengri-bbma-hedge-replay-20261122`
 
 ## Gate result
 
-The pre-registered 2026-04-06 to 2026-04-30 holdout cannot be used for the locked P&L replay. The full interval requires complete quote/tick coverage for both EURUSD and USDCHF. Only four of the 19 weekdays contain non-empty tick arrays for either pair:
+The pre-registered 2026-04-06 to 2026-04-30 holdout cannot be used for the locked P&L replay. The full interval requires complete quote/tick coverage for both EURUSD and USDCHF. Only four of the 19 weekdays contain non-empty tick arrays, and both symbols have data on those same four days:
 
 | Date | EURUSD ticks | USDCHF ticks |
 |---|---:|---:|
@@ -18,7 +18,7 @@ The pre-registered 2026-04-06 to 2026-04-30 holdout cannot be used for the locke
 
 The other **15 weekdays have empty tick arrays for both symbols**. Their `.npz` files exist, so filename presence alone gave a false impression of full coverage. Non-empty arrays checked above had positive Bid, Ask >= Bid, and non-decreasing timestamps. This is not coverage for the full test interval.
 
-A read-only MT5 `copy_ticks_range` probe against the connected G40 terminal returned zero ticks with no API error for 2026-04-07, 04-09, 04-10, and 04-20 on both pairs. The existing downloader script also shows these data were requested from the connected MetaTrader 5 terminal; repeated requests did not fill the missing dates.
+A read-only check of the active G40 MT5 connection confirmed server **HFMarketsGlobal-Demo4** and that EURUSD and USDCHF are available. `copy_ticks_range` returned zero ticks with no API error for 2026-04-07, 04-09, 04-10, and 04-20 on both pairs. The configured broker session therefore does not provide the missing historical tick rows through the existing downloader path.
 
 ## Other April records
 

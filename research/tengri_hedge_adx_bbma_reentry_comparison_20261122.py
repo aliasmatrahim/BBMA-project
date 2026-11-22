@@ -161,7 +161,7 @@ replace_once(
             "net_closed_after_1pip_USC":sum(vals),
             "average_holding_hours":None if not camps else
                 sum((c["closed"]-c["opened"])/3600000.0 for c in camps)/len(camps)}
-        m[n]["exit_reasons"]={k:sum(states[s][n].get(k,0) for s in symbols)
+        m[n]["exit_reasons"]={k:sum(states[n][s].get(k,0) for s in symbols)
                               for k in ("exit_h4","exit_core","trims")}'''
 )
 replace_once(

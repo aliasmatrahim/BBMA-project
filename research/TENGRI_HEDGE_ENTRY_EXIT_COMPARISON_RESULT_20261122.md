@@ -2,7 +2,7 @@
 
 Tarikh: 22 Nov 2026  
 Tempoh replay: 1 Mei–18 Nov 2026  
-Status: **Entry pass selesai; keputusan bersyarat. Exit BBMA belum dibandingkan pada stream dan saiz yang sama.**  
+Status: **Entry dan exit X0/X1 selesai; hasil bersyarat, tiada pemenang disahkan.**  
 Branch: research/tengri-bbma-hedge-replay-20261122
 
 ## Soalan yang diuji
@@ -54,3 +54,27 @@ Pengesahan release masih bercanggah: sumber BBMA menunjukkan Build 5.16 tetapi f
 ## Keputusan sementara dan langkah berikutnya
 
 Kekalkan H4 Mid-BB + ADX25/DI sebagai kawalan. Bawa Type 3 sahaja ke pass penyelidikan exit seterusnya, bersama kawalan ADX25, dan bandingkan exit H4 Mid-BB dengan exit H1 BBMA Re-Entry ke arah net Tengri pada data, saiz 25%, fill dan kos yang sama. CSAK exit hanya boleh dimasukkan selepas audit sumber/event memastikan formula close melepasi Mid-BB dan MA5 High/Low betul-betul tersedia. Jangan aktifkan EA berdasarkan replay ini.
+
+
+## Exit pass: H4 Mid-BB berbanding H1 BBMA Re-Entry
+
+Exit X0 menutup pada H4 Mid-BB recross melawan Hedge. Exit X1 menutup pada H1 Re-Entry pertama ke arah net Tengri menggunakan mana-mana Type 1–4, tanpa gate D1/H4 pada exit. Kedua-duanya kekalkan keselamatan tutup apabila Tengri flat atau arah net berubah.
+
+| Entry | Exit | P&L base / stress 2 pip (USC) | Max DD base / stress | Min equity base / stress (USC) | Kempen tutup; menang/kalah; terbuka | Expectancy / PF kempen selepas kos base | Purata jam pegangan | Exit H1 RE / keselamatan |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| ADX25/DI | X0 H4 Mid-BB | +762.46 / +668.96 | 42.27% / 42.86% | 3,383.12 / 3,362.21 | 24; 6/18; 2 | −1.01 / 0.943 | 64.00 | 0 / 1 |
+| ADX25/DI | X1 H1 RE ke Tengri | +577.41 / +491.06 | 41.96% / 42.58% | 3,508.27 / 3,498.85 | 21; 6/15; 2 | −10.18 / 0.707 | 83.93 | 16 / 4 |
+| Type 3 + gate + ADX25 | X0 H4 Mid-BB | +887.75 / +870.76 | 45.48% / 45.57% | 3,414.99 / 3,414.99 | 5; 3/2; 1 | +41.33 / 11.307 | 124.22 | 0 / 1 |
+| Type 3 + gate + ADX25 | X1 H1 RE ke Tengri | +779.69 / +762.71 | 47.71% / 47.84% | 3,390.62 / 3,378.79 | 5; 3/2; 1 | +19.71 / 3.003 | 115.65 | 4 / 1 |
+
+Kos tetap H1 RE exit ialah 86.35 USC base / 172.71 stress bagi entry ADX25, dan 16.98 / 33.96 USC bagi entry Type 3. Bid/Ask spread kekal terkandung dalam fill.
+
+X1 mengurangkan P&L berbanding X0 sebanyak 185.05 USC untuk ADX25 dan 108.06 USC untuk Type 3. Untuk ADX25, X1 menurunkan max DD hanya 0.31 mata peratus tetapi expectancy kempen jatuh lagi negatif dan purata pegangan menjadi lebih panjang. Untuk Type 3, X1 menurunkan expectancy daripada +41.33 kepada +19.71 USC, PF daripada 11.31 kepada 3.00, menaikkan DD 2.23 mata peratus, dan menurunkan ekuiti minimum 24.37 USC. Pada sampel ini, exit H1 RE tidak mengatasi exit H4 Mid-BB.
+
+Signal-to-quote delay selepas cap masa first M15 row amat singkat: Type 3 entry mempunyai p95 kira-kira 0.01 minit; maksimum exit-event yang dipadankan kira-kira 0.24 minit (14.4 saat). Ini hanya ukuran masa dari timestamp first M15 ke quote tersedia; ia **bukan** bukti ketepatan reversal atau ukuran dari masa signal H1 pertama dikesan.
+
+## Keputusan gabungan sementara
+
+Kekalkan H4 Mid-BB + ADX25/DI sebagai kawalan. Type 3 + gate D1/H4 + ADX25 bersama exit H4 Mid-BB kekal calon kajian, kerana memberi P&L tertinggi pada replay ini. Namun Type 3 hanya mempunyai 5 kempen tertutup, satu masih terbuka, DD peratusnya lebih tinggi daripada kawalan, dan floating gabungan di hujung lebih buruk daripada kawalan. Oleh itu ia belum wajar dipanggil strategi terbaik.
+
+Exit H1 RE tidak menunjukkan kelebihan bersih. Exit struktur H4+H1 dalam replay terdahulu memperbaiki kerugian berbanding exit H4 bagi entry struktur M15, tetapi hasilnya masih negatif dan saiz hedge bertahap. Perbandingan CSAK exit yang diaudit sumber belum dijalankan. Lakukan holdout berasingan dan selaraskan identiti Build sebelum menggunakan keputusan untuk perubahan EA.

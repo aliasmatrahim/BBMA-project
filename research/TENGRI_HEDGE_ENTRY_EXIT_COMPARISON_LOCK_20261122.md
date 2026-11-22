@@ -1,7 +1,7 @@
 # Tengri Hedge Entry/Exit Comparison — Research Lock
 
 Date: 22 Nov 2026  
-Status: **Protocol locked; comparative run in progress**  
+Status: **Entry pass complete; exit comparison pending**  
 Branch: `research/tengri-bbma-hedge-replay-20261122`
 
 ## Objective
@@ -59,3 +59,8 @@ The existing H4 replay was run on the 1 May–18 Nov 2026 frozen 4,000 USC scale
 - Before the new event comparison, the underlying runner counted 26 first Hedge opens (14 EURUSD, 12 USDCHF) and 24 full exits (13 EURUSD, 11 USDCHF). It is a scaled replay, not a verified production-account return.
 - Added research runner: `research/tengri_hedge_adx_bbma_reentry_comparison_20261122.py`. It compares that control with individually gated H1 Re-Entry Types 1–4 under the same H4 Mid-BB exit, 25% size, quote stream, and cost rules. The run is in progress; no result is claimed until it completes.
 
+
+
+## Progress — entry replay completed
+
+Entry pass finished successfully using the locked common H4 Mid-BB exit. The direct control-versus-Re-Entry results and all caveats are recorded in [TENGRI_HEDGE_ENTRY_EXIT_COMPARISON_RESULT_20261122.md](TENGRI_HEDGE_ENTRY_EXIT_COMPARISON_RESULT_20261122.md). Type 3 is only a follow-up research lead (five closed campaigns); no production winner is established. The separate exit pass remains pending because the earlier structure exit replay used staged 25/50/75/90% hedge sizing and cannot be ranked directly against this fixed-25% ADX control.

@@ -142,19 +142,19 @@ replace_once(
     '''m[n]["base_cost_equity"]=base_cost_stats[n]
         m[n]["stress2_equity"]=stress2_stats[n]
         m[n]["by_symbol"]={s:{k:states[n][s].get(k,0) for k in ("opens","adds","exits","trims","exit_h4","exit_core","max_hedge","cost_h4","spread_h4","covered_sec","eligible_sec","realized")} for s in symbols}
-        total_fixed=sum(states[s][n].get("cost_h4",0.0) for s in symbols)
-        total_spread=sum(states[s][n].get("spread_h4",0.0) for s in symbols)
+        total_fixed=sum(states[n][s].get("cost_h4",0.0) for s in symbols)
+        total_spread=sum(states[n][s].get("spread_h4",0.0) for s in symbols)
         m[n]["pnl_after_1pip_USC"]=m[n]["pnl"]-total_fixed
         m[n]["pnl_after_2pip_USC"]=m[n]["pnl"]-2.0*total_fixed
         m[n]["costs_USC"]={"fixed_base_1pip":total_fixed,"fixed_stress_2pip":2.0*total_fixed,
                            "spread_estimate_included_in_quote_PnL":total_spread}
-        camps=[c for s in symbols for c in states[s][n].get("_campaigns",[])]
+        camps=[c for s in symbols for c in states[n][s].get("_campaigns",[])]
         vals=[float(c["net_base"]) for c in camps]
         wins=[v for v in vals if v>0]
         losses=[v for v in vals if v<0]
         m[n]["hedge_campaigns"]={
             "closed":len(vals),"wins":len(wins),"losses":len(losses),
-            "open_at_end":sum(bool(states[s][n]["positions"]) for s in symbols),
+            "open_at_end":sum(bool(states[n][s]["positions"]) for s in symbols),
             "expectancy_after_1pip_USC":None if not vals else sum(vals)/len(vals),
             "profit_factor_after_1pip":None if not losses and not wins else
                 (sum(wins)/abs(sum(losses)) if losses else "infinite_no_losses"),

@@ -25,7 +25,7 @@ The earlier tester reused a saved MT4 expert profile whose PairList was EURUSD,U
 
 Both adapters compiled with 0 errors and 0 warnings. They are test harnesses, not production binaries: they set Re-Entry-only mode, a one-pair PairList, signal logging, and an M15 tester timer fallback. Adapter hashes are intentionally distinct from the production-source EX4 hash.
 
-The clean replay reproduces the previous 282 event rows byte-for-byte (CSV SHA-256 34da7e8b9c5857befa887df0f1b331f3afb0273675738311b8c4d8b8f6b42acf). The clean summary SHA-256 is 030cfebcb8c3c3db33189f4ebedb7fe3da0286316a8f98325ecaf02ad7e3ced2. Approved source events after D1/H4/M15 gating:
+The G40 clean replay reproduces the previous 282 event rows byte-for-byte (CSV SHA-256 34da7e8b9c5857befa887df0f1b331f3afb0273675738311b8c4d8b8f6b42acf; clean summary SHA-256 030cfebcb8c3c3db33189f4ebedb7fe3da0286316a8f98325ecaf02ad7e3ced2). The 282-row event table and clean summary are archived in research/BBMA516_signal_events_clean_20261122.csv and research/BBMA516_signal_event_summary_clean_20261122.json. Approved source events after D1/H4/M15 gating:
 
 | Re-Entry type | EURUSD | USDCHF |
 |---|---:|---:|

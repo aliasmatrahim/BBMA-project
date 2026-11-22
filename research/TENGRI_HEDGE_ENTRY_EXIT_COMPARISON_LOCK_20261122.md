@@ -47,3 +47,15 @@ For entry timing, first replay E0–E3 with the common X0 exit. For exit timing,
 - The release identity conflict (source Build 5.16 vs `EA_RELEASE_IDENTITY.json` Build 4.59), ledger-to-Tengri-executable crosswalk, full path-dependent lot feedback, margin/stop-out, broker commission/swap, and fill failure remain open validation issues.
 - Previous structure and Type 1–4 results used related but not identical execution/exit models. Treat them as hypotheses, not directly ranked winners.
 - Do not tune thresholds or choose a winner on this May–November sample. If one candidate survives this fixed comparison, require a separately identified untouched period and margin/fill model before considering any implementation.
+
+
+## Progress — current H4 control measured
+
+The existing H4 replay was run on the 1 May–18 Nov 2026 frozen 4,000 USC scaled-core path. The measured control is H4 Mid-BB(20,2) direction + ADX(14)>25 + DI alignment, 25% Hedge target, and the existing H4 Mid-BB/safety exit. It uses the same Bid/Ask tick archive and one-pip-per-action cost calculation that the comparison runner will retain.
+
+- No-Hedge reference: +603.71 USC, maximum equity DD 49.54%, minimum equity 3,252.80 USC.
+- H4 Mid-BB + ADX25 control: gross overlay account result +855.97 USC. After the modelled 1 pip/lot/action cost, +762.46 USC; after a 2 pip/lot/action stress, +668.96 USC.
+- H4 control's one-pip-cost maximum DD was 42.27%; minimum equity was 3,383.12 USC. Its fixed one-pip transaction-cost tally was 93.50 USC; Bid/Ask spread was reflected in fills.
+- Before the new event comparison, the underlying runner counted 26 first Hedge opens (14 EURUSD, 12 USDCHF) and 24 full exits (13 EURUSD, 11 USDCHF). It is a scaled replay, not a verified production-account return.
+- Added research runner: `research/tengri_hedge_adx_bbma_reentry_comparison_20261122.py`. It compares that control with individually gated H1 Re-Entry Types 1–4 under the same H4 Mid-BB exit, 25% size, quote stream, and cost rules. The run is in progress; no result is claimed until it completes.
+

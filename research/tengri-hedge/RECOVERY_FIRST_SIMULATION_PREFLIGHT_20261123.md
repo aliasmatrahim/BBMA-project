@@ -2,7 +2,9 @@
 
 ## Status
 
-**HOLD — simulasi baharu belum dijalankan kerana input replay yang diperlukan tidak tersedia di repo atau laluan kerja G40 yang diperiksa.** Tiada angka baharu direka atau dikira daripada ringkasan sahaja. EA Tengri/Hedge tidak diubah dan tiada dagangan diaktifkan.
+**HOLD — ledger mentah dan runner ditemui pada G40, dan log tester mengesahkan Build 5.16 untuk aliran signal yang dikaji. Replay baharu masih disekat: warm-up tick MT4 yang sepadan tidak mencukupi.** Arkib tick yang ada mempunyai liputan hari ujian Mei–November, tetapi hanya 4 daripada 19 hari kerja warm-up sebelum 1 Mei mempunyai quote. Sumber downloader yang ditemui menggunakan MT5; ia tidak dijalankan dan datanya tidak dianggap setara dengan MT4.
+
+Tiada replay prestasi baharu dijalankan. EA Tengri/Hedge tidak diubah dan trading tidak diaktifkan.
 
 ## Objective yang dipakai
 
@@ -14,15 +16,23 @@
 
 Spesifikasi penuh: `OBJECTIVE_MC_SURVIVAL_DESIGN_20261123.md`.
 
-## Semakan input
+## Semakan input semula — 23 November 2026
 
-1. Repo branch `research/tengri-bbma-hedge-replay-20261122` mengandungi objektif, laporan hasil lama, JSON ringkasan dan wrapper runner. Wrapper `high_layer_staged_replay_20261123.py` membaca template `tengri_hedge_bbma_exit_comparison_20261122.py`, tetapi template itu tiada dalam direktori GitHub yang diperiksa.
-2. JSON hasil lama hanya mengandungi ringkasan/metrics, bukan equity path atau per-tick orders yang diperlukan untuk menguji recovery-first exit dan loss-guard.
-3. G40 online diperiksa. Carian di bawah `D:\BBMA` tidak menemukan folder `Statement_Floating_Audit_20261119` atau template runner tersebut. Arkib `dukascopy_jetta\ticks` tidak menyediakan liputan EURUSD/USDCHF Mei–November 2026 yang diperlukan; laluan USDCHF tidak wujud di bawah arkib itu. Sumber tick alternatif lengkap tidak dikenal pasti dalam semakan ini.
-4. Carian Library menemukan laporan terdahulu tetapi bukan ledger mentah atau tick archive yang boleh dimasukkan semula ke simulator.
-5. Laporan terdahulu menyebut 1,357 order, 227 snapshot balance, dan 13 aliran tunai; fail/baris sumber sebenar untuk merekonstruksi urutan itu tidak ditemui pada preflight ini.
+### Ledger dan runner
+- Ledger mentah kini ditemui pada G40: 1,357 order Tengri, 227 snapshot baki, dan 13 aliran tunai. Audit layer mengesahkan lapisan maksimum 14.
+- Template `tengri_hedge_bbma_exit_comparison_20261122.py` dan base runner ADX H4 ditemui pada G40. Wrapper dalam branch masih tidak lengkap untuk dijalankan sendiri; data mentah tidak disalin ke repo.
+- Semakan harian ledger berbanding snapshot tidak menutup jurang rekonsiliasi 739.47 USC yang pernah dilaporkan. Jurang itu kekal sebagai blocker berasingan.
 
-Maka replay baharu dengan data yang sama, pengiraan margin broker, kos sebenar, dan posisi carry-to-recovery belum boleh diulang secara sah.
+### Identiti Build
+- Source `BBMA_EA.mq4` menandakan Version 5.16, BuildTag `V516_M12_ENTRYCANDLE_GATE_20261107`, dan SourceRev `M12_ENTRYCANDLE_GATE_001_20261107`.
+- Log tester MT4 bagi pair run terkunci mencetak Build=5.16 bersama tag dan revision yang sama. Ini meminkan identiti signal stream untuk kajian ini.
+- Rujukan Build 4.59 yang ditemui ialah rekod/artifak legacy; ia bukan bukti bahawa signal stream ujian ini datang daripada Build 4.59. Simpan artifak legacy di luar input replay.
+
+### Tick dan warm-up
+- Tick EURUSD/USDCHF yang tersedia mempunyai quote bagi semua 145 hari ujian Mei–18 November untuk setiap pair; tiada hari kerja ujian yang hilang, dan audit menemui tiada quote tidak sah atau susunan masa terbalik.
+- Arkib penuh memuat 210 fail bertarikh bagi setiap pair, tetapi 60 fail setiap pair kosong. Dalam warm-up 6–30 April, hanya 4 daripada 19 hari kerja mempunyai quote; 15 hari kerja kosong. Ini gagal keperluan warm-up 16 hari kalendar bagi ADX H4 daripada tick.
+- Fail tick mempunyai timestamp berulang pada sebahagian hari dan jurang intra-hari maksimum kira-kira 15 minit untuk EURUSD dan 30 minit untuk USDCHF. Perlu kekalkan audit ini bersama manifest sebelum menganggap liputan tick lengkap.
+- Carian MT4 menemukan hanya fail tester FXT kecil, bukan arkib raw bid/ask tick yang boleh menggantikan warm-up. Skrip downloader yang menggunakan MT5 tidak dijalankan. Data MT5 tidak akan dianggap sama dengan feed MT4 tanpa pengesahan broker/server dan padanan harga.
 
 ## Dapatan terdahulu yang boleh dijadikan calon sementara sahaja
 
@@ -53,9 +63,9 @@ Lapor net P&L gabungan, P&L hedge, expectancy/PF, drawdown terapung, minimum equ
 
 ## Input untuk membuka HOLD
 
-- Ledger asal statement Tengri EURUSD + USDCHF dan aliran tunai/snapshot baki (1,357 order, 227 snapshot, 13 flows) atau eksport semula yang boleh direkonsiliasi.
-- Bid/Ask tick penuh kedua-dua pair, termasuk warm-up sebelum 1 Mei 2026 hingga 18 November 2026, dengan manifest/hash dan timezone.
-- Template runner serta versi signal/build yang tepat; konflik identiti Build 5.16/4.59 mesti diselesaikan.
-- Kontrak/leveraj/margin hedge/stop-out, komisen, swap, spread, fill latency/slippage/rejection yang sepadan dengan akaun sasaran.
+- Arkib bid/ask tick yang sepadan dengan feed MT4 Tengri, dengan sekurang-kurangnya 16 hari warm-up sebelum 1 Mei 2026 hingga 18 November 2026, serta timezone dan manifest/hash.
+- Rekonsiliasi statement yang menerangkan jurang 739.47 USC menggunakan balance, closed P&L, swap, komisen, deposit/pengeluaran dan masa server yang sama.
+- Salinan runner/template serta base dependency yang dipinkan dalam branch untuk ulang kaji; data akaun mentah kekal di G40.
+- Spesifikasi margin/stop-out, kontrak, komisen, swap, spread, fill latency/slippage dan rejected order bagi akaun sasaran.
 
-Sehingga item itu tersedia, status terbaik yang boleh dipertahankan ialah **DEFER + firewall 1:400 sebagai calon lama untuk diuji semula**, bukan tetapan yang disyorkan untuk diaktifkan.
+Build signal stream untuk kajian ini sudah dipinkan kepada Build 5.16; jangan masukkan binary/artifak legacy 4.59. Sehingga warm-up tick MT4 dan rekonsiliasi baki diselesaikan, status terbaik kekal **HOLD**.

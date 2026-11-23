@@ -32,7 +32,7 @@ Spesifikasi penuh: `OBJECTIVE_MC_SURVIVAL_DESIGN_20261123.md`.
 - Tick EURUSD/USDCHF yang tersedia mempunyai quote bagi semua 145 hari ujian Mei–18 November untuk setiap pair; tiada hari kerja ujian yang hilang, dan audit menemui tiada quote tidak sah atau susunan masa terbalik.
 - Arkib penuh memuat 210 fail bertarikh bagi setiap pair, tetapi 60 fail setiap pair kosong. Dalam warm-up 6–30 April, hanya 4 daripada 19 hari kerja mempunyai quote; 15 hari kerja kosong. Ini gagal keperluan warm-up 16 hari kalendar bagi ADX H4 daripada tick.
 - Fail tick mempunyai timestamp berulang pada sebahagian hari dan jurang intra-hari maksimum kira-kira 15 minit untuk EURUSD dan 30 minit untuk USDCHF. Perlu kekalkan audit ini bersama manifest sebelum menganggap liputan tick lengkap.
-- Carian MT4 menemukan hanya fail tester FXT kecil, bukan arkib raw bid/ask tick yang boleh menggantikan warm-up. Skrip downloader yang menggunakan MT5 tidak dijalankan. Data MT5 tidak akan dianggap sama dengan feed MT4 tanpa pengesahan broker/server dan padanan harga.
+- Carian MT4 menemukan hanya fail tester FXT kecil dan `ticks.raw` sekitar 9.5 KB; kedua-duanya tidak membuktikan arkib raw tick penuh. Server sejarah MT4 yang ditemui berlabel `HFMarketsSV-Demo Server`, manakala manifest tick sedia ada menyatakan `HFMarketsGlobal-Demo4` melalui MT5. Nama server ini berbeza, jadi tick MT5 tidak boleh dianggap feed MT4 yang sama. Skrip downloader MT5 tidak dijalankan.
 
 ## Dapatan terdahulu yang boleh dijadikan calon sementara sahaja
 

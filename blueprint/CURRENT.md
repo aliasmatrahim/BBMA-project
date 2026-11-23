@@ -1,8 +1,8 @@
 # BBMA Current Project State
 
-Updated: **2026-11-07 (owner snapshot + Issue #300; other workstream evidence remains dated at each entry)**
+Updated: **2026-11-22 (owner Build 5.16 snapshot; other workstream evidence retains its recorded dates)**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`459c0588e625d7f7630f0fb5612b7f04fda496de`**
+Owner head at reconciliation: **`7567af7dfbfaafff35a37c1d307b387e96273c78`**
 
 This file is the active current-state record. The pre-2026-09-09 historical `CURRENT.md` is preserved byte-for-byte at `blueprint/archive/CURRENT_pre_20260909.md`.
 
@@ -10,18 +10,25 @@ This file is the active current-state record. The pre-2026-09-09 historical `CUR
 - GitHub `aliasmatrahim/BBMA-project` is authoritative for live project state.
 - Strategy/source semantics are routed through `docs/references/SOURCE_INDEX.md` and the accepted Core/source evidence chain.
 - Canonical active EA path: `blueprint/source/BBMA_EA.mq4`.
-- Canonical active EA at the reconciled owner head: Build `5.15` / `V515_NMJE_P2_TARGETLESS_REPLAY_20260925`, source rev `NMJE_P2_TARGETLESS_REPLAY_001_20260925`; raw MQ4 SHA-256 `49DA4FBF9AAE347530DD45D47902F81E422600825438B62B80757435D69F8504`. Q10 remains separately bound to its frozen exact Build 5.11 final-acceptance candidate.
+- Current owner source at the reconciled head is Build `5.16` / `V516_M12_ENTRYCANDLE_GATE_20261107`, source rev `M12_ENTRYCANDLE_GATE_001_20261107`; `blueprint/source/BBMA_EA.mq4` Git blob `05b961863b53e4c8408f152a5d800699b5f27eaf`. This is the development source identity, not a production-release promotion. `EA_RELEASE_IDENTITY.json` remains the frozen historical v4.59 release identity. Q10 remains separately bound to its frozen exact Build 5.11 final-acceptance candidate.
 - Q7/Q8 Build 4.86 artifacts remain historical verified integration/regression evidence. Q10 is bound to the later exact Build 5.11 final integration candidate; this is still not a production-readiness claim.
 
-## Recent scoped implementation change — Issue #300 / PR #301
+## Completed scoped implementation change — Issue #300 / PR #301
 
-Status: **PATCH VERIFIED / DRAFT REVIEW / NOT MERGED**.
-- `d1-owner-dev` remains on Build `5.15` at owner head `459c0588e625d7f7630f0fb5612b7f04fda496de`.
-- Build `5.16` / `V516_M12_ENTRYCANDLE_GATE_20261107` is a review candidate on `fix/m12-entry-candle-window-20261107`; PR #301 targets `d1-owner-dev`.
-- Standalone H1 Re-Entry eligibility is limited to its recorded `EntryCandle`; structural M12 invalidation/ownership lifecycle is unchanged and no generic TTL is added.
-- Verification for Build 5.16 implementation commit `1af2583871b2d67ac119e7fac3a565d763517b9b` is recorded in `blueprint/CORE_V2_F6_TIMING_VERIFICATION_AUDIT.md`: 73 Python tests passed, MetaEditor 5.0.0.2425 compile 0 errors/0 warnings, isolated tester positive/late-window controls passed. Tester Model 0 is based on available M1 data and is not live or tick-accurate evidence.
-- Next step: review Draft PR #301. No merge or production activation is authorized by this record.
+Status: **PATCH VERIFIED / MERGED**.
+- PR #301 merged to d1-owner-dev; owner head is 7567af7dfbfaafff35a37c1d307b387e96273c78, Build 5.16.
+- Standalone H1 Re-Entry eligibility is limited to its recorded EntryCandle; structural M12 invalidation/ownership lifecycle is unchanged and no generic TTL is added.
+- Verification for Build 5.16 implementation commit 1af2583871b2d67ac119e7fac3a565d763517b9b is recorded in blueprint/CORE_V2_F6_TIMING_VERIFICATION_AUDIT.md: 73 Python tests passed, MetaEditor compile 0 errors/0 warnings, isolated tester positive/late-window controls passed. That tester used Model 0 from M1 history, not raw ticks or live runtime.
+- blueprint/source/EA_RELEASE_IDENTITY.json remains a separate frozen v4.59 release record; do not replace its historical hashes with current development-build hashes.
 
+## Tengri + BBMA Hedge research gate — 2026-11-22
+
+Status: **CLEAN SOURCE-EVENT REPLAY / PRODUCTION GATES OPEN**.
+- Clean pair-specific D1/H4/H1 Re-Entry event replay completed for EURUSD and USDCHF. Approved events: Type 1 = 18/24, Type 2 = 0/0, Type 3 = 18/23, Type 4 = 35/36. This is signal-event evidence, not trade performance.
+- The HST manifest provides D1/H4/H1 warm-up through 18 Nov 2026. Test Model 2 is open-prices-only and does not validate tick fills.
+- The 739.47 USC figure was caused by comparing scaled replay lots with the raw statement. The remaining raw balance residuals are +12.40 USC (3 Aug) and −14.16 USC (4 Aug).
+- The installed Hedge remains H4 Mid-BB + ADX25/DI and does not consume BBMA events. Margin/stop-out, Hedge commission/swap/fills, raw-ledger residual, and production connection remain open. No EA or trading activation was made.
+- Audit: research/BBMA_BUILD516_REPLAY_IDENTITY_AUDIT_20261122.md; entry/exit metrics remain exploratory in the adjacent comparison report.
 ## Current active workstreams / integrated state
 
 ### 1. NMJE read-only authority — Issue #141 / PR #142

@@ -1,0 +1,1149 @@
+{
+  "window": [
+    "2026-05-01",
+    "2026-11-18"
+  ],
+  "coverage": {
+    "2026-05": 21,
+    "2026-06": 22,
+    "2026-07": 23,
+    "2026-08": 21,
+    "2026-09": 22,
+    "2026-10": 23,
+    "2026-11": 13
+  },
+  "approved_events": {
+    "EURUSD": {
+      "1": 18,
+      "3": 18,
+      "4": 35
+    },
+    "USDCHF": {
+      "1": 24,
+      "3": 23,
+      "4": 36
+    }
+  },
+  "events_with_adx_context": {
+    "EURUSD": {
+      "1": 14,
+      "3": 5,
+      "4": 18
+    },
+    "USDCHF": {
+      "1": 13,
+      "3": 9,
+      "4": 5
+    }
+  },
+  "entry_delay_minutes": {
+    "EURUSD": {
+      "1": {
+        "n": 14,
+        "p50": 0,
+        "p95": 0.01,
+        "max": 0.01
+      },
+      "3": {
+        "n": 5,
+        "p50": 0,
+        "p95": 0.01,
+        "max": 0.01
+      },
+      "4": {
+        "n": 18,
+        "p50": 0,
+        "p95": 0.01,
+        "max": 0.02
+      }
+    },
+    "USDCHF": {
+      "1": {
+        "n": 13,
+        "p50": 0,
+        "p95": 0.03,
+        "max": 0.04
+      },
+      "3": {
+        "n": 9,
+        "p50": 0,
+        "p95": 0.01,
+        "max": 0.01
+      },
+      "4": {
+        "n": 5,
+        "p50": 0,
+        "p95": 0,
+        "max": 0
+      }
+    }
+  },
+  "exit_delay_minutes": {
+    "USDCHF": {
+      "1": {
+        "n": 40,
+        "p50": 0,
+        "p95": 0.04,
+        "max": 0.24
+      },
+      "3": {
+        "n": 42,
+        "p50": 0,
+        "p95": 0.02,
+        "max": 0.04
+      },
+      "4": {
+        "n": 58,
+        "p50": 0,
+        "p95": 0.02,
+        "max": 0.04
+      }
+    },
+    "EURUSD": {
+      "1": {
+        "n": 33,
+        "p50": 0,
+        "p95": 0.01,
+        "max": 0.01
+      },
+      "3": {
+        "n": 39,
+        "p50": 0,
+        "p95": 0.01,
+        "max": 0.02
+      },
+      "4": {
+        "n": 63,
+        "p50": 0,
+        "p95": 0.01,
+        "max": 0.02
+      }
+    }
+  },
+  "metrics": {
+    "No hedge": {
+      "pnl": 603.7061489365897,
+      "dd": 49.53778379104107,
+      "min_equity": 3252.7998710947877,
+      "realized": 2115.2671427578152,
+      "floating": -1511.5609938212258
+    },
+    "HoldCap": {
+      "pnl": 524.2244585008939,
+      "dd": 26.223362890551826,
+      "min_equity": 3332.1843875696586,
+      "realized": 1840.5452377848178,
+      "floating": -1316.3207792839241
+    },
+    "ADX25_STAGE": {
+      "pnl": -1073.8911167887982,
+      "dd": 55.64127654834428,
+      "min_equity": 2759.0071219739157,
+      "realized": 437.6698770324274,
+      "floating": -1511.5609938212258,
+      "base_cost_equity": {
+        "peak": 5997.755898571065,
+        "dd": 69.24692023891335,
+        "minimum": 1844.4946553628383,
+        "last": 2011.5964166001245
+      },
+      "stress2_equity": {
+        "peak": 5775.7495783740105,
+        "dd": 83.89850224403999,
+        "minimum": 929.982188751761,
+        "last": 1097.0839499890471
+      },
+      "by_symbol": {
+        "EURUSD": {
+          "opens": 54,
+          "adds": 10,
+          "exits": 54,
+          "trims": 26,
+          "exit_h4": 2,
+          "exit_bbma_re": 0,
+          "exit_core": 3,
+          "exit_be": 49,
+          "exit_reversal": 2,
+          "exit_pending": 6,
+          "reentries": 53,
+          "max_hedge": 0.95,
+          "cost_h4": 405.7999999999997,
+          "spread_h4": 387.52000000000305,
+          "covered_sec": 0,
+          "eligible_sec": 2316350.293999999,
+          "offset_eligible_seconds": 2302389.9960000003,
+          "offset_positive_seconds": 37551.037,
+          "offset_full_seconds": 0,
+          "offset_weighted_cover_seconds": 199.8363864580263,
+          "offset_max_cover_ratio": 0.027360124501110368,
+          "offset_exit_samples": 77,
+          "offset_full_exits": 0,
+          "offset_exit_cover_sum": 0.008082981928927578,
+          "realized": -277.51000000000624
+        },
+        "USDCHF": {
+          "opens": 42,
+          "adds": 9,
+          "exits": 42,
+          "trims": 12,
+          "exit_h4": 0,
+          "exit_bbma_re": 0,
+          "exit_core": 1,
+          "exit_be": 41,
+          "exit_reversal": 0,
+          "exit_pending": 1,
+          "reentries": 41,
+          "max_hedge": 1.9900000000000002,
+          "cost_h4": 508.71246661107756,
+          "spread_h4": 551.1616984060573,
+          "covered_sec": 0,
+          "eligible_sec": 2822908.9609999997,
+          "offset_eligible_seconds": 2789269.201999999,
+          "offset_positive_seconds": 21385.940000000002,
+          "offset_full_seconds": 0,
+          "offset_weighted_cover_seconds": 874.7377011066033,
+          "offset_max_cover_ratio": 0.12066934801961576,
+          "offset_exit_samples": 53,
+          "offset_full_exits": 0,
+          "offset_exit_cover_sum": 0.05349150025265976,
+          "realized": -1400.0872657253817
+        }
+      },
+      "pnl_after_1pip_USC": -1988.4035833998755,
+      "pnl_after_2pip_USC": -2902.916050010953,
+      "costs_USC": {
+        "fixed_base_1pip": 914.5124666110773,
+        "fixed_stress_2pip": 1829.0249332221547,
+        "spread_estimate_included_in_quote_PnL": 938.6816984060604
+      },
+      "hedge_campaigns": {
+        "closed": 96,
+        "wins": 1,
+        "losses": 95,
+        "open_at_end": 0,
+        "expectancy_after_1pip_USC": -27.001143045171517,
+        "profit_factor_after_1pip": 0.0004010566713645922,
+        "net_closed_after_1pip_USC": -2592.1097323364656,
+        "average_holding_hours": 7.423214244791666
+      },
+      "exit_reasons": {
+        "exit_h4": 2,
+        "exit_bbma_re": 0,
+        "exit_core": 4,
+        "exit_be": 90,
+        "exit_reversal": 2,
+        "exit_pending": 7,
+        "trims": 38
+      }
+    },
+    "ADX25_STAGE_REEXIT": {
+      "pnl": -1323.4107326293297,
+      "dd": 57.1638412133225,
+      "min_equity": 2509.487506133384,
+      "realized": 188.15026119189588,
+      "floating": -1511.5609938212258,
+      "base_cost_equity": {
+        "peak": 5611.433273301376,
+        "dd": 73.9073811200795,
+        "minimum": 1464.169897703575,
+        "last": 1631.2716589408612
+      },
+      "stress2_equity": {
+        "peak": 5364.527290203643,
+        "dd": 92.19218643852093,
+        "minimum": 418.852289273766,
+        "last": 585.9540505110522
+      },
+      "by_symbol": {
+        "EURUSD": {
+          "opens": 55,
+          "adds": 12,
+          "exits": 55,
+          "trims": 27,
+          "exit_h4": 0,
+          "exit_bbma_re": 0,
+          "exit_core": 3,
+          "exit_be": 52,
+          "exit_reversal": 0,
+          "exit_pending": 4,
+          "reentries": 54,
+          "max_hedge": 0.95,
+          "cost_h4": 423.39999999999964,
+          "spread_h4": 404.20000000000323,
+          "covered_sec": 0,
+          "eligible_sec": 2316350.294,
+          "offset_eligible_seconds": 2302389.9960000007,
+          "offset_positive_seconds": 11988.101999999999,
+          "offset_full_seconds": 0,
+          "offset_weighted_cover_seconds": 143.73979396422894,
+          "offset_max_cover_ratio": 0.027360124501110368,
+          "offset_exit_samples": 79,
+          "offset_full_exits": 0,
+          "offset_exit_cover_sum": 0,
+          "realized": -254.75000000001415
+        },
+        "USDCHF": {
+          "opens": 51,
+          "adds": 14,
+          "exits": 51,
+          "trims": 20,
+          "exit_h4": 0,
+          "exit_bbma_re": 1,
+          "exit_core": 1,
+          "exit_be": 49,
+          "exit_reversal": 0,
+          "exit_pending": 2,
+          "reentries": 50,
+          "max_hedge": 2.01,
+          "cost_h4": 621.9176084298094,
+          "spread_h4": 664.1749636234988,
+          "covered_sec": 0,
+          "eligible_sec": 2822908.9609999997,
+          "offset_eligible_seconds": 2794040.3859999985,
+          "offset_positive_seconds": 11212.279,
+          "offset_full_seconds": 0,
+          "offset_weighted_cover_seconds": 206.1225630108632,
+          "offset_max_cover_ratio": 0.03574025525608878,
+          "offset_exit_samples": 67,
+          "offset_full_exits": 0,
+          "offset_exit_cover_sum": 0,
+          "realized": -1672.3668815659053
+        }
+      },
+      "pnl_after_1pip_USC": -2368.728341059139,
+      "pnl_after_2pip_USC": -3414.045949488948,
+      "costs_USC": {
+        "fixed_base_1pip": 1045.317608429809,
+        "fixed_stress_2pip": 2090.635216859618,
+        "spread_estimate_included_in_quote_PnL": 1068.374963623502
+      },
+      "hedge_campaigns": {
+        "closed": 106,
+        "wins": 0,
+        "losses": 106,
+        "open_at_end": 0,
+        "expectancy_after_1pip_USC": -28.041834811280467,
+        "profit_factor_after_1pip": 0,
+        "net_closed_after_1pip_USC": -2972.4344899957296,
+        "average_holding_hours": 9.658979221698113
+      },
+      "exit_reasons": {
+        "exit_h4": 0,
+        "exit_bbma_re": 1,
+        "exit_core": 4,
+        "exit_be": 101,
+        "exit_reversal": 0,
+        "exit_pending": 6,
+        "trims": 47
+      }
+    },
+    "RE1_STAGE_REEXIT": {
+      "pnl": 526.13880515645,
+      "dd": 49.92810829561453,
+      "min_equity": 3175.232527314648,
+      "realized": 2037.6997989776755,
+      "floating": -1511.5609938212258,
+      "base_cost_equity": {
+        "peak": 6327.461337395748,
+        "dd": 50.47038424997701,
+        "minimum": 3133.96728714338,
+        "last": 4484.8735649851815
+      },
+      "stress2_equity": {
+        "peak": 6313.575425399379,
+        "dd": 51.01504553932726,
+        "minimum": 3092.7020469721115,
+        "last": 4443.608324813914
+      },
+      "by_symbol": {
+        "EURUSD": {
+          "opens": 2,
+          "adds": 1,
+          "exits": 2,
+          "trims": 0,
+          "exit_h4": 0,
+          "exit_bbma_re": 0,
+          "exit_core": 1,
+          "exit_be": 1,
+          "exit_reversal": 0,
+          "exit_pending": 1,
+          "reentries": 1,
+          "max_hedge": 0.12000000000000001,
+          "cost_h4": 4.6000000000000005,
+          "spread_h4": 4.229999999999623,
+          "covered_sec": 0,
+          "eligible_sec": 2316350.294,
+          "offset_eligible_seconds": 2316143.5960000004,
+          "offset_positive_seconds": 0,
+          "offset_full_seconds": 0,
+          "offset_weighted_cover_seconds": 0,
+          "offset_max_cover_ratio": 0,
+          "offset_exit_samples": 1,
+          "offset_full_exits": 0,
+          "offset_exit_cover_sum": 0,
+          "realized": -113.83000000000077
+        },
+        "USDCHF": {
+          "opens": 6,
+          "adds": 2,
+          "exits": 6,
+          "trims": 1,
+          "exit_h4": 0,
+          "exit_bbma_re": 0,
+          "exit_core": 0,
+          "exit_be": 6,
+          "exit_reversal": 0,
+          "exit_pending": 1,
+          "reentries": 5,
+          "max_hedge": 0.91,
+          "cost_h4": 36.66524017126825,
+          "spread_h4": 37.33723072883442,
+          "covered_sec": 0,
+          "eligible_sec": 2822908.961,
+          "offset_eligible_seconds": 2820149.914,
+          "offset_positive_seconds": 586.52,
+          "offset_full_seconds": 0,
+          "offset_weighted_cover_seconds": 2.642196122368948,
+          "offset_max_cover_ratio": 0.020207876518731745,
+          "offset_exit_samples": 7,
+          "offset_full_exits": 0,
+          "offset_exit_cover_sum": 0,
+          "realized": 36.262656219860915
+        }
+      },
+      "pnl_after_1pip_USC": 484.8735649851817,
+      "pnl_after_2pip_USC": 443.60832481391344,
+      "costs_USC": {
+        "fixed_base_1pip": 41.26524017126825,
+        "fixed_stress_2pip": 82.5304803425365,
+        "spread_estimate_included_in_quote_PnL": 41.56723072883404
+      },
+      "hedge_campaigns": {
+        "closed": 8,
+        "wins": 0,
+        "losses": 8,
+        "open_at_end": 0,
+        "expectancy_after_1pip_USC": -14.854072993926012,
+        "profit_factor_after_1pip": 0,
+        "net_closed_after_1pip_USC": -118.8325839514081,
+        "average_holding_hours": 43.64588895833333
+      },
+      "exit_reasons": {
+        "exit_h4": 0,
+        "exit_bbma_re": 0,
+        "exit_core": 1,
+        "exit_be": 7,
+        "exit_reversal": 0,
+        "exit_pending": 2,
+        "trims": 1
+      }
+    },
+    "RE2_STAGE_REEXIT": {
+      "pnl": 603.7061489365897,
+      "dd": 49.53778379104107,
+      "min_equity": 3252.7998710947877,
+      "realized": 2115.2671427578152,
+      "floating": -1511.5609938212258,
+      "base_cost_equity": {
+        "peak": 6446.0107293450465,
+        "dd": 49.53778379104107,
+        "minimum": 3252.7998710947877,
+        "last": 4603.70614893659
+      },
+      "stress2_equity": {
+        "peak": 6446.0107293450465,
+        "dd": 49.53778379104107,
+        "minimum": 3252.7998710947877,
+        "last": 4603.70614893659
+      },
+      "by_symbol": {
+        "EURUSD": {
+          "opens": 0,
+          "adds": 0,
+          "exits": 0,
+          "trims": 0,
+          "exit_h4": 0,
+          "exit_bbma_re": 0,
+          "exit_core": 0,
+          "exit_be": 0,
+          "exit_reversal": 0,
+          "exit_pending": 0,
+          "reentries": 0,
+          "max_hedge": 0,
+          "cost_h4": 0,
+          "spread_h4": 0,
+          "covered_sec": 0,
+          "eligible_sec": 2316350.294,
+          "offset_eligible_seconds": 2316143.5960000004,
+          "offset_positive_seconds": 0,
+          "offset_full_seconds": 0,
+          "offset_weighted_cover_seconds": 0,
+          "offset_max_cover_ratio": 0,
+          "offset_exit_samples": 0,
+          "offset_full_exits": 0,
+          "offset_exit_cover_sum": 0,
+          "realized": 0
+        },
+        "USDCHF": {
+          "opens": 0,
+          "adds": 0,
+          "exits": 0,
+          "trims": 0,
+          "exit_h4": 0,
+          "exit_bbma_re": 0,
+          "exit_core": 0,
+          "exit_be": 0,
+          "exit_reversal": 0,
+          "exit_pending": 0,
+          "reentries": 0,
+          "max_hedge": 0,
+          "cost_h4": 0,
+          "spread_h4": 0,
+          "covered_sec": 0,
+          "eligible_sec": 2822908.961,
+          "offset_eligible_seconds": 2820149.914,
+          "offset_positive_seconds": 0,
+          "offset_full_seconds": 0,
+          "offset_weighted_cover_seconds": 0,
+          "offset_max_cover_ratio": 0,
+          "offset_exit_samples": 0,
+          "offset_full_exits": 0,
+          "offset_exit_cover_sum": 0,
+          "realized": 0
+        }
+      },
+      "pnl_after_1pip_USC": 603.7061489365897,
+      "pnl_after_2pip_USC": 603.7061489365897,
+      "costs_USC": {
+        "fixed_base_1pip": 0,
+        "fixed_stress_2pip": 0,
+        "spread_estimate_included_in_quote_PnL": 0
+      },
+      "hedge_campaigns": {
+        "closed": 0,
+        "wins": 0,
+        "losses": 0,
+        "open_at_end": 0,
+        "expectancy_after_1pip_USC": null,
+        "profit_factor_after_1pip": null,
+        "net_closed_after_1pip_USC": 0,
+        "average_holding_hours": null
+      },
+      "exit_reasons": {
+        "exit_h4": 0,
+        "exit_bbma_re": 0,
+        "exit_core": 0,
+        "exit_be": 0,
+        "exit_reversal": 0,
+        "exit_pending": 0,
+        "trims": 0
+      }
+    },
+    "RE3_STAGE_REEXIT": {
+      "pnl": 258.1812771249133,
+      "dd": 52.4992401299512,
+      "min_equity": 2882.5799213895853,
+      "realized": 1769.742270946139,
+      "floating": -1511.5609938212258,
+      "base_cost_equity": {
+        "peak": 6053.9137246433975,
+        "dd": 52.74623469117466,
+        "minimum": 2860.7021834417583,
+        "last": 4211.602709980474
+      },
+      "stress2_equity": {
+        "peak": 6039.335220371589,
+        "dd": 52.994421705254105,
+        "minimum": 2838.8244454939313,
+        "last": 4165.024142836034
+      },
+      "by_symbol": {
+        "EURUSD": {
+          "opens": 2,
+          "adds": 0,
+          "exits": 2,
+          "trims": 0,
+          "exit_h4": 0,
+          "exit_bbma_re": 0,
+          "exit_core": 0,
+          "exit_be": 2,
+          "exit_reversal": 0,
+          "exit_pending": 0,
+          "reentries": 1,
+          "max_hedge": 0.11,
+          "cost_h4": 4.4,
+          "spread_h4": 3.9049999999999363,
+          "covered_sec": 0,
+          "eligible_sec": 2316350.294,
+          "offset_eligible_seconds": 2316143.5960000004,
+          "offset_positive_seconds": 225.36500000000004,
+          "offset_full_seconds": 0,
+          "offset_weighted_cover_seconds": 0.46722216059904503,
+          "offset_max_cover_ratio": 0.00535586424172778,
+          "offset_exit_samples": 2,
+          "offset_full_exits": 0,
+          "offset_exit_cover_sum": 0,
+          "realized": 4.399999999999515
+        },
+        "USDCHF": {
+          "opens": 5,
+          "adds": 2,
+          "exits": 5,
+          "trims": 4,
+          "exit_h4": 0,
+          "exit_bbma_re": 0,
+          "exit_core": 1,
+          "exit_be": 4,
+          "exit_reversal": 0,
+          "exit_pending": 1,
+          "reentries": 4,
+          "max_hedge": 0.93,
+          "cost_h4": 42.17856714443941,
+          "spread_h4": 42.690127442082286,
+          "covered_sec": 0,
+          "eligible_sec": 2822908.961,
+          "offset_eligible_seconds": 2820149.914,
+          "offset_positive_seconds": 53.231,
+          "offset_full_seconds": 0,
+          "offset_weighted_cover_seconds": 0.19255267650139044,
+          "offset_max_cover_ratio": 0.007496551138651748,
+          "offset_exit_samples": 8,
+          "offset_full_exits": 0,
+          "offset_exit_cover_sum": 0,
+          "realized": -349.9248718116759
+        }
+      },
+      "pnl_after_1pip_USC": 211.60270998047392,
+      "pnl_after_2pip_USC": 165.0241428360345,
+      "costs_USC": {
+        "fixed_base_1pip": 46.57856714443941,
+        "fixed_stress_2pip": 93.15713428887882,
+        "spread_estimate_included_in_quote_PnL": 46.59512744208222
+      },
+      "hedge_campaigns": {
+        "closed": 7,
+        "wins": 0,
+        "losses": 7,
+        "open_at_end": 0,
+        "expectancy_after_1pip_USC": -56.014776993730834,
+        "profit_factor_after_1pip": 0,
+        "net_closed_after_1pip_USC": -392.10343895611584,
+        "average_holding_hours": 27.095444603174602
+      },
+      "exit_reasons": {
+        "exit_h4": 0,
+        "exit_bbma_re": 0,
+        "exit_core": 1,
+        "exit_be": 6,
+        "exit_reversal": 0,
+        "exit_pending": 1,
+        "trims": 4
+      }
+    },
+    "RE4_STAGE_REEXIT": {
+      "pnl": 692.9334233065156,
+      "dd": 49.24735949847446,
+      "min_equity": 3283.177155381006,
+      "realized": 2204.494417127741,
+      "floating": -1511.5609938212258,
+      "base_cost_equity": {
+        "peak": 6445.811736322169,
+        "dd": 49.545363545979974,
+        "minimum": 3252.2108780719063,
+        "last": 4602.639502823657
+      },
+      "stress2_equity": {
+        "peak": 6422.645459013069,
+        "dd": 49.845517375673474,
+        "minimum": 3221.2446007628064,
+        "last": 4512.3455823407985
+      },
+      "by_symbol": {
+        "EURUSD": {
+          "opens": 4,
+          "adds": 1,
+          "exits": 4,
+          "trims": 1,
+          "exit_h4": 0,
+          "exit_bbma_re": 0,
+          "exit_core": 0,
+          "exit_be": 4,
+          "exit_reversal": 0,
+          "exit_pending": 0,
+          "reentries": 3,
+          "max_hedge": 0.88,
+          "cost_h4": 30.4,
+          "spread_h4": 28.310000000001395,
+          "covered_sec": 0,
+          "eligible_sec": 2316350.294,
+          "offset_eligible_seconds": 2316143.596000001,
+          "offset_positive_seconds": 381.659,
+          "offset_full_seconds": 0,
+          "offset_weighted_cover_seconds": 1.5023812166494808,
+          "offset_max_cover_ratio": 0.007195966429450346,
+          "offset_exit_samples": 5,
+          "offset_full_exits": 0,
+          "offset_exit_cover_sum": 0.007627581334099754,
+          "realized": 29.95999999999333
+        },
+        "USDCHF": {
+          "opens": 3,
+          "adds": 0,
+          "exits": 3,
+          "trims": 0,
+          "exit_h4": 0,
+          "exit_bbma_re": 0,
+          "exit_core": 0,
+          "exit_be": 3,
+          "exit_reversal": 0,
+          "exit_pending": 0,
+          "reentries": 2,
+          "max_hedge": 1.99,
+          "cost_h4": 59.89392048285876,
+          "spread_h4": 59.81880901450437,
+          "covered_sec": 0,
+          "eligible_sec": 2822908.961,
+          "offset_eligible_seconds": 2820149.9139999994,
+          "offset_positive_seconds": 1721.416,
+          "offset_full_seconds": 0,
+          "offset_weighted_cover_seconds": 20.250328452492266,
+          "offset_max_cover_ratio": 0.021781600390223928,
+          "offset_exit_samples": 3,
+          "offset_full_exits": 0,
+          "offset_exit_cover_sum": 0,
+          "realized": 59.26727436993302
+        }
+      },
+      "pnl_after_1pip_USC": 602.6395028236568,
+      "pnl_after_2pip_USC": 512.345582340798,
+      "costs_USC": {
+        "fixed_base_1pip": 90.29392048285877,
+        "fixed_stress_2pip": 180.58784096571753,
+        "spread_estimate_included_in_quote_PnL": 88.12880901450576
+      },
+      "hedge_campaigns": {
+        "closed": 7,
+        "wins": 0,
+        "losses": 7,
+        "open_at_end": 0,
+        "expectancy_after_1pip_USC": -0.1523780161332038,
+        "profit_factor_after_1pip": 0,
+        "net_closed_after_1pip_USC": -1.0666461129324265,
+        "average_holding_hours": 0.9279290476190477
+      },
+      "exit_reasons": {
+        "exit_h4": 0,
+        "exit_bbma_re": 0,
+        "exit_core": 0,
+        "exit_be": 7,
+        "exit_reversal": 0,
+        "exit_pending": 0,
+        "trims": 1
+      }
+    },
+    "RE3_R25_REEXIT": {
+      "pnl": 434.3489017280863,
+      "dd": 50.89825818577558,
+      "min_equity": 3073.461629981697,
+      "realized": 1945.9098955493118,
+      "floating": -1511.5609938212258,
+      "base_cost_equity": {
+        "peak": 6250.722395160604,
+        "dd": 51.085480034657564,
+        "minimum": 3057.5108539589646,
+        "last": 4408.414786778255
+      },
+      "stress2_equity": {
+        "peak": 6242.070852813888,
+        "dd": 51.27322086443293,
+        "minimum": 3041.5600779362317,
+        "last": 4382.4806718284235
+      },
+      "by_symbol": {
+        "EURUSD": {
+          "opens": 2,
+          "adds": 0,
+          "exits": 2,
+          "trims": 0,
+          "exit_h4": 0,
+          "exit_bbma_re": 0,
+          "exit_core": 0,
+          "exit_be": 2,
+          "exit_reversal": 0,
+          "exit_pending": 0,
+          "reentries": 1,
+          "max_hedge": 0.11,
+          "cost_h4": 4.4,
+          "spread_h4": 3.9049999999999363,
+          "covered_sec": 0,
+          "eligible_sec": 2316350.294,
+          "offset_eligible_seconds": 2316143.5960000004,
+          "offset_positive_seconds": 225.36500000000004,
+          "offset_full_seconds": 0,
+          "offset_weighted_cover_seconds": 0.46722216059904503,
+          "offset_max_cover_ratio": 0.00535586424172778,
+          "offset_exit_samples": 2,
+          "offset_full_exits": 0,
+          "offset_exit_cover_sum": 0,
+          "realized": 4.399999999999515
+        },
+        "USDCHF": {
+          "opens": 5,
+          "adds": 2,
+          "exits": 5,
+          "trims": 2,
+          "exit_h4": 0,
+          "exit_bbma_re": 0,
+          "exit_core": 1,
+          "exit_be": 4,
+          "exit_reversal": 0,
+          "exit_pending": 1,
+          "reentries": 4,
+          "max_hedge": 0.31,
+          "cost_h4": 21.534114949831473,
+          "spread_h4": 21.626103029189828,
+          "covered_sec": 0,
+          "eligible_sec": 2822908.961,
+          "offset_eligible_seconds": 2820149.914,
+          "offset_positive_seconds": 53.231,
+          "offset_full_seconds": 0,
+          "offset_weighted_cover_seconds": 0.19255267650139044,
+          "offset_max_cover_ratio": 0.007496551138651748,
+          "offset_exit_samples": 6,
+          "offset_full_exits": 0,
+          "offset_exit_cover_sum": 0,
+          "realized": -173.75724720850312
+        }
+      },
+      "pnl_after_1pip_USC": 408.4147867782548,
+      "pnl_after_2pip_USC": 382.48067182842334,
+      "costs_USC": {
+        "fixed_base_1pip": 25.934114949831475,
+        "fixed_stress_2pip": 51.86822989966295,
+        "spread_estimate_included_in_quote_PnL": 25.531103029189765
+      },
+      "hedge_campaigns": {
+        "closed": 7,
+        "wins": 0,
+        "losses": 7,
+        "open_at_end": 0,
+        "expectancy_after_1pip_USC": -27.898766022619295,
+        "profit_factor_after_1pip": 0,
+        "net_closed_after_1pip_USC": -195.29136215833506,
+        "average_holding_hours": 27.095551825396825
+      },
+      "exit_reasons": {
+        "exit_h4": 0,
+        "exit_bbma_re": 0,
+        "exit_core": 1,
+        "exit_be": 6,
+        "exit_reversal": 0,
+        "exit_pending": 1,
+        "trims": 2
+      }
+    },
+    "RE3_R50_REEXIT": {
+      "pnl": 264.68341497294205,
+      "dd": 52.34203504854644,
+      "min_equity": 2893.5766082392283,
+      "realized": 1776.2444087941676,
+      "floating": -1511.5609938212258,
+      "base_cost_equity": {
+        "peak": 6053.752114546265,
+        "dd": 52.747655018658946,
+        "minimum": 2860.53983348063,
+        "last": 4211.441362924479
+      },
+      "stress2_equity": {
+        "peak": 6035.9554099460365,
+        "dd": 53.15566688808076,
+        "minimum": 2827.503058722032,
+        "last": 4158.199310876015
+      },
+      "by_symbol": {
+        "EURUSD": {
+          "opens": 2,
+          "adds": 0,
+          "exits": 2,
+          "trims": 0,
+          "exit_h4": 0,
+          "exit_bbma_re": 0,
+          "exit_core": 0,
+          "exit_be": 2,
+          "exit_reversal": 0,
+          "exit_pending": 0,
+          "reentries": 1,
+          "max_hedge": 0.23,
+          "cost_h4": 9.200000000000001,
+          "spread_h4": 7.9350000000009135,
+          "covered_sec": 0,
+          "eligible_sec": 2316350.294,
+          "offset_eligible_seconds": 2316143.5960000004,
+          "offset_positive_seconds": 54.361000000000004,
+          "offset_full_seconds": 0,
+          "offset_weighted_cover_seconds": 0.11663961722077155,
+          "offset_max_cover_ratio": 0.004084713404068708,
+          "offset_exit_samples": 2,
+          "offset_full_exits": 0,
+          "offset_exit_cover_sum": 0,
+          "realized": 9.199999999998987
+        },
+        "USDCHF": {
+          "opens": 5,
+          "adds": 2,
+          "exits": 5,
+          "trims": 4,
+          "exit_h4": 0,
+          "exit_bbma_re": 0,
+          "exit_core": 1,
+          "exit_be": 4,
+          "exit_reversal": 0,
+          "exit_pending": 1,
+          "reentries": 4,
+          "max_hedge": 0.62,
+          "cost_h4": 44.04205204846329,
+          "spread_h4": 44.25039196342974,
+          "covered_sec": 0,
+          "eligible_sec": 2822908.961,
+          "offset_eligible_seconds": 2820149.914,
+          "offset_positive_seconds": 53.231,
+          "offset_full_seconds": 0,
+          "offset_weighted_cover_seconds": 0.4011514093779118,
+          "offset_max_cover_ratio": 0.015617814872197856,
+          "offset_exit_samples": 8,
+          "offset_full_exits": 0,
+          "offset_exit_cover_sum": 0,
+          "realized": -348.2227339636465
+        }
+      },
+      "pnl_after_1pip_USC": 211.44136292447877,
+      "pnl_after_2pip_USC": 158.19931087601546,
+      "costs_USC": {
+        "fixed_base_1pip": 53.24205204846329,
+        "fixed_stress_2pip": 106.48410409692659,
+        "spread_estimate_included_in_quote_PnL": 52.185391963430654
+      },
+      "hedge_campaigns": {
+        "closed": 7,
+        "wins": 0,
+        "losses": 7,
+        "open_at_end": 0,
+        "expectancy_after_1pip_USC": -56.03782657315868,
+        "profit_factor_after_1pip": 0,
+        "net_closed_after_1pip_USC": -392.2647860121108,
+        "average_holding_hours": 27.085707658730154
+      },
+      "exit_reasons": {
+        "exit_h4": 0,
+        "exit_bbma_re": 0,
+        "exit_core": 1,
+        "exit_be": 6,
+        "exit_reversal": 0,
+        "exit_pending": 1,
+        "trims": 4
+      }
+    },
+    "RE3_R75_REEXIT": {
+      "pnl": 94.64901647024453,
+      "dd": 53.886005746844766,
+      "min_equity": 2713.3226747492054,
+      "realized": 1606.21001029147,
+      "floating": -1511.5609938212258,
+      "base_cost_equity": {
+        "peak": 5857.252078609552,
+        "dd": 54.52322900152753,
+        "minimum": 2663.689114592534,
+        "last": 4014.588240660942
+      },
+      "stress2_equity": {
+        "peak": 5830.557822287268,
+        "dd": 55.166287101318964,
+        "minimum": 2614.055554435863,
+        "last": 3934.5274648516397
+      },
+      "by_symbol": {
+        "EURUSD": {
+          "opens": 2,
+          "adds": 0,
+          "exits": 2,
+          "trims": 0,
+          "exit_h4": 0,
+          "exit_bbma_re": 0,
+          "exit_core": 0,
+          "exit_be": 2,
+          "exit_reversal": 0,
+          "exit_pending": 0,
+          "reentries": 1,
+          "max_hedge": 0.35,
+          "cost_h4": 14,
+          "spread_h4": 12.075000000001388,
+          "covered_sec": 0,
+          "eligible_sec": 2316350.294,
+          "offset_eligible_seconds": 2316143.5960000004,
+          "offset_positive_seconds": 56.867000000000004,
+          "offset_full_seconds": 0,
+          "offset_weighted_cover_seconds": 0.17135001900626678,
+          "offset_max_cover_ratio": 0.006215868223585677,
+          "offset_exit_samples": 2,
+          "offset_full_exits": 0,
+          "offset_exit_cover_sum": 0,
+          "realized": 13.649999999996165
+        },
+        "USDCHF": {
+          "opens": 5,
+          "adds": 2,
+          "exits": 5,
+          "trims": 4,
+          "exit_h4": 0,
+          "exit_bbma_re": 0,
+          "exit_core": 1,
+          "exit_be": 4,
+          "exit_reversal": 0,
+          "exit_pending": 1,
+          "reentries": 4,
+          "max_hedge": 0.93,
+          "cost_h4": 66.06077580930243,
+          "spread_h4": 66.48542307937772,
+          "covered_sec": 0,
+          "eligible_sec": 2822908.961,
+          "offset_eligible_seconds": 2820149.914,
+          "offset_positive_seconds": 3.799,
+          "offset_full_seconds": 0,
+          "offset_weighted_cover_seconds": 0.013023285481454061,
+          "offset_max_cover_ratio": 0.005071495990467493,
+          "offset_exit_samples": 8,
+          "offset_full_exits": 0,
+          "offset_exit_cover_sum": 0,
+          "realized": -522.7071324663414
+        }
+      },
+      "pnl_after_1pip_USC": 14.588240660942105,
+      "pnl_after_2pip_USC": -65.47253514836032,
+      "costs_USC": {
+        "fixed_base_1pip": 80.06077580930243,
+        "fixed_stress_2pip": 160.12155161860485,
+        "spread_estimate_included_in_quote_PnL": 78.56042307937912
+      },
+      "hedge_campaigns": {
+        "closed": 7,
+        "wins": 0,
+        "losses": 7,
+        "open_at_end": 0,
+        "expectancy_after_1pip_USC": -84.15970118223537,
+        "profit_factor_after_1pip": 0,
+        "net_closed_after_1pip_USC": -589.1179082756476,
+        "average_holding_hours": 27.079564007936508
+      },
+      "exit_reasons": {
+        "exit_h4": 0,
+        "exit_bbma_re": 0,
+        "exit_core": 1,
+        "exit_be": 6,
+        "exit_reversal": 0,
+        "exit_pending": 1,
+        "trims": 4
+      }
+    },
+    "RE3_R100_REEXIT": {
+      "pnl": -74.7383129946902,
+      "dd": 55.52399856333325,
+      "min_equity": 2533.4784863616405,
+      "realized": 1436.8226808265354,
+      "floating": -1511.5609938212258,
+      "base_cost_equity": {
+        "peak": 5660.4426512577,
+        "dd": 56.42109461477197,
+        "minimum": 2466.758947376686,
+        "last": 3817.6556151296427
+      },
+      "stress2_equity": {
+        "peak": 5624.603252589484,
+        "dd": 57.329623075426895,
+        "minimum": 2400.0394083917313,
+        "last": 3710.049543253976
+      },
+      "by_symbol": {
+        "EURUSD": {
+          "opens": 2,
+          "adds": 0,
+          "exits": 2,
+          "trims": 0,
+          "exit_h4": 0,
+          "exit_bbma_re": 0,
+          "exit_core": 0,
+          "exit_be": 2,
+          "exit_reversal": 0,
+          "exit_pending": 0,
+          "reentries": 1,
+          "max_hedge": 0.47,
+          "cost_h4": 18.8,
+          "spread_h4": 15.980000000000327,
+          "covered_sec": 0,
+          "eligible_sec": 2316350.294,
+          "offset_eligible_seconds": 2316143.5960000004,
+          "offset_positive_seconds": 133.651,
+          "offset_full_seconds": 0,
+          "offset_weighted_cover_seconds": 0.2723223379071056,
+          "offset_max_cover_ratio": 0.00834702304309443,
+          "offset_exit_samples": 2,
+          "offset_full_exits": 0,
+          "offset_exit_cover_sum": 0,
+          "realized": 18.32999999999485
+        },
+        "USDCHF": {
+          "opens": 5,
+          "adds": 2,
+          "exits": 5,
+          "trims": 4,
+          "exit_h4": 0,
+          "exit_bbma_re": 0,
+          "exit_core": 1,
+          "exit_be": 4,
+          "exit_reversal": 0,
+          "exit_pending": 1,
+          "reentries": 4,
+          "max_hedge": 1.25,
+          "cost_h4": 88.80607187566699,
+          "spread_h4": 89.37012111414508,
+          "covered_sec": 0,
+          "eligible_sec": 2822908.961,
+          "offset_eligible_seconds": 2820149.914,
+          "offset_positive_seconds": 3.799,
+          "offset_full_seconds": 0,
+          "offset_weighted_cover_seconds": 0.017599034434416325,
+          "offset_max_cover_ratio": 0.006853372960102882,
+          "offset_exit_samples": 8,
+          "offset_full_exits": 0,
+          "offset_exit_cover_sum": 0,
+          "realized": -696.7744619312743
+        }
+      },
+      "pnl_after_1pip_USC": -182.3443848703572,
+      "pnl_after_2pip_USC": -289.9504567460242,
+      "costs_USC": {
+        "fixed_base_1pip": 107.60607187566698,
+        "fixed_stress_2pip": 215.21214375133397,
+        "spread_estimate_included_in_quote_PnL": 105.35012111414541
+      },
+      "hedge_campaigns": {
+        "closed": 7,
+        "wins": 0,
+        "losses": 7,
+        "open_at_end": 0,
+        "expectancy_after_1pip_USC": -112.29293340099238,
+        "profit_factor_after_1pip": 0,
+        "net_closed_after_1pip_USC": -786.0505338069466,
+        "average_holding_hours": 27.076700158730155
+      },
+      "exit_reasons": {
+        "exit_h4": 0,
+        "exit_bbma_re": 0,
+        "exit_core": 1,
+        "exit_be": 6,
+        "exit_reversal": 0,
+        "exit_pending": 1,
+        "trims": 4
+      }
+    }
+  }
+}

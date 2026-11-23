@@ -1,0 +1,51 @@
+{
+  "window": "2026-05-01 to 2026-11-18",
+  "scope": "clean pair-specific locked D1/H4/H1 RE source-event replay; no trading orders",
+  "pairs": {
+    "EURUSD": {
+      "bytes": 21335559,
+      "sha256": "dc7e7f65ff7bdeb72ceef5a60c70591646d5106e0eee6b4ba304094006a282f3",
+      "init_pass": true,
+      "adapter_seen": true,
+      "re_admit_rows": 544,
+      "unique_candidates_by_type": {
+        "RE_TYPE_4_CSD": 64,
+        "RE_TYPE_3_CSM": 39,
+        "RE_TYPE_1": 33
+      },
+      "m15_count_rows": 284,
+      "m15_conflict_minutes": 0,
+      "d1_h4_m15_approved_by_type": {
+        "RE_TYPE_4_CSD": 35,
+        "RE_TYPE_1": 18,
+        "RE_TYPE_3_CSM": 18
+      },
+      "approved_events": 71,
+      "nonapproved_candidate_events": 65,
+      "log_failure_tokens": {}
+    },
+    "USDCHF": {
+      "bytes": 21505160,
+      "sha256": "f9ed9c8dc0b809db6925b3b5006528ed105eeba65439a494a9b635a421c72193",
+      "init_pass": true,
+      "adapter_seen": true,
+      "re_admit_rows": 584,
+      "unique_candidates_by_type": {
+        "RE_TYPE_4_CSD": 63,
+        "RE_TYPE_3_CSM": 42,
+        "RE_TYPE_1": 41
+      },
+      "m15_count_rows": 332,
+      "m15_conflict_minutes": 0,
+      "d1_h4_m15_approved_by_type": {
+        "RE_TYPE_4_CSD": 36,
+        "RE_TYPE_3_CSM": 23,
+        "RE_TYPE_1": 24
+      },
+      "approved_events": 83,
+      "nonapproved_candidate_events": 63,
+      "log_failure_tokens": {}
+    }
+  },
+  "approval_rule": "candidate H4 pass + same M15 processing minute has post-D1-filter M15_COUNTS and no opposite-direction M15 conflict"
+}

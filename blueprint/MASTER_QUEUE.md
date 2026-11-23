@@ -1,8 +1,8 @@
 # BBMA Active Master Queue
 
-Reconciled: **2026-11-07 (owner snapshot + Issue #300 status; remaining queue items retain their recorded evidence dates)**
+Reconciled: **2026-11-22 (owner Build 5.16 snapshot; remaining queue items retain their recorded evidence dates)**
 Status owner: **`d1-owner-dev`**
-Owner head at reconciliation: **`459c0588e625d7f7630f0fb5612b7f04fda496de`**
+Owner head at reconciliation: **`7567af7dfbfaafff35a37c1d307b387e96273c78`**
 
 This file is the active queue. The pre-2026-09-09 historical queue is preserved byte-for-byte at `blueprint/archive/MASTER_QUEUE_pre_20260909.md`.
 
@@ -13,14 +13,19 @@ This file is the active queue. The pre-2026-09-09 historical queue is preserved 
 - Do not create a new trading rule merely to close a gap or improve past performance.
 - No primary MT4 restart, trading enablement, or production activation is implied by queue progression.
 
-## Scoped owner patch under review — Issue #300 / Draft PR #301
+## Completed scoped owner patch — Issue #300 / PR #301
 
-Status: **PATCH VERIFIED / DRAFT REVIEW / NOT MERGED**.
-- Live owner remains Build `5.15` at `459c0588e625d7f7630f0fb5612b7f04fda496de`; Build `5.16` is only the candidate on `fix/m12-entry-candle-window-20261107`.
-- PR #301 gates standalone H1 Re-Entry eligibility to the recorded `EntryCandle`; it preserves structural M12 invalidation/ownership transfer and keeps `candidate.Expiry = 0` without a generic TTL.
-- Evidence is recorded in `blueprint/CORE_V2_F6_TIMING_VERIFICATION_AUDIT.md`: 73 Python tests, native MetaEditor compile, and isolated tester positive/late-window checks for the Build 5.16 implementation. The tester uses Model 0 from M1 history, not raw ticks or live runtime.
-- Next step: review PR #301. Merge requires explicit authorization. This scoped patch does not change the queue dependency order; Q10 Phase L R5 remains the highest-priority active final-acceptance task.
+Status: **PATCH VERIFIED / MERGED**.
+- PR #301 merged into d1-owner-dev at owner head 7567af7dfbfaafff35a37c1d307b387e96273c78; current owner source is Build 5.16.
+- Standalone H1 Re-Entry eligibility is limited to its recorded EntryCandle; structural M12 invalidation/ownership transfer remains unchanged and no generic TTL was added.
+- Verification remains recorded in blueprint/CORE_V2_F6_TIMING_VERIFICATION_AUDIT.md: 73 Python tests, native compile 0 errors/0 warnings, and isolated tester positive/late-window controls. The prior acceptance tester used Model 0 from M1 history, not raw ticks or live runtime.
+- EA_RELEASE_IDENTITY.json remains the frozen v4.59 release identity and is not the current development-source manifest. Build 5.16 has not been promoted as a production release.
 
+## Separate research gate — Tengri + BBMA Hedge (2026-11-22)
+
+- The clean pair-specific D1/H4/H1 Re-Entry source-event replay is recorded in research/BBMA_BUILD516_REPLAY_IDENTITY_AUDIT_20261122.md. Type 1–4 event counts are unchanged; no EA orders or production changes were made.
+- The 739.47 USC figure was a scale-mixed comparison; +12.40 USC and −14.16 USC raw-ledger residuals remain unresolved.
+- Margin/stop-out, actual Hedge fees/fills, and connection of BBMA events to the installed H4 ADX Hedge remain open. This research does not change the active queue dependency order; Q10 Phase L R5 remains the highest-priority active final-acceptance task.
 ## Execution order / dependency path
 Stable Q IDs are preserved. The active dependency order is:
 - **Source evidence:** Q4 -> Q5

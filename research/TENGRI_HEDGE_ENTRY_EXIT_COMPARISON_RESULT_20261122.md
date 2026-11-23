@@ -1,0 +1,86 @@
+# Perbandingan Entry Hedge Tengri: H4 ADX vs BBMA Re-Entry
+
+Tarikh: 22 Nov 2026  
+Tempoh replay: 1 Mei–18 Nov 2026  
+Status: **Perbandingan entry/exit dan replay event bersih selesai; hasil penyelidikan, tiada pemenang production.**  
+Branch: research/tengri-bbma-hedge-replay-20261122
+
+## Soalan yang diuji
+
+Adakah H1 BBMA Re-Entry Type 1–4, selepas gate D1/H4 dan pengesahan konteks H4 ADX25/DI, memberi kemasukan Hedge yang lebih baik daripada trigger H4 Mid-BB + ADX25/DI? Semua varian menggunakan exit H4 Mid-BB yang sama supaya perbandingan ini mengasingkan kesan entry.
+
+## Kunci replay
+
+- Pair EURUSD dan USDCHF; data quote/tick HFM Demo4 yang sama; anchor akaun 4,000 USC.
+- Laluan Tengri dibekukan dan dikecilkan kepada anchor ujian. P&L Hedge tidak mengubah lot Tengri selepas itu.
+- Hedge lawan net exposure Tengri hanya selepas sekurang-kurangnya 6 order bersih; saiz sasaran 25% lot bersih, dibundarkan ke bawah; satu kempen Hedge pada satu masa bagi setiap pair.
+- Entry menggunakan quote segar pertama selepas pengesahan event; event dibuang jika quote lewat lebih 5 minit. Event Type 1–4 mesti lulus D1/H4/M15 dan mempunyai konteks H4 Mid-BB + ADX(14)>25 + DI searah.
+- Exit bersama: H4 Mid-BB recross melawan Hedge; keselamatan tutup jika net exposure Tengri kosong atau bertukar arah. Saiz, spread cap 3 pip dan sumber quote dikekalkan sama.
+- Bid/Ask tick digunakan untuk fill; spread sudah terkandung dalam fill. Kos tambahan dimodelkan 1 pip bagi setiap lot/tindakan Hedge; stress 2 pip. Jangan tolak spread sekali lagi.
+- Coverage quote: Mei 21 hari, Jun 22, Julai 23, Ogos 21, September 22, Oktober 23 dan 1–18 November 13 hari.
+
+## Keputusan akaun
+
+P&L dan drawdown ialah flow-adjusted akaun, termasuk mark-to-market Hedge terbuka pada cutoff. “Base” menolak kos 1 pip/tindakan; “stress” menolak 2 pip/tindakan. DD dan ekuiti minimum dalam jadual datang daripada siri ekuiti setelah kos yang berkenaan.
+
+| Entry | P&L base / stress (USC) | Max DD base / stress | Min equity base / stress (USC) | Kempen ditutup; menang/kalah; terbuka | Expectancy / PF kempen tertutup, selepas kos base |
+|---|---:|---:|---:|---:|---:|
+| Tiada Hedge | +603.71 / +603.71 | 49.54% / 49.54% | 3,252.80 / 3,252.80 | — | — |
+| H4 Mid-BB + ADX25/DI, kawalan | +762.46 / +668.96 | 42.27% / 42.86% | 3,383.12 / 3,362.21 | 24; 6/18; 2 | −1.01 USC / 0.943 |
+| H1 RE Type 1 + gate + ADX25 | +662.03 / +636.60 | 47.18% / 47.40% | 3,331.84 / 3,327.02 | 9; 3/6; 1 | −4.51 USC / 0.826 |
+| H1 RE Type 2 + gate + ADX25 | +603.71 / +603.71 | 49.54% / 49.54% | 3,252.80 / 3,252.80 | 0; 0/0; 0 | Tiada signal/trade |
+| H1 RE Type 3 + gate + ADX25 | +887.75 / +870.76 | 45.48% / 45.57% | 3,414.99 / 3,414.99 | 5; 3/2; 1 | +41.33 USC / 11.307 |
+| H1 RE Type 4 + gate + ADX25 | +642.99 / +610.80 | 46.92% / 47.06% | 3,397.80 / 3,383.14 | 6; 2/4; 2 | −8.93 USC / 0.820 |
+
+Kiraan signal yang lulus gate tambahan H4 ADX25/DI: Type 1 = 27 (EURUSD 14, USDCHF 13), Type 2 = 0, Type 3 = 14 (5, 9), Type 4 = 23 (18, 5). Kiraan kempen yang benar-benar dibuka ialah 10 untuk Type 1, sifar untuk Type 2, 6 untuk Type 3, dan 8 untuk Type 4. Event yang lulus tidak semestinya menjadi entry jika syarat layer, kempen sedia ada atau quote tidak membenarkan.
+
+Kos tetap 1 pip / stress 2 pip masing-masing ialah: kawalan ADX25 93.50 / 187.01 USC; Type 1 25.43 / 50.87; Type 3 16.99 / 33.97; Type 4 32.18 / 64.37. Anggaran spread Bid/Ask yang sudah tercermin dalam P&L: 116.45, 43.24, 16.10 dan 29.98 USC mengikut turutan tersebut.
+
+## Tafsiran
+
+- Dalam sampel ini, Type 3 ialah petunjuk entry paling menjanjikan: P&L selepas kos base +887.75 USC, iaitu +125.29 USC berbanding kawalan ADX25. Stress 2 pip kekal +870.76 USC, +201.80 USC berbanding kawalan.
+- Type 3 **bukan pemenang yang disahkan**. Hanya 5 kempen tertutup menyokong expectancy positif; 1 lagi masih terbuka. PF 11.31 datang daripada 3 menang dan 2 kalah sahaja, jadi sangat tidak stabil.
+- Type 3 memberi max DD 45.48%, lebih tinggi 3.21 mata peratus daripada kawalan 42.27%, walaupun ekuiti minimum lebih tinggi. Pada cutoff, floating gabungan Type 3 ialah −1,430.47 USC berbanding −1,323.86 kawalan dan −1,511.56 tanpa Hedge. Jadi Type 3 menghasilkan lebih banyak P&L ujian tetapi perlindungan floating hujung sampelnya lebih lemah daripada kawalan.
+- Kawalan ADX25 sendiri menaikkan P&L berbanding tanpa Hedge, tetapi 18 daripada 24 kempen tertutup rugi dan expectancy kempen tertutupnya negatif. Sebahagian P&L akaun termasuk nilai Hedge yang masih terbuka.
+- Type 1 dan Type 4 tidak mengatasi kawalan. Type 2 tiada trade, maka tiada kesimpulan profitabiliti.
+- Trigger Type 3 mengambil quote pertama dalam tetingkap maksimum 5 minit selepas event. Runner ini belum melaporkan median/p95 kelewatan sebenar, jadi ketepatan latensi belum dibuktikan.
+
+## Exit dan batas kesahihan
+
+Replay ini **tidak mengasingkan exit**: semua varian menggunakan exit H4 Mid-BB yang sama. Kajian struktur berasingan sebelum ini mendapati entry H4+H1 dengan retest M15 dan exit H4+H1 mengurangkan kerugian daripada −581.39 kepada −414.85 USC serta DD daripada 36.82% kepada 33.33%, tetapi masih rugi. Ia menggunakan saiz hedge bertahap 25/50/75/90%, jadi angka itu bukan perbandingan sepadan dengan ujian 25% ini.
+
+Identiti build kini dipisahkan dengan jelas: Build 5.16 ialah source development yang telah digabung pada `d1-owner-dev`; `EA_RELEASE_IDENTITY.json` ialah rekod release beku Build 4.59 dan tidak patut ditimpa. Build 5.16 belum dipromosikan sebagai release production.
+
+Angka 739.47 USC bukan baki akaun yang hilang; ia datang daripada perbandingan lot scaled dengan statement mentah. Audit raw-to-raw masih menemui residual +12.40 USC pada 3 Ogos dan −14.16 USC pada 4 Ogos tanpa transaksi yang dikenal pasti. Daripada 1,357 row order Tengri, commission dan swap yang direkodkan kedua-duanya sifar; ini tidak mengesahkan jadual caj broker atau kos Hedge. Hedge replay masih menggunakan proksi kos 1 pip/tindakan dan stress 2 pip.
+
+Replay signal bersih dijalankan semula secara pair-specific dengan tester expert unik. Counts event yang diluluskan tidak berubah: EURUSD Type 1/2/3/4 = 18/0/18/35; USDCHF = 24/0/23/36. CSV bersih 282 row sama byte-for-byte dengan input replay terdahulu; tiada `P3S1` failure. HST D1/H4/H1/M15 meliputi 2 Jan 2025–18 Nov 2026 dan warm-up owner hadir pada permulaan ujian. Ujian menggunakan MT4 Model 2 open-prices-only; ia membuktikan aliran signal ini, bukan tick fill.
+
+Margin, stop-out, Hedge commission/swap, slippage di luar quote, rejection/partial fill, serta silang jejak source/executable Tengri kepada ledger masih belum disahkan. EA Hedge sebenar masih menggunakan H4 Mid-BB + ADX25/DI dan tidak membaca event BBMA. Ini bukan out-of-sample atau angka prestasi production; tiada parameter dilaras dan tiada EA/trading activation dibuat. Provenance terperinci: `research/BBMA_BUILD516_REPLAY_IDENTITY_AUDIT_20261122.md`.
+
+## Keputusan sementara dan langkah berikutnya
+
+Kekalkan H4 Mid-BB + ADX25/DI sebagai kawalan. Bawa Type 3 sahaja ke pass penyelidikan exit seterusnya, bersama kawalan ADX25, dan bandingkan exit H4 Mid-BB dengan exit H1 BBMA Re-Entry ke arah net Tengri pada data, saiz 25%, fill dan kos yang sama. CSAK exit hanya boleh dimasukkan selepas audit sumber/event memastikan formula close melepasi Mid-BB dan MA5 High/Low betul-betul tersedia. Jangan aktifkan EA berdasarkan replay ini.
+
+
+## Exit pass: H4 Mid-BB berbanding H1 BBMA Re-Entry
+
+Exit X0 menutup pada H4 Mid-BB recross melawan Hedge. Exit X1 menutup pada H1 Re-Entry pertama ke arah net Tengri menggunakan mana-mana Type 1–4, tanpa gate D1/H4 pada exit. Kedua-duanya kekalkan keselamatan tutup apabila Tengri flat atau arah net berubah.
+
+| Entry | Exit | P&L base / stress 2 pip (USC) | Max DD base / stress | Min equity base / stress (USC) | Kempen tutup; menang/kalah; terbuka | Expectancy / PF kempen selepas kos base | Purata jam pegangan | Exit H1 RE / keselamatan |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| ADX25/DI | X0 H4 Mid-BB | +762.46 / +668.96 | 42.27% / 42.86% | 3,383.12 / 3,362.21 | 24; 6/18; 2 | −1.01 / 0.943 | 64.00 | 0 / 1 |
+| ADX25/DI | X1 H1 RE ke Tengri | +577.41 / +491.06 | 41.96% / 42.58% | 3,508.27 / 3,498.85 | 21; 6/15; 2 | −10.18 / 0.707 | 83.93 | 16 / 4 |
+| Type 3 + gate + ADX25 | X0 H4 Mid-BB | +887.75 / +870.76 | 45.48% / 45.57% | 3,414.99 / 3,414.99 | 5; 3/2; 1 | +41.33 / 11.307 | 124.22 | 0 / 1 |
+| Type 3 + gate + ADX25 | X1 H1 RE ke Tengri | +779.69 / +762.71 | 47.71% / 47.84% | 3,390.62 / 3,378.79 | 5; 3/2; 1 | +19.71 / 3.003 | 115.65 | 4 / 1 |
+
+Kos tetap H1 RE exit ialah 86.35 USC base / 172.71 stress bagi entry ADX25, dan 16.98 / 33.96 USC bagi entry Type 3. Bid/Ask spread kekal terkandung dalam fill.
+
+X1 mengurangkan P&L berbanding X0 sebanyak 185.05 USC untuk ADX25 dan 108.06 USC untuk Type 3. Untuk ADX25, X1 menurunkan max DD hanya 0.31 mata peratus tetapi expectancy kempen jatuh lagi negatif dan purata pegangan menjadi lebih panjang. Untuk Type 3, X1 menurunkan expectancy daripada +41.33 kepada +19.71 USC, PF daripada 11.31 kepada 3.00, menaikkan DD 2.23 mata peratus, dan menurunkan ekuiti minimum 24.37 USC. Pada sampel ini, exit H1 RE tidak mengatasi exit H4 Mid-BB.
+
+Signal-to-quote delay selepas cap masa first M15 row amat singkat: Type 3 entry mempunyai p95 kira-kira 0.01 minit; maksimum exit-event yang dipadankan kira-kira 0.24 minit (14.4 saat). Ini hanya ukuran masa dari timestamp first M15 ke quote tersedia; ia **bukan** bukti ketepatan reversal atau ukuran dari masa signal H1 pertama dikesan.
+
+## Keputusan gabungan sementara
+
+Kekalkan H4 Mid-BB + ADX25/DI sebagai kawalan. Type 3 + gate D1/H4 + ADX25 bersama exit H4 Mid-BB kekal calon kajian, kerana memberi P&L tertinggi pada replay ini. Namun Type 3 hanya mempunyai 5 kempen tertutup, satu masih terbuka, DD peratusnya lebih tinggi daripada kawalan, dan floating gabungan di hujung lebih buruk daripada kawalan. Oleh itu ia belum wajar dipanggil strategi terbaik.
+
+Exit H1 RE tidak menunjukkan kelebihan bersih. Exit struktur H4+H1 dalam replay terdahulu memperbaiki kerugian berbanding exit H4 bagi entry struktur M15, tetapi hasilnya masih negatif dan saiz hedge bertahap. Perbandingan CSAK exit yang diaudit sumber belum dijalankan. Lakukan holdout berasingan dan selaraskan identiti Build sebelum menggunakan keputusan untuk perubahan EA.

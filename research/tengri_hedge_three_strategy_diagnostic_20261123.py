@@ -130,6 +130,40 @@ addon='''        out["event"][lo]=state["event"]
 '''
 assert feature_impl.count(needle)==1
 feature_impl=feature_impl.replace(needle,addon,1)
+feature_impl=feature_impl.replace(
+    'setups=0,touches=0,triggers=0,expired=0,disagreements=0)',
+    'setups=0,touches=0,triggers=0,expired=0,disagreements=0,adx_blocked=0)',1)
+feature_impl=feature_impl.replace(
+    'def retest_pulses(a,tf_today,state,htfs,ltf):',
+    'def retest_pulses(a,tf_today,state,htfs,ltf,rows=None,symbol=None,strategy=None,require_adx=False):',1)
+setup_anchor='''                chosen=max(signature,key=lambda x:(x[2],timeframe_ms[x[0]]))
+                state.update(pending_dir=int(dirs[0]),pending_level=float(chosen[3]),'''
+setup_gate='''                chosen=max(signature,key=lambda x:(x[2],timeframe_ms[x[0]]))
+                if require_adx:
+                    d=int(dirs[0])
+                    h4=tf_today["H4"]
+                    aligned_adx=(float(h4["adx"][lo])>25.0 and
+                        ((d>0 and float(h4["pdi"][lo])>float(h4["mdi"][lo])) or
+                         (d<0 and float(h4["mdi"][lo])>float(h4["pdi"][lo]))))
+                    if not aligned_adx:
+                        state["adx_blocked"]+=1
+                        if rows is not None and strategy:
+                            row=rows[lo]
+                            net=float(row[0]-row[4])
+                            layer=int(row[2] if net>0 else row[6]) if net else 0
+                            diagnostics.append({"strategy":strategy,"symbol":symbol,
+                                "event":"entry_setup","time_ms":int(chosen[2]),
+                                "signal_direction":d,"tengri_direction":int(np.sign(net)),
+                                "tengri_net_lots":round(net,2),"tengri_layer":layer,
+                                "hedge_direction":0,"hedge_lots_before":0.0,
+                                "hedge_lots_after":0.0,"decision":"blocked",
+                                "reason":"h4_adx_di_not_aligned_at_break","reentry_number":0})
+                        state.update(pending_dir=0,touched=False,consumed=True,wait_bars=0)
+                        continue
+                state.update(pending_dir=int(dirs[0]),pending_level=float(chosen[3]),'''
+if feature_impl.count(setup_anchor)!=1:
+    raise RuntimeError("Retest setup anchor mismatch")
+feature_impl=feature_impl.replace(setup_anchor,setup_gate,1)
 
 # Extract the common high-layer execution routine and add a structured event trace.
 fn=assignment_value(STAGED_GEN.read_text(encoding="utf-8"),"fn")
@@ -274,6 +308,15 @@ new_calls='''        raw_struct=retest_pulses(a,tf_today[symbol],retest_state[sy
             exit_struct,allow_hybrid,symbol,"STAGED",raw_entry_signal=raw_hybrid,
             gate_reason=gate_hybrid,strategy="HYBRID")
 '''
+new_calls=new_calls.replace(
+ 'raw_struct=retest_pulses(a,tf_today[symbol],retest_state[symbol]["STRUCTURE_ONLY"],("H4",),"H1")',
+ 'raw_struct=retest_pulses(a,tf_today[symbol],retest_state[symbol]["STRUCTURE_ONLY"],("H4",),"H1",rows=rows,symbol=symbol,strategy="STRUCTURE_ONLY")')
+new_calls=new_calls.replace(
+ 'raw_hybrid=retest_pulses(a,tf_today[symbol],retest_state[symbol]["HYBRID"],("H4",),"H1")',
+ 'raw_hybrid=retest_pulses(a,tf_today[symbol],retest_state[symbol]["HYBRID"],("H4",),"H1",rows=rows,symbol=symbol,strategy="HYBRID",require_adx=True)')
+a=new_calls.index('        for j in np.flatnonzero(raw_hybrid):')
+b=new_calls.index('        for j in np.flatnonzero(raw_indicator):',a)
+new_calls=new_calls[:a]+new_calls[b:]
 gen_text=replace_assignment(gen_text,"new_calls",new_calls)
 new_exec='''    execute_h4=execute_h4,features=features,init_tf_state=init_tf_state,
     init_retest_state=init_retest_state,retest_pulses=retest_pulses,
@@ -326,10 +369,13 @@ for name in ("STRUCTURE_ONLY","INDICATOR_ONLY","HYBRID"):
                           "10+" if x.get("tengri_layer",0)>=10 else "below7")
                          for x in entries)
     exits=Counter(x.get("reason") for x in evs if x.get("event")=="hedge_exit")
+    setup_blocks=Counter(x.get("reason") for x in evs if x.get("event")=="entry_setup" and x.get("decision")=="blocked")
     summary[name]={
         "entry_signal_count":len(entries),
         "accepted_signal_count":sum(x.get("decision")=="accepted" for x in entries),
         "blocked_signal_reasons":dict(blocked),
+        "blocked_setup_count":sum(setup_blocks.values()),
+        "blocked_setup_reasons":dict(setup_blocks),
         "entry_signals_by_layer":dict(layer_counts),
         "hedge_entries":sum(x.get("event")=="hedge_entry" for x in evs),
         "hedge_adds":sum(x.get("event")=="hedge_add" for x in evs),
@@ -350,6 +396,22 @@ result={"status":"diagnostic_only","sample_utc":["2026-05-01","2026-11-18"],
         "symbols":["EURUSD","USDCHF"],"warmup":warm_summary,
         "data_source":"local tick NPZ plus Tengri statement ledger/snapshots",
         "mt4_hfm_server_identity":"unverified",
+        "shared_policy":{"layer_gate":7,"size_pct_by_layer":{"7":25,"8":50,"9":75,"10+":100},
+          "max_spread_pips":3,"fixed_cost_pips_per_action":1,
+          "safety_close":"Tengri flat or net direction change",
+          "exit_pending":"signal exit waits for net BE; BE floor closes at net BE after reaching +1 study unit",
+          "reentry":"fresh adverse signal after hedge close",
+          "performance_metrics":"not reported"},
+        "strategies":summary,"event_count":len(diagnostics)}
+out_json=ROOT/"tengri_hedge_three_strategy_diagnostics_20261123.json"
+out_csv=ROOT/"tengri_hedge_three_strategy_diagnostics_20261123.csv"
+out_json.write_text(json.dumps({"summary":result,"events":diagnostics},indent=2),encoding="utf-8")
+fields=sorted({k for row in diagnostics for k in row})
+with out_csv.open("w",newline="",encoding="utf-8-sig") as fh:
+    writer=csv.DictWriter(fh,fieldnames=fields or ["strategy","symbol","event"])
+    writer.writeheader()
+    writer.writerows(diagnostics)
+print("DIAGNOSTIC_RESULT",json.dumps(result,ensure_ascii=False),flush=True)        "mt4_hfm_server_identity":"unverified",
         "shared_policy":{"layer_gate":7,"size_pct_by_layer":{"7":25,"8":50,"9":75,"10+":100},
           "max_spread_pips":3,"fixed_cost_pips_per_action":1,
           "safety_close":"Tengri flat or net direction change",

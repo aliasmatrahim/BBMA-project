@@ -122,3 +122,25 @@ Dalam tetingkap ujian Mei–November, dua residual sebenar yang masih tidak dipa
 | 4 Ogos 2026 | −14.16 USC | 0 | 0 | −14.16 USC |
 
 Residual bersih dua hari ialah −1.76 USC. Fail ledger mengandungi aliran tunai 1,125 USC pada 3 Ogos tetapi tiada rekod transaksi akaun yang menerangkan baki 12.40/−14.16 USC. Oleh itu discrepancy 739.47 USC sudah dikenal pasti sebagai salah padan skala; rekonsiliasi statement asal masih terbuka untuk dua pelarasan kecil. Jangan andaikan ia komisen atau swap tanpa transaction statement asal.
+
+
+## Laluan persediaan data MT4 — 23 November 2026
+
+### Semakan terminal G40
+- Terminal HFM MT4 ditemui di `C:\\Program Files (x86)\\HFM Metatrader 4`. Folder history lalai hanya memuatkan EURUSD H4 dan USDCHF H4; folder tester belum tersedia. Ini tidak cukup untuk replay M1 atau D1/H4/H1 sepanjang window terkunci.
+- Terminal `mt4_probe` yang dipakai untuk kerja penyelidikan berasingan dan dikonfigurasi ke `MetaQuotes-Demo`; ia bukan terminal HFM. Arkib tick sedia ada masih dari MT5 `HFMarketsGlobal-Demo4` dan tidak digunakan.
+- Tiada login/credential dibaca, tiada terminal HFM disambungkan, tiada capture dilampirkan pada carta dan tiada order/trading dilakukan.
+
+### Peralatan disediakan dalam branch
+- `MT4_TickCapture_Research.mq4`: indikator MT4 untuk kutipan Bid/Ask masa hadapan. Ia menolak Strategy Tester, akaun bukan demo, server selain `HFMarketsSV-Demo Server`, dan symbol yang tidak sepadan. Ia tiada fungsi order. Kompilasi pada MT4 build 1492 di G40: **0 errors, 0 warnings**; ia tidak dilampirkan pada carta.
+- `merge_mt4_tick_files.py`: menggabungkan CSV harian secara kronologi, mengekalkan fail asal dan mengeluarkan hash manifest.
+- `validate_mt4_tick_archive.py`: semak row quote, timestamp UTC/server, metadata MT4/demo/server, DST, 51 sesi warm-up D1, dan liputan hari kerja.
+- `MT4_DATA_ACQUISITION.md`: arahan, batasan dan laluan ujian.
+
+Ujian asap pada fixture sintetik lengkap lulus `PASS_DATA_QA_ONLY` dengan 64 sesi warm-up dan 145 hari kerja dalam window UTC terkunci; fixture yang mempunyai row dari `HFMarketsGlobal-Demo4` ditolak sebagai `HOLD`. Ini hanya mengesahkan helper. Ia bukan data HFM sebenar atau hasil profitability. Penukaran zon masa ikut jam server HFM GMT+2 musim sejuk/GMT+3 musim panas; gunakan `Europe/Helsinki` hanya selepas nama server dan clock akaun disahkan.
+
+### Keputusan data dan langkah untuk membuka ujian
+
+Replay prestasi terkunci kekal **HOLD** kerana data sejarah HFM MT4 tepat bagi 1 Februari–18 November 2026 tiada pada G40. Indikator tick capture hanya boleh mengumpul data mulai masa ia dipasang; ia tidak boleh memulihkan data lampau. Untuk replay sejarah, perlu minta arkib tick Bid/Ask daripada HFM bagi dua symbol dan server MT4 tersebut. Jika broker tidak membekalkannya, pilihan lain ialah membuat lock baharu untuk kajian saringan berasaskan HFM MT4 M1 + model `Every tick`; hasil itu mesti dilabel interpolasi MT4 dan tidak boleh menggantikan ujian tick asal. HFM Tick Chart Trader juga mengumpul sejak aplikasi dimulakan, bukan tick sejarah.
+
+Bila data betul diperoleh, jalankan baseline, Type 1, Type 2, Type 3 dan Type 4 dengan exit/kos/sizing yang sama. Sampel Mei–November kekal development; jangan pilih setting terbaik sebelum holdout bebas. EA Tengri/Hedge produksi masih tidak diubah dan trading kekal tidak aktif.

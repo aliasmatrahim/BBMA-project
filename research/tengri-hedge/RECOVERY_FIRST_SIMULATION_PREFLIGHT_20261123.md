@@ -21,7 +21,7 @@ Spesifikasi penuh: `OBJECTIVE_MC_SURVIVAL_DESIGN_20261123.md`.
 ### Ledger dan runner
 - Ledger mentah kini ditemui pada G40: 1,357 order Tengri, 227 snapshot baki, dan 13 aliran tunai. Audit layer mengesahkan lapisan maksimum 14.
 - Template `tengri_hedge_bbma_exit_comparison_20261122.py` dan base runner ADX H4 ditemui pada G40. Wrapper dalam branch masih tidak lengkap untuk dijalankan sendiri; data mentah tidak disalin ke repo.
-- Semakan harian ledger berbanding snapshot tidak menutup jurang rekonsiliasi 739.47 USC yang pernah dilaporkan. Jurang itu kekal sebagai blocker berasingan.
+- Root-cause audit menjejak residual 739.47 USC kepada perbandingan 1,356 order yang diskalakan untuk modal 4,000 USC dengan snapshot baki dan aliran tunai akaun asal yang tidak diskalakan. Ini bukan rekonsiliasi like-for-like dan diklasifikasikan sebagai artifak perbandingan skala, bukan kekurangan ledger mentah. Run order asal mempunyai residual harian maksimum sekitar 14.16 USC dalam tempoh ujian; baki residual kecil masih perlu dipadankan kepada swap/komisen atau sempadan masa server.
 
 ### Identiti Build
 - Source `BBMA_EA.mq4` menandakan Version 5.16, BuildTag `V516_M12_ENTRYCANDLE_GATE_20261107`, dan SourceRev `M12_ENTRYCANDLE_GATE_001_20261107`.
@@ -64,7 +64,7 @@ Lapor net P&L gabungan, P&L hedge, expectancy/PF, drawdown terapung, minimum equ
 ## Input untuk membuka HOLD
 
 - Arkib bid/ask tick yang sepadan dengan feed MT4 Tengri, dengan sekurang-kurangnya 16 hari warm-up sebelum 1 Mei 2026 hingga 18 November 2026, serta timezone dan manifest/hash.
-- Rekonsiliasi statement yang menerangkan jurang 739.47 USC menggunakan balance, closed P&L, swap, komisen, deposit/pengeluaran dan masa server yang sama.
+- Selesaikan residual kecil pada order asal dengan memadankan balance, closed P&L, swap/komisen, deposit/pengeluaran dan sempadan masa server yang sama. Ujian saiz semula perlu membandingkan order dengan baseline balance/flows yang turut diskalakan, bukan snapshot akaun asal.
 - Salinan runner/template serta base dependency yang dipinkan dalam branch untuk ulang kaji; data akaun mentah kekal di G40.
 - Spesifikasi margin/stop-out, kontrak, komisen, swap, spread, fill latency/slippage dan rejected order bagi akaun sasaran.
 

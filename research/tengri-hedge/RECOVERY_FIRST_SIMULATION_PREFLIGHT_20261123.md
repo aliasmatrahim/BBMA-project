@@ -63,9 +63,48 @@ Lapor net P&L gabungan, P&L hedge, expectancy/PF, drawdown terapung, minimum equ
 
 ## Input untuk membuka HOLD
 
-- Arkib bid/ask tick yang sepadan dengan feed MT4 Tengri, dengan sekurang-kurangnya 16 hari warm-up sebelum 1 Mei 2026 hingga 18 November 2026, serta timezone dan manifest/hash.
+- Arkib bid/ask tick sepadan dengan server MT4 Tengri untuk 1 Mei–18 November 2026, ditambah sejarah pemanasan daripada feed yang sama. Untuk ujian BBMA D1/H4/H1, sediakan sekurang-kurangnya 51 candle D1 tertutup sebelum 1 Mei bagi owner MA50 (praktikalnya sediakan data sejak 1 Februari); ujian berasingan yang memakai ADX H4 memerlukan warm-up ADX tersendiri. Sertakan server label, timezone, manifest/hash dan liputan tanpa jurang.
 - Selesaikan residual kecil pada order asal dengan memadankan balance, closed P&L, swap/komisen, deposit/pengeluaran dan sempadan masa server yang sama. Ujian saiz semula perlu membandingkan order dengan baseline balance/flows yang turut diskalakan, bukan snapshot akaun asal.
 - Salinan runner/template serta base dependency yang dipinkan dalam branch untuk ulang kaji; data akaun mentah kekal di G40.
 - Spesifikasi margin/stop-out, kontrak, komisen, swap, spread, fill latency/slippage dan rejected order bagi akaun sasaran.
 
 Build signal stream untuk kajian ini sudah dipinkan kepada Build 5.16; jangan masukkan binary/artifak legacy 4.59. Sehingga warm-up tick MT4 dan rekonsiliasi baki diselesaikan, status terbaik kekal **HOLD**.
+
+## Semakan khusus MT4 dan aliran signal — 23 November 2026
+
+### Aliran event BBMA ditemui, tetapi belum layak menjadi replay prestasi
+
+Pada G40 terdapat `BBMA516_signal_events_clean_20261122.csv` dan ringkasan sumbernya. Bagi 1 Mei–18 November 2026, bilangan event yang diluluskan oleh ekstraktor ialah:
+
+| Pair | Type 1 | Type 2 | Type 3 | Type 4 | Jumlah |
+|---|---:|---:|---:|---:|---:|
+| EURUSD | 18 | 0 | 18 | 35 | 71 |
+| USDCHF | 24 | 0 | 23 | 36 | 83 |
+
+Type 2 tiada dalam event log tetingkap ini; ia mesti dilaporkan sebagai sifar, bukan digabungkan dengan type lain. Ekstraktor menyatukan RE_ADMIT dengan kiraan M15 selepas D1 filter dan membuang minit yang ada konflik arah.
+
+### Sebab data tester itu belum membuktikan feed MT4
+
+Skrip `make_mt4_hst_from_mt5.py` menunjukkan HST yang dimasukkan ke terminal tester dibina daripada fail bar `HFMarketsGlobal-Demo4 via MT5 copy_rates_range`. Ujian MT4 terkunci pada G40 menggunakan `TestModel=2`; laporan HTML menyebut **Open prices only**, spread tetap 30 points, dan modelling quality `n/a`. Jadi Build 5.16 memang berjalan sebagai EA MQL4 dalam tester MT4, tetapi harga sejarah yang dimasukkan bukan tick sejarah daripada server MT4 Tengri dan model itu bukan replay Bid/Ask tick. Laporan tester standalone BBMA yang mempunyai order tester tidak dikira sebagai prestasi EA Hedge.
+
+Perbandingan OHLC pada tempoh overlap, selepas penjajaran timestamp terbaik 0 jam, mengesahkan dua sumber ini bukan salinan bar yang sama:
+
+| Data MT4 `HFMarketsSV-Demo Server` | Overlap | OHLC tepat sama | Deviasi OHLC maksimum |
+|---|---:|---:|---:|
+| EURUSD M15 | 2,048 bar | 504 (24.6%) | 94 points / 9.4 pip |
+| EURUSD H1 | 2,816 bar | 469 (16.7%) | 182 points / 18.2 pip |
+| USDCHF H1 | 2,528 bar | 541 (21.4%) | 136 points / 13.6 pip |
+
+HST MT4 setempat juga hanya meliputi EURUSD M15 dari 19 Oktober dan H1/USDCHF H1 dari 5 Jun; H4/D1 tidak tersedia dalam folder server tersebut, USDCHF M15 tiada, dan `ticks.raw` server cuma 9,480 bytes. FXT tester EURUSD/USDCHF masing-masing 78,232 bytes. Ini tidak membuktikan tick history penuh bagi tetingkap ujian.
+
+### Laluan data yang disemak
+
+- [MT4 History Center](https://www.metatrader4.com/en/trading-platform/help/service/history_center) boleh memuat turun bar M1 daripada historical-data server MetaQuotes, tetapi MetaQuotes sendiri memberi amaran bahawa data itu mungkin berbeza daripada historical data broker.
+- [HFM Tick Chart Trader guide](https://static.hfm.com/assets/docs/tools_hfm/premium-trader-tools/tick-chart-trader-user-guide-HFSC-en.pdf?v=70) menyatakan carta ticknya mula terkumpul apabila aplikasi bermula dan tidak memberi akses kepada tick sejarah. Ia sesuai untuk kutipan ke hadapan, bukan mengisi Februari–November 2026.
+- [MT4 tester setup](https://www.metatrader4.com/en/trading-platform/help/autotrading/tester/tester_parameters) menerangkan bahawa sejarah terminal MT4 disimpan sebagai bar OHLC dan pergerakan intra-bar dimodelkan; laporan G40 yang diperiksa memang `Open prices only`.
+
+### Keputusan dan tindakan seterusnya
+
+Status replay kekal **HOLD**. Signal event awal sudah ditemui, tetapi feed MT4 Bid/Ask lengkap serta warm-up 51 D1 candle daripada sumber yang sama belum ada. Template comparison yang ditemui pula membandingkan ADX25 dengan RE3 dan exit H4; ia bukan runner yang mengikut lock baseline + Type 1–4 dengan exit bersama. Jangan jalankan atau label template itu sebagai ujian terkunci.
+
+Untuk membuka gate, perlu dapatkan arkib raw Bid/Ask EURUSD dan USDCHF daripada feed MT4 `HFMarketsSV-Demo Server` bagi sekurang-kurangnya **1 Februari–18 November 2026**, dengan timestamp/server timezone dan bukti asal. Selepas itu, sahkan manifest, warm-up, ledger rekonsiliasi, kemudian sediakan runner khusus bagi baseline/Type 1–4. Tiada EA produksi diubah dan tiada trading diaktifkan.

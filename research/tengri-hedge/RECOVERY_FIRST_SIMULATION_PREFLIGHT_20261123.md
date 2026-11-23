@@ -26,7 +26,7 @@ Spesifikasi penuh: `OBJECTIVE_MC_SURVIVAL_DESIGN_20261123.md`.
 ### Identiti Build
 - Source `BBMA_EA.mq4` menandakan Version 5.16, BuildTag `V516_M12_ENTRYCANDLE_GATE_20261107`, dan SourceRev `M12_ENTRYCANDLE_GATE_001_20261107`.
 - Log tester MT4 bagi pair run terkunci mencetak Build=5.16 bersama tag dan revision yang sama. Ini meminkan identiti signal stream untuk kajian ini.
-- Rujukan Build 4.59 yang ditemui ialah rekod/artifak legacy; ia bukan bukti bahawa signal stream ujian ini datang daripada Build 4.59. Simpan artifak legacy di luar input replay.
+- `EA_RELEASE_IDENTITY.json` merekodkan release kanonik beku Build 4.59 (`source_blob=dc83e627...`); ia bukan metadata untuk development build 5.16 dan tidak patut dilabel semula. Signal stream kajian ialah source development branch `d1-owner-dev`, commit `7567af7dfbfaafff35a37c1d307b387e96273c78`, blob `05b961863b53e4c8408f152a5d800699b5f27eaf`; log tester sepadan dengan tag Build 5.16. Jadi identiti dua artefak kini dibezakan dengan jelas.
 
 ### Tick dan warm-up
 - Tick EURUSD/USDCHF yang tersedia mempunyai quote bagi semua 145 hari ujian Mei–18 November untuk setiap pair; tiada hari kerja ujian yang hilang, dan audit menemui tiada quote tidak sah atau susunan masa terbalik.
@@ -108,3 +108,17 @@ HST MT4 setempat juga hanya meliputi EURUSD M15 dari 19 Oktober dan H1/USDCHF H1
 Status replay kekal **HOLD**. Signal event awal sudah ditemui, tetapi feed MT4 Bid/Ask lengkap serta warm-up 51 D1 candle daripada sumber yang sama belum ada. Template comparison yang ditemui pula membandingkan ADX25 dengan RE3 dan exit H4; ia bukan runner yang mengikut lock baseline + Type 1–4 dengan exit bersama. Jangan jalankan atau label template itu sebagai ujian terkunci.
 
 Untuk membuka gate, perlu dapatkan arkib raw Bid/Ask EURUSD dan USDCHF daripada feed MT4 `HFMarketsSV-Demo Server` bagi sekurang-kurangnya **1 Februari–18 November 2026**, dengan timestamp/server timezone dan bukti asal. Selepas itu, sahkan manifest, warm-up, ledger rekonsiliasi, kemudian sediakan runner khusus bagi baseline/Type 1–4. Tiada EA produksi diubah dan tiada trading diaktifkan.
+
+
+## Rekonsiliasi ledger — 23 November 2026
+
+Audit root-cause berjaya dijalankan semula melalui Python 3.12 pada G40. Perbandingan **scaled 1,356-order stream** dengan snapshot baki akaun asal menghasilkan residual 739.4727 USC pada 2 Julai; ini artifak skala kerana snapshot/flows tidak dinormalisasi bersama trade stream. Run order mentah mempunyai 1,357 order, 227 snapshot dan 13 aliran tunai.
+
+Dalam tetingkap ujian Mei–November, dua residual sebenar yang masih tidak dipadankan ialah:
+
+| Tarikh | Perubahan baki | P&L close | Cash flow | Residual |
+|---|---:|---:|---:|---:|
+| 3 Ogos 2026 | +1,150.57 USC | +13.17 USC | +1,125.00 USC | +12.40 USC |
+| 4 Ogos 2026 | −14.16 USC | 0 | 0 | −14.16 USC |
+
+Residual bersih dua hari ialah −1.76 USC. Fail ledger mengandungi aliran tunai 1,125 USC pada 3 Ogos tetapi tiada rekod transaksi akaun yang menerangkan baki 12.40/−14.16 USC. Oleh itu discrepancy 739.47 USC sudah dikenal pasti sebagai salah padan skala; rekonsiliasi statement asal masih terbuka untuk dua pelarasan kecil. Jangan andaikan ia komisen atau swap tanpa transaction statement asal.

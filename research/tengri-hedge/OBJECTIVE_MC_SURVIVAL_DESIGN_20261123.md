@@ -6,16 +6,33 @@ Status: spesifikasi penyelidikan; belum dilaksanakan dalam EA dan belum diuji un
 
 ## Perubahan objektif
 
-Objektif utama EA Hedge kini ialah **mengurangkan risiko akaun mencapai stop-out / margin call apabila exposure Tengri dan layer bertambah tinggi**. Hedge profit yang membantu mengimbangi floating loss ialah manfaat sampingan. Sasaran “menampung semua floating loss” bukan lagi kriteria wajib.
+EA Hedge kini mempunyai dua objektif:
 
-Tiada hedge boleh menjamin akaun tidak MC dalam semua keadaan. Gap, spread melebar, slippage, order ditolak, margin rule broker, swap dan kerugian yang telah terkumpul boleh menyebabkan akaun tetap tidak selamat. Matlamat yang boleh diuji ialah mengekalkan margin/free-margin di atas ambang keselamatan yang ditetapkan dalam senario adverse yang eksplisit, termasuk kos dan fill broker.
+1. **Survival:** mengurangkan risiko akaun mencapai stop-out/MC apabila exposure dan layer Tengri meningkat.
+2. **Pulangan:** mencari hedge yang memberi sumbangan untung bersih dan memperbaiki hasil gabungan Tengri + Hedge selepas kos.
+
+Kriteria keseluruhan ialah memaksimumkan hasil bersih gabungan pada holdout, tertakluk pada gate survival dan had kerugian. P&L hedge sahaja tetap dilaporkan; hedge yang menanggung kos perlindungan hanya boleh diterima jika ia membantu survival dan keputusan gabungan lebih baik daripada Tengri sahaja. Ia tidak cukup sekadar menghasilkan banyak trade hedge yang menang.
+
+### Had kerugian akaun
+
+Gunakan baki rujukan tetap (B_ref), iaitu balance akaun sejurus sebelum kitaran risiko gabungan pertama bermula. Kitaran bermula apabila exposure Tengri pertama dibuka dan berakhir apabila semua posisi Tengri/Hedge yang dilindungi kembali flat. Jangan alihkan baseline setiap kali balance berubah; deposit/pengeluaran selepas baseline perlu dinormalkan supaya tidak menyamarkan drawdown.
+
+Kiraan guard berdasarkan **equity akaun**, bukan balance sahaja, supaya floating loss Tengri dan Hedge diambil kira:
+`LossPct = 100 × (B_ref − Equity_adjusted) / B_ref`
+
+Polisi calon untuk diuji:
+- **10% daripada B_ref:** soft trigger untuk risk-lock/de-risk; hentikan penambahan risiko jika integrasi Tengri membenarkan, hitung semula hedge dan mula kurangkan exposure secara terkawal.
+- **15% daripada B_ref:** hard trigger untuk menutup semua exposure Tengri + Hedge dalam skop akaun/kitaran.
+- Uji juga 10% sebagai hard-cut variant. Kunci polisi sebelum holdout; jangan pilih berdasarkan prestasi holdout.
+
+10–15% ialah had trigger/replay yang diminta, bukan jaminan had rugi tepat. Gap, spread melebar, slippage, kelewatan, order reject dan stop-out broker boleh menyebabkan realisasi melepasi nilai trigger. Jika EA Hedge tidak boleh menghalang layer Tengri baharu atau menutup exposure Tengri ketika hard trigger, had 15% tidak boleh dikuatkuasakan dengan boleh dipercayai; integrasi/risk-lock itu ialah prasyarat untuk tuntutan had tersebut.
 
 Susunan keutamaan:
-1. Elak stop-out dalam senario ujian yang ditetapkan.
-2. Kekalkan free margin dan ruang untuk fill/volatility.
-3. Kurangkan exposure bersih terhadap pergerakan adverse seterusnya.
-4. Ambil untung hedge taktikal atau tutup hampir BE apabila perubahan exposure Tengri menjadikan pelepasan itu selamat.
-5. Kurangkan kos/churn dan tingkatkan P&L gabungan.
+1. Lulus margin/free-margin gate di semua senario tekanan yang dikunci.
+2. Hormati soft trigger 10% dan hard trigger maksimum 15% daripada baki rujukan.
+3. Dalam kekangan di atas, tingkatkan P&L bersih gabungan Tengri + Hedge.
+4. Tingkatkan sumbangan bersih hedge dan kurangkan kos/churn tanpa mengorbankan perlindungan.
+5. Ambil untung hedge taktikal atau tutup hampir BE apabila perubahan exposure Tengri menjadikan pelepasan selamat.
 
 ## Cadangan polisi: staging berdasarkan layer, saiz berdasarkan risiko
 
@@ -34,7 +51,7 @@ Pada setiap tindakan yang dicadangkan, simulasi sekurang-kurangnya tiga keadaan:
 - kira equity tekanan selepas perubahan harga dan kos: (E_s(H));
 - kira used margin broker sebenar selepas hedge/penutupan: (M_s(H));
 - kira margin level tekanan (ML_s(H)=100	imes E_s(H)/M_s(H)), apabila margin bukan sifar;
-- pilih lot hedge **paling kecil** yang mengekalkan semua senario di atas ambang margin keselamatan dan free-margin minimum yang dikunci.
+- pilih lot hedge **paling kecil** yang mengekalkan semua senario di atas ambang margin keselamatan dan free-margin minimum yang dikunci. Dalam ruang saiz yang lulus gate, nilai exit/re-entry berdasarkan P&L bersih gabungan dan pilih calon yang meningkatkan pulangan holdout tanpa melanggar had 10/15%.
 
 Ambang keselamatan mesti berada di atas stop-out broker dengan buffer yang nyata. Nilainya belum dikunci kerana entity akaun, tetapan margin simbol, tahap stop-out dan rekonsiliasi baki belum disahkan. Jika tiada lot dalam had yang dibenarkan boleh lulus gate, sistem mesti menandakan keadaan “tidak dapat dilindungi”; ia tidak boleh menaikkan hedge tanpa had atau melaporkan keadaan selamat.
 
@@ -71,15 +88,15 @@ Kriteria utama bukan win rate/PF hedge semata-mata. Lapor:
 - minimum margin level dan minimum free margin per simbol serta akaun;
 - masa pertama margin gate gagal, dan tempoh pendedahan tanpa perlindungan;
 - lot hedge maksimum/ purata dan peratus net Tengri yang dilindungi;
-- P&L gabungan Tengri + hedge selepas spread, komisen, swap dan fill/reject;
-- floating drawdown gabungan, kos hedge, churn, duration, BE/profit exits dan re-entry;
+- P&L gabungan Tengri + hedge serta sumbangan Hedge tersendiri selepas spread, komisen, swap dan fill/reject; expectancy dan PF bersih pada holdout;
+- floating drawdown gabungan dan maksimum loss sebagai % B_ref; kejadian soft trigger 10%, hard trigger 15%, slippage ketika cutloss, kos hedge, churn, duration, BE/profit exits dan re-entry;
 - perbandingan Tengri sahaja vs polisi hedge menggunakan ledger, tick, kos dan senario tekanan yang sama.
 
 Uji holdout bebas selepas polisi dikunci. Jangan cari parameter baharu pada tempoh yang sama. Replay 1 Mei–18 Nov 2026 yang telah dilaporkan tidak menguji margin/stop-out broker dan bukan holdout; angka lama kekal sebagai rekod bagi polisi lama sahaja.
 
 ## Gate sebelum angka boleh dianggap sah
 
-Masih perlu ditutup: jurang rekonsiliasi maksimum 739.4727 USC; residual 14.16 USC pada 4 Ogos; konflik identiti Build 5.16 vs Build 4.59; entity akaun sebenar; margin hedge dan margin level/stop-out untuk EURUSD serta USDCHF; komisen/swap; dan bukti fill gagal/slippage. Dapatkan nilai daripada statement serta spesifikasi MT4 akaun itu sebelum mengunci formula dan ambang.
+Masih perlu ditutup: jurang rekonsiliasi maksimum 739.4727 USC; residual 14.16 USC pada 4 Ogos; konflik identiti Build 5.16 vs Build 4.59; entity akaun sebenar; margin hedge dan margin level/stop-out untuk EURUSD serta USDCHF; komisen/swap; bukti fill gagal/slippage; dan sama ada EA Hedge boleh mengunci penambahan layer Tengri serta melaksanakan hard cut terhadap posisi Tengri. Dapatkan nilai daripada statement serta spesifikasi MT4 akaun itu sebelum mengunci formula dan ambang.
 
 HFM menerangkan bahawa posisi sama dan bertentangan yang match boleh mendapat margin sifar pada volum matched, manakala menutup satu sisi boleh mengembalikan margin standard pada posisi yang tinggal. Oleh itu, peraturan akaun dan contract specification mesti disahkan pada terminal/entiti yang digunakan sebelum manfaat margin itu masuk dalam model. Rujukan:
 - HFM FAQ, margin bagi hedge dan perubahan margin apabila satu sisi ditutup: https://www.hfm.com/int/en/help/faqs
@@ -87,7 +104,7 @@ HFM menerangkan bahawa posisi sama dan bertentangan yang match boleh mendapat ma
 
 ## Keputusan tindakan
 
-- Objektif masa depan bertukar kepada **survival margin / anti-MC**.
+- Objektif bertukar kepada **survival margin + pulangan bersih hedge**, dengan soft de-risk 10% dan hard cut maksimum 15% daripada baki rujukan sebagai polisi calon.
 - Kaedah calon utama: **hybrid staging + stress-margin sizing**, dengan tranche perlindungan dan tranche taktikal.
 - Jangan ubah EA atau aktifkan trading berdasarkan nota ini.
 - Ujian seterusnya selepas rekonsiliasi dan identiti build: replay margin-aware yang membandingkan (A) tangga 25/50/75/100 pada net lot semasa, (B) tambahan per layer pada lot Tengri baharu, dan (C) sizing minimum melalui stress-margin gate. Semua guna exit, kos dan senario yang sama.
